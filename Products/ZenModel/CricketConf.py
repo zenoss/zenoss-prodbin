@@ -205,15 +205,15 @@ class CricketConf(Monitor, StatusColor):
                     statusmon = statusmon[0]
                     if statusmon.maxFailures <= device.getSnmpStatusNumber():
                         continue
-                try:
-                    cd = device.cricketGenerate()
-                    if cd: 
-                        cricketData.extend(cd)
-                        get_transaction().commit()
-                except:
-                    msg = 'problem with cricket gen on device %s\n' % device.id
-                    msg += self.exceptMsg()
-                    LOG('CricketConf', WARNING, msg)
+                #try:
+                cd = device.cricketGenerate()
+                if cd: 
+                    cricketData.extend(cd)
+                    get_transaction().commit()
+                #except:
+                #    msg = 'problem with cricket gen on device %s\n' % device.id
+                #    msg += self.exceptMsg()
+                #    LOG('CricketConf', WARNING, msg)
         return cricketData
     
     
