@@ -36,6 +36,10 @@ from RelationshipAlias import RelationshipAlias
 from RelTypes import *
 from Products.ZenRelations.Exceptions import *
 
+from Products.ZenUtils.Exceptions import ZentinelException
+
+class RelationshipExistsError(ZentinelException):pass
+
 OWNEDOBJECT = 1
 RELATEDOBJECT = 2
 
@@ -78,9 +82,6 @@ def manage_addToManyRelationship(context, id, title = None,
 
 
 addToManyRelationship = DTMLFile('dtml/addToManyRelationship',globals())
-
-
-class RelationshipExistsError(Exception):pass
 
 class ToManyRelationship(RelationshipBase):
     """ToManyRelationship is an ObjectManager that maintains the
