@@ -25,7 +25,7 @@ from OFS.ObjectManager import BadRequestException, BeforeDeleteException
 from OFS.ObjectManager import ObjectManager
 from zLOG import LOG, ERROR
 
-from Products.ConfUtils.Utils import checkClass
+from Products.ZenUtils.Utils import checkClass
 
 from RelationshipAlias import RelationshipAlias
 from SchemaManager import SchemaError

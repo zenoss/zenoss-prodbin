@@ -18,8 +18,8 @@ import xmlrpclib
 
 import Globals
 
-from Products.ConfUtils.CmdBase import CmdBase
-from Products.ConfUtils.Utils import basicAuthUrl
+from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.Utils import basicAuthUrl
 
 class TargetDataError(Exception):pass
 

@@ -31,8 +31,8 @@ import logging
 
 import Globals # make zope imports work
 
-from Products.ConfUtils.ConfDaemon import ConfDaemon
-from Products.ConfUtils.Utils import parseconfig, basicAuthUrl
+from Products.ZenUtils.ConfDaemon import ConfDaemon
+from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 
 class PingMonitor(ConfDaemon):
 

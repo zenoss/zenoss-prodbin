@@ -26,7 +26,7 @@ from AuthTransport import BasicAuthTransport
 
 import Sybase
 
-from Products.ConfUtils.ConfDaemon import ConfDaemon
+from Products.ZenUtils.ConfDaemon import ConfDaemon
 
 class NcoEventPopulator(ConfDaemon):
 

@@ -24,8 +24,8 @@ from Acquisition import aq_base
 
 from DateTime import DateTime
 
-from Products.ConfUtils.ZCmdBase import ZCmdBase
-from Products.ConfUtils.Utils import lookupClass
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import lookupClass
 
 from Products.ZenRelations.Exceptions import *
 

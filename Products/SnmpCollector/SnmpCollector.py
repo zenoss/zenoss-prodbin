@@ -24,8 +24,8 @@ from Acquisition import aq_base
 
 from Products.Confmon.Exceptions import *
 
-from Products.ConfUtils.ZCmdBase import ZCmdBase
-from Products.ConfUtils.Utils import getObjByPath
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import getObjByPath
 
 from SnmpSession import SnmpSession
 from pysnmp.error import PySnmpError
@@ -248,7 +248,7 @@ class SnmpCollector(ZCmdBase):
 
     def _lookupClass(self, productName):
         """look in sys.modules for our class"""
-        from Products.ConfUtils.Utils import lookupClass
+        from Products.ZenUtils.Utils import lookupClass
         return lookupClass(productName)
 
 

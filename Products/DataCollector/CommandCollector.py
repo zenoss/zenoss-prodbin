@@ -22,8 +22,8 @@ import sys
 from DateTime import DateTime
 from Acquisition import aq_base
 
-from Products.ConfUtils.ZCmdBase import ZCmdBase
-from Products.ConfUtils.Utils import getObjByPath
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import getObjByPath
 
 
 class CommandCollector(ZCmdBase):

@@ -27,8 +27,8 @@ from random import randrange
 
 import Globals
 
-from Products.ConfUtils.ConfDaemon import ConfDaemon
-from Products.ConfUtils.Utils import parseconfig, basicAuthUrl
+from Products.ZenUtils.ConfDaemon import ConfDaemon
+from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 
 class SnmpMonitor(ConfDaemon):
     

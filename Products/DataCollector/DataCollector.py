@@ -25,8 +25,8 @@ from twisted.internet import reactor
 
 from Acquisition import aq_base
 
-from Products.ConfUtils.Utils import getObjByPath
-from Products.ConfUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 import CollectorClient
 import SshClient
@@ -261,7 +261,7 @@ class DataCollector(ZCmdBase):
 
     def _lookupClass(self, productName):
         """look in sys.modules for our class"""
-        from Products.ConfUtils.Utils import lookupClass
+        from Products.ZenUtils.Utils import lookupClass
         return lookupClass(productName)
 
 

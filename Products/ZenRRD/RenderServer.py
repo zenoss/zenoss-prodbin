@@ -24,8 +24,8 @@ from zLOG import LOG, INFO, DEBUG
 
 from pyrrdtool import rrd_graph, rrd_test_error, rrd_get_error
 
-from Products.ConfUtils.PObjectCache import PObjectCache
-from Products.ConfUtils.PObjectCache import CacheObj
+from Products.ZenUtils.PObjectCache import PObjectCache
+from Products.ZenUtils.PObjectCache import CacheObj
 
 from RRDToolItem import RRDToolItem
 

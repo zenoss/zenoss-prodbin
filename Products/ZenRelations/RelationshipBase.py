@@ -27,7 +27,7 @@ from App.Dialogs import MessageDialog
 
 from OFS.CopySupport import CopyError
 
-from Products.ConfUtils.Utils import checkClass, getObjByPath
+from Products.ZenUtils.Utils import checkClass, getObjByPath
 
 from RelCopySupport import RelCopyContainer
 from SchemaManager import SchemaError

@@ -1,4 +1,4 @@
-from Products.ConfUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 class devicetest(ZCmdBase):
 

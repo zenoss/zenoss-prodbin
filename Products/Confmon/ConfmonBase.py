@@ -28,7 +28,7 @@ from Products.ZCatalog.CatalogAwareness import CatalogAware
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenRelations.Exceptions import SchemaError
 
-from Products.ConfUtils.Utils import getSubObjects
+from Products.ZenUtils.Utils import getSubObjects
 
 from ConfmonPropManager import ConfmonPropManager
 from ConfmonAll import ConfmonAll

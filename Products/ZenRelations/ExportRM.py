@@ -17,7 +17,7 @@ import sys
 import Zope
 Zope.startup()
 
-from Products.ConfUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from RelationshipManager import RelationshipManager
 

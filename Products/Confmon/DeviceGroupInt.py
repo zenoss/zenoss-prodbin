@@ -15,7 +15,7 @@ $Id: DeviceGroupInt.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
         
-from Products.ConfUtils.Utils import travAndColl
+from Products.ZenUtils.Utils import travAndColl
 
 class DeviceGroupInt:
     """DeviceGroupInt object"""

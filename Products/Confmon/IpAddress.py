@@ -18,8 +18,8 @@ from Globals import InitializeClass
 from OFS.FindSupport import FindSupport
 from Acquisition import aq_parent    
 
-from Products.ConfUtils.IpUtil import *
-from Products.ConfUtils.Utils import getObjByPath
+from Products.ZenUtils.IpUtil import *
+from Products.ZenUtils.Utils import getObjByPath
 
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt

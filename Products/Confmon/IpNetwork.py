@@ -19,7 +19,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.CMFCore import CMFCorePermissions
 
-from Products.ConfUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
+from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
 from Instance import Instance
 from IpAddress import manage_addIpAddress

@@ -27,7 +27,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 from IpAddress import IpAddress, findIpAddress
 from IpNetwork import addIpAddressToNetworks 
-from Products.ConfUtils.IpUtil import *
+from Products.ZenUtils.IpUtil import *
 
 from DeviceResultInt import DeviceResultInt
 from ConfmonPropManager import ConfmonPropManager

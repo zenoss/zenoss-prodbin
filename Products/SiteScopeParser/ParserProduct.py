@@ -12,7 +12,7 @@ $Id: ParserProduct.py,v 1.31 2002/11/08 18:03:40 edahl Exp $"""
 
 __version__ = "$Revision: 1.31 $"[11:-2]
 
-from Products.ConfUtils.ObjectCache import ObjectCache
+from Products.ZenUtils.ObjectCache import ObjectCache
 from ParserProductInt import ParserProductInt
 from SiteScopeParser import SiteScopeParser, SiteScopeFirstParser
 from SiteScopeRow import SiteScopeRow

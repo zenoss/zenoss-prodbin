@@ -26,7 +26,7 @@ from App.Dialogs import MessageDialog
 
 from Products.CMFCore import CMFCorePermissions
 
-from Products.ConfUtils.Utils import zenpathsplit, zenpathjoin
+from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
 from Instance import Instance
 from DeviceResultInt import DeviceResultInt

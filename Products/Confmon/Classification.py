@@ -21,7 +21,7 @@ from Products.CMFCore import CMFCorePermissions
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelationshipManager import RelationshipManager
-from Products.ConfUtils.Utils import checkClass
+from Products.ZenUtils.Utils import checkClass
 
 from ConfmonBase import ConfmonBase
 

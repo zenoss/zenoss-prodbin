@@ -24,10 +24,10 @@ import Globals
 
 from OFS.Folder import manage_addFolder
 
-from Products.ConfUtils.Utils import getObjByPath
-from Products.ConfUtils.Utils import lookupClass
+from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import lookupClass
 
-from Products.ConfUtils.BasicLoader import BasicLoader
+from Products.ZenUtils.BasicLoader import BasicLoader
 
 from Products.ZenRRD.RRDTargetType import RRDTargetType
 from Products.ZenRRD.RRDView import RRDView

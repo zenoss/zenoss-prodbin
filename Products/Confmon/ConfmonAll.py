@@ -23,7 +23,7 @@ from DateTime import DateTime
 
 from Products.CMFCore.utils import _verifyActionPermissions
 
-from Products.ConfUtils.Utils import zenpathsplit, zenpathjoin, getHierarchyObj
+from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getHierarchyObj
 
 
 class ConfmonAll:
@@ -189,13 +189,13 @@ class ConfmonAll:
     
     def getDmdObj(self, path):
         """get object from path that starts at dmd ie. /Devices/Servers/box"""
-        from Products.ConfUtils.Utils import getObjByPath
+        from Products.ZenUtils.Utils import getObjByPath
         return getObjByPath(self.getDmd(), path)
    
 
     def getZopeObj(self, path):
         "get object from path tat starts at zope root ie. /zport/dmd/Devices"
-        from Products.ConfUtils.Utils import getObjByPath
+        from Products.ZenUtils.Utils import getObjByPath
         return getObjByPath(self.getPhysicalRoot(), path)
 
 

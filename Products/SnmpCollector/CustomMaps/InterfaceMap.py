@@ -14,8 +14,8 @@ __version__ = '$Revision: 1.24 $'[11:-2]
 
 import re
 
-from Products.ConfUtils.IpUtil import maskToBits
-from Products.ConfUtils.Utils import cleanstring
+from Products.ZenUtils.IpUtil import maskToBits
+from Products.ZenUtils.Utils import cleanstring
 
 from CustomRelMap import CustomRelMap
 

@@ -32,8 +32,8 @@ from Products.CMFCore import CMFCorePermissions
 import Sybase
 
 from NcoEvent import NcoEvent, NcoEventDetail, NcoEventJournal, NcoEventData
-from Products.ConfUtils.ObjectCache import ObjectCache
-from Products.ConfUtils.Utils import cleanstring
+from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenUtils.Utils import cleanstring
 
 def manage_addNcoManager(context, id, REQUEST=None):
     '''make an NcoManager'''

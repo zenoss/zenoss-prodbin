@@ -20,7 +20,7 @@ import urllib
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.ConfUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath
 
 from ConfmonAll import ConfmonAll
 

@@ -15,7 +15,7 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 
 from Globals import InitializeClass
 
-from Products.ConfUtils.Utils import travAndColl
+from Products.ZenUtils.Utils import travAndColl
 
 from Instance import Instance
 from DeviceGroupInt import DeviceGroupInt

@@ -19,7 +19,7 @@ from Globals import InitializeClass
 
 from Products.CMFCore import CMFCorePermissions
 
-from Products.ConfUtils.Utils import travAndColl
+from Products.ZenUtils.Utils import travAndColl
 
 from Instance import Instance
 from DeviceGroupInt import DeviceGroupInt

@@ -14,7 +14,7 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 from Acquisition import aq_parent
 
-from Products.ConfUtils.Utils import getSubObjects
+from Products.ZenUtils.Utils import getSubObjects
 
 from ZCmdBase import ZCmdBase
 

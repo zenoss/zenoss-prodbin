@@ -23,7 +23,7 @@ from Acquisition import aq_base
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.CMFCore import CMFCorePermissions
 
-from Products.ConfUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from Device import manage_addDevice

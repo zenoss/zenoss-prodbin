@@ -1,6 +1,6 @@
-from Products.ConfUtils.Utils import getSubObjects
+from Products.ZenUtils.Utils import getSubObjects
 
-from Products.ConfUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 class FixIps(ZCmdBase):
 
