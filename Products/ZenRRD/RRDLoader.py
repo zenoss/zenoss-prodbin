@@ -29,10 +29,10 @@ from Products.ConfUtils.Utils import lookupClass
 
 from Products.ConfUtils.BasicLoader import BasicLoader
 
-from Products.RRDProduct.RRDTargetType import RRDTargetType
-from Products.RRDProduct.RRDView import RRDView
-from Products.RRDProduct.RRDDataSource import RRDDataSource
-from Products.RRDProduct.RRDThreshold import RRDThreshold
+from Products.ZenRRD.RRDTargetType import RRDTargetType
+from Products.ZenRRD.RRDView import RRDView
+from Products.ZenRRD.RRDDataSource import RRDDataSource
+from Products.ZenRRD.RRDThreshold import RRDThreshold
 
 
 class RRDLoader(BasicLoader):
@@ -56,7 +56,7 @@ class RRDLoader(BasicLoader):
     def loaderBody(self, line):
         classname, id = line.split('|')[:2]
         self.log.info('loading %s type = %s' % (id, classname))
-        constructor = lookupClass('Products.RRDProduct.'+classname)
+        constructor = lookupClass('Products.ZenRRD.'+classname)
         if constructor:
             obj = constructor(id)
         else:
