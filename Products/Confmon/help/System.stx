@@ -1,0 +1,164 @@
+System - System container objects
+
+    Description
+
+        Systems are groups of devices which cooperate with each other
+        in order to provide a business functionality. For example, the
+        E-Commerce system would contain all devices related to online
+        sales. Systems may also contain subsystems, for example, the
+        EJB servers within the E-Commerce system.
+        
+        As a container, a system maintains an aggregate of the
+        health and performance of all contained devices. The following
+        views, including some which are not aggregates, are available
+        for a system object:
+
+        <a href="#status">Status</a> -- An aggregation of the status
+        of all devices within the system, as well as a listing of all
+        subsystems, and a listing of all the service areas in which
+        pieces of this system are located.
+
+        <a href="#devices">Devices</a> -- An inventory of all devices
+        contained within this system and their status at an individual
+        level.
+
+        <a href="#events">Events</a> -- A display of all events related
+        to this system at the overall level.
+
+        <a href="#performance">Performance</a> -- An assemblage of 
+        performance data for individual devices contained by the system.
+        Organized by device class.
+
+        <a href="#changes">Changes</a> -- A historical record of all
+        modifications made to the system object.
+
+    <div id="status">Status view</div>
+
+        The systems status view contains general information about
+        the system, as well as health information about devices
+        contained within the system and any subsystems it may have.
+        Also present are links to the service areas spanned by the
+        system.
+
+        System
+
+            General information about the system is displayed here,
+            such as its name, purpose (description), system class,
+            and a to its parent if it is a subsystem.
+
+        Status
+
+            The status fields are aggregates of health information
+            about contained devices. The production state is also
+            displayed here to remind the user of how important a
+            poor health statistic is. Health fields are:
+
+            'Ping' -- The percentage of machines contained by this
+            system which are responding to ping requests.
+
+            'SNMP' -- The percentage of machines which are updating
+            their uptime through the SNMP monitor without error.
+
+            'Events' -- A congregation of events extracted from
+            Netcool, displayed in colors by severity.
+
+        Service Areas
+
+            An inventory of all service areas in which this system
+            has been located. A jumping off point to the service
+            area is provided as the service area link, and a textual
+            description is seen immediately after.
+
+        Sub-Systems
+
+            Nested within higher level systems, subsystems may exist.
+            A subsystem is no different from an ordinary top level
+            system except that it has a link to its parent. This means
+            that a subsystem may have subsystems of its own.
+
+            The synopsys of each subsystem provides a general health
+            overview as well as a link to the status screen for the
+            subsystem. Included in this synopsys is:
+            
+            'Name' -- The link down to the subsystems status page and
+            accompanying pages (all the same as a regular system).
+
+            'State' -- The production state of the subsystem.
+
+            'Ping' -- The percentage of machines responding to ping
+            requests.
+
+            'SNMP' -- The percentage of machines updating their
+            uptime through the SNMP monitor.
+
+    <div id="devices">Devices view</div>
+
+        The devices view provides an inventory of all machines associated
+        with a system. The entries for machines aim to provide an overview
+        of machine health as well as identify the kind of device it is.
+        The following fields are included in this summary:
+
+        'Name' -- The hostname of the device, as a link to its status view.
+
+        'Class' -- The kind of device the entry describes. This is determined
+        by where the device is located in the database.
+
+        'State' -- The production state, or importance, of the device. Allows
+        you to quickly understand who the device services and how critical
+        its health is.
+
+        'Ping' -- A counter of the number of times a device has failed to
+        respond to ping requests. A positive value here means that there
+        is a problem with the device. A zero value indicates health, while
+        a negative one signifies that the device is not being monitored by
+        the ping monitor.
+
+        'SNMP' -- A field similar to the ping field. A running tally of the
+        number of times a machine was unable to update its uptime through
+        the SNMP monitor, which warns that the SNMP protocol is experiencing
+        problems. The values are interpreted in the same manner as the ping
+        field.
+
+    <div id="events">Events view</div>
+
+        Optimon integrates with Netcool product to provide a live view of the
+        system's health. This is presented in a list of events which is
+        sortable and batched in sets of 20. Each event will be colored
+        according to its severity. The fields displayed for each event may be
+        configured by the device's manager. The up and down arrows next to
+        each column will sort the data based on the column field in either
+        ascending or descending order based on which arrow is licked. If a
+        machine is totally healthy, a green bar with the message "All Systems
+        Functional" will appear.
+
+    <div id="performance">Performance view</div>
+
+        Optimon extracts performance information from the Cricket tool.
+        All devices in a system will be polled through cricket. Each
+        different kind of device will have its own group, associated with
+        a set of targets defined for that kind of device. For example,
+        routers will have the "5 Minute Memory Utilization" and "CPU 
+        Utilization" targets.
+
+        A graph for each device of the class will be displayed beneath a
+        menu from which targets and time periods can be chosen. As with
+        individual devices, the time range can go from day to year. This
+        range will only apply to the devices of the class that you're
+        working with. For instance, the router time period could be a year
+        while the server period could be a day.
+
+        Targets which have multiple instances, like interfaces on an
+        individual devices, will not be displayed. To see these statistics,
+        navigate back to the device.
+
+    <div id="changes">Changes view</div>
+
+        Optimon keeps a historical record of any changes applied to the
+        object. These changes are represented by a description of the change,
+        the time at which it was transacted, and the username of the manager
+        who performed the action. Changes to systems are made through the
+        Zope Management Interface, and therefor have the path of the action
+        performed as their description. If the system was auto-populated, an
+        initial change from the loader will be seen. This change will not be
+        associated with any username.
+        

@@ -1,0 +1,7 @@
+<html>
+ <head>  
+  <span tal:content="structure here/css_inline_or_link" />
+  <title tal:content="python: 'Zentinel Portal: %s' % here.getId()">
+    Zentinel</title>
+ </head>
+<body font="#ffffff">

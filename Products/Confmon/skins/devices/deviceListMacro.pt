@@ -1,0 +1,113 @@
+<table 
+    border="0" cellpadding="3" width="100%" align="center" 
+    bgcolor="#ffffff" cellspacing="1"
+    tal:define="objects here/devices/objectValuesAll;
+        tableName string:devicelistmacro;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="python: batch or
+                    here.ZenTableManager.getTableState(tableName, 'filter')"
+    metal:define-macro="devList">
+    <tr>
+      <th class="tabletitle" align="left" colspan="5">
+       Devices 
+      </th>
+    </tr>
+    <span metal:define-macro="devListBody" tal:omit-tag="">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDeviceClassPath','Class')">Class
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getProdState','State','cmp')">State
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getPingStatusNumber','Ping','cmp')">Ping
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getSnmpStatusNumber','Snmp','cmp')">Snmp
+        </th>
+	</tr>
+	<tr tal:repeat="device batch">
+		<td class="tablevalues" align="left">
+            <a class="tablevalues" href="_" target="rightFrame"
+                tal:attributes="href device/getDeviceUrl"
+                tal:content="device/id">device
+            </a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getDeviceClassPath">
+            type
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getProdState">
+            prodstate
+        </td >
+        <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
+        <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+    </span>
+</table>
+
+
+<span metal:define-macro="devListReportBody" tal:omit-tag="">
+<tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'primarySortKey','Name')">Name
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getDeviceClassPath','Class')">Class
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getProdState','State')">State
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getPingStatusNumber','Ping')">Ping
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getPingAvail30','Ping Avail 30')">Ping Avail 30
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpStatusNumber','Snmp')">SNMP
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpAvail30','SNMP Avail 30')">SNMP Avail 30
+    </th>
+</tr>
+<tr tal:repeat="device batch">
+    <td class="tablevalues" align="left">
+        <a class="tablevalues" href="_" target="rightFrame"
+            tal:attributes="href device/getDeviceUrl"
+            tal:content="device/id">device
+        </a>
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="device/getDeviceClassPath">
+        /NetworkDevice/Router
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="device/getProdState">
+        Production
+    </td >
+    <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
+    <td class="tablevalues" tal:content="device/getPingAvail30String">
+        100.000%
+    </td>
+    <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
+    <td class="tablevalues" tal:content="device/getSnmpAvail30String">
+        100.000%
+    </td>
+</tr>
+<tr>
+    <td colspan=7 class="tableheader" align='center'>
+        <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+    </td>
+</tr>
+</span>

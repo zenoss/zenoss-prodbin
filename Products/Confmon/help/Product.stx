@@ -1,0 +1,29 @@
+Product - Product container objects
+
+    Description
+
+        Product objects represent a kind of hardware or software product.
+        They have a relationship with all devices which are instances of
+        the product, meaning that they run the product as software, or
+        they are actually running on the kind of hardware that the product
+        specifies.
+
+        Status view
+
+            In the status view, a product's part number, manufacturer,
+            and description are displayed, in addition to a list of all
+            devices which contain or are instances of the product. For
+            instance, a 420R product will have a listing of all 420R
+            devices being managed by Optimon.
+
+            Each device in the list will display health and classification
+            information. Included in this is the device class, and such
+            health statistics as ping and SNMP availability.
+
+        Changes view
+
+            Optimon maintains a historical record of changes applied to
+            all objects, including products. Any change made to a product,
+            including adding more devices that are instances of the product,
+            will be linked to a time, a username, and a description. All of
+            these fields will be displayed in the changes view.

@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta name="generator" content="HTML Tidy, see www.w3.org">
+    <title>
+      <span tal:replace="here/id">id</span>
+    </title>
+    <link rel="stylesheet" type="text/css" href="../portal.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  </head>
+ <frameset framespacing="0" border="0" cols="*" rows="48,*" frameborder="NO">
+       <frame marginheight="0" src="top" scrolling="no" marginwidth="0"
+      name="topFrame">
+      <frame marginheight="0" src="view" scrolling="auto" marginwidth="0" name=
+      "mainFrame">
+</frameset>

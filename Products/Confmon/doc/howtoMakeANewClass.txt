@@ -1,0 +1,34 @@
+How to Make a New Class
+
+- If you are going to subclass something copy its "Classification" Class
+to the name of your new Class.  Also copy the "Instance" Class of the old 
+class to the new Instance class.  To sub class device:
+
+cp DeviceClass.py NewSubDevuceClass.py
+cp Device.py NewSubDevice.py
+
+
+- Replace all occurences of "Name" with your new Name in both files. 
+
+s/Device/NewSubDevice/g
+
+- Check the name of the manage_add factory function at the top of the file.  It didn't get changed I bet.
+
+- cd to the dtml directory and copy the add files for the "Classification"
+and "Instance" classes.  Then sed these files as shown above as well.
+
+- edit the __init__.py file in the Confmon module so that it will load the new
+  classes.
+
+
+- make some new icons for your type (try copying one that exists already)
+
+- do you need to modify DmdBuilder so that you get a Classification object
+  added?
+
+- check to see if you need to remove functions/attributes that you just
+want to inherit.  add the new behavior by overriding functions/attributes
+in the new class.
+
+- test out the new classes in the ZMI by adding a classification and instance
+  to there proper place in the DMD

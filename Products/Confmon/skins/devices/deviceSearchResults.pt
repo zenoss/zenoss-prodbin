@@ -1,0 +1,15 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table 
+    border=0 cellpadding=3 cellspacing=1 width="100%"
+    align="center" bgcolor="#ffffff" 
+    tal:define="
+        tableName string:devicesearchresults;
+        query python: here.ZenTableManager.setReqTableState(tableName,'query','');
+        objects python: here.Devices.searchDevices(query);
+        batch python: here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" colspan="5">Results</th>
+    </tr>
+    <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

@@ -1,0 +1,26 @@
+<form metal:define-macro="navtool" class="tableheader"
+    action="_" method="POST" tal:attributes="action request/URL"
+    tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
+    tal:condition="python: ts.totalobjs > 6 or ts.filter">
+    <input type='hidden' name='tableName' value="_"
+        tal:attributes="value tableName">
+        <span tal:replace="python:ts.start+1" />
+        of
+        <span tal:replace="ts/totalobjs" />
+    &nbsp;&nbsp;
+    <span tal:replace="
+        structure python:here.ZenTableManager.getTableNavigation(
+                                    tableName, batch)" />
+    &nbsp;&nbsp;
+    Not
+    <input class="tableheader" type=checkbox name=negateFilter value=1 
+        tal:attributes="checked ts/negateFilter" />
+    Filter
+    <input class="tableheader" type="text" name="filter" size=10 value=""
+        tal:attributes="value ts/filter" />
+    &nbsp;&nbsp;
+    Page Size
+    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+        tal:attributes="value ts/batchSize">
+    <input class="tableheader" type="submit" value="ok" />
+</form>

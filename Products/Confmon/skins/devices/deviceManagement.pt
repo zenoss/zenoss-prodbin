@@ -1,0 +1,43 @@
+<span tal:replace="structure here/standard_html_header" />
+<span metal:use-macro="here/top/macros/header" />
+<br />
+<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+<table border=0 cellpadding=3 width=100% align=center 
+    bgcolor=#ffffff cellspacing=1>
+  <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
+    <tr>
+        <td class="tableheader" align="left">Device Class Path</td>
+        <td class="tablevalues" align="left" colspan=3>
+            <select class="tablevalues" name="devicePath"
+            tal:define="
+            dcs python:here.getOrganizer('Devices').getDeviceClassNames();
+            curdc here/getDeviceClassName"
+            >
+                <option tal:repeat="dc dcs" 
+                    tal:attributes="value dc; selected python:dc==curdc"
+                    tal:content="dc">/Server/Linux</option>
+            </select>
+          <input type="hidden" name="deviceName" 
+            tal:attributes="value here/getId" />
+          <input class="tableheader" type="submit" name="moveDeviceClass:method"
+              value="Change" />
+        </td>
+    </tr>
+  <tr>  
+  <td class=tableheader>Run configuration collection against this device</td>
+  <td class=tableheader>
+      <input class="tableheader" type="submit" name="collectConfig:method"
+          value=" Collect Configuration " />
+  </td>
+  </tr>
+  <tr>
+  <td class=tableheader>Delete this device from the database</td>
+  <td class=tableheader>
+      <input class="tableheader" type="submit" name="deleteDevice:method"
+          value=" Delete Device " />
+  </td>
+  </tr>
+  <tr>
+  </table>
+</form>
+<span tal:replace="structure here/standard_html_footer" />

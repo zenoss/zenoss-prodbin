@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <meta name="generator" content="HTML Tidy, see www.w3.org">
+    <title>
+      Optimon: [selections]
+    </title>
+    <link rel="stylesheet" type="text/css" href="portal.css">
+  </head>
+  <body text="#000050" bgcolor="#ffffff">
+	<table cellpadding="0" border="0" align="left" cellspacing="0">
+	<tr><td>
+    <table cellpadding="0" border="0" align="left" bgcolor=
+    "#ffffff" cellspacing="1">
+      <tr>
+        <td colspan="1" bgcolor="#ffffff">
+          <a href="index_html" target="_top"><img border="0" src=
+          "optimon.gif" align="left"></a> 
+        </td>
+      </tr>
+      <tr>
+        <th class="lefttitle" align="left" colspan="1">
+          &nbsp;
+        </th>
+      </tr>
+      <tr>
+        <th class="lefttitle" align="left" colspan="1">
+          Device Search
+        </th>
+      </tr>
+      <tr>
+        <td class="lefttd" align="left" colspan="1">
+          <form action="Devices/searchResults" METHOD="POST" target="rightFrame">
+          <input type="text" name="query">
+          </form>
+        </td>
+      </tr>
+    </table>
+    </td>
+    </tr>
+    <tr><td>
+    <dtml-tree nowrap=1 branches="getTreeItems">
+    <dtml-let url=tree-item-url>
+    <dtml-if icon>
+    <a href="<dtml-var expr="url" fmt=url-quote>"
+    target="rightFrame">
+    <img src="&dtml-BASEPATH1;/&dtml-icon;" border="0"/>
+    </a></dtml-if>
+    <a href="<dtml-var expr="url" fmt=url-quote>"
+    target="rightFrame">&dtml-id;</a>
+    </dtml-let>
+    </dtml-tree>
+    </td></tr>
+    <tr><td><img border=0 src="spacer"/></td></tr>
+    <tr><td align="left">
+    <img border=0 src="spacer"/>
+    <a href="left"><img border=0 src="reload_icon"/>Refresh</a>
+    </td></tr>
+    <tr><td><img border=0 src="spacer"/></td></tr>
+    <tr><td align="left">
+    <img border=0 src="spacer"/>
+    <a href=/cvportal/home_html target="rightFrame">CVPortal</a></td></tr>
+    <tr><td align="left">
+    <img border=0 src="spacer"/>
+    <a href=/dmd/Systems/Network/NetworkOptimon target="rightFrame">
+        NetPortal</a></td></tr>
+    </table>
+  </body>
+</html>

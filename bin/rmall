@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#################################################################
+#
+#   Copyright (c) 2003 Confmon Corporation. All rights reserved.
+#
+#################################################################
+        
+. $ZENHOME/bin/zenfunctions
+
+cd $ZENHOME/Products
+
+for d in $ZENPRODUCTS
+do
+    echo Removing product $d...
+    rm -rf $d
+done
+exit;

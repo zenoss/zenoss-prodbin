@@ -1,0 +1,5 @@
+  <dtml-if localFooter>
+   <dtml-var localFooter>
+  </dtml-if>
+</body>
+</html>

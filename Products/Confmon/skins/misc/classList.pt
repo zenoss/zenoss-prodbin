@@ -1,0 +1,65 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table border="0" cellpadding="3" width="100%" align="center"
+    bgcolor="#ffffff" cellspacing="1"
+    tal:define="objects python:here.objectSubValues();
+    tableName string:classlist;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+        <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name','cmp',
+                    'tableheader','colspan=2')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'createdTime','Creation Time','cmp')">
+            Creation Time
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'bobobase_modification_time',
+                    'Last Modification','cmp')">
+            Last Modification 
+        </th>
+    </tr>
+    <tr tal:condition="python: not batch">
+        <td class="tablevalues">No contents</td>
+    </tr>
+        
+    <tr tal:repeat="mon batch">
+      <td class="tablevalues" colspan="1" bgcolor="#ffffff">
+      <img border="0" src="_"
+        tal:attributes="src mon/icon"/>
+      </td>
+      <td class="tablevalues" colspan="1" bgcolor="#ffffff">
+      <a href="_" target="rightFrame"
+      tal:attributes="href mon/getPrimaryUrlPath">
+      <span tal:replace="mon/id">id</span></a>
+      </td>
+      <td class="tablevalues" colspan="1"
+        tal:content="python: mon.createdTime.strftime('%Y/%m/%d %H:%M:%S')">
+        createdtime
+      </td>
+      <td class="tablevalues" colspan="1"
+        tal:content="python: mon.bobobase_modification_time().strftime(
+                                            '%Y/%m/%d %H:%M:%S')">
+        modtime
+      </td>
+    </tr>
+    <tr tal:condition="python:hasattr(here,'searchResults')"> 
+      <td class="tableheader" align="left" colspan="4" nowrap>
+      <table border=0 colspan=0 cellpadding=0>
+      <tr><td class="tableheader">Search</td><td>
+      <form action="searchResults" method="POST" target="rightFrame">
+      <input type="text" name="query"></form></td></tr></table>
+      </td>
+    </tr>
+    <tr>
+        <td colspan=4 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

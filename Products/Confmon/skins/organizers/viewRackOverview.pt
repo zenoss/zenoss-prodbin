@@ -1,0 +1,33 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border=0 cellpadding=3 width=100% align=center bgcolor=
+#ffffff cellspacing=1>
+  <tbody>
+    <tr>
+      <th class=tabletitle align=left colspan=4>
+      Rack
+      </th>
+    </tr>
+    <tr>
+      <td class=tableheader align=left colspan=1 width=25%>
+      Name
+      </td>
+      <td class=tablevalues colspan=1 align=left>
+      <span tal:replace="here/id">rack name</span>     
+      </td>
+    </tr>
+    <tr>
+      <th class=tableheader align=left colspan=1 width=25%>
+      Description
+      </th>
+      <td class=tablevalues colspan=3 align=left>
+      <span tal:replace="here/description">description</span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+ 
+<table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+<span tal:replace="structure here/standard_html_footer"/>

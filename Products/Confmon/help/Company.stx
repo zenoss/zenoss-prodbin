@@ -1,0 +1,31 @@
+Company - Corporate entity objects
+
+    Description
+
+        Company objects represent corporate entities that manufactured
+        and possibly support any number parts of the infrastructure
+        being monitored by Optimon. For example, the Sun Microsystems
+        company manufactured the 420R product. Optimon maintains
+        data related to companies in order to provide users with
+        contact and support information.
+
+    Status view
+
+        The company status view is largely a melting pot of corporate
+        contact information. The company's full mailing address is
+        maintained here, as well as phone number through which support
+        personnel can be reached. The company's web address is also
+        displayed, so that troubleshooting efforts can be initiated
+        through documentation provided by the company.
+
+        Also displayed is an inventory of all products manufactured
+        by the company. A link to each product is shown as well as
+        its part number and description.
+
+    Changes view
+
+        Optimon maintains a historical record of changes applied to all
+        objects, including companies. Any change to the company's
+        information, including adding a new product, will be linked to
+        a time, a username, and a description. All of these fields will
+        be displayed in the changes view.

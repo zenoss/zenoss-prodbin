@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/SnmpCollector
+PRGNAME=SnmpCollector.py
+PRGRUN=$PRGHOME/$PRGNAME
+
+LOGFILE=$CFGDIR/snmpcollectorlog.ini
+
+$PYTHON $PRGRUN -l $LOGFILE $@
+
+exit $?

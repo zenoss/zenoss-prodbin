@@ -1,0 +1,71 @@
+<dtml-var standard_html_header>
+<dtml-unless query>
+    <dtml-call expr="REQUEST.set('query','')">
+</dtml-unless>
+<dtml-unless query_start>
+    <dtml-call expr="REQUEST.set('query_start','1')">
+</dtml-unless>
+<dtml-try>
+<dtml-let res="searchSystems(query)">
+<dtml-in res size=30 start=query_start sort="getFullSystemName">
+   <dtml-if sequence-start>
+
+      <table border="0" colspan="0" cellspan="0" spacing="1" width="100%">
+        <tr>
+          <th class="tabletitle" colspan="3">Results</th>
+        </tr>
+        <tr>
+          <th align="left" class="tableheader" colspan="2">System Name</th>
+          <th align="left" class="tableheader">Production State</th>
+        </tr>
+      
+   </dtml-if sequence-start>
+
+        <tr>
+          <td class="results">
+          <img border="0" src="<dtml-var icon>"/></td>
+          <td class="results">
+            <a href="<dtml-var getPrimaryUrlPath>">
+              <dtml-var getFullSystemName>
+            </a>
+          </td>
+          <td class="results">
+             <dtml-var expr="convertProdState(productionState)">
+          </td>
+        </tr>
+
+   <dtml-if sequence-end>
+       <tr><td align="right" colspan="5" class="tableheader">
+
+        <dtml-in res size=20 start=query_start previous>
+        <a target="rightFrame" href="<dtml-var URL>?query_start=<dtml-var
+                 previous-sequence-start-number>&query=<dtml-var query>">
+        Previous
+        </a>
+        </dtml-in>
+
+       <dtml-if expr="_.len(res)>_.int(query_start)">
+       <dtml-in res size=20 start=query_start next>
+         <a href="<dtml-var URL>?query_start=<dtml-var
+            next-sequence-start-number>&query=<dtml-var query>">
+         Next
+         </a>
+       </dtml-in>
+
+      </dtml-if>
+   </td></tr>
+   </table>
+   </dtml-if sequence-end>
+
+<dtml-else>
+    <table border="0" colspan="0" cellspan="0" spacing="1" width="100%">
+    <tr><td class="tabletitle">No Systems matched <dtml-var query></td></tr>
+    </table>
+</dtml-in>
+</dtml-let>
+<dtml-except>
+    <table border="0" colspan="0" cellspan="0" spacing="1" width="100%">
+    <tr><td class="tabletitle" align="center">Invalid input</td></tr>
+    </table>
+</dtml-try>
+<dtml-var standard_html_footer>

@@ -1,0 +1,66 @@
+
+#################################################################
+#
+#   Copyright (c) 2003 Confmon Corporation. All rights reserved.
+#
+#################################################################
+
+INSTANCE_HOME=$ZENHOME
+export INSTANCE_HOME
+
+SYBASE=$ZENHOME/sybase
+export SYBASE
+
+PYTHON=$ZENHOME/bin/python
+PYTHONPATH=$ZENHOME/lib/python:$ZENHOME/Products
+export PYTHONPATH
+
+VARDIR=$ZENHOME/var
+CFGDIR=$ZENHOME/etc
+
+ZOPE_CLIENT=$ZENHOME/bin/snarf
+
+ZENPRODUCTS="Confmon NcoProduct ConfUtils SiteScopeParser RelationshipManager PingMonitor SnmpCollector RRDProduct DataCollector ZenWidgets"
+
+
+start() {
+    $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+        --cycle --logconfig $LOGFILE --daemon
+}
+
+stop() {
+    kill `cat $PIDFILE | cut -f1 -d' '`
+}
+
+restart() {
+    stop
+    start
+}
+
+status() {
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE | cut -f1 -d' '`
+        if [ -d /proc/$PID ]; then
+            echo $PRGNAME \(pid $PID\) is running...
+            exit 109
+        else
+            echo $PRGNAME \(pid $PID\) not found
+            exit 100
+        fi
+    else
+        echo $PRGNAME not found
+        exit 100
+    fi
+}
+
+webclient() {
+    ${ZOPE_CLIENT} ${ZOPE_ADDRESS}/${ZOPE_URL} - > /dev/null 2>&1
+}
+
+help() {
+    $PYTHON $PRGHOME/$PRGNAME -h
+}
+
+alias cdz="cd $ZENHOME"
+alias cdp="cd $ZENHOME/Products"
+alias zp=$PYTHON

@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<ZopeData>
+  <record id="9141" aka="AAAAAAAAI7U=">
+    <pickle>
+      <tuple>
+        <tuple id="9141.3">
+          <string id="9141.1" encoding="repr">OFS.Image</string>
+          <string id="9141.2" encoding="repr">File</string>
+        </tuple>
+        <none/>
+      </tuple>
+    </pickle>
+    <pickle>
+      <dictionary id="9141.4">
+        <item>
+            <key> <string id="9141.5" encoding="repr">size</string> </key>
+            <value> <int>4100</int> </value>
+        </item>
+        <item>
+            <key> <string id="9141.6" encoding="repr">data</string> </key>
+            <value> <string id="9141.7" encoding="repr">.title {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 13px; font-weight: bold; color: #000030; background-color: #FFFFFF}\r\n
+\r\n
+th.title {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 13px; font-weight: bold; color: #000030; background-color: #FFFFFF}\r\n
+\r\n
+.tabletitle {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: #eeeeee; background-color: #0000d0}\r\n
+th.tabletitle {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: #eeeeee; background-color: #0000d0}\r\n
+\r\n
+.nothing { background-color: #FFFFFF }\r\n
+td.nothing { background-color: #FFFFFF }\r\n
+\r\n
+.coloredtitle {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; }\r\n
+th.coloredtitle {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; }\r\n
+\r\n
+th.tt {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: #eeeeee; background-color: #0000d0}\r\n
+\r\n
+\r\n
+.top_links {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+a:link {  color: #000000}\r\n
+a:visited {  color: #000000}\r\n
+a:hover {  color: #0000ff}\r\n
+a:active {  color: #0000ff}\r\n
+\r\n
+a.tabletitle:link {  color: #eeeeee}\r\n
+a.tabletitle:visited {  color: #eeeeee}\r\n
+a.tabletitle:hover {  color: #aaaaaa}\r\n
+a.tabletitle:active {  color: #aaaaaa}\r\n
+\r\n
+.explanation {  font-family: Arial, Helvetica, sans-serif; font-size: 12px}\r\n
+\r\n
+.results {  font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: normal; color: #000050; background-color: #eeeeef}\r\n
+th.results {  font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: normal; color: #000050; background-color: #eeeeef}\r\n
+a.results:link {  color: #000050}\r\n
+a.results:visited {  color: #000050}\r\n
+a.results:hover {  color: #0000ff}\r\n
+a.results:active {  color: #0000ff}\r\n
+\r\n
+body { }\r\n
+\r\n
+.top {  background-color: #eeeeee}\r\n
+\r\n
+.lefttd {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+td.lefttd {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+\r\n
+.leftth {  font-family: Arial, Helvetica, sans-serif; font-size: 11px}\r\n
+th.leftth {  font-family: Arial, Helvetica, sans-serif; font-size: 11px}\r\n
+\r\n
+.lefttdpopup {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+td.lefttdpopup {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+\r\n
+th {  font-family: Arial, Helvetica, sans-serif; font-size: 11px}\r\n
+\r\n
+td {  font-family: Arial, Helvetica, sans-serif; font-size: 10px}\r\n
+td.password {  font-family: Courier, Verdana, Arial, Helvetica, sans-serif; font-size: 14px }\r\n
+.password {  font-family: Courier, Verdana, Arial, Helvetica, sans-serif; font-size: 14px }\r\n
+\r\n
+td.explanation {  font-family: Arial, Helvetica, sans-serif; font-size: 16px}\r\n
+explanation {  font-family: Arial, Helvetica, sans-serif; font-size: 16px}\r\n
+\r\n
+th.lefttitle { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000070 }\r\n
+.lefttitle { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #eeeeee }\r\n
+.lefttd { font-family: Arial, Helvetica, sans-serif; font-size: 10px }\r\n
+\r\n
+.header {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #FFFFFF}\r\n
+th.header { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #FFFFFF}\r\n
+\r\n
+th.ltableheader { text-align: left; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #cccccc }\r\n
+th.tableheader { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #cccccc }\r\n
+.tableheader { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #cccccc }\r\n
+td.tableheader { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #000000; background-color: #cccccc }\r\n
+\r\n
+</string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.8" encoding="repr">_EtagSupport__etag</string> </key>
+            <value> <string id="9141.9" encoding="repr">ts20783343.54</string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.10" encoding="repr">__name__</string> </key>
+            <value> <string id="9141.11" encoding="repr">portal.css</string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.12" encoding="repr">title</string> </key>
+            <value> <string encoding="repr"></string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.13" encoding="repr">content_type</string> </key>
+            <value> <string id="9141.14" encoding="repr">text/css</string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.15" encoding="repr">precondition</string> </key>
+            <value> <string encoding="repr"></string> </value>
+        </item>
+        <item>
+            <key> <string id="9141.16" encoding="repr">__ac_local_roles__</string> </key>
+            <value>
+              <dictionary id="9141.17">
+                <item>
+                    <key> <string id="9141.18" encoding="repr">edahl</string> </key>
+                    <value>
+                      <list id="9141.19">
+                        <string id="9141.20" encoding="repr">Owner</string>
+                      </list>
+                    </value>
+                </item>
+              </dictionary>
+            </value>
+        </item>
+      </dictionary>
+    </pickle>
+  </record>
+</ZopeData>

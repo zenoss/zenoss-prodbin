@@ -1,0 +1,67 @@
+<tal:block
+    tal:define="
+    sortOn python:(('getId', 'nocase', 'asc'),);
+    batch_size request/batch_size | python:13;
+    nycillis here/subsystems/NY/subsystems/objectValuesAll;
+    nylistlen python:len(nycillis);
+    nytbls python:(nylistlen/batch_size)+(nylistlen%batch_size and 1 or 0);
+    njcillis here/subsystems/NJ/subsystems/objectValuesAll;
+    njlistlen python:len(njcillis);
+    njtbls python:(njlistlen/batch_size)+(njlistlen%batch_size and 1 or 0);
+    ctcillis here/subsystems/CT/subsystems/objectValuesAll;
+    ctlistlen python:len(ctcillis);
+    cttbls python:(ctlistlen/batch_size)+(ctlistlen%batch_size and 1 or 0);
+    ">
+<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+       "#ffffff" cellspacing="1">
+    <tbody>
+    <tr>
+    <th class="tabletitle" tal:attributes="colspan nytbls">LI</th>
+    <th class="tabletitle" tal:attributes="colspan njtbls">NJ</th>
+    <th class="tabletitle" tal:attributes="colspan cttbls">CWN</th>
+    </tr>
+    <tr>  
+    <tal:block tal:define="sortedCillis python:sequence.sort(nycillis, sortOn)"
+    tal:repeat="t python:range(nytbls)">
+        <tal:block
+        metal:define-macro="cillitable"
+        tal:define="
+        start python:t*batch_size;
+        batch python:modules['ZTUtils'].Batch(sortedCillis, 
+                size=batch_size, start=start, orphan=0);
+        prev python:batch.previous;
+        next python:batch.next">
+            <td valign="top">
+                <table  
+                    border="0" cellpadding="3" width="100%" 
+                    align="center" bgcolor="#ffffff" cellspacing="1">
+                    <tr tal:repeat="cilli batch">
+                        <td class="tableheader" width="90%">
+                            <span tal:replace="cilli/description">Town</span>
+                            (<span tal:replace="cilli/getId">cilli</span>)
+                        </td>
+                        <span tal:define="status cilli/cmtsPingStatus">
+                        <td class="tablevalues" align="center">
+                        <img border="0"
+                            tal:attributes="src python:test(status==0,
+                                    'misc_/SiteScopeParser/greenball_img',
+                                    'misc_/SiteScopeParser/redball_img')">
+                        </td>
+                        </span>
+                    </tr>
+                </table>
+            </td>
+        </tal:block>
+    </tal:block>
+    <tal:block tal:define="sortedCillis python:sequence.sort(njcillis, sortOn)"
+    tal:repeat="t python:range(njtbls)">
+    <table metal:use-macro="here/networkStatus/macros/cillitable"></table>
+    </tal:block>
+    <tal:block tal:define="sortedCillis python:sequence.sort(ctcillis, sortOn)"
+    tal:repeat="t python:range(cttbls)">
+    <table metal:use-macro="here/networkStatus/macros/cillitable"></table>
+    </tal:block>
+    </tr>
+    </tbody>
+</table>
+</tal:block>

@@ -1,0 +1,69 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br/>
+<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf"/>
+<br/>
+<table metal:define-macro="serverfilesystemperf" 
+    border=0 cellpadding=3 width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    tal:define="tableName string:serverfilesystemperf;
+    objects python:here.getRelatedCricketObjs('filesystems');
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects"
+    >
+    <tr><th class="tabletitle" align=left>Filesystems</th></tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+    </tr>
+    <span tal:repeat="filesystem batch">
+    <tr>
+        <td class=tablevalues>
+            <a class=tablevalues href="_"
+            tal:attributes="href python:filesystem.absolute_url()+
+                            '/viewPerformanceDetail'"
+            tal:content="filesystem/mount">
+            mount</a>
+        </td>
+    </tr>
+    </span>
+    <tr>
+        <td class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+<br/>
+<table metal:define-macro="serverdiskperf" 
+    border=0 cellpadding=3 width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    tal:define="tableName string:serverdiskperf;
+    objects python:here.getRelatedCricketObjs('harddisks');
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects"
+    >
+    <tr><th class="tabletitle" align=left>Disks</th></tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+    </tr>
+    <span tal:repeat="disk batch">
+    <tr>
+        <td class=tablevalues>
+            <a class=tablevalues href="_"
+            tal:attributes="href python:disk.absolute_url()+
+                            '/viewPerformanceDetail'"
+            tal:content="disk/description">
+            mount</a>
+        </td>
+    </tr>
+    </span>
+    <tr>
+        <td class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

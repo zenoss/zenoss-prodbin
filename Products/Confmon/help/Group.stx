@@ -1,0 +1,34 @@
+Group - Group container objects
+
+    Description
+        
+        Group objects are containers of arbitrary devices. There is no
+        mandate on how or why devices should be put in a group. It is
+        simply a logical container for grouping devices which are
+        related in some way. Groups may also contain subgroups in the
+        same way that systems may contain subsystems.
+
+        Groups are not complex objects such as an individual device or a
+        system, and offer the simple set of status and changes views that
+        is common to simple objects.
+
+    Status view
+
+        The status view simply congregates all devices in the group
+        for a listing of health and classification information. Also
+        present on the status view are a link to the parent group if
+        this group is a subgroup, as well as a description field for
+        documentation of the group's purpose.
+
+        The device health and classification listing is the standard
+        used for container objects. This standard listing shows
+        the device class, production state, ping, and SNMP fields in
+        addition to a link pointing towards the device's status view.
+
+    Changes view
+
+        Optimon keeps track of all changes applied to group objects
+        in a historical record. This record associates a historical
+        event with a description, username and time at which it
+        was transacted. Any change, including adding a device to this
+        group will be reflected in this view.

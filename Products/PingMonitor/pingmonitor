@@ -1,0 +1,6 @@
+#!/bin/sh
+PHOME=/opt/portal/zope-2.5.1
+PYTHONPATH=$PHOME/lib/python:$PHOME/lib/python/Products
+PMHOME=$PHOME/lib/python/Products/PingMonitor
+
+python2.1 $PMHOME/PingMonitor.py -C $PMHOME/pingmonitor.conf -l $PMHOME/logging.ini -d

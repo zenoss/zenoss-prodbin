@@ -1,0 +1,38 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br/>
+<table metal:define-macro="objectperf" 
+    border=0 cellpadding=3 width=100% 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    tal:define="tableName string:perfdetail;
+    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);
+    url python:here.absolute_url()+'/'+template.getId()"
+    >
+    <tr>
+        <th class=tabletitle align=left> 
+            <a class=tabletitle href="_" 
+                tal:content="here/viewName" 
+                tal:attributes="href url">
+                name</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;Range
+            <span tal:replace="structure python:here.scUrlPopup(
+                tableName, 'perfdrange', 'drange:int', 
+                here.performanceDateRanges, url)"/>
+        </th>
+    </tr>
+    <tr tal:condition='python: hasattr(here, "description") 
+                        and getattr(here, "description")'>
+        <td class=tabletitle tal:content="here/description">
+            description
+        </td>
+    </tr>
+    <span tal:repeat="graph python:here.getDefaultGraphs(drange=drange)">
+        <tr><td class=tableheader tal:content="graph/title">title</td></tr>
+        <tr><td class=tablevalues>
+            <img src="_" tal:attributes="src graph/url">
+            </td>
+        </tr>
+    </span>
+</table>
+<span metal:use-macro="here/top/macros/buttons" />
+<span tal:replace="structure here/standard_html_footer"/>

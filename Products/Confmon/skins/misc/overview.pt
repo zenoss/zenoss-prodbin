@@ -1,0 +1,6 @@
+<span tal:replace="structure here/standard_html_header"/>
+
+
+
+
+<span tal:replace="structure here/standard_html_footer"/>

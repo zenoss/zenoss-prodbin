@@ -1,0 +1,40 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:define-macro="header"
+    tal:define="global ctabs here/confmonTabs;
+    global numbcols python:len(ctabs)">
+    <table border=0 cellpadding=3 cellspacing=0 
+        width="100%" bgcolor="#FFFFFF">
+    <tr>
+            <td class="tabletitle" colspan="_" align="left"
+                tal:attributes="colspan python:numbcols-1">
+                    <img border=0 src="_"
+                        tal:attributes="src here/icon"/>
+                    <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
+            </td>
+            <td class="tabletitle" align="right" 
+                tal:content="structure here/helpLink">help
+            </td>
+        </tr>
+    </table>
+    <table border=0 cellpadding=3 cellspacing=1 align="center" 
+        width="100%" bgcolor="#FFFFFF" metal:define-macro="buttons">
+        <tr>
+            <td class="tabletitle" align="center"
+                tal:repeat="tab ctabs"
+                tal:attributes="
+                    class python:tab.get('selected', None) and 
+                            'tabletitleselected' or 'tabletitle'">
+                <a 
+                    class="tabletitle"
+                    tal:attributes="href python:
+                        '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
+                    class python:tab.get('selected',None) and 
+                            'tabletitleselected' or 'tabletitle'"
+                    tal:content="tab/name">
+                    TabName
+                </a>
+            </td>
+        </tr>
+    </table>
+</span>
+<span tal:replace="structure here/standard_html_footer"/>

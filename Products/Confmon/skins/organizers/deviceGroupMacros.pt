@@ -1,0 +1,56 @@
+
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="status">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+        Status
+      </th>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" colspan="1">
+        Ping
+      </td>
+      <span tal:define="status here/pingStatus">
+      <td class="statusvalues" bgcolor="#00ff00" colspan="1"
+      tal:attributes="bgcolor python: here.statusColor(status)">
+      <span tal:replace="status">ping status</span>     
+      </td>
+      </span>
+      <td class="tableheader" align="left" colspan="1">
+        Events
+      </td>
+      <td class="tablevalues" colspan="1" align="left">
+        <table border="0" cellpadding="0" width="100%" 
+            align="center" bgcolor="#ffffff" cellspacing="1">
+          <tr>
+          <td class="statusvalues" align="center" bgcolor="_" width="16%"
+            tal:on-error="structure string:
+                <span style='color: white;'>Omnibus unavailable</span>"
+            tal:repeat="evt python:here.netcool.getSystemEventSummary(
+                                                here.getFullSystemName())"
+            tal:attributes="bgcolor python:evt[1]"
+            tal:content="python:evt[0]">0</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left" colspan="1">
+        SNMP
+      </th>
+      <span tal:define="status here/snmpStatus">
+      <td class="statusvalues" bgcolor="#00ff00" colspan="1"
+          tal:attributes="bgcolor python: here.statusColor(status)"
+          tal:content="status">snmp status
+      </td>
+      </span>
+      <th class="tableheader" align="left" colspan="1">
+          Device Count
+      </th>
+      <td class="tablevalues" colspan="1"
+          tal:content="here/countDevices">
+          100
+      </td>
+    </tr>
+</table>

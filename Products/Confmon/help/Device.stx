@@ -1,0 +1,177 @@
+Device - Device device objects
+
+    Description
+
+        Device objects represent some type of manged computer resource
+        the OneView.  They can be routers, servers, printers.
+            
+            <a href="#status">Status</a> -- The status view displays the overall health
+            information about a device and is the first view you'll
+            see when navigating to a machine.
+
+            <a href="#detail">Detail</a> -- The detail view displays information related
+            to the components of a device. Important device components
+            visible on this view are filesystems and routes.
+
+            <a href="#events">Events</a> -- A device generates events whenever a problem
+            condition is encountered. This view collects all events
+            related to a device's health and displays them in a list.
+
+            <a href="#performance">Performance</a> -- It is extremely useful to keep track of
+            how a device functions over time. This view tracks
+            statistics related to the machine's memory and CPU
+            utilization as well as interface and filesystem statistics.
+
+            <a href="#changes">Changes</a> -- As engineers edit a device's configuration in
+            Optimon, those changes are cataloged. This view presents a
+            historical record of what changes were made and by whom.
+    
+    <div id="status">Status view</div>
+
+        In order to provide the best quality of service to applications
+        and users dependant on a device, health information is critically
+        important. This view puts all of the device's vital signs in one
+        place. Along with health, other critical information about a device
+        is aggregated in this location. These fields are related to device
+        categorization and location. Many of these fields are links which
+        provide jumping off points to view of other objects, such as
+        networks.
+
+        Status
+
+            This is the main health view. The following vital signs are
+            available here:
+
+            'Ping' -- The ping field is the number of times a ping request
+            was sent without receiving a ping response. A healthy device
+            should display a zero in green. An unhealthy device will show
+            a positive number in red. A device which is not currently being
+            monitored for ping responses will show a purple negative one.
+            
+            'SNMP' -- The snmp field is similar to the ping field: it
+            is the number of times a get request for device uptime has
+            failed, indicating problems with the SNMP protocol on the
+            device. The value and color combinations are identical to the
+            ping field.
+
+            'Events' -- The events field is an aggregation of the outstanding
+            events for a device. A completely healthy machine will display
+            a rainbow of zero values, while an unhealthy machine may have a
+            positive value for any number of the colors. The color fields
+            correspond to the severity of the event. If there is a problem
+            connecting to the Omnibus device to display this information, a
+            black bar with the text "Omnibus unavailable" will be shown.
+            
+            'State' -- The state field is the production state of the device.
+            This indicates the audience of users and managers for the device.
+
+            'Uptime' -- The uptime field displays the device's uptime according
+            to SNMP. This field is constantly updated by the snmp monitor, if
+            the device is linked to that monitor.
+
+        Device
+            
+            This is where information related to the machine's management
+            is kept. Of note are the manufacturer, model, location and rack
+            fields. These fields provide jumping off points for more
+            information about who made the device, the kind of device it is,
+            what datacenter it's located in, and what rack it's in. Also
+            present here is the time that this object was created, and the
+            last time it was changed. A description field contains an entry
+            from the machine's manager.
+
+        Links
+
+            Links are jumping off points to container objects for device.
+            If the device is contained by one of these objects, a link to
+            it will appear. If the device is not contained by anything, a
+            message will appear instead. An example of this containment is
+            the relationship between devices and groups.
+
+        Interfaces
+            
+            Interface information is also displayed in the status view for
+            a device. The information provided here is the layer 2 and
+            layer 3 addresses, the network address, the netmask, and the
+            name of the interface. The network address is a jumping off
+            point to a view of the network.
+
+    <div id="detail">Detail view</div>
+
+        The detail view is where components of the machine reside. The
+        filesystems on the device and the routes it is aware of are seen
+        here. The component information is collected by the SNMP collector.
+        The machine management information is also redisplayed here for
+        reference.
+
+        Filesystems
+
+            Optimon presents the following information about filesystem:
+            
+            'Storage Device' -- The physical media on which the
+            filesystem resides.
+
+            'Total bytes' -- The total number of bytes in the
+            filesystem.
+
+            'Used bytes' -- The total number of used bytes.
+
+            'Free bytes' -- The total number of free bytes.
+
+            '% Util' -- The percentage of filesystem utilization.
+
+            'Mount' -- The location that the storage device has
+            been mounted to.
+
+        Routes
+            
+            Optimon provides the following information about route entries:
+
+            'Interface' -- Interface through which traffic following this
+            route will travel.
+
+            'Next Hop' -- Next layer 3 address in the route's path.
+
+            'Mask' -- The netmask applied to the route.
+
+            'Metric' -- The primary metric of this route. The semantics
+            vary between routing protocols.
+
+            'Type' -- The kind of route that this entry is.
+
+    <div id="events">Events view</div>
+
+        Optimon integrates with the Netcool product to provide a live
+        view of the device's health. This is presented in a list of
+        events which is sortable and batched in sets of 20. Each event
+        will be colored according to its severity. The fields displayed
+        for each event may be configured by the device's manager. The up
+        and down arrows next to each column will sort the data based on
+        the column field in either ascending or descending order based
+        on which arrow is clicked. If a machine is totally healthy, a
+        green bar with the message "All Systems Functional" will appear.
+
+    <div id="performance">Performance view</div>
+
+        Optimon extracts performance information from the Cricket tool.
+        Every cricket target configured for a device will be displayed
+        in a graph. These targets may be displayed for a day, a week, a
+        month or a year worth of collecting.
+
+        Targets which contain multiple instances will be shown as drop
+        down lists. Should such a target be opened when it doesn't contain
+        any instances, a message indicating that no instances of that
+        type were available. The time period selected for the single
+        instance targets will propogate to these kinds of targets as well.
+
+    <div id="changes">Changes view</div>
+
+        Optimon keeps a historical record of any changes applied to the
+        object. This includes automated changes, such as an update of the
+        uptime by the SNMP monitor. In addition to a log of what change was
+        transacted, a record of who caused the change is kept. If a
+        change entry is from an automated tool, no user will be logged. The
+        time at which the change occured is also recorded. Of note, all
+        manual changes will have the path through which the change was made
+        as their description. All device that were auto-populated will have
+        an initial change made when the device was created.

@@ -1,0 +1,181 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+"#ffffff" cellspacing="1">
+  <tbody>
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+       Network
+      </th>
+      </tr>
+      <tr>
+      <th class="tableheader" align="left">
+        Address
+      </th>
+      <td class="tablevalues" colspan="1" bgcolor="#ffffff"
+        tal:content="here/id">id
+      </td>
+      <th class="tableheader" align="left">
+        Netmask
+      </th>
+      <td class="tablevalues" colspan="1"
+        tal:content="here/netmask">
+        netmask
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Number of IPs
+      </th>
+      <td class="tablevalues" colspan="1"
+        tal:content="python: here.countIpAddresses()">
+            IPs
+      </td>
+      <th class="tableheader" align="left">
+        Description
+      </th>
+      <td class="tablevalues" colspan="1"
+        tal:content="here/description">desc
+      </td>
+    </tr>
+  </tbody>
+</table>
+<span 
+    tal:define="objects here/subnetworks/objectValuesAll;
+    tableName string:networkoverviewsubnets;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects">
+<br>
+<table border="0" cellpadding="3" width="100%"
+    align="center" bgcolor="#ffffff" cellspacing="1">
+  <tr>
+      <th class="tabletitle" align="left" colspan="5">
+        Subnetworks
+      </th>
+  </tr>
+  <tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'primarySortKey','Address','cmp')">
+        Address
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'netmask','Netmask','cmp')">
+        Netmask
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'countIpAddresses','Number of IPs','cmp')">
+        Number of IPs
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'pingStatus','Ping')">
+        Ping
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'snmpStatus','Snmp')">
+        Snmp
+    </th>
+  </tr>
+  <tr tal:repeat="net batch">
+    <td class="tablevalues" align="left">
+    <a href="_" target="rightFrame"
+        tal:attributes="href net/getPrimaryUrlPath"
+        tal:content="net/id">address</a>
+    </td>
+    <td class="tablevalues" align="center"
+        tal:content="net/netmask">netmask
+    </td>
+    <td class="tablevalues" align="center"
+        tal:content="python: net.countIpAddresses()">
+        hosts
+    </td>
+    <span tal:define="status net/pingStatus">
+    <td class="statusvalues" bgcolor="#00ff00" align="center"
+        tal:attributes="bgcolor python: net.statusColor(status)"
+        tal:content="status">0
+    </td>
+    </span>
+    <span tal:define="status net/snmpStatus">
+    <td class="statusvalues" bgcolor="#00ff00" align="center"
+        tal:attributes="bgcolor python: net.statusColor(status)"
+        tal:content="status">0
+    </td>
+    </span>
+  </tr>
+  <tr>
+    <td colspan=5 class="tableheader" align='center'>
+        <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+    </td>
+  </tr>
+</table>
+</span>
+<br>
+<table border="0" cellpadding="3" width="100%"
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    tal:define="objects here/ipaddresses/objectValuesAll;
+    tableName string:networkoverviewipaddresses;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan=5>
+        IP Addresses
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Address','cmp')">
+            Address
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDeviceName','Device')">
+            Device
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getInterfaceName','Interface')">
+            Interface
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getPingStatusNumber','Ping')">
+            Ping Status
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpStatusNumber','SNMP')">
+            Snmp Status
+        </th>
+  </tr>
+  <tr tal:repeat="ip batch">
+    <td class="tablevalues" align="left">
+        <a href="_" target="rightFrame"
+        tal:attributes="href ip/absolute_url"
+        tal:content="ip/getIpAddress">1.1.1.1/24</a>
+    </td>
+    <td class="tablevalues" align="left">
+        <a href="_" target="rightFrame"
+        tal:condition="ip/getDeviceUrl"
+        tal:attributes="href ip/getDeviceUrl"
+        tal:content="ip/getDeviceName">devicenamelink</a>
+        <span tal:condition="not: ip/getDeviceUrl" 
+            tal:content="ip/getDeviceName" />
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="ip/getInterfaceName">
+        intname
+    </td>
+    <td class="statusvalues" align="left" bgcolor="_"
+        tal:attributes="bgcolor ip/getPingStatusColor"
+        tal:content="ip/getPingStatus">
+        Not Tested
+    </td>
+    <td class="statusvalues" align="left" bgcolor="_"
+        tal:attributes="bgcolor ip/getSnmpStatusColor"
+        tal:content="ip/getSnmpStatus">
+        Not Tested
+    </td>
+    </tr>
+  <tr>
+    <td colspan=5 class="tableheader" align='center'>
+        <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+    </td>
+  </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

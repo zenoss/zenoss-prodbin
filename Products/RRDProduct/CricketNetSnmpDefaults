@@ -1,0 +1,49 @@
+#================================================
+# Global Net-SNMP Agent Definitions
+#================================================
+
+OID laLoadInt       .1.3.6.1.4.1.2021.10.1.5.1
+OID ssCpuUser       .1.3.6.1.4.1.2021.11.9.0
+OID ssCpuSystem     .1.3.6.1.4.1.2021.11.10.0
+OID memTotalSwap    .1.3.6.1.4.1.2021.4.3.0
+OID memAvailSwap    .1.3.6.1.4.1.2021.4.4.0
+OID memTotalReal    .1.3.6.1.4.1.2021.4.5.0
+OID memAvailReal    .1.3.6.1.4.1.2021.4.6.0
+
+
+datasource  laLoadInt
+    ds-source   =   snmp://%snmp%/laLoadInt
+        rrd-ds-type     =   GAUGE
+
+datasource  ssCpuUser
+    ds-source   =   snmp://%snmp%/ssCpuUser
+        rrd-ds-type     =   GAUGE
+
+datasource  ssCpuSystem
+    ds-source   =   snmp://%snmp%/ssCpuSystem
+        rrd-ds-type     =   GAUGE
+
+datasource  memTotalSwap
+    ds-source   =   snmp://%snmp%/memTotalSwap
+        rrd-ds-type     =   GAUGE
+
+datasource  memAvailSwap
+    ds-source   =   snmp://%snmp%/memAvailSwap
+        rrd-ds-type     =   GAUGE
+
+datasource  memTotalReal
+    ds-source   =   snmp://%snmp%/memTotalReal
+        rrd-ds-type     =   GAUGE
+
+datasource  memAvailReal
+    ds-source   =   snmp://%snmp%/memAvailReal
+        rrd-ds-type     =   GAUGE
+
+targetType NetSnmpLoadAverage
+    ds = "laLoadInt"
+
+targetType NetSnmpMemory
+    ds = "memAvailSwap, memAvailReal"
+
+targetType NetSnmpTotalCPU
+    ds = "ssCpuUser, ssCpuSystem"

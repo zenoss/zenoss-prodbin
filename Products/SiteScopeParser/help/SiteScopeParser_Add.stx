@@ -1,0 +1,46 @@
+SiteScopeParser - Add: Create a new SiteScopeParser instance
+
+    Description
+
+        Creates a new SiteScopeParser to be used to poll
+        the URL it is associated with. Once creation is
+        complete, you will be returned to the folder in
+        which you created the SiteScopeParser. At this
+        point, it is a good idea to verify that you
+        created it properly. This can be done by clicking
+        your SiteScopeParser and visiting its View tab.
+        If you've entered valid parameters, you will see
+        a table containing the data extracted from
+        SiteScope. If any of your parameters were invalid,
+        you will see one of the error described in the Edit
+        screen help document. Once created and all parameters
+        have been verified, your SiteScopeParser is ready to
+        be used.
+
+    Parameters
+
+        'Id' -- This is the ID of the SiteScopeParser you
+        are going to create. Zope needs this parameter.
+
+        'Title' -- The title of the SiteScopeParser. This
+        parameter is similar to the ID, but is not needed
+        by Zope. Use it for identification purposes.
+
+        'URL' -- The location of the SiteScope page you
+        wish to manage.
+
+        'Username' -- The username with which the SiteScopeParser
+        will login at the SiteScope page.
+
+        'Password' -- The password that corresponds to the
+        Username parameter.
+
+        'Timeout' -- Your SiteScopeParser will maintain the data
+        that it collects from SiteScope. This parameter controls
+        how long the data should be allowed to age before it is
+        parsed again.
+
+        'First page?' -- Your SiteScopeParser needs to know if it
+        is pointed at the SiteScope Panel or if it is pointed at
+        a Group page. If it is pointed at the Panel, make sure that
+        this parameter is checked.

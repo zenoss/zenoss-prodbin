@@ -1,0 +1,12 @@
+<span tal:replace="structure here/standard_html_header"/>
+  <span metal:use-macro="here/top/macros/header" />
+  <br>
+  <table metal:use-macro="here/deviceMacros/macros/deviceOverviewBrief"></table>
+  <br>
+  <table metal:use-macro="here/deviceMacros/macros/interfaceList"></table>
+  <br>
+  <table metal:use-macro="here/deviceMacros/macros/ipserviceList"></table>
+  <br>
+  <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
+  <br>
+<span tal:replace="structure here/standard_html_footer"/>

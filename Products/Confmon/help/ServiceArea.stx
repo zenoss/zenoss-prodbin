@@ -1,0 +1,31 @@
+ServiceArea - ServiceArea container objects
+
+    Description
+        
+        Service area objects represent geographical areas to which systems
+        and/or devices provide services. A service area can span any physical
+        area and is the aggregate of all devices and systems within that area.
+        For example, if a device was in Annapolis, and a systems was spread out
+        over Baltimore, they could both live inside the Maryland service area.
+
+    Status view
+        
+        The service area status view provides a health overview of all
+        devices and systems located within the service area. A description
+        is also displayed, which can be set by the manager.
+
+        The list of system provides an overview of the system's health, along
+        with a description and the system class.
+
+        The device list conforms to the device container standard, providing
+        information regarding health (ping, SNMP) and classification (device
+        class, production state).
+
+    Changes view
+
+        Optimon maintains a list of changes transacted against the service
+        area. Any changes made at any time will be displayed as a set of
+        time, username, and description values. Any and all changes will
+        be present here. Changes made to components of the service area, such
+        as devices or systems, will only be shown on the device or system
+        changes view, and not here.

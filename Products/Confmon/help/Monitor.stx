@@ -1,0 +1,39 @@
+Monitor - Monitor management objects
+
+    Description
+
+        Monitor objects are the way that Optimon monitoring systems are
+        configured through the web. There are two kinds of monitors that
+        are implemented in Optimon: the Cricket monitor, and Status monitors.
+
+        Cricket monitors provide configuration information to Optimon related
+        to the way in which it should integrate with the Cricket tool. The key
+        field in a Cricket monitor is the location of the Cricket server,
+        from which Optimon will pull performance graphs. This field is actually
+        the name of the monitor.
+
+        Status monitors are more complex and are configurations for tools
+        which are part of Optimon. Status monitors are used as configurations
+        for both the ping monitor and the SNMP monitor. Fields in these
+        monitors control how often the configuration is reloaded, how long
+        to wait before declaring a device unhealthy, and how often to poll
+        the devices being monitored.
+
+    Status view
+
+        The status view of a monitor is where all configuration information
+        is displayed, along with a list of all devices being monitored. The
+        configuration information can be simply the name of the monitor, for
+        Cricket monitors, or several values related to polling for Status
+        monitors.
+
+        The list of monitored devices conforms to the device container
+        standard and displays a link back to the device's status view,
+        its device class, production state, ping and SNMP fields.
+
+    Changes view
+
+        Optimon maintains a record of all history pertaining to monitor
+        objects. Any changes to what is being monitored or how the monitoring
+        is performed will be logged. Each change will track who did it, when
+        it was done, and the description of the change.

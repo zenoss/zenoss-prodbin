@@ -1,0 +1,94 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+    <br>
+    <table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+    "#ffffff" cellspacing="1">
+      <tbody>
+        <tr>
+          <th class="tabletitle" align="left" colspan="4">
+           Service
+          </th>
+		  </tr>
+		  <tr>
+          <th class="tableheader" align="left">
+            Keyword
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/keyword">desc</span>
+          </td>
+          <th class="tableheader" align="left">
+            Description
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/description">class</span>
+          </td>
+        </tr>
+        <tr>
+          <th class="tableheader" align="left">
+            Protocol
+          </th>
+          <td class="tablevalues" colspan="1">
+            <span tal:replace="here/protocol">proto</span>
+          </td>
+          <th class="tableheader" align="left">
+            Port
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/port">port</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+	<br>
+    <table border="0" cellpadding="3" width="100%" 
+        align="center" bgcolor="#ffffff" cellspacing="1"
+        tal:define="tableName string:ipservicelist;
+        objects here/ipservices/objectValuesAll;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='getDeviceName');">
+        <tr>
+            <th class="tabletitle" align="left" colspan="5">
+                Devices Running Services
+            </th>
+        </tr>
+        <tr>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getDeviceName','Device')">
+                Device
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getDeviceClassPath','Device Class')">
+                Device Class
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getProdState','Prod State')">
+                Production State
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getPingStatusNumber','Ping')">
+                Ping
+            </th>
+        </tr>
+        <tr tal:repeat="srv batch">
+            <td class="tablevalues" align="left">
+                <span tal:replace="structure srv/getDeviceLink">
+                    link</span>
+            </td>
+            <td class="tablevalues" align="left"
+                tal:content="srv/getDeviceClassPath">dc
+            </td>
+            <td class="tablevalues" align="left"
+                tal:content="srv/getProdState">ps
+            </td>
+            <td class="statusvalues" align="left" bgcolor="_"
+                tal:attributes="bgcolor srv/getPingStatusColor"
+                tal:content="srv/getPingStatus">stat
+            </td>
+        </tr>
+        <tr>
+            <td colspan=5 class="tableheader" align='center'>
+                <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+            </td>
+        </tr>
+    </table>
+<span tal:replace="structure here/standard_html_footer"/>

@@ -1,0 +1,49 @@
+<span tal:replace="structure here/standard_html_header"/>
+<tal:block
+    tal:define="tableName string:ncoeventdetail;
+    serverserial request/serverserial;
+    servername request/servername;
+    sesskey python:tableName+str(serverserial)+servername;
+    ishist python:here.scSortedTableSetAtt(sesskey,'ev_ishist',0);
+    params python:'&serverserial='+str(serverserial)+'&servername='+servername;
+    event python:here.getEventDetail(serverserial, servername, ishist);
+    objects event/getEventDetails;
+    batch python:here.scSortedTableGetBatch(sesskey, objects, usebatch=0);"
+    >     
+<head metal:use-macro="here/ncoEventHeader/macros/ncoEventHeader"></head>
+
+<table metal:use-macro="here/ncoEventTop/macros/ncoEventTop"></table>
+
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+    <tr>
+        <th class="tableheader" 
+            tal:define="hclass python:here.scSortedTableHeaderStyle(
+                                sesskey,'field','tableheader')"
+            tal:attributes="class hclass">
+            <a href="_" class="tableheader"
+                tal:attributes="href python:here.scSortedTableHref(
+                        sesskey,'field',sortRule='nocase',params=params);
+                                class hclass">
+                Field
+            </a>
+        </th>
+        <th class="tableheader"
+            tal:define="hclass python:here.scSortedTableHeaderStyle(
+                                sesskey,'value','tableheader')"
+            tal:attributes="class hclass">
+            <a href="_" class="tableheader"
+                tal:attributes="href python:here.scSortedTableHref(
+                                    sesskey,'value',params=params);
+                                class hclass">
+                Value
+            </a>
+        </th>
+    </tr>
+    <tr tal:repeat="field batch">
+        <td class=tableheader tal:content="field/field">field</td>
+        <td class=tablevalues tal:content="field/value">value</td>
+    </tr>
+</table>
+</tal:block>
+<span tal:replace="structure here/standard_html_footer"/>

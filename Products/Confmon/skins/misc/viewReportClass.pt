@@ -1,0 +1,46 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+"#ffffff" cellspacing="1">
+  <tbody tal:define="objects python:here.objectSubValues();
+            sortOn python:(('getId', 'nocase', 'asc'),);
+            subobjs python:sequence.sort(objects, sortOn)">
+      <tr>
+          <th class="tabletitle" align="left" colspan="2">
+            <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+          </th>
+      </tr>
+  <tr tal:condition="subobjs">
+      <th class="tableheader" align="left">
+        Name
+      </th>
+      <th class="tableheader" align="left">
+        Description
+      </th>
+  </tr>
+  <tr tal:condition="python: not subobjs">
+    <td class="tablevalues">No contents</td>
+  </tr>
+        
+  <tr tal:repeat="mon subobjs">
+      <td class="tablevalues" colspan="1" bgcolor="#ffffff">
+      <img border="0" src="_"
+        tal:attributes="src mon/icon"/>
+      <a href="_" target="rightFrame"
+      tal:attributes="href mon/getPrimaryUrlPath">
+      <span tal:replace="mon/id">id</span></a>
+      </td>
+      <td class="tablevalues" colspan="1">
+      <span tal:replace="python: mon.title">description</span>
+      </td>
+    </tr>
+    <tr tal:condition="python:hasattr(here,'searchResults')">
+      <td align="left" class="tableheader" colspan="4" nowrap>
+      <table border=0 colspan=0 cellpadding=0>
+      <tr><td>Search</td><td>
+      <form action="searchResults" method="POST" target="rightFrame">
+      <input type="text" name="query"></form></td></tr></table>
+      </td></tr>
+  </tbody>
+</table>
+<br>
+<span tal:replace="structure here/standard_html_footer"/>

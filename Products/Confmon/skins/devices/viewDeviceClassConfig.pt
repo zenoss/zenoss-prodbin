@@ -1,0 +1,94 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+      Device Class Configuration
+      </th>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">
+        Ping Interface Regex
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="ping python:getattr(here,'zPingInterfaceSpecification','')"
+        tal:content="ping"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">
+        Snmp Communities
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="com python:getattr(here,'snmp_communities',())"
+        tal:content="python: ', '.join(com)"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Snmp Ignore Maps
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="maps python:getattr(here,'zSnmpCollectorIgnoreMaps',())"
+        tal:content="python: ', '.join(maps)"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Snmp Collect Maps
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="maps python:getattr(here,'zSnmpCollectorCollectMaps',())"
+        tal:content="python: ', '.join(maps)"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Route Map Only Local 
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="local python:getattr(here,'zRouterMapCollectOnlyLocal',1)"
+        tal:content="local"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Route Map Only Indirect
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="ind python:getattr(here,'zRouterMapCollectOnlyIndirect',1)"
+        tal:content="ind"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Interface Map Ignore Types
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="types python:getattr(here,'zInterfaceMapIgnoreTypes',())"
+        tal:content="python: ', '.join(types)"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Interface Map Ignore Names Regex
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="names python:getattr(here,'zInterfaceMapIgnoreNames','')"
+        tal:content="names"> 
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" >
+        Management Interface Names
+      </td>
+      <td class="tablevalues" align='left'
+        tal:define="names python:getattr(here,'zManageInterfaceNames',
+                        ('Loopback0','Ethernet0','hme0','ge0','eth0'))"
+        tal:content="python: ', '.join(names)"> 
+      </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

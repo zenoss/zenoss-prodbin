@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#################################################################
+#
+#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#
+#################################################################
+
+. $ZENHOME/bin/zenfunctions
+
+cd $ZENHOME/Products
+
+for d in $ZENPRODUCTS
+do
+    echo Checking out product $d...
+    cvs get -d $d zope/$d
+done
+exit;

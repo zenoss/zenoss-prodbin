@@ -1,0 +1,58 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table metal:define-macro="leftbuttons"
+    width=100% cellpadding="1" border="1" 
+    align="left" cellspacing="0">
+    <tr>
+        <td>
+          <a href="/zport/dmd" target="_top"><img border="0" 
+              src="logo.gif"
+              align="left"></a> 
+        </td>
+    </tr>
+    <tr>
+      <th class="tabletitle" align="left" colspan="1">
+        Device Search
+      </th>
+    </tr>
+    <tr>
+      <td class="tablevalues" align="left" colspan="1">
+        <form action="/zport/dmd/deviceSearchResults" METHOD="POST" 
+            target="rightFrame">
+          <input type="text" name="query">
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td class="tabletitle">
+      Organizers
+      </td>
+    </tr>
+    <span tal:repeat="org here/dmd/objectValues">
+    <tr tal:condition="org/isInTree">
+        <td class="tablevalues">
+          <img border=0 src="_" tal:attributes="src org/icon"/>
+          <a class="tablevalues" target="rightFrame"
+              href="_" tal:attributes="href org/absolute_url"
+              tal:content="org/getId">
+              OrganizerName
+          </a>
+        </td>
+    </tr>
+    </span>
+    <tr><td><img border=0 src="spacer_icon.gif"/></td></tr>
+    <tr tal:condition="python: 
+            'Manager' in request['AUTHENTICATED_USER'].getRoles()">
+        <td class="tablevalues">
+          <img border=0 src="tool.gif"/>
+            <a href="/zport/dmd/manageActions" target="rightFrame">
+                Management</a>
+        </td>
+    </tr>
+    <tr><td><img border=0 src="spacer_icon.gif"/></td></tr>
+    <tr>
+        <td class="tablevalues" align="left">
+        <a href="dmdLeft"><img border=0 src="Reload_icon.gif"/>Refresh</a>
+        </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

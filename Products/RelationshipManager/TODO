@@ -1,0 +1,7 @@
+Features:
+BuildRelations on RelationshipManager - adds all relationship objects based on the schema
+relAcquire - acquire an attribute by walking a relationship path
+relAcquireAgr - acquire the agrigate of an attribute by walking rel path
+
+Bugs:
+copy/paste doesn't set the state of objects correctly

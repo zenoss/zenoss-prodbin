@@ -1,0 +1,35 @@
+Location - Location container objects
+
+    Description
+
+        Location objects represent datacenters or racks.
+        A datacenter is a container for any number of racks. A rack
+        is a container for any number of devices. For instance, the A1
+        rack might be in the Annapolis datacenter. The A1 rack might also
+        contain seven devices. Additionally, Optimon keeps track of
+        physical location information.
+
+    Status view
+        
+        The location status view displays the datacenter's physical location
+        as well as the structure of the datacenter, in terms of racks. Racks
+        are displayed in a simple table which provides a link to the rack
+        status view, and a count of how many devices are housed in the rack.
+        
+        Once you have drilled down into a rack, you will seen an inventory
+        of devices. Every device that is housed in the rack will appear with
+        health statistics and classification information. This display
+        follows the standard for device container objects. That means that
+        you will be provided with the device class, production state, ping,
+        and SNMP fields, as well as a link to the device's status view.
+
+    Changes view
+
+        Optimon maintains a historical record of all changes transacted
+        again location objects. These changes are linked to a time, username
+        and description, all of which are displayed in the changes view.
+        Changes are transacted again either a datacenter, or a rack. This
+        means that when a device is added to a rack, the change will only
+        manifest in the changes view of the rack. Conversely, a change
+        applied to a datacenter will only show up in the datacenter changes
+        view, and not in any racks contained by that datacenter.

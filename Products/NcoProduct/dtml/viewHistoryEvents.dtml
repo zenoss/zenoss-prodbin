@@ -1,0 +1,136 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="portal.css">
+  </head>
+  <body bgcolor="#ffffff">
+<dtml-comment>setup SESSION data based on request</dtml-comment>
+<dtml-if ev_whereClause>
+    <dtml-call expr="sessionHistoryEventsInit(SESSION, REQUEST,1)">
+<dtml-else>
+    <dtml-call expr="sessionHistoryEventsInit(SESSION, REQUEST)">
+</dtml-if>
+<dtml-with SESSION mapping>
+<br />
+<form action="<dtml-var expr="REQUEST.URL">" 
+method="post">
+<table border="0" cellpadding="3" width="100%" align="center"
+bgcolor="#ffffff" cellspacing="1">
+<tr class=tableheader>
+<td>Start Date: 
+<dtml-if ev_hist_startdate>
+    <dtml-var expr="datePopup('start_date_pop',ev_hist_startdate)"></td>
+<dtml-else>
+    <dtml-var expr="datePopup('start_date_pop',ZopeTime()-1)"></td>
+</dtml-if>
+<td>End Date: 
+<dtml-if ev_hist_enddate>
+    <dtml-var expr="datePopup('end_date_pop',ev_hist_enddate)"></td>
+<dtml-else>
+    <dtml-var expr="datePopup('end_date_pop',ZopeTime())"></td>
+</dtml-if>
+<td><input type="submit" name="submit" value=" Search " /></tr></tr>
+</table>
+</form>
+<table border="0" cellpadding="3" width="100%" align="center"
+bgcolor="#ffffff" cellspacing="1">
+<tbody>
+  <dtml-let listEvts="getHistoryEvents(where=ev_whereClause,
+            startdate=ev_hist_startdate,enddate=ev_hist_enddate)" 
+            batchSize="batchsize">
+  <tr>
+      <th class="tabletitle" colspan='<dtml-var expr="_.len(resultFields)">'>
+      Omnibus History Events
+      </th>
+  </tr>
+  <tr>
+  <dtml-in expr="resultFields">
+      <td class="tableheader" nowrap>
+      <dtml-var sequence-item>
+      <dtml-if expr="_.len(listEvts) > 1">
+          <a href="<dtml-var expr="REQUEST.URL">?ev_sortkey=<dtml-var sequence-item>&ev_descending=1">
+          <img src="netcool/up_img" border="0"></a>
+          <a href="<dtml-var expr="REQUEST.URL">?ev_sortkey=<dtml-var sequence-item>&ev_descending=0">
+          <img src="netcool/down_img" border="0"></a>
+      </td>
+      </dtml-if>
+  </dtml-in>
+  </tr>
+  <dtml-if expr="ev_sortkey=='None'">
+  <dtml-in listEvts size=batchSize start=ev_start>
+  <tr class="descr" bgcolor="<dtml-var bgcolor>" style="color: <dtml-var fgcolor>;">
+  <dtml-in prefix="loop" expr="_.range(_.len(data))">
+     <td>
+         <dtml-var expr="data[loop_item]">
+     </td>
+  </dtml-in>
+  </tr>
+  </dtml-in>
+  <dtml-else>
+  <dtml-in listEvts size=batchSize start=ev_start sort_expr=ev_sortkey 
+    reverse_expr=ev_descending>
+  <tr class="descr" bgcolor="<dtml-var bgcolor>" style="color: <dtml-var fgcolor>;">
+  <dtml-in prefix="loop" expr="_.range(_.len(data))">
+     <td>
+         <dtml-var expr="data[loop_item]">
+     </td>
+  </dtml-in>
+  </tr>
+  </dtml-in>
+  </dtml-if>
+<tr>
+<dtml-if expr="_.len(listEvts)==1">
+<td class="tableheader" colspan="<dtml-var expr="_.len(resultFields)">" align="center">
+1-1 of 1</td>
+<dtml-elif expr="_.len(listEvts) == 0">
+<td colspan="<dtml-var expr="_.len(resultFields)">" valign="center" align="center" bgcolor="#019c01">
+<h3>All Systems Functional</h3>
+<dtml-else>
+<td class="tableheader" valign="center" align="center" colspan="<dtml-var expr="_.len(resultFields)">" align="right">
+
+    <dtml-if expr="_.len(listEvts)>batchsize">
+        <dtml-if expr="_.int(ev_start)+batchsize >= _.len(listEvts)">
+            <dtml-var ev_start>-
+            <dtml-if expr="(_.len(listEvts)-_.int(ev_start))>=batchsize">
+                <dtml-var expr="(_.int(ev_start)+batchsize)+1">
+            <dtml-else>
+                <dtml-var expr="((_.len(listEvts)-_.int(ev_start))+_.int(ev_start))+1">
+            </dtml-if>
+        <dtml-else>
+
+            <dtml-var ev_start>-
+            <dtml-if expr="(_.len(listEvts)-_.int(ev_start))>=batchsize">
+                <dtml-var expr="(_.int(ev_start)+batchsize)-1">
+            <dtml-else>
+                <dtml-var expr="((_.len(listEvts)-_.int(ev_start))+_.int(ev_start))">
+            </dtml-if>
+        </dtml-if>
+        of <dtml-if expr="_.len(listEvts)==1">1<dtml-else><dtml-var expr="_.len(listEvts)+1"></dtml-if>
+    <dtml-else>
+        1-<dtml-var expr="_.len(listEvts)"> of <dtml-var expr="_.len(listEvts)">
+    </dtml-if>
+
+<dtml-unless expr="ev_sortkey=='None'">
+<a href="<dtml-var expr="REQUEST.URL">?ev_sortkey=None&descending=0">
+    Unsort</a>
+</dtml-unless>
+<a href="<dtml-var expr="REQUEST.URL">?ev_start=1">First</a>
+<dtml-in listEvts size=batchSize start=ev_start previous>
+  <a href="<dtml-var expr="REQUEST.URL">?ev_start=<dtml-var previous-sequence-start-number>">
+  Previous</a>
+</dtml-in>
+<dtml-if expr="not (_.int(ev_start)+batchsize >= _.len(listEvts))">
+    <dtml-in listEvts size=batchSize start=ev_start next>
+      <a href="<dtml-var expr="REQUEST.URL">?ev_start=<dtml-var next-sequence-start-number>">
+      Next</a>
+    </dtml-in>
+</dtml-if>
+<a href="<dtml-var expr="REQUEST.URL">?ev_start=<dtml-var expr="_.len(listEvts)-(_.len(listEvts)%batchsize)">">
+Last</a>
+</td>
+</dtml-if>
+</tr>
+</dtml-let>
+</tbody>
+</table>
+</dtml-with>
+</html>

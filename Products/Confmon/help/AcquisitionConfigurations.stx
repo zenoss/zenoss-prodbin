@@ -1,0 +1,125 @@
+Acquisition Configurations
+
+    The behavior of the Zentinel Monitoring Portal can be modified by adding special properties to the Device Classification tree.  Properties are "inherited" through Zope acquisition.  Acquisition will return the value closest in the data tree to any node that you are currently working with.  This means that if a property such as "test" is configured on /dmd/Devices and you are working with the node /dmd/Devices/Servers/Linux/www.zentinel.com you can access "test" and it will return the value of the property on /dmd/Devices.  If another "test" property is added to the tree on say /dmd/Devices/Servers accessing "test" from www.zentinel.com will now return its value (because the /dmd/Devices/Servers is closer to the node than /dmd/Devices).
+
+    snmp_communities
+
+        type = lines<br/>
+        Array of snmp community strings that the SnmpCollector will try to use
+        to when collecting snmp information. The default list is added to
+        /dmd/Devices when the DMD is built.  
+    
+    zPingInterfaceSpecification
+
+        type = string<br/>
+        Regular expression that tells the Ping Monitor to ping matching
+        interface names in addition to the device's fully qualified domain name.
+
+    zSnmpCollectorIgnoreMaps
+
+        type = lines<br/>
+        Array of SnmpCollector CustomMap names that should not be collected.
+
+    zSnmpCollectorCollectMaps
+
+        type = lines<br/>
+        Array of SnmpCollector CustomMap names that should _only_ be collected.
+
+    zRouteMapCollectOnlyLocal
+
+        type = boolean<br/>
+        default = true (1)<br/>
+        Only collect routes that are of type local (manually configured routes).
+
+    zRouteMapCollectOnlyIndirect
+
+        type = boolean<br/>
+        default = true (1)<br/>
+        Only collect indirect routes (ones that don't point to ourself).
+
+
+    zSysedgeDiskMapIgnoreNames
+        type = string<br/>
+        Regular expression matched against the name of a disk.  Matches are not collected.
+    
+
+    zFileSystemMapIgnoreNames
+        type = string<br/>
+        Regular expression matched against the mount point of a filesystem.  Matches are not collected.
+    
+
+    zFileSystemMapIgnoreTypes
+        type = lines<br/>
+        Array of filesystem types to ignore when collecting filesystems.  
+
+
+    zInterfaceMapIgnoreTypes
+
+        type = lines<br/>
+        Array of interface number types to ignore when collecting interfaces.
+
+
+    zInterfaceMapIgnoreNames
+
+        type = string<br/>
+        Regular expression matched against interface names.  Matches are not collected.
+
+
+    zCricketInterfaceIgnoreNames
+    
+    type = string<br/>
+        Regular expression matched against interface names.  Matches are not sent to cricket.
+
+
+    zCricketInterfaceIgnoreTypes
+        type = lines<br/>
+        Array of interface number types to ignore when sending interfaces to cricket.
+
+    
+    zManageInterfaceNames
+
+        type = lines<br/>
+        Array of interface names that should be used when trying to pick which is the management interface on the device. defaults to Loopback0, Ethernet0, hme0, ge0, eth0.
+
+
+    zDefaultNetworkTree
+
+        type = lines<br />
+        Array of integers that will specify the mask number break points for building the ip networks tree.  for instance 8,16,24 would build a tree following class A, B, and C networks.  This is the default.
+
+
+
+Global Configurations
+
+    Global configuration properties are configured on the root of the DMD tree.  This allows them to be used anywhere in the system through acquisition.
+
+    prodStateConverstions
+
+        type = lines<br/>
+        Array to convert production state numbers to words. Each entry 
+        has two colin delimited values.  The left side is the word the right 
+        is its corresponding number ie: Production:1000.
+        
+
+    statusConverstion
+
+        type = lines<br/>
+        Array in the same format as the prodStateConversions.  Coverts 
+        error status codes (negative numbers) to words.
+
+
+    defaultBatchSize
+
+        type = int<br/>
+        The default batch size break point for large lists.
+
+    previousYearRange
+
+        type = int<br/>
+        The number of years in the past to include in date selection boxes.
+
+    futureYearRange
+
+        type = int<br/>
+        The number of years in the future to include in the date 
+        selection boxes.

@@ -1,0 +1,83 @@
+<component>
+    <sectiontype name="statusmonitor">
+        <description>
+            StatusMonitor section configures paramenters that are similar for
+            all status testing devices.
+        </description>
+        
+        <key name="configserver" required="yes">
+            <description>
+                Url pointing to a StatusMonitorConf object from which
+                the list of devices will be loaded.
+            </description>
+        </key>
+        <key name="zopeusername" required="yes">
+            <description>
+                Username to use when logging into zope.
+            </description>
+        </key>
+        <key name="zopepassword" required="yes">
+            <description>
+                Password to use when logging into zope.
+            </description>
+        </key>
+        <key name="ncoserver" required="no">
+            <description>
+                Url pointing to a DmdNcoManager object through which
+                omnibus events can be sent.
+            </description>
+        </key>
+        <key name="timeout" required="no" datatype="float" 
+            default="1.2">
+            <description>
+                Number of seconds to wait before a test is marked failed.
+            </description>
+        </key>
+        <key name="tries" required="no" datatype="integer" 
+            default="2">
+            <description>
+                Number of time to try a test before it is marked failed.
+            </description>
+        </key>
+        <key name="chunksize" required="no" datatype="integer" 
+            default="50">
+            <description>
+                Number of tests to run in parallel.
+            </description>
+        </key>
+        <key name="cycleinterval" required="no" datatype="integer" 
+            default="60">
+            <description>
+                Number of seconds between test cycles.
+            </description>
+        </key>
+        <key name="configcycleinterval" required="no" datatype="integer" 
+            default="560">
+            <description>
+                Number of minutes between reloads of the device list.
+            </description>
+        </key>
+        <key name="maxfailures" required="no" datatype="integer" 
+            default="1440">
+            <description>
+                Number of times a test can fail before it is moved from being
+                scheduled every cycleinterval to every configcycleinterval. 
+                This rescheduling dramatically lowers the overhead of 
+                failed nodes on a status monitor.
+            </description>
+        </key>
+        <key name="cyclefailwarn" required="no" datatype="integer" 
+            default="0">
+            <description>
+                Number of full cycles a test must fail before sending a warning.
+            </description>
+        </key>
+        <key name="cyclefailcritcal" required="no" datatype="integer" 
+            default="1">
+            <description>
+                Number of full cycles a test must fail before 
+                sending a critical.
+            </description>
+        </key>
+    </section>
+</component>

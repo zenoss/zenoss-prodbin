@@ -1,0 +1,70 @@
+Cricket Configuration Generation
+
+    Cricket configuration files can be producted from the DMD in very flexible ways.  Configuration is customised using the method described in Acquisition Configurations.  There are two main ways to perform customization adding attributes and adding scripts.  All attibutes begin with 'z' as described in Acquisition Configurations and all scripts begin with 'sc'. Below is a list of attributes and scripts that can be added to the DeviceClass tree to customize generation.
+
+
+    scCricketDevice
+
+        type = script<br/>
+        Python script that returns the targets for a device.  Context is the device on which targets should be made, no parameters are passed.  If the script returns None the default method will be used.  The data structure retured is a tuple or list of dictionaries each containing the keys: target and target-type.  ie: ({'target':'loadaverage', 'target-data', 'loadaverage'}, {'target':'cpu', target-type':'cpu'},)
+
+    zCricketDeviceType
+    
+        type = string<br/>
+        String which is the cricket type of devices in the class below
+
+    scCricketDeviceType
+
+        type = script<br/>
+        Python script that returns the type of a device.  Context of call will be the device.  If the script returns None the default method will be used.
+
+    zCricketInterfaceMap
+
+        type = lines<br/>
+        Array of strings with two elements separated by a ":". First element ist the interface type as defined by SNMP the second is the type as defined in cricket.  If no interface is found in this map (and other interface mapping rules fail) the default cricket interface type will be "StandardInterface"
+
+    scCricketInterfaceType
+
+        type = script<br/>
+        Python script that should return the type of the interface.  The interface is passed in as a parameter and the context is the device to which the interface is attached. If the script returns None the default method will be used.
+
+
+    scCricketTargetPath
+
+        type = script<br/>
+        Python script that should return the path in cricket for a device.  Context on the script will be the device, no parameters are passed. If the script returns None the default method will be used.
+
+
+RRDProduct Object Types
+
+    There are four types of objects which tell cricket and RRDProduct how to collect and generate performance graphs.  
+
+    RRDTragetType 
+        
+        Defines which datasources will be placed into an RRD file and which Views apply to the data stored in the file.  Also defines a list of RRDTrhesholds that can be applyed aginst datat sources in the file.
+
+    RRDDataSource
+
+        Defines how a single datasource will be graphed by NcoProduct.  Creating a datasource is optional as an RRDView can apply default parameters to a data source.
+
+    RRDView
+
+        Defines what data sources to graph and other global graph parameters.
+
+    RRDThreshold
+
+        Defines values at which a group of datasources should alarm.  Can have maximum and optionally minimum values.  Values can be hard coded (the same for each object) or be calculated relative to attributes of the object against which it applies (see Creating Cricket Thresholds below for more information).
+   
+Adding a new data collection to Cricket/RRDProduct
+    
+    To add new data collection to Cricket/RRDProduct requires making modifications to cricket configuration files as well as RRDProduct Objects in the DMD.  First define OID, datasource, and targettypes in cricket as is normally done (see cricket reference for details).  Once this is done define Parallel RRDTargetType objects for each cricket targettype.  Optionally RRDDataSource objects maybe defined if the data source defaults are not acceptable (an example is in ifOutOctests which defines an rpn to scale Octets to Bits).  Once the RRDTargetType is created build RRDViews for the different views that will apply to the target type.  Make sure that the RRDTargetType lists the views that apply to it.  Now that the RRDProduct objects are created extend the cricket generation code in Confmon/CricketDevice.py or one of its children (Confmon/CricketRouter.py) so that the cricket configuration generated for the new TargetTypes.
+    
+
+Creating Cricket Thresholds
+    
+    Cricket thresholds can be generated easily from the DMD.  Fist create an RRDThreshold Object in the rrdconfig folder below which the threshold will to apply.  Once a RRDThreshold is created add a list of RRDDataSources against which it will apply to the threshold's dsnames list.  
+    Next the thresholds maximum, and optionally minimum, value must be set.  These value can either be a hardcoded number (like 10) or a python expression that will be evaluated against the object to which the threshold applies.  The object name in the expression will be "context".  
+    For example to assign a theshold that is 85% of the speed of an interface enter: <pre>context.speed\*85.0</pre> in maxvalfunc of the threshold. It is also important to note that with interfaces the data for throughput bandwidth is collected in bytes (octets) not bits.  On the screen it is converted into bits so to set the threshold correctly for interface octets we must also convert the speed of the interface from bits to bytes.  This change makes the speed threshold function: <pre>context.speed*85/8</pre>
+    
+
+Once an RRDThreshold has been created it must be affiliated with an RRDTargetType.  This will tell cricket which Thresholds go with which targets.  Add the name of the Threshold to the RRDTargetType thresholds list.

@@ -1,0 +1,22 @@
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="ncoEventTop">
+    <tr>
+        <td class="tabletitle" colspan=3>
+            Netcool Event Serial <span tal:replace="event/ServerSerial"/>
+            Server <span tal:replace="event/ServerName"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tabletitle" colspan="1" align="center"
+            tal:repeat="tab python:event.confmonTabs()">
+            <a href="_"
+            class="tabletitle"
+            tal:attributes="href python:tab['action']+'?serverserial='
+                            +str(serverserial)+'&servername='+servername"
+            tal:content="tab/name">
+            TabName
+            </a>
+        </td>
+    </tr>
+</table>

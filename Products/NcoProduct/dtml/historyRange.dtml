@@ -1,0 +1,54 @@
+<dtml-comment>
+Utility method for use in html forms renders as dropboxes
+for day, month and year.  You must pass a string variable "id"
+used as a prefix for form "name=" variables.  If variable 
+"default" is set, date will initialize appropriately.
+</dtml-comment>
+
+<dtml-if default>
+  <dtml-call "REQUEST.set('default_year',default.year())">
+  <dtml-call "REQUEST.set('default_month',default.month())">
+  <dtml-call "REQUEST.set('default_day',default.day())">
+</dtml-if>
+
+<dtml-let monthdict="{1:'January',2:'February',3:'March',4:'April',
+   5:'May',6:'June',7:'July',8:'August',
+   9:'September',10:'October',11:'November',
+   12:'December'}">
+<SELECT NAME="<dtml-var id>_month">
+<dtml-unless default_month>
+  <OPTION VALUE="-1" selected>-- month --</OPTION>
+</dtml-unless>
+<dtml-in "_.range(1,13)">
+   <OPTION VALUE="<dtml-var sequence-item>"
+   <dtml-if default_month>
+   <dtml-if "_.int(default_month) == _['sequence-item']">selected</dtml-if>
+   </dtml-if>>
+   <dtml-var "monthdict[_['sequence-item']]"></OPTION>
+</dtml-in></SELECT>
+</dtml-let>
+
+<SELECT NAME="<dtml-var id>_day">
+<dtml-unless default_day>
+  <OPTION VALUE="-1" selected>-- day --</OPTION>
+</dtml-unless>
+<dtml-in "_.range(1,32)">
+   <OPTION VALUE="<dtml-var sequence-item>"
+   <dtml-if default_day>
+   <dtml-if "_.int(default_day) == _['sequence-item']">selected</dtml-if>
+   </dtml-if>>
+   <dtml-var sequence-item></OPTION>
+</dtml-in></SELECT>
+
+<SELECT NAME="<dtml-var id>_year">
+<dtml-unless default_day>
+  <OPTION VALUE="-1" selected>-- year --</OPTION>
+</dtml-unless>
+<dtml-in "_.range(2004,2001,-1)">
+   <OPTION VALUE="<dtml-var sequence-item>"
+   <dtml-if default_year>
+   <dtml-if "_.int(default_year) == _['sequence-item']">selected</dtml-if>
+   </dtml-if>>
+   <dtml-var sequence-item></OPTION>
+</dtml-in></SELECT>
+

@@ -1,0 +1,26 @@
+/*
+#   Copyright (c) 2004 Zentinel Systems. All rights reserved.
+*/
+
+div#ztmpagecounter {
+    position: absolute;
+    left: 9px; width: 25%;
+    border: 1px solid black;
+}
+
+div#ztmnavigation {
+    position: absolute;
+    left: 25%; width: 40%;
+    border: 1px solid green;
+}
+
+div#ztmfilter {
+    position: absolute;
+    left: 65%; width: 20%;
+    border-left: 1px solid black;
+}
+
+div#ztmpagesize {
+    position: absolute;
+    left: 80%; width: 20%;
+}

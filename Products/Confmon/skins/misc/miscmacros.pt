@@ -1,0 +1,68 @@
+<span metal:define-macro="breadCrumbs"
+    tal:repeat="crumbinfo here/breadCrumbs" tal:omit-tag="">
+    /<a target="rightFrame" class="tabletitle" 
+        href="_" tal:attributes="href python:crumbinfo[0]"
+        tal:content="python: crumbinfo[1]">link</a>
+</span>
+
+<tr><th class=tabletitle align=left 
+        tal:attributes="colspan colspan | python:5"
+        metal:define-macro="reportBreadCrumbs">
+    <span metal:define-macro="reportBreadCrumbsList"
+        tal:repeat="crumbinfo template/breadCrumbs" tal:omit-tag="">
+        /<a target="rightFrame" class="tabletitle" 
+            href="_" tal:attributes="href python:crumbinfo[0]"
+            tal:content="python: crumbinfo[1]">link</a>
+    </span>
+</th></tr>
+
+<form metal:define-macro="navtool" class="tableheader"
+    action="_" method="POST" tal:attributes="action request/URL"
+    tal:define="totalobjs python:here.scGetSortedTableState(tableName,
+                                                           'totalobjs')"
+    tal:condition="python: totalobjs > 3 
+        or here.scGetSortedTableState(tableName, 'filter')">
+   
+    <input type='hidden' name='tableName' value="_"
+        tal:attributes="value tableName">
+    Number
+    <span tal:replace="python:here.scGetSortedTableState(tableName,'start')+1"/>
+    of
+    <span tal:replace="totalobjs"/>
+    &nbsp; &nbsp;
+    <span tal:replace="structure python:here.scSortedTableNavigation(
+                                tableName, totalobjs, batch)"/>
+    &nbsp; &nbsp; 
+    Filter
+    <input class="tableheader" type="text" name="filter" size=10 value="_"
+        tal:attributes="value python: here.scGetSortedTableState(tableName,
+                                                                'filter')">
+    &nbsp; &nbsp; 
+    Page Size
+    <input class="tableheader" type="text" name="batchSize:int" size=3 value=20
+        tal:attributes="value python: here.scGetSortedTableState(tableName,
+                                                                'batchSize')">
+    <input class=tableheader type="submit" name="submit" value="ok" img="_"
+        tal:attributes="src python:here.absolute_url()+'/transimg.gif'"/>
+</form>
+
+
+<script metal:define-macro="popupwindow" language="JavaScript">
+<!--
+function popupwindow(url, title, width, height) {
+    windowprops = "width=" + width + ",height=" + height 
+        + ",resizable=yes,scrollbars=yes";
+    mywindow = window.open(url, title, windowprops);
+}
+//-->
+</script>
+
+
+<script metal:define-macro="submitAction" language="JavaScript">
+<!--
+function submitAction(myform, url) {
+    myform.action=url
+    myform.submit()
+}
+//-->
+</script>

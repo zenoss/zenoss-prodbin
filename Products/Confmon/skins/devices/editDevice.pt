@@ -1,0 +1,27 @@
+<span tal:replace="structure here/standard_html_header"/>
+<script metal:use-macro="here/miscmacros/macros/submitAction"></script>
+<span metal:use-macro="here/top/macros/header" />
+<form method=post tal:attributes="action request/URL1"
+    tal:define="myurl string:${request/URL1}/editDevice">
+<br />
+<table border="0" cellpadding="3" width="100%" 
+    align="left" bgcolor="#ffffff" cellspacing="1"
+    tal:define="device python: here.meta_type != 'DeviceLoader' 
+                                    and here or None"
+    >
+    <tr tal:define="message request/message | string:Device State at time:">
+        <td class=tableheader colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <span metal:use-macro="here/addDevice/macros/body" />
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td align="left"  class="tableheader" colspan=3>
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editDevice:method" />
+        </td>
+    </tr>
+</table>
+</form>
+<span tal:replace="structure here/standard_html_footer"/>

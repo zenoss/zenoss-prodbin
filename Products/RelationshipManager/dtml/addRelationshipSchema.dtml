@@ -1,0 +1,110 @@
+<dtml-var manage_page_header>
+
+<dtml-var "manage_form_title(this(), _,
+           form_title='Add RelationshipSchema',
+           help_product='RelationshipManager',
+           help_topic='RelationshipSchema_Add.stx'
+	   )">
+<p>
+<form action="manage_addRelationshipSchema" method="post">
+<table cellspacing="0" cellpadding="2" border="0">
+ <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+        Class One 
+    </div>
+    </td>
+    <td align="left" valign="top">
+        <input type="text" name="classOne" size="40" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+     Relation One 
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="relOne" size="40" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+     Relation Type One
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <select name='relTypeOne:int'>
+        <option value=1>To One</option>
+        <option value=2>To Many</option>
+    </select>    
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Cascade One
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="checkbox" name="cascadeOne:int" value=1 />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+        Class Two 
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="classTwo" size="40" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Relation Two
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="relTwo" size="40"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+     Relation Type Two
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <select name='relTypeTwo:int'>
+        <option value=1>To One</option>
+        <option value=2>To Many</option>
+    </select>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Cascade Two 
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="checkbox" name="cascadeTwo:int" value=1 />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    </td>
+    <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="submit" 
+     value=" Add " /> 
+    </div>
+    </td>
+  </tr>
+</table>
+</form>
+</p>
+<dtml-var manage_page_footer>

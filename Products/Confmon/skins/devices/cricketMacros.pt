@@ -1,0 +1,107 @@
+<span metal:define-macro="fsView">    
+    <tr>
+	     <th class="tabletitle" align="left" colspan="3">
+           File Systems 
+          </th>
+         <th class="tabletitle" align="center" colspan="1"
+            tal:define="restofquery python: (   '?rng=' + str(rng) +
+                                                '&intfs=' + str(intfs) +
+                                                '&dsks=' + str(dsks))">
+            <a target="mainFrame" href="_" tal:condition="python: not request.has_key('fsys') or not int(request['fsys'])"
+            style="color: white;"
+            tal:attributes="href python:restofquery+'&fsys=1'">
+            Show</a>
+            <a target="mainFrame" href="_" tal:condition="python: request.has_key('fsys') and int(request['fsys'])"
+            style="color: white;"
+            tal:attributes="href python:restofquery+'&fsys=0'">Close</a>
+        </th></tr>
+        <tr tal:condition="python: (len(here.filesystems()) == 0) and (
+                                    request.has_key('fsys') and int(request['fsys']))">
+            <td colspan="4" class="tableheader">No Filesystems</td>
+        </tr>
+        <span tal:repeat="fs here/filesystems"
+              tal:condition="python: request.has_key('fsys') and int(request['fsys'])">
+            <tr><td class="tableheader" colspan="4">Filesystem <span tal:replace="fs/mount">fs</span></td>
+            </tr><tr>
+                <td colspan="4">
+                    
+                <img align="left" tal:attributes="src python: here.getCricketImg(
+                    here.cricketLocation,
+                    'filesystems/'+fs.id,
+                    'devCapacity,devInodeCapacity',
+                    rng)"></td>
+            </tr></span>
+</span>
+            
+<span metal:define-macro="interfaceView">
+<tr>
+    <th class="tabletitle" align="left" colspan="3">
+        Interfaces 
+    </th>
+    <th class="tabletitle" align="center" colspan="1"
+            tal:define="restofquery python: (   '?rng=' + str(rng) +
+            '&fsys=' + str(fsys) +
+            '&dsks=' + str(dsks))">
+        <a target="mainFrame" href="_" tal:condition="python: not request.has_key('intfs') or not int(request['intfs'])"
+            style="color: white;"
+            tal:attributes="href python:restofquery+'&intfs=1'">
+        Show</a>
+        <a target="mainFrame" href="_" tal:condition="python: request.has_key('intfs') and int(request['intfs'])"
+            style="color: white;"
+            tal:attributes="href python:restofquery+'&intfs=0'">Close</a>
+    </th></tr>
+<tr tal:condition="python: (len(here.interfaces()) == 0) and (
+                            request.has_key('intfs') and int(request['intfs']))">
+    <td class="tableheader" colspan="4">No Interfaces</td>
+</tr>
+<span tal:repeat="intf here/interfaces"
+      tal:condition="python: request.has_key('intfs') and int(request['intfs'])">
+        <tr><td class="tableheader" colspan="2">Interface <span tal:replace="intf/id">int</span></td>
+        <td class="tableheader" colspan="2">Octets</td>
+        </tr><tr>
+        <td colspan="4">
+            <img align="left" tal:attributes="src python: here.getCricketImg(
+            here.cricketLocation,
+            'interfaces/'+intf.id,
+            'ifInOctets,ifOutOctets',
+            rng, intf.speed)"></td></tr>
+</span> 
+</span>
+
+<tr metal:define-macro="navbar"
+        tal:define="restofquery python:(    '?intfs=' + str(intfs) +
+        '&fsys=' + str(fsys) +
+        '&dsks=' + str(dsks))">
+    <th class="tabletitle" align="center" colspan="1"
+        tal:attributes="class python:((int(rng)==86400) and 'greyed') or 'tabletitle'">
+        <a class="tabletitle" target="mainFrame" href="_"
+            style = "color: white;"
+            tal:condition="python: int(rng)!=86400"
+            tal:attributes="href python:restofquery + '&rng=86400'">Day</a>
+        <span tal:replace="string:Day" tal:condition="python:int(rng)==86400">column</span>
+    </th>			     
+    <th class="tabletitle" align="center" colspan="1"
+        tal:attributes="class python:((int(rng)==604800) and 'greyed') or 'tabletitle'">
+        <a class="tabletitle" target="mainFrame" href="_"
+            style = "color: white;"
+            tal:condition="python: int(rng)!=604800"
+            tal:attributes="href python:restofquery + '&rng=604800'">Week</a>
+        <span tal:replace="string:Week" tal:condition="python:int(rng)==604800">column</span>
+    </th>
+    <th class="tabletitle" align="center" colspan="1"
+        tal:attributes="class python:((int(rng)==2419200) and 'greyed') or 'tabletitle'">
+        <a class="tabletitle" target="mainFrame" href="_"
+            style = "color: white;"
+            tal:condition="python: int(rng)!=2419200"
+            tal:attributes="href python:restofquery + '&rng=2419200'">Month</a>
+        <span tal:replace="string:Month" tal:condition="python:int(rng)==2419200">column</span>
+    </th>
+    <th class="tabletitle" align="center" colspan="1"
+        tal:attributes="class python:((int(rng)==31536000) and 'greyed') or 'tabletitle'">
+        <a class="tabletitle" target="mainFrame" href="_"
+            style = "color: white;"
+            tal:condition="python: int(rng)!=31536000"
+            tal:attributes="href python:restofquery + '&rng=31536000'">Year</a>
+        <span tal:replace="string:Year" tal:condition="python:int(rng)==31536000">column</span>
+    </th>
+</tr>

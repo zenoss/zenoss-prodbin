@@ -1,0 +1,291 @@
+#
+# Interface Defaults
+#
+
+# Interface Monitors
+OID	ifIndex    			1.3.6.1.2.1.2.2.1.1
+OID	ifDescr    			1.3.6.1.2.1.2.2.1.2
+OID	ifType     			1.3.6.1.2.1.2.2.1.3
+OID	ifMtu     			1.3.6.1.2.1.2.2.1.4
+OID	ifSpeed    	    	1.3.6.1.2.1.2.2.1.5 
+OID ifPhysAddress		1.3.6.1.2.1.2.2.1.6
+OID	ifAdminStatus		1.3.6.1.2.1.2.2.1.7 
+OID	ifOperStatus   		1.3.6.1.2.1.2.2.1.8 
+OID	ifLastChange		1.3.6.1.2.1.2.2.1.9
+OID	ifInOctets 			1.3.6.1.2.1.2.2.1.10
+OID	ifInUcastPkts		1.3.6.1.2.1.2.2.1.11
+OID	ifInNUcastPkts		1.3.6.1.2.1.2.2.1.12
+OID	ifInDiscards		1.3.6.1.2.1.2.2.1.13
+OID	ifInErrors 			1.3.6.1.2.1.2.2.1.14
+OID	ifInUnknownProtos	1.3.6.1.2.1.2.2.1.15
+OID	ifOutOctets			1.3.6.1.2.1.2.2.1.16
+OID	ifOutUcastPkts  	1.3.6.1.2.1.2.2.1.17
+OID	ifOutNUcastPkts 	1.3.6.1.2.1.2.2.1.18
+OID	ifOutDiscards		1.3.6.1.2.1.2.2.1.19
+OID	ifOutErrors			1.3.6.1.2.1.2.2.1.20
+OID	ifOutQLen      		1.3.6.1.2.1.2.2.1.21
+
+#64-bit interface counters
+OID	ifHCInOctets 		1.3.6.1.2.1.31.1.1.1.6
+OID	ifHCInUcastPkts		1.3.6.1.2.1.31.1.1.1.7
+OID	ifHCOutOctets 		1.3.6.1.2.1.31.1.1.1.10
+OID	ifHCOutUcastPkts	1.3.6.1.2.1.31.1.1.1.11
+
+# SRP Counters
+OID srpRingIntUcastLowPriOctetsIn 	1.3.6.1.4.1.9.10.60.2.2.1.5
+OID srpRingIntMcastLowPriOctetsIn	1.3.6.1.4.1.9.10.60.2.2.1.7
+OID srpRingIntUcastHighPriOctetsIn	1.3.6.1.4.1.9.10.60.2.2.1.9
+OID srpRingIntMcastHighPriOctetsIn	1.3.6.1.4.1.9.10.60.2.2.1.11
+OID srpRingIntUcastLowPriOctetsOut	1.3.6.1.4.1.9.10.60.2.2.1.13
+OID	srpRingIntMcastLowPriOctetsOut	1.3.6.1.4.1.9.10.60.2.2.1.15
+OID srpRingIntUcastHighPriOctetsOut	1.3.6.1.4.1.9.10.60.2.2.1.17
+OID srpRingIntMcastHighPriOctetsOut	1.3.6.1.4.1.9.10.60.2.2.1.19
+
+OID ifAlias             1.3.6.1.2.1.31.1.1.1.18
+
+#
+# Interface DataSources
+#
+datasource  ifinoctets
+	rrd-ds-type		=   COUNTER
+	ds-source		=   snmp://%snmp%/ifInOctets.%inst%
+
+dataSource  ifOutOctets
+	rrd-ds-type		=   COUNTER
+	ds-source		=   snmp://%snmp%/ifOutOctets.%inst%
+
+datasource ifInErrors
+	rrd-ds-type		=   COUNTER
+	ds-source	=	snmp://%snmp%/ifInErrors.%inst%
+
+datasource ifOutErrors
+	rrd-ds-type		=   COUNTER
+	ds-source	=	snmp://%snmp%/ifOutErrors.%inst%
+
+datasource ifInUcastPackets
+	rrd-ds-type		=   COUNTER
+	ds-source	=	snmp://%snmp%/ifInUcastPkts.%inst%
+
+datasource ifOutUcastPackets
+	rrd-ds-type		=   COUNTER
+	ds-source	=	snmp://%snmp%/ifOutUcastPkts.%inst%
+
+# High speed counters
+dataSource  ifHCInOctets
+	rrd-ds-type		=   COUNTER
+    ds-source               =       snmp://%snmp%/ifHCInOctets.%inst%
+
+dataSource  ifHCOutOctets
+	rrd-ds-type		=   COUNTER
+    ds-source               =       snmp://%snmp%/ifHCOutOctets.%inst%
+
+datasource ifHCInUcastPackets
+	rrd-ds-type		=   COUNTER
+    ds-source       =       snmp://%snmp%/ifHCInUcastPkts.%inst%
+
+datasource ifHCOutUcastPackets
+	rrd-ds-type		=   COUNTER
+    ds-source       =       snmp://%snmp%/ifHCOutUcastPkts.%inst%
+
+
+# SRP datasources
+datasource srpRingIntUcastLowPriOctetsIn
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntUcastLowPriOctetsIn.%inst%
+
+datasource srpRingIntMcastLowPriOctetsIn
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntMcastLowPriOctetsIn.%inst%
+
+datasource srpRingIntUcastHighPriOctetsIn
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntUcastHighPriOctetsIn.%inst%
+
+datasource srpRingIntMcastHighPriOctetsIn
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntMcastHighPriOctetsIn.%inst%
+
+datasource srpRingIntUcastLowPriOctetsOut
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntUcastLowPriOctetsOut.%inst%
+
+datasource srpRingIntMcastLowPriOctetsOut
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntMcastLowPriOctetsOut.%inst%
+
+datasource srpRingIntUcastHighPriOctetsOut
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntUcastHighPriOctetsOut.%inst%
+
+datasource srpRingIntMcastHighPriOctetsOut
+        rrd-ds-type=GAUGE
+        ds-source = snmp://%snmp%/srpRingIntMcastHighPriOctetsOut.%inst%
+
+#
+# Interface TargetTypes
+#
+targetType  StandardInterface
+	ds	    =	"ifInOctets, ifOutOctets, ifInErrors,
+				ifOutErrors, ifInUcastPackets, ifOutUcastPackets"
+	view	=	"Octets: ifInOctets ifOutOctets,
+				UcastPackets: ifInUcastPackets ifOutUcastPackets,
+				Errors: ifInErrors ifOutErrors"
+
+targetType  SubInterface
+	ds	    =	"ifInOctets, ifOutOctets,
+			    ifInUcastPackets, ifOutUcastPackets"
+    view	=	"Octets: ifInOctets ifOutOctets,
+                UcastPackets: ifInUcastPackets ifOutUcastPackets"
+
+targetType  OctetsOnlySubInterface
+	ds	    =	"ifInOctets, ifOutOctets"
+    view	=	"Octets: ifInOctets ifOutOctets"
+
+targetType  FastInterface
+    ds      =   "ifHCInOctets, ifHCOutOctets, ifInErrors,
+                ifOutErrors, ifHCInUcastPackets, ifHCOutUcastPackets"
+    view    =   "Octets: ifHCInOctets ifHCOutOctets,
+                UcastPackets: ifHCInUcastPackets ifHCOutUcastPackets,
+                Errors: ifInErrors ifOutErrors"
+
+targetType SRPInterface
+    ds = "srpRingIntUcastLowPriOctetsIn, srpRingIntMcastLowPriOctetsIn,
+          srpRingIntUcastHighPriOctetsIn, srpRingIntMcastHighPriOctetsIn,
+          srpRingIntUcastLowPriOctetsOut, srpRingIntMcastLowPriOctetsOut,
+          srpRingIntUcastHighPriOctetsOut, srpRingIntMcastHighPriOctetsOut"
+
+targetType  DownstreamInterface
+	ds	    =	"ifOutOctets, 
+				ifOutErrors, ifOutUcastPackets"
+	view	=	"Octets: ifOutOctets,
+				UcastPackets: ifOutUcastPackets,
+				Errors:  ifOutErrors"
+
+targetType  UpstreamInterface
+	ds	    =	"ifInOctets, 
+				ifInErrors, ifInUcastPackets"
+	view	=	"Octets: ifInOctets,
+				UcastPackets: ifInUcastPackets,
+				Errors:  ifInErrors"
+
+#
+# Interface Graphs
+#
+graph   ifInUcastPackets
+    draw-as     =   AREA
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets In"
+
+graph   ifOutUcastPackets
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets Out"
+
+graph   ifInErrors
+    draw-as     =   AREA
+    y-axis      =   "errors per second"
+    units       =   "err/sec"
+    legend      =   "Average Errors In"
+
+graph   ifOutErrors
+    y-axis      =   "errors per second"
+    legend      =   "Average Errors Out"
+    units       =   "err/sec"
+
+graph   ifInOctets
+    draw-as     =   AREA
+    legend      =   "Average bits in"
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    scale       =   8,*
+
+graph   ifOutOctets
+    legend      =   "Average bits out"
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    scale       =   8,*
+
+graph   ifHCInOctets
+    draw-as     =   AREA
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Average num bits In"
+    scale       =   8,*
+    bytes       =   true
+
+graph   ifHCOutOctets
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Average num bits Out"
+    scale       =   8,*
+    bytes       =   true
+
+graph   ifInUcastPackets
+    draw-as     =   AREA
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets In"
+ 
+graph   ifOutUcastPackets
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets Out"
+
+graph   ifHCInUcastPackets
+    draw-as     =   AREA
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets In"
+
+graph   ifHCOutUcastPackets
+    y-axis      =   "packets per second"
+    units       =   "pkt/sec"
+    legend      =   "Average num Packets Out"
+
+graph   srpRingIntUcastLowPriOctetsIn
+    units       =   "bits/sec"
+    legend      =   "Ucast Low Pri In"
+    scale       =   .0088889,*
+
+graph   srpRingIntMcastLowPriOctetsIn
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Mcast Low Pri In"
+    scale       =   .0088889,*
+
+graph   srpRingIntUcastHighPriOctetsIn
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Ucast High Pri In"
+    scale       =   .0088889,*
+
+graph   srpRingIntMcastHighPriOctetsIn
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Mcast High Pri In"
+    scale       =   .0088889,*
+
+graph   srpRingIntUcastLowPriOctetsOut
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Ucast Low Pri Out"
+    scale       =   .0088889,*
+
+graph   srpRingIntMcastLowPriOctetsOut
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Mcast Low Pri Out"
+    scale       =   .0088889,*
+
+graph   srpRingIntUcastHighPriOctetsOut
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Ucast High Pri Out"
+    scale       =   .0088889,*
+
+graph   srpRingIntMcastHighPriOctetsOut
+    y-axis      =   "bits per second"
+    units       =   "bits/sec"
+    legend      =   "Mcast High Pri Out"
+    scale       =   .0088889,*

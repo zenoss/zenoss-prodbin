@@ -1,0 +1,35 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table 
+    tal:define="objects here/objectValues;
+        tableName string:tableexample;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                            sortedHeader='getId', sortRule='nocase',);"
+    >
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name', 'nocase')">
+            Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'bobobase_modification_time',
+                    'Last Modification','cmp')">
+            Last Modification 
+        </th>
+    </tr>
+    <tr tal:repeat="item batch">
+        <td class="tablevalues" tal:content="item/getId">
+            Name
+        </td>
+        <td class="tablevalues" tal:content="python: 
+            item.bobobase_modification_time().strftime('%Y/%m/%d %H:%M:%S')">
+            modtime
+        </td>
+    </tr>
+    <tr>
+        <td colspan=2>
+            <form metal:use-macro=
+                "here/zentablemanager/zenTableNavigation/macros/navtool" />
+        </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

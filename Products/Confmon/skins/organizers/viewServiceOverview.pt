@@ -1,0 +1,107 @@
+<span tal:replace="structure here/standard_html_header"/>
+    <br>
+    <table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+    "#ffffff" cellspacing="1">
+      <tbody>
+        <tr>
+          <th class="tabletitle" align="left" colspan="4">
+           Service
+          </th>
+		  </tr>
+		  <tr>
+          <th class="tableheader" align="left">
+            Name
+          </th>
+          <td class="tablevalues" colspan="1" bgcolor="#ffffff">
+          <span tal:replace="here/id">id</span>
+          </td>
+          <th class="tableheader" align="left">
+            Description
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/description">class</span>
+          </td>
+        </tr>
+        <tr>
+          <th class="tableheader" align="left">
+            Keyword
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/keyword">desc</span>
+          </td>
+          <th class="tableheader" align="left">
+            Contact
+          </th>
+          <td class="tablevalues" colspan="1">
+            <span tal:replace="here/contact">ctact</span>
+          </td>
+        </tr>
+        <tr>
+          <th class="tableheader" align="left">
+            Port
+          </th>
+          <td class="tablevalues" colspan="1">
+          <span tal:replace="here/port">port</span>
+          </td>
+          <th class="tableheader" align="left">
+            Protocol
+          </th>
+          <td class="tablevalues" colspan="1">
+            <span tal:replace="here/protocol">proto</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+	<br>
+    <table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+    "#ffffff" cellspacing="1">
+      <tbody>
+        <tr>
+            <th class="tabletitle" align="left" colspan="5">
+                Running Services
+            </th>
+        </tr>
+        <tr tal:condition="here/ipservices/objectValuesAll">
+            <th class="tableheader" align="left" colspan="1">
+                Service
+            </th>
+            <th class="tableheader" align="left" colspan="1">
+                Device
+            </th>
+            <th class="tableheader" align="left" colspan="1">
+                Device Class
+            </th>
+            <th class="tableheader" align="left" colspan="1">
+                Production State
+            </th>
+            <th class="tableheader" align="left" colspan="1">
+                Ping Status
+            </th>
+        </tr>
+        <tr tal:condition="python: not here.ipservices.objectValuesAll()">
+            <td class="tablevalues" align="left">
+            No Services
+            </td>
+        </tr>
+        <tr tal:repeat="srv here/ipservices/objectValuesAll">
+            <td class="tablevalues" align="left">
+                <span tal:replace="srv/id">srv</span>
+            </td>
+            <td class="tablevalues" align="left">
+                <span tal:replace="structure srv/getDeviceLink">
+                    link</span>
+            </td>
+            <td class="tablevalues" align="left">
+                <span tal:replace="srv/getDeviceClass">dc</span>
+            </td>
+            <td class="tablevalues" align="left">
+                <span tal:replace="srv/getDeviceProdState">ps</span>
+            </td>
+            <td class="ps" align="left" bgcolor="_"
+                tal:attributes="bgcolor srv/getDeviceStatusColor">
+                <span tal:replace="srv/getDeviceStatus">stat</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+<span tal:replace="structure here/standard_html_footer"/>

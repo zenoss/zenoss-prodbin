@@ -1,0 +1,11 @@
+Zentinel Portal Administration
+
+    The Zentinel Portal runs under the Zope application development environment. More information about Zope can be found at <a href="http://www.zope.org/Documentation">www.zope.org</a>.
+
+    Environment
+
+        The Zentinel Portal run environment can be customized by modifying severel environment variables.
+        <p>ZENHOME - must be defined path to base portal install</p>
+        <p>SYBASE - path to the sybase install used to connect to netcool.  Normally this is set automatically based on ZENHOME</p>
+        <p>ORACLE_HOME - path to the oracle client install used to connect to the netcool history database.</p>
+

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/lib/python/ZODB
+PRGNAME=fsrecover.py
+
+PIDFILE=$VARDIR/ZEO_SERVER.pid
+
+$PYTHON $PRGHOME/$PRGNAME $@
+exit $?

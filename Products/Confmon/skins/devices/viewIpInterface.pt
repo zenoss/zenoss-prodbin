@@ -1,0 +1,62 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br/>
+<table metal:define-macro="objectperf" 
+    border=0 cellpadding=3 width=100% 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    >
+    <tr><th class=tabletitle align=left colspan=4>IpInterface</th></tr>
+    <tr>
+      <td class=tableheader align=left>Name</td>
+      <td class=tablevalues tal:content="here/name">eth0</td>
+      <td class=tableheader align=left>MAC Address</td>
+      <td class=tablevalues tal:content="here/macaddress">00:11:22:AA:BB:CC</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>IP Addresses</td>
+      <td class=tablevalues colspan=3>
+          <span tal:repeat="ip here/getIpAddresses" omit-tag="">
+            <a class=tablevalues 
+                tal:condition="python:hasattr(ip,'getIpAddress')"
+                tal:content="ip/getIpAddress"
+                tal:attributes="href ip/getPrimaryUrlPath">
+                10.2.1.1/24</a>
+            <span tal:condition="python:not hasattr(ip,'getIpAddress')"
+                tal:replace="ip">1.1.1.1/24</span>
+          </span>
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Operational Status</td>
+      <td class="tablevalues" 
+        tal:content="python:here.operStatus==1 and 'Up' or 'Down'">
+        Up
+      </td>
+      <td class=tableheader align=left>Administrative Status</td>
+      <td class="tablevalues" 
+        tal:content="python:here.adminStatus==1 and 'Up' or 'Down'">
+        Up
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Type</td>
+      <td class=tablevalues tal:content="here/type">Ethernet</td>
+      <td class=tableheader align=left>Speed</td>
+      <td class=tablevalues tal:content="here/speed">100000000</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>MTU</td>
+      <td class=tablevalues tal:content="here/mtu">1500</td>
+      <td class=tableheader align=left>SNMP Index</td>
+      <td class=tablevalues tal:content="here/ifindex">100000000</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Description</td>
+      <td class=tablevalues colspan=3 tal:content="here/description">
+        A nice interface
+    </td>
+    </tr>
+</table>
+<br/>
+<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+<span tal:replace="structure here/standard_html_footer"/>

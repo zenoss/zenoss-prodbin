@@ -1,0 +1,10 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/viewSystemClassOverview/macros/overview" />
+<br/>
+<span metal:use-macro="here/viewDeviceGroupClassOverview/macros/overview" />
+<br/>
+<span metal:use-macro="here/viewLocationClassOverview/macros/overview" />
+<br/>
+<span metal:use-macro="here/viewNetworkClassOverview/macros/overview" />
+<br/>
+<span tal:replace="structure here/standard_html_footer"/>

@@ -1,0 +1,711 @@
+<table border=0 cellpadding=3 width=100% align=center 
+    bgcolor=#ffffff cellspacing=1
+    metal:define-macro=deviceStatusInfo>
+    <tr>
+      <th class=tabletitle align=left colspan=4>Status</th>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Ping</td>
+      <td class=statusvalues bgcolor=#00ff00
+        tal:attributes="bgcolor python: here.getPingStatusColor()"
+        tal:content="here/getPingStatus">0</td>
+      <td class=tableheader align=left>Ping Avail 30</td>
+      <td class=tablevalues tal:content="here/getPingAvail30String">100%</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>SNMP</td>
+      <td class=statusvalues bgcolor=#00ff00
+        tal:attributes="bgcolor python: here.getSnmpStatusColor()"
+        tal:content="here/getSnmpStatus">0</td>
+      <td class=tableheader align=left>SNMP Avail 30</td>
+      <td class=tablevalues tal:content="here/getSnmpAvail30String">100%</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Uptime</td>
+      <td class=tablevalues tal:content="here/uptimeStr">1day</td>
+      <td class=tableheader align=left>SNMP Collection</td>
+      <td class=tablevalues tal:content="here/getSnmpLastCollectionString"></td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>State</td>
+      <td class=tablevalues
+        tal:content="python:here.convertProdState(here.productionState)">
+        device state
+      </td>
+      <td class=tableheader align=left>Events</td>
+      <td class=tablevalues align=left>
+    <table border=0 cellpadding=0 width=100% align=center 
+        bgcolor=#ffffff cellspacing=1>
+      <tr>
+      <td class=statusvalues align=center bgcolor=_ width=16%
+        tal:on-error="structure string:
+            <span style='color: white;'>Omnibus unavailable</span>"
+        tal:repeat="evt python:here.netcool.getDeviceEventSummary(here.id)"
+        tal:attributes="bgcolor python:evt[1]">
+            <span tal:replace="python:evt[0]">evtcnt</span></td>
+      </tr>
+    </table>
+      </td>
+    </tr>
+</table>
+
+<table border=0 cellpadding=3 width=100% align=center 
+    bgcolor=#ffffff cellspacing=1
+    metal:define-macro="deviceOverviewBrief">
+    <tr>
+      <th class=tabletitle align=left colspan=4>
+       Device 
+      </th>
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Hostname
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/id">
+        hostname
+      </span>
+      </td>
+      <th class=tableheader align=left>
+          SNMP sysName
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/snmpSysName">
+          sysName
+      </span>
+      </td>
+    </tr>
+    <tr>
+        <th class=tableheader align=left>
+            Creation Time
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getCreatedTimeString">
+            creation time
+        </td>
+
+        <th class="tableheader" align="left">
+            Last Modification
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getModificationTimeString">
+            mod time
+        </td>
+    </tr>
+</table>
+
+<table border=0 cellpadding=3 width=100% align=center 
+    bgcolor=#ffffff cellspacing=1
+    metal:define-macro="deviceOverview">
+    <tr>
+      <th class=tabletitle align=left colspan=4>
+       Device 
+      </th>
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Hostname
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/id">
+        hostname
+      </span>
+      </td>
+      <th class=tableheader align=left>
+          SNMP sysName
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/snmpSysName">
+          sysName
+      </span>
+      </td>
+    </tr>
+    <tr>
+        <th class=tableheader align=left>
+            Creation Time
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getCreatedTimeString">
+            creation time
+        </td>
+
+        <th class="tableheader" align="left">
+            Last Modification
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getModificationTimeString">
+            mod time
+        </td>
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Device Class
+      </th>
+      <td class=tablevalues tal:content="here/getDeviceClassPath">
+        /Devices/Servers/Solaris
+      </td>
+      <td class=tableheader>OS Version</td>
+      <td class=tablevalues tal:content="here/getOsVersion" />
+    </tr>
+    <tr>
+      <td class="tableheader">Tag #</td>
+      <td class="tablevalues" tal:content="here/tag">123456</td>
+      <td class="tableheader">Serial #</td>
+      <td class="tablevalues" tal:content="here/serialNumber">123456</td>
+    </tr>
+    <tr>
+      <td class="tableheader">Manufacturer</td>
+      <td class="tablevalues">
+      <span tal:replace="structure python: here.getManufacturerLink('rightFrame')">manufacturer
+      </span>
+      </td>
+      <td class="tableheader">Model</td>
+      <td class="tablevalues">
+      <span tal:replace="structure python: here.model.getPrimaryLink('rightFrame')">
+      model
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Location</td>
+      <td class=tablevalues 
+        tal:define="loc here/getLocationName">
+        <a class=tablevalues tal:condition=loc
+        tal:attributes="href python: here.location().getPrimaryUrlPath()"
+        tal:content="loc" >location</a>
+      </td>
+      <td class=tableheader>Rack Slot</td>
+      <td class=tablevalues tal:content='here/rackSlot' />
+    </tr>
+    <tr>
+      <td class=tableheader>SNMP Location</td>
+      <td class=tablevalues tal:content='here/snmpLocation' />
+      <td class=tableheader>SNMP Contact</td>
+      <td class=tablevalues tal:content='here/snmpContact' />
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">SNMP Descr</td>
+      <td class="tablevalues" colspan="3" tal:content="here/snmpDescr" />
+    </tr>
+    <tr tal:condition="here/snmpAgent">
+      <td class="tableheader" align="left">SNMP Agent</td>
+      <td class="tablevalues" colspan="3" tal:content="here/snmpAgent" />
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Comments</td>
+      <td class="tablevalues" colspan="3" tal:content="here/comments" />
+    </tr>
+</table>
+
+
+<table border=0 cellpadding=3 width=100% align=center 
+    bgcolor=#ffffff cellspacing=1
+    metal:define-macro="routerOverview">
+    <tr>
+      <th class=tabletitle align=left colspan=4>
+       Device 
+      </th>
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Hostname
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/id">
+        hostname
+      </span>
+      </td>
+      <th class=tableheader align=left>
+          SNMP sysName
+      </th>
+      <td class=tablevalues>
+      <span tal:replace="here/snmpSysName">
+          sysName
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Device Class
+      </th>
+      <td class=tablevalues
+        tal:content="here/getDeviceClassPath">
+        /Devices/Servers/Solaris
+      </td>
+      <td class="tableheader">
+        Serial #
+      </td>
+      <td class="tablevalues"
+        tal:content="here/serialNumber">
+        123456
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader>Manufacturer</td>
+      <td class=tablevalues
+        tal:content="structure python: 
+        here.getManufacturerLink('rightFrame')">
+        manufacturer
+      </td>
+      <td class=tableheader>Model</td>
+      <td class=tablevalues
+        tal:content="structure python: 
+        here.model.getPrimaryLink('rightFrame')">
+      model
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader>CPU Type</td>
+      <td class=tablevalues tal:content="here/cpuType" />
+      <td class=tableheader>Total Memory</td>
+      <td class=tablevalues tal:content="here/totalMemory" />
+    </tr>
+    <tr>
+      <td class=tableheader>
+        OS Version
+      </td>
+      <td class=tablevalues
+          tal:content="here/getOsVersion" />
+      <td class=tableheader>
+        SNMP Contact
+      </td>
+      <td class=tablevalues
+        tal:content='here/snmpContact' />
+    </tr>
+    <tr>
+      <th class=tableheader align=left>
+        Location
+      </th>
+      <td class=tablevalues 
+        tal:define="loc here/getLocationName">
+        <a class=tablevalues href=_
+        target=rightFrame tal:condition=loc
+        tal:attributes="href python: here.location().getPrimaryUrlPath()"
+        tal:content="loc" >location</a>
+      </td>
+      <td class=tableheader>
+        SNMP Location
+      </td>
+      <td class=tablevalues
+        tal:content='here/snmpLocation' />
+    </tr>
+    <tr>
+        <th class=tableheader align=left>
+            Creation Time
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getCreatedTimeString">
+            creation time
+        </td>
+
+        <th class="tableheader" align="left">
+            Last Modification
+        </th>
+        <td class="tablevalues"
+            tal:content="here/getModificationTimeString">
+            mod time
+        </td>
+    </tr>
+    <tr tal:condition="here/snmpAgent">
+      <th class="tableheader" align="left">
+       SNMP Agent 
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:replace="here/snmpAgent">
+      desc
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Description
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:replace="here/snmpDescr">
+      desc
+      </span>
+      </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+"#ffffff" cellspacing="1"
+    metal:define-macro="deviceLinks">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+       Related Organizers
+      </th>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'termserver') 
+                        and here.termserver()">
+        <th class=tableheader align=left>Terminal Server</th>
+        <td class=tablevalues colspan=3>
+            <span tal:content="structure here/termserver/getPrimaryLink"/>
+            <a class=tablevalues href=_
+            tal:attributes="href python:'telnet:'+here.termserver().getId()">
+            (telnet)</a>
+        </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Systems
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:repeat="item here/systems/objectValuesAll">
+          <a href="_" target="rightFrame"
+          tal:attributes="href item/getPrimaryUrlPath"
+          tal:content="item/getFullSystemName">ID</a>
+      </span>
+      </td>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'dhcpservers')">
+      <th class="tableheader" align="left">
+        DHCP Helper Servers
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:repeat="item here/dhcpservers/objectValuesAll">
+          <a href="_" target="rightFrame"
+          tal:attributes="href item/getPrimaryUrlPath"
+          tal:content="item/id">ID</a>
+      </span>
+      </td>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'dhcpubrclients') and 
+			here.dhcpubrclients.countObjects()">
+      <th class="tableheader" align="left">
+        UBR Clients
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:repeat="item here/dhcpubrclients/objectValuesAll">
+          <a href="_" target="rightFrame"
+          tal:attributes="href item/getPrimaryUrlPath"
+          tal:content="item/id">ID></a>
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Groups
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:repeat="item here/groups/objectValuesAll">
+          <a href="_" target="rightFrame"
+          tal:attributes="href item/getPrimaryUrlPath"
+          tal:content="item/getDeviceGroupName">ID</a>
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Status Monitors
+      </th>
+      <td class="tablevalues" colspan="3">
+      <span tal:repeat="item here/monitors/objectValuesAll">
+          <a href="_" target="rightFrame"
+          tal:attributes="href item/getPrimaryUrlPath"
+          tal:content="item/id">ID</a>
+      </span>
+      </td>
+    </tr>
+    <tr>
+      <th class="tableheader" align="left">
+        Cricket Server
+      </th>
+      <td class="tablevalues" colspan="3">
+        <span tal:replace="structure python: 
+            here.cricket.getPrimaryLink('rightFrame')">
+          cricket server
+        </span>
+      </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="ipserviceList"
+    tal:define="tableName string:ipservicelist;
+    objects here/ipservices/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='getPort');">
+    <tr>
+      <th class="tabletitle" align="left" colspan="10">
+        IP Services
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getKeyword','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getProtocol','Proto')">Proto
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getPort','Port')">Port
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDescription','Description')">
+                            Description
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No IP Services 
+        </th>
+    </tr>
+    <tr tal:repeat="srv batch">
+        <td class="tablevalues">
+            <a class="tablevalues" target="rightFrame"
+                href="_" tal:content="srv/getKeyword"
+                tal:attributes="href srv/ipServiceClassUrl">keyword</a>
+        </td>
+        <td class="tablevalues" tal:content="srv/getProtocol">protocol
+        </td>
+        <td class="tablevalues" tal:content="srv/getPort">port
+        </td>
+        <td class="tablevalues" tal:content="srv/getDescription">descr
+        </td>
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="interfaceList"
+    tal:define="tableName string:interfacelist;
+    objects here/interfaces/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="10">
+        Interfaces
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th class="tableheader" align="center">
+        O
+        </th>
+        <th class="tableheader" align="center">
+        A
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getIpSortKey','IP Address','cmp')">Name
+        </th>
+        <th class="tableheader" align="left">
+          Network
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'macaddress','MAC')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'description','Descr')">Name
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No Interfaces
+        </th>
+    </tr>
+    <tr tal:repeat="intf batch">
+      <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.operStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.adminStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues">
+      <a class=tablevalues tal:content="intf/name" 
+        tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
+      </td>
+      <td class="tablevalues">
+          <span tal:repeat="ip intf/getIpAddresses" omit-tag="">
+            <a class=tablevalues 
+                tal:condition="python:hasattr(ip,'getIpAddress')"
+                tal:content="ip/getIpAddress"
+                tal:attributes="href ip/getPrimaryUrlPath">
+                10.2.1.1/24</a>
+            <span tal:condition="python:not hasattr(ip,'getIpAddress')"
+                tal:replace="ip">1.1.1.1/24</span>
+            <br/>
+          </span>
+      </td>
+      <td class="tablevalues"
+        tal:content="structure python:intf.getNetworkLinks()">
+        10.2.1.0
+      </td>
+      <td class="tablevalues" tal:content="intf/macaddress">
+         00:11:AA:BB:CC:DD
+      </td>
+      <td class="tablevalues" tal:content="intf/description">
+        A really nice interface
+      </td>
+    </tr>
+    <tr>
+        <td colspan=7 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%"
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="fileSysList"
+    tal:define="tableName string:fileSyslist;
+    objects here/filesystems/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='mount');">
+    <tr>
+      <th class="tabletitle" align="left" colspan="12">
+        File Systems
+      </th>
+    </tr>
+    <tr tal:condition="objects">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'storageDevice','Storage Device')">Device
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'totalBytes','Total bytes')">Total Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'usedBytes','Used bytes')">Used Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'freeBytes','Free bytes')">Free Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'capacity','% Util')">% Util
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'mount','Mount')">Mount
+        </th>
+    </tr>
+    <tr tal:condition="not:objects">
+        <th class="tableheader" align="left">
+            No File Systems
+        </th>
+    </tr>
+    <tr tal:repeat="fsys batch">
+      <td class="tablevalues"
+        tal:content="fsys/storageDevice">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/totalBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/usedBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/availBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/capacity">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/mount">vol
+      </td>
+    </tr>
+    <tr>
+        <td colspan=6 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%" 
+    balign="center" gcolor="#ffffff" cellspacing="1"
+    metal:define-macro="routeTableList"
+    tal:define="tableName string:routeTablelist;
+    objects here/routes/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="12">
+        Routes
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Destination')">
+            Destination
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getNextHopIp','NextHop')">
+            Next
+        </th>
+        <th class="tableheader" align="left">
+            Interface
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'routeproto','Protocol')">
+            Protocol
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'routetype','Type')">
+            Type
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No Routes
+        </th>
+    </tr>
+    <tr tal:repeat="route batch">
+      <td class="tablevalues"
+        tal:content="python: route.id+'/'+str(route.routemask)">
+        description
+      </td>
+      <td class="tablevalues">
+      <span tal:replace="route/getNextHopIp">nexthopip</span>
+      (<span tal:replace="structure route/getNextHopDeviceLink">device</span>)
+      </td>
+      <td class="tablevalues"
+        tal:content="route/interface/getRelatedId">
+        interface
+      </td>
+      <td class="tablevalues"
+        tal:content="route/routeproto">routeproto
+      </td>
+      <td class="tablevalues"
+        tal:content="route/routetype">routetype
+      </td>
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+<span metal:define-macro="pingStatus" 
+    tal:define="status device/getPingStatus">
+    <td class="statusvalues" bgcolor="#ff0000" align="left"
+        tal:attributes="bgcolor python: device.getPingStatusColor()"
+        tal:content="status">
+        ping status
+    </td>
+</span>
+
+<span metal:define-macro="snmpStatus" 
+    tal:define="status device/getSnmpStatus">
+    <td class="statusvalues" bgcolor="#ffff00" align="left"
+        tal:attributes="bgcolor python: device.getSnmpStatusColor()"
+        tal:content="status">
+        snmp status
+    </td>
+</span>
+

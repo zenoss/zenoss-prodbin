@@ -1,0 +1,145 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="sysdescr">
+    <tr>
+          <th class="tabletitle" align="left" colspan="4">
+           System 
+          </th>
+    </tr>
+    <tr>
+        <th class="tableheader" align="left">
+          Name
+        </th>
+        <td class="tablevalues" bgcolor="#ffffff"
+            width="25%" tal:content="here/id">my system
+        </td>
+        <th class="tableheader" align="left">
+            Parent
+        </th>
+        <td class="tablevalues" width="25%"
+          tal:content="structure python:here.parent.getPrimaryLink(
+                                                  'rightFrame')">
+              parent system
+        </td>
+    </tr>
+    <tr>
+        <th class="tableheader" align="left">
+          Description
+        </th>
+        <td class="tablevalues" colspan=3
+            tal:content="here/description">desc
+        </td>
+    </tr>
+</table>
+<br>
+
+<table metal:use-macro="here/deviceGroupMacros/macros/status"></table>
+
+<span tal:define="objects here/serviceareas/objectValuesAll;
+    tableName string:systemstatusserviceareas;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects">
+<br>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+    <tr>
+        <th class="tabletitle" align="left" colspan="2">
+            Service Areas
+        </th>
+    </tr>
+    <tr>
+        <th class="tableheader" align="left">
+            Area
+        </th>
+        <th class="tableheader" align="left">
+            Description
+        </th>
+    </tr>
+    <tr tal:repeat="area objects">
+        <td class="tablevalues" align="left">
+            <a href="_" target="rightFrame"
+                tal:attributes="href area/getPrimaryUrlPath">
+                    <span tal:replace="area/id">id</span>
+            </a>
+        </td>
+        <td class="tablevalues" align="left">
+            <span tal:replace="area/description">desc</span>
+        </td>
+    </tr>
+</table>
+</span>
+<span tal:define="objects here/subsystems/objectValuesAll;
+    tableName string:systemstatussubsystems;
+    tableTitle string: Sub-Systems;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="objects">
+<br>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="systemlist">
+    <tr>
+      <th class="tabletitle" align="left" colspan="5" tal:content="tableTitle">
+        Sub-Systems
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')">
+            Name 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'productionState','State')">
+            State
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'omniEventCount','Events')">
+            Snmp
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'pingStatus','Ping')">
+            Ping
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'snmpStatus','Snmp')">
+            Snmp
+        </th>
+    </tr>
+    <tr tal:repeat="sys batch">
+        <td class="tablevalues" align="left">
+            <a href="_" target="rightFrame"
+            tal:attributes="href sys/getPrimaryUrlPath"
+            tal:content="sys/id">System Name</a>
+        </td>
+        <td class="tablevalues" align="left"
+            tal:content="python:sys.convertProdState(sys.productionState)">
+            Production
+        </td>
+        <td class=tablevalues align=center tal:content="sys/omniEventCount">
+            5
+        </td>
+        <span tal:define="status sys/pingStatus">
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: sys.statusColor(status)"
+            tal:content="status">0
+        </td>
+        </span>
+        <span tal:define="status sys/snmpStatus">
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: sys.statusColor(status)"
+            tal:content="status">0
+        </td>
+        </span>
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</span>
+<br>
+<table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+<span tal:replace="structure here/standard_html_footer"/>

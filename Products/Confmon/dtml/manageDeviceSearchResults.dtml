@@ -1,0 +1,63 @@
+<dtml-var standard_html_header>
+<dtml-unless query><dtml-call expr="REQUEST.set('query','')"></dtml-unless>
+<dtml-unless query_start><dtml-call expr="REQUEST.set('query_start','1')">
+</dtml-unless>
+<dtml-let res="Devices.searchDevices(query)">
+<dtml-in res prefix="seq" size=20 start=query_start sort="getId">
+   <dtml-if sequence-start>
+
+      <table border="0" colspan="0" cellspan="0" spacing="1" width="100%">
+        <tr>
+          <th class="tabletitle" colspan="6">Results</th>
+        </tr>
+        <tr>
+          <th align ="left" class="tableheader" colspan="2">Hostname</th>
+          <th align ="left" class="tableheader">Device Class</th>
+          <th align ="left" class="tableheader">Production State</th>
+          <th align ="left" class="tableheader">IP</th>
+        </tr>
+      
+   </dtml-if sequence-start>
+
+        <tr>
+          <td class="tablevalues">
+          <img border="0" src="<dtml-var icon>"/></td>
+          <td class="tablevalues">
+          <a href="<dtml-var getDeviceUrl>/manage_main" target="manage_main"><dtml-var getDeviceName></a></td>
+          <td class="tablevalues"><dtml-var getDeviceClass></td>
+          <td class="tablevalues"><dtml-var getDeviceProdState></td>
+          <td class="tablevalues"><dtml-var getDeviceIpAddress></td>
+        </tr>
+
+   <dtml-if sequence-end>
+       <tr><td align="right" colspan="6" class="tableheader">
+
+        <dtml-in res size=20 start=query_start previous>
+        <a href="<dtml-var URL>?query_start=<dtml-var
+                 previous-sequence-start-number>&query=<dtml-var query>">
+        Previous
+        </a>
+        </dtml-in>
+
+       <dtml-if expr="_.len(res)>_.int(query_start)">
+       <dtml-in res size=20 start=query_start next>
+         <a href="<dtml-var URL>?query_start=<dtml-var
+            next-sequence-start-number>&query=<dtml-var query>">
+         Next
+         </a>
+        </dtml-in>
+
+      </dtml-if>
+   </td></tr>
+   </table>
+   </dtml-if sequence-end>
+
+<dtml-else>
+    <table border="0" colspan="0" cellspan="0" spacing="1" width="100%">
+    <tr><td class="tabletitle">No Devices matched <dtml-var query></td></tr>
+    <tr><td class="tabletitle">
+        <a href="manageDeviceSearch">Search Again</a>
+    </td></tr>
+    </table>
+</dtml-in>
+</dtml-let>

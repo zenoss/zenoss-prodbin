@@ -1,0 +1,9 @@
+targetType TotalCPU
+        ds = "cpuTotalUserPercent,cpuTotalSysPercent"
+targetType Disk
+        ds = "diskStatsKBytes,diskStatsServiceTime,diskStatsReads,diskStatsWrites"
+        view = "ServiceTime: diskStatsServiceTime,
+                        KBytes: diskStatsKBytes,
+                        Transactions: diskStatsReads diskStatsWrites"
+targetType Filesystem
+        ds = "devCapacity"

@@ -1,0 +1,39 @@
+Network - Network container objects
+
+    Description
+        
+        Network objects represent an interconnected network of devices.
+        These devices are represented inside the network by a layer 3
+        address. Any given network can contain subnetworks, or be contained
+        by a larger network itself.
+
+    Status view
+        
+        In the network status view, you are presented with the subnetworks,
+        if present of the current network. Also included is the network
+        address, netmask, number of hosts, and description. Auto-populated
+        networks will always have a description along the lines of "Default
+        network created for ..."
+        
+        The subnetwork list provides you with a link to the subnetwork's
+        status view, the netmask of the subnetwork and the number of hosts
+        currently in it.
+
+    Address view
+
+       The address view includes much of the information from the status view,
+       for reference, as well as an inventory of all layer three addresses
+       that are being used by devices.
+
+       The address inventory looks similar to device inventories from other
+       views, but is not. The fields that are common between the two are:
+       device name, and ping status. Aside from these, this list presents
+       you with the layer 3 address the machine is using, and on what interface
+       the machine is using it.
+
+    Changes view
+
+        Optimon maintains a record of historical information for network
+        objects. Any time a network is changed, such as a new device coming
+        into its address space, the record reflects a time, username, and
+        description summary of the change.

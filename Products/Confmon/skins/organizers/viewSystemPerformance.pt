@@ -1,0 +1,51 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table metal:use-macro="here/viewSystemStatus/macros/sysdescr"></table>
+<br>
+<table border=0 cellpadding=3 width=100%
+    align="center" bgcolor="#ffffff" cellspacing=1
+    tal:define="tableName string:perfdetail;
+    drange python: here.ZenTableManager.setTableState(tableName,'drange',129600);"
+    >
+    <tr>
+        <th class=tabletitle align=left>
+            Range
+            <span tal:replace="structure python:here.scUrlPopup(
+                tableName, 'popupperf', 'drange:int',
+                here.performanceDateRanges)"/>
+        </th>
+    </tr>
+    <span tal:condition="python:here.getId()=='rh'">
+        <tr class=tabletitle>
+        <td>Headend Uplink ifOctets</td>
+        </tr>
+        <tr class=tablevalues>
+        <td>
+        <img src="_"
+            tal:attributes="src python:here.CVHeadendGraphs.generateUrl(here,drange)"
+            >
+        </td>
+        </tr>
+    </span>
+    <span 
+        tal:define="
+            objects here/devices;
+            sortOn python:(('getId', 'nocase', 'asc'),);
+            sortedobjs python:sequence.sort(objects, sortOn)">
+        <span tal:repeat="device sortedobjs">
+        <tr>
+        <th class=tabletitle align=left
+                tal:content="device/viewName">name
+        </th>
+        </tr>
+        <span tal:repeat="graph python:device.getDefaultGraphs(drange=drange)">
+            <tr><td class=tableheader tal:content="graph/title">title</td></tr>
+            <tr><td class=tablevalues>
+                <img src="_" tal:attributes="src graph/url">
+                </td>
+            </tr>
+        </span>
+        </span>
+    </span>
+</table>

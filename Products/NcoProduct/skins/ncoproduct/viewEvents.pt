@@ -1,0 +1,81 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
+
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    tal:define="tableName string:viewevents;
+    whereclause request/ev_whereclause | python:None;
+    orderby request/ev_orderby | python:None;
+    resultFields request/ev_resultfields | here/netcool/resultFields;
+    filteratt python: here.scSortedTableSetAtt(tableName,'filterattribute',
+                                                'getAllEventText');
+    objects python:here.netcool.getEvents(where=whereclause, 
+                            orderby=orderby, resultFields=resultFields);
+    batch python:here.scSortedTableGetBatch(tableName,objects,'');
+    sevlevel python: here.scSortedTableSetAtt(tableName,'severity',2);
+    evcolspan python:len(resultFields)+1;">
+    <!-- <tr>
+        <td class="tabletitle" colspan=3 tal:attributes="colspan evcolspan">
+        Live Events
+        </td>
+    </tr> -->
+    <tr>
+        <td class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
+        <form action="_" method="POST" tal:attributes="action request/URL">
+            Live Events:
+            &nbsp; &nbsp;
+            <input type='hidden' name='tableName' value="_"
+                tal:attributes="value tableName">
+            Not
+            <input class=tabletitle type=checkbox name=negatefilter value=1 
+                tal:attributes="checked python:here.scGetSortedTableState(
+                                        tableName, 'negatefilter')"/>
+            Filter
+            <input class="tableheader" type="text" name="filter" 
+                size=25 value="_" 
+                tal:attributes="value python: here.scGetSortedTableState(
+                                    tableName,'filter')">
+            &nbsp; &nbsp;
+            Severity Filter
+            <span tal:replace="structure python:here.scGenericPopup(
+                tableName, 'severity:int',
+                here.netcool.getSeverities())"/>
+        </form>    
+        </td>
+    </tr>
+    <tr>
+        <th tal:repeat="headername resultFields"
+            tal:replace="structure python:here.scSortedTableHeader(
+                    tableName,headername,headername,'cmp')">
+            Name
+        </th>
+        <th class=tableheader> </th>
+    </tr>
+    <tr class="statusvalues" bgcolor="#FF0000" style="color: #000000;"
+        tal:repeat="event batch"
+        tal:attributes="bgcolor event/bgcolor; 
+        style python: 'color:'+event.fgcolor">
+        <span tal:repeat="index python: range(event.getfieldcount())">
+        <td tal:content="python: event.getfield(index)">
+            event data 
+        </td>
+        </span>
+        <td>
+            <a href="_"
+                tal:attributes="href python:
+                'javascript:popupwindow(\''+event.getEventDetailHref()
+                +'\',\'ncoeventdetail'+str(event.ServerSerial)+'\',450,550)'">
+                *
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan=4 class="tableheader" align='center'
+            tal:attributes="colspan evcolspan">
+            <form metal:use-macro="here/miscmacros/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

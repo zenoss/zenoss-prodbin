@@ -1,0 +1,117 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
+"#ffffff" cellspacing="1">
+  <tbody>
+    <tr>
+      <th class="tabletitle" align="left" colspan=6>
+      Manufacturer
+      </th>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" colspan="1">
+      Name
+      </td>
+      <td class="tablevalues" colspan="1" align='left'
+        tal:content="here/id">company name
+      </td>
+      <td class="tableheader" align="left" colspan="1">
+      URL
+      </td>
+      <td width="14%" class="tablevalues" colspan="1" align="left">
+      <a href="_" target="rightFrame"
+          tal:attributes="href here/url"
+          tal:content="here/url">URL</a>
+      </td>
+      <td class="tableheader" align="left" colspan="1">
+      Number
+      </td>
+      <td width="14%" class="tablevalues" colspan="1" align='left'>
+      <span tal:replace="here/supportNumber">supt numb</span>     
+      </td>
+    </tr><tr>
+      <td class="tableheader" align="left" colspan="1">
+      Street1
+      </td>
+      <td class="tablevalues" colspan=5 align='left'>
+      <span tal:replace="here/address1">street1</span>     
+      </td>
+    </tr>
+    <tr tal:condition="here/address2">
+      <td class="tableheader" align="left" colspan="1">
+      Street2
+      </td>
+      <td class="tablevalues" colspan="1" align='left'
+        tal:content="here/address2">street2
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left" colspan="1">
+      City
+      </td>
+      <td class="tablevalues" colspan="1" align='left'
+        tal:content="here/city">city
+      </td>
+      <td class="tableheader" align="left" colspan="1">
+      State
+      </td>
+      <td class="tablevalues" colspan="1" align='left'
+        tal:content="here/state">state
+      </td>
+      <td class="tableheader" align="left" colspan="1">
+      Zip
+      </td>
+      <td class="tablevalues" colspan="1" align='left'
+        tal:content="here/zip">zip
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+ 
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    tal:define="
+        tableName string:manufacturerproducts;
+        objects here/products/objectValuesAll;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="3">
+      Products
+      </th>
+    </tr>
+    <tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'primarySortKey','Name')">
+        Name 
+      </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'partNumber','Part Number')">
+        Part Number
+      </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'description','Description')">
+        Description
+      </th>
+  </tr>
+  <tr tal:repeat="prod batch">
+    <td class="tablevalues" align="left">
+    <a href="_" target="rightFrame"
+    tal:attributes="href prod/getPrimaryUrlPath">
+    <span tal:replace="prod/id">name</span></a>
+    </td>
+    <td class="tablevalues" align="left">
+    <span tal:replace="prod/partNumber">part</span>
+    </td>
+    <td class="tablevalues" align="left">
+    <span tal:replace="prod/description">desc</span>
+    </td>
+    </tr>
+  <tr>
+    <td colspan=3 class="tableheader" align='center'>
+        <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+    </td>
+  </tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

@@ -1,0 +1,3 @@
+<script language="JavaScript">
+top.document.title = "<dtml-var expr="getParent().id"> <dtml-var id>"
+</script>

@@ -1,0 +1,19 @@
+<span tal:replace="structure here/standard_html_header"/>
+<table width=100% cellpadding="3" border="0" 
+    align="center" cellspacing="1" bgcolor="#ffffff">
+<tr>
+    <th class=tabletitle colspan=2>Management Functions</th>
+</tr>
+<tr>
+    <th class=tableheader>Function</th><th class=tableheader>Description</th>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/DeviceLoader/addDevice">
+            Device Loader
+        </a>
+    </td>
+    <td class=tablevalues>Model devices and load them into the system</td>
+</tr>
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

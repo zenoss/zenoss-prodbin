@@ -1,0 +1,75 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<br />
+<form action="manage_editNetInterface" method="post">
+<table cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+        Id
+    </div>
+    </td>
+    <td align="left" valign="top">
+            <dtml-var getId>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+        IP Address
+    </div>
+    </td>
+    <td align="left" valign="top">
+        <input type="text" name="ipaddress" size="40" 
+            value='<dtml-var expr="getIpAddress()">' />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+        Netmask
+    </div>
+    </td>
+    <td align="left" valign="top">
+        <input type="text" name="netmask" size="40" 
+            value='<dtml-var netmask>' />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+     MAC Address
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="macaddress" size="40" 
+        value='<dtml-var macaddress>'/>
+    </td>
+  </tr>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Admin Interface
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="checkbox" name="admin:int" value=1 
+        <dtml-if admin>checked</dtml-if> />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    </td>
+    <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="submit" 
+     value=" Save " /> 
+    </div>
+    </td>
+  </tr>
+</table>
+</form>
+
+<dtml-var manage_page_footer>

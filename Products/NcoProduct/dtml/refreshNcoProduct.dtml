@@ -1,0 +1,23 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<br />
+<form action="<dtml-var URL1>" method="post">
+<table cellpadding=4>
+<tr><td>
+Refresh Conversions will pull the conversions and color tables from Omnibus.  This action should be performed if new classes, severities, users or other conversions have been added.
+</td></tr>
+<tr><td>
+    <input class="form-element" type="submit" 
+       name="manage_refreshConversions:method" value=" Refresh Conversions " /> 
+</td></tr>
+<tr><td>
+Install Into Portal will load the NcoProduct type and register its skins.
+This should only need to be done once for any given portal instance.
+</td></tr>
+<tr><td>
+    <input class="form-element" type="submit" 
+        name="installIntoPortal:method" value=" Install into Portal " /> 
+</td></tr>
+</table>
+</form>
