@@ -43,6 +43,11 @@ def getObjByPath(base, path):
             path = path.split('/')
         if hasattr(aq_base(base), path[0]):
             nobj = getattr(base, path[0])
+            # if we have to skip over a relationship to find the children
+            #if hasattr(nobj, "subObjectsName"):
+            #    subObjectsName = getattr(nobj, "subObjectsName") 
+            #    if len(path) > 1 and path[1] != subObjectsName:
+            #        nobj = getattr(nobj, subObjectsNameone)
             return getObjByPath(nobj, path[1:])
         #Look for related object with full id in ToManyRelation
         elif hasattr(aq_base(base), "/"+"/".join(path)):

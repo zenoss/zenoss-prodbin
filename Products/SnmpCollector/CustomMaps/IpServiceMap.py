@@ -53,7 +53,7 @@ class IpServiceMap(CustomRelMap):
             #if port > 1024 or tcpports.has_key(port): continue
             #if addr == '0.0.0.0': tcpports[port]=1
             #tcpports[port]=1
-            serv['id'] = '%s-tcp-%s.%05d' % (device.getId(), addr, port)
+            serv['id'] = '%s-tcp-%05d' % (addr, port)
             serv['ipaddress'] = addr
             serv['setPort'] = port
             serv['setProtocol'] = 'tcp'

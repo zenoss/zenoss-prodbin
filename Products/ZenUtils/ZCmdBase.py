@@ -51,3 +51,8 @@ class ZCmdBase(CmdBase):
     def getDmdObj(self, path):
         """return an object based on a path starting from the dmd"""
         return getObjByPath(self.dataroot, path)
+
+    def findDevice(self, name):
+        """return a device based on its FQDN"""
+        devices = self.dataroot.getOrganizer("Devices")
+        return devices.findDevice(name)

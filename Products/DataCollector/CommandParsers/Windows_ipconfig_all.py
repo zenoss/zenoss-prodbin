@@ -14,34 +14,24 @@ __version__ = '$Revision: 1.2 $'[11:-2]
 
 from CommandParser import CommandParser
 
-class Linux_netstat_an(CommandParser):
+class Windows_ipconfig_all(CommandParser):
     
-    command = 'netstat -an | grep 0.0.0.0:*'
+    command = 'ipconfig /all'
 
     def condition(self, device, log):
         pp = device.getPrimaryPath()
-        return "Linux" in pp
+        return "Windows" in pp
 
     def parse(self, device, results, log):
-        log.info('Collecting Ip Services for device %s' % device.id)
-        rm = self.newRelationshipMap("ipservices")
+        log.info('Collecting interfaces for device %s' % device.id)
+        rm = self.newRelationshipMap("interfaces")
         rlines = results.split("\n")
-        services = {}
         # normalize on address 0.0.0.0 means all addresses
         for line in rlines:
-            aline = line.split()
-            if len(aline) < 5: continue
             try:
-                proto = aline[0]
-                addr, port = aline[3].split(":")
-                if int(port) > 1024: continue #FIXME 
-                if addr == "0.0.0.0" or not services.has_key(port):
-                    services[port] = (addr, proto)
             except ValueError:
                 log.exception("failed to parse ipservice information")
-        for port, value in services.items():
-            addr, proto = value
-            om = self.newObjectMap("ZenModel.IpService")
+            om = self.newObjectMap("ZenModel.IpInterface")
             om['id'] = "-".join((addr, proto, port))
             om['ipaddress'] = addr
             om['setPort'] = port

@@ -60,6 +60,9 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
     #Used to find factory on instance creation
     baseModulePath = "Products.ZenModel"  
 
+    #when this hierarchy is walked recusively use this name
+    subObjectsName = "subclasses"
+
     class_default_catalog = 'deviceSearch'
 
     # Screen action bindings (and tab definitions)
