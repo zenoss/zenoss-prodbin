@@ -86,9 +86,9 @@ def classifyDevice(self, deviceName, devicePath,
 
 
 
-def manage_addDevice(context, id, title = None, REQUEST = None):
+def manage_addDevice(context, id, REQUEST = None):
     """make a device"""
-    serv = Device(id, title)
+    serv = Device(id)
     context._setObject(serv.id, serv)
 
     if REQUEST is not None:
