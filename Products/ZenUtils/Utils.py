@@ -114,7 +114,7 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
     """do a depth first search looking for objects that the function filter
     returns as true. If decend is passed it will check to see if we
     should keep going down or not"""
-    from Products.RelationshipManager.RelationshipManager \
+    from Products.ZenRelations.RelationshipManager \
         import RelationshipManager
     if base.meta_type == "To One Relationship":
         objs = [base.obj]
@@ -133,11 +133,11 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
 
 def getAllConfmonObjects(base):
     """get all ConfmonBase objects in database"""
-    from Products.Confmon.Instance import Instance
-    from Products.Confmon.ConfmonBase import ConfmonBase
-    from Products.RelationshipManager.ToManyRelationship \
+    from Products.ZenModel.Instance import Instance
+    from Products.ZenModel.ConfmonBase import ConfmonBase
+    from Products.ZenRelations.ToManyRelationship \
         import ToManyRelationship
-    from Products.RelationshipManager.ToOneRelationship \
+    from Products.ZenRelations.ToOneRelationship \
         import ToOneRelationship
     def decend(obj):
         return (

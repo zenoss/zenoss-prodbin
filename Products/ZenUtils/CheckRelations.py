@@ -18,8 +18,8 @@ import Globals
 from Acquisition import aq_parent
 
 from Products.ZenUtils.Utils import getAllConfmonObjects
-from Products.Confmon.Classification import Classification
-from Products.Confmon.Instance import Instance
+from Products.ZenModel.Classification import Classification
+from Products.ZenModel.Instance import Instance
 
 from ZCmdBase import ZCmdBase
 
