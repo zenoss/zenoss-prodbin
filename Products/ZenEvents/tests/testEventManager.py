@@ -36,9 +36,7 @@ class testEventManager(unittest.TestCase):
     def testGetFields(self):
         """kind of bogus test to see if get fields is working"""
         ev = Event("sdf")
-        import pdb
-        pdb.set_trace()
-        self.failUnless(len(ev.getfields()) == 8)
+        self.failUnless(len(ev.getfields()) == 10)
     
     def testAddEvents(self):
         self.failUnless(len(self.zem.getevents()) == self.loopsize)
@@ -54,7 +52,7 @@ class testEventManager(unittest.TestCase):
         ev1 = self.zem.getevent(65)
         self.failUnless(ev1._oid == 65)
         ev2 = self.zem.getevent(65)
-        self.failUnless(ev1.serial == ev2.serial)
+        self.failUnless(ev1._serial == ev2._serial)
         self.failIf(id(ev1) == id(ev2))
 
 
@@ -89,11 +87,11 @@ class testEventManager(unittest.TestCase):
         oid = self.zem.addevent(
             Event("pageup.confmon.loc", summary="test event"))
         ev = self.zem.getevent(oid)
-        evserial = ev.serial
+        evserial = ev._serial
         ev.summary = "new summary"
         self.zem.updateevent(ev)
         nev = self.zem.getevent(oid)
-        self.failUnless(nev.serial == (evserial + 1))
+        self.failUnless(nev._serial == (evserial + 1))
         self.failUnless(nev.summary == "new summary")
 
     def testUpdateConflict(self):

@@ -30,10 +30,14 @@ def EventFromDict(eventdict):
 
 
 class Event(object):
-    
+   
+    fields = ['device', 'startdate', 'enddate', 'lastupdate'
+                'summary', 'severity', 'classid', 'ipaddress',
+                'monitor', 'monitorhost', ]
+
     def __init__(self, device, *args, **kargs):
         self._oid = None
-        self.serial = 0L
+        self._serial = 0L
         self.device = device
         self.startdate = datetime.utcnow()
         self.lastupdate = datetime.utcnow()
@@ -41,11 +45,16 @@ class Event(object):
         self.summary = ""
         self.severity = -1
         self.classid = -1 
+        self.monitor = ""
+        self.monitorhost = ""
+
         for k, v in kargs.items():
+            if not k in self.fields:
+                self.fields.append(k)
             setattr(self, k, v)
 
     def getfields(self):
-        return filter(lambda x: x[0]!='_', dir(self))
+        return self.fields
 
 
     def gettext(self):

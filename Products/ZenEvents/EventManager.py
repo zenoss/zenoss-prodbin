@@ -47,10 +47,10 @@ class EventManager(object):
         self.eventlock.acquire(1)
         if self.events.has_key(event._oid):
             curev = self.events[event._oid]
-            if curev.serial > event.serial:
+            if curev._serial > event._serial:
                 raise EventUpdateError, \
-                    "Update failed because serial %s is less than current serial %s" % (event.serial, curev.serial)
-            event.serial += 1
+                    "Update failed because serial %s is less than current serial %s" % (event._serial, curev._serial)
+            event._serial += 1
             event.lastupdate = datetime.utcnow()
             self.events[event._oid] = event
         self.eventlock.release()
@@ -99,4 +99,3 @@ class EventManager(object):
         self.eventlock.acquire(1)
         pickle.dump(self.events, open(self.savefile, 'w'),2)
         self.eventlock.release()
-        
