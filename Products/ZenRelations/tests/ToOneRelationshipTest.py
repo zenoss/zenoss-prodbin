@@ -149,5 +149,11 @@ class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.failUnless(getattr(self.app.imt, self.oto2)() == None)
 
 
+def test_suite():
+    suite = unittest.TestSuite()
+    suite.addTest( unittest.makeSuite( ToOneRelationshipTest ) )
+    return suite
+
+
 if __name__ == "__main__":
     unittest.main()

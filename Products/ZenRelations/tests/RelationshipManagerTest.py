@@ -277,5 +277,11 @@ class RelationshipManagerTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.failUnless(self.app.ic32.mtm2.hasobject(nic1))
 
 
+def test_suite():
+    suite = unittest.TestSuite()
+    suite.addTest( unittest.makeSuite( RelationshipManagerTest ) )
+    return suite
+
+
 if __name__ == "__main__":
     unittest.main()

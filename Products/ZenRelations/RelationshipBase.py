@@ -92,8 +92,7 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
 
 
     def _verifyObjectLink(self, object, validate_src=1):
-        #ObjectManager._verifyObjectPaste(self,object,validate_src)
-        pass
+        ObjectManager._verifyObjectPaste(self,object,validate_src)
         
 
     def _renameObject(self, id, new_id):

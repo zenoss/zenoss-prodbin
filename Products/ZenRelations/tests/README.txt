@@ -1,5 +1,4 @@
-These files test the RelationshipManager product.
-For them to run correctly the product must be in a
-directory in the PYTHONLIB search path. Zopes
-libraries must also be in the path
+Currently Zope 2.7.x broke all of the copy/paste and copy/link tests.
+(this is also true for the Zope copy/paste tests).
 
+Not sure when I can figure this out!!
