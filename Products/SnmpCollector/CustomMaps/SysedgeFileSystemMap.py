@@ -37,7 +37,7 @@ class SysedgeFileSystemMap(CustomRelMap):
     prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
     def __init__(self):
-        CustomRelMap.__init__(self, 'filesystems', 'Confmon.FileSystem')
+        CustomRelMap.__init__(self, 'filesystems', 'ZenModel.FileSystem')
 
 
 

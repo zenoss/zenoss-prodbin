@@ -29,7 +29,7 @@ class SysedgeDiskMap(CustomRelMap):
 
 
     def __init__(self):
-        CustomRelMap.__init__(self, 'harddisks', 'Confmon.HardDisk')
+        CustomRelMap.__init__(self, 'harddisks', 'ZenModel.HardDisk')
 
 
     def condition(self, device, snmpsess, log):
