@@ -14,7 +14,9 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import urllib
 
-class AuthError(Exception): pass
+from Products.ZenUtils import ZentinelException
+
+class AuthError(ZentinelException): pass
 
 class UrlAuth(urllib.FancyURLopener):
     
