@@ -23,6 +23,8 @@ import sys
 
 from twisted.internet import reactor
 
+import Globals
+
 from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import getObjByPath
@@ -254,7 +256,7 @@ class DataCollector(ZCmdBase):
                 "No relation %s found on device %s" % (
                             relationshipName, device.id)
         remoteObj = rel._getOb(remoteObj.id)
-        self._updateObject(remoteObj, objectmap)
+        self.updateObject(remoteObj, objectmap)
         self.log.debug("   Added object %s to relationship %s" 
                         % (remoteObj.id, relationshipName))
    
@@ -285,7 +287,7 @@ class DataCollector(ZCmdBase):
                 help="start path for collection ie /Devices")
         self.parser.add_option('-d', '--device',
                 dest='device',
-                help="Device path ie /Devices/Servers/www.confmon.com")
+                help="fully qualified device name ie www.confmon.com")
         self.parser.add_option('-a', '--collectAge',
                 dest='collectAge',
                 default=0,
@@ -302,13 +304,14 @@ class DataCollector(ZCmdBase):
             self.parser.print_help()
             sys.exit(1)
         if self.options.device:
-            device = self.getDmdObj(self.options.device)
+            device = self.findDevice(self.options.device)
             if not device:
                 print "unable to locate device %s" % self.options.device
                 sys.exit(2)
             devices.append(device)
         if self.options.path:
-            droot = self.getDmdObj(self.options.path)
+            devices = self.dataroot.getOrganizer("Devices")
+            droot = devices.getDeviceClass(self.options.path)
             if not droot:
                 print "unable to locate device class %s" % self.options.path
                 sys.exit(2)
