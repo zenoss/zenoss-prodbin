@@ -87,7 +87,7 @@ class IpServiceClass(ServiceClass, Instance):
             'meta_type'      : 'IpServiceClass',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'IpServiceClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addIpServiceClass',
             'immediate_view' : 'viewIpServiceClassOverview',
             'actions'        :

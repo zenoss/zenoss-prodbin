@@ -68,7 +68,7 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
             'meta_type'      : 'IpAddress',
             'description'    : """Ip Address Class""",
             'icon'           : 'IpAddress_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addIpAddress',
             'immediate_view' : 'viewIpAddressOverview',
             'actions'        :

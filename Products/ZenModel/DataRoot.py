@@ -68,7 +68,7 @@ class DataRoot(ConfmonBase, Folder):
             'meta_type'      : 'DataRoot',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'DataRoot_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addStatusMonitorconf',
             'immediate_view' : 'dmdIndex',
             'actions'        :

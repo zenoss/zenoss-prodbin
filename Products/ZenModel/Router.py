@@ -44,7 +44,7 @@ class Router(CricketRouter,Device):
             'meta_type'      : 'Router',
             'description'    : """Base class for all routers""",
             'icon'           : 'Router_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addRouter',
             'immediate_view' : 'viewRouterStatus',
             'actions'        :

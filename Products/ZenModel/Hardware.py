@@ -40,7 +40,7 @@ class Hardware(Product):
             'meta_type'      : 'Hardware',
             'description'    : """Class to manage product information""",
             'icon'           : 'Hardware_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addHardware',
             'immediate_view' : 'viewHardwareOverview',
             'actions'        :

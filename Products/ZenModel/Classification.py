@@ -47,7 +47,7 @@ class Classification(ConfmonBase):
             'meta_type'      : 'Classification',
             'description'    : """Classification class""",
             'icon'           : 'Classification_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addClassification',
             'immediate_view' : 'classList',
             'actions'        :

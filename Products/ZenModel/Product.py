@@ -48,7 +48,7 @@ class Product(Instance):
             'meta_type'      : 'Product',
             'description'    : """Class to manage product information""",
             'icon'           : 'Product_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addProduct',
             'immediate_view' : 'viewProductOverview',
             'actions'        :

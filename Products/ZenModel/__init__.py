@@ -134,14 +134,14 @@ def initialize(registrar):
         kwargs['constructors'] = constructors
         if os.path.exists(os.path.join(__path__[0], iconName)):
             kwargs['icon'] = iconName
-        LOG("Confmon__init__", DEBUG, "Register Class=%s" % className)
-        LOG("Confmon__init__", DEBUG, "kwargs=%s" % constructors)
+        LOG("ZenModel__init__", DEBUG, "Register Class=%s" % className)
+        LOG("ZenModel__init__", DEBUG, "kwargs=%s" % constructors)
         apply(registrar.registerClass, args, kwargs)
 
     fti = getFactoryTypeInformation()
     # initialize factory type info with CMF
     Products.CMFCore.utils.ContentInit(
-                'Confmon', 
+                'ZenModel', 
                 content_types = contentClasses,
                 permission = AddPortalContent,
                 extra_constructors=contentConstructors,

@@ -45,7 +45,7 @@ class DeviceGroup(Instance, DeviceGroupInt):
             'meta_type'      : 'DeviceGroup',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'DeviceGroup_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceGroup',
             'immediate_view' : 'viewGroupOverview',
             'actions'        :

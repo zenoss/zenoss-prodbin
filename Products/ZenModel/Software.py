@@ -44,7 +44,7 @@ class Software(Product):
             'meta_type'      : 'Software',
             'description'    : """Class to manage product information""",
             'icon'           : 'Software_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addSoftware',
             'immediate_view' : 'viewSoftwareOverview',
             'actions'        :

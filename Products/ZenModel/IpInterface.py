@@ -85,7 +85,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
             'meta_type'      : 'IpInterface',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'IpInterface_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addIpInterface',
             'immediate_view' : 'viewIpInterface',
             'actions'        :

@@ -51,7 +51,7 @@ class SystemClass(Classification, Folder):
             'meta_type'      : 'SystemClass',
             'description'    : """SystemClass class""",
             'icon'           : 'SystemClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addSystemClass',
             'immediate_view' : 'classList',
             'actions'        :

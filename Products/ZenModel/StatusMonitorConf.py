@@ -65,7 +65,7 @@ class StatusMonitorConf(Monitor, StatusColor):
             'meta_type'      : 'StatusMonitorConf',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'StatusMonitorConf_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addStatusMonitorconf',
             'immediate_view' : 'viewStatusMonitorOverview',
             'actions'        :

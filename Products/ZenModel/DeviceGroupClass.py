@@ -43,7 +43,7 @@ class DeviceGroupClass(Classification, Folder):
             'meta_type'      : 'DeviceGroupClass',
             'description'    : """DeviceGroupClass class""",
             'icon'           : 'DeviceGroupClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceGroupClass',
             'immediate_view' : 'viewDeviceGroupClassOverview',
             'actions'        :

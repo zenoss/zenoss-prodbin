@@ -69,7 +69,7 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
             'meta_type'      : 'DeviceClass',
             'description'    : """Base class for all devices""",
             'icon'           : 'DeviceClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceClass',
             'immediate_view' : 'viewDeviceClassOverview',
             'actions'        :

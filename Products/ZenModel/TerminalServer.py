@@ -45,7 +45,7 @@ class TerminalServer(Router):
             'meta_type'      : 'TerminalServer',
             'description'    : """Base class for all routers""",
             'icon'           : 'TerminalServer_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addTerminalServer',
             'immediate_view' : 'viewDeviceStatus',
             'actions'        :

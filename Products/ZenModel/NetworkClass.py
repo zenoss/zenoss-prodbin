@@ -48,7 +48,7 @@ class NetworkClass(Classification, Folder):
             'meta_type'      : 'NetworkClass',
             'description'    : """NetworkClass class""",
             'icon'           : 'NetworkClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addNetworkClass',
             'immediate_view' : 'viewNetworkClassOverview',
             'actions'        :

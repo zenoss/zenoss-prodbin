@@ -49,7 +49,7 @@ class Rack(LocationBase):
             'meta_type'      : 'Rack',
             'description'    : """Class representing racks tha hold devices""",
             'icon'           : 'Rack_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addRack',
             'immediate_view' : 'viewRackOverview',
             'actions'        :

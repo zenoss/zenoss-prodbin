@@ -50,7 +50,7 @@ class Server(CricketServer, Device):
             'meta_type'      : 'Server',
             'description'    : """Class representing a server computer""",
             'icon'           : 'Server_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addServer',
             'immediate_view' : 'viewDeviceStatus',
             'actions'        :

@@ -75,7 +75,7 @@ class IpNetwork(Instance, DeviceGroupInt):
             'meta_type'      : 'IpNetwork',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'IpNetwork_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addIpNetwork',
             'immediate_view' : 'viewIpNetworkOverview',
             'actions'        :

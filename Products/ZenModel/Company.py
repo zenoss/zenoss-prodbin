@@ -51,7 +51,7 @@ class Company(Instance):
             'meta_type'      : 'Company',
             'description'    : """Arbitrary device grouping class""",
             'icon'           : 'Company_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addCompany',
             'immediate_view' : 'viewManufacturerOverview',
             'actions'        :

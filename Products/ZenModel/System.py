@@ -55,7 +55,7 @@ class System(Instance, DeviceGroupInt):
             'meta_type'      : 'System',
             'description'    : """Base class for all devices""",
             'icon'           : 'System_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addSystem',
             'immediate_view' : 'viewSystemStatus',
             'actions'        :

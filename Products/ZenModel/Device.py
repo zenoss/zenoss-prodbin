@@ -141,7 +141,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
             'meta_type'      : 'Device',
             'description'    : """Base class for all devices""",
             'icon'           : 'Device_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addDevice',
             'immediate_view' : 'viewIndex',
             'actions'        :

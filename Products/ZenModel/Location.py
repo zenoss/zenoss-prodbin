@@ -51,7 +51,7 @@ class Location(LocationBase):
             'meta_type'      : 'Location',
             'description'    : """Class representing arbitrary locations""",
             'icon'           : 'Location_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addLocation',
             'immediate_view' : 'viewLocationOverview',
             'actions'        :

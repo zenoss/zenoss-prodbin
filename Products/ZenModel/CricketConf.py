@@ -70,7 +70,7 @@ class CricketConf(Monitor, StatusColor):
             'meta_type'      : 'CricketConf',
             'description'    : """CricketConf class""",
             'icon'           : 'CricketConf_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addCricketConf',
             'immediate_view' : 'viewCricketConfOverview',
             'actions'        :

@@ -43,7 +43,7 @@ class LocationClass(Classification, Folder):
             'meta_type'      : 'LocationClass',
             'description'    : """LocationClass class""",
             'icon'           : 'LocationClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addLocationClass',
             'immediate_view' : 'viewLocationClassOverview',
             'actions'        :

@@ -44,7 +44,7 @@ class ReportClass(Classification, Folder):
             'meta_type'      : 'ReportClass',
             'description'    : """ReportClass class""",
             'icon'           : 'ReportClass_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addReportClass',
             'immediate_view' : 'viewReportClass',
             'actions'        :

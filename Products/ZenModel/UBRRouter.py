@@ -43,7 +43,7 @@ class UBRRouter(Router):
             'meta_type'      : 'UBRRouter',
             'description'    : """Base class for all routers""",
             'icon'           : 'UBRRouter_icon.gif',
-            'product'        : 'Confmon',
+            'product'        : 'ZenModel',
             'factory'        : 'manage_addUBRRouter',
             'immediate_view' : 'viewRouterStatus',
             'actions'        :
