@@ -3,7 +3,7 @@
     cellspacing="1" align="center"
     tal:define="
     objects  python:here.getOrganizer('Devices').getSubDevices(
-                                        lambda x: x.getPingStatusNumber!=0);
+                                        lambda x: x.getPingStatusNumber()!=0);
     tableName string: pingstatusreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     ">
