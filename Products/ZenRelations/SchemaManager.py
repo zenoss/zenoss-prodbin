@@ -26,7 +26,9 @@ from AccessControl.Role import RoleManager
 import RelationshipSchema
 import string
 
-from Products.ZenRelations.Exceptions import *
+from Products.RelationshipManager.Exceptions import *
+
+_marker = "__ZENMARKER__"
 
 def manage_addSchemaManager(context, REQUEST = None):
                                 
@@ -189,7 +191,7 @@ class SchemaManager(ObjectManager, Implicit,
 
 
     def _getSchemaByMeta_type(self, obj, relName):
-        if hasattr(obj, 'meta_type'):
+        if getattr(obj, 'meta_type', _marker) is not _marker:
             return self._lookupRelSchema(obj.meta_type, relName)
 
     

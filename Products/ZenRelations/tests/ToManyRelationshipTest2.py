@@ -84,6 +84,10 @@ class ToManyRelationshipTest2(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.failUnless(self.app.ic32 in getattr(self.app.ic12, self.mtm1)())
         self.app.ic1.removeRelation(self.mtm1, self.app.ic3)
         self.failIf(self.app.ic3 in self.app.ic1.mtm1())
+        self.failUnless(self.app.ic1 in getattr(self.app.ic32, self.mtm2)())
+        self.failUnless(self.app.ic32 in getattr(self.app.ic1, self.mtm1)())
+        self.failUnless(self.app.ic32 in getattr(self.app.ic12, self.mtm1)())
+        self.failUnless(self.app.ic12 in getattr(self.app.ic32, self.mtm2)())
 
 
     def testremoveRelationManyToMany4(self):

@@ -36,7 +36,7 @@ def checkZClass(zbases, className):
     """walk zclass for looking for className"""
     retval = 0
     for zb in zbases:
-        if hasattr(zb, '_zclass_'):
+        if getattr(zb, '_zclass_', None) is not None:
             retval = checkClass(zb._zclass_, className)
             if retval: break
     return retval

@@ -18,7 +18,7 @@ import sys
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 from App.Dialogs import MessageDialog
 from App.Management import Tabs
 from OFS.ObjectManager import BadRequestException, BeforeDeleteException
@@ -36,7 +36,10 @@ from RelationshipAlias import RelationshipAlias
 from RelTypes import *
 from Products.ZenRelations.Exceptions import *
 
-_marker = []
+OWNEDOBJECT = 1
+RELATEDOBJECT = 2
+
+_marker = "__ZENMARKER__"
 
 def addRel(context, rel, REQUEST = None):
     """ToManyRelationship shared context placement"""
@@ -130,9 +133,11 @@ class ToManyRelationship(RelationshipBase):
 
     def hasobject(self, obj):
         "check to see if we have this object"
-        id = obj.id
-        fullid = obj.getPrimaryId()
-        return self._ownedObjects.has_key(id) or self._objects.has_key(fullid)
+        obj2 = self._ownedObjects.get(obj.id, _marker)
+        if obj == obj2: return OWNEDOBJECT 
+        obj2 = self._objects.get(obj.getPrimaryId(), _marker)
+        if obj == obj2: return RELATEDOBJECT
+        return False
             
 
     def findObjectsById(self, partid):
@@ -150,7 +155,7 @@ class ToManyRelationship(RelationshipBase):
 
     
     def all_meta_types(self, interfaces=None):
-        if not hasattr(aq_base(self), 'sub_classes'):
+        if not getattr(aq_base(self), 'sub_classes', _marker) is not _marker:
             rs = self.getRelSchema(self.id)
             self.sub_classes = (rs.remoteClass(self.id),)
 
@@ -184,11 +189,17 @@ class ToManyRelationship(RelationshipBase):
         set our parent class and call subobjects"""
         self._relClass = container.__class__
         checkContainer(container)
-        if hasattr(self, 'mySchemaManager'):
+        if getattr(self, 'mySchemaManager', None) is not None:
             rs = self.getRelSchema(self.id)
             self._isManyToMany = rs.isManyToMany()
-        ObjectManager.manage_afterAdd(self, item, self)
+        RelationshipBase.manage_afterAdd(self, item, self)
 
+
+    def manage_beforeDelete(self, item, container, recurse=1):
+        """if relationship is being deleted remove the remote side"""
+        self._remoteRemove()
+        RelationshipBase.manage_beforeDelete(self, item, container)
+        
 
     security.declareProtected('Manage Relations', 'addRelation')
     def addRelation(self, obj,id=None,owned=0,roles=None,user=None,set_owner=1):
@@ -200,14 +211,11 @@ class ToManyRelationship(RelationshipBase):
         elif not id:
             id = obj.id
         name = self.id
-        rel = self.getRelSchema(name)
-        self._checkSchema(name, rel, obj)
-        self._addToMany(obj, id, owned, roles, user, set_owner)
+        rs = self.getRelSchema(name)
+        self._checkSchema(name, rs, obj)
+        self._add(obj, id, owned, roles, user, set_owner)
         obj = getattr(self, id)
-        if rel.remoteType(name) == TO_ONE:
-            obj._addToOne(rel.remoteAtt(name), self.aq_parent)
-        elif rel.remoteType(name) == TO_MANY:
-            obj._addToMany(rel.remoteAtt(name), self.aq_parent)
+        obj._add(rs.remoteAtt(name), aq_parent(self))
 
 
     security.declareProtected('Manage Relations', 'removeRelation')
@@ -215,23 +223,16 @@ class ToManyRelationship(RelationshipBase):
         """remove and object from a relationship"""
         if not obj and not id:
             for obj in self.objectValuesAll():
-                self._removeRemoteRelation(obj)
-            self._removeToMany()
+                self._remoteRemove(obj)
+            self._remove()
         else:
-            if not obj: obj = self._getOb(id)
-            self._removeRemoteRelation(obj)
-            self._removeToMany(obj)
+            if not obj: obj = getattr(self, id, None)
+            if obj == None: return
+            obj = obj.primaryAq()
+            self._remoteRemove(obj)
+            self._remove(obj)
 
 
-    def _removeRemoteRelation(self, obj=None):
-        name = self.id
-        rel = self.getRelSchema(name)
-        if rel.remoteType(name) == TO_ONE:
-            obj._removeToOne(rel.remoteAtt(name))
-        elif rel.remoteType(name) == TO_MANY:
-            obj._removeToMany(rel.remoteAtt(name), self.aq_parent)
-
-    
     security.declareProtected('Manage Relations', 'renameId')
     def renameId(self, obj):
         """change an objects id in its related collection"""
@@ -257,7 +258,7 @@ class ToManyRelationship(RelationshipBase):
         self._p_changed = 1
 
 
-    def _addToMany(self,obj,id=None,owned=0,roles=None,user=None,set_owner=1):
+    def _add(self,obj,id=None,owned=0,roles=None,user=None,set_owner=1):
         """add an object to one side of this toMany relationship"""
         if not owned and (not id or id.find('/') != 0):
             id = obj.getPrimaryId()
@@ -288,39 +289,37 @@ class ToManyRelationship(RelationshipBase):
         return object.getId()
 
 
-    def _removeToMany(self, obj=None, id=None):
+    def _remove(self, obj=None):
         """remove object from one side of a tomany relationship"""
-        if obj or id: 
-            fullid = ""
-            if obj: fullid = obj.getPrimaryId()
-            if not id: id = obj.getId()
-            if self._ownedObjects.has_key(id):
-                self._ownedDelObject(id)
-            elif self._objects.has_key(fullid):    
-                del self._objects[fullid]
+        if obj:
+            objtype = self.hasobject(obj) 
+            if objtype == OWNEDOBJECT:
+                self._ownedDelObject(obj)
+            elif objtype == RELATEDOBJECT:
+                del self._objects[obj.getPrimaryId()]
         else:
-            for id in self.objectIdsOwned():
-                self._ownedDelObject(id)
+            for obj in self.objectValuesOwned():
+                self._ownedDelObject(obj)
             self._objects = {}
             self._ownedObject = {}
         self._p_changed = 1
 
-    
-    def _ownedDelObject(self, id):
+
+    def _remoteRemove(self, obj=None):
+        """remove an object from the far side of this relationship
+        if no object is passed in remove all objects"""
+        rs = self.getRelSchema(self.id)
+        if obj: objs = [obj]
+        else: objs = self.objectValuesAll()
+        for obj in objs:
+            obj._remove(rs.remoteAtt(self.id), aq_parent(self))
+   
+
+    def _ownedDelObject(self, object):
         """proper protocol for owned object deletion (as per ObjectManager)"""
-        object=self._getOb(id)
-        try:
-            object.manage_beforeDelete(object, self)
-        except BeforeDeleteException, ob:
-            raise
-        except:
-            LOG('Zope',ERROR,'manage_beforeDelete() threw',
-                error=sys.exc_info())
-            pass 
-        # the object may be gone because it got cleaned 
-        # up in manage_beforeDelete NOT SURE ABOUT THIS!!!!
-        if self._ownedObjects.has_key(id):
-            del self._ownedObjects[id]
+        object.manage_beforeDelete(object, self)
+        if self._ownedObjects.has_key(object.id):
+            del self._ownedObjects[object.id]
 
 
     def _delObject(self, id, dp=1):
@@ -500,6 +499,34 @@ class ToManyRelationship(RelationshipBase):
         return changed
 
 
+    def checkRelation(self, repair=False, log=None):
+        """go though and check to see if the relations in this relationship
+        are consistantly bidirectional"""
+        rs = self.getRelSchema(self.id)
+        ratt = rs.remoteAtt(self.id)
+        objs = self._ownedObjects.values()
+        objs.extend(self._objects.values())
+        for obj in objs:
+            rrel = getattr(obj, ratt)
+            parent = aq_parent(self)
+            if not rrel.hasobject(parent):
+                if log: log.critical(
+                    "BAD ToMany relation %s from %s to obj %s" 
+                    % (self.id, parent.getPrimaryFullId(), 
+                        obj.getPrimaryFullId()))
+                if repair: 
+                    goodobj = self.getDmdObj(obj.getPrimaryFullId()) 
+                    if goodobj:
+                        if log: log.warn("RECONNECTING relation %s to obj %s" %
+                            (self.id, goodobj.getPrimaryFullId()))
+                        self._remove(obj)
+                        parent.addRelation(self.id, goodobj)
+                    else:
+                        if log: log.warn(
+                            "CLEARING relation %s to obj %s" %
+                            (self.id, obj.getPrimaryFullId()))
+                        self._remove(obj)
+
 
     def exportXml(self):
         """return an xml representation of a ToManyRelationship
@@ -510,7 +537,7 @@ class ToManyRelationship(RelationshipBase):
 
         <tomany id='interfaces'>
             <object id='/Devices/Servers/Windows/dhcp160.confmon.loc/hme0' 
-                class='Products.ZenModel.IpInterface'>
+                class='Products.Confmon.IpInterface'>
                 <property></property> etc....
             </object>
             <link>/Systems/OOL/Mail</link>

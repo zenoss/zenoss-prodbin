@@ -19,6 +19,7 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
+from Acquisition import aq_parent
 
 from SchemaManager import SchemaError
 from RelationshipBase import checkContainer
@@ -67,15 +68,67 @@ class ToOneRelationship(RelationshipAlias):
         self.id = id
         self.title = title
         self.obj = None
-        self._relationType = 0
 
 
     def manage_afterAdd(self, item, container):
         """figure out if we have been added to a valid object"""
         checkContainer(container)
-        if not self._relationType:
+
+
+    def manage_beforeDelete(self, item, container, recurse=1):
+        """if relationship is being deleted remove the remote side"""
+        self._remoteRemove()
+
+
+    def hasobject(self, obj):
+        """does this relation point to the object passed"""
+        return self.obj == obj
+
+
+    def _add(self, obj):
+        """add a to one side of a relationship
+        if a relationship already exists clear it"""
+        self._remoteRemove()
+        self.obj = obj
+        self.title = obj.id
+
+
+    def _remove(self,obj=None):
+        """remove the to one side of a relationship"""
+        self.obj = None 
+        self.title = None
+        self.obj = None
+
+
+    def _remoteRemove(self, obj=None):
+        """clear the remote side of this relationship"""
+        if self.obj:
             rs = self.getRelSchema(self.id)
-            self._relationType = rs.relationType()
+            self.obj._remove(rs.remoteAtt(self.id), aq_parent(self))
+
+    
+    security.declareProtected('View', 'getRelatedId')
+    def getRelatedId(self):
+        '''Override getId to return the id of the object,
+        not the relationship'''
+        if self.obj:
+            return self.obj.id
+        else:
+            return None
+
+    #def objectValues(self, spec=None):
+    #    if self.obj: return [self.obj]
+    #    return []
+
+
+    #def objectIds(self, spec=None):
+    #    if self.obj: return [self.obj.getPrimaryId()]
+    #    return []
+
+
+    #def objectItems(self, spec=None):
+    #    if self.obj: return [(self.obj.getPrimaryId(), obj)]
+    #    return [()]
 
 
     security.declareProtected('View', 'getPrimaryLink')
@@ -90,32 +143,6 @@ class ToOneRelationship(RelationshipAlias):
         return link
 
 
-    security.declarePrivate('relationType')
-    def relationType(self):
-        return self._relationType
-   
-
-    def _addToOne(self, obj):
-        """add a to one side of a relationship"""
-        self.obj = obj
-        self.title = obj.id
-  
-
-    def _removeToOne(self):
-        """remove the to one side of a relationship"""
-        self.obj = None 
-        self.title = None
-        self.obj = None
-
-    security.declareProtected('View', 'getRelatedId')
-    def getRelatedId(self):
-        '''Override getId to return the id of the object,
-        not the relationship'''
-        if self.obj:
-            return self.obj.id
-        else:
-            return None
-
     def _getCopy(self, container):
         """create toone copy and if we are the one side of one to many
         we set our side of the relation to point towards the related
@@ -129,6 +156,33 @@ class ToOneRelationship(RelationshipAlias):
             self.getPrimaryUrlPath().find(self.obj.getPrimaryUrlPath()) != 0):
             container.addRelation(name, self.obj)
         return rel
+
+
+    def checkRelation(self, repair=False, log=None):
+        """confirm that this relation is still bidirectional
+        if clean is set remove any bad relations"""
+        if not self.obj: return
+        rs = self.getRelSchema(self.id)
+        ratt = rs.remoteAtt(self.id)
+        rrel = getattr(self.obj, ratt)
+        parent = aq_parent(self)
+        if not rrel.hasobject(parent):
+            if log: log.critical(
+                    "BAD ToOne relation %s from %s to %s" 
+                    % (self.id, parent.getPrimaryFullId(), 
+                        self.obj.getPrimaryFullId()))
+            if repair: 
+                goodobj = self.getDmdObj(self.obj.getPrimaryFullId()) 
+                if goodobj:
+                    if log: log.warn("RECONNECTING relation %s to obj %s" %
+                        (self.id, goodobj.getPrimaryFullId()))
+                    self._remove()
+                    parent.addRelation(self.id, goodobj)
+                else:
+                    if log: log.warn(
+                        "CLEARING relation %s to obj %s" %
+                        (self.id, self.obj.getPrimaryFullId()))
+                    self._remove()
 
 
     def exportXml(self):

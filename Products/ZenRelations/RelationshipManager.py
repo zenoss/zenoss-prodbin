@@ -33,6 +33,7 @@ from RelTypes import *
 
 from Products.ZenRelations.Exceptions import *
 
+_marker = "__ZENMARKER__"
 
 class _EmptyClass: pass
 
@@ -80,10 +81,10 @@ class RelationshipManager(RelationshipBase):
         """auto build relationship object on this RelationshipManager
         must be called after aquisition path is estabilished
         a good place is in manage_afterAdd"""
-        if hasattr(self, 'mySchemaManager'):
+        if getattr(self, 'mySchemaManager', None) is not None:
             rses = self.mySchemaManager.getRelations(self)
             for rname, rs in rses.items():
-                if not hasattr(aq_base(self), rname):
+                if not getattr(aq_base(self), rname, _marker) is not _marker:
                     if rs.relType(rname) == TO_ONE:
                         rel = ToOneRelationship(rname)
                     else:
@@ -106,21 +107,20 @@ class RelationshipManager(RelationshipBase):
 
         if the object is a relatioship check to see if there
         is a valid schema object for it"""
-        id = ObjectManager._setObject(self, id, obj)  
+        id = RelationshipBase._setObject(self, id, obj)  
         if obj.meta_type in MT_LIST:
             r = self.getRelSchema(id)
         return id
 
 
-    def _delObject(self, id, dp=1):
+    def __delObject(self, id, dp=1):
         """override to clear relationships before deleting relation"""
-        mt = self._getOb(id).meta_type
+        mt = getattr(self, id).meta_type
         try:
-            if mt in MT_LIST: 
-                self.removeRelation(id)
+            if mt in MT_LIST: self.removeRelation(id)
         except SchemaError:
             pass #we need to kill the object even if schema is gone 
-        ObjectManager._delObject(self, id, dp)
+        RelationshipBase._delObject(self, id, dp)
    
 
     security.declareProtected('Manage Relations', 'manage_addRelation')
@@ -135,24 +135,13 @@ class RelationshipManager(RelationshipBase):
     security.declareProtected('Manage Relations', 'addRelation')
     def addRelation(self, name, obj, id = None):
         """add an object to a relationship addRelation(name, obj)
-        
         checks schema and maintains both ends of 
         a relationship based on its cardinality"""
         #if not id and obj: id = obj.id
-        rel = self.getRelSchema(name)
-        self._checkSchema(name, rel, obj)
-        if rel.relType(name) == TO_ONE:
-            self._addToOne(name, obj)
-            if rel.remoteType(name) == TO_ONE:
-                obj._addToOne(rel.remoteAtt(name), self)
-            else:
-                obj._addToMany(rel.remoteAtt(name), self)    
-        else:
-                self._addToMany(name, obj, id)
-                if rel.remoteType(name) == TO_ONE:
-                    obj._addToOne(rel.remoteAtt(name), self)
-                elif obj:
-                    obj._addToMany(rel.remoteAtt(name), self)    
+        rs = self.getRelSchema(name)
+        self._checkSchema(name, rs, obj)
+        self._add(name, obj)
+        obj._add(rs.remoteAtt(name), self)
 
 
     def relationKey(self, name, objid):
@@ -181,72 +170,41 @@ class RelationshipManager(RelationshipBase):
     security.declareProtected('Manage Relations', 'removeRelation')
     def removeRelation(self, name, obj = None):
         """remove and object from a relationship"""
-       
         rs = self.getRelSchema(name)
-        if rs.relType(name) == TO_ONE:
-            rel = getattr(self, name, None)
-            robj = None
-            if rel and callable(rel):
-                robj = getattr(self, name)()
-            self._removeToOne(name)
-            if robj:
-                if rs.remoteType(name) == TO_ONE:
-                    robj._removeToOne(rs.remoteAtt(name))
-                else:
-                    robj._removeToMany(rs.remoteAtt(name), self)    
-        else:
-            rel = getattr(self, name, None) 
-            if rel:
-                if obj:
-                    rel._removeToMany(obj)
-                    if rs.remoteType(name) == TO_ONE:
-                        obj._removeToOne(rs.remoteAtt(name))
-                    else:
-                        obj._removeToMany(rs.remoteAtt(name), self)    
-                else:
-                    for obj in rel():
-                        if rs.remoteType(name) == TO_ONE:
-                            obj._removeToOne(rs.remoteAtt(name))
-                        else:
-                            obj._removeToMany(rs.remoteAtt(name), self)    
-                    rel._removeToMany()
+        rel = getattr(self, name, None)
+        if rel == None: return
+        if not obj and rs.relType(name) == TO_ONE:
+            obj = rel.obj
+        if obj:
+            obj._remove(rs.remoteAtt(name), self)
+            rel._remove(obj)
+        elif rs.relType(name) == TO_MANY:
+            for obj in rel():
+                obj._remove(rs.remoteAtt(name), self)
+            rel._remove()
 
 
-    def _addToOne(self, name, obj):
-        if not hasattr(aq_base(self), name):
-            rel = ToOneRelationship(name)
+    def _add(self, name, obj):
+        """add an object to one side of a relationship
+        create the relationship object if it doesn't exist"""
+        rel = getattr(self, name, None)
+        if rel == None:
+            rs = self.getRelSchema(name)
+            if rs.relType(name) == TO_ONE:
+                rel = ToOneRelationship(name)
+            else:
+                rel = ToManyRelationship(name)
             self._setObject(name, rel)
-        rel = getattr(self, name)
-        if rel():
-            self.removeRelation(name)
-        rel._addToOne(obj)
+            rel = getattr(self, name)
+        rel._add(obj)
 
 
-    def _removeToOne(self, name):
-        rel = getattr(self,name, None)
-        if rel and hasattr(rel, '_removeToOne'):
-            rel._removeToOne()
+    def _remove(self, name, obj=None):
+        """remove one side of a relationship"""
+        rel = getattr(self, name, None)
+        if rel != None: rel._remove(obj)
 
         
-    def _addToMany(self, name, obj, id = None):
-        """add a toMany Relationship
-
-        If one doesn't exist we create it and then
-        call _addToMany on it"""
-        #if not id: id = obj.id
-        rel = None
-        if not hasattr(aq_base(self), name): 
-            rel = ToManyRelationship(name) 
-            self._setObject(name, rel)
-        rel = getattr(self, name)
-        rel._addToMany(obj, id)
-
-
-    def _removeToMany(self, name, obj = None):
-        rel = getattr(self, name)
-        rel._removeToMany(obj)
-
-
     def _setId(self, newid):
         """track our old id if it is changed"""
         self.oldid = self.id
@@ -259,24 +217,24 @@ class RelationshipManager(RelationshipBase):
         if self.oldid != self.id:
             for name in self.objectIds('To One Relationship'):
                 rs = self.getRelSchema(name)
-                robj = self._getOb(name)()
+                robj = getattr(self, name).obj
                 self._remoteRename(name, rs, robj)    
             for name in self.objectIds('To Many Relationship'):
                 rs = self.getRelSchema(name)
-                for robj in self._getOb(name)():
+                for robj in getattr(self,name).objectValuesAll():
                     self._remoteRename(name, rs, robj)
             self.oldid = self.id
         if recurse:
-            ObjectManager.manage_afterAdd(self, item, self)
+            RelationshipBase.manage_afterAdd(self, item, self)
    
    
     def _remoteRename(self, name, rs, robj):
         """rename the id on remote objects"""
         if robj:
             if rs.remoteType(name) == TO_ONE:
-                robj._getOb(rs.remoteAtt(name)).title = self.id
+                getattr(robj, rs.remoteAtt(name)).title = self.id
             else:
-                rel = robj._getOb(rs.remoteAtt(name))
+                rel = getattr(robj,rs.remoteAtt(name))
                 rel.renameId(self)
 
 
@@ -284,14 +242,14 @@ class RelationshipManager(RelationshipBase):
         """cleanup after a clone of this object"""
         self.setPrimaryPath(force=1)
         if recurse:
-            ObjectManager.manage_afterClone(self, item)
+            RelationshipBase.manage_afterClone(self, item)
 
 
     def _getCopy(self, container):
         """use deepcopy to make copy of relationshipmanager toone and tomany
         make copy of relationship manager set up relations correctly"""
         id = self.id
-        if hasattr(container, id):
+        if getattr(container, id, _marker) is not _marker:
             id = "copy_of_" + id
         cobj = self.__class__(id) #make new instance
         cobj = cobj.__of__(container) #give the copy container's aq chain
@@ -313,10 +271,10 @@ class RelationshipManager(RelationshipBase):
 
     def cb_isMoveable(self):
         """only allow move if we are being called from our primary path"""
-        rvalue = CopySource.cb_isMoveable(self)
-        if self.getPhysicalPath() != self.getPrimaryPath():
-            rvalue = 0
-        return rvalue
+        if (self.getPhysicalPath() == self.getPrimaryPath()):
+            return 1
+        else:
+            return 0
 
 
     def _notifyOfCopyTo(self, container, op=0):
@@ -357,7 +315,7 @@ class RelationshipManager(RelationshipBase):
                 else:
                     self.removeRelation(name)
             if recurse: 
-                ObjectManager.manage_beforeDelete(self, item, container)            
+                RelationshipBase.manage_beforeDelete(self, item, container)
 
 
     def manage_workspace(self, REQUEST):
@@ -372,7 +330,7 @@ class RelationshipManager(RelationshipBase):
 
     def getProperties(self):
         """return a list of dictionaries that defines this objects properties"""
-        if hasattr(aq_base(self), '_properties'):
+        if getattr(aq_base(self), '_properties', _marker) is not _marker:
             return self._properties
         return []
     
@@ -390,7 +348,7 @@ class RelationshipManager(RelationshipBase):
         """return an xml based representation of a RelationshipManager
 
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
-            class='Products.ZenModel.IpInterface'>
+            class='Products.Confmon.IpInterface'>
             <property></property>
             <toone></toone
             <tomany></tomany>
@@ -452,16 +410,24 @@ class RelationshipManager(RelationshipBase):
         
     def getRelationships(self):
         """returns a dictionary of relationship objects keyed by their names"""
-        if hasattr(self, 'mySchemaManager'):
+        if getattr(self, 'mySchemaManager', _marker) is not _marker:
             return self.mySchemaManager.getRelations(self)
 
 
     def getRelationshipNames(self):
         "return our relationship names"
-        if hasattr(self, 'mySchemaManager'):
+        if getattr(self, 'mySchemaManager', _marker) is not _marker:
             return self.getRelationships().keys()
 
 
+    def checkRelations(self, repair=False, log=None):
+        """confirm the integrity of all relations on this object"""
+        rels = self.objectValues(spec = 'To One Relationship')
+        rels.extend(self.objectValues(spec = 'To Many Relationship'))
+        for rel in rels:
+            rel.checkRelation(repair, log)
+                
+    
     def getXmlDtd(self):
         """return the dtd for RelationshipManger xml files"""
         dtd = """
