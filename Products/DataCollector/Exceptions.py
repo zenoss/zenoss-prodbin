@@ -10,8 +10,9 @@ $Id: Exceptions.py,v 1.3 2003/09/25 15:04:19 edahl Exp $"""
 
 __version__ = "$Revision: 1.3 $"[11:-2]
 
+from Products.ZenUtils import ZentinelException
 
-class DataCollectorError(Exception): pass
+class DataCollectorError(ZentinelException): pass
 
 class ObjectCreationError(DataCollectorError):
     "failed to create a related object while appling maps"
