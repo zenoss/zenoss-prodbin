@@ -21,9 +21,12 @@ class CricketRouter:
         '72\d\d|75\d\d' : 'CiscoBigRouter',
         '36\d\d|26\d\d' : 'CiscoMedRouter',
         '650\d|35\d\d' : 'CiscoSimpleRouter',
+        'WRT54' : 'NetSnmpLinksys',
     }
     
     def cricketDeviceType(self):
-        for regex in self.routermap.keys():
-            if re.search(regex, self.getModelName()):
-                return self.routermap[regex]
+        deviceType = getattr(objpaq, 'zCricketDeviceType', "Device")
+        if deviceType != "Device":
+            for regex in self.routermap.keys():
+                if re.search(regex, self.getModelName()):
+                    return self.routermap[regex]
