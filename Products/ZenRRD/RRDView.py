@@ -33,8 +33,7 @@ def manage_addRRDView(context, id, REQUEST = None):
 
 addRRDView = DTMLFile('dtml/addRRDView',globals())
 
-
-class RRDViewError(Exception): pass
+class RRDViewError(utils.RRDException): pass
 
 class RRDView(RRDToolItem, PropertyManager):
 

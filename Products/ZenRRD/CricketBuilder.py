@@ -21,7 +21,9 @@ import Globals
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.Utils import basicAuthUrl
 
-class TargetDataError(Exception):pass
+from utils import RRDException
+
+class TargetDataError(RRDException):pass
 
 class CricketBuilder(CmdBase):
 

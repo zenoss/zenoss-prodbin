@@ -13,7 +13,9 @@ $Id: utils.py,v 1.9 2003/05/12 16:13:28 edahl Exp $"""
 __version__ = "$Revision: 1.9 $"[11:-2]
 
 
-class RRDException(Exception): pass
+from Products.ZenUtils.Exceptions import ZentinelException
+
+class RRDException(ZentinelException): pass
 
 class RRDObjectNotFound(RRDException): pass
 
