@@ -12,11 +12,9 @@ $Id: CheckRelations.py,v 1.2 2004/10/19 22:28:59 edahl Exp $"""
 
 __version__ = "$Revision: 1.2 $"[11:-2]
 
-import Zope
-Zope.startup()
-
 import gc
 
+import Globals
 from Acquisition import aq_parent
 
 from Products.ConfUtils.Utils import getAllConfmonObjects
