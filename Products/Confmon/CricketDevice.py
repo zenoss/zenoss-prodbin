@@ -17,8 +17,8 @@ import re
 
 from zLOG import LOG, WARNING
 
-from Products.RRDProduct.utils import RRDObjectNotFound
-from Products.RRDProduct.RRDTargetType import lookupTargetType
+from Products.ZenRRD.utils import RRDObjectNotFound
+from Products.ZenRRD.RRDTargetType import lookupTargetType
 
 class RelationNotFound(Exception): pass
 
@@ -131,7 +131,7 @@ class CricketDevice:
     def interfaceMultiTargets(self, interface, targetpath):
         """setup graphs that have multiple targets with 
         different potentially types in one graph"""
-        from Products.RRDProduct.RRDMGraph import RRDMGraph
+        from Products.ZenRRD.RRDMGraph import RRDMGraph
         mtargets = []
         if interface.type == 'CATV MAC Layer':
             interface.clearCricketMGraph()

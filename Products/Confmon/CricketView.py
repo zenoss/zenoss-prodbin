@@ -40,7 +40,7 @@ class CricketView:
                         view=None, drange=None):
         """resolve targettype and view names to objects 
         and pass to cricketconf"""
-        from Products.RRDProduct.utils import getRRDView
+        from Products.ZenRRD.utils import getRRDView
         if not drange: drange = self.defaultDateRange
         if target: targettype = self.getCricketTypeForTarget(target)
         if not target: target = self.id
@@ -61,7 +61,7 @@ class CricketView:
 
     def cricketMGraphUrl(self, targetsmap, view=None, drange=None):
         """resolve targetsmap and view and send to cricketconf"""
-        from Products.RRDProduct.utils import getRRDView
+        from Products.ZenRRD.utils import getRRDView
         if not drange: drange = self.defaultDateRange
         objpaq = self.primaryAq()
         view = getRRDView(objpaq, view)
@@ -181,7 +181,7 @@ class CricketView:
 
     def getCricketTarget(self, targettypename):
         """lookup a targettype from its name"""
-        from Products.RRDProduct.utils import getRRDTargetType
+        from Products.ZenRRD.utils import getRRDTargetType
         return getRRDTargetType(self.primaryAq(), targettypename)
 
 

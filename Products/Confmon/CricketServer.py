@@ -18,8 +18,8 @@ import re
 
 from zLOG import LOG, WARNING
 
-from Products.RRDProduct.utils import RRDObjectNotFound
-from Products.RRDProduct.RRDTargetType import lookupTargetType
+from Products.ZenRRD.utils import RRDObjectNotFound
+from Products.ZenRRD.RRDTargetType import lookupTargetType
 
 from Device import Device
 
