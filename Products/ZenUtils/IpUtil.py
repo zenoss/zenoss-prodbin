@@ -14,7 +14,9 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 
 import types
 
-class IpAddressError(Exception): pass
+from Products.ZenUtils.Exceptions import ZentinelException
+
+class IpAddressError(ZentinelException): pass
 
 def checkip(ip):
     """check that an ip is valid"""
