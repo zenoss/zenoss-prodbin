@@ -26,7 +26,7 @@ from AccessControl.Role import RoleManager
 import RelationshipSchema
 import string
 
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 
 def manage_addSchemaManager(context, REQUEST = None):
                                 

@@ -31,7 +31,7 @@ from ToOneRelationship import ToOneRelationship
 from ToManyRelationship import ToManyRelationship
 from RelTypes import *
 
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 
 
 class _EmptyClass: pass

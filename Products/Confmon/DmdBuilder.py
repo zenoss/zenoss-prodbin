@@ -43,7 +43,7 @@ from Products.Confmon.MonitorClass import MonitorClass
 from Products.Confmon.RouterClass import RouterClass
 from Products.Confmon.UbrRouterClass import UbrRouterClass
 from Products.Confmon.DataRoot import DataRoot
-from Products.RelationshipManager.SchemaManager import SchemaManager, manage_addSchemaManager
+from Products.ZenRelations.SchemaManager import SchemaManager, manage_addSchemaManager
 from Products.Confmon.Classifier import manage_addClassifier
 from Products.Confmon.SnmpClassifier import manage_addSnmpClassifier
 from Products.Confmon.ZentinelPortal import manage_addZentinelSite

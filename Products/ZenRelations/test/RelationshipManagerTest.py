@@ -19,12 +19,12 @@ from Acquisition import aq_base
 
 from RelationshipManagerBaseTest import RelationshipManagerBaseTest
 from SchemaManagerSetup import *
-from Products.RelationshipManager.RelTypes import *
-from Products.RelationshipManager.RelationshipManager import manage_addRelationshipManager
-from Products.RelationshipManager.ToManyRelationship import manage_addToManyRelationship
-from Products.RelationshipManager.ToManyRelationship import manage_addToManyRelationship
+from Products.ZenRelations.RelTypes import *
+from Products.ZenRelations.RelationshipManager import manage_addRelationshipManager
+from Products.ZenRelations.ToManyRelationship import manage_addToManyRelationship
+from Products.ZenRelations.ToManyRelationship import manage_addToManyRelationship
 
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 
 
 class RelationshipManagerTest(RelationshipManagerBaseTest, SchemaManagerSetup):

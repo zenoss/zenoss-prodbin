@@ -20,7 +20,7 @@ from Globals import InitializeClass
 from Products.CMFCore import CMFCorePermissions
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from Products.RelationshipManager.RelationshipManager import RelationshipManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ConfUtils.Utils import checkClass
 
 from ConfmonBase import ConfmonBase

@@ -15,10 +15,10 @@ __version__ = "$Revision: 1.11 $"[11:-2]
 
 from OFS.SimpleItem import Item
 from OFS.Folder import manage_addFolder
-from Products.RelationshipManager.RelationshipManager import RelationshipManager
-from Products.RelationshipManager.RelationshipSchema import RelationshipSchema
-from Products.RelationshipManager.RelTypes import *
-from Products.RelationshipManager.SchemaManager import manage_addSchemaManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenRelations.RelationshipSchema import RelationshipSchema
+from Products.ZenRelations.RelTypes import *
+from Products.ZenRelations.SchemaManager import manage_addSchemaManager
 
 MT_TYPE = 'mt'
 RM_TYPE = 'rm'

@@ -27,7 +27,7 @@ from DateTime import DateTime
 from Products.ConfUtils.ZCmdBase import ZCmdBase
 from Products.ConfUtils.Utils import lookupClass
 
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 
 class ImportRM(ZCmdBase, ContentHandler):
 

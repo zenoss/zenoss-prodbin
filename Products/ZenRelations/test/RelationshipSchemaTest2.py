@@ -14,9 +14,9 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import unittest
 from RelationshipManagerBaseTest import RelationshipManagerBaseTest
-from Products.RelationshipManager.RelationshipSchema import manage_addRelationshipSchema
-from Products.RelationshipManager.SchemaManager import SchemaManager, manage_addSchemaManager
-from Products.RelationshipManager.RelTypes import *
+from Products.ZenRelations.RelationshipSchema import manage_addRelationshipSchema
+from Products.ZenRelations.SchemaManager import SchemaManager, manage_addSchemaManager
+from Products.ZenRelations.RelTypes import *
 
 class RelationshipSchemaTest2(RelationshipManagerBaseTest):
     

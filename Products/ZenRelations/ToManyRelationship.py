@@ -34,7 +34,7 @@ from RelationshipBase import RelationshipBase, checkContainer
 from RelationshipAlias import RelationshipAlias
 
 from RelTypes import *
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 
 _marker = []
 

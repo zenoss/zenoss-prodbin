@@ -24,7 +24,7 @@ from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
 
-from Products.RelationshipManager.ToOneRelationship import manage_addToOneRelationship
+from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 from IpAddress import IpAddress, findIpAddress
 from IpNetwork import addIpAddressToNetworks 
 from Products.ConfUtils.IpUtil import *

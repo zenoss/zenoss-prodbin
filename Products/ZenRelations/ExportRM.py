@@ -19,7 +19,7 @@ Zope.startup()
 
 from Products.ConfUtils.ZCmdBase import ZCmdBase
 
-from Products.RelationshipManager import RelationshipManager
+from RelationshipManager import RelationshipManager
 
 class ExportRM(ZCmdBase):
 

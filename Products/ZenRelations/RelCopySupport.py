@@ -23,7 +23,7 @@ from OFS.CopySupport import CopyError
 from OFS.CopySupport import eInvalid, eNotFound
 from App.Dialogs import MessageDialog
 
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.Exceptions import *
 from RelTypes import *
 
 class RelCopyContainer(CopyContainer):

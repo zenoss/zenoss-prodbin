@@ -12,16 +12,18 @@ $Id: ToOneRelationshipTest.py,v 1.7 2003/10/21 17:22:58 edahl Exp $"""
 
 __version__ = "$Revision: 1.7 $"[11:-2]
 
+import Globals
+
 import unittest
 from Acquisition import aq_base
 from RelationshipManagerBaseTest import RelationshipManagerBaseTest
 from SchemaManagerSetup import *
 
-from Products.RelationshipManager.SchemaManager import manage_addSchemaManager
-from Products.RelationshipManager.ToOneRelationship import manage_addToOneRelationship
+from Products.ZenRelations.SchemaManager import manage_addSchemaManager
+from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 
-from Products.RelationshipManager.RelTypes import *
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.RelTypes import *
+from Products.ZenRelations.Exceptions import *
 
 class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
     

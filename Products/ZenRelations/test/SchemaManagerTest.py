@@ -16,11 +16,11 @@ import unittest
 from RelationshipManagerBaseTest import RelationshipManagerBaseTest
 from SchemaManagerSetup import SchemaManagerSetup, MT_TYPE
 
-from Products.RelationshipManager.SchemaManager import manage_addSchemaManager
-from Products.RelationshipManager.RelationshipSchema import RelationshipSchema, manage_addRelationshipSchema
+from Products.ZenRelations.SchemaManager import manage_addSchemaManager
+from Products.ZenRelations.RelationshipSchema import RelationshipSchema, manage_addRelationshipSchema
 
-from Products.RelationshipManager.RelTypes import *
-from Products.RelationshipManager.Exceptions import *
+from Products.ZenRelations.RelTypes import *
+from Products.ZenRelations.Exceptions import *
 
 
 class SchemaManagerTest(RelationshipManagerBaseTest, SchemaManagerSetup):

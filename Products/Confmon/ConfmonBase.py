@@ -25,8 +25,8 @@ from OFS.ObjectManager import ObjectManager
 from Products.CMFCore.DynamicType import DynamicType
 from Products.ZCatalog.CatalogAwareness import CatalogAware
 
-from Products.RelationshipManager.RelationshipManager import RelationshipManager
-from Products.RelationshipManager.Exceptions import SchemaError
+from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenRelations.Exceptions import SchemaError
 
 from Products.ConfUtils.Utils import getSubObjects
 
