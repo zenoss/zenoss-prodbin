@@ -9,19 +9,22 @@
 #
 ###############################################################################
 
+from threading import Timer
+
 import Pyro.core
 
-from ZenEvents.EventManager import EventManager
+from ZenEvents.EventDatabase import EventDatabase
 
-class ZMServer(Pyro.core.ObjBase, EventManager):
+class ZEPyroServer(Pyro.core.ObjBase, EventDatabase):
+
     def __init__(self):
         Pyro.core.ObjBase.__init__(self)
-        EventManager.__init__(self)
+        EventDatabase.__init__(self)
 
         
 Pyro.core.initServer()
 daemon=Pyro.core.Daemon()
-uri=daemon.connect(ZMServer(),"ZMServer")
+uri=daemon.connect(ZEPyroServer(),"ZEServer")
 print "The daemon runs on port:",daemon.port
 print "The object's uri is:",uri
 daemon.requestLoop()

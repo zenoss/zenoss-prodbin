@@ -31,7 +31,7 @@ def EventFromDict(eventdict):
 
 class Event(object):
    
-    fields = ['device', 'startdate', 'enddate', 'lastupdate'
+    fields = ['device', 'startdate', 'enddate', 'lastupdate',
                 'summary', 'severity', 'classid', 'ipaddress',
                 'monitor', 'monitorhost', ]
 
@@ -45,6 +45,7 @@ class Event(object):
         self.summary = ""
         self.severity = -1
         self.classid = -1 
+        self.ipaddress = ""
         self.monitor = ""
         self.monitorhost = ""
 
@@ -59,7 +60,7 @@ class Event(object):
 
     def gettext(self):
         """return all event data as a big text string"""
-        text = ()
+        text = [] 
         for field in self.getfields():
             text.append(str(getattr(self, field)))
         return " ".join(text)

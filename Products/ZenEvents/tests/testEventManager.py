@@ -11,27 +11,37 @@
 
 
 import unittest
+import pdb
+import pickle
 import os
 from os import path
 
-from ZenEvents.EventManager import EventManager, EventUpdateError, defaultPickleName
+from ZenEvents.EventDatabase import EventDatabase, EventUpdateError
+from ZenEvents.EventDatabase import defaultPickleName
 from ZenEvents.Event import Event
 
-class testEventManager(unittest.TestCase):
+class testEventDatabase(unittest.TestCase):
   
     loopsize = 100
+    journalName = defaultPickleName + ".jnl"
 
     def setUp(self):
-        self.zem = EventManager()
+        self.cleanup()
+        self.zem = EventDatabase(savetime=0,journal=True)
         for i in range(self.loopsize):
             self.zem.addevent(Event("conrad.confmon.loc", 
-                                summary="this is a test", severity=5))
+                                summary="this is a event %05d" % i, severity=5))
 
 
     def tearDown(self):
+        self.zem = None
+        self.cleanup()
+
+    def cleanup(self):
         if path.exists(defaultPickleName):
             os.remove(defaultPickleName)    
-        self.zem = None
+        if path.exists(self.journalName):
+            os.remove(self.journalName)    
 
     def testGetFields(self):
         """kind of bogus test to see if get fields is working"""
@@ -57,10 +67,29 @@ class testEventManager(unittest.TestCase):
 
 
     def testSaveAndLoadEvents(self):
+        if self.zem.journal:
+            i = 0
+            jf = open(self.journalName, "r")
+            while 1:
+                try:
+                    pickle.load(jf)
+                    i += 1
+                except EOFError: break
+            self.failUnless(i == self.loopsize)
         self.zem.saveevents()
+        #self.failIf(path.exists(self.journalName))
         self.zem.loadevents()
         self.failUnless(len(self.zem.getevents()) == self.loopsize)
 
+
+    def testRecoverFromJournal(self):
+        """recover the database from the journal file after failure"""
+        if self.zem.journal:
+            self.zem = None
+            self.zem = EventDatabase(savetime=0)
+            self.failUnless(len(self.zem.getevents()) == self.loopsize)
+
+        
     def testNextOid(self):
         """make sure nextoid is correct after reload from disk"""
         self.zem.saveevents()
@@ -69,6 +98,20 @@ class testEventManager(unittest.TestCase):
         ev = self.zem.getDeviceEvents("xyz.confmon.loc")[0]
         self.failIf(ev._oid == 0)
         self.failUnless(ev.summary == "test event")
+
+
+    def testDeleteAllEvents(self):
+        self.zem.deleteevents()
+        self.failUnless(len(self.zem.getevents()) == 0)
+
+    def testDeleteSomeEvents(self):
+        self.zem.deleteevents(lambda x: '00008' in x.summary 
+                                or '00009' in x.summary)
+        self.failUnless(len(self.zem.getevents()) == (self.loopsize - 2))
+
+    def testDeleteByOid(self):
+        self.zem.deleteevent(4)
+        self.failUnless(len(self.zem.getevents()) == (self.loopsize - 1))
 
 
     def testFilterEvents(self):
@@ -104,9 +147,27 @@ class testEventManager(unittest.TestCase):
         self.zem.updateevent(ev2)
         self.failUnlessRaises(EventUpdateError, self.zem.updateevent, ev1)
 
+    def testGetEvents(self):
+        """test to make sure that lambda string query works"""
+        evts = self.zem.getEvents("'00009' in ev.summary")
+        self.failUnless(len(evts) == 1)
+
+    def testBadLambdaStr(self):
+        self.failUnlessRaises(NameError, 
+            self.zem.getEvents, "'00009' in xyz.summary")
+         
+
+    def testGetDeviceEvents(self):
+        evts = self.zem.getDeviceEvents("conrad.confmon.loc")
+        self.failUnless(len(evts) == self.loopsize)
+
+    def testGetRegexEvents(self):
+        evts = self.zem.getRegexEvents("00009")
+        self.failUnless(len(evts) == 1) 
+        
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest( unittest.makeSuite( testEventManager ) )
+    suite.addTest( unittest.makeSuite( testEventDatabase ) )
     return suite
 
 
