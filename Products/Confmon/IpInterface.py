@@ -33,7 +33,7 @@ from DeviceResultInt import DeviceResultInt
 from ConfmonPropManager import ConfmonPropManager
 from DeviceComponent import DeviceComponent
 from PingStatusInt import PingStatusInt
-from Products.Confmon.Exceptions import *
+from Products.ZenModel.Exceptions import *
 
 def manage_addIpInterface(context, id, REQUEST = None):
     """make a device"""

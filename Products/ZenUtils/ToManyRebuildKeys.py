@@ -45,8 +45,8 @@ class ToManyRebuildKeys(ZCmdBase):
 
 
     def decend(self, obj):
-        from Products.Confmon.Classification import Classification
-        from Products.Confmon.Instance import Instance
+        from Products.ZenModel.Classification import Classification
+        from Products.ZenModel.Instance import Instance
         from Products.ZenRelations.ToManyRelationship import ToManyRelationship
         return (isinstance(obj, Classification) or 
                 isinstance(obj, Instance) or

@@ -61,7 +61,7 @@ class DeviceGroupClass(Classification, Folder):
 
     def getDeviceGroup(self, path):
         """get or create a group from a path like /parentgroup/subgroup"""
-        from Products.Confmon.DeviceGroup import manage_addDeviceGroup
+        from Products.ZenModel.DeviceGroup import manage_addDeviceGroup
         path = self.zenpathsplit(path)
         if path[0] != "Groups": path.insert(0,"Groups")
         name = self.zenpathjoin(path)

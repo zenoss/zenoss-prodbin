@@ -125,13 +125,13 @@ class ConfmonBase(ConfmonAll, RelationshipManager, ConfmonPropManager,
 
 
     def classificationDecend(self, obj):
-        from Products.Confmon.Classification import Classification
+        from Products.ZenModel.Classification import Classification
         return isinstance(obj, Classification)
 
 
     def classInstDecend(self, obj):
-        from Products.Confmon.Classification import Classification
-        from Products.Confmon.Instance import Instance
+        from Products.ZenModel.Classification import Classification
+        from Products.ZenModel.Instance import Instance
         return (isinstance(obj, Classification) or 
                 isinstance(obj, Instance))
 

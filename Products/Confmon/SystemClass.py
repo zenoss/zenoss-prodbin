@@ -77,7 +77,7 @@ class SystemClass(Classification, Folder):
 
     def getSystem(self, path):
         """get or create a system from a system path"""
-        from Products.Confmon.System import manage_addSystem
+        from Products.ZenModel.System import manage_addSystem
         path = self.zenpathsplit(path)
         if path[0] != "Systems": path.insert(0, "Systems")
         name = self.zenpathjoin(path)
@@ -115,13 +115,13 @@ class SystemClass(Classification, Folder):
 
 
     def decend(self, obj):
-        from Products.Confmon.System import System
+        from Products.ZenModel.System import System
         return (obj.getId() == "subsystems" 
                 or isinstance(obj, System)
                 or isinstance(obj, SystemClass))
 
     def filter(self, obj):
-        from Products.Confmon.System import System
+        from Products.ZenModel.System import System
         return isinstance(obj, System)
       
 

@@ -14,7 +14,7 @@ __version__ = '$Revision: 1.3 $'[11:-2]
 
 import re
 
-from Products.Confmon.IpAddress import findIpAddress
+from Products.ZenModel.IpAddress import findIpAddress
 
 from CommandParser import CommandParser
 

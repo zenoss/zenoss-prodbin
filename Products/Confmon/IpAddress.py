@@ -24,7 +24,7 @@ from Products.ZenUtils.Utils import getObjByPath
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt
 from Instance import Instance
-from Products.Confmon.Exceptions import * 
+from Products.ZenModel.Exceptions import * 
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     """make a IpAddress"""

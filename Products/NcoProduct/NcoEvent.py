@@ -19,7 +19,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.CMFCore import CMFCorePermissions
 
-from Products.Confmon.ConfmonAll import ConfmonAll
+from Products.ZenModel.ConfmonAll import ConfmonAll
 
 class NcoEvent(Implicit):
     security = ClassSecurityInfo()

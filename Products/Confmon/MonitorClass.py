@@ -39,7 +39,7 @@ class MonitorClass(Classification, Folder):
 
     def getStatusMonitor(self, monitorName):
         """get or create the status monitor name"""
-        from Products.Confmon.StatusMonitorConf \
+        from Products.ZenModel.StatusMonitorConf \
             import manage_addStatusMonitorConf
         statusMonitorObj = self.getOrganizer("Monitors").StatusMonitors
         if not hasattr(statusMonitorObj, monitorName):
@@ -55,7 +55,7 @@ class MonitorClass(Classification, Folder):
 
     def getCricketMonitor(self, monitorName):
         """get or create the cricket monitor name"""
-        from Products.Confmon.CricketConf \
+        from Products.ZenModel.CricketConf \
             import manage_addCricketConf
         cricketObj = self.getOrganizer("Monitors").Cricket
         if not hasattr(cricketObj, monitorName):

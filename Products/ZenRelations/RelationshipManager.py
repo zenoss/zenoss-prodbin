@@ -390,7 +390,7 @@ class RelationshipManager(RelationshipBase):
         """return an xml based representation of a RelationshipManager
 
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
-            class='Products.Confmon.IpInterface'>
+            class='Products.ZenModel.IpInterface'>
             <property></property>
             <toone></toone
             <tomany></tomany>

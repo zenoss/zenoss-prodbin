@@ -58,7 +58,7 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
     sub_classes = ('DeviceClass', 'Device')
     
     #Used to find factory on instance creation
-    baseModulePath = "Products.Confmon"  
+    baseModulePath = "Products.ZenModel"  
 
     class_default_catalog = 'deviceSearch'
 

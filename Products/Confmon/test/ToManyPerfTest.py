@@ -1,7 +1,7 @@
 
 import Zope
 Zope.startup()
-from Products.Confmon.IpInterface import manage_addIpInterface
+from Products.ZenModel.IpInterface import manage_addIpInterface
 
 class PerfTest:
 

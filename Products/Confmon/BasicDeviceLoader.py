@@ -18,7 +18,7 @@ __version__ = "$Revision: 1.19 $"[11:-2]
 
 from logging import debug, info, warn, critical, exception
 
-from Products.Confmon.Exceptions import *
+from Products.ZenModel.Exceptions import *
 
 
 class BasicDeviceLoader:

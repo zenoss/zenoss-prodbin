@@ -29,25 +29,25 @@ app=Zope.app()
 from OFS.Image import File
 from Acquisition import aq_base
 
-from Products.Confmon.CompanyClass import CompanyClass
-from Products.Confmon.DeviceClass import DeviceClass
-from Products.Confmon.ServerClass import ServerClass
-from Products.Confmon.LocationClass import LocationClass
-from Products.Confmon.GroupClass import GroupClass
-from Products.Confmon.ProductClass import ProductClass
-from Products.Confmon.NetworkClass import NetworkClass
-from Products.Confmon.ServiceAreaClass import ServiceAreaClass
-from Products.Confmon.ServiceClass import ServiceClass
-from Products.Confmon.SystemClass import SystemClass
-from Products.Confmon.MonitorClass import MonitorClass
-from Products.Confmon.RouterClass import RouterClass
-from Products.Confmon.UbrRouterClass import UbrRouterClass
-from Products.Confmon.DataRoot import DataRoot
+from Products.ZenModel.CompanyClass import CompanyClass
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.ServerClass import ServerClass
+from Products.ZenModel.LocationClass import LocationClass
+from Products.ZenModel.GroupClass import GroupClass
+from Products.ZenModel.ProductClass import ProductClass
+from Products.ZenModel.NetworkClass import NetworkClass
+from Products.ZenModel.ServiceAreaClass import ServiceAreaClass
+from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.SystemClass import SystemClass
+from Products.ZenModel.MonitorClass import MonitorClass
+from Products.ZenModel.RouterClass import RouterClass
+from Products.ZenModel.UbrRouterClass import UbrRouterClass
+from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenRelations.SchemaManager import SchemaManager, manage_addSchemaManager
-from Products.Confmon.Classifier import manage_addClassifier
-from Products.Confmon.SnmpClassifier import manage_addSnmpClassifier
-from Products.Confmon.ZentinelPortal import manage_addZentinelSite
-from Products.Confmon.ZDeviceLoader import ZDeviceLoader
+from Products.ZenModel.Classifier import manage_addClassifier
+from Products.ZenModel.SnmpClassifier import manage_addSnmpClassifier
+from Products.ZenModel.ZentinelPortal import manage_addZentinelSite
+from Products.ZenModel.ZDeviceLoader import ZDeviceLoader
 
 classifications = {
     'Companies':    CompanyClass,

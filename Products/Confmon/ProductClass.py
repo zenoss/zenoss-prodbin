@@ -39,9 +39,9 @@ class ProductClass(Classification, Folder):
 
     def getModelProduct(self, manufacturer, model):
         """get or create a hardware object and like it to its manufacturer"""
-        from Products.Confmon.ProductClass import manage_addProductClass
-        from Products.Confmon.Hardware import manage_addHardware
-        from Products.Confmon.Company import manage_addCompany
+        from Products.ZenModel.ProductClass import manage_addProductClass
+        from Products.ZenModel.Hardware import manage_addHardware
+        from Products.ZenModel.Company import manage_addCompany
         
         companyObj = self.getOrganizer("Companies").getCompany(manufacturer)
         hardwareOrg = self.getOrganizer("Products").Hardware
@@ -58,9 +58,9 @@ class ProductClass(Classification, Folder):
 
     def getSoftwareProduct(self, manufacturer, name, version=""):
         """get or create a software object and like it to its manufacturer"""
-        from Products.Confmon.ProductClass import manage_addProductClass
-        from Products.Confmon.Software import manage_addSoftware
-        from Products.Confmon.Company import manage_addCompany
+        from Products.ZenModel.ProductClass import manage_addProductClass
+        from Products.ZenModel.Software import manage_addSoftware
+        from Products.ZenModel.Company import manage_addCompany
 
         companyObj = self.getOrganizer("Companies").getCompany(manufacturer)
         softwareOrg = self.getOrganizer("Products").Software

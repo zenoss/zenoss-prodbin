@@ -6,7 +6,7 @@ from DateTime import DateTime
 
 import Globals
 
-from Products.Confmon.ZenStatus import ZenAvailability
+from Products.ZenModel.ZenStatus import ZenAvailability
 
 import pdb
 

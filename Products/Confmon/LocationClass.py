@@ -62,8 +62,8 @@ class LocationClass(Classification, Folder):
     def getRackLocation(self, path):
         """get or create a rack in a location path.  
         rack name is last element of path"""
-        from Products.Confmon.Location import manage_addLocation
-        from Products.Confmon.Rack import manage_addRack
+        from Products.ZenModel.Location import manage_addLocation
+        from Products.ZenModel.Rack import manage_addRack
         locpath = self.zenpathsplit(path)
         if locpath[0] != "Locations": locpath.insert(0,"Locations")
         try:
@@ -85,7 +85,7 @@ class LocationClass(Classification, Folder):
 
     def getLocation(self, path):
         """get or create a location based on a path"""
-        from Products.Confmon.Location import manage_addLocation
+        from Products.ZenModel.Location import manage_addLocation
         path = self.zenpathsplit(path)
         if path[0] != "Locations": path.insert(0,"Locations")
         name = self.zenpathjoin(path)

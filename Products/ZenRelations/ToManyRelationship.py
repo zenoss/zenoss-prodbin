@@ -510,7 +510,7 @@ class ToManyRelationship(RelationshipBase):
 
         <tomany id='interfaces'>
             <object id='/Devices/Servers/Windows/dhcp160.confmon.loc/hme0' 
-                class='Products.Confmon.IpInterface'>
+                class='Products.ZenModel.IpInterface'>
                 <property></property> etc....
             </object>
             <link>/Systems/OOL/Mail</link>

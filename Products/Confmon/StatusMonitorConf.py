@@ -23,9 +23,9 @@ from zLOG import LOG, WARNING
 
 from Products.CMFCore import CMFCorePermissions
 
-from Products.Confmon.Monitor import Monitor
-from Products.Confmon.StatusColor import StatusColor
-from Products.Confmon.ZenDate import ZenDate
+from Products.ZenModel.Monitor import Monitor
+from Products.ZenModel.StatusColor import StatusColor
+from Products.ZenModel.ZenDate import ZenDate
 
 
 def manage_addStatusMonitorConf(context, id, title = None, REQUEST = None):

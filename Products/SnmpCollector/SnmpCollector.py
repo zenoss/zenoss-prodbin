@@ -22,7 +22,7 @@ import ZODB
 from DateTime import DateTime
 from Acquisition import aq_base
 
-from Products.Confmon.Exceptions import *
+from Products.ZenModel.Exceptions import *
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getObjByPath

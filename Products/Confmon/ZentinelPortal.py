@@ -28,7 +28,7 @@ import System, Monitor, CricketConf, StatusMonitorConf
 import DataRoot, DeviceClass, Classification
 import IpNetwork, IpServiceClass, SystemClass
 
-from Products.Confmon import getFactoryTypeInformation
+from Products.ZenModel import getFactoryTypeInformation
 
 
 class ZentinelPortal ( PortalObjectBase ):

@@ -44,7 +44,7 @@ class CompanyClass(Classification, Folder):
 
     def getCompany(self, companyName):
         """get or create and return a company object"""
-        from Products.Confmon.Company import manage_addCompany
+        from Products.ZenModel.Company import manage_addCompany
         if not hasattr(self, companyName):
             logging.info("Creating company %s" % companyName)
             manage_addCompany(self, companyName)

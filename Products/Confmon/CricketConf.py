@@ -34,8 +34,8 @@ from Globals import InitializeClass
 from Products.PythonScripts.standard import url_quote
 from Products.CMFCore import CMFCorePermissions
 
-from Products.Confmon.Monitor import Monitor
-from Products.Confmon.StatusColor import StatusColor
+from Products.ZenModel.Monitor import Monitor
+from Products.ZenModel.StatusColor import StatusColor
 
 from zLOG import LOG, WARNING
 

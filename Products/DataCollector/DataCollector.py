@@ -182,7 +182,7 @@ class DataCollector(ZCmdBase):
             relids = rel.objectIdsAll()
             for objectmap in relmap:
                 from Products.DataCollector.ObjectMap import ObjectMap
-                from Products.Confmon.ConfmonBase import ConfmonBase
+                from Products.ZenModel.ConfmonBase import ConfmonBase
                 if isinstance(objectmap, ObjectMap) and objectmap.has_key('id'):
                     if objectmap['id'] in relids:
                         self.updateObject(

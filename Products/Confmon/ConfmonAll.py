@@ -88,7 +88,7 @@ class ConfmonAll:
         '''
         Invokes the default view.
         '''
-        #from Products.Confmon.Instance import Instance
+        #from Products.ZenModel.Instance import Instance
         #if isinstance(self, Instance):
         #    return self.restrictedTraverse("viewItem")()
         actions = []
