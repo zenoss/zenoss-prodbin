@@ -1,0 +1,14 @@
+#named||lame server resolving 'summersoft.fay.ar.us' (in 'summersoft.fay.ar.us'?): 205.166.226.38#53 
+named||lame server resolving * (in * *||1
+#sshd||session closed for user edahl
+sshd||session closed for user *||2
+#sshd||session opened for user edahl by (uid=500)
+sshd||session opened for user * by *||3
+#openvpn||read UDPv4 [EHOSTUNREACH]: No route to host (code=113)
+openvpn||read UDPv4 [EHOSTUNREACH]: No route to host (code=113)||4
+#net-snmp||Connection from 10.2.1.58
+net-snmp||Connection from *||5
+#Dhcp||Your computer was not able to renew its address from the network (from the DHCP Server) for the Network Card with network address 000039D4E5AF.  The following error occurred:  The operation was canceled by the user. . Your computer will continue to try and obtain an address on its own from the network address (DHCP) server.
+Dhcp||Your computer was not able to renew its address from the network (from the DHCP Server) for the Network Card with network address *.  The following error occurred:  The operation was canceled by the user. . Your computer will continue to try and obtain an address on its own from the network address (DHCP) server.||6
+#W32Time||The time service has not been able to synchronize the system time for 49152 seconds because none of the time providers has been able to provide a usable time stamp. The system clock is unsynchronized.
+W32Time||The time service has not been able to synchronize the system time for *seconds because none of the time providers has been able to provide a usable time stamp. The system clock is unsynchronized.||7

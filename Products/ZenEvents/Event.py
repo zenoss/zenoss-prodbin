@@ -64,3 +64,15 @@ class Event(object):
         for field in self.getfields():
             text.append(str(getattr(self, field)))
         return " ".join(text)
+
+    def getdict(self):
+        evdict = {}
+        for field in self.getfields():
+            evdict[field] = getattr(self, field)
+        return evdict
+    
+    def getarray(self):
+        evarray = []
+        for field in self.getfields():
+            evarray.append((field, getattr(self, field)))
+        return evarray

@@ -13,6 +13,7 @@ import re
 import os
 import copy
 import types
+import gc
 import cPickle as pickle
 from threading import RLock, Timer
 from os import path
@@ -20,7 +21,7 @@ from datetime import datetime
 
 from ZenEvents.Event import EventFromDict
 
-defaultPickleName = "savedevents.pkl"
+defaultPickleName = "savedevents"
 defaultSaveTime = 3600.0 
 
 class EventUpdateError(Exception):
@@ -34,13 +35,14 @@ class EventDatabase(object):
                         journal=True):
 
         self.journal = journal
-        self.savefile = savefile
+        self.savefile = savefile + ".pkl"
         self.journalfile = savefile + ".jnl"
         self.savetime = savetime
         self.nextoid = 0L
         self.eventlock = RLock()
         if self.savetime > 0:
             self.setimer = Timer(self.savetime, self.saveevents)
+            self.setimer.setDaemon(True)
             self.setimer.start()
         self.loadevents()
 
@@ -121,8 +123,9 @@ class EventDatabase(object):
         regex = re.compile(regex)
         return self.getevents(lambda x: regex.search(x.gettext()))
 
-    def getEvents(self, lambdastr):
+    def getEvents(self, lambdastr=None):
         """query for events with a lambda function string"""
+        if not lambdastr: return self.getevents()
         if not lambdastr.startswith("lambda"):
             lambdastr = "lambda ev: " + lambdastr
         evfilter = eval(lambdastr)
@@ -164,9 +167,18 @@ class EventDatabase(object):
         self.eventlock.release()
         if self.savetime > 0:
             self.setimer = Timer(self.savetime, self.saveevents)
+            self.setimer.setDaemon(True)
             self.setimer.start()
+        gc.collect()
     
-   
+  
+    def close(self):
+        self.eventlock.acquire()
+        self.setimer.cancel()
+        self.saveevents()
+        self.eventlock.release()
+
+
     def getnextoid(self):
         """get the next oid number"""
         oid = self.nextoid
@@ -175,9 +187,8 @@ class EventDatabase(object):
 
     def setnextoid(self):
         maxoid = 0L
-        oids = self.events.keys()
-        if oids:
-            maxoid = max(oids)
+        if len(self.events) > 0:
+            maxoid = max(self.events.keys())
         self.nextoid = maxoid + 1
 
 
