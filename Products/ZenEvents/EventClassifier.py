@@ -28,9 +28,11 @@ from sets import Set
 from threading import Lock
 import logging
 
-class EventClassNotFound(Exception): pass
+from Products.ZenUtils.Exceptions import ZentinelException
 
-class EventClassNotUnique(Exception): pass
+class EventClassNotFound(ZentinelException): pass
+
+class EventClassNotUnique(ZentinelException): pass
 
 class EventClassifier(object):
 
