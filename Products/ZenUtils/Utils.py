@@ -103,12 +103,50 @@ def getSubObjects(base, filter=None, decend=None, retobjs=[]):
     should keep going down or not"""
     if not retobjs: retobjs = []
     for obj in base.objectValues():
-        if (filter and filter(obj)) or not filter:
+        if not filter or filter(obj):
             retobjs.append(obj)
-        if ((decend and decend(obj)) or not decend):
+        if not decend or decend(obj):
             retobjs = getSubObjects(obj, filter, decend, retobjs)
     return retobjs
 
+
+def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
+    """do a depth first search looking for objects that the function filter
+    returns as true. If decend is passed it will check to see if we
+    should keep going down or not"""
+    from Products.RelationshipManager.RelationshipManager \
+        import RelationshipManager
+    if base.meta_type == "To One Relationship":
+        objs = [base.obj]
+    else:
+        objs = base.objectValues()
+    for obj in objs:
+        if (isinstance(obj, RelationshipManager) and 
+            not obj.getPrimaryFullId().startswith(base.getPrimaryFullId())): 
+            continue
+        if not filter or filter(obj):
+            yield obj
+        if not decend or decend(obj):
+            for x in getSubObjectsMemo(obj, filter, decend, memo):
+                yield x
+
+
+def getAllConfmonObjects(base):
+    """get all ConfmonBase objects in database"""
+    from Products.Confmon.Instance import Instance
+    from Products.Confmon.ConfmonBase import ConfmonBase
+    from Products.RelationshipManager.ToManyRelationship \
+        import ToManyRelationship
+    from Products.RelationshipManager.ToOneRelationship \
+        import ToOneRelationship
+    def decend(obj):
+        return (
+                isinstance(obj, ConfmonBase) or 
+                isinstance(obj, ToManyRelationship) or
+                isinstance(obj, ToOneRelationship))
+    def filter(obj):
+        return isinstance(obj, Instance) and obj.id != "dmd"
+    return getSubObjectsMemo(base, filter=filter, decend=decend)
 
 def zenpathsplit(pathstring):
     """split a zen path and clean up any blanks or bogus spaces in it"""
