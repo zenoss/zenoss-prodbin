@@ -214,7 +214,7 @@ class CricketConf(Monitor, StatusColor):
                         get_transaction().commit()
                 except ZentinelException:
                     msg = 'problem with cricket gen on device %s\n' % device.id
-                    msg += self.exceptMsg()
+                    #msg += self.exceptMsg()
                     LOG('CricketConf', WARNING, msg)
         return cricketData
     
