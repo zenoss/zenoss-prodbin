@@ -20,7 +20,9 @@ from zLOG import LOG, WARNING
 from Products.ZenRRD.utils import RRDObjectNotFound
 from Products.ZenRRD.RRDTargetType import lookupTargetType
 
-class RelationNotFound(Exception): pass
+from Exceptions import ZenModelError
+
+class RelationNotFound(ZenModelError): pass
 
 class CricketDevice:
 
@@ -170,10 +172,9 @@ class CricketDevice:
         if intarray:
             intmap = {}
             for im in intarray:
-                try: 
-                    k, v = im.split(':') 
+                ar = im.split(':') 
+                if len(ar) == 2:
                     intmap[k] = v
-                except: pass
         else:
             intmap = defaultmap
         cricketType = 'StandardInterface'

@@ -11,24 +11,25 @@ $Id: Exceptions.py,v 1.2 2003/10/04 15:54:36 edahl Exp $"""
 
 __version__ = "$Revision: 1.2 $"[11:-2]
 
+from Products.ZenUtils.Exceptions import ZentinelException
 
-class ConfmonError(Exception): pass
+class ZenModelError(ZentinelException): pass
 
-class IpAddressConflict(ConfmonError): 
+class IpAddressConflict(ZenModelError): 
     """Two or more devices have the same ip"""
     pass
 
-class IpCatalogNotFound(ConfmonError):
+class IpCatalogNotFound(ZenModelError):
     """Can't find the Ip Catalog in the context passed"""
     pass
 
-class WrongSubnetError(ConfmonError):
+class WrongSubnetError(ZenModelError):
     pass
 
-class DeviceExistsError(ConfmonError):
+class DeviceExistsError(ZenModelError):
     """a device with this fqdn is already in the dmd"""
     pass
 
-class PathNotFoundError(ConfmonError):
+class PathNotFoundError(ZenModelError):
     """no object found in the dmd at the path given"""
     pass

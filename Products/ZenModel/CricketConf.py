@@ -37,6 +37,8 @@ from Products.CMFCore import CMFCorePermissions
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
 
+from Products.ZenUtils.Exceptions import ZentinelException
+
 from zLOG import LOG, WARNING
 
 def manage_addCricketConf(context, id, title = None, REQUEST = None):
@@ -205,15 +207,15 @@ class CricketConf(Monitor, StatusColor):
                     statusmon = statusmon[0]
                     if statusmon.maxFailures <= device.getSnmpStatusNumber():
                         continue
-                #try:
-                cd = device.cricketGenerate()
-                if cd: 
-                    cricketData.extend(cd)
-                    get_transaction().commit()
-                #except:
-                #    msg = 'problem with cricket gen on device %s\n' % device.id
-                #    msg += self.exceptMsg()
-                #    LOG('CricketConf', WARNING, msg)
+                try:
+                    cd = device.cricketGenerate()
+                    if cd: 
+                        cricketData.extend(cd)
+                        get_transaction().commit()
+                except ZentinelException:
+                    msg = 'problem with cricket gen on device %s\n' % device.id
+                    msg += self.exceptMsg()
+                    LOG('CricketConf', WARNING, msg)
         return cricketData
     
     
