@@ -1,0 +1,12 @@
+<span tal:replace="structure here/standard_html_header" />
+<table border="0" cellpadding="3" width="100%"
+    cellspacing="1" align="center"
+    tal:define="
+    objects  python:here.getOrganizer('Devices').getSubDevices();
+    tableName string: pingstatusreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    ">
+    <tr metal:use-macro="here/miscmacros/macros/reportBreadCrumbs" />
+    <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
+</table>
+<span tal:replace="structure here/standard_html_header" />
