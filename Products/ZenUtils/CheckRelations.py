@@ -8,62 +8,59 @@ __doc__="""CmdBase
 
 Add data base access functions for command line programs
 
-$Id: ToManyRebuildKeys.py,v 1.2 2004/10/19 22:28:59 edahl Exp $"""
+$Id: CheckRelations.py,v 1.2 2004/10/19 22:28:59 edahl Exp $"""
 
 __version__ = "$Revision: 1.2 $"[11:-2]
+
+import Zope
+Zope.startup()
 
 import gc
 
 from Acquisition import aq_parent
 
-from Products.ZenUtils.Utils import getSubObjectsMemo
+from Products.ConfUtils.Utils import getAllConfmonObjects
+from Products.Confmon.Classification import Classification
+from Products.Confmon.Instance import Instance
 
 from ZCmdBase import ZCmdBase
 
-class ToManyRebuildKeys(ZCmdBase):
+class CheckRelations(ZCmdBase):
 
     def rebuild(self):
+        repair = self.options.repair
         ccount = 0
-        for tomany in getSubObjectsMemo(self.dmd, self.filter, self.decend):
-            self.log.debug("rebuilding keys for relation %s on object %s" %
-                                (tomany.getId(), aq_parent(tomany).getId()))
-            ccount += tomany.rebuildKeys(self.log)
+        for object in getAllConfmonObjects(self.dmd):
+            ccount += 1
+            self.log.debug("checking relations on object %s" 
+                                % object.getPrimaryFullId())
+            object.checkRelations(repair=repair,log=self.log)
             if ccount >= self.options.commitCount and not self.options.noCommit:
                 trans = get_transaction()
-                trans.note('ToManyRebuildKeys rebuilt keys')
+                trans.note('CheckRelations cleaned relations')
                 trans.commit()
                 ccount = 0
-                self.dmd._p_jar.sync()
                 gc.collect()
         if self.options.noCommit:
             self.log.info("not commiting any changes")
         else:
             trans = get_transaction()
-            trans.note('ToManyRebuildKeys rebuilt keys')
+            trans.note('CheckRelations cleaned relations' )
             trans.commit()
-
-
-    def filter(self, obj):
-        return obj.meta_type == "To Many Relationship"
-
-
-    def decend(self, obj):
-        from Products.ZenModel.ConfmonBase import ConfmonBase
-        from Products.ZenRelations.ToManyRelationship \
-            import ToManyRelationship
-        from Products.ZenRelations.ToOneRelationship \
-            import ToOneRelationship
-        return (
-                isinstance(obj, ConfmonBase) or 
-                isinstance(obj, ToManyRelationship))
-                #isinstance(obj, ToOneRelationship))
 
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
+
+        self.parser.add_option('-r', '--repair',
+                    dest='repair',
+                    default=False,
+                    action="store_true",
+                    help='repair all inconsistant relations')
+
         self.parser.add_option('-x', '--commitCount',
                     dest='commitCount',
-                    default=1000,
+                    default=20,
                     type="int",
                     help='how many lines should be loaded before commit')
 
@@ -75,5 +72,5 @@ class ToManyRebuildKeys(ZCmdBase):
 
 
 if __name__ == "__main__":
-    tmbk = ToManyRebuildKeys()
+    tmbk = CheckRelations()
     tmbk.rebuild()
