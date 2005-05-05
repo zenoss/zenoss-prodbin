@@ -55,7 +55,9 @@ class ConfmonAll:
     def confmonTabs(self):
         '''return a list of hashs that define the screen tabs for this object'''
         typeInfo = self.getTypeInfo()
-        if typeInfo:
+        #FIXME maybe we should fix this broke when we went to CMF-1.5.x
+        #if typeInfo:
+        if 0:
             actions = copy.deepcopy(typeInfo.getActions())
         else:
             actions = copy.deepcopy(self.factory_type_information[0]['actions'])
@@ -94,7 +96,8 @@ class ConfmonAll:
         actions = []
         view = "view"
         ti = self.getTypeInfo()
-        if not ti:
+        #if not ti:
+        if True:
             if hasattr(self, "factory_type_information"):
                 view = self.factory_type_information[0]['immediate_view']
                 actions = self.factory_type_information[0]['actions']

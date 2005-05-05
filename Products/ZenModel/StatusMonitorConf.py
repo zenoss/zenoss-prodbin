@@ -21,7 +21,7 @@ from DateTime import DateTime
 
 from zLOG import LOG, WARNING
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
@@ -74,20 +74,13 @@ class StatusMonitorConf(Monitor, StatusColor):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewStatusMonitorOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                },
-                { 'id'            : 'view'
-                , 'name'          : 'View'
-                , 'action'        : 'viewItem'
-                , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                , 'visible'       : 0
+                  permissions.View, )
                 },
             )
           },

@@ -18,7 +18,7 @@ from Globals import DTMLFile
 
 from AccessControl import ClassSecurityInfo
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from DeviceGroupInt import DeviceGroupInt
 
@@ -60,32 +60,25 @@ class Location(LocationBase):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewLocationOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'locationEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'locationHistoryEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                },
-                { 'id'            : 'view'
-                , 'name'          : 'View'
-                , 'action'        : 'viewItem'
-                , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                , 'visible'       : 0
+                  permissions.View, )
                 },
             )
           },

@@ -32,7 +32,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 
 from Products.PythonScripts.standard import url_quote
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
@@ -81,20 +81,13 @@ class CricketConf(Monitor, StatusColor):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewCricketConfOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                },
-                { 'id'            : 'view'
-                , 'name'          : 'View'
-                , 'action'        : 'viewItem'
-                , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                , 'visible'       : 0
+                  permissions.View, )
                 },
             )
           },

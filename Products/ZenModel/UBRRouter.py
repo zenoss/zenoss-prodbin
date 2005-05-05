@@ -16,7 +16,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Router import Router
 from IpAddress import findIpAddress
@@ -52,31 +52,31 @@ class UBRRouter(Router):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewRouterStatus'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewDeviceDetail'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },                
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -92,7 +92,7 @@ class UBRRouter(Router):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
             )
          },

@@ -27,7 +27,7 @@ import os
 from AccessControl import ModuleSecurityInfo
 
 import Products.CMFCore
-from Products.CMFCore.CMFCorePermissions import AddPortalContent
+from Products.CMFCore.permissions import AddPortalContent
 from Products.CMFCore.DirectoryView import registerDirectory
 
 confmon_globals = globals()

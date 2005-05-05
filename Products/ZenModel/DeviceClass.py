@@ -21,7 +21,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.ZenUtils.Utils import getObjByPath
 
@@ -35,11 +35,14 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
     """make a device class"""
     dc = DeviceClass(id, title)
     context._setObject(id, dc)
-
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
+
+
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
+
+
 
 class DeviceClass(Classification, DeviceGroupInt, Folder):
     
@@ -81,25 +84,25 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewDeviceClassOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceClassEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceClassHistoryEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'Config'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
             )
          },

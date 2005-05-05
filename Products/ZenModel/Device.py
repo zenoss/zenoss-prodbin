@@ -24,7 +24,7 @@ from Acquisition import aq_base
 from DateTime import DateTime
 from App.Dialogs import MessageDialog
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
@@ -150,31 +150,31 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewDeviceStatus'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewDeviceDetail'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },                
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -190,7 +190,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
             )
          },

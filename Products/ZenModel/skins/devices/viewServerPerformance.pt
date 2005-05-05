@@ -30,7 +30,7 @@
     </span>
     <tr>
         <td class="tableheader" align='center'>
-            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 </table>
@@ -62,7 +62,7 @@
     </span>
     <tr>
         <td class="tableheader" align='center'>
-            <form metal:use-macro="here/zentablemanager/zenTableNavigation/macros/navtool"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 </table>

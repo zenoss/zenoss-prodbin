@@ -27,7 +27,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from ImageFile import ImageFile
 import DateTime
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from ConfmonBase import ConfmonBase
 
@@ -77,13 +77,13 @@ class DataRoot(ConfmonBase, Folder):
                 , 'name'          : 'Index'
                 , 'action'        : 'dmdIndex'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
             )
           },

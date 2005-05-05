@@ -17,7 +17,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from LocationBase import LocationBase
 
@@ -58,20 +58,13 @@ class Rack(LocationBase):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewRackOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                },
-                { 'id'            : 'view'
-                , 'name'          : 'View'
-                , 'action'        : 'viewItem'
-                , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                , 'visible'       : 0
+                  permissions.View, )
                 },
             )
           },

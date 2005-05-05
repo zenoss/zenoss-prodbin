@@ -18,7 +18,7 @@ from Globals import InitializeClass
 from OFS.Folder import Folder
 from Globals import DTMLFile
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
@@ -60,7 +60,7 @@ class SystemClass(Classification, Folder):
                 , 'name'          : 'View'
                 , 'action'        : 'viewSystemClassOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 , 'visible'       : 0
                 },
             )

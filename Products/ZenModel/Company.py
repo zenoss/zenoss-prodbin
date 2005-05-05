@@ -14,7 +14,7 @@ __version__ = "$Revision: 1.11 $"[11:-2]
 
 from Globals import DTMLFile, InitializeClass
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Instance import Instance
 
@@ -60,20 +60,13 @@ class Company(Instance):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewManufacturerOverview'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  CMFCorePermissions.ModifyPortalContent, )
-                },
-                { 'id'            : 'view'
-                , 'name'          : 'View'
-                , 'action'        : 'viewItem'
-                , 'permissions'   : (
-                  CMFCorePermissions.View, )
-                , 'visible'       : 0
+                  permissions.ModifyPortalContent, )
                 },
             )
           },
