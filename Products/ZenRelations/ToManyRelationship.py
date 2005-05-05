@@ -45,11 +45,6 @@ def manage_addToManyRelationship(context, id, title=None, REQUEST=None):
     """factory for ToManyRelationship"""
     try:
         rel =  ToManyRelationship(id, title)
-        if not getattr(context, "getRelSchema", False):
-            raise InvalidContainer, \
-                "Container %s is not a RelatioshipManager" % context.id
-        rs = context.getRelSchema(id)
-        rel.isContainer = rs.relType(rel.id) == TO_MANY_CONT
         context._setObject(rel.id, rel)
     except SchemaError, e:
         if REQUEST:
@@ -168,11 +163,16 @@ class ToManyRelationship(RelationshipBase):
     def manage_afterAdd(self, item, container):
         """check to see if we are being added to a valid relmanager
         set our parent class and call subobjects"""
+        if not getattr(container, "getRelSchema", False):
+            raise InvalidContainer, \
+                "Container %s is not a RelatioshipManager" % context.id
+        rs = container.getRelSchema(self.id)
+        self.isContainer = rs.relType(self.id) == TO_MANY_CONT
         if self.isContainer:
             RelationshipBase.manage_afterAdd(self, item, self)
 
 
-    def manage_beforeDelete(self, item, container, recurse=1):
+    def manage_beforeDelete(self, item, container):
         """if relationship is being deleted remove the remote side"""
         self._remoteRemove()
         if self.isContainer:
@@ -187,7 +187,7 @@ class ToManyRelationship(RelationshipBase):
         name = self.id
         rs = self.getRelSchema(name)
         self._checkSchema(name, rs, obj)
-        self._add(obj)
+        self._add(obj, id)
         obj = obj.__of__(self)
         obj._add(rs.remoteAtt(name), aq_parent(self))
 
@@ -214,7 +214,10 @@ class ToManyRelationship(RelationshipBase):
 
 
     def _delObject(self, id, dp=1):
-        """old ObjectManager deletetion interface."""
+        """Emulate ObjectManager deletetion."""
+        if self.isContainer:
+            obj = self._getOb(id)
+            obj.manage_beforeDelete(obj, self)
         self.removeRelation(id=id)
 
     

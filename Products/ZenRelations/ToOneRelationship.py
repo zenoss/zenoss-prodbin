@@ -73,7 +73,7 @@ class ToOneRelationship(RelationshipAlias):
         self.obj = None
 
 
-    def manage_beforeDelete(self, item, container, recurse=1):
+    def manage_beforeDelete(self, item, container):
         """if relationship is being deleted remove the remote side"""
         self._remoteRemove()
 

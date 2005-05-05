@@ -104,7 +104,6 @@ class RelationshipManager(RelationshipBase):
 
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """add object to RelationshipManger
-
         if the object is a relatioship check to see if there
         is a valid schema object for it"""
         id = RelationshipBase._setObject(self, id, obj)  
@@ -113,14 +112,14 @@ class RelationshipManager(RelationshipBase):
         return id
 
 
-    def __delObject(self, id, dp=1):
-        """override to clear relationships before deleting relation"""
-        mt = getattr(self, id).meta_type
-        try:
-            if mt in MT_LIST: self.removeRelation(id)
-        except SchemaError:
-            pass #we need to kill the object even if schema is gone 
-        RelationshipBase._delObject(self, id, dp)
+    #def __delObject(self, id, dp=1):
+    #    """override to clear relationships before deleting relation"""
+    #    mt = getattr(self, id).meta_type
+    #    #try:
+    #    if mt in MT_LIST: self.removeRelation(id)
+    #    #except SchemaError:
+    #    #    pass #we need to kill the object even if schema is gone 
+    #    RelationshipBase._delObject(self, id, dp)
    
 
     security.declareProtected('Manage Relations', 'manage_addRelation')
@@ -213,7 +212,7 @@ class RelationshipManager(RelationshipBase):
         # and get rid of self.oldid
 
 
-    def manage_afterAdd(self, item, container, recurse=1):
+    def manage_afterAdd(self, item, container):
         """if our primaryPath is no longer valid we update it"""
         self.setPrimaryPath()
         if self.oldid != self.id:
@@ -226,8 +225,7 @@ class RelationshipManager(RelationshipBase):
                 for robj in getattr(self,name).objectValuesAll():
                     self._remoteRename(name, rs, robj)
             self.oldid = self.id
-        if recurse:
-            RelationshipBase.manage_afterAdd(self, item, self)
+        RelationshipBase.manage_afterAdd(self, item, self)
    
    
     def _remoteRename(self, name, rs, robj):
@@ -240,11 +238,10 @@ class RelationshipManager(RelationshipBase):
                 rel.renameId(self)
 
 
-    def manage_afterClone(self, item, recurse=1):
+    def manage_afterClone(self, item):
         """cleanup after a clone of this object"""
         self.setPrimaryPath(force=1)
-        if recurse:
-            RelationshipBase.manage_afterClone(self, item)
+        RelationshipBase.manage_afterClone(self, item)
 
 
     def _getCopy(self, container):
@@ -287,7 +284,7 @@ class RelationshipManager(RelationshipBase):
             self._moving = 0
 
 
-    def manage_beforeDelete(self, item, container, recurse=1):
+    def manage_beforeDelete(self, item, container):
         """handle cut/past vs. delete
         
         If we are being moved (cut/past) don't clear relationshp
@@ -296,28 +293,11 @@ class RelationshipManager(RelationshipBase):
         if self._moving == 1:
             self._moving = 0
         else:    
-            for name in self.objectIds(spec = 'To One Relationship'):
-                if self.getRelSchema(name).cascade(name):
-                    #this doesn't look right! need to have primaryPath
-                    myobj = getattr(self, name)()
-                    try:
-                        if myobj: myobj.getParent()._delObject(myobj.id)
-                    except: pass #we give this a shot but don't care if it fails
-                else:
-                    self.removeRelation(name) 
-
-            for name in self.objectIds(spec = 'To Many Relationship'):
-                if self.getRelSchema(name).cascade(name):
-                    #this doesn't look right! need to have primaryPath
-                    myobjs = getattr(self, name)()
-                    for myobj in myobjs:
-                        try:
-                            myobj.getParent()._delObject(myobj.id) 
-                        except: pass #give deletion a shot
-                else:
-                    self.removeRelation(name)
-            if recurse: 
-                RelationshipBase.manage_beforeDelete(self, item, container)
+            #for name in self.objectIds(spec = 'To One Relationship'):
+            #    self.removeRelation(name) 
+            #for name in self.objectIds(spec = 'To Many Relationship'):
+            #    self.removeRelation(name)
+            RelationshipBase.manage_beforeDelete(self, item, container)
 
 
     def manage_workspace(self, REQUEST):
