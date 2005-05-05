@@ -20,3 +20,9 @@ class ObjectNotFound(RelationshipManagerError): pass
 class RelationshipExistsError(RelationshipManagerError):pass
 
 class SchemaError(RelationshipManagerError): pass
+
+class InvalidContainer(RelationshipManagerError): 
+    """
+    Relationship got added to a container that isn't a RelationshipManager.
+    """
+    pass

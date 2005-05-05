@@ -55,12 +55,14 @@ class SchemaManagerSetup:
     c1 = 'C1'
     oto1 = "oto1"
     otm1 = 'otm1'
+    otm1c = 'otm1c'
     mtm1 = 'mtm1'
     
     #class MT rels
     mt = 'MT'
     oto2 = "oto2"
     otm2 = "otm2"
+    otm2c = "otm2c"
     
     #class C3 rels
     c3 = 'C3'
@@ -74,6 +76,9 @@ class SchemaManagerSetup:
         # one to many
         self.rsotm = RelationshipSchema(self.c1, self.otm1, TO_ONE, 
                                         MT_TYPE, self.otm2, TO_MANY)
+        # one to many
+        self.rsotmc = RelationshipSchema(self.c1, self.otm1c, TO_ONE, 
+                                        MT_TYPE, self.otm2c, TO_MANY_CONT)
         # many to many
         self.rsmtm = RelationshipSchema(self.c1, self.mtm1, TO_MANY,
                                         self.c3, self.mtm2, TO_MANY, 1, 0)

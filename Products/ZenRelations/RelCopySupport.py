@@ -37,7 +37,7 @@ class RelCopyContainer(CopyContainer):
             title = "Relationship Link Error",
             message = "You can only link to one relationship at a time",
             action = "manage_main")     
-
+        
         oblist = self._getSourceObjects(cb_copy_data, REQUEST)
         try:
             for obj in oblist:
@@ -61,7 +61,6 @@ class RelCopyContainer(CopyContainer):
             message = "You can only link to one relationship at a time",
             action = "manage_main")     
         self.manage_removeRelation(relName)
-
         if REQUEST:
             return self.manage_main(self, REQUEST)
 
@@ -82,7 +81,8 @@ class RelCopyContainer(CopyContainer):
         else:
             relName = ids[0] 
         return relName
-    
+   
+
     def _getSourceObjects(self, cb_copy_data, REQUEST):
         """get the source objects to link"""
         cp=None

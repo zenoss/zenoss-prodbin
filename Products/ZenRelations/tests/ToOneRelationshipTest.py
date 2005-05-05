@@ -26,7 +26,8 @@ from Products.ZenRelations.RelTypes import *
 from Products.ZenRelations.Exceptions import *
 
 class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
-    
+
+
     def setUp(self):
         RelationshipManagerBaseTest.setUp(self)
         SchemaManagerSetup.setUp(self)
@@ -41,6 +42,7 @@ class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         SchemaManagerSetup.tearDown(self)
         self.tearDownSecurity()
 
+
     def testmanage_addToOneRelationship(self):
         """Test adding a to one relationship"""
         manage_addToOneRelationship(self.app.ic1, self.oto1)
@@ -49,7 +51,7 @@ class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
 
     def testmanage_addToOneRelationshipBad(self):
         """test adding to many to an invalid container""" 
-        self.failUnlessRaises("InvalidContainer", 
+        self.failUnlessRaises(InvalidContainer, 
                     manage_addToOneRelationship, self.app.folder, self.oto1)
 
 
@@ -136,7 +138,8 @@ class ToOneRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.ic1.manage_linkObjects(ids=(self.oto1,), cb_copy_data=cookie)
         self.failUnless(getattr(self.app.ic1, self.oto1)() == self.app.imt)
         self.failUnless(getattr(self.app.imt, self.oto2)() == self.app.ic1)
-   
+  
+
     def testUnLinkObjectsUI(self):
         """Test unlinking objects using the UI code """
         cookie = self.app.manage_copyObjects(ids=('imt',))

@@ -55,9 +55,9 @@ def checkContainer(container):
     if (meta_type == 'Z Class' and   
         checkZClass(container.aq_acquire('_zbases'), "RelationshipManager")):
         return
-    get_transaction().abort()        
-    raise ("InvalidContainer", 
-        "Relationship must be added to an instance of RelationshipManager")
+    #get_transaction().abort()        
+    raise InvalidContainer, \
+        "Relationship must be added to an instance of RelationshipManager"
 
 
 
@@ -92,7 +92,9 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
 
 
     def _verifyObjectLink(self, object, validate_src=1):
-        ObjectManager._verifyObjectPaste(self,object,validate_src)
+        pass
+        #FIXME something changed here this no longer works!!!
+        #ObjectManager._verifyObjectPaste(self,object,validate_src)
         
 
     def _renameObject(self, id, new_id):

@@ -12,6 +12,7 @@ $Id: ToManyRelationshipTest.py,v 1.12 2003/11/06 17:59:50 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
 
+import pdb
 import unittest
 from Acquisition import aq_base
 from RelationshipManagerBaseTest import RelationshipManagerBaseTest
@@ -31,7 +32,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         SchemaManagerSetup.setUp(self)
         self.app.mySchemaManager.addRelSchema(self.rsoto)
         self.app.mySchemaManager.addRelSchema(self.rsotm)
-        self.app.mySchemaManager.addRelSchema(self.rsmtm)
+        self.app.mySchemaManager.addRelSchema(self.rsotmc)
         self.setUpSecurity()
 
 
@@ -49,7 +50,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
 
     def testmanage_addToManyRelationshipBad(self):
         """test adding to many to an invalid container""" 
-        self.failUnlessRaises("InvalidContainer", 
+        self.failUnlessRaises(InvalidContainer, 
                     manage_addToManyRelationship, self.app.folder, self.otm2)
 
 
@@ -72,8 +73,16 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToManyRelationship(self.app.imt, self.otm2)
         self.app.imt.addRelation(self.otm2, self.app.ic1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 
-            in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
+
+
+    def testaddRelationOneToManyCont(self):
+        """Test froming a one to many relationship"""
+        manage_addToManyRelationship(self.app.imt, self.otm2c)
+        self.app.imt.addRelation(self.otm2c, self.app.ic1)
+        self.failUnless(getattr(self.app.ic1, self.otm1c)() == self.app.imt)
+        self.failUnless(self.app.ic1 in self.app.imt.otm2c.objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2c.objectValuesAll())
 
 
     def testaddRelationOneToMany2(self):
@@ -81,8 +90,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToOneRelationship(self.app.ic1, self.otm1)
         self.app.ic1.addRelation(self.otm1, self.app.imt)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 
-            in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
     
     def testaddRelationOneToManyOverwrite(self):
@@ -91,8 +99,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.ic1.addRelation(self.otm1, self.app.imt)
         self.app.ic1.addRelation(self.otm1, self.app.imt)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 
-            in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testaddRelationOneToManyNoRel(self):
@@ -101,7 +108,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.imt.addRelation(self.otm2, self.app.ic1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
         self.failUnless(self.app.ic1 
-            in getattr(self.app.imt, self.otm2).objectValues())
+            in getattr(self.app.imt, self.otm2).objectValuesAll())
 
 
     def testaddRelationOneToMany2NoRel(self):
@@ -110,7 +117,8 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.ic1.addRelation(self.otm1, self.app.imt)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
         self.failUnless(self.app.ic1 
-            in getattr(self.app.imt, self.otm2).objectValues())
+            in getattr(self.app.imt, self.otm2).objectValuesAll())
+
 
     def testaddRelationToManyNone(self):
         """Test adding None to a to many relationship"""
@@ -124,9 +132,7 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToManyRelationship(self.app.imt, self.otm2)
         rel = getattr(self.app.imt, self.otm2)
         rel.addRelation(self.app.ic1)
-        self.failUnless(self.app.ic1 in 
-            getattr(self.app.imt, self.otm2).objectValues())
-
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testremoveRelationOneToMany(self):
@@ -134,10 +140,10 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToManyRelationship(self.app.imt, self.otm2)
         self.app.imt.addRelation(self.otm2, self.app.ic1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
         self.app.imt.removeRelation(self.otm2, self.app.ic1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == None)
-        self.failIf(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testremoveRelationOneToMany2(self):
@@ -147,28 +153,24 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.imt.addRelation(self.otm2, self.app.ic12)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
         self.failUnless(getattr(self.app.ic12, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
-        self.failUnless(self.app.ic12 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
+        self.failUnless(self.app.ic12 in self.app.imt.otm2.objectValuesAll())
         self.app.imt.removeRelation(self.otm2, self.app.ic12)
         self.failUnless(getattr(self.app.ic12, self.otm1)() == None)
-        self.failUnless(self.app.ic1 in 
-                getattr(self.app.imt, self.otm2).objectValues())
-        self.failIf(self.app.ic12 in 
-                getattr(self.app.imt, self.otm2).objectValues())
-
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
+        self.failIf(self.app.ic12 in self.app.imt.otm2.objectValuesAll())
+                
 
     def testremoveRelationOneToMany3(self):
         """Test removing from to one side of a one to many relationship"""
         manage_addToManyRelationship(self.app.imt, self.otm2)
         self.app.imt.addRelation(self.otm2, self.app.ic1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt)
-        self.failUnless(self.app.ic1 in 
-                getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
         self.app.ic1.removeRelation(self.otm1)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == None)
-        self.failIf(len(getattr(self.app.imt, self.otm2).objectValues()))
-        self.failIf(self.app.ic1 in 
-                getattr(self.app.imt, self.otm2).objectValues())
+        self.failIf(len(getattr(self.app.imt, self.otm2).objectValuesAll()))
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testremoveRelationOneToMany4(self):
@@ -181,9 +183,9 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.imt.removeRelation(self.otm2)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == None)
         self.failUnless(getattr(self.app.ic12, self.otm1)() == None)
-        self.failIf(len(getattr(self.app.imt, self.otm2).objectValues()))
-        self.failIf(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
-        self.failIf(self.app.ic12 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failIf(len(self.app.imt.otm2.objectValuesAll()))
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
+        self.failIf(self.app.ic12 in self.app.imt.otm2.objectValuesAll())
 
 
     def testremoveRelationOnToMany(self):
@@ -191,9 +193,9 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToManyRelationship(self.app.imt, self.otm2)
         rel = getattr(self.app.imt, self.otm2)
         rel.addRelation(self.app.ic1)
-        self.failUnless(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
         rel.removeRelation(self.app.ic1)
-        self.failIf(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testremoveRelationOnToManyAlias(self):
@@ -201,10 +203,10 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         manage_addToManyRelationship(self.app.imt, self.otm2)
         rel = getattr(self.app.imt, self.otm2)
         rel.addRelation(self.app.ic1)
-        self.failUnless(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failUnless(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
         ra = getattr(rel, 'ic1')
         rel.removeRelation(ra)
-        self.failIf(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
 
 
     def testaddRelationOneToManyOverwrite(self):
@@ -213,8 +215,8 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
         self.app.imt2.addRelation(self.otm2, self.app.ic1)
         self.failIf(getattr(self.app.ic1, self.otm1)() == self.app.imt)
         self.failUnless(getattr(self.app.ic1, self.otm1)() == self.app.imt2)
-        self.failIf(self.app.ic1 in getattr(self.app.imt, self.otm2).objectValues())
-        self.failUnless(self.app.ic1 in getattr(self.app.imt2, self.otm2).objectValues())
+        self.failIf(self.app.ic1 in self.app.imt.otm2.objectValuesAll())
+        self.failUnless(self.app.ic1 in self.app.imt2.otm2.objectValuesAll())
    
     # took this out now you can add dup it just makes sure its going
     # in the right collection (owned or related)

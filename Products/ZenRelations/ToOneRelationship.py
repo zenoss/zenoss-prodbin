@@ -19,36 +19,39 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
-from Acquisition import aq_parent
+from Acquisition import aq_base, aq_parent
 
 from SchemaManager import SchemaError
 from RelationshipBase import checkContainer
 from RelationshipAlias import RelationshipAlias
 from RelTypes import *
 
+from Products.ZenRelations.Exceptions import InvalidContainer
+
 def manage_addToOneRelationship(context, id, title = None,
                                     REQUEST = None):
     """ToOneRelationship Factory"""
     r =  ToOneRelationship(id, title)
     try:
+        if not getattr(aq_base(context), "getRelSchema", False):
+            raise InvalidContainer, \
+                "Container %s is not a RelatioshipManager" % context.id
         context._setObject(id, r)
     except SchemaError:
         if REQUEST:
             return   MessageDialog(
                 title = "Relationship Schema Error",
-                message = "There is no Relationship Schema defined for Relationship %s" % id,
+                message = "There is no Relationship Schema defined for "
+                          "Relationship %s" % id,
                 action = "manage_main")
-        else:
-            raise
-    except "InvalidContainer":
+        raise
+    except InvalidContainer:
         if REQUEST:
             return MessageDialog(
                 title = "Relationship Add Error",
                 message = "Must add Relationship to RelationshipManager",
                 action = "manage_main")
-        else:
-            raise
-
+        raise
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main')
@@ -68,11 +71,6 @@ class ToOneRelationship(RelationshipAlias):
         self.id = id
         self.title = title
         self.obj = None
-
-
-    def manage_afterAdd(self, item, container):
-        """figure out if we have been added to a valid object"""
-        checkContainer(container)
 
 
     def manage_beforeDelete(self, item, container, recurse=1):

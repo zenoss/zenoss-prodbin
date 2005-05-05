@@ -50,7 +50,7 @@ class SchemaManager(ObjectManager, Implicit,
     meta_type = 'Schema Manager'
    
     meta_types = ({'name':'Relationship Schema',
-        'action':'manage_addProduct/RelationshipManager/addRelationshipSchema'},)
+        'action':'manage_addProduct/ZenRelations/addRelationshipSchema'},)
    
     manage_options = (ObjectManager.manage_options
                     +RoleManager.manage_options

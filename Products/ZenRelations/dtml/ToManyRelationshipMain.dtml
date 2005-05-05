@@ -193,8 +193,6 @@ function toggleSelect() {
   <dtml-if cb_dataValid>
   <input class="form-element" type="submit" name="manage_pasteObjects:method" 
    value="Paste" />
-  <input class="form-element" type="submit" name="manage_linkObjects:method" 
-   value="Link" />
   </dtml-if>
   </dtml-unless>
   <dtml-if "_.SecurityCheckPermission('Delete objects',this())">
@@ -231,8 +229,6 @@ There are currently no items in <em>&dtml-title_or_id;</em>
 <div class="form-element">
 <input class="form-element" type="submit" name="manage_pasteObjects:method" 
  value="Paste" />
-<input class="form-element" type="submit" name="manage_linkObjects:method" 
- value="Link" />
 </div>
 </dtml-if>
 </dtml-unless>

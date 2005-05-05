@@ -17,10 +17,10 @@ import copy
 import tempfile
 from xml.sax.saxutils import escape
 
-from OFS.CopySupport import CopySource
-from OFS.ObjectManager import ObjectManager
 from Globals import InitializeClass
 from Globals import DTMLFile
+from OFS.CopySupport import CopySource
+from OFS.ObjectManager import ObjectManager
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from App.Management import Tabs
@@ -209,6 +209,8 @@ class RelationshipManager(RelationshipBase):
         """track our old id if it is changed"""
         self.oldid = self.id
         self.id = newid
+        #FIXME can we move rename code to here from manage_afterAdd???
+        # and get rid of self.oldid
 
 
     def manage_afterAdd(self, item, container, recurse=1):
@@ -265,7 +267,7 @@ class RelationshipManager(RelationshipBase):
                 hasattr(self, "_updateProperty")):
                 val = getattr(self, name)
                 cobj._updateProperty(name, val)
-        return cobj
+        return aq_base(cobj)
                 
                 
 
