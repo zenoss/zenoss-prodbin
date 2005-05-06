@@ -17,7 +17,7 @@ from Acquisition import Implicit
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.CMFCore import CMFCorePermissions
+from Products.CMFCore import permissions
 
 from Products.ZenModel.ConfmonAll import ConfmonAll
 
@@ -88,19 +88,19 @@ class NcoEventDetail(NcoEvent, ConfmonAll):
                 , 'name'          : 'Fields'
                 , 'action'        : 'viewNcoEventFields'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'details'
                 , 'name'          : 'Details'
                 , 'action'        : 'viewNcoEventDetails'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
                 { 'id'            : 'journal'
                 , 'name'          : 'Journal'
                 , 'action'        : 'viewNcoEventJournals'
                 , 'permissions'   : (
-                  CMFCorePermissions.View, )
+                  permissions.View, )
                 },
             )
           },

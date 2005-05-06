@@ -16,8 +16,6 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.CMFCore import CMFCorePermissions
-
 from NcoManager import NcoManager
 
 def manage_addDmdNcoManager(context, id="", REQUEST = None):

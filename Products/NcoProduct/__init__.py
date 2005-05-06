@@ -12,8 +12,8 @@ $Id: __init__.py,v 1.8 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.8 $"[11:-2]
 
-import Products.CMFCore
-from Products.CMFCore.CMFCorePermissions import AddPortalContent
+#import Products.CMFCore
+#from Products.CMFCore.CMFCorePermissions import AddPortalContent
 from Products.CMFCore.DirectoryView import registerDirectory
 
 from NcoManager import NcoManager, manage_addNcoManager

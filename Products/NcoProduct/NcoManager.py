@@ -27,8 +27,6 @@ import DateTime
 
 from zLOG import LOG, ERROR
 
-from Products.CMFCore import CMFCorePermissions
-
 import Sybase
 
 from NcoEvent import NcoEvent, NcoEventDetail, NcoEventJournal, NcoEventData
