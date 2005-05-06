@@ -236,6 +236,9 @@ class SnmpCollector(ZCmdBase):
                 raise "ObjectCreationError", \
                     ("No relation %s found on device %s" 
                      % (snmpmap.relationshipName, device.id))
+            #FIXME ZODB doesn't like aq wrappers commit before we
+            # wrap the object
+            get_transaction().commit()
             remoteObj = rel._getOb(remoteObj.id)
             self._updateObject(remoteObj, datamap)
             self.log.debug("   Added object %s to relationship %s" 
