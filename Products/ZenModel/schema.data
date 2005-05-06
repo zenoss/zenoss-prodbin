@@ -3,13 +3,13 @@ Device:arptable:4:0:ArpEntry:device:1:0
 Device:clientofservices:2:0:IpService:clients:2:0
 Device:groups:2:0:DeviceGroup:devices:2:0
 Device:interfaces:4:0:IpInterface:device:1:0
-Device:ipservices:2:0:IpService:server:1:0
+Device:ipservices:4:0:IpService:server:1:0
 Device:location:1:0:LocationBase:devices:2:0
 Device:model:1:0:Hardware:devices:2:0
 Device:software:2:0:Software:copies:2:0
 Device:monitors:2:0:Monitor:devices:2:0
 Device:cricket:1:0:CricketConf:devices:2:0
-Device:routes:2:0:IpRouteEntry:device:1:0
+Device:routes:4:0:IpRouteEntry:device:1:0
 Device:serviceareas:2:0:ServiceArea:devices:2:0
 Device:systems:2:0:System:devices:2:0
 Device:termserver:1:0:TerminalServer:devices:2:0
@@ -21,7 +21,7 @@ UBRRouter:dhcpservers:2:0:Server:dhcpubrclients:2:0
 DeviceClass:subclasses:4:0:DeviceClass:parent:1:0
 DeviceClass:devices:4:0:Device:deviceClass:1:0
 DeviceGroup:subgroups:4:0:DeviceGroup:parent:1:0
-IpServiceClass:ipservices:2:0:IpService:ipserviceclass:1:0
+IpServiceClass:ipservices:4:0:IpService:ipserviceclass:1:0
 IpRouteEntry:interface:1:0:IpInterface:iproutes:2:0
 IpRouteEntry:nexthop:1:0:IpAddress:clientroutes:2:0
 IpInterface:ipaddresses:2:0:IpAddress:interface:1:0
