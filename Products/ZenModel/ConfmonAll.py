@@ -152,7 +152,7 @@ class ConfmonAll:
         return self.absolute_url() + "/top"
 
 
-    def getPrimaryFullId(self):
+    def getPrimaryDmdId(self):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())
         index = path.index('dmd')+1
