@@ -167,19 +167,19 @@ class ToOneRelationship(RelationshipAlias):
         if not rrel.hasobject(parent):
             if log: log.critical(
                     "BAD ToOne relation %s from %s to %s" 
-                    % (self.id, parent.getPrimaryFullId(), 
-                        self.obj.getPrimaryFullId()))
+                    % (self.id, parent.getPrimaryDmdId(), 
+                        self.obj.getPrimaryDmdId()))
             if repair: 
-                goodobj = self.getDmdObj(self.obj.getPrimaryFullId()) 
+                goodobj = self.getDmdObj(self.obj.getPrimaryDmdId()) 
                 if goodobj:
                     if log: log.warn("RECONNECTING relation %s to obj %s" %
-                        (self.id, goodobj.getPrimaryFullId()))
+                        (self.id, goodobj.getPrimaryDmdId()))
                     self._remove()
                     parent.addRelation(self.id, goodobj)
                 else:
                     if log: log.warn(
                         "CLEARING relation %s to obj %s" %
-                        (self.id, self.obj.getPrimaryFullId()))
+                        (self.id, self.obj.getPrimaryDmdId()))
                     self._remove()
 
 
