@@ -56,7 +56,7 @@ class BasicLoader(ZCmdBase):
                 self.log.exception("Line Number %i" % (self.lineNumber))
             if (not self.options.noCommit 
                 and not self.lineNumber % self.options.commitCount):
-                trans = get_transaction()
+                trans = transaction.get()
                 trans.note('Initial load using %s' % self.__class__.__name__)
                 trans.commit()
                 self.app._p_jar.sync()

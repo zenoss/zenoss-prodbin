@@ -14,6 +14,7 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import gc
 
+import transaction
 import Globals
 from Acquisition import aq_parent
 
@@ -31,10 +32,12 @@ class CheckRelations(ZCmdBase):
         for object in getAllConfmonObjects(self.dmd):
             ccount += 1
             self.log.debug("checking relations on object %s" 
-                                % object.getPrimaryFullId())
+                                % object.getPrimaryDmdId())
             object.checkRelations(repair=repair,log=self.log)
+            ch = object._p_changed
+            if not ch: object._p_deactivate()
             if ccount >= self.options.commitCount and not self.options.noCommit:
-                trans = get_transaction()
+                trans = transaction.get()
                 trans.note('CheckRelations cleaned relations')
                 trans.commit()
                 ccount = 0
@@ -42,7 +45,7 @@ class CheckRelations(ZCmdBase):
         if self.options.noCommit:
             self.log.info("not commiting any changes")
         else:
-            trans = get_transaction()
+            trans = transaction.get()
             trans.note('CheckRelations cleaned relations' )
             trans.commit()
 

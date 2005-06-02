@@ -122,7 +122,7 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
         objs = base.objectValues()
     for obj in objs:
         if (isinstance(obj, RelationshipManager) and 
-            not obj.getPrimaryFullId().startswith(base.getPrimaryFullId())): 
+            not obj.getPrimaryDmdId().startswith(base.getPrimaryDmdId())): 
             continue
         if not filter or filter(obj):
             yield obj

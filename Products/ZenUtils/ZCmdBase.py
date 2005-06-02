@@ -39,8 +39,8 @@ class ZCmdBase(CmdBase):
     def getDataRoot(self, app):
         if not self.dataroot:
             if not self.app: 
-                import Zope
-                self.app = Zope.app()
+                import Zope2
+                self.app = Zope2.app()
             self.dataroot = getObjByPath(self.app, self.options.dataroot)
             self.dmd = self.dataroot
             if not self.dataroot:
