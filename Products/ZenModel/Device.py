@@ -381,6 +381,15 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
             days, hour, mins, secs)
 
 
+    def getPeerDeviceClassNames(self):
+        "build a list of all device paths that have the python class pyclass"
+        dclass = self.getOrganizer("Devices")
+        return dclass.getPeerDeviceClassNames(self.__class__)
+
+        
+        
+
+
     ####################################################################
     # Edit functions used to manage device relations and other attributes
     ####################################################################

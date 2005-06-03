@@ -129,6 +129,16 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
         return dcnames
 
 
+    def getPeerDeviceClassNames(self, pyclass):
+        "build a list of all device paths that have the python class pyclass"
+        dcnames = []
+        if pyclass == self.getPythonDeviceClass():
+            dcnames.append(self.getDeviceClassName())
+        for subclass in self.subclasses():
+            dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
+        return dcnames
+            
+
     def createInstance(self, id):
         """create an instance based on its location in the device tree
         walk up the primary aq path looking for a python instance class that
@@ -160,14 +170,17 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
         check to see if we need to change the python class of the device
         if so run buildRelations to add any missing relations
         run manage_afterAdd to set the primaryPath of this and other objects"""
-        assert(hasattr(self.devices, deviceName))
         dev = self.devices._getOb(deviceName)
+        assert(dev)
         if dev.getDeviceClassPath() == devicePath: return
         devclass = self.getOrganizer("Devices").getDeviceClass(devicePath)
         newPyDevClass = devclass.getPythonDeviceClass()
         if dev.__class__ != newPyDevClass:
-            dev = dev.changePythonClass(newPyDevClass, devclass.devices) 
-            devclass.devices._setObject(dev.id, dev)
+            raise ValueError, \
+                "Can't move %s to new path %s because it has a" \
+                "different python class." % (deviceName, devicePath)
+            #dev = dev.changePythonClass(newPyDevClass, devclass.devices) 
+            #devclass.devices._setObject(dev.id, dev)
         else:
             clip = self.devices.manage_cutObjects(ids=(deviceName,))
             dev._moving=1
