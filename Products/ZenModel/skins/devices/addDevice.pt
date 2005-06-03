@@ -73,10 +73,17 @@
         </td>
         <td class="tableheader" align="left">Production State</td>
         <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="productionState:int"
-                tal:attributes="value device/productionState | 
-                        request/productionState | python:1000"/>
+            <select class="tablevalues" name="productionState:int"
+            tal:define="
+            pstates here/getProdStateConversions;
+            curstate device/productionState | 
+                    request/productionState | python:1000"
+            >
+                <option tal:repeat="pstate pstates" 
+                    tal:attributes="value python:pstate[1]; 
+                        selected python:curstate == pstate[1]"
+                    tal:content="python:pstate[0]">localhost</option>
+            </select>
         </td>
     </tr>
     <tr>
