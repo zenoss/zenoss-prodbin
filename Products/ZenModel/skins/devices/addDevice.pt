@@ -1,5 +1,5 @@
 <span tal:replace="structure here/standard_html_header" />
-<script metal:use-macro="here/miscmacros/macros/submitAction"></script>
+<script metal:use-macro="here/miscmacros/macros/getProducts"></script>
 <form tal:define="myurl string:/zport/dmd/DeviceLoader" 
     action="/zport/dmd/DeviceLoader" method="post">
 <table border="0" cellpadding="3" width="100%" 
@@ -103,7 +103,7 @@
             tal:define="
             comps python:here.getOrganizer('Companies').getCompanyNames();
             curman request/manufacturer | device/getManufacturerName |  nothing"
-            tal:attributes="onchange string:submitAction(this.form,'$myurl')"
+            tal:attributes="onchange string:getProducts(this)"
             >
                 <option tal:repeat="comp comps" 
                     tal:attributes="value comp;selected python:comp==curman"
@@ -121,7 +121,7 @@
     <tr>
         <td class="tableheader" align="left">Model</td>
         <td class="tablevalues" align="left" >
-            <select class="tablevalues" name="model"
+            <select class="tablevalues" id="model" name="model"
             tal:define="
             cname request/manufacturer | device/getManufacturerName |  string:;
             prods python:here.getOrganizer('Companies').getProductNames(cname);

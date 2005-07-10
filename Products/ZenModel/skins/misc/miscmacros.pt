@@ -66,3 +66,48 @@ function submitAction(myform, url) {
 }
 //-->
 </script>
+
+
+<span metal:define-macro="getProducts">
+<script type="text/javascript" src="/zport/portal_skins/misc/init.js"></script>
+<script type="text/javascript" src="/zport/portal_skins/misc/urllib.js">
+</script>
+<script type="text/javascript" src="/zport/portal_skins/misc/xml.js"></script>
+<script type="text/javascript" src="/zport/portal_skins/misc/xmlrpc.js">
+</script>
+<script type="text/javascript">
+<!--
+/**
+ * Load the xmlrpc object and a proxy to the service
+ */
+var xmlrpc = null;
+var server = null;
+
+try{
+    var xmlrpc = importModule("xmlrpc");
+    var server = new xmlrpc.ServerProxy('/zport/dmd/Companies', 
+                    ['getProductNames']);
+}catch(e){
+    reportException(e);
+    throw "importing of xmlrpc module failed.";
+}
+
+/**
+ * Delete the value in the first box and put the result of the XML-RPC
+ * call into the second
+ */
+function getProducts(compsel){
+    var cname = compsel.options[compsel.selectedIndex].value
+    var prodsel = document.getElementById("model");
+    resp = server.getProductNames(cname);
+    if (resp) {
+        prodsel.options.length = 0;
+        for (var i = 0; i < resp.length; i++) {
+            prodsel.options[i] = new Option(resp[i], resp[i],
+                                            false, false);
+        }
+    }
+}
+//-->
+</script>
+</span>
