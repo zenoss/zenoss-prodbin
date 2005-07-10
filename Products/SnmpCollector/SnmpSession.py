@@ -21,6 +21,7 @@ from struct import unpack
 from pysnmp.compat.pysnmp2x import asn1, v1
 from pysnmp.proto import v2c
 from pysnmp.mapping.udp import role
+from pysnmp.proto.api import alpha
 
 class SnmpSession:
 
@@ -238,8 +239,8 @@ class SnmpSession:
             map(lambda x: v2c.VarBind(name=v2c.ObjectName(x)), oids))
         rsp = v2c.Response();
         while 1:
-            req['pdu'].values()[0]['variable_bindings']=v2c.VarBindList(\
-                    map(lambda x: v2c.VarBind(name=v2c.ObjectName(x)), oids))
+            vb = map(lambda x: v2c.VarBind(name=v2c.ObjectName(x)), oids)
+            req['pdu'].values()[0]['variable_bindings']=v2c.VarBindList(*vb)
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             (answer, src) = self.client.send_and_receive(req.encode())
@@ -272,7 +273,8 @@ class SnmpSession:
                     idx = N + ((i-1)*R) + r
                     oid = oids[idx-1]
                     if oid.find(head_oids[r-1]) > -1: 
-                        retdata[oid]=vals[idx-1].get()
+                        retdata[oid] =
+                            vals[idx-1].apiAlphaGetTerminalValue().get()
                     else:
                         oids[idx-1]="None"
             oids = oids[-R:]
