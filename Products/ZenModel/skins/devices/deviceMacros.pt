@@ -9,16 +9,10 @@
       <td class=statusvalues bgcolor=#00ff00
         tal:attributes="bgcolor python: here.getPingStatusColor()"
         tal:content="here/getPingStatus">0</td>
-      <td class=tableheader align=left>Ping Avail 30</td>
-      <td class=tablevalues tal:content="here/getPingAvail30String">100%</td>
-    </tr>
-    <tr>
       <td class=tableheader align=left>SNMP</td>
       <td class=statusvalues bgcolor=#00ff00
         tal:attributes="bgcolor python: here.getSnmpStatusColor()"
         tal:content="here/getSnmpStatus">0</td>
-      <td class=tableheader align=left>SNMP Avail 30</td>
-      <td class=tablevalues tal:content="here/getSnmpAvail30String">100%</td>
     </tr>
     <tr>
       <td class=tableheader align=left>Uptime</td>

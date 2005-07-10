@@ -23,7 +23,7 @@ class PingStatusInt:
     def _getPingStatusObj(self):
         if (not hasattr(self, "_pingStatus") 
             or getattr(self, "_pingStatus") == None):
-            self._pingStatus = ZenStatus.ZenAvailibility(-1)
+            self._pingStatus = ZenStatus.ZenStatus(-1)
         return self._pingStatus
 
 
@@ -36,22 +36,6 @@ class PingStatusInt:
         return "No Status"
 
 
-    def getPingAvail30(self):
-        """30 day rolling ping availability"""
-        ps = self._getPingStatusObj()
-        if ps:
-            return ps.getAvail30()
-        return -1
-
-            
-    def getPingAvail30String(self):
-        """30 day rolling ping availability"""
-        ps = self._getPingStatusObj()
-        if ps:
-            return ps.getAvail30String()
-        return "Unknown"
-
-            
     security.declareProtected('View', 'getDevicePingStatusColor')
     def getPingStatusColor(self):
         """get the snmp status color of the device if there is one"""

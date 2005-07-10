@@ -72,13 +72,7 @@
                 tableName,'getPingStatusNumber','Ping')">Ping
     </th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getPingAvail30','Ping Avail 30')">Ping Avail 30
-    </th>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'getSnmpStatusNumber','Snmp')">SNMP
-    </th>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getSnmpAvail30','SNMP Avail 30')">SNMP Avail 30
     </th>
 </tr>
 <tr tal:repeat="device batch">
@@ -97,13 +91,7 @@
         Production
     </td >
     <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
-    <td class="tablevalues" tal:content="device/getPingAvail30String">
-        100.000%
-    </td>
     <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
-    <td class="tablevalues" tal:content="device/getSnmpAvail30String">
-        100.000%
-    </td>
 </tr>
 <tr>
     <td colspan=7 class="tableheader" align='center'>

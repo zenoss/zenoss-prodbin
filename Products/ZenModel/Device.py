@@ -32,7 +32,7 @@ from Instance import Instance
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt
 from CricketDevice import CricketDevice
-from ZenStatus import ZenStatus, ZenAvailability
+from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 
 CopyError='Copy Error'
@@ -200,8 +200,8 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     
     def __init__(self, id):
         Instance.__init__(self, id)
-        self._pingStatus = ZenAvailability(-1)
-        self._snmpStatus = ZenAvailability(-1)
+        self._pingStatus = ZenStatus(-1)
+        self._snmpStatus = ZenStatus(-1)
         self.commandStatus = "Not Tested"
         self._v_stamp = None
         self.productionState = 1000
@@ -617,16 +617,6 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         return self._snmpStatus.getStatusString()
 
 
-    def _getSnmpAvail30(self):
-        """return the rolling 30 day availability of this device"""
-        return self._snmpStatus.getAvail30()
-
-    
-    def _getSnmpAvail30String(self):
-        """return the rolling 30 day availability of this device"""
-        return self._snmpStatus.getAvail30String()
-
-    
     security.declareProtected('View', 'getSnmpStatusColor')
     def _getSnmpStatusColor(self):
         '''get the device's snmp status color'''
