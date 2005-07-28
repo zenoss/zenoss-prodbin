@@ -273,7 +273,7 @@ class SnmpSession:
                     idx = N + ((i-1)*R) + r
                     oid = oids[idx-1]
                     if oid.find(head_oids[r-1]) > -1: 
-                        retdata[oid] =
+                        retdata[oid] = \
                             vals[idx-1].apiAlphaGetTerminalValue().get()
                     else:
                         oids[idx-1]="None"
