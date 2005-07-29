@@ -17,6 +17,8 @@ __version__ = "$Revision: 1.14 $"[11:-2]
 import sys
 import os
 
+import transaction
+
 from Utils import getHierarchyObj
 
 from ZCmdBase import ZCmdBase
