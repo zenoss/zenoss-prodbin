@@ -66,7 +66,7 @@ class BasicLoader(ZCmdBase):
         if self.options.noCommit:
             self.log.info("No commit has been made.")
         else:
-            trans = get_transaction()
+            trans = transaction.get()
             trans.note('Initial load using %s' % self.__class__.__name__)
             trans.commit()
 
