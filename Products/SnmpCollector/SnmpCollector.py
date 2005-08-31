@@ -17,7 +17,7 @@ import os
 import sys
 
 import Globals
-import ZODB
+import transaction
 
 from DateTime import DateTime
 from Acquisition import aq_base
@@ -44,19 +44,12 @@ class SnmpCollector(ZCmdBase):
     def collectDevices(self, deviceRoot):
         """collect snmp data and set it in objects based on roots""" 
         for device in deviceRoot.getSubDevices():
-            writetries = self.options.writetries
-            while writetries:
-                try:
-                    self.collectDevice(device)
-                    break
-                except ZODB.POSException.ReadConflictError:
-                    device._p_jar.sync()
-                    writetries -= 1
-                except SystemExit: raise
-                except:  
-                    self.log.exception(
-                        "Failure collecting device %s" % device.getId())
-                    break
+            try:
+                self.collectDevice(device)
+            except SystemExit: raise
+            except:  
+                self.log.exception(
+                    "Failure collecting device %s" % device.getId())
 
                     
     def collectDevice(self, device):
@@ -70,9 +63,9 @@ class SnmpCollector(ZCmdBase):
                 device.resetSnmpStatus()
                 self.log.info("Found community %s for device %s" % 
                                 (community, device.id))
-                get_transaction().note(
-                    "Automated data collection by SnmpCollector.py")
-                get_transaction().commit()
+                trans = transaction.get()
+                trans.note("Automated data collection by SnmpCollector.py")
+                trans.commit()
             else:
                 self.log.warn('no communty not found for device %s' 
                                 % device.id)
@@ -89,9 +82,9 @@ class SnmpCollector(ZCmdBase):
                 if self.testSnmpConnection(snmpsess):
                     self._collectCustomMaps(device, snmpsess)
                     device.setSnmpLastCollection()
-                    get_transaction().note(
-                        "Automated data collection by SnmpCollector.py")
-                    get_transaction().commit()
+                    trans = transaction.get()
+                    trans.note("Automated data collection by SnmpCollector.py")
+                    trans.commit()
                 else:
                     self.log.warn(
                         "no valid snmp connection to %s" 
@@ -133,14 +126,10 @@ class SnmpCollector(ZCmdBase):
                     self.log.exception("problem collecting snmp")
                 if datamap:
                     try:
-                        #device._p_jar.sync()
                         if hasattr(custmap, 'relationshipName'):
                             self._updateRelationship(device, datamap, custmap)
                         else:
                             self._updateObject(device, datamap)
-                        get_transaction().note(
-                            "Automated data collection by SnmpCollector.py")
-                        get_transaction().commit()
                     except:
                         self.log.exception("ERROR: implementing datamap %s"
                                                 % datamap)
@@ -236,9 +225,6 @@ class SnmpCollector(ZCmdBase):
                 raise "ObjectCreationError", \
                     ("No relation %s found on device %s" 
                      % (snmpmap.relationshipName, device.id))
-            #FIXME ZODB doesn't like aq wrappers commit before we
-            # wrap the object
-            get_transaction().commit()
             remoteObj = rel._getOb(remoteObj.id)
             self._updateObject(remoteObj, datamap)
             self.log.debug("   Added object %s to relationship %s" 
