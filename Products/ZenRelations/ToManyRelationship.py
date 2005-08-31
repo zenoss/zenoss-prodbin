@@ -165,7 +165,7 @@ class ToManyRelationship(RelationshipBase):
         set our parent class and call subobjects"""
         if not getattr(container, "getRelSchema", False):
             raise InvalidContainer, \
-                "Container %s is not a RelatioshipManager" % context.id
+                "Container %s is not a RelatioshipManager" % container.id
         rs = container.getRelSchema(self.id)
         self.isContainer = rs.relType(self.id) == TO_MANY_CONT
         if self.isContainer:
@@ -221,7 +221,7 @@ class ToManyRelationship(RelationshipBase):
         self.removeRelation(id=id)
 
     
-    #FIXME this if very yucky looking code!!!!
+    #FIXME this is very yucky looking code!!!!
     security.declareProtected('Manage Relations', 'renameId')
     def renameId(self, obj):
         """change an objects id in its related collection"""
@@ -254,7 +254,7 @@ class ToManyRelationship(RelationshipBase):
         if id.find('/') != 0:
             v=self._checkId(id)
             if v is not None: id=v
-        self._objects[id] = obj
+        self._objects[id] = aq_base(obj)
         if self.isContainer:
             obj = obj.__of__(self)
             obj.manage_afterAdd(obj, self)

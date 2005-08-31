@@ -87,7 +87,7 @@ class ToOneRelationship(RelationshipAlias):
         """add a to one side of a relationship
         if a relationship already exists clear it"""
         self._remoteRemove()
-        self.obj = obj
+        self.obj = aq_base(obj)
         self.title = obj.id
 
 
