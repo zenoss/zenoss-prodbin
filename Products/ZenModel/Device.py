@@ -18,7 +18,6 @@ import time
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
-from Globals import Persistent
 from Globals import InitializeClass
 from Acquisition import aq_base
 from DateTime import DateTime
@@ -28,6 +27,7 @@ from Products.CMFCore import permissions
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
+from Exceptions import DeviceExistsError
 from Instance import Instance
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt
