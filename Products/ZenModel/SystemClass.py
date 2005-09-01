@@ -92,6 +92,7 @@ class SystemClass(Classification, Folder):
         sysnames = ["",]
         for system in self.objectValues():
             sysnames.extend(system.getSystemNames())
+        sysnames.sort()        
         return sysnames
 
 

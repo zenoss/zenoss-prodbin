@@ -50,7 +50,9 @@ class MonitorClass(Classification, Folder):
     def getStatusMonitorNames(self):
         """return a list of all status monitor names"""
         status = self.getOrganizer("Monitors").StatusMonitors
-        return status.objectIds()
+        snames = status.objectIds()
+        snames.sort()
+        return snames
             
 
     def getCricketMonitor(self, monitorName):
@@ -66,7 +68,9 @@ class MonitorClass(Classification, Folder):
     def getCricketMonitorNames(self):
         """return a list of all cricket monitor names"""
         cricket = self.getOrganizer("Monitors").Cricket
-        return cricket.objectIds()
+        cnames = cricket.objectIds()
+        cnames.sort()
+        return cnames
             
 
 

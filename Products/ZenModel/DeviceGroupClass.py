@@ -76,6 +76,7 @@ class DeviceGroupClass(Classification, Folder):
         devnames = ["",]
         for group in self.objectValues():
             devnames.extend(group.getDeviceGroupNames())
+        devnames.sort()
         return devnames
 
 

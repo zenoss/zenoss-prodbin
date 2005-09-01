@@ -100,6 +100,7 @@ class LocationClass(Classification, Folder):
         locnames = ["",]
         for location in self.objectValues():
             locnames.extend(location.getLocationNames())
+        locnames.sort()
         return locnames
        
 
