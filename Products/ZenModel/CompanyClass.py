@@ -65,6 +65,7 @@ class CompanyClass(Classification, Folder):
             company = self.getCompany(companyName)
             prods.extend(map(lambda x: x.getId(),
                 company.products.objectValuesAll()))
+        prods.sort()
         return prods
 
 
