@@ -142,6 +142,20 @@ class IpNetwork(Instance, DeviceGroupInt):
         """get an ip on this network"""
         return self.ipaddresses._getOb(ip, None)
 
+
+    def getAllCounts(self):
+        """Count all devices within a device group and get the
+        ping and snmp counts as well"""
+        counts = [
+            self.ipaddresses.countObjects(),
+            self._status("Ping", "ipaddresses"),
+            self._status("Snmp", "ipaddresses"),
+        ]
+        for group in self.subnetworks():
+            sc = group.getAllCounts()
+            for i in range(3): counts[i] += sc[i]
+        return counts
+
     
     security.declareProtected('View', 'countIpAddresses')
     def countIpAddresses(self):
@@ -157,7 +171,8 @@ class IpNetwork(Instance, DeviceGroupInt):
 
     security.declareProtected('View', 'countDevices')
     countDevices = countIpAddresses
-    
+   
+
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
         return DeviceGroupInt.pingStatus(self, "subnetworks", "ipaddresses")

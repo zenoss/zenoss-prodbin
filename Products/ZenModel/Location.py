@@ -104,13 +104,16 @@ class Location(LocationBase):
         return self.viewHistoryEvents(self.REQUEST)
 
 
+    security.declareProtected('View', 'getAllCounts')
+    def getAllCounts(self):
+        """aggrigate ping status for all devices in this group and below"""
+        return DeviceGroupInt.getAllCounts(self, "sublocations")
+        
 
     security.declareProtected('View', 'countDevices')
     def countDevices(self):
         """count all devices with in a location"""
         count = self.devices.countObjects()
-        for rack in self.racks():
-            count += rack.countDevices()
         for loc in self.sublocations():
             count += loc.countDevices()
         return count
@@ -119,8 +122,9 @@ class Location(LocationBase):
     def getLocationNames(self):
         """build a list of the full paths of all sub locations and racks""" 
         locnames = LocationBase.getLocationNames(self)
-        for rack in self.racks():
-            locnames.append(rack.getLocationName())
+        #for rack in self.racks():
+            #locnames.append(rack.getLocationName())
+        locnames.sort()
         return locnames 
 
     

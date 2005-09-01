@@ -55,6 +55,23 @@ class DeviceGroupInt:
         return groupNames
 
 
+    def getAllCounts(self, subrel="subgroups", devrel="devices"):
+        """Count all devices within a device group and get the
+        ping and snmp counts as well"""
+        counts = [
+            self.devices.countObjects(),
+            self._status("Ping", devrel),
+            self._status("Snmp", devrel),
+        ]
+        subgroups = getattr(self, subrel, None)
+        if not subgroups: 
+            raise AttributeError, "%s not found on %s" % (subrel, self.id)
+        for group in subgroups():
+            sc = group.getAllCounts()
+            for i in range(3): counts[i] += sc[i]
+        return counts
+
+
     def countDevices(self, subrel="subgroups", devrel="devices"):
         """count all devices with in a device group"""
         count = self.devices.countObjects()

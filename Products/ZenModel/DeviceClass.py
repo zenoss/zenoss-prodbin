@@ -190,6 +190,11 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
             REQUEST['RESPONSE'].redirect(dev.absolute_url())
 
 
+    def getAllCounts(self):
+        """aggrigate ping status for all devices in this group and below"""
+        return DeviceGroupInt.getAllCounts(self, "subclasses")
+
+    
     def countDevices(self):
         """aggrigate ping status for all devices in this group and below"""
         return DeviceGroupInt.countDevices(self, "subclasses")
