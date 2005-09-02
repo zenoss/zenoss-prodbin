@@ -14,19 +14,16 @@ $Id: RelationshipManager.py,v 1.41 2004/04/13 22:02:18 edahl Exp $"""
 __version__ = "$Revision: 1.41 $"[11:-2]
 
 import copy
-import tempfile
 from xml.sax.saxutils import escape
 
 from Globals import InitializeClass
 from Globals import DTMLFile
 from OFS.CopySupport import CopySource
-from OFS.ObjectManager import ObjectManager
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from App.Management import Tabs
-from AccessControl import getSecurityManager
 
-from RelationshipBase import RelationshipBase
+from RelationshipBase import RelationshipObjectManager
 from ToOneRelationship import ToOneRelationship
 from ToManyRelationship import ToManyRelationship
 from RelTypes import *
@@ -35,7 +32,6 @@ from Products.ZenRelations.Exceptions import *
 
 _marker = "__ZENMARKER__"
 
-class _EmptyClass: pass
 
 
 def manage_addRelationshipManager(context, id, title = None,
@@ -50,24 +46,23 @@ def manage_addRelationshipManager(context, id, title = None,
 addRelationshipManager = DTMLFile('dtml/addRelationshipManager',globals())
 
 
-class RelationshipManager(RelationshipBase):
+class RelationshipManager(RelationshipObjectManager):
     """RelationshipManger manages relationships""" 
 
     meta_type = 'Relationship Manager'
    
-
     security = ClassSecurityInfo()
 
-    def __init__(self, id, title=None):
+
+    def __init__(self, id):
         self.id = id
         self.oldid = id
-        self.title = (title or id)
         self._moving = 0
         self.primaryPath = [] 
 
             
     def absolute_url(self):
-        aurl = RelationshipBase.absolute_url(self)
+        aurl = RelationshipObjectManager.absolute_url(self)
         pp = self.getPhysicalPath()
         if pp != self.getPrimaryPath():
             aurl = aurl.split("/")[:-1]
@@ -106,7 +101,7 @@ class RelationshipManager(RelationshipBase):
         """add object to RelationshipManger
         if the object is a relatioship check to see if there
         is a valid schema object for it"""
-        id = RelationshipBase._setObject(self, id, obj)  
+        id = RelationshipObjectManager._setObject(self, id, obj)  
         if obj.meta_type in MT_LIST:
             r = self.getRelSchema(id)
         return id
@@ -119,7 +114,7 @@ class RelationshipManager(RelationshipBase):
     #    if mt in MT_LIST: self.removeRelation(id)
     #    #except SchemaError:
     #    #    pass #we need to kill the object even if schema is gone 
-    #    RelationshipBase._delObject(self, id, dp)
+    #    RelationshipObjectManager._delObject(self, id, dp)
    
 
     security.declareProtected('Manage Relations', 'manage_addRelation')
@@ -225,7 +220,7 @@ class RelationshipManager(RelationshipBase):
                 for robj in getattr(self,name).objectValuesAll():
                     self._remoteRename(name, rs, robj)
             self.oldid = self.id
-        RelationshipBase.manage_afterAdd(self, item, self)
+        RelationshipObjectManager.manage_afterAdd(self, item, self)
    
    
     def _remoteRename(self, name, rs, robj):
@@ -241,7 +236,7 @@ class RelationshipManager(RelationshipBase):
     def manage_afterClone(self, item):
         """cleanup after a clone of this object"""
         self.setPrimaryPath(force=1)
-        RelationshipBase.manage_afterClone(self, item)
+        RelationshipObjectManager.manage_afterClone(self, item)
 
 
     def _getCopy(self, container):
@@ -297,7 +292,7 @@ class RelationshipManager(RelationshipBase):
             #    self.removeRelation(name) 
             #for name in self.objectIds(spec = 'To Many Relationship'):
             #    self.removeRelation(name)
-            RelationshipBase.manage_beforeDelete(self, item, container)
+            RelationshipObjectManager.manage_beforeDelete(self, item, container)
 
 
     def manage_workspace(self, REQUEST):
@@ -326,70 +321,6 @@ class RelationshipManager(RelationshipBase):
         return names
 
     
-    def exportXml(self):
-        """return an xml based representation of a RelationshipManager
-
-        <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
-            class='Products.Confmon.IpInterface'>
-            <property></property>
-            <toone></toone
-            <tomany></tomany>
-        </object>"""
-        xml = []
-        modname = self.__class__.__module__
-        classname = self.__class__.__name__
-        stag = "<object id='%s' module='%s' class='%s'>" % (
-                    self.getPrimaryId(), modname, classname)
-        xml.append(stag)
-        xml.append(self.exportXmlProperties())
-        xml.append(self.exportXmlRelationships())
-        xml.append("</object>")
-        return "\n".join(xml)
-
-
-
-    propatts = ('id', 'type', 'mode', 'select_variable', 'setter')
-    def exportXmlProperties(self):
-        """return an xml representation of a RelationshipManagers properties
-        <property id='name' type='type' mode='w' select_variable='selectvar'>
-            <value>xyz</value>
-            <value>pdq</value>
-        </property>"""
-        xml = []
-        props = self.getProperties()
-        for prop in props:
-            if not prop.has_key('id'): continue
-            id = prop['id']
-            value = getattr(self, id, None) # use aq_base?
-            if not value: continue
-            stag = []
-            stag.append('<property')
-            for att in self.propatts:
-                if prop.has_key(att):
-                    stag.append(" %s='%s'" % (att, prop[att]))
-            stag.append('>')
-            xml.append(''.join(stag))
-            if type(value) != type([]) and type(value) != type(()):
-                value = (value,)
-            for item in value:
-                item = escape(str(item))
-                xml.append("<value>%s</value>" % item)
-            xml.append("</property>")
-        return "\n".join(xml) 
-
-
-
-    def exportXmlRelationships(self):
-        """return an xml representation of Relationships"""
-        xml = []
-        relschema = self.getRelationships()
-        for relname in relschema.keys():
-            rel = getattr(self, relname, None)
-            if rel:
-                xml.append(rel.exportXml())
-        return "\n".join(xml)
-        
-        
     def getRelationships(self):
         """returns a dictionary of relationship objects keyed by their names"""
         if getattr(self, 'mySchemaManager', _marker) is not _marker:
@@ -410,15 +341,4 @@ class RelationshipManager(RelationshipBase):
             rel.checkRelation(repair, log)
                 
     
-    def getXmlDtd(self):
-        """return the dtd for RelationshipManger xml files"""
-        dtd = """
-            <!ELEMENT objects (object+)>
-            <!ElEMENT object (property+, toone+, tomany+)>
-            <!ELEMENT property (value+)>
-            <!ELEMENT toone ( #PCDATA )>
-            <!ELEMENT tomany ( object+, link+ )>
-            """
-    
-
 InitializeClass(RelationshipManager)

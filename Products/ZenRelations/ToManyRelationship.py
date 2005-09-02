@@ -21,14 +21,12 @@ from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base, aq_parent
 from App.Dialogs import MessageDialog
 from App.Management import Tabs
-from OFS.ObjectManager import BadRequestException, BeforeDeleteException
-from OFS.ObjectManager import ObjectManager
 from zLOG import LOG, ERROR
 
 from Products.ZenUtils.Utils import checkClass
 
-from SchemaManager import SchemaManager, SchemaError
-from RelationshipBase import RelationshipBase, checkContainer
+from SchemaManager import SchemaError
+from RelationshipBase import RelationshipObjectManager
 
 from RelTypes import *
 from Products.ZenRelations.Exceptions import *
@@ -41,10 +39,10 @@ class RelationshipExistsError(ZentinelException):pass
 _marker = "__ZENMARKER__"
 
 
-def manage_addToManyRelationship(context, id, title=None, REQUEST=None):
+def manage_addToManyRelationship(context, id, REQUEST=None):
     """factory for ToManyRelationship"""
     try:
-        rel =  ToManyRelationship(id, title)
+        rel =  ToManyRelationship(id)
         context._setObject(rel.id, rel)
     except SchemaError, e:
         if REQUEST:
@@ -69,7 +67,7 @@ addToManyRelationship = DTMLFile('dtml/addToManyRelationship',globals())
 
 
 
-class ToManyRelationship(RelationshipBase):
+class ToManyRelationship(RelationshipObjectManager):
     """ToManyRelationship is an ObjectManager that maintains the
     To Many side of a relationship"""
 
@@ -79,10 +77,9 @@ class ToManyRelationship(RelationshipBase):
 
     manage_main = DTMLFile('dtml/ToManyRelationshipMain',globals())
     
-    def __init__(self, id, title = None):
+    def __init__(self, id):
         """set our instance values"""
         self.id = id
-        self.title = title 
         self._objects = {}
         self.primaryPath = [] 
         self.isContainer = 0
@@ -135,7 +132,7 @@ class ToManyRelationship(RelationshipBase):
             rs = self.getRelSchema(self.id)
             self.sub_classes = (rs.remoteClass(self.id),)
         mts = []
-        for mt in RelationshipBase.all_meta_types(self, interfaces):
+        for mt in RelationshipObjectManager.all_meta_types(self, interfaces):
             if (mt.has_key('instance') and mt['instance']):
                 for cl in self.sub_classes:
                     if checkClass(mt['instance'], cl):
@@ -169,14 +166,14 @@ class ToManyRelationship(RelationshipBase):
         rs = container.getRelSchema(self.id)
         self.isContainer = rs.relType(self.id) == TO_MANY_CONT
         if self.isContainer:
-            RelationshipBase.manage_afterAdd(self, item, self)
+            RelationshipObjectManager.manage_afterAdd(self, item, self)
 
 
     def manage_beforeDelete(self, item, container):
         """if relationship is being deleted remove the remote side"""
         self._remoteRemove()
         if self.isContainer:
-            RelationshipBase.manage_beforeDelete(self, item, container)
+            RelationshipObjectManager.manage_beforeDelete(self, item, container)
         
 
     security.declareProtected('Manage Relations', 'addRelation')

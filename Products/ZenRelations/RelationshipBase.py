@@ -55,15 +55,33 @@ def checkContainer(container):
     if (meta_type == 'Z Class' and   
         checkZClass(container.aq_acquire('_zbases'), "RelationshipManager")):
         return
-    #get_transaction().abort()        
     raise InvalidContainer, \
         "Relationship must be added to an instance of RelationshipManager"
 
 
+class RelationshipBase(Implicit, Persistent, Item):
+    """Base class for ToOneRelationship and RelationshipObjectManager"""
+    
+    def _checkSchema(self, name, rel, obj):
+        """check the relationship object aginst the schema"""
+        try:
+            if (obj.meta_type != rel.remoteClass(name) and 
+                not checkClass(obj.getClass(), rel.remoteClass(name))):
+                mess = ("On relation " + name + " neither object class " 
+                                    + obj.getClass().__name__ 
+                                    + " nor meta_type " + obj.meta_type 
+                                    + "  match remote schema type "
+                                    + rel.remoteClass(name))
+                raise SchemaError, mess
+        except AttributeError:
+            raise SchemaError, \
+                "Linked objects must be an instance of RelationshipManager"
+         
 
-class RelationshipBase(ObjectManager, RelCopyContainer, Implicit, 
-                        Persistent, RoleManager, Item):
-    """RelationshipBase is a base class for RelationhshipManager
+
+class RelationshipObjectManager(ObjectManager, RelCopyContainer, 
+                            RoleManager, RelationshipBase):
+    """RelationshipObjManager is a base class for RelationhshipManager
     and ToManyRelationship.  It defines the basic relationship
     interface as well as some schema checking and access functions"""
     
@@ -74,7 +92,7 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
                     +Item.manage_options)
 
     security = ClassSecurityInfo()
-    security.setDefaultAccess('allow')
+    #security.setDefaultAccess('allow')
  
 
     def _verifyObjectPaste(self, object, validate_src=1):
@@ -117,11 +135,9 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
         """set the physical path this is the 'normal' zope path to the
         object (ie not by navigating down a relationship.  We use this
         to navigate to the object from a related object"""
-        if (force or 
-            not self.getPrimaryPath() or
+        if (force or not self.getPrimaryPath() or
             not self.checkPath(self.getPhysicalRoot(), 
                                 self.getPrimaryPath()[1:])):
-
             self.primaryPath = self.getPhysicalPath()
             return 1
         else:
@@ -144,7 +160,8 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
 
 
     def checkPath(self, object, path):
-        """figure out if we need to rebuild the physical path (we moved or are new)"""
+        """figure out if we need to rebuild the physical path 
+        (we moved or are new)"""
         return getObjByPath(object, path)
 
 
@@ -164,7 +181,6 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
         return getObjByPath(app, path)     
 
         
-
     def getClass(self):
         """return the class of the local end of the relationship
 
@@ -172,20 +188,5 @@ class RelationshipBase(ObjectManager, RelCopyContainer, Implicit,
         our parent class type"""
         return self.__class__
 
-
-    def _checkSchema(self, name, rel, obj):
-        """check the relationship object aginst the schema"""
-        try:
-            if (obj.meta_type != rel.remoteClass(name) and 
-                not checkClass(obj.getClass(), rel.remoteClass(name))):
-                mess = ("On relation " + name + " neither object class " 
-                                    + obj.getClass().__name__ 
-                                    + " nor meta_type " + obj.meta_type 
-                                    + "  match remote schema type "
-                                    + rel.remoteClass(name))
-                raise SchemaError, mess
-        except AttributeError:
-            raise SchemaError, "Linked objects must be an instance of RelationshipManager"
-          
 
 InitializeClass(RelationshipBase)

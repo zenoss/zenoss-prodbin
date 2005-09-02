@@ -1,0 +1,40 @@
+#################################################################
+#
+#   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
+#
+#################################################################
+
+import unittest
+
+from OFS.Folder import manage_addFolder
+
+from Testing.ZopeTestCase import ZopeLite
+
+from ZenRelations.SchemaManager import manage_addSchemaManager
+
+
+class RMBaseTest(unittest.TestCase):
+    
+    def setUp(self):
+        self.app = ZopeLite.app()
+        manage_addSchemaManager(self.app)
+        self.app.mySchemaManager.loadSchemaFromFile("schema.data")
+        manage_addFolder(self.app, "folder")
+
+    def tearDown(self):
+        self.app = None
+
+    def create(self, context, klass, id):
+        """create an instance and attach it to the context passed"""
+        inst = klass(id)
+        context._setObject(id, inst)
+        inst = context._getOb(id)
+        return inst
+
+    def build(self, context, klass, id):
+        """create instance attache to context and build relationships"""
+        inst = klass(id)
+        context._setObject(id, inst)
+        inst = context._getOb(id)
+        inst.buildRelations()
+        return inst

@@ -1,4 +1,22 @@
-Currently Zope 2.7.x broke all of the copy/paste and copy/link tests.
-(this is also true for the Zope copy/paste tests).
+ZenRelations Testing System
 
-Not sure when I can figure this out!!
+ZenRelations uses the following schema to perform tests on relationships:
+     
+
+
+       devices           location ----------
+       --------------------------| Location |
+      | *                      1  ----------
+      |
+  --------  devices        groups -------
+ | Device |----------------------| Group |
+  --------  *                  *  -------
+   ^   |
+   |   | device            interfaces  -------------
+   |    ----------------------------<>| IpInterface |
+   |       1                     *     -------------
+   |
+  --------    1               1   -------
+ | Server |----------------------| Admin |
+  --------  server         admin  -------
+

@@ -65,7 +65,6 @@ class UnitTestUser( Acquisition.Implicit ):
 def makeConnection():
     import ZODB
     from ZODB.DemoStorage import DemoStorage
-
     s = DemoStorage(quota=(1<<20))
     return ZODB.DB( s ).open()
 
