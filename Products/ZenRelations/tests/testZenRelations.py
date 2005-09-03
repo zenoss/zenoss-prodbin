@@ -130,13 +130,13 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(hasattr(dev, "interfaces"))
 
 
-    def testmanage_addToOneRelationshipBad(self):
+    def testmanage_addToManyRelationshipBad(self):
         """test adding to many to an invalid container""" 
         self.failUnlessRaises(InvalidContainer, 
             manage_addToManyRelationship, self.app.folder, "interfaces")
 
 
-    def testmanage_addToOneRelationshipSchemaBad(self):
+    def testmanage_addToManyRelationshipSchemaBad(self):
         """add a relationship with invalid schema"""
         dev = self.create(self.app, Device, "dev")
         self.failUnlessRaises(SchemaError,
@@ -234,8 +234,127 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failIf(dev in anna.devices())
  
 
+    def testremoveRelationOneToMany4(self):
+        """Test removing all from to one side of a one to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        dev2 = self.create(self.app, Device, "dev2")
+        anna = self.create(self.app, Location, "anna")
+        anna.addRelation("devices", dev)
+        anna.addRelation("devices", dev2)
+        self.failUnless(len(anna.devices()) == 2)
+        anna.removeRelation("devices")
+        self.failUnless(len(anna.devices()) == 0)
+        self.failUnless(dev.location() == None)
+        self.failUnless(dev2.location() == None)
 
 
+    def testremoveRelationOnToMany(self):
+        """Test removeRelation on a to many object itself """
+        dev = self.create(self.app, Device, "dev")
+        anna = self.build(self.app, Location, "anna")
+        anna.devices.addRelation(dev)
+        self.failUnless(dev.location() == anna)
+        anna.devices.removeRelation()
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+
+
+    def testLinkToMany(self):
+        """link on to one side of a one to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        anna = self.create(self.app, Location, "anna")
+        cookie = self.app.manage_copyObjects(ids=('anna',))
+        self.failUnless(cookie)
+        self.app.dev.manage_linkObjects(ids=("location",), cb_copy_data=cookie)
+        self.failUnless(dev in anna.devices())
+        self.failUnless(dev.location() == anna)
+
+
+    def testLinkToMany2(self):
+        """link on to many side of a one to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        anna = self.create(self.app, Location, "anna")
+        cookie = self.app.manage_copyObjects(ids=('dev',))
+        self.failUnless(cookie)
+        self.app.anna.manage_linkObjects(ids=("devices",), cb_copy_data=cookie)
+        self.failUnless(dev in anna.devices())
+        self.failUnless(dev.location() == anna)
+
+
+    def testUnLinkToMany(self):
+        """Test unlinking to one side of one to many using the UI code """
+        dev = self.build(self.app, Device, "dev")
+        anna = self.build(self.app, Location, "anna")
+        dev.location.addRelation(anna)
+        self.failUnless(dev.location() == anna)
+        self.app.dev.manage_unlinkObjects(ids=("location",))
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+
+
+    def testUnLinkToMany2(self):
+        """Test unlinking to many side of one to many using the UI code """
+        dev = self.build(self.app, Device, "dev")
+        anna = self.build(self.app, Location, "anna")
+        dev.location.addRelation(anna)
+        self.failUnless(dev.location() == anna)
+        self.app.anna.manage_unlinkObjects(ids=("devices",))
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+
+
+# FIXME: zope permissions or something prevent rename
+#           need to investigate more to understand
+#           
+# Traceback (most recent call last):
+#   File "testZenRelations.py", line 312, in testRenameToMany
+#     self.app.manage_renameObject("dev", "newdev")
+#   File "/Users/edahl/Zope-2.8.1-final/lib/python/OFS/CopySupport.py", line 269, in manage_renameObject
+#     self._verifyObjectPaste(ob)
+#   File "/Users/edahl/Zope-2.8.1-final/lib/python/OFS/CopySupport.py", line 428, in _verifyObjectPaste
+#     action  = 'manage_main')
+#     def testRenameToMany(self):
+#         """test renaming an object that has a tomany relationship"""
+#         dev = self.build(self.app, Device, "dev")
+#         anna = self.build(self.app, Location, "anna")
+#         dev.location.addRelation(anna)
+#         self.failUnless(dev.location() == anna)
+#         self.app.manage_renameObject("dev", "newdev")
+#         self.failUnless(hasattr(self.app, "newdev"))
+#         self.failUnless(hasattr(anna.devices, "newdev"))
+#         self.failIf(hasattr(anna.devices, "dev"))
+
+
+    def testaddRelationOneToManyCont(self):
+        """Test froming a one to many contained relationship"""
+        dev = self.build(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        self.failUnless(eth in dev.interfaces())
+        self.failUnless(eth.device() == dev)
+
+
+    def testremoveRelationOneToManyCont(self):
+        """Test removing a one to many contained relationship"""
+        dev = self.build(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        self.failUnless(eth.device() == dev)
+        dev.removeRelation("interfaces", eth)
+        self.failUnless(len(dev.interfaces()) == 0)
+
+
+    def testremoveRelationOneToManyCont2(self):
+        """Test removing all objects from one to many contained relationship"""
+        dev = self.build(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        eth1 = self.create(dev.interfaces, IpInterface, "eth1")
+        self.failUnless(len(dev.interfaces()) == 2)
+        dev.removeRelation("interfaces")
+        self.failUnless(len(dev.interfaces()) == 0)
+        
+
+
+    def testaddRelationManyToMany(self):
+        """Test froming a many to many relationship"""
 
 
 def test_suite():

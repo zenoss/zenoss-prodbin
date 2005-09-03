@@ -76,7 +76,8 @@ class RelationshipBase(Implicit, Persistent, Item):
         except AttributeError:
             raise SchemaError, \
                 "Linked objects must be an instance of RelationshipManager"
-         
+
+
 
 
 class RelationshipObjectManager(ObjectManager, RelCopyContainer, 
