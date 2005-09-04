@@ -109,7 +109,7 @@ class ToManyRelationship(RelationshipObjectManager):
         "check to see if we have this object"
         id = obj.id
         if not self.isContainer: id = obj.getPrimaryId()
-        return self._objects.get(id)
+        return self._objects.get(id) == obj
             
 
     def findObjectsById(self, partid):
@@ -390,11 +390,11 @@ class ToManyRelationship(RelationshipObjectManager):
         norelcopy = getattr(self, 'noRelationshipCopy', [])
         if name in norelcopy: return rel
         if self.isContainer:
-            for oobj in self._objects.values():
+            for oobj in self.objectValuesAll():
                 cobj = oobj._getCopy(rel)
                 rel._setObject(cobj.id, cobj)
         elif self.getRelSchema(name).remoteType(name) == TO_MANY:
-            for robj in self._objects.values():
+            for robj in self.objectValuesAll():
                 rel.addRelation(robj)
         return rel    
   

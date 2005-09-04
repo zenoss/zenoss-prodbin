@@ -18,7 +18,6 @@ from xml.sax.saxutils import escape
 
 from Globals import InitializeClass
 from Globals import DTMLFile
-from OFS.CopySupport import CopySource
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from App.Management import Tabs
@@ -27,7 +26,6 @@ from RelationshipBase import RelationshipObjectManager
 from ToOneRelationship import ToOneRelationship
 from ToManyRelationship import ToManyRelationship
 from RelTypes import *
-
 from Products.ZenRelations.Exceptions import *
 
 _marker = "__ZENMARKER__"

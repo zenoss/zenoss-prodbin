@@ -140,9 +140,8 @@ class ToOneRelationship(RelationshipBase):
         name = self.id
         rs = self.getRelSchema(name)
         rtype = rs.remoteType(name)
-        if (rtype == TO_MANY and self.obj and
-            self.getPrimaryUrlPath().find(self.obj.getPrimaryUrlPath()) != 0):
-            container.addRelation(name, self.obj)
+        if (rtype == TO_MANY and self.obj):
+            rel.addRelation(self.obj)
         return rel
 
 
