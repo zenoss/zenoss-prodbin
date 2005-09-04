@@ -100,14 +100,11 @@ class ToOneRelationship(RelationshipBase):
         if a relationship already exists clear it"""
         self._remoteRemove()
         self.obj = aq_base(obj)
-        self.title = obj.id
 
 
     def _remove(self,obj=None):
         """remove the to one side of a relationship"""
         self.obj = None 
-        self.title = None
-        self.obj = None
 
 
     def _remoteRemove(self, obj=None):
@@ -116,22 +113,12 @@ class ToOneRelationship(RelationshipBase):
             rs = self.getRelSchema(self.id)
             self.obj._remove(rs.remoteAtt(self.id), aq_parent(self))
 
-    
+
     def hasobject(self, obj):
         """does this relation point to the object passed"""
         return self.obj == obj
 
 
-    security.declareProtected('View', 'getRelatedId')
-    def getRelatedId(self):
-        '''Override getId to return the id of the object,
-        not the relationship'''
-        if self.obj:
-            return self.obj.id
-        else:
-            return None
-
-    
     security.declareProtected('View', 'getPrimaryLink')
     def getPrimaryLink(self, target='rightFrame'):
         """get the link tag of a related object"""

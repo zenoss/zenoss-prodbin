@@ -313,18 +313,6 @@ class ToManyRelationshipTest(RMBaseTest):
 #     self._verifyObjectPaste(ob)
 #   File "/Users/edahl/Zope-2.8.1-final/lib/python/OFS/CopySupport.py", line 428, in _verifyObjectPaste
 #     action  = 'manage_main')
-#     def testRenameToMany(self):
-#         """test renaming an object that has a tomany relationship"""
-#         dev = self.build(self.app, Device, "dev")
-#         anna = self.build(self.app, Location, "anna")
-#         dev.location.addRelation(anna)
-#         self.failUnless(dev.location() == anna)
-#         self.app.manage_renameObject("dev", "newdev")
-#         self.failUnless(hasattr(self.app, "newdev"))
-#         self.failUnless(hasattr(anna.devices, "newdev"))
-#         self.failIf(hasattr(anna.devices, "dev"))
-
-
     def testaddRelationOneToManyCont(self):
         """Test froming a one to many contained relationship"""
         dev = self.build(self.app, Device, "dev")
@@ -343,6 +331,15 @@ class ToManyRelationshipTest(RMBaseTest):
 
 
     def testremoveRelationOneToManyCont2(self):
+        """Test removing a one to many contained relationship from relation"""
+        dev = self.build(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        self.failUnless(eth.device() == dev)
+        dev.interfaces.removeRelation(eth)
+        self.failUnless(len(dev.interfaces()) == 0)
+
+
+    def testremoveRelationOneToManyCont3(self):
         """Test removing all objects from one to many contained relationship"""
         dev = self.build(self.app, Device, "dev")
         eth = self.create(dev.interfaces, IpInterface, "eth0")
@@ -352,9 +349,91 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(len(dev.interfaces()) == 0)
         
 
+    def testremoveRelationOneToManyCont4(self):
+        """remove all objs from one to many contained relationship from relation"""
+        dev = self.build(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        eth1 = self.create(dev.interfaces, IpInterface, "eth1")
+        self.failUnless(len(dev.interfaces()) == 2)
+        dev.interfaces.removeRelation()
+        self.failUnless(len(dev.interfaces()) == 0)
+        
 
     def testaddRelationManyToMany(self):
         """Test froming a many to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        group = self.create(self.app, Group, "group")
+        dev.addRelation("groups", group)
+        self.failUnless(group in dev.groups())
+        self.failUnless(dev in group.devices())
+
+
+    def testaddRelationToManyNone(self):
+        """Test adding None to a to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        self.failUnlessRaises(RelationshipManagerError, 
+                            dev.addRelation, "groups", None)
+
+
+    def testremoveRelationManyToMany(self):
+        """Test removing from a to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        group = self.create(self.app, Group, "group")
+        dev.addRelation("groups", group)
+        self.failUnless(group in dev.groups())
+        dev.removeRelation("groups", group)
+        self.failIf(group in dev.groups())
+        self.failIf(dev in group.devices())
+
+
+    def testremoveRelationManyToMany2(self):
+        """Test removing from a to many relationship with two objects"""
+        dev = self.create(self.app, Device, "dev")
+        dev2 = self.create(self.app, Device, "dev2")
+        group = self.create(self.app, Group, "group")
+        group2 = self.create(self.app, Group, "group2")
+        dev.addRelation("groups", group)
+        dev.addRelation("groups", group2)
+        dev2.addRelation("groups", group)
+        self.failUnless(len(group2.devices()) == 1)
+        self.failUnless(len(group.devices()) == 2)
+        dev.removeRelation("groups", group)
+        self.failIf(group in dev.groups())
+        self.failIf(dev in group.devices())
+        self.failUnless(group2 in dev.groups())
+        self.failUnless(dev2 in group.devices())
+
+
+    def testremoveRelationManyToMany4(self):
+        """Test removing all from to one side of a one to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        dev2 = self.create(self.app, Device, "dev2")
+        group = self.create(self.app, Group, "group")
+        group2 = self.create(self.app, Group, "group2")
+        dev.addRelation("groups", group)
+        dev.addRelation("groups", group2)
+        dev2.addRelation("groups", group)
+        self.failUnless(len(group2.devices()) == 1)
+        self.failUnless(len(group.devices()) == 2)
+        dev.removeRelation("groups")
+        self.failUnless(len(dev.groups()) == 0)
+        self.failIf(dev in group.devices())
+        self.failIf(group2 in dev.groups())
+        self.failUnless(dev2 in group.devices())
+
+
+    def testDeteteToManyRelationship(self):
+        """Test deleteing the to many side of a many to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        group = self.create(self.app, Group, "group")
+        dev.addRelation("groups", group)
+        self.failUnless(group in dev.groups())
+        dev._delObject("groups")
+        self.failIf(dev in group.devices())
+        self.failIf(hasattr(dev, "groups"))
+
+
+
 
 
 def test_suite():

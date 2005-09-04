@@ -13,7 +13,6 @@ $Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.48 $"[11:-2]
 
-import sys
 
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -196,50 +195,37 @@ class ToManyRelationship(RelationshipObjectManager):
 
 
     security.declareProtected('Manage Relations', 'removeRelation')
-    def removeRelation(self, obj=None, id=None):
+    def removeRelation(self, obj=None):
         """remove and object from a relationship"""
-        if not obj and not id:
-            for obj in self.objectValuesAll():
-                self._remoteRemove(obj)
-            self._remove()
-        else:
-            if not obj: obj = self._getOb(id, None)
-            if obj == None: return
-            obj = obj.primaryAq()
-            self._remoteRemove(obj)
-            self._remove(obj)
+        self._remoteRemove(obj)
+        self._remove(obj)
 
 
     def _delObject(self, id, dp=1):
         """Emulate ObjectManager deletetion."""
+        obj = self._getOb(id)
         if self.isContainer:
-            obj = self._getOb(id)
             obj.manage_beforeDelete(obj, self)
-        self.removeRelation(id=id)
+        self.removeRelation(obj)
 
     
-    #FIXME this is very yucky looking code!!!!
-    security.declareProtected('Manage Relations', 'renameId')
-    def renameId(self, obj):
+    security.declareProtected('Manage Relations', 'renameObject')
+    def renameObject(self, obj, oldppath):
         """change an objects id in its related collection"""
-        nid = obj.id
-        nfullid = obj.getPrimaryId()
-        oldid = obj.oldid
-        oldfullid = nfullid.split('/')[:-1]
-        oldfullid.append(oldid)
-        oldfullid = '/'.join(oldfullid)
-        if self._objects.has_key(oldfullid):
-            objstore = self._objects
-            oldid = oldfullid
-            nid = nfullid
-            tobj = objstore[oldid]
-            del objstore[oldid]
-            objstore[nid] = tobj
+        if self.isContainer:
+            oldid = oldppath[-1]
+            newid = obj.id
+        else:    
+            oldid = "/".join(oldppath)  
+            newid = obj.getPrimaryId()
+        if self._objects.has_key(oldid):
+            del self._objects[oldid]
+            self._objects[newid] = aq_base(obj)
             self._p_changed = 1
         else:
             raise ObjectNotFound, \
                 "old id %s not found in relation %s on object %s" % (
-                            oldid, self.id, self.aq_parent.id)
+                            oldid, self.id, aq_parent(self).id)
 
 
     def _add(self,obj,id=None):
