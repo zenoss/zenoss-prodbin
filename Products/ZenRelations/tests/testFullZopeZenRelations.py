@@ -43,8 +43,7 @@ class FullZopeTestCases(ZopeTestCase):
 
 
     def testCutPasteRM(self):
-        """test cut and past of a RM make sure primarypath is set 
-        and that rels work"""
+        """test cut and past of a RM make sure primarypath is set properly"""
         dev = build(self.folder, Device, "dev")
         cookie = self.folder.manage_cutObjects( ids=('dev',) ) 
         self.folder.subfolder.manage_pasteObjects( cookie )
@@ -84,7 +83,8 @@ class FullZopeTestCases(ZopeTestCase):
 
 
     def testCutPasteRMwRel(self):
-        """cut and paste with relationships"""
+        """cut and paste with relationships make sure they persist and
+        that their keys are updated properly"""
         dev = build(self.folder, Server, "dev")
         loc = build(self.folder, Location, "loc")
         jim = build(self.folder, Admin, "jim")
@@ -101,6 +101,29 @@ class FullZopeTestCases(ZopeTestCase):
         self.failUnless(dev.location() == loc)
         self.failUnless(hasattr(loc.devices, dev.getPrimaryId()))
         self.failUnless(hasattr(group.devices, dev.getPrimaryId()))
+
+
+    def testCopyPasteRMPP(self):
+        """test that primary path gets set correctly after copy and paste 
+        where id doesn't change"""
+        dev = build(self.folder, Device, "dev")
+        cookie = self.folder.manage_copyObjects(ids=('dev',))
+        self.folder.subfolder.manage_pasteObjects( cookie )
+        self.failUnless(hasattr(self.folder.subfolder, "dev"))
+        copy = self.folder.subfolder._getOb("dev")
+        self.failUnless(self.folder.subfolder.getPhysicalPath() == 
+            copy.getPrimaryPath()[:-1])
+
+
+    def testCopyPasteProperties(self):
+        """test that Properties are copied correctly"""
+        dev = build(self.folder, Device, "dev")
+        dev.pingStatus = 3
+        cookie = self.folder.manage_copyObjects(ids=('dev',))
+        self.folder.manage_pasteObjects( cookie )
+        self.failUnless(hasattr(self.folder.copy_of_dev, 'pingStatus'))
+        copy = self.folder._getOb("copy_of_dev")
+        self.failUnless(dev.pingStatus == copy.pingStatus)
 
 
 

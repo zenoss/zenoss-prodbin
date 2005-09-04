@@ -205,18 +205,18 @@ class RelationshipManager(RelationshipObjectManager):
         """use deepcopy to make copy of relationshipmanager toone and tomany
         make copy of relationship manager set up relations correctly"""
         id = self.id
-        if getattr(container, id, _marker) is not _marker:
+        if getattr(aq_base(container), id, _marker) is not _marker:
             id = "copy_of_" + id
         cobj = self.__class__(id) #make new instance
         cobj = cobj.__of__(container) #give the copy container's aq chain
         cobj.setPrimaryPath() #set up the primarypath for the copy
         for sobj in self.objectValues():
             csobj = sobj._getCopy(cobj)
-            if not hasattr(cobj, csobj.id):
-                cobj._setObject(csobj.id, csobj)
+            cobj._setObject(csobj.id, csobj)
         noprop = getattr(self, 'noPropertiesCopy', [])
         for name in self.getPropertyNames():
-            if (getattr(self, name, None) != None and name not in noprop and
+            if (getattr(self, name, None) != None and 
+                name not in noprop and
                 hasattr(self, "_updateProperty")):
                 val = getattr(self, name)
                 cobj._updateProperty(name, val)

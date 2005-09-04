@@ -4,10 +4,16 @@
 #
 #################################################################
 
+from OFS.PropertyManager import PropertyManager
 from ZenRelations.RelationshipManager import RelationshipManager
 
 # Test schema classes see schema.data for relationships
-class Device(RelationshipManager):pass
+class Device(RelationshipManager, PropertyManager):
+    _properties = (
+                    {'id':'pingStatus', 'type':'int', 
+                        'mode':'w', 'setter':'setPingStatus'},
+                  )
+
 class Server(Device):pass
 class IpInterface(RelationshipManager):pass
 class Group(RelationshipManager):pass

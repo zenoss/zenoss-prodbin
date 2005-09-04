@@ -382,21 +382,20 @@ class ToManyRelationship(RelationshipObjectManager):
 
 
     def _getCopy(self, container):
-        """make new relation add copies of owned objs 
-        and refs if many to many"""
+        """make new relation add copies of contained objs 
+        and refs if the relation is a many to many"""
         name = self.id
         rel = self.__class__(name)
         rel = rel.__of__(container)
         norelcopy = getattr(self, 'noRelationshipCopy', [])
         if name in norelcopy: return rel
-        for oobj in self.objectValuesOwned():
-            cobj = oobj._getCopy(rel)
-            rel._setObject(cobj.id, cobj)
-        rs = self.getRelSchema(name)
-        if self._isManyToMany:
+        if self.isContainer:
+            for oobj in self._objects.values():
+                cobj = oobj._getCopy(rel)
+                rel._setObject(cobj.id, cobj)
+        elif self.getRelSchema(name).remoteType(name) == TO_MANY:
             for robj in self._objects.values():
-                if not rel._getOb(robj.getPrimaryId(), None):
-                    container.addRelation(name, robj)
+                rel.addRelation(robj)
         return rel    
   
 
