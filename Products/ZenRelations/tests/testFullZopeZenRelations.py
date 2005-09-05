@@ -222,6 +222,28 @@ class FullZopeTestCases(ZopeTestCase):
         self.failUnless(group.devices.hasobject(dev))
         self.failUnless(dev.groups.hasobject(group))
 
+    
+    def testCopyPasteToFromOneToManyLink(self):
+        """Copy/Paste to form a one to many link between device and location"""
+        dev = build(self.folder, Device, "dev")
+        loc = build(self.folder, Location, "loc")
+        cookie = self.folder.manage_copyObjects(ids=('dev',))
+        self.folder.loc.devices.manage_pasteObjects(cookie )
+        self.failUnless(dev.location() == loc)
+        self.failUnless(dev in loc.devices())
+
+
+# this doesn't work because there is no factory,product,etc for IpInterface
+#     def testCutPasteIntoOneToManyCont(self):
+#         """Cut/Paste into one to many cont between device and interface"""
+#         dev = build(self.folder, Device, "dev")
+#         eth0 = build(self.folder, IpInterface, "eth0")
+#         cookie = self.folder.manage_cutObjects(ids=('eth0',))
+#         self.folder.dev.interfaces.manage_pasteObjects(cookie)
+#         self.failUnless(eth0 in dev.interfaces())
+#         self.failUnless(eth0.device() == dev)
+
+
 
 def test_suite():
     return unittest.makeSuite(ToOneRel, 'to one rel tests')

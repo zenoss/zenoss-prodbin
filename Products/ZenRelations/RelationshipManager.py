@@ -59,6 +59,7 @@ class RelationshipManager(RelationshipObjectManager):
 
             
     def absolute_url(self):
+        """If we were accessed from a different path then our primarypath"""
         aurl = RelationshipObjectManager.absolute_url(self)
         pp = self.getPhysicalPath()
         if pp != self.getPrimaryPath():
@@ -67,16 +68,16 @@ class RelationshipManager(RelationshipObjectManager):
             aurl = "/".join(aurl)
         return aurl
 
-        
+
     security.declarePrivate('buildRelations')
     def buildRelations(self):
         """auto build relationship object on this RelationshipManager
         must be called after aquisition path is estabilished
         a good place is in manage_afterAdd"""
-        if getattr(self, 'mySchemaManager', None) is not None:
+        if getattr(self, 'mySchemaManager', False):
             rses = self.mySchemaManager.getRelations(self)
             for rname, rs in rses.items():
-                if not getattr(aq_base(self), rname, _marker) is not _marker:
+                if not getattr(aq_base(self), rname, False):
                     if rs.relType(rname) == TO_ONE:
                         rel = ToOneRelationship(rname)
                     else:
@@ -86,11 +87,7 @@ class RelationshipManager(RelationshipObjectManager):
 
     security.declarePrivate('getRelSchema')
     def getRelSchema(self, name):
-        """get schema object from SchemaManager
-        
-        we cache the schema object in a volitile
-        hash so that we don't need to go back to 
-        SchemaManager all the time."""
+        """get schema object from SchemaManager must have a valid aq_chain"""
         return self.mySchemaManager.getRelSchema(self, name) 
 
 
@@ -181,20 +178,20 @@ class RelationshipManager(RelationshipObjectManager):
             if rs.remoteType(name) == TO_MANY: 
                 rname = rs.remoteAtt(name)
                 robj = getattr(self, name).obj
-                if robj: robj._remoteRenameObject(self, rname, oldppath)    
+                if robj: robj._remoteObjectRename(self, rname, oldppath)    
         for name in self.objectIds('To Many Relationship'):
             rs = self.getRelSchema(name)
             if rs.remoteType(name) == TO_MANY: 
                 rname = rs.remoteAtt(name)
                 for robj in getattr(self,name).objectValuesAll():
-                    robj._remoteRenameObject(self, rname, oldppath)    
+                    robj._remoteObjectRename(self, rname, oldppath)    
 
     
-    def _remoteRenameObject(self, robj, rname, oldppath):
+    def _remoteObjectRename(self, robj, rname, oldppath):
         """when an object is moved or renamed this method is called from 
         the changing object on the remote object it is related to.
         it gets the relationship and calls renameObject on it."""
-        rel = getattr(self, rname, None)
+        rel = getattr(self, rname, False)
         if not rel: raise AttributeError("Relationship %s not found" % rname)
         rel.renameObject(robj, oldppath)
 
@@ -288,8 +285,8 @@ class RelationshipManager(RelationshipObjectManager):
 
     def checkRelations(self, repair=False, log=None):
         """confirm the integrity of all relations on this object"""
-        rels = self.objectValues(spec = 'To One Relationship')
-        rels.extend(self.objectValues(spec = 'To Many Relationship'))
+        rels = self.objectValues(spec = ('To One Relationship', 
+                                        'To Many Relationship'))
         for rel in rels:
             rel.checkRelation(repair, log)
                 

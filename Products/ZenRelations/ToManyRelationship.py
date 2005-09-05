@@ -144,6 +144,15 @@ class ToManyRelationship(RelationshipObjectManager):
         return self.getParent().__class__
 
 
+    def manage_pasteObjects(self, cb_copy_data=None, REQUEST=None):
+        """if we are a container do normal paste else perform link"""
+        if self.isContainer:
+            RelationshipObjectManager.manage_pasteObjects(self,cb_copy_data,
+                                                          REQUEST)
+        else:
+            self.manage_linkObjects(cb_copy_data=cb_copy_data, REQUEST=REQUEST)
+
+        
     def manage_workspace(self, REQUEST):
         """if this has been called on us return our workspace
         if not redirect to the workspace of a related object"""
