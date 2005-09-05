@@ -1,4 +1,8 @@
-ZenRelations Testing System
+ZenRelations Testing System:
+
+test files are:
+testZenRelations.py
+testFullZopeZenRelations.py
 
 ZenRelations uses the following schema to perform tests on relationships:
      
