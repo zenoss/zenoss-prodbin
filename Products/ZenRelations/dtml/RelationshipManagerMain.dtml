@@ -193,6 +193,8 @@ function toggleSelect() {
   <dtml-if cb_dataValid>
   <input class="form-element" type="submit" name="manage_pasteObjects:method" 
    value="Paste" />
+  <input class="form-element" type="submit" name="manage_linkObjects:method" 
+   value="Link" />
   </dtml-if>
   </dtml-unless>
   <dtml-if "_.SecurityCheckPermission('Delete objects',this())">

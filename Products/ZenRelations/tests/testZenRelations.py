@@ -303,22 +303,21 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failIf(dev in anna.devices())
 
 
-# FIXME: zope permissions or something prevent rename
-#           need to investigate more to understand
-#           
-# Traceback (most recent call last):
-#   File "testZenRelations.py", line 312, in testRenameToMany
-#     self.app.manage_renameObject("dev", "newdev")
-#   File "/Users/edahl/Zope-2.8.1-final/lib/python/OFS/CopySupport.py", line 269, in manage_renameObject
-#     self._verifyObjectPaste(ob)
-#   File "/Users/edahl/Zope-2.8.1-final/lib/python/OFS/CopySupport.py", line 428, in _verifyObjectPaste
-#     action  = 'manage_main')
     def testaddRelationOneToManyCont(self):
         """Test froming a one to many contained relationship"""
         dev = self.build(self.app, Device, "dev")
         eth = self.create(dev.interfaces, IpInterface, "eth0")
         self.failUnless(eth in dev.interfaces())
         self.failUnless(eth.device() == dev)
+
+
+    def testDeleteFromOneToManyCont(self):
+        """Delete RM from within a ToManyCon relationship"""
+        dev = self.build(self.app, Device, "dev")
+        eth0 = self.build(dev.interfaces, IpInterface, "eth0")
+        self.failUnless(eth0 in dev.interfaces())
+        dev.interfaces._delObject("eth0")
+        self.failUnless(len(dev.interfaces()) == 0)
 
 
     def testremoveRelationOneToManyCont(self):
@@ -422,7 +421,7 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev2 in group.devices())
 
 
-    def testDeteteToManyRelationship(self):
+    def testDeleteToManyRelationship(self):
         """Test deleteing the to many side of a many to many relationship"""
         dev = self.create(self.app, Device, "dev")
         group = self.create(self.app, Group, "group")
@@ -431,8 +430,6 @@ class ToManyRelationshipTest(RMBaseTest):
         dev._delObject("groups")
         self.failIf(dev in group.devices())
         self.failIf(hasattr(dev, "groups"))
-
-
 
 
 

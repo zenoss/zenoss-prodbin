@@ -191,8 +191,13 @@ function toggleSelect() {
   <input class="form-element" type="submit" name="manage_copyObjects:method" 
    value="Copy" />
   <dtml-if cb_dataValid>
+  <dtml-if isContainer>
   <input class="form-element" type="submit" name="manage_pasteObjects:method" 
    value="Paste" />
+   <dtml-else>
+  <input class="form-element" type="submit" name="manage_pasteObjects:method" 
+   value="Link" />
+   </dtml-if>
   </dtml-if>
   </dtml-unless>
   <dtml-if "_.SecurityCheckPermission('Delete objects',this())">

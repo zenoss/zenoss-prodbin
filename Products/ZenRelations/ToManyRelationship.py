@@ -215,7 +215,8 @@ class ToManyRelationship(RelationshipObjectManager):
         obj = self._getOb(id)
         if self.isContainer:
             obj.manage_beforeDelete(obj, self)
-        self.removeRelation(obj)
+        else:
+            self.removeRelation(obj)
 
     
     security.declareProtected('Manage Relations', 'renameObject')
@@ -258,6 +259,10 @@ class ToManyRelationship(RelationshipObjectManager):
         if obj:
             id = obj.id
             if not self.isContainer: id = obj.getPrimaryId()
+            if not self._objects.has_key(id):
+                raise ObjectNotFound(
+                    "Object with id %s not found on relation %s" % 
+                    (id, self.id))
             del self._objects[id]
         else:
             if self.isContainer:

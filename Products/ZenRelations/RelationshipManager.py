@@ -32,10 +32,9 @@ _marker = "__ZENMARKER__"
 
 
 
-def manage_addRelationshipManager(context, id, title = None,
-                                    REQUEST = None):
+def manage_addRelationshipManager(context, id, REQUEST = None):
     """Relationship factory"""
-    rm =  RelationshipManager(id, title)
+    rm =  RelationshipManager(id)
     context._setObject(id, rm)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

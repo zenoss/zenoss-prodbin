@@ -119,6 +119,15 @@ class ToOneRelationship(RelationshipBase):
         return self.obj == obj
 
 
+    security.declareProtected('View', 'getRelatedId')
+    def getRelatedId(self):
+        '''return the id of the our related object''',
+        if self.obj:
+            return self.obj.id
+        else:
+            return None
+
+ 
     security.declareProtected('View', 'getPrimaryLink')
     def getPrimaryLink(self, target='rightFrame'):
         """get the link tag of a related object"""
