@@ -32,7 +32,7 @@ _marker = "__ZENMARKER__"
 
 
 
-def manage_addRelationshipManager(context, id, REQUEST = None):
+def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
     """Relationship factory"""
     rm =  RelationshipManager(id)
     context._setObject(id, rm)
@@ -51,7 +51,7 @@ class RelationshipManager(RelationshipObjectManager):
     security = ClassSecurityInfo()
 
 
-    def __init__(self, id):
+    def __init__(self, id, title=None):
         self.id = id
         self._moving = 0
         self.primaryPath = [] 
