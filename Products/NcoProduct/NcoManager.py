@@ -12,7 +12,7 @@ $Id: NcoManager.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
-import types, time, re, struct
+import types, time, re, struct, logging
 
 from Acquisition import Implicit
 from OFS.PropertyManager import PropertyManager
