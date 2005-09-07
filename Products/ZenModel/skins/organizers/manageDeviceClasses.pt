@@ -1,0 +1,37 @@
+<span tal:replace="structure here/standard_html_header" />
+<form tal:define="myurl string:/zport/dmd/DeviceLoader" 
+    action="/zport/dmd/DeviceLoader" method="post">
+    <table border="0" cellpadding="3" width="100%" 
+    align="left" bgcolor="#ffffff" cellspacing="1"
+        <tr>
+            <td class="tableheader" align="left">Systems</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="dcPaths:list" multiple
+                tal:define="
+                devs python:here.getOrganizer('Devices').getDeviceClassNames();
+                curdevs request/dcPaths | nothing"
+                >
+                    <option tal:repeat="dev devs" 
+                        tal:attributes="value dev; 
+                        selected python:curdevs and dev in curdevs"
+                        tal:content="dev">/Devices</option>
+                </select>
+            </td>
+        </tr>
+            <td class="tableheader" align="left">Systems</td>
+                <input class="tableheader" type="submit" name="addSystem:method"
+                  value="Add" />
+            </td>
+        <tr>
+            <td class="tableheader" align="left">New Device Class</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newSystemPath" />
+                <input class="tableheader" type="submit" name="addSystem:method"
+                  value="Add" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+<span tal:replace="structure here/standard_html_footer"/>
