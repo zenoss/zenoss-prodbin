@@ -307,6 +307,10 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
     def getEventSummary(self, where=None):
         """getEventSummary(where) return a list of tuples with number of events
         and the color of the severity that the number represents""" 
+        defaultdata = (
+            (0, "#ff0000"), (0, "#ff941a"), (0, "#ffff00"), 
+            (0, "#63b8ff"), (0, "#b23aee"), (0, "#00cd00"),
+        )
         severities = [5,4,3,2,1,0]
         select = 'select '
         for severity in severities:
@@ -317,17 +321,21 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         elif self.defaultwhere:
             select += ' where ' + self.defaultwhere
         select += ';'
-        curs = self._getCursor()
-        curs.execute(select)
-        row = curs.fetchone()
-        self._closeDb()
-        retdata = []
-        for i in range(len(severities)):
-            sev = severities[i]
-            if row:
-                retdata.append((row[i], self._colors[sev],))
-            else:
-                retdata.append((0, self._colors[sev],))
+        try:
+            curs = self._getCursor()
+            curs.execute(select)
+            row = curs.fetchone()
+            self._closeDb()
+            retdata = []
+            for i in range(len(severities)):
+                sev = severities[i]
+                if row:
+                    retdata.append((row[i], self._colors[sev],))
+                else:
+                    retdata.append((0, self._colors[sev],))
+        except:
+            logging.exception("failed querying event database") 
+            retdata = defaultdata
         return retdata    
             
 
