@@ -14,8 +14,8 @@ from threading import Timer
 
 import Pyro.core
 
-from ZenEvents.EventDatabase import EventDatabase
-from ZenEvents.EventDatabase import defaultPickleName, defaultSaveTime
+from Products.ZenEvents.EventDatabase import EventDatabase
+from Products.ZenEvents.EventDatabase import defaultPickleName, defaultSaveTime
 
 class PyroEventDatabase(Pyro.core.ObjBase, EventDatabase):
     def __init__(self, savefile=defaultPickleName, 

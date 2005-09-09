@@ -16,9 +16,9 @@ import pickle
 import os
 from os import path
 
-from ZenEvents.EventDatabase import EventDatabase, EventUpdateError
-from ZenEvents.EventDatabase import defaultPickleName
-from ZenEvents.Event import Event
+from Products.ZenEvents.EventDatabase import EventDatabase, EventUpdateError
+from Products.ZenEvents.EventDatabase import defaultPickleName
+from Products.ZenEvents.Event import Event
 
 class testEventDatabase(unittest.TestCase):
   

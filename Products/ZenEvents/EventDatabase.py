@@ -19,7 +19,7 @@ from threading import RLock, Timer
 from os import path
 from datetime import datetime
 
-from ZenEvents.Event import EventFromDict
+from Products.ZenEvents.Event import EventFromDict
 
 defaultPickleName = "savedevents"
 defaultSaveTime = 3600.0 

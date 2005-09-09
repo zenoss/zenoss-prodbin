@@ -1,7 +1,7 @@
 from twisted.web import soap, xmlrpc, resource, server
 import os
 
-from ZenEvents.EventDatabase import EventDatabase
+from Products.ZenEvents.EventDatabase import EventDatabase
 
 zeb = EventDatabase()
 

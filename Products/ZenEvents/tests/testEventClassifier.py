@@ -13,8 +13,8 @@ import unittest
 from os import path
 from pprint import pprint
 
-from ZenEvents.EventClassifier import EventClassifier
-from ZenEvents.Event import EventFromDict
+from Products.ZenEvents.EventClassifier import EventClassifier
+from Products.ZenEvents.Event import EventFromDict
 
 class testEventClassifier(unittest.TestCase):
     

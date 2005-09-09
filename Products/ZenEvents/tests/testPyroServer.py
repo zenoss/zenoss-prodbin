@@ -12,7 +12,7 @@
 
 import unittest
 import Pyro.core
-from ZenEvents.Event import Event
+from Products.ZenEvents.Event import Event
 
 class testPyroServer(unittest.TestCase):
     
