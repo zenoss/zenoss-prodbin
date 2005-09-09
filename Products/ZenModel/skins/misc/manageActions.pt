@@ -13,7 +13,15 @@
             Device Loader
         </a>
     </td>
-    <td class=tablevalues>Model devices and load them into the system</td>
+    <td class=tablevalues>Load devices into the system</td>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/Devices/manageDeviceClasses">
+            Manage Device Classes
+        </a>
+    </td>
+    <td class=tablevalues>Manage nodes in the device class tree</td>
 </tr>
 </table>
 <span tal:replace="structure here/standard_html_footer"/>

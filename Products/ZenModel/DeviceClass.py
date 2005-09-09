@@ -18,7 +18,7 @@ from Globals import InitializeClass
 from OFS.Folder import Folder
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.CMFCore import permissions
@@ -111,6 +111,28 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
     security = ClassSecurityInfo()
 
     
+    security.declareProtected('Change Device', 'manage_addDeviceClass')
+    def manage_addDeviceClass(self, newDeviceClassPath, REQUEST=None):
+        """add a device group to the database"""
+        self.getOrganizer("Devices").getDeviceClass(newDeviceClassPath)
+        if REQUEST: 
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+            
+
+
+    security.declareProtected('Change Device', 'manage_deleteDeviceClasses')
+    def manage_deleteDeviceClasses(self, deviceClassPaths, REQUEST=None):
+        """add a device group to the database"""
+        devices = self.getOrganizer("Devices")
+        for devClassName in deviceClassPaths:
+            devClass = devices.getDeviceClass(devClassName)
+            parent = aq_parent(devClass)
+            parent.removeRelation(devClass)
+        if REQUEST: 
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+            
+
+
     def getDeviceClass(self, path):
         """get or create the device class passed in devicePath"""
         path = self.zenpathsplit(path)
@@ -138,6 +160,12 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
         return dcnames
             
+
+    def deleteDeviceClasses(self, deviceClasses):
+        """
+        Delete all device classes passed in the list deviceClasses
+        """
+
 
     def createInstance(self, id):
         """create an instance based on its location in the device tree

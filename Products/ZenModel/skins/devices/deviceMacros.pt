@@ -32,6 +32,8 @@
         bgcolor=#ffffff cellspacing=1>
       <tr>
       <td class=statusvalues align=center bgcolor=_ width=16%
+        tal:on-error="structure string:
+            <span style='color: white;'>Events unavailable</span>"
         tal:repeat="evt python:here.netcool.getDeviceEventSummary(here.id)"
         tal:attributes="bgcolor python:evt[1]">
             <span tal:replace="python:evt[0]">evtcnt</span></td>
