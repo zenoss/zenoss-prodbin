@@ -5,7 +5,7 @@
 #################################################################
 
 from OFS.PropertyManager import PropertyManager
-from ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 # Test schema classes see schema.data for relationships
 class Device(RelationshipManager, PropertyManager):

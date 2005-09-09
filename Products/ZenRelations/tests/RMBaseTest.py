@@ -10,7 +10,7 @@ from OFS.Folder import manage_addFolder
 
 from Testing.ZopeTestCase import ZopeLite
 
-from ZenRelations.SchemaManager import manage_addSchemaManager
+from Products.ZenRelations.SchemaManager import manage_addSchemaManager
 
 from TestSchema import create, build
 
