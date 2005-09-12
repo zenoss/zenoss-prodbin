@@ -15,10 +15,11 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 import types
 import struct
 
+from Acquisition import aq_base
 
 def travAndColl(obj, toonerel, collect, collectname):
     """walk a series of to one rels collecting collectname into collect"""
-    from Acquisition import aq_base
+    #from Acquisition import aq_base
     value = getattr(aq_base(obj), collectname, None)
     if value:
         collect.append(value)
@@ -36,7 +37,7 @@ def getObjByPath(base, path):
     or it can be sequence of strings that starts with the dmd object ie:
     ('dmd', 'Devices', 'Servers', 'Linux', 'b.zentinel.net')
     maybe this can be replaced by unrestrictedtraverse?"""
-    from Acquisition import aq_base
+    #from Acquisition import aq_base
     if path:
         if type(path) == types.StringType or type(path) == types.UnicodeType:
             if path[0] == "/": path=path[1:]
@@ -171,20 +172,20 @@ def getHierarchyObj(root, name, factory, lastfactory=None,
     path = zenpathsplit(name)
     for id in path:
         if id == relpath: continue
-        nextroot = getattr(root, id, None)
-        if not nextroot:
+        if getattr(aq_base(root), id, False):
+            nextroot = getattr(root, id)
+        else:
             if id == path[-1]:
                 if lastrelpath: relpath = lastrelpath
                 if lastfactory: factory = lastfactory 
-            if relpath and hasattr(root, relpath):
+            if relpath and getattr(aq_base(root), relpath, False):
                 relobj = getattr(root, relpath)
-                nextroot = getattr(relobj, id, None)
-                if not nextroot:
+                if not getattr(aq_base(relobj), id, False):
                     if log: log.debug(
                         "creating object with id %s in relation %s" % 
                         (id, relobj.getId()))
                     factory(relobj, id)
-                    nextroot = relobj._getOb(id)
+                nextroot = relobj._getOb(id)
             else:
                 if log: log.debug("creating object with id %s"%id)
                 factory(root, id)
