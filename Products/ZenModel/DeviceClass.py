@@ -148,6 +148,7 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
         dcnames = [self.getDeviceClassName()]
         for subclass in self.subclasses():
             dcnames.extend(subclass.getDeviceClassNames())
+        dcnames.sort()
         return dcnames
 
 
