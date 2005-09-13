@@ -58,10 +58,10 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
 
     def __call__(self):
         """addDevice is default screen"""
-        return self.addDevice()
+        self.addDevice()
 
 
-    def loadDevice(self, deviceName, devicePath, 
+    def loadDevice(self, deviceName, devicePath="", 
             tag="", serialNumber="",
             snmpCommunity="public", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
@@ -105,7 +105,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         self.getOrganizer("Companies").getCompany(newManufacturerName)
         if REQUEST:
             self.REQUEST['manufacturer'] = newManufacturerName
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'setModel')
@@ -115,7 +115,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
                                         manufacturer, newModelName)
         if REQUEST:
             self.REQUEST['model'] = newModelName
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'setLocation')
@@ -124,7 +124,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         self.getOrganizer("Locations").getLocation(newLocationPath)
         if REQUEST:
             self.REQUEST['locationPath'] = newLocationPath
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'setRackLocation')
@@ -133,7 +133,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         self.getOrganizer("Locations").getRackLocation(newLocationPath)
         if REQUEST:
             self.REQUEST['locationPath'] = newLocationPath
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'addSystem')
@@ -144,7 +144,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         syss.append(newSystemPath)
         if REQUEST:
             self.REQUEST['systemPaths'] = syss
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'addDeviceGroup')
@@ -155,7 +155,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         groups.append(newDeviceGroupPath)
         if REQUEST:
             REQUEST['groupPaths'] = groups
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'addStatusMonitor')
@@ -166,7 +166,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         mons.append(newStatusMonitor)
         if REQUEST:
             self.REQUEST['statusMonitors'] = mons
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     security.declareProtected('Change Device', 'setCricketMonitor')
@@ -175,7 +175,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         self.getOrganizer("Monitors").getCricketMonitor(newCricketMonitor)
         if REQUEST:
             self.REQUEST['cricketMonitor'] = newCricketMonitor
-            return self.addDevice()
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
 
 
     def setupLog(self, response):
