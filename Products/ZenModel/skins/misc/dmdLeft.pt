@@ -18,7 +18,7 @@
       <td class="tablevalues" align="left" colspan="1">
         <form action="/zport/dmd/deviceSearchResults" METHOD="POST" 
             target="rightFrame">
-          <input type="text" name="query">
+          <input type="text" name="query" size="19">
         </form>
       </td>
     </tr>
