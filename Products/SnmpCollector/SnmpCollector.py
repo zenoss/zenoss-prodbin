@@ -246,7 +246,7 @@ class SnmpCollector(ZCmdBase):
         session = SnmpSession(name, timeout=3, port=port)
         oid = '.1.3.6.1.2.1.1.2.0'
         retval = None
-        for community in device.snmp_communities: #aq
+        for community in device.zSnmpCommunities: #aq
             session.community = community
             try:
                 session.get(oid)
