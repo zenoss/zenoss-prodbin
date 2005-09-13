@@ -18,7 +18,7 @@ from Globals import InitializeClass
 from OFS.Folder import Folder
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base, aq_parent, aq_chain
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.CMFCore import permissions
@@ -30,6 +30,7 @@ from Device import manage_addDevice
 from Classification import Classification
 from DeviceGroupInt import DeviceGroupInt
 
+_marker = "__MARKER___"
 
 def manage_addDeviceClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -382,4 +383,79 @@ class DeviceClass(Classification, DeviceGroupInt, Folder):
         manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
 
 
+    def buildDeviceTreeProperties(self):
+        devs = self.getOrganizer("Devices")
+        if getattr(aq_base(devs), "zSnmpCommunities", False): return
+
+        # Snmp collection properties
+        devs._setProperty("zSnmpCommunities", ["public", "private"], 
+                            type="lines")
+        devs._setProperty("zSnmpCollectorIgnoreMaps", [], type="lines")
+        devs._setProperty("zSnmpCollectorCollectMaps", [], type="lines")
+        devs._setProperty("zRouterMapCollectOnlyLocal", True, type="boolean")
+        devs._setProperty("zRouterMapCollectOnlyIndirect", True, type="boolean")
+        devs._setProperty("zInterfaceMapIgnoreTypes", [], type="lines")
+        devs._setProperty("zInterfaceMapIgnoreNames", "")
+        devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
+        devs._setProperty("zFileSystemMapIgnoreNames", "")
+        devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
+
+        # Cricket properties
+        devs._setProperty("zCricketDeviceType", "")
+        devs._setProperty("zCricketInterfaceMap", [], type="lines")
+        devs._setProperty("zCricketInterfaceIgnoreNames", "")
+        devs._setProperty("zCricketInterfaceIgnoreTypes", [], type="lines")
+
+        # what is the management interface
+        devs._setProperty("zManageInterfaceNames", 
+                         ('Loopback0','Ethernet0','hme0','ge0','eth0'), 
+                         type="lines")
+
+        # Ping monitor properties
+        devs._setProperty("zPingInterfaceName", "")
+        devs._setProperty("zPingInterfaceDescription", "")
+
+    
+    def deviceTreePropertyIds(self):
+        """Return list of device tree property names."""
+        devs = self.getOrganizer("Devices")
+        props = []
+        for prop in devs.propertyIds():
+            if not prop.startswith("z"): continue
+            props.append(prop)
+        props.sort()
+        return props
+
+
+    def deviceTreePropertyMap(self):
+        """Return property mapping of device tree properties."""
+        devs = self.getOrganizer("Devices")
+        pnames = self.deviceTreePropertyIds()
+        pmap = []
+        for pdict in devs.propertyMap():
+            if pdict['id'] in pnames:
+                pmap.append(pdict)
+        pmap.sort(lambda x, y: cmp(x['id'], y['id']))
+        return pmap
+            
+
+    def deviceTreePropertyString(self, id):
+        """Return the value of a device tree property as a string"""
+        value = getattr(self, id, "")
+        devs = self.getOrganizer("Devices")
+        type = devs.getPropertyType(id)
+        if type == "lines": 
+            value = ", ".join(value)
+        return value
+
+
+    def deviceTreePropertyPath(self, id):
+        """Return the primaryId of where a device tree property is found."""
+        for obj in aq_chain(self):
+            if getattr(aq_base(obj), id, _marker) != _marker:
+                return obj.getPrimaryDmdId().replace("/subclasses", "")
+
+                
+            
+        
 InitializeClass(DeviceClass)
