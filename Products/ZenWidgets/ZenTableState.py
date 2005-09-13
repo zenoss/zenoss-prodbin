@@ -35,7 +35,7 @@ class ZenTableState:
         self.sortedHeader = "primarySortKey"
         self.sortedSence="asc"
         self.sortRule = "cmp"
-        self.batchSize = 20
+        self.batchSize = 40
         self.start = 0
         self.filter = ""
         self.filterFields = []
