@@ -5,15 +5,20 @@
     align="center" bgcolor="#ffffff" cellspacing="1"
     tal:define="props here/deviceTreePropertyIds">
     <tr>
-      <th class="tabletitle" align="left" colspan="6">
+      <th class="tabletitle" align="left" colspan="3">
       Device Class Configuration
       </th>
     </tr>
+    <tr>
+      <th class="tableheader" align="left">Property</th>
+      <th class="tableheader" align="left">Path</th>
+      <th class="tableheader" align="left">Value</th>
+    </tr>
     <tr tal:repeat="prop props">
-      <td class="tableheader" align="left" tal:content="prop">
+      <td class="tablevalues" align="left" tal:content="prop">
         zPingInterfaceRegex
       </td>
-      <td class="tableheader" align="left" 
+      <td class="tablevalues" align="left" 
         tal:content="python: here.deviceTreePropertyPath(prop)"> 
         /Devices/Servers
       </td>
