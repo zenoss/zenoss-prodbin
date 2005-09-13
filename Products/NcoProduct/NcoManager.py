@@ -163,7 +163,8 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 self.cleanCache()
             return retdata
         except:
-            LOG("NcoManager", ERROR, "Failure querying oracle history")
+            logging.exception("Failure querying oracle history")
+            #LOG("NcoManager", ERROR, "Failure querying oracle history")
         return []
         
 
