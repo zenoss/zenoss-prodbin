@@ -8,7 +8,7 @@
             </th></tr>
         <tr>
         <tr>
-            <td class="tableheader" align="left">Device Classes</td>
+            <td class="tableheader" width="25%" align="left">Device Classes</td>
             <td class="tablevalues" align="left" colspan=3>
                 <select class="tablevalues" name="deviceClassPaths:list" 
                 multiple tal:define="
@@ -22,13 +22,21 @@
                 </select>
             </td>
         </tr>
+        <tr>
             <td class="tableheader" align="left"></td>
             <td class="tablevalues" align="left" colspan="3">
                 <input class="tableheader" type="submit" 
                     name="manage_deleteDeviceClasses:method" value="Delete" />
             </td>
+        </tr>
+    </table>
+</form>
+<form action="/zport/dmd/Devices" method="post">
+    <table border="0" cellpadding="3" width="100%" 
+        align="left" bgcolor="#ffffff" cellspacing="1">
         <tr>
-            <td class="tableheader" align="left">New Device Class</td>
+            <td class="tableheader" width="25%" align="left">
+                New Device Class</td>
             <td class="tablevalues" align="left" colspan="3">
                 <input class="tablevalues" type="text" 
                     size="40" name="newDeviceClassPath" />
