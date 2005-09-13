@@ -66,27 +66,27 @@ class SnmpClassifier(ZCatalog):
                         extra=makeIndexExtraParams('keywords'))
         self.addIndex('summaryIdx', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('summary'))
-         
         self.addColumn('getDeviceClassPath')
-        self.addColumn('getProductPath')
+        self.addColumn('getProduct')
         self.addColumn('getManufacturer')
         self.addColumn('getProductDescr')
 
 
-    def getClassifierEntry(self, deviceInfo, log=None):
-        """go and classify this device
-        deviceInfo is a dictionary with the following keys
-            devicename
-            community string
-            optionally agent port
+    def getClassifierEntry(self, deviceName, loginInfo, log=None):
+        """go and classify the device named deviceName
+        loginInfo is a dictionary which can have the following keys
+            snmpCommunity, snmpPort, loginName, loginPassword
         """
-        snmpdata = self.getDeviceSnmpInfo(deviceInfo, log)
+        if not log:
+            import logging
+            log = logging.getLogger()
+        snmpdata = self.getDeviceSnmpInfo(deviceName, loginInfo, log)
         if snmpdata:
-            if log: log.debug('got snmp data: %s' % snmpdata)
+            log.debug('got snmp data: %s' % snmpdata)
             query = self.buildQuery(snmpdata)
-            if log: log.debug('query string: %s' % query)
+            log.debug('query string: %s' % query)
             results = self.searchResults({'keywordsIdx' : query})
-            if log: log.debug('got %d classifer enteries' % len(results))
+            log.debug('got %d classifer enteries' % len(results))
             if results:
                 cle = results[0]
                 if log:
@@ -100,24 +100,22 @@ class SnmpClassifier(ZCatalog):
         return " or ".join(snmpInfo.split())
 
 
-    def getDeviceSnmpInfo(self, deviceInfo, log=None):
+    def getDeviceSnmpInfo(self, deviceName, loginInfo, log):
         """get the snmp information from the device based on our oid"""
-        port = deviceInfo.has_key('port') and deviceInfo['port'] or 161
+        port = loginInfo.get('snmpPort', 161)
         from Products.SnmpCollector.SnmpSession import SnmpSession
         import pysnmp
         try:
-            snmpsess = SnmpSession(deviceInfo['devicename'],
-                                    community=deviceInfo['community'],
+            snmpsess = SnmpSession(deviceName,
+                                    community=loginInfo['snmpCommunity'],
                                     port=port)
             data = snmpsess.get(self.oid)
             return data[self.oid]
         except pysnmp.mapping.udp.error.SnmpOverUdpError:
-            if log: 
-                log.info('snmp problem with device %s' 
-                            % deviceInfo['devicename'])
+            log.info('snmp problem with device %s' % deviceName)
         except:
-            if log: log.exception("problem with device %s" 
-                            % deviceInfo['devicename'])
+            log.exception("problem with device %s" % deviceName)
+                            
 
 
 InitializeClass(SnmpClassifier)

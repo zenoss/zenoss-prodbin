@@ -24,11 +24,10 @@ from Products.ZCatalog.CatalogAwareness import CatalogAware
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
 
-#from ConfmonPropManager import ConfmonPropManager
 
 def manage_addClassifierEntry(context, id=None, title=None, 
                     default_catalog = "", keywords = "", deviceClassPath = "", 
-                    productPath = "", systemPath = "",
+                    product = "", systemPath = "",
                     locationPath = "", manufacturer = "", 
                     productDescr = "", REQUEST = None):
     """make a device"""
@@ -36,7 +35,7 @@ def manage_addClassifierEntry(context, id=None, title=None,
         id = context.myClassifier.getNextClassifierEntryId()
     ce = ClassifierEntry(id, default_catalog=default_catalog, 
                         keywords=keywords, deviceClassPath=deviceClassPath,
-                        productPath=productPath, systemPath=systemPath, 
+                        product=product, systemPath=systemPath, 
                         locationPath=locationPath, manufacturer=manufacturer,
                         productDescr = productDescr)
     context._setObject(id, ce)
@@ -64,7 +63,7 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
                     {'id':'keywords', 'type':'text', 'mode':'rw'},
                     {'id':'deviceClassPath', 'type':'string', 'mode':'rw'},
                     {'id':'manufacturer', 'type':'string', 'mode':'rw'},
-                    {'id':'productPath', 'type':'string', 'mode':'rw'},
+                    {'id':'product', 'type':'string', 'mode':'rw'},
                     {'id':'productDescr', 'type':'text', 'mode':'rw'},
                 )
 
@@ -73,7 +72,7 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
 
     def __init__(self, id, title=None, 
                     default_catalog = "", keywords = "", deviceClassPath = "", 
-                    productPath = "", systemPath = "",
+                    product = "", systemPath = "",
                     locationPath = "", manufacturer = "",
                     snmpAgentPath = "", productDescr = ""):
         self.id = id 
@@ -81,7 +80,7 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
         self.default_catalog = default_catalog
         self.keywords = keywords
         self.deviceClassPath = deviceClassPath
-        self.productPath = productPath
+        self.product = product
         self.productDescr = productDescr
         self.systemPath = systemPath
         self.snmpAgentPath = snmpAgentPath
@@ -148,9 +147,9 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
         return self.deviceClassPath
 
 
-    def getProductPath(self):
+    def getProduct(self):
         """return the product path for this classifier entry"""
-        return self.productPath
+        return self.product
 
 
     def getManufacturer(self):

@@ -54,9 +54,18 @@ def manage_createDevice(context, deviceName, devicePath="",
     if context.getOrganizer("Devices").findDevice(deviceName):
         raise DeviceExistsError, "Device %s already exists" % deviceName
     if not devicePath:
-        devicePath = classifyDevice(deviceName, snmpCommunity, snmpPort,
-                        loginName, loginPassword)
-    
+        devicePath = "/Devices/Unknown"
+        loginInfo = {}
+        loginInfo['snmpCommunity'] = snmpCommunity
+        loginInfo['snmpPort'] = snmpPort
+        cEntry = context.getOrganizer("Devices").myClassifier.classifyDevice(
+                                    deviceName, loginInfo)
+        if cEntry:
+            devicePath = cEntry.getDeviceClassPath
+            manufacturer = manufacturer and manufacturer \
+                           or cEntry.getManufacturer
+            model = model and model or cEntry.getProduct
+   
     deviceClass = context.getOrganizer("Devices").getDeviceClass(devicePath)
     device = deviceClass.createInstance(deviceName)
     device.manage_editDevice(
@@ -70,18 +79,9 @@ def manage_createDevice(context, deviceName, devicePath="",
     return device
 
 
-def classifyDevice(self, deviceName, devicePath, 
+def classifyDevice(context, deviceName, devicePath, 
                 snmpCommunity, snmpPort, loginName, loginPassword):
     """get a device if devicePath is None try classifier"""
-    devicePath = "/Devices/Unknown"
-    self.classificationEntry = None
-    self.classificationEntry = \
-        self.getOrganizer("Devices").myClassifier.classifyDevice(
-                                deviceName,
-                                snmpCommunity, snmpPort,
-                                loginName, loginPassword)
-    if self.classificationEntry: 
-        devicePath = self.classificationEntry.getDeviceClassPath
     return devicePath
 
 

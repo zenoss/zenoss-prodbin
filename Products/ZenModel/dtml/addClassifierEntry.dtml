@@ -45,21 +45,33 @@
   <tr>
     <td align="left" valign="top">
     <div class="form-label">
-    ProductPath 
-    </div>
-    </td>
-    <td align="left" valign="top">
-    <input type="text" name="productPath" size="60" />
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-    <div class="form-label">
     Manufacturer 
     </div>
     </td>
     <td align="left" valign="top">
     <input type="text" name="manufacturer" size="60" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Product 
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="product" size="60" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Product Descr
+    </div>
+    </td>
+    <td align="left" valign="top">
+      <textarea class="form-element" name="productDescr:UTF-8:text"
+   rows="6" cols="35"></textarea>
+      </td>
     </td>
   </tr>
   <tr>

@@ -16,6 +16,8 @@ __version__ = "$Revision: 1.19 $"[11:-2]
 import logging
 import StringIO
 
+#import transaction
+
 from AccessControl import ClassSecurityInfo
 
 from OFS.SimpleItem import SimpleItem
@@ -91,7 +93,7 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
         except:
             logging.exception('load of device %s failed' % device)
         else:
-            get_transaction().commit()
+            #transaction.commit()
             device.collectConfig()
             logging.info("device %s loaded!" % deviceName)
             self.navlinks(device, response)

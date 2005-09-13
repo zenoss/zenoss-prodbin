@@ -45,21 +45,20 @@ class Classifier(OrderedFolder):
         self.curClassifierEntryId = 0
        
 
-    def classifyDevice(self, snmpCommnity="public", snmpPort=161,
-                        loginName="", loginPassword="", log=None):
+    def classifyDevice(self, deviceName, loginInfo, log=None): 
         """kick off device classification against all classifiers
         will walk down a tree of classifiers until the most specific 
         is found.  Top level classifiers can jump into the tree
         where lower level classifiers will then take over the process
         """
-        #open up valid snmp and command sessions for use by classifiers
-        #FIXME
         classifierEntry = None
         for classifier in self.getClassifierValues():
-            classifierEntry = classifier.getClassifierEntry(deviceInfo,log)
+            classifierEntry = classifier.getClassifierEntry(
+                                            deviceName, loginInfo,log)
             if classifierEntry: break
         return classifierEntry
-       
+      
+
     def getClassifierValues(self):
         return self.objectValues()
 
