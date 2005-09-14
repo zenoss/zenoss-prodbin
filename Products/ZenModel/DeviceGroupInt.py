@@ -5,20 +5,20 @@
 #
 #################################################################
 
-__doc__="""DeviceGroupInt
+__doc__="""DeviceGroupBase
 
-DeviceGroupInt interface for device grouping objects
+DeviceGroupBase interface for device grouping objects
 it implements some generic forms of its functions that
 DeviceGroupers can use.
 
-$Id: DeviceGroupInt.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
+$Id: DeviceGroupBase.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
         
 from Products.ZenUtils.Utils import travAndColl
 
-class DeviceGroupInt:
-    """DeviceGroupInt object"""
+class DeviceGroupBase:
+    """DeviceGroupBase object"""
     
     def getSubDevices(self, devfilter=None, 
                     subrel="subgroups", devrel="devices"):
@@ -35,23 +35,37 @@ class DeviceGroupInt:
         return devices
 
 
-    def getDeviceGroupName(self, superrel="parent"):
+    def getDeviceGroup(self, path, rootName, factory, relpath):
+        """return and potentially create a device group from its path"""
+        path = self.zenpathsplit(path)
+        if path[0] != rootName: path.insert(0,rootName)
+        name = self.zenpathjoin(path)
+        return self.getHierarchyObj(self.getDmd(), name, factory, 
+                                    relpath=relpath)
+
+
+    def getDeviceGroupName(self, rootName="", superrel="parent"):
         """get the full path of a group without its subrel names"""
         fullName = travAndColl(self, superrel, [], 'id')
         fullName.reverse()
+        if rootName: fullName.remove(rootName)
         return self.zenpathjoin(fullName)
     
     getPathName = getDeviceGroupName
 
-    def getDeviceGroupNames(self, subrel="subgroups"):
+
+    def getDeviceGroupNames(self, rootName="", subrel="subgroups"):
         """return the full paths to all subgroups"""
         groupNames = []
-        groupNames.append(self.getDeviceGroupName())
+        if self.id != rootName:
+            groupNames.append(self.getDeviceGroupName(rootName))
         subgroups = getattr(self, subrel, None)
         if not subgroups: 
             raise AttributeError, "%s not found on %s" % (subrel, self.id)
         for subgroup in subgroups():
-            groupNames.extend(subgroup.getDeviceGroupNames(subrel))
+            groupNames.extend(subgroup.getDeviceGroupNames(rootName, subrel))
+        if self.id == rootName: 
+            groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
         return groupNames
 
 
@@ -145,3 +159,31 @@ class DeviceGroupInt:
         elif status > 2:
             retval = '#ff0000'
         return retval
+
+
+    #security.declareProtected('View', 'helpLink')
+    def helpLink(self):
+        '''return a link to the objects help file'''
+        path = self.__class__.__module__.split('.')
+        className = path[-1].replace('Class','')
+        product = path[-2]
+       
+        path = ("", "Control_Panel", "Products", product, "Help", 
+                "%s.stx"%className)
+
+        # check to see if we have a help screen
+        app = self.getPhysicalRoot()
+        try:
+            app.restrictedTraverse(path)
+        except KeyError:
+            return ""
+            
+        url = "/HelpSys?help_url="+ "/".join(path)
+
+        return """<a class="tabletitle" href="%s"
+            onClick="window.open('%s','zope_help','width=600,height=500,
+            menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes'); 
+            return false;" onMouseOver="window.status='Open online help'; 
+            return true;" onMouseOut="window.status=''; return true;">Help!</a>
+            """ % (url, url)
+             
