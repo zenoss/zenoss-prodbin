@@ -1,6 +1,6 @@
 ###############################################################
 #
-# Copyright (c) 2002 Confmon Corporation. All Rights Reserved.
+# Copyright (c) 2002 Zentinel Systems, Inc. All Rights Reserved.
 #
 ###############################################################
 
