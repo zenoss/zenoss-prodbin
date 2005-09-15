@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -137,8 +137,7 @@ class RelationshipObjectManager(ObjectManager, RelCopyContainer,
         object (ie not by navigating down a relationship.  We use this
         to navigate to the object from a related object"""
         if (force or not self.getPrimaryPath() or
-            not self.checkPath(self.getPhysicalRoot(), 
-                                self.getPrimaryPath()[1:])):
+            self.getPrimaryPath() != self.getPhysicalPath()):
             self.primaryPath = self.getPhysicalPath()
             return 1
         else:

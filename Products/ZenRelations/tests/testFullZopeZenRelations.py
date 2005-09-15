@@ -134,6 +134,16 @@ class FullZopeTestCases(ZopeTestCase):
         self.failUnless(copy.admin() == None)
 
 
+    def test_setObjectOneToManyCont(self):
+        """Place object into ToManyCont with _setObject"""
+        dev = build(self.folder, Device, "dev")
+        eth0 = create(self.folder, IpInterface, "eth0")
+        dev.interfaces._setObject("eth0", eth0)
+        self.failUnless(dev.interfaces._getOb("eth0") == eth0)
+        self.failUnless("interfaces" in dev.interfaces.eth0.getPrimaryPath())
+
+
+
     def testCopyPasteRMOneToManyCont(self):
         """Copy/paste to check RM with OneToManyCont subobject"""
         dev = build(self.folder, Device, "dev")

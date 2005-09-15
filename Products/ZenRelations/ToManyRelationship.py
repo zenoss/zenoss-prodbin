@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -212,7 +212,6 @@ class ToManyRelationship(RelationshipObjectManager):
             for obj in objs:
                 obj.manage_beforeDelete(obj, self)
         else:
-            #self.removeRelation(obj)
             self._remoteRemove(obj)
             self._remove(obj)
 
@@ -220,9 +219,6 @@ class ToManyRelationship(RelationshipObjectManager):
     def _delObject(self, id, dp=1):
         """Emulate ObjectManager deletetion."""
         obj = self._getOb(id)
-        #if self.isContainer:
-        #    obj.manage_beforeDelete(obj, self)
-        #else:
         self.removeRelation(obj)
 
     
@@ -256,7 +252,7 @@ class ToManyRelationship(RelationshipObjectManager):
             if v is not None: id=v
         self._objects[id] = aq_base(obj)
         if self.isContainer:
-            obj = obj.__of__(self)
+            obj = aq_base(obj).__of__(self)
             obj.manage_afterAdd(obj, self)
         self._p_changed = 1
 
@@ -272,9 +268,6 @@ class ToManyRelationship(RelationshipObjectManager):
                     (id, self.id))
             del self._objects[id]
         else:
-            #if self.isContainer:
-            #    for obj in self.objectValuesOwned():
-            #        obj.manage_beforeDelete(obj, self)
             self._objects = {}
         self._p_changed = 1
 
@@ -384,7 +377,7 @@ class ToManyRelationship(RelationshipObjectManager):
     def objectIds(self, spec=None):
         """only return contained objects"""
         if self.isContainer:
-            return self._objectIds(self._object.keys(), spec)
+            return self._objectIds(self._objects.keys(), spec)
         return []    
              
 
