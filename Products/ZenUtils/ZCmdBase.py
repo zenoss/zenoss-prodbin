@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2003 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2003 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -54,5 +54,5 @@ class ZCmdBase(CmdBase):
 
     def findDevice(self, name):
         """return a device based on its FQDN"""
-        devices = self.dataroot.getOrganizer("Devices")
+        devices = self.dataroot.getDmdRoot("Devices")
         return devices.findDevice(name)

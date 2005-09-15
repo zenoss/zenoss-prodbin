@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -160,7 +160,7 @@ def zenpathjoin(pathar):
     """build a zenpath in its string form"""
     return "/" + "/".join(pathar)
 
-def getHierarchyObj(root, name, factory, lastfactory=None, 
+def OLDgetHierarchyObj(root, name, factory, lastfactory=None, 
                     relpath=None, lastrelpath=None, log=None):
     """build and return the path to an object 
     based on a hierarchical name (ex /Mail/Mta) relative
@@ -192,6 +192,36 @@ def getHierarchyObj(root, name, factory, lastfactory=None,
                 nextroot = root._getOb(id)
         root = nextroot
     return root
+
+
+def createHierarchyObj(root, name, factory, relpath, log=None):
+    """
+    Create a hierarchy object from its path we use relpath to skip down
+    any missing relations in the path and factory is the constructor for 
+    this object.
+    """
+    for id in zenpathsplit(name):
+        if id == relpath or getattr(aq_base(root), relpath, False):
+            root = getattr(root, relpath)
+        if not getattr(aq_base(root), id, False):
+            if id == relpath: 
+                raise AttributeError("relpath %s not found" % relpath)
+            if log: log.debug("Creating object with id %s in object %s" % 
+                            (id, root.getId()))
+            newobj = factory(id)
+            root._setObject(id, newobj)
+        root = getattr(root, id)
+    return root
+
+
+def getHierarchyObj(root, name, relpath):
+    """Return an object using its path relations are optional in the path."""
+    for id in zenpathsplit(name):
+        if id == relpath or getattr(aq_base(root), relpath, False):
+            root = getattr(root, relpath)
+        root = getattr(root, id)
+    return root
+    
 
 
 def basicAuthUrl(username, password, url):
