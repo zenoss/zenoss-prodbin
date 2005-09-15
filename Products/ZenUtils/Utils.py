@@ -17,6 +17,8 @@ import struct
 
 from Acquisition import aq_base
 
+from Products.ZenUtils.Exceptions import ZenPathError
+
 def travAndColl(obj, toonerel, collect, collectname):
     """walk a series of to one rels collecting collectname into collect"""
     #from Acquisition import aq_base
@@ -219,7 +221,10 @@ def getHierarchyObj(root, name, relpath):
     for id in zenpathsplit(name):
         if id == relpath or getattr(aq_base(root), relpath, False):
             root = getattr(root, relpath)
-        root = getattr(root, id)
+        if not getattr(root, id, False):
+            raise ZenPathError("Path %s id %s not found on object %s" %
+                                (name, id, root.getPrimaryId()))
+        root = getattr(root, id, None)
     return root
     
 

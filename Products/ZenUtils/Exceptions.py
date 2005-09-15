@@ -5,4 +5,11 @@
 #################################################################
 
 
-class ZentinelException(Exception): pass
+class ZentinelException(Exception): 
+    """Root of all Zentinel Exceptions"""
+    pass
+
+
+class ZenPathError(ZentinelException): 
+    """When walking a path something along the way wasn't found."""
+    pass
