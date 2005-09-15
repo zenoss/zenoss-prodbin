@@ -172,6 +172,7 @@ class ToManyRelationship(RelationshipObjectManager):
             raise InvalidContainer, \
                 "Container %s is not a RelatioshipManager" % container.id
         rs = container.getRelSchema(self.id)
+        self.setPrimaryPath()
         self.isContainer = rs.relType(self.id) == TO_MANY_CONT
         if self.isContainer:
             RelationshipObjectManager.manage_afterAdd(self, item, self)
