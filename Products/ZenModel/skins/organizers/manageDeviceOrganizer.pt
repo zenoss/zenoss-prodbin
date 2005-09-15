@@ -1,0 +1,55 @@
+<span tal:replace="structure here/standard_html_header" />
+<form tal:attributes="action here/absolute_url" action="_" method="post">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+    <table border="0" cellpadding="3" width="100%" 
+        align="left" bgcolor="#ffffff" cellspacing="1">
+        <tr><th class=tabletitle colspan=4 align="center">
+            <a class=tabletitle
+                tal:attributes="href request/URL"
+                tal:content="here/dmdRootName">Manage Systems</a>
+            </th></tr>
+        <tr>
+        <tr>
+            <td class="tableheader" width="25%" align="left">Systems</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="organizerPaths:list" 
+                multiple tal:define="
+                orgs python:here.getOrganizerNames();
+                curorgs request/organizerPaths | nothing"
+                >
+                    <option tal:repeat="org orgs" 
+                        tal:attributes="value org; 
+                        selected python:curorgs and org in curorgs"
+                        tal:content="org">/Systems</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left"></td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tableheader" type="submit" 
+                    name="manage_deleteOrganizers:method" value="Delete" />
+            </td>
+        </tr>
+    </table>
+</form>
+<form tal:attributes="action here/absolute_url" action="_" method="post">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+    <table border="0" cellpadding="3" width="100%" 
+        align="left" bgcolor="#ffffff" cellspacing="1">
+        <tr>
+            <td class="tableheader" width="25%" align="left">
+                New System</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newPath" />
+                <input class="tableheader" type="submit" 
+                    name="manage_addOrganizer:method" value="Add" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+<span tal:replace="structure here/standard_html_footer"/>
