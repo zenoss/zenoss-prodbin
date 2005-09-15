@@ -1,7 +1,7 @@
 <span tal:replace="structure here/standard_html_header"/>
 
 <span tal:define="
-    objects python:here.getOrganizer('Groups').objectValues(spec='DeviceGroup');
+    objects python:here.getDmdRoot('Groups').objectValues(spec='DeviceGroup');
     tableName string:devicegroupclasslist;
     tableTitle string: Groups;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"

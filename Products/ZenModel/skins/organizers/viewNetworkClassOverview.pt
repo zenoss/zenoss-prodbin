@@ -1,6 +1,6 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span tal:define="
-    objects python:here.getOrganizer('Networks').objectValues(spec='IpNetwork');
+    objects python:here.getDmdRoot('Networks').objectValues(spec='IpNetwork');
     tableName string:networkclasslist;
     tableTitle string: Networks;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"

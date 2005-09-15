@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -80,11 +80,11 @@ class BasicDeviceLoader:
                 snmpCommunity, snmpPort, loginName, loginPassword):
         """get a device if devicePath is None try classifier"""
         self.classificationEntry = None
-        if self.getOrganizer("Devices").findDevice(deviceName):
+        if self.getDmdRoot("Devices").findDevice(deviceName):
             raise DeviceExistsError, "Device %s already exists" % deviceName
         if not devicePath:
             self.classificationEntry = \
-                self.getOrganizer("Devices").myClassifier.classifyDevice(
+                self.getDmdRoot("Devices").myClassifier.classifyDevice(
                                         deviceName,
                                         snmpCommunity, snmpPort,
                                         loginName, loginPassword)
@@ -93,7 +93,7 @@ class BasicDeviceLoader:
                     "classifier failed to classify device %s" % deviceName
             devicePath = self.classificationEntry.getDeviceClassPath
 
-        deviceClass = self.getOrganizer("Devices").getDeviceClass(devicePath)
+        deviceClass = self.getDmdRoot("Devices").getOrganizer(devicePath)
         if not deviceClass:
             raise PathNotFoundError, \
                 "Path to device %s is not valid" % deviceName

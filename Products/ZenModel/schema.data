@@ -4,7 +4,7 @@ Device:clientofservices:2:0:IpService:clients:2:0
 Device:groups:2:0:DeviceGroup:devices:2:0
 Device:interfaces:4:0:IpInterface:device:1:0
 Device:ipservices:4:0:IpService:server:1:0
-Device:location:1:0:LocationBase:devices:2:0
+Device:location:1:0:Location:devices:2:0
 Device:model:1:0:Hardware:devices:2:0
 Device:software:2:0:Software:copies:2:0
 Device:monitors:2:0:Monitor:devices:2:0
@@ -30,4 +30,3 @@ IpNetwork:subnetworks:4:0:IpNetwork:parent:1:0
 System:serviceareas:2:0:ServiceArea:systems:2:0
 System:subsystems:4:0:System:parent:1:0
 Location:sublocations:4:0:Location:location:1:0
-Location:racks:4:0:Rack:location:1:0

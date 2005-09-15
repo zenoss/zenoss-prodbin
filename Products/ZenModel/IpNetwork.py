@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -23,7 +23,7 @@ from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
 from Instance import Instance
 from IpAddress import manage_addIpAddress
-from DeviceGroupInt import DeviceGroupInt
+from DeviceGroupBase import DeviceGroupBase
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -59,7 +59,7 @@ def addIpAddressToNetworks(context, ip, netmask=24):
     return ipobj
 
 
-class IpNetwork(Instance, DeviceGroupInt):
+class IpNetwork(Instance, DeviceGroupBase):
     """IpNetwork object"""
     portal_type = meta_type = 'IpNetwork'
 
@@ -175,17 +175,17 @@ class IpNetwork(Instance, DeviceGroupInt):
 
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupInt.pingStatus(self, "subnetworks", "ipaddresses")
+        return DeviceGroupBase.pingStatus(self, "subnetworks", "ipaddresses")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupInt.snmpStatus(self, "subnetworks", "ipaddresses")
+        return DeviceGroupBase.snmpStatus(self, "subnetworks", "ipaddresses")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupInt.getSubDevices(self, filter, 
+        return DeviceGroupBase.getSubDevices(self, filter, 
                                         "subnetworks", "ipaddresses")
 
 

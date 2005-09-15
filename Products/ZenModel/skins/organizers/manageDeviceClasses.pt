@@ -12,7 +12,7 @@
             <td class="tablevalues" align="left" colspan=3>
                 <select class="tablevalues" name="deviceClassPaths:list" 
                 multiple tal:define="
-                devs python:here.getOrganizer('Devices').getDeviceClassNames();
+                devs python:here.getDmdRoot('Devices').getOrganizerNames();
                 curdevs request/deviceClassPaths | nothing"
                 >
                     <option tal:repeat="dev devs" 

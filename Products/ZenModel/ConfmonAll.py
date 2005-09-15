@@ -1,6 +1,6 @@
 ################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -18,12 +18,13 @@ import copy
 
 from AccessControl import ClassSecurityInfo, getSecurityManager
 from Globals import InitializeClass
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_chain
 from DateTime import DateTime
 
 from Products.CMFCore.utils import _verifyActionPermissions
 
-from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getHierarchyObj
+from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin 
+from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
 
 class ConfmonAll:
@@ -31,6 +32,19 @@ class ConfmonAll:
 
     def __hash__(self):
         return hash(self.id)
+
+    
+    def callZenScreen(self, REQUEST):
+        """
+        Call and return screen that was passed in the referer value of REQUEST
+        """
+        screenName = REQUEST['zenScreenName']
+        screen = getattr(self, screenName, False)
+        if not screen: 
+            raise AttributeError("Screen %s not found in context %s" 
+                                % (screenName, self.getPhysicalPath()))
+        return screen()
+
 
 
     security.declareProtected('View', 'breadCrumbs')
@@ -152,11 +166,12 @@ class ConfmonAll:
         return self.absolute_url() + "/top"
 
 
-    def getPrimaryDmdId(self):
+    def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())
-        index = path.index('dmd')+1
-        return '/'+'/'.join(path[index:])
+        path = path[path.index(rootName)+1:]
+        if subrel: path = filter(lambda x: x != subrel, path)
+        return '/'+'/'.join(path)
   
 
     def zenpathjoin(self, path):
@@ -167,27 +182,30 @@ class ConfmonAll:
         return zenpathsplit(path)
 
 
-    def getHierarchyObj(self, root, name, factory, lastfactory=None, 
+    def OLDgetHierarchyObj(self, root, name, factory, lastfactory=None, 
                     relpath=None, lastrelpath=None, log=None):
-        return getHierarchyObj(root, name, factory, 
+        return OLDgetHierarchyObj(root, name, factory, 
                                 lastfactory, relpath, lastrelpath, log)
+
+
+    def createHierarchyObj(self, root, name, factory, relpath, log=None):
+        return createHierarchyObj(root, name, factory, relpath, log) 
+
+
+    def getHierarchyObj(self, root, name, relpath):
+        return getHierarchyObj(root, name, relpath) 
 
 
     def getDmd(self):
         """return the dmd root object"""
-        if hasattr(self, 'aq_chain'):
-            aqchain = self.aq_chain
-            for obj in aqchain:
-                if obj.id == 'dmd': return obj
+        for obj in aq_chain(self):
+            if obj.id == 'dmd': return obj
             
 
-    def getOrganizer(self, name):
+    def getDmdRoot(self, name):
         """return an organizer object by its name"""
         dmd = self.getDmd()
-        if hasattr(dmd, name):
-            return getattr(dmd, name)
-        else:
-            raise AttributeError, "Organizer %s not found in DMD" % name
+        return dmd._getOb(name)
 
     
     def getDmdObj(self, path):

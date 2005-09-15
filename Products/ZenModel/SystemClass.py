@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -13,6 +13,7 @@ $Id: SystemClass.py,v 1.34 2004/04/09 00:34:39 edahl Exp $"""
 
 __version__ = "$Revision: 1.34 $"[11:-2]
 
+from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from OFS.Folder import Folder
@@ -74,6 +75,26 @@ class SystemClass(Classification, Folder):
         '''constructor'''
         Classification.__init__(self, id, title)
        
+
+    security.declareProtected('Change System', 'manage_addSystem')
+    def manage_addSystem(self, newSystemPath, REQUEST=None):
+        """add a device group to the database"""
+        self.getDmdRoot("Systems").getSystemClass(newSystemPath)
+        if REQUEST: 
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+            
+
+    security.declareProtected('Change System', 'manage_deleteSystems')
+    def manage_deleteSystems(self, systemPaths, REQUEST=None):
+        """add a device group to the database"""
+        systems = self.getDmdRoot("Systems")
+        for systemName in systemPaths:
+            system = systems.getSystem(systemName)
+            parent = aq_parent(system)
+            parent.removeRelation(system)
+        if REQUEST: 
+            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+            
 
     def getSystem(self, path):
         """get or create a system from a system path"""

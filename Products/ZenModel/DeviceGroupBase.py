@@ -1,24 +1,23 @@
 
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
 __doc__="""DeviceGroupBase
 
-DeviceGroupBase interface for device grouping objects
-it implements some generic forms of its functions that
-DeviceGroupers can use.
-
 $Id: DeviceGroupBase.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
-        
-from Products.ZenUtils.Utils import travAndColl
 
-class DeviceGroupBase:
-    """DeviceGroupBase object"""
+from Products.ZenModel.Organizer import Organizer
+
+class DeviceGroupBase(Organizer):
+    """
+    DeviceGroupBase is the base class for device organizers.
+    It has lots of methods for rolling up device statistics and information.
+    """
     
     def getSubDevices(self, devfilter=None, 
                     subrel="subgroups", devrel="devices"):
@@ -33,40 +32,6 @@ class DeviceGroupBase:
         for subgroup in subgroups():
             devices.extend(subgroup.getSubDevices(devfilter))
         return devices
-
-
-    def getDeviceGroup(self, path, rootName, factory, relpath):
-        """return and potentially create a device group from its path"""
-        path = self.zenpathsplit(path)
-        if path[0] != rootName: path.insert(0,rootName)
-        name = self.zenpathjoin(path)
-        return self.getHierarchyObj(self.getDmd(), name, factory, 
-                                    relpath=relpath)
-
-
-    def getDeviceGroupName(self, rootName="", superrel="parent"):
-        """get the full path of a group without its subrel names"""
-        fullName = travAndColl(self, superrel, [], 'id')
-        fullName.reverse()
-        if rootName: fullName.remove(rootName)
-        return self.zenpathjoin(fullName)
-    
-    getPathName = getDeviceGroupName
-
-
-    def getDeviceGroupNames(self, rootName="", subrel="subgroups"):
-        """return the full paths to all subgroups"""
-        groupNames = []
-        if self.id != rootName:
-            groupNames.append(self.getDeviceGroupName(rootName))
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for subgroup in subgroups():
-            groupNames.extend(subgroup.getDeviceGroupNames(rootName, subrel))
-        if self.id == rootName: 
-            groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
-        return groupNames
 
 
     def getAllCounts(self, subrel="subgroups", devrel="devices"):
@@ -135,14 +100,14 @@ class DeviceGroupBase:
     def getDeviceGroupOmnibusEvents(self, omniField):
         """get omnibus events for this device group"""
         self.REQUEST.set('ev_whereclause', 
-            "%s like '.*%s.*'" % (omniField, self.getDeviceGroupName()))
+            "%s like '.*%s.*'" % (omniField, self.getOrganizerName()))
         return self.viewEvents(self.REQUEST)
 
 
     def getDeviceGroupOmnibusHistoryEvents(self, omniField):
         """get the history event list of this object"""
         self.REQUEST.set('ev_whereclause', 
-            "%s like '%%%s%%'" % (omniField, self.getDeviceGroupName()))
+            "%s like '%%%s%%'" % (omniField, self.getOrganizerName()))
         self.REQUEST.set('ev_orderby', "LastOccurrence desc")
         return self.viewHistoryEvents(self.REQUEST)
 

@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -41,7 +41,7 @@ class MonitorClass(Classification, Folder):
         """get or create the status monitor name"""
         from Products.ZenModel.StatusMonitorConf \
             import manage_addStatusMonitorConf
-        statusMonitorObj = self.getOrganizer("Monitors").StatusMonitors
+        statusMonitorObj = self.getDmdRoot("Monitors").StatusMonitors
         if not hasattr(statusMonitorObj, monitorName):
             manage_addStatusMonitorConf(statusMonitorObj, monitorName)
         return statusMonitorObj._getOb(monitorName)
@@ -49,7 +49,7 @@ class MonitorClass(Classification, Folder):
 
     def getStatusMonitorNames(self):
         """return a list of all status monitor names"""
-        status = self.getOrganizer("Monitors").StatusMonitors
+        status = self.getDmdRoot("Monitors").StatusMonitors
         snames = status.objectIds()
         snames.sort()
         return snames
@@ -59,7 +59,7 @@ class MonitorClass(Classification, Folder):
         """get or create the cricket monitor name"""
         from Products.ZenModel.CricketConf \
             import manage_addCricketConf
-        cricketObj = self.getOrganizer("Monitors").Cricket
+        cricketObj = self.getDmdRoot("Monitors").Cricket
         if not hasattr(cricketObj, monitorName):
             manage_addCricketConf(cricketObj, monitorName)
         return cricketObj._getOb(monitorName)
@@ -67,7 +67,7 @@ class MonitorClass(Classification, Folder):
 
     def getCricketMonitorNames(self):
         """return a list of all cricket monitor names"""
-        cricket = self.getOrganizer("Monitors").Cricket
+        cricket = self.getDmdRoot("Monitors").Cricket
         cnames = cricket.objectIds()
         cnames.sort()
         return cnames

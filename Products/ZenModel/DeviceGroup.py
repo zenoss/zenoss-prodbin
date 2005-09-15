@@ -1,12 +1,11 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
 __doc__="""DeviceGroup
 
-DeviceGroup represents a group of devices
 
 $Id: DeviceGroup.py,v 1.15 2004/04/04 01:51:19 edahl Exp $"""
 
@@ -17,26 +16,33 @@ from Globals import InitializeClass
 
 from Products.CMFCore import permissions
 
-from Instance import Instance
-from DeviceGroupInt import DeviceGroupInt
+from DeviceGroupBase import DeviceGroupBase
 
-def manage_addDeviceGroup(context, id, title = None, REQUEST = None):
+def manage_addDeviceGroup(context, id, description = None, REQUEST = None):
     """make a DeviceGroup"""
-    d = DeviceGroup(id, title)
+    d = DeviceGroup(id, description)
     context._setObject(id, d)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
 
+
 addDeviceGroup = DTMLFile('dtml/addDeviceGroup',globals())
 
-class DeviceGroup(Instance, DeviceGroupInt):
-    """DeviceGroup object"""
+
+
+class DeviceGroup(DeviceGroupBase):
+    """
+    DeviceGroup is a DeviceGroup Organizer that allows generic device groupings.
+    """
+
+    # Organizer configuration
+    dmdRootName = "Groups"
+    dmdSubRel = "subgroups"
+
     portal_type = meta_type = 'DeviceGroup'
-    _properties = (
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                   ) 
+
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -66,9 +72,5 @@ class DeviceGroup(Instance, DeviceGroupInt):
           },
         )
     
-    def __init__(self, id, title = None, description = ''):
-        Instance.__init__(self, id, title)
-        self.description = description
-
-
+    
 InitializeClass(DeviceGroup)

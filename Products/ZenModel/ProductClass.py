@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -43,8 +43,8 @@ class ProductClass(Classification, Folder):
         from Products.ZenModel.Hardware import manage_addHardware
         from Products.ZenModel.Company import manage_addCompany
         
-        companyObj = self.getOrganizer("Companies").getCompany(manufacturer)
-        hardwareOrg = self.getOrganizer("Products").Hardware
+        companyObj = self.getDmdRoot("Companies").getCompany(manufacturer)
+        hardwareOrg = self.getDmdRoot("Products").Hardware
         if not hasattr(hardwareOrg, manufacturer):
             manage_addProductClass(hardwareOrg, manufacturer)
         manufObj = hardwareOrg._getOb(manufacturer)
@@ -62,8 +62,8 @@ class ProductClass(Classification, Folder):
         from Products.ZenModel.Software import manage_addSoftware
         from Products.ZenModel.Company import manage_addCompany
 
-        companyObj = self.getOrganizer("Companies").getCompany(manufacturer)
-        softwareOrg = self.getOrganizer("Products").Software
+        companyObj = self.getDmdRoot("Companies").getCompany(manufacturer)
+        softwareOrg = self.getDmdRoot("Products").Software
         if not hasattr(softwareOrg, manufacturer):
             manage_addProductClass(softwareOrg, manufacturer)
         manufObj = softwareOrg._getOb(manufacturer)

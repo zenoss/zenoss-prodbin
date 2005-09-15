@@ -1,18 +1,16 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
 __doc__="""System
 
-System represents a group of devices that provide a major
-business function
-
 $Id: System.py,v 1.45 2004/04/14 22:11:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.45 $"[11:-2]
 
+from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -21,24 +19,36 @@ from Products.CMFCore import permissions
 
 from Products.ZenUtils.Utils import travAndColl
 
-from Instance import Instance
-from DeviceGroupInt import DeviceGroupInt
+from DeviceGroupBase import DeviceGroupBase
 
 
-def manage_addSystem(context, id, title = None, REQUEST = None):
+def manage_addSystem(context, id, description = None, REQUEST = None):
     """make a System"""
-    d = System(id, title)
+    d = System(id, description)
     context._setObject(id, d)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
 
+
 addSystem = DTMLFile('dtml/addSystem',globals())
 
-class System(Instance, DeviceGroupInt):
-    """System object"""
+
+
+class System(DeviceGroupBase):
+    """
+    System class is a device organizer that represents a business system.
+    May need to manage "services" as well so that more sophisticated 
+    dependencies can be tracked.
+    """
+
+    # Organizer configuration
+    dmdRootName = "Systems"
+    dmdSubRel = "subsystems"
+
     portal_type = meta_type = 'System'
+
     default_catalog = 'systemSearch'
     
     _properties = (
@@ -101,54 +111,41 @@ class System(Instance, DeviceGroupInt):
                 description = '',
                 systemClass = '',
                 productionState = 1000):
-        Instance.__init__(self, id)
-        self.description = description
+        DeviceGroupBase.__init__(self, id, description)
         self.productionState = productionState
         self.systemClass = systemClass
 
 
-    def getSystemName(self):
-        """walk up our parent path to build the full name of this system"""
-        return DeviceGroupInt.getDeviceGroupName(self)
-
-    getPathName = getFullSystemName = getSystemName
-
-
-    def getSystemNames(self):
-        """return the full path names to all subsystems"""
-        return DeviceGroupInt.getDeviceGroupNames(self,subrel="subsystems")
-
-
     def countDevices(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupInt.countDevices(self, "subsystems")
+        return DeviceGroupBase.countDevices(self, "subsystems")
 
     
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupInt.pingStatus(self, "subsystems")
+        return DeviceGroupBase.pingStatus(self, "subsystems")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupInt.snmpStatus(self, "subsystems")
+        return DeviceGroupBase.snmpStatus(self, "subsystems")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupInt.getSubDevices(self, filter, "subsystems")
+        return DeviceGroupBase.getSubDevices(self, filter, "subsystems")
 
     
     security.declareProtected('View', 'systemEvents')
     def systemEvents(self):
         """get the event list of this object"""
-        return DeviceGroupInt.getDeviceGroupOmnibusEvents(self, "System")
+        return DeviceGroupBase.getDeviceGroupOmnibusEvents(self, "System")
 
 
     security.declareProtected('View', 'systemHistoryEvents')
     def systemHistoryEvents(self):
         """get the history event list of this object"""
-        return DeviceGroupInt.getDeviceGroupOmnibusHistoryEvents(self, "System")
+        return DeviceGroupBase.getDeviceGroupOmnibusHistoryEvents(self, "System")
         
     
     security.declareProtected('View', 'omniPingStatus')
@@ -156,7 +153,7 @@ class System(Instance, DeviceGroupInt):
         """pingStatus() -> return the number of devices that are down"""
         status = -1
         try:
-            status = self.netcool.getPingStatus(system=self.getFullSystemName())
+            status = self.netcool.getPingStatus(system=self.getOrganizerName())
             status = self.convertStatus(status)
         except: pass
         return status
@@ -168,7 +165,7 @@ class System(Instance, DeviceGroupInt):
         status = -1
         try:
             status = self.netcool.getOmniStatus(
-                   systemName=self.getFullSystemName(),
+                   systemName=self.getOrganizerName(),
                    where=" Class=100 and Severity=5 and Node like '.*cmts.*'")
             status = self.convertStatus(status)
         except: pass
@@ -180,7 +177,7 @@ class System(Instance, DeviceGroupInt):
         """snmpStatus() -> return the number of devices with snmp problems"""
         status = -1
         try:
-            status = self.netcool.getSnmpStatus(system=self.getFullSystemName())
+            status = self.netcool.getSnmpStatus(system=self.getOrganizerName())
             status = self.convertStatus(status)
         except: pass
         return status
@@ -191,7 +188,7 @@ class System(Instance, DeviceGroupInt):
         """eventCount() -> return the number of devices with snmp problems"""
         status = 0 
         try:
-            status = self.netcool.getEventCount(system=self.getFullSystemName())
+            status = self.netcool.getEventCount(system=self.getOrganizerName())
         except: pass
         return status
 
@@ -209,8 +206,23 @@ class System(Instance, DeviceGroupInt):
 
     def summary(self):
         """text summary of object for indexing"""
-        return self.getFullSystemName() + " " + self.description
-                
+        return self.getOrganizerName() + " " + self.description
+    
+
+    security.declareProtected('View', 'convertProdState')
+    def convertProdState(self, prodState):
+        '''convert a numeric production state to a
+        textual representation using the prodStateConversions
+        map'''
+        
+        if self.prodStateConversions:
+            for line in self.prodStateConversions: #aq
+                line = line.rstrip()
+                (sev, num) = line.split(':')
+                if int(num) == prodState:
+                    return sev
+        return "Unknown"
+
 
         
 InitializeClass(System)

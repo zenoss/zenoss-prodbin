@@ -3,6 +3,8 @@
 <span metal:use-macro="here/top/macros/header" />
 <form method=post tal:attributes="action request/URL1"
     tal:define="myurl string:${request/URL1}/editDevice">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
 <br />
 <table border="0" cellpadding="3" width="100%" 
     align="left" bgcolor="#ffffff" cellspacing="1"

@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -51,14 +51,14 @@ def manage_createDevice(context, deviceName, devicePath="",
 
     "Device factory creates a device and sets up its relations"        
 
-    if context.getOrganizer("Devices").findDevice(deviceName):
+    if context.getDmdRoot("Devices").findDevice(deviceName):
         raise DeviceExistsError, "Device %s already exists" % deviceName
     if not devicePath:
         devicePath = "/Devices/Unknown"
         loginInfo = {}
         loginInfo['snmpCommunity'] = snmpCommunity
         loginInfo['snmpPort'] = snmpPort
-        cEntry = context.getOrganizer("Devices").myClassifier.classifyDevice(
+        cEntry = context.getDmdRoot("Devices").myClassifier.classifyDevice(
                                     deviceName, loginInfo)
         if cEntry:
             devicePath = cEntry.getDeviceClassPath
@@ -66,7 +66,7 @@ def manage_createDevice(context, deviceName, devicePath="",
                            or cEntry.getManufacturer
             model = model and model or cEntry.getProduct
    
-    deviceClass = context.getOrganizer("Devices").getDeviceClass(devicePath)
+    deviceClass = context.getDmdRoot("Devices").getOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
     device.manage_editDevice(
                 tag, serialNumber,
@@ -257,7 +257,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     def getLocationName(self):
         """return the full location name ie /Location/SubLocation/Rack"""
         loc = self.location()
-        if loc: return loc.getLocationName()
+        if loc: return loc.getOrganizerName()
         return ""
 
 
@@ -292,13 +292,13 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('View', 'getSystemNames')
     def getSystemNames(self):
         """get the system names for this device"""
-        return map(lambda x: x.getSystemName(), self.systems())
+        return map(lambda x: x.getOrganizerName(), self.systems())
 
 
     security.declareProtected('View', 'getDeviceGroupNames')
     def getDeviceGroupNames(self):
         """get the device group names for this device"""
-        return map(lambda x: x.getDeviceGroupName(), self.groups())
+        return map(lambda x: x.getOrganizerName(), self.groups())
 
 
     security.declareProtected('View', 'getOsVersion')
@@ -383,13 +383,11 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
 
     def getPeerDeviceClassNames(self):
         "build a list of all device paths that have the python class pyclass"
-        dclass = self.getOrganizer("Devices")
+        dclass = self.getDmdRoot("Devices")
         return dclass.getPeerDeviceClassNames(self.__class__)
 
         
         
-
-
     ####################################################################
     # Edit functions used to manage device relations and other attributes
     ####################################################################
@@ -443,7 +441,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
        
         if REQUEST: 
             REQUEST['message'] = "Device Saved at time:"
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setProdState')
@@ -459,49 +457,36 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'addManufacturer')
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getOrganizer("Companies").getCompany(newManufacturerName)
+        self.getDmdRoot("Companies").getCompany(newManufacturerName)
         if REQUEST:
             REQUEST['manufacturer'] = newManufacturerName
             REQUEST['message'] = ("Added Manufacturer %s at time:" 
                                     % newManufacturerName)
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setModel')
     def setModel(self, manufacturer, model, newModelName="", REQUEST=None):
         """set the model of this device"""
         if newModelName: model = newModelName
-        modelObj = self.getOrganizer("Products").getModelProduct(
+        modelObj = self.getDmdRoot("Products").getModelProduct(
                                         manufacturer, model)
         self.addRelation("model", modelObj)
         if REQUEST:
             REQUEST['message'] = ("Set Manufacturer %s and Model %s at time:" 
                                     % (manufacturer, model))
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setRackLocation')
-    def setRackLocation(self, locationPath, newLocationPath=None, REQUEST=None):
-        """set a the locaiton of a device within a rack
-        if the location ends with '-3' it will be the
-        rackslot of the device"""
-        if newLocationPath: locationPath = newLocationPath
-        locobj = self.getOrganizer("Locations").getRackLoaction(locationPath)
-        self.addRelation("location", locobj)
-        if REQUEST:
-            REQUEST['message'] = "Set RackLocation %s at time:" % locationPath
-            return self.editDevice()
-
-    
     security.declareProtected('Change Device', 'setLocation')
     def setLocation(self, locationPath, newLocationPath=None, REQUEST=None):
         """set the location of a device within a generic location path"""
         if newLocationPath: locationPath = newLocationPath
-        locobj = self.getOrganizer("Locations").getLocation(locationPath)
+        locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
         self.addRelation("location", locobj)
         if REQUEST:
             REQUEST['message'] = "Set Location %s at time:" % locationPath
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setCricketMonitor')
@@ -510,62 +495,62 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         """set the cricket monitor for this device if newCricketMonitor
         is passed in create it"""
         if newCricketMonitor: cricketMonitor = newCricketMonitor
-        obj = self.getOrganizer("Monitors").getCricketMonitor(
+        obj = self.getDmdRoot("Monitors").getCricketMonitor(
                                                     cricketMonitor)
         self.addRelation("cricket", obj)
         if REQUEST:
             REQUEST['message'] = "Set Cricket %s at time:" % cricketMonitor
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setStatusMonitors')
     def setStatusMonitors(self, statusMonitors):
-        objGetter = self.getOrganizer("Monitors").getStatusMonitor
+        objGetter = self.getDmdRoot("Monitors").getStatusMonitor
         self._setRelations("monitors", objGetter, statusMonitors)
 
 
     security.declareProtected('Change Device', 'addStatusMonitor')
     def addStatusMonitor(self, newStatusMonitor, REQUEST=None):
         """add new status monitor to the database and this device"""
-        mon = self.getOrganizer("Monitors").getStatusMonitor(newStatusMonitor)
+        mon = self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
         self.addRelation("monitors", mon)
         if REQUEST:
             REQUEST['message'] = "Added Monitor %s at time:" % newStatusMonitor
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setGroups')
     def setGroups(self, groupPaths):
         """set the list of groups for this device based on a list of paths"""
-        objGetter = self.getOrganizer("Groups").getDeviceGroup
+        objGetter = self.getDmdRoot("Groups").getOrganizer
         self._setRelations("groups", objGetter, groupPaths)
 
 
     security.declareProtected('Change Device', 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
         """add a device group to the database and this device"""
-        group = self.getOrganizer("Groups").getDeviceGroup(newDeviceGroupPath)
+        group = self.getDmdRoot("Groups").getOrganizer(newDeviceGroupPath)
         self.addRelation("groups", group)
         if REQUEST:
             REQUEST['message'] = "Added Group %s at time:" % newDeviceGroupPath
-            return self.editDevice()
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setSystems')
     def setSystems(self, systemPaths):
         """set a list of systems to this device using their system paths"""
-        objGetter = self.getOrganizer("Systems").getSystem
+        objGetter = self.getDmdRoot("Systems").getOrganizer
         self._setRelations("systems", objGetter, systemPaths)
       
 
     security.declareProtected('Change Device', 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
         """add a systems to this device using its system path"""
-        sys = self.getOrganizer("Systems").getSystem(newSystemPath)
+        sys = self.getDmdRoot("Systems").getOrganizer(newSystemPath)
         self.addRelation("systems", sys)
         if REQUEST:
-            REQUEST['message'] = "Added System %s at time:" % newSystemPath
-            return self.editDevice()
+
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setTerminalServer')
@@ -629,8 +614,10 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
 
 
     def _getDeviceClassPath(self):
-        '''Return the device class'''
-        return self.deviceClass().getDeviceClassPath()
+        """Return the device class path in the form /Server/Linux"""
+        return self.deviceClass().getOrganizerName()
+
+    getDeviceClassName = _getDeviceClassPath
 
 
     def _getProdState(self):

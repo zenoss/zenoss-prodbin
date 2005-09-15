@@ -1,13 +1,10 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
 __doc__="""Location
-
-Location is a base class that represents a physical
-location where a collection of devices resides.
 
 $Id: Location.py,v 1.12 2004/04/22 19:08:47 edahl Exp $"""
 
@@ -20,30 +17,34 @@ from AccessControl import ClassSecurityInfo
 
 from Products.CMFCore import permissions
 
-from DeviceGroupInt import DeviceGroupInt
+from Products.ZenModel.DeviceGroupBase import DeviceGroupBase
 
-from LocationBase import LocationBase
 
 def manage_addLocation(context, id, description = "", REQUEST = None):
     """make a Location"""
-    loc = Location(id)
+    loc = Location(id, description)
     context._setObject(id, loc)
     loc.description = description
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
 
+
 addLocation = DTMLFile('dtml/addLocation',globals())
 
-class Location(LocationBase):
-    """Location object"""
+
+
+class Location(DeviceGroupBase):
+    """
+    Location is a DeviceGroup Organizer that manages physical device Locations.
+    """
+
+    # Organizer configuration
+    dmdRootName = "Locations"
+    dmdSubRel = "sublocations"
+
     portal_type = meta_type = 'Location'
     
-    _properties = (
-                    {'id':'description', 'type':'string', 'mode':'w'},
-                   ) 
-
-    description = ""
 
     factory_type_information = ( 
         { 
@@ -86,28 +87,10 @@ class Location(LocationBase):
 
     security = ClassSecurityInfo()
 
-    #need to decuple these two methods out to actions
-    security.declareProtected('View', 'locationEvents')
-    def locationEvents(self):
-        """get the event list of this object"""
-        self.REQUEST.set('ev_whereclause', "Location like '%s.*'" %
-                                    self.getLocationName())
-        return self.viewEvents(self.REQUEST)
-
-
-    security.declareProtected('View', 'locationHistoryEvents')
-    def locationHistoryEvents(self):
-        """get the history event list of this object"""
-        self.REQUEST.set('ev_whereclause', "Location like '%s%%'" %
-                                    self.getLocationName())
-        self.REQUEST.set('ev_orderby', "LastOccurrence desc")
-        return self.viewHistoryEvents(self.REQUEST)
-
-
     security.declareProtected('View', 'getAllCounts')
     def getAllCounts(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupInt.getAllCounts(self, "sublocations")
+        return DeviceGroupBase.getAllCounts(self, "sublocations")
         
 
     security.declareProtected('View', 'countDevices')
@@ -119,13 +102,37 @@ class Location(LocationBase):
         return count
 
 
-    def getLocationNames(self):
-        """build a list of the full paths of all sub locations and racks""" 
-        locnames = LocationBase.getLocationNames(self)
-        #for rack in self.racks():
-            #locnames.append(rack.getLocationName())
-        locnames.sort()
-        return locnames 
+    def pingStatus(self):
+        """aggrigate ping status for all devices in this group and below"""
+        return DeviceGroupBase.pingStatus(self, "sublocations")
 
     
-InitializeClass(LocationBase)
+    def snmpStatus(self):
+        """aggrigate snmp status for all devices in this group and below"""
+        return DeviceGroupBase.snmpStatus(self, "sublocations")
+
+
+    def getSubDevices(self, filter=None):
+        """get all the devices under and instance of a DeviceGroup"""
+        return DeviceGroupBase.getSubDevices(self, filter, "sublocations")
+
+
+    #need to decuple these two methods out to actions
+    security.declareProtected('View', 'locationEvents')
+    def locationEvents(self):
+        """get the event list of this object"""
+        self.REQUEST.set('ev_whereclause', "Location like '%s.*'" %
+                                    self.getOrganizerName())
+        return self.viewEvents(self.REQUEST)
+
+
+    security.declareProtected('View', 'locationHistoryEvents')
+    def locationHistoryEvents(self):
+        """get the history event list of this object"""
+        self.REQUEST.set('ev_whereclause', "Location like '%s%%'" %
+                                    self.getOrganizerName())
+        self.REQUEST.set('ev_orderby', "LastOccurrence desc")
+        return self.viewHistoryEvents(self.REQUEST)
+
+
+InitializeClass(Location)

@@ -2,6 +2,8 @@
 <script metal:use-macro="here/miscmacros/macros/getProducts"></script>
 <form tal:define="myurl string:/zport/dmd/DeviceLoader" 
     action="/zport/dmd/DeviceLoader" method="post">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
 <table border="0" cellpadding="3" width="100%" 
     align="left" bgcolor="#ffffff" cellspacing="1"
     tal:define="device python: here.meta_type != 'DeviceLoader' 
@@ -21,7 +23,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="devicePath"
             tal:define="
-            dcs python:here.getOrganizer('Devices').getDeviceClassNames();
+            dcs python:here.getDmdRoot('Devices').getOrganizerNames();
             curdc device/getDeviceClassPath | request/devicePath | nothing"
             >
                 <option tal:repeat="dc dcs" tal:content="dc" 
@@ -101,7 +103,7 @@
         <td class="tablevalues" align="left" >
             <select class="tablevalues" name="manufacturer"
             tal:define="
-            comps python:here.getOrganizer('Companies').getCompanyNames();
+            comps python:here.getDmdRoot('Companies').getCompanyNames();
             curman request/manufacturer | device/getManufacturerName |  nothing"
             tal:attributes="onchange string:getProducts(this)"
             >
@@ -124,7 +126,7 @@
             <select class="tablevalues" id="model" name="model"
             tal:define="
             cname request/manufacturer | device/getManufacturerName |  string:;
-            prods python:here.getOrganizer('Companies').getProductNames(cname);
+            prods python:here.getDmdRoot('Companies').getProductNames(cname);
             curprod device/getModelName | request/model | nothing"
             >
                 <option tal:repeat="prod prods" 
@@ -145,7 +147,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="locationPath"
             tal:define="
-            locs python:here.getOrganizer('Locations').getLocationNames();
+            locs python:here.getDmdRoot('Locations').getOrganizerNames();
             curloc device/getLocationName | request/locationPath | nothing"
             >
                 <option tal:repeat="loc locs" 
@@ -168,7 +170,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="systemPaths:list" multiple
             tal:define="
-            syss python:here.getOrganizer('Systems').getSystemNames();
+            syss python:here.getDmdRoot('Systems').getOrganizerNames();
             cursyss device/getSystemNames | request/systemPaths | nothing"
             >
                 <option tal:repeat="sys syss" 
@@ -192,7 +194,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="groupPaths:list" multiple
             tal:define="
-            dgs python:here.getOrganizer('Groups').getDeviceGroupNames();
+            dgs python:here.getDmdRoot('Groups').getOrganizerNames();
             curdgs device/getDeviceGroupNames | request/groupPaths | nothing"
             >
                 <option tal:repeat="dg dgs" 
@@ -216,7 +218,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="statusMonitors:list" multiple
             tal:define="
-            mons python:here.getOrganizer('Monitors').getStatusMonitorNames();
+            mons python:here.getDmdRoot('Monitors').getStatusMonitorNames();
             curmons device/getStatusMonitorNames | 
                     request/statusMonitors | string:localhost"
             >
@@ -241,7 +243,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="cricketMonitor"
             tal:define="
-            crks python:here.getOrganizer('Monitors').getCricketMonitorNames();
+            crks python:here.getDmdRoot('Monitors').getCricketMonitorNames();
             curcrk here/getCricketServerName | request/cricketMonitor |
                 string:localhost"
             >

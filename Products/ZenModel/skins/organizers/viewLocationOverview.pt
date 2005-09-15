@@ -41,45 +41,6 @@
     </tr>
     <span metal:use-macro="here/viewDeviceGroupClassOverview/macros/body" />
 </table>
-<br tal:condition="here/racks/countObjects">
-<table border=0 cellpadding=3 width=100% 
-    align=center bgcolor=#ffffff cellspacing=1
-    tal:define="objects here/racks/objectValuesAll;
-        tableName string:locationracks;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition=objects>
-    <tr>
-      <th class=tabletitle align=left colspan=8>
-        Racks
-      </th>
-    </tr>
-    <tr>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'primarySortKey','Name')">
-            Name
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'countDevices','Count')">
-            Name
-        </th>
-    </tr>
-    <tr tal:repeat="raq batch">
-        <td class=tablevalues align=left>
-        <a target=rightFrame href=_ 
-            tal:attributes="href raq/getPrimaryUrlPath"
-            tal:content="raq/id">name</a>
-        </td>
-        <td class=tablevalues align=left
-            tal:content="raq/countDevices">
-            count
-        </td>
-    </tr>
-    <tr>
-        <td colspan=2 class=tableheader align=center>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
-        </td>
-    </tr>
-</table>
 <br tal:condition="here/devices/countObjects">
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
 <span tal:replace="structure here/standard_html_footer"/>

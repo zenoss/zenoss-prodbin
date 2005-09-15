@@ -102,80 +102,71 @@ class ZDeviceLoader(ConfmonItem,SimpleItem):
 
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getOrganizer("Companies").getCompany(newManufacturerName)
+        self.getDmdRoot("Companies").getCompany(newManufacturerName)
         if REQUEST:
-            self.REQUEST['manufacturer'] = newManufacturerName
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['manufacturer'] = newManufacturerName
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setModel')
     def setModel(self, manufacturer, newModelName, REQUEST=None):
         """set the model of this device"""
-        modelObj = self.getOrganizer("Products").getModelProduct(
+        modelObj = self.getDmdRoot("Products").getModelProduct(
                                         manufacturer, newModelName)
         if REQUEST:
-            self.REQUEST['model'] = newModelName
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['model'] = newModelName
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setLocation')
     def setLocation(self, newLocationPath, REQUEST=None):
         """add a location to the database"""
-        self.getOrganizer("Locations").getLocation(newLocationPath)
+        self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         if REQUEST:
-            self.REQUEST['locationPath'] = newLocationPath
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
-
-
-    security.declareProtected('Change Device', 'setRackLocation')
-    def setRackLocation(self, newLocationPath, REQUEST=None):
-        """add a rack location to the database"""
-        self.getOrganizer("Locations").getRackLocation(newLocationPath)
-        if REQUEST:
-            self.REQUEST['locationPath'] = newLocationPath
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['locationPath'] = newLocationPath
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
         """add a system to the database"""
-        self.getOrganizer("Systems").getSystem(newSystemPath)
-        syss = self.REQUEST.get('systemPaths', [])
+        self.getDmdRoot("Systems").createOrganizer(newSystemPath)
+        syss = REQUEST.get('systemPaths', [])
         syss.append(newSystemPath)
         if REQUEST:
-            self.REQUEST['systemPaths'] = syss
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['systemPaths'] = syss
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
         """add a device group to the database"""
-        self.getOrganizer("Groups").getDeviceGroup(newDeviceGroupPath)
-        groups = self.REQUEST.get('groupPaths', [])
+        self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
+        groups = REQUEST.get('groupPaths', [])
         groups.append(newDeviceGroupPath)
         if REQUEST:
             REQUEST['groupPaths'] = groups
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'addStatusMonitor')
     def addStatusMonitor(self, newStatusMonitor, REQUEST=None):
         """add new status monitor to the database"""
-        self.getOrganizer("Monitors").getStatusMonitor(newStatusMonitor)
-        mons = self.REQUEST.get('statusMonitors', [])
+        self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
+        mons = REQUEST.get('statusMonitors', [])
         mons.append(newStatusMonitor)
         if REQUEST:
-            self.REQUEST['statusMonitors'] = mons
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['statusMonitors'] = mons
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setCricketMonitor')
     def setCricketMonitor(self, newCricketMonitor, REQUEST=None):
         """add new cricket monitor to the database"""
-        self.getOrganizer("Monitors").getCricketMonitor(newCricketMonitor)
+        self.getDmdRoot("Monitors").getCricketMonitor(newCricketMonitor)
         if REQUEST:
-            self.REQUEST['cricketMonitor'] = newCricketMonitor
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER'])
+            REQUEST['cricketMonitor'] = newCricketMonitor
+            return self.callZenScreen(REQUEST)
 
 
     def setupLog(self, response):

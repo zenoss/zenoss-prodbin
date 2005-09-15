@@ -349,7 +349,7 @@
       <span tal:repeat="item here/systems/objectValuesAll">
           <a href="_" target="rightFrame"
           tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/getFullSystemName">ID</a>
+          tal:content="item/getOrganizerName">ID</a>
       </span>
       </td>
     </tr>
@@ -386,7 +386,7 @@
       <span tal:repeat="item here/groups/objectValuesAll">
           <a href="_" target="rightFrame"
           tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/getDeviceGroupName">ID</a>
+          tal:content="item/getOrganizerName">ID</a>
       </span>
       </td>
     </tr>
