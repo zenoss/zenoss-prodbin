@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2002 Confmon Corporation. All rights reserved.
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
 
@@ -310,7 +310,7 @@ class DataCollector(ZCmdBase):
                 sys.exit(2)
             devices.append(device)
         if self.options.path:
-            devices = self.dataroot.getOrganizer("Devices")
+            devices = self.dataroot.getDmdRoot("Devices")
             droot = devices.getDeviceClass(self.options.path)
             if not droot:
                 print "unable to locate device class %s" % self.options.path
