@@ -24,7 +24,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 
-from DeviceGroupBase import DeviceGroupBase
+from DeviceOrganizer import DeviceOrganizer
 
 _marker = "__MARKER___"
 
@@ -41,7 +41,7 @@ addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
 
 
 
-class DeviceClass(DeviceGroupBase, Folder):
+class DeviceClass(DeviceOrganizer, Folder):
     """
     DeviceClass is a device organizer that manages the primary classification
     of device objects within the zenmon system.  It manages properties
@@ -175,27 +175,27 @@ class DeviceClass(DeviceGroupBase, Folder):
 
     def getAllCounts(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.getAllCounts(self, "subclasses")
+        return DeviceOrganizer.getAllCounts(self, "subclasses")
 
     
     def countDevices(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.countDevices(self, "subclasses")
+        return DeviceOrganizer.countDevices(self, "subclasses")
 
     
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.pingStatus(self, "subclasses")
+        return DeviceOrganizer.pingStatus(self, "subclasses")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupBase.snmpStatus(self, "subclasses")
+        return DeviceOrganizer.snmpStatus(self, "subclasses")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupBase.getSubDevices(self, filter, "subclasses")
+        return DeviceOrganizer.getSubDevices(self, filter, "subclasses")
 
     
     #need to decuple these two methods out to actions

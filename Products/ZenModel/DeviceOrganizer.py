@@ -5,17 +5,17 @@
 #
 #################################################################
 
-__doc__="""DeviceGroupBase
+__doc__="""DeviceOrganizer
 
-$Id: DeviceGroupBase.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
+$Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
 from Products.ZenModel.Organizer import Organizer
 
-class DeviceGroupBase(Organizer):
+class DeviceOrganizer(Organizer):
     """
-    DeviceGroupBase is the base class for device organizers.
+    DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
     """
     

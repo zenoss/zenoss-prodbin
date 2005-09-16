@@ -19,7 +19,7 @@ from Products.CMFCore import permissions
 
 from Products.ZenUtils.Utils import travAndColl
 
-from DeviceGroupBase import DeviceGroupBase
+from DeviceOrganizer import DeviceOrganizer
 
 
 def manage_addSystem(context, id, description = None, REQUEST = None):
@@ -36,7 +36,7 @@ addSystem = DTMLFile('dtml/addSystem',globals())
 
 
 
-class System(DeviceGroupBase):
+class System(DeviceOrganizer):
     """
     System class is a device organizer that represents a business system.
     May need to manage "services" as well so that more sophisticated 
@@ -111,41 +111,41 @@ class System(DeviceGroupBase):
                 description = '',
                 systemClass = '',
                 productionState = 1000):
-        DeviceGroupBase.__init__(self, id, description)
+        DeviceOrganizer.__init__(self, id, description)
         self.productionState = productionState
         self.systemClass = systemClass
 
 
     def countDevices(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.countDevices(self, "subsystems")
+        return DeviceOrganizer.countDevices(self, "subsystems")
 
     
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.pingStatus(self, "subsystems")
+        return DeviceOrganizer.pingStatus(self, "subsystems")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupBase.snmpStatus(self, "subsystems")
+        return DeviceOrganizer.snmpStatus(self, "subsystems")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupBase.getSubDevices(self, filter, "subsystems")
+        return DeviceOrganizer.getSubDevices(self, filter, "subsystems")
 
     
     security.declareProtected('View', 'systemEvents')
     def systemEvents(self):
         """get the event list of this object"""
-        return DeviceGroupBase.getDeviceGroupOmnibusEvents(self, "System")
+        return DeviceOrganizer.getDeviceGroupOmnibusEvents(self, "System")
 
 
     security.declareProtected('View', 'systemHistoryEvents')
     def systemHistoryEvents(self):
         """get the history event list of this object"""
-        return DeviceGroupBase.getDeviceGroupOmnibusHistoryEvents(self, "System")
+        return DeviceOrganizer.getDeviceGroupOmnibusHistoryEvents(self, "System")
         
     
     security.declareProtected('View', 'omniPingStatus')

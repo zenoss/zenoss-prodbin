@@ -17,7 +17,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.CMFCore import permissions
 
-from Products.ZenModel.DeviceGroupBase import DeviceGroupBase
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 
 def manage_addLocation(context, id, description = "", REQUEST = None):
@@ -34,7 +34,7 @@ addLocation = DTMLFile('dtml/addLocation',globals())
 
 
 
-class Location(DeviceGroupBase):
+class Location(DeviceOrganizer):
     """
     Location is a DeviceGroup Organizer that manages physical device Locations.
     """
@@ -90,7 +90,7 @@ class Location(DeviceGroupBase):
     security.declareProtected('View', 'getAllCounts')
     def getAllCounts(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.getAllCounts(self, "sublocations")
+        return DeviceOrganizer.getAllCounts(self, "sublocations")
         
 
     security.declareProtected('View', 'countDevices')
@@ -104,17 +104,17 @@ class Location(DeviceGroupBase):
 
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.pingStatus(self, "sublocations")
+        return DeviceOrganizer.pingStatus(self, "sublocations")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupBase.snmpStatus(self, "sublocations")
+        return DeviceOrganizer.snmpStatus(self, "sublocations")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupBase.getSubDevices(self, filter, "sublocations")
+        return DeviceOrganizer.getSubDevices(self, filter, "sublocations")
 
 
     #need to decuple these two methods out to actions

@@ -23,7 +23,7 @@ from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
 from Instance import Instance
 from IpAddress import manage_addIpAddress
-from DeviceGroupBase import DeviceGroupBase
+from DeviceOrganizer import DeviceOrganizer
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -59,8 +59,13 @@ def addIpAddressToNetworks(context, ip, netmask=24):
     return ipobj
 
 
-class IpNetwork(Instance, DeviceGroupBase):
+class IpNetwork(Instance, DeviceOrganizer):
     """IpNetwork object"""
+    
+    # Organizer configuration
+    dmdRootName = "Networks"
+    dmdSubRel = "subnetworks"
+
     portal_type = meta_type = 'IpNetwork'
 
     _properties = (
@@ -175,17 +180,17 @@ class IpNetwork(Instance, DeviceGroupBase):
 
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceGroupBase.pingStatus(self, "subnetworks", "ipaddresses")
+        return DeviceOrganizer.pingStatus(self, "subnetworks", "ipaddresses")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceGroupBase.snmpStatus(self, "subnetworks", "ipaddresses")
+        return DeviceOrganizer.snmpStatus(self, "subnetworks", "ipaddresses")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceGroupBase.getSubDevices(self, filter, 
+        return DeviceOrganizer.getSubDevices(self, filter, 
                                         "subnetworks", "ipaddresses")
 
 

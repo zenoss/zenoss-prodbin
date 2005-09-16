@@ -16,7 +16,7 @@ from Globals import InitializeClass
 
 from Products.CMFCore import permissions
 
-from DeviceGroupBase import DeviceGroupBase
+from DeviceOrganizer import DeviceOrganizer
 
 def manage_addDeviceGroup(context, id, description = None, REQUEST = None):
     """make a DeviceGroup"""
@@ -32,7 +32,7 @@ addDeviceGroup = DTMLFile('dtml/addDeviceGroup',globals())
 
 
 
-class DeviceGroup(DeviceGroupBase):
+class DeviceGroup(DeviceOrganizer):
     """
     DeviceGroup is a DeviceGroup Organizer that allows generic device groupings.
     """
