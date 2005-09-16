@@ -28,7 +28,7 @@ class SchemaManagerTest(RelationshipManagerBaseTest, SchemaManagerSetup):
     def setUp(self):
         RelationshipManagerBaseTest.setUp(self)
         SchemaManagerSetup.setUp(self)
-        self.sm = self.app.mySchemaManager
+        self.sm = self.app.ZenSchemaManager
 
 
     def tearDown(self):

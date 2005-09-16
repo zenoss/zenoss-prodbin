@@ -32,9 +32,9 @@ class RelationshipManagerTest(RelationshipManagerBaseTest, SchemaManagerSetup):
     def setUp(self):
         RelationshipManagerBaseTest.setUp(self)
         SchemaManagerSetup.setUp(self)
-        self.app.mySchemaManager.addRelSchema(self.rsoto)
-        self.app.mySchemaManager.addRelSchema(self.rsotm)
-        self.app.mySchemaManager.addRelSchema(self.rsmtm)
+        self.app.ZenSchemaManager.addRelSchema(self.rsoto)
+        self.app.ZenSchemaManager.addRelSchema(self.rsotm)
+        self.app.ZenSchemaManager.addRelSchema(self.rsmtm)
         self.setUpSecurity()
 
 

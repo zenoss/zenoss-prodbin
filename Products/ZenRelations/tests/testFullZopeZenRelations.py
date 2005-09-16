@@ -24,7 +24,7 @@ class FullZopeTestCases(ZopeTestCase):
     def afterSetUp(self):
         """setup schema manager and add needed permissions"""
         manage_addSchemaManager(self.folder)
-        self.folder.mySchemaManager.loadSchemaFromFile("schema.data")
+        self.folder.ZenSchemaManager.loadSchemaFromFile("schema.data")
         self.folder.manage_permission("Add Relationship Managers", [user_role,])
         self.folder.manage_permission("Delete objects", [user_role,])
         self.folder.manage_addFolder("subfolder")

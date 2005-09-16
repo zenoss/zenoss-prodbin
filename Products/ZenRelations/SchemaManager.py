@@ -60,7 +60,7 @@ class SchemaManager(ObjectManager, Implicit,
     security = ClassSecurityInfo()
 
     def __init__(self):
-        self.id = 'mySchemaManager' 
+        self.id = 'ZenSchemaManager' 
         self.title = 'Schema Manager'
         self._schema = {}
 

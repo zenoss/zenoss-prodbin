@@ -73,8 +73,8 @@ class RelationshipManager(RelationshipObjectManager):
         """auto build relationship object on this RelationshipManager
         must be called after aquisition path is estabilished
         a good place is in manage_afterAdd"""
-        if getattr(self, 'mySchemaManager', False):
-            rses = self.mySchemaManager.getRelations(self)
+        if getattr(self, 'ZenSchemaManager', False):
+            rses = self.ZenSchemaManager.getRelations(self)
             for rname, rs in rses.items():
                 if not getattr(aq_base(self), rname, False):
                     if rs.relType(rname) == TO_ONE:
@@ -87,7 +87,7 @@ class RelationshipManager(RelationshipObjectManager):
     security.declarePrivate('getRelSchema')
     def getRelSchema(self, name):
         """get schema object from SchemaManager must have a valid aq_chain"""
-        return self.mySchemaManager.getRelSchema(self, name) 
+        return self.ZenSchemaManager.getRelSchema(self, name) 
 
 
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
@@ -272,13 +272,13 @@ class RelationshipManager(RelationshipObjectManager):
     
     def getRelationships(self):
         """returns a dictionary of relationship objects keyed by their names"""
-        if getattr(self, 'mySchemaManager', _marker) is not _marker:
-            return self.mySchemaManager.getRelations(self)
+        if getattr(self, 'ZenSchemaManager', _marker) is not _marker:
+            return self.ZenSchemaManager.getRelations(self)
 
 
     def getRelationshipNames(self):
         "return our relationship names"
-        if getattr(self, 'mySchemaManager', _marker) is not _marker:
+        if getattr(self, 'ZenSchemaManager', _marker) is not _marker:
             return self.getRelationships().keys()
 
 

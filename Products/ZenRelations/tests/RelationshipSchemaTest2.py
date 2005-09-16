@@ -30,7 +30,7 @@ class RelationshipSchemaTest2(RelationshipManagerBaseTest):
     def setUp(self):
         RelationshipManagerBaseTest.setUp(self)
         manage_addSchemaManager(self.app)
-        self.sm = self.app.mySchemaManager
+        self.sm = self.app.ZenSchemaManager
         manage_addRelationshipSchema(self.sm, 
                             self.classOne, self.relOne, self.relType,
                             self.classTwo, self.relTwo, self.relTypeTwo)

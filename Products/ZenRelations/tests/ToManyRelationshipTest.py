@@ -30,9 +30,9 @@ class ToManyRelationshipTest(RelationshipManagerBaseTest, SchemaManagerSetup):
     def setUp(self):
         RelationshipManagerBaseTest.setUp(self)
         SchemaManagerSetup.setUp(self)
-        self.app.mySchemaManager.addRelSchema(self.rsoto)
-        self.app.mySchemaManager.addRelSchema(self.rsotm)
-        self.app.mySchemaManager.addRelSchema(self.rsotmc)
+        self.app.ZenSchemaManager.addRelSchema(self.rsoto)
+        self.app.ZenSchemaManager.addRelSchema(self.rsotm)
+        self.app.ZenSchemaManager.addRelSchema(self.rsotmc)
         self.setUpSecurity()
 
 

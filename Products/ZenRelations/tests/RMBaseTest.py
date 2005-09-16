@@ -20,7 +20,7 @@ class RMBaseTest(unittest.TestCase):
         self.app = ZopeLite.app()
         ZopeLite.installProduct("ZenRelations")
         manage_addSchemaManager(self.app)
-        self.app.mySchemaManager.loadSchemaFromFile("schema.data")
+        self.app.ZenSchemaManager.loadSchemaFromFile("schema.data")
         manage_addFolder(self.app, "folder")
 
     def tearDown(self):
