@@ -20,7 +20,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 
-from OFS.ObjectManager import ObjectManager
+from OFS.History import Historical
 
 from Products.CMFCore.DynamicType import DynamicType
 from Products.ZCatalog.CatalogAwareness import CatalogAware
@@ -34,9 +34,12 @@ from ConfmonPropManager import ConfmonPropManager
 from ConfmonAll import ConfmonAll
 
 
-class ConfmonBase(ConfmonAll, RelationshipManager, ConfmonPropManager, 
-                    DynamicType, CatalogAware): 
-    """Base class for all confmon classes"""
+class ConfmonBase(ConfmonAll, RelationshipManager, Historical, 
+                    ConfmonPropManager, DynamicType, CatalogAware): 
+    """
+    Base class for all confmon classes
+    """
+
     meta_type = 'ConfmonBase'
 
     default_catalog = ''
@@ -144,11 +147,11 @@ class ConfmonBase(ConfmonAll, RelationshipManager, ConfmonPropManager,
         nobj.oldid = self.id
         nobj.setPrimaryPath() #set up the primarypath for the copy
         #move all sub objects to new object
-        nrelations = self.mySchemaManager.getRelations(nobj).keys()
+        nrelations = self.ZenSchemaManager.getRelations(nobj).keys()
         for sobj in self.objectValues():
-            ObjectManager._delObject(self,sobj.getId())
+            RelationshipManager._delObject(self,sobj.getId())
             if not hasattr(nobj, sobj.id) and sobj.id in nrelations:
-                ObjectManager._setObject(nobj, sobj.id, sobj)
+                RelationshipManager._setObject(nobj, sobj.id, sobj)
         nobj.buildRelations() #build out any missing relations
         # copy properties to new object
         noprop = getattr(nobj, 'noPropertiesCopy', [])

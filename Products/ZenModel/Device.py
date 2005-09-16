@@ -58,7 +58,7 @@ def manage_createDevice(context, deviceName, devicePath="",
         loginInfo = {}
         loginInfo['snmpCommunity'] = snmpCommunity
         loginInfo['snmpPort'] = snmpPort
-        cEntry = context.getDmdRoot("Devices").myClassifier.classifyDevice(
+        cEntry = context.getDmdRoot("Devices").ZenClassifier.classifyDevice(
                                     deviceName, loginInfo)
         if cEntry:
             devicePath = cEntry.getDeviceClassPath
@@ -522,7 +522,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'setGroups')
     def setGroups(self, groupPaths):
         """set the list of groups for this device based on a list of paths"""
-        objGetter = self.getDmdRoot("Groups").getOrganizer
+        objGetter = self.getDmdRoot("Groups").createOrganizer
         self._setRelations("groups", objGetter, groupPaths)
 
 
@@ -539,7 +539,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'setSystems')
     def setSystems(self, systemPaths):
         """set a list of systems to this device using their system paths"""
-        objGetter = self.getDmdRoot("Systems").getOrganizer
+        objGetter = self.getDmdRoot("Systems").createOrganizer
         self._setRelations("systems", objGetter, systemPaths)
       
 

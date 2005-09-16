@@ -158,18 +158,18 @@ class DmdBuilder:
                     dr.createCatalog() 
 
     def buildSchema(self, dmd, file):
-        if hasattr(dmd, 'mySchemaManager'):
+        if hasattr(dmd, 'ZenSchemaManager'):
             return None
         manage_addSchemaManager(dmd)
-        sm = dmd._getOb('mySchemaManager')
+        sm = dmd._getOb('ZenSchemaManager')
         sm.loadSchemaFromFile(file)
 
 
     def buildClassifiers(self, dmd):
-        if hasattr(dmd, 'myClassifier'):
+        if hasattr(dmd, 'ZenClassifier'):
             return
         manage_addClassifier(dmd)
-        cl = dmd._getOb('myClassifier')
+        cl = dmd._getOb('ZenClassifier')
         snmpclassifiers = {
             'sysObjectIdClassifier' : '.1.3.6.1.2.1.1.2.0',
             'sysDescrClassifier' : '.1.3.6.1.2.1.1.1.0',

@@ -32,7 +32,7 @@ def manage_addClassifierEntry(context, id=None, title=None,
                     productDescr = "", REQUEST = None):
     """make a device"""
     if not id:
-        id = context.myClassifier.getNextClassifierEntryId()
+        id = context.ZenClassifier.getNextClassifierEntryId()
     ce = ClassifierEntry(id, default_catalog=default_catalog, 
                         keywords=keywords, deviceClassPath=deviceClassPath,
                         product=product, systemPath=systemPath, 
@@ -117,22 +117,22 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
     def index_object(self):
         """Override so that we can find the catalog no matter where we are
         A common method to allow Findables to index themselves."""
-        if hasattr(self.myClassifier, self.default_catalog):
-            cat = getattr(self.myClassifier, self.default_catalog)
+        if hasattr(self.ZenClassifier, self.default_catalog):
+            cat = getattr(self.ZenClassifier, self.default_catalog)
             cat.catalog_object(self, self._url())
 
 
     def unindex_object(self):
         """Override so that we can find the catalog no matter where we are
         A common method to allow Findables to unindex themselves."""
-        if hasattr(self.myClassifier, self.default_catalog):
-            cat = getattr(self.myClassifier, self.default_catalog)
+        if hasattr(self.ZenClassifier, self.default_catalog):
+            cat = getattr(self.ZenClassifier, self.default_catalog)
             cat.uncatalog_object(self._url())
 
     
     def getClassifierNames(self):
-        """allow select in property manager to find myClassifier"""
-        return self.myClassifier.getClassifierNames()
+        """allow select in property manager to find ZenClassifier"""
+        return self.ZenClassifier.getClassifierNames()
 
 
     def getKeywords(self):

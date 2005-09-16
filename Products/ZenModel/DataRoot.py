@@ -17,7 +17,7 @@ __version__ = "$Revision: 1.25 $"[11:-2]
 import re
 
 from AccessControl import ClassSecurityInfo
-from OFS.Folder import Folder
+from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
 from ImageFile import ImageFile
 from Globals import HTMLFile, DTMLFile
@@ -42,12 +42,12 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
-class DataRoot(ConfmonBase, Folder):
+class DataRoot(ConfmonBase, OrderedFolder):
     meta_type = portal_type = 'DataRoot'
 
-    manage_main = Folder.manage_main
+    manage_main = OrderedFolder.manage_main
 
-    manage_options = Folder.manage_options
+    manage_options = OrderedFolder.manage_options
 
     #setTitle = DTMLFile('dtml/setTitle',globals())
 

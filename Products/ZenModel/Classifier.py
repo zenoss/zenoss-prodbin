@@ -23,7 +23,7 @@ from OFS.OrderedFolder import OrderedFolder
 
 def manage_addClassifier(context, title = None, REQUEST = None):
     """make a device"""
-    ce = Classifier('myClassifier', title)
+    ce = Classifier('ZenClassifier', title)
     context._setObject(ce.id, ce)
 
     if REQUEST is not None:

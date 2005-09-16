@@ -84,7 +84,7 @@ class BasicDeviceLoader:
             raise DeviceExistsError, "Device %s already exists" % deviceName
         if not devicePath:
             self.classificationEntry = \
-                self.getDmdRoot("Devices").myClassifier.classifyDevice(
+                self.getDmdRoot("Devices").ZenClassifier.classifyDevice(
                                         deviceName,
                                         snmpCommunity, snmpPort,
                                         loginName, loginPassword)
