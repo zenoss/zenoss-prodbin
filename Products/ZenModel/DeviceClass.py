@@ -52,7 +52,6 @@ class DeviceClass(DeviceOrganizer, Folder):
    
     # Organizer configuration
     dmdRootName = "Devices"
-    dmdSubRel = "subclasses"
 
     manageDeviceSearch = DTMLFile('dtml/manageDeviceSearch',globals())
     manageDeviceSearchResults = DTMLFile('dtml/manageDeviceSearchResults',
@@ -79,12 +78,12 @@ class DeviceClass(DeviceOrganizer, Folder):
             'icon'           : 'DeviceClass_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceClass',
-            'immediate_view' : 'viewDeviceClassOverview',
+            'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewDeviceClassOverview'
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
                   permissions.View, )
                 },
@@ -118,7 +117,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         dcnames = []
         if pyclass == self.getPythonDeviceClass():
             dcnames.append(self.getOrganizerName())
-        for subclass in self.subclasses():
+        for subclass in self.children():
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
         return dcnames
             
@@ -173,31 +172,6 @@ class DeviceClass(DeviceOrganizer, Folder):
             REQUEST['RESPONSE'].redirect(dev.absolute_url())
 
 
-    def getAllCounts(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.getAllCounts(self, "subclasses")
-
-    
-    def countDevices(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.countDevices(self, "subclasses")
-
-    
-    def pingStatus(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.pingStatus(self, "subclasses")
-
-    
-    def snmpStatus(self):
-        """aggrigate snmp status for all devices in this group and below"""
-        return DeviceOrganizer.snmpStatus(self, "subclasses")
-
-
-    def getSubDevices(self, filter=None):
-        """get all the devices under and instance of a DeviceGroup"""
-        return DeviceOrganizer.getSubDevices(self, filter, "subclasses")
-
-    
     #need to decuple these two methods out to actions
     security.declareProtected('View', 'deviceClassEvents')
     def deviceClassEvents(self):
@@ -395,7 +369,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         """Return the primaryId of where a device tree property is found."""
         for obj in aq_chain(self):
             if getattr(aq_base(obj), id, _marker) != _marker:
-                return obj.getPrimaryDmdId().replace("/subclasses", "")
+                return obj.getPrimaryDmdId("Devices", "children")
 
                 
             

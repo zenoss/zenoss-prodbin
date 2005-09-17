@@ -21,7 +21,7 @@ from Products.CMFCore import permissions
 
 from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
-from Instance import Instance
+from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from IpAddress import manage_addIpAddress
 from DeviceOrganizer import DeviceOrganizer
 
@@ -43,7 +43,7 @@ defaultNetworkTree = (8,16,24)
 def addIpAddressToNetworks(context, ip, netmask=24):
     """place the ip in a hierarchy of subnetworks based on the
     variable defaultNetworkTree (or zDefaulNetworkTree)"""
-    netobj = context.Networks
+    netobj = context.getDmdRoot("Networks")
     netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
     for treemask in netTree:
         if treemask > netmask:
@@ -59,12 +59,14 @@ def addIpAddressToNetworks(context, ip, netmask=24):
     return ipobj
 
 
-class IpNetwork(Instance, DeviceOrganizer):
+class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""
     
     # Organizer configuration
     dmdRootName = "Networks"
-    dmdSubRel = "subnetworks"
+
+    # Index name for IP addresses
+    class_default_catalog = 'ipSearch'
 
     portal_type = meta_type = 'IpNetwork'
 
@@ -82,7 +84,7 @@ class IpNetwork(Instance, DeviceOrganizer):
             'icon'           : 'IpNetwork_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addIpNetwork',
-            'immediate_view' : 'viewIpNetworkOverview',
+            'immediate_view' : 'viewNetworkOverview',
             'actions'        :
             ( 
                 { 'id'            : 'overview'
@@ -105,8 +107,9 @@ class IpNetwork(Instance, DeviceOrganizer):
 
 
     def __init__(self, id, netmask=24, description=''):
-        checkip(id)
-        Instance.__init__(self, id)
+        DeviceOrganizer.__init__(self, id, description)
+        if id != "Networks": 
+            checkip(id)
         self.netmask = maskToBits(netmask)
         self.description = description
 
@@ -125,14 +128,14 @@ class IpNetwork(Instance, DeviceOrganizer):
     security.declareProtected('Change Network', 'addSubNetwork')
     def addSubNetwork(self, ip, netmask=24):
         """add subnetwork to this network and return it"""
-        manage_addIpNetwork(self.subnetworks,ip,netmask)
+        manage_addIpNetwork(self.children,ip,netmask)
         return self.getSubNetwork(ip)
 
 
     security.declareProtected('View', 'getSubNetwork')
     def getSubNetwork(self, ip):
         """get an ip on this network"""
-        return self.subnetworks._getOb(ip, None)
+        return self.children._getOb(ip, None)
 
     
     security.declareProtected('Change Network', 'addIpAddress')
@@ -148,6 +151,18 @@ class IpNetwork(Instance, DeviceOrganizer):
         return self.ipaddresses._getOb(ip, None)
 
 
+    security.declareProtected('View', 'countIpAddresses')
+    def countIpAddresses(self):
+        """get an ip on this network"""
+        count = self.ipaddresses.countObjects()
+        for net in self.children():
+            count += net.countIpAddresses()
+        return count
+
+    security.declareProtected('View', 'countDevices')
+    countDevices = countIpAddresses
+   
+
     def getAllCounts(self):
         """Count all devices within a device group and get the
         ping and snmp counts as well"""
@@ -156,43 +171,37 @@ class IpNetwork(Instance, DeviceOrganizer):
             self._status("Ping", "ipaddresses"),
             self._status("Snmp", "ipaddresses"),
         ]
-        for group in self.subnetworks():
+        for group in self.children():
             sc = group.getAllCounts()
             for i in range(3): counts[i] += sc[i]
         return counts
 
     
-    security.declareProtected('View', 'countIpAddresses')
-    def countIpAddresses(self):
-        """get an ip on this network"""
-        #if not base: base = self
-        #count = getattr(base, '_v_ipcount', 0)
-        #count = 0
-        #if not count:
-        count = self.ipaddresses.countObjects()
-        for net in self.subnetworks():
-            count += net.countIpAddresses()
-        return count
-
-    security.declareProtected('View', 'countDevices')
-    countDevices = countIpAddresses
-   
-
     def pingStatus(self):
         """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.pingStatus(self, "subnetworks", "ipaddresses")
+        return DeviceOrganizer.pingStatus(self, "ipaddresses")
 
     
     def snmpStatus(self):
         """aggrigate snmp status for all devices in this group and below"""
-        return DeviceOrganizer.snmpStatus(self, "subnetworks", "ipaddresses")
+        return DeviceOrganizer.snmpStatus(self, "ipaddresses")
 
 
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
-        return DeviceOrganizer.getSubDevices(self, filter, 
-                                        "subnetworks", "ipaddresses")
+        return DeviceOrganizer.getSubDevices(self, filter, "ipaddresses")
 
 
+    def createCatalog(self):
+        """make the catalog for device searching"""
+        from Products.ZCatalog.ZCatalog import manage_addZCatalog
+        manage_addZCatalog(self, self.class_default_catalog, 
+                            self.class_default_catalog)
+        zcat = self._getOb(self.class_default_catalog)
+        makeConfmonLexicon(zcat)
+        zcat.addIndex('id', 'ZCTextIndex', 
+                        extra=makeIndexExtraParams('id'))
+        zcat.addColumn('getPrimaryUrlPath')
+    
      
 InitializeClass(IpNetwork)

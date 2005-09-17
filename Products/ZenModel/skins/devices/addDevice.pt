@@ -161,7 +161,7 @@
         <td class="tablevalues" align="left" colspan="3">
             <input class="tablevalues" type="text" 
                 size="40" name="newLocationPath" />
-            <input class="tableheader" type="submit" name="setLocation:method"
+            <input class="tableheader" type="submit" name="addLocation:method"
               value="Add" />
         </td>
     </tr>

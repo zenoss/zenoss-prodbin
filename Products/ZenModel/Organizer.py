@@ -22,12 +22,12 @@ class Organizer(ZenModelRM):
     OrganizerBase class is base for all hierarchical organization classes.
     It allows Organizers to be addressed and created with file system like
     paths like /Devices/Servers.  Organizers have a containment relation
-    must define three attributes to be valid:
+    called children.  Subclasses must define the attribute:
 
-    dmdFactory - factory method to create the organizer
     dmdRootName - root in the dmd database for this organizer
-    dmdSubRel - containment relationship for this organizer
     """
+
+    dmdSubRel = "children"
 
     _properties = (
                     {'id':'description', 'type':'string', 'mode':'w'},
@@ -87,11 +87,7 @@ class Organizer(ZenModelRM):
         groupNames = []
         if self.id != self.dmdRootName:
             groupNames.append(self.getOrganizerName())
-        subgroups = getattr(self, self.dmdSubRel, None)
-        if not subgroups: 
-            raise AttributeError(
-                "%s not found on %s" % (self.dmdSubRel, self.id))
-        for subgroup in subgroups():
+        for subgroup in self.children():
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 
             groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))

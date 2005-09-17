@@ -39,7 +39,6 @@ class DeviceGroup(DeviceOrganizer):
 
     # Organizer configuration
     dmdRootName = "Groups"
-    dmdSubRel = "subgroups"
 
     portal_type = meta_type = 'DeviceGroup'
 
@@ -53,12 +52,12 @@ class DeviceGroup(DeviceOrganizer):
             'icon'           : 'DeviceGroup_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceGroup',
-            'immediate_view' : 'viewGroupOverview',
+            'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewGroupOverview'
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
                   permissions.View, )
                 },

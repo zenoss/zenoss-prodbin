@@ -41,7 +41,6 @@ class Location(DeviceOrganizer):
 
     # Organizer configuration
     dmdRootName = "Locations"
-    dmdSubRel = "sublocations"
 
     portal_type = meta_type = 'Location'
     
@@ -54,12 +53,12 @@ class Location(DeviceOrganizer):
             'icon'           : 'Location_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addLocation',
-            'immediate_view' : 'viewLocationOverview',
+            'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewLocationOverview'
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
                   permissions.View, )
                 },
@@ -86,36 +85,6 @@ class Location(DeviceOrganizer):
         )
 
     security = ClassSecurityInfo()
-
-    security.declareProtected('View', 'getAllCounts')
-    def getAllCounts(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.getAllCounts(self, "sublocations")
-        
-
-    security.declareProtected('View', 'countDevices')
-    def countDevices(self):
-        """count all devices with in a location"""
-        count = self.devices.countObjects()
-        for loc in self.sublocations():
-            count += loc.countDevices()
-        return count
-
-
-    def pingStatus(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.pingStatus(self, "sublocations")
-
-    
-    def snmpStatus(self):
-        """aggrigate snmp status for all devices in this group and below"""
-        return DeviceOrganizer.snmpStatus(self, "sublocations")
-
-
-    def getSubDevices(self, filter=None):
-        """get all the devices under and instance of a DeviceGroup"""
-        return DeviceOrganizer.getSubDevices(self, filter, "sublocations")
-
 
     #need to decuple these two methods out to actions
     security.declareProtected('View', 'locationEvents')

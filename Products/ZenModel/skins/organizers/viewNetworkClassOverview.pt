@@ -6,7 +6,7 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
     metal:define-macro="overview">
 <table 
-    metal:use-macro="here/viewDeviceGroupClassOverview/macros/devicegrouplist">
+    metal:use-macro="here/deviceOrganizerStatus/macros/devicegrouplist">
 </table>
 </span>
 <span tal:replace="structure here/standard_html_footer"/>

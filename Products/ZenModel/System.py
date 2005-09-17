@@ -45,7 +45,6 @@ class System(DeviceOrganizer):
 
     # Organizer configuration
     dmdRootName = "Systems"
-    dmdSubRel = "subsystems"
 
     portal_type = meta_type = 'System'
 
@@ -116,26 +115,6 @@ class System(DeviceOrganizer):
         self.systemClass = systemClass
 
 
-    def countDevices(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.countDevices(self, "subsystems")
-
-    
-    def pingStatus(self):
-        """aggrigate ping status for all devices in this group and below"""
-        return DeviceOrganizer.pingStatus(self, "subsystems")
-
-    
-    def snmpStatus(self):
-        """aggrigate snmp status for all devices in this group and below"""
-        return DeviceOrganizer.snmpStatus(self, "subsystems")
-
-
-    def getSubDevices(self, filter=None):
-        """get all the devices under and instance of a DeviceGroup"""
-        return DeviceOrganizer.getSubDevices(self, filter, "subsystems")
-
-    
     security.declareProtected('View', 'systemEvents')
     def systemEvents(self):
         """get the event list of this object"""
@@ -191,17 +170,6 @@ class System(DeviceOrganizer):
             status = self.netcool.getEventCount(system=self.getOrganizerName())
         except: pass
         return status
-
-
-    def getDeviceMetaTypes(self):
-        '''Build the list of meta types
-        for devices in the device relationship'''
-        meta_types = {}
-        for dev in self.devices():
-            if not meta_types.has_key(dev.meta_type):
-                meta_types[dev.meta_type] = []
-            meta_types[dev.meta_type].append(dev)
-        return meta_types
 
 
     def summary(self):

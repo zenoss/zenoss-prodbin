@@ -42,7 +42,7 @@
   </tbody>
 </table>
 <span 
-    tal:define="objects here/subnetworks/objectValuesAll;
+    tal:define="objects here/children;
     tableName string:networkoverviewsubnets;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
     tal:condition="objects">

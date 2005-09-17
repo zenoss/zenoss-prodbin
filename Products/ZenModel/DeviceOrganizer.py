@@ -19,22 +19,18 @@ class DeviceOrganizer(Organizer):
     It has lots of methods for rolling up device statistics and information.
     """
     
-    def getSubDevices(self, devfilter=None, 
-                    subrel="subgroups", devrel="devices"):
+    def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
         if not devices: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devices())
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for subgroup in subgroups():
+        for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter))
         return devices
 
 
-    def getAllCounts(self, subrel="subgroups", devrel="devices"):
+    def getAllCounts(self, devrel="devices"):
         """Count all devices within a device group and get the
         ping and snmp counts as well"""
         counts = [
@@ -42,44 +38,32 @@ class DeviceOrganizer(Organizer):
             self._status("Ping", devrel),
             self._status("Snmp", devrel),
         ]
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for group in subgroups():
+        for group in self.children():
             sc = group.getAllCounts()
             for i in range(3): counts[i] += sc[i]
         return counts
 
 
-    def countDevices(self, subrel="subgroups", devrel="devices"):
+    def countDevices(self, devrel="devices"):
         """count all devices with in a device group"""
         count = self.devices.countObjects()
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for group in subgroups():
+        for group in self.children():
             count += group.countDevices()
         return count
 
 
-    def pingStatus(self, subrel="subgroups", devrel="devices"):
+    def pingStatus(self, devrel="devices"):
         """aggrigate ping status for all devices in this group and below"""
         status = self._status("Ping", devrel)
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for group in subgroups():
+        for group in self.children():
             status += group.pingStatus()
         return status
 
     
-    def snmpStatus(self, subrel="subgroups", devrel="devices"):
+    def snmpStatus(self, devrel="devices"):
         """aggrigate snmp status for all devices in this group and below"""
         status = self._status("Snmp", devrel)
-        subgroups = getattr(self, subrel, None)
-        if not subgroups: 
-            raise AttributeError, "%s not found on %s" % (subrel, self.id)
-        for group in subgroups():
+        for group in self.children():
             status += group.snmpStatus()
         return status
 

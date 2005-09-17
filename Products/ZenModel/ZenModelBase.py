@@ -12,7 +12,7 @@ __version__ = "$Revision: 1.17 $"[11:-2]
 
 import copy
 
-from AccessControl import ClassSecurityInfo, getSecurityManager
+from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from DateTime import DateTime
@@ -102,42 +102,16 @@ class ZenModelBase:
 
         
     def __call__(self):
-        '''
+        """
         Invokes the default view.
-        '''
-        #from Products.ZenModel.Instance import Instance
-        #if isinstance(self, Instance):
-        #    return self.restrictedTraverse("viewItem")()
-        actions = []
+        """
         view = "view"
-        ti = self.getTypeInfo()
-        #if not ti:
-        if True:
-            if hasattr(self, "factory_type_information"):
-                view = self.factory_type_information[0]['immediate_view']
-                actions = self.factory_type_information[0]['actions']
-            else:
-                raise 'Not Found', ('Cannot find default view for "%s"' %
-                                    '/'.join(self.getPhysicalPath()))
+        if hasattr(self, "factory_type_information"):
+            view = self.factory_type_information[0]['immediate_view']
         else:
-            view = ti.immediate_view
-            actions = ti.getActions()
-        try:
-            return self.restrictedTraverse(view)()
-        except KeyError: pass
-        for action in actions:
-            if action.get('id', None) == view:
-                if _verifyActionPermissions(self, action):
-                    return self.restrictedTraverse(action['action'])()
-        # "view" action is not present or not allowed.
-        # Find something that's allowed.
-        for action in actions:
-            if _verifyActionPermissions(self, action):
-                return self.restrictedTraverse(action['action'])()
-        raise 'Unauthorized', ('No accessible views available for %s' %
-                               '/'.join(self.getPhysicalPath()))
-
-
+            raise 'Not Found', ('Cannot find default view for "%s"' %
+                                '/'.join(self.getPhysicalPath()))
+        return self.restrictedTraverse(view)()
 
     index_html = None  # This special value informs ZPublisher to use __call__
 
@@ -150,23 +124,6 @@ class ZenModelBase:
         return self()
 
     
-    security.declareProtected('View', 'mainframeView')
-    def mainframeView(self):
-        """get the default view for the mainframe of an object 
-        used by index.zpt"""
-        url = self.absolute_url()
-        actions = self.factory_type_information[0].get('actions',None)
-        if actions:
-            return url + '/' + actions[0]['action']
-
-
-    security.declareProtected('View', 'topframeView')
-    def topframeView(self):
-        """get the default view for the mainframe of an object 
-        used by index.zpt"""
-        return self.absolute_url() + "/top"
-
-
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())

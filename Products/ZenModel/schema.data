@@ -1,3 +1,4 @@
+Organizer:parent:1:0:Organizer:children:4:0
 Company:products:2:0:Product:manufacturer:1:0
 Device:arptable:4:0:ArpEntry:device:1:0
 Device:clientofservices:2:0:IpService:clients:2:0
@@ -18,15 +19,10 @@ Server:filesystems:4:0:FileSystem:device:1:0
 Server:processes:4:0:ServerProcess:device:1:0
 Server:software:4:0:ServerSoftware:device:1:0
 UBRRouter:dhcpservers:2:0:Server:dhcpubrclients:2:0
-DeviceClass:subclasses:4:0:DeviceClass:parent:1:0
 DeviceClass:devices:4:0:Device:deviceClass:1:0
-DeviceGroup:subgroups:4:0:DeviceGroup:parent:1:0
 IpServiceClass:ipservices:4:0:IpService:ipserviceclass:1:0
 IpRouteEntry:interface:1:0:IpInterface:iproutes:2:0
 IpRouteEntry:nexthop:1:0:IpAddress:clientroutes:2:0
 IpInterface:ipaddresses:2:0:IpAddress:interface:1:0
 IpNetwork:ipaddresses:4:0:IpAddress:network:1:0
-IpNetwork:subnetworks:4:0:IpNetwork:parent:1:0
 System:serviceareas:2:0:ServiceArea:systems:2:0
-System:subsystems:4:0:System:parent:1:0
-Location:sublocations:4:0:Location:location:1:0

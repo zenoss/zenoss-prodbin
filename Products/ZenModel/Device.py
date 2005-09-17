@@ -66,7 +66,7 @@ def manage_createDevice(context, deviceName, devicePath="",
                            or cEntry.getManufacturer
             model = model and model or cEntry.getProduct
    
-    deviceClass = context.getDmdRoot("Devices").getOrganizer(devicePath)
+    deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
     device.manage_editDevice(
                 tag, serialNumber,
@@ -479,15 +479,19 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
 
 
     security.declareProtected('Change Device', 'setLocation')
-    def setLocation(self, locationPath, newLocationPath=None, REQUEST=None):
+    def setLocation(self, locationPath, REQUEST=None):
         """set the location of a device within a generic location path"""
-        if newLocationPath: locationPath = newLocationPath
         locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
         self.addRelation("location", locobj)
         if REQUEST:
             REQUEST['message'] = "Set Location %s at time:" % locationPath
             return self.callZenScreen(REQUEST)
 
+
+    def addLocation(self, newLocationPath, REQUEST=None):
+        """Add a new location and relate it to this device"""
+        return self.setLocation(newLocationPath, REQUEST)
+   
 
     security.declareProtected('Change Device', 'setCricketMonitor')
     def setCricketMonitor(self, cricketMonitor,
@@ -529,7 +533,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
         """add a device group to the database and this device"""
-        group = self.getDmdRoot("Groups").getOrganizer(newDeviceGroupPath)
+        group = self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
         self.addRelation("groups", group)
         if REQUEST:
             REQUEST['message'] = "Added Group %s at time:" % newDeviceGroupPath
@@ -546,7 +550,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
         """add a systems to this device using its system path"""
-        sys = self.getDmdRoot("Systems").getOrganizer(newSystemPath)
+        sys = self.getDmdRoot("Systems").createOrganizer(newSystemPath)
         self.addRelation("systems", sys)
         if REQUEST:
 

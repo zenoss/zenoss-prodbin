@@ -1,42 +1,8 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
-    metal:define-macro="sysdescr">
-    <tr>
-          <th class="tabletitle" align="left" colspan="4">
-           System 
-          </th>
-    </tr>
-    <tr>
-        <th class="tableheader" align="left">
-          Name
-        </th>
-        <td class="tablevalues" bgcolor="#ffffff"
-            width="25%" tal:content="here/id">my system
-        </td>
-        <th class="tableheader" align="left">
-            Parent
-        </th>
-        <td class="tablevalues" width="25%"
-          tal:content="structure python:here.parent.getPrimaryLink(
-                                                  'rightFrame')">
-              parent system
-        </td>
-    </tr>
-    <tr>
-        <th class="tableheader" align="left">
-          Description
-        </th>
-        <td class="tablevalues" colspan=3
-            tal:content="here/description">desc
-        </td>
-    </tr>
-</table>
-<br>
 
-<table metal:use-macro="here/deviceGroupMacros/macros/status"></table>
+<table metal:use-macro="here/deviceOrganizerStatus/macros/status"></table>
 
 <span tal:define="objects here/serviceareas/objectValuesAll;
     tableName string:systemstatusserviceareas;
@@ -71,8 +37,8 @@
     </tr>
 </table>
 </span>
-<span tal:define="objects here/subsystems/objectValuesAll;
-    tableName string:systemstatussubsystems;
+<span tal:define="objects here/children;
+    tableName string:systemstatuschildren;
     tableTitle string: Sub-Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
     tal:condition="objects">
