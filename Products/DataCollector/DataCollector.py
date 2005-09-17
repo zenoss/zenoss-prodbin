@@ -184,7 +184,7 @@ class DataCollector(ZCmdBase):
             relids = rel.objectIdsAll()
             for objectmap in relmap:
                 from Products.DataCollector.ObjectMap import ObjectMap
-                from Products.ZenModel.ConfmonBase import ConfmonBase
+                from Products.ZenModel.ZenModelRM import ZenModelRM
                 if isinstance(objectmap, ObjectMap) and objectmap.has_key('id'):
                     if objectmap['id'] in relids:
                         self.updateObject(
@@ -192,7 +192,7 @@ class DataCollector(ZCmdBase):
                         relids.remove(objectmap['id'])
                     else:
                         self.createRelObject(device, objectmap, rname)
-                elif isinstance(objectmap, ConfmonBase):
+                elif isinstance(objectmap, ZenModelRM):
                     self.log.debug("linking object %s to device %s relation %s"
                                         % (objectmap.id, device.id, rname))
                     device.addRelation(rname, objectmap)
