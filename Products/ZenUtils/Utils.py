@@ -135,16 +135,16 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
 
 
 def getAllConfmonObjects(base):
-    """get all ConfmonBase objects in database"""
+    """get all ZenModelRM objects in database"""
     from Products.ZenModel.Instance import Instance
-    from Products.ZenModel.ConfmonBase import ConfmonBase
+    from Products.ZenModel.ZenModelRM import ZenModelRM
     from Products.ZenRelations.ToManyRelationship \
         import ToManyRelationship
     from Products.ZenRelations.ToOneRelationship \
         import ToOneRelationship
     def decend(obj):
         return (
-                isinstance(obj, ConfmonBase) or 
+                isinstance(obj, ZenModelRM) or 
                 isinstance(obj, ToManyRelationship) or
                 isinstance(obj, ToOneRelationship))
     def filter(obj):

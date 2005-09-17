@@ -48,13 +48,13 @@ class ToManyRebuildKeys(ZCmdBase):
 
 
     def decend(self, obj):
-        from Products.ZenModel.ConfmonBase import ConfmonBase
+        from Products.ZenModel.ZenModelRM import ZenModelRM
         from Products.ZenRelations.ToManyRelationship \
             import ToManyRelationship
         from Products.ZenRelations.ToOneRelationship \
             import ToOneRelationship
         return (
-                isinstance(obj, ConfmonBase) or 
+                isinstance(obj, ZenModelRM) or 
                 isinstance(obj, ToManyRelationship))
                 #isinstance(obj, ToOneRelationship))
 
