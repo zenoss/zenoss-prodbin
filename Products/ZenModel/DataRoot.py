@@ -29,7 +29,7 @@ import DateTime
 
 from Products.CMFCore import permissions
 
-from ConfmonBase import ConfmonBase
+from ZenModelRM import ZenModelRM
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -42,7 +42,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
-class DataRoot(ConfmonBase, OrderedFolder):
+class DataRoot(ZenModelRM, OrderedFolder):
     meta_type = portal_type = 'DataRoot'
 
     manage_main = OrderedFolder.manage_main
@@ -125,7 +125,7 @@ class DataRoot(ConfmonBase, OrderedFolder):
 
 
     def __init__(self, id, title=None):
-        ConfmonBase.__init__(self, id, title)
+        ZenModelRM.__init__(self, id, title)
 
 
     security.declareProtected('View', 'getProdStateConversions')

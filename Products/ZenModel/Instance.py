@@ -21,10 +21,10 @@ from Globals import DTMLFile
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Globals import InitializeClass
 
-from ConfmonBase import ConfmonBase
+from ZenModelRM import ZenModelRM
 from CricketView import CricketView
 
-class Instance(ConfmonBase, CricketView, Historical): 
+class Instance(ZenModelRM, CricketView, Historical): 
     """Base class for all confmon classes"""
 
     meta_type = 'Instance'
@@ -33,14 +33,14 @@ class Instance(ConfmonBase, CricketView, Historical):
     #index_html = PageTemplateFile('skins/devices/deviceIndex.pt',globals())
     
 
-    manage_options = (ConfmonBase.manage_options[:2] + 
+    manage_options = (ZenModelRM.manage_options[:2] + 
                         Historical.manage_options +
-                        ConfmonBase.manage_options[2:])
+                        ZenModelRM.manage_options[2:])
 
     security = ClassSecurityInfo()
     
     def __init__(self, id, title=None):
-        ConfmonBase.__init__(self, id, title)
+        ZenModelRM.__init__(self, id, title)
         self._cricketTargetMap = {}
         self._cricketTargetPath = ''
 

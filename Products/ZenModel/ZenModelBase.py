@@ -25,7 +25,7 @@ from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
 class ZenModelBase:
     """
-    All ZenModel Persistent classes mix-in this class to provide
+    All ZenModel Persistent classes inherit from this class.  It profides
     some screen management functionality, and general utility methods.
     """
 

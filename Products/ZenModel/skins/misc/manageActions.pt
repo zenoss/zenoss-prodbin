@@ -17,11 +17,43 @@
 </tr>
 <tr>
     <td class=tablevalues>
-        <a class=tablevalues href="/zport/dmd/Devices/manageDeviceClasses">
+        <a class=tablevalues href="/zport/dmd/DeviceLoader/addCVNetworkDevice">
+            Cablevision Network Device Loader
+        </a>
+    </td>
+    <td class=tablevalues>Load network devices into the system</td>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/Devices/manageDeviceOrganizer">
             Manage Device Classes
         </a>
     </td>
-    <td class=tablevalues>Manage nodes in the device class tree</td>
+    <td class=tablevalues>Manage the Device Class tree</td>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/Systems/manageDeviceOrganizer">
+            Manage Systems
+        </a>
+    </td>
+    <td class=tablevalues>Manage System organizers</td>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/Groups/manageDeviceOrganizer">
+            Manage Groups
+        </a>
+    </td>
+    <td class=tablevalues>Manage Group organizers</td>
+</tr>
+<tr>
+    <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/Locations/manageDeviceOrganizer">
+            Manage Locations
+        </a>
+    </td>
+    <td class=tablevalues>Manage Location organizers</td>
 </tr>
 </table>
 <span tal:replace="structure here/standard_html_footer"/>

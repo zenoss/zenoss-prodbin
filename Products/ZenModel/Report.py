@@ -21,7 +21,7 @@ from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from ConfmonItem import ConfmonItem
+from ZenModelItem import ZenModelItem
 
 def manage_addReport(context, id, title = None, text=None,
                     REQUEST = None, submit=None):
@@ -58,7 +58,7 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
                             __name__='addReport')
 
 
-class Report(ZopePageTemplate, ConfmonItem):
+class Report(ZopePageTemplate, ZenModelItem):
     """Report object"""
     meta_type = 'Report'
 

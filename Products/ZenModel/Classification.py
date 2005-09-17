@@ -23,9 +23,9 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils.Utils import checkClass
 
-from ConfmonBase import ConfmonBase
+from ZenModelRM import ZenModelRM
 
-class Classification(ConfmonBase):
+class Classification(ZenModelRM):
     isInTree = 1
     #index_html = PageTemplateFile('skins/misc/classList.pt',globals())
     
@@ -66,7 +66,7 @@ class Classification(ConfmonBase):
     security = ClassSecurityInfo()
 
     def __init__(self, id, title=None):
-        ConfmonBase.__init__(self, id, title)
+        ZenModelRM.__init__(self, id, title)
         self._buildSubClasses()
 
 

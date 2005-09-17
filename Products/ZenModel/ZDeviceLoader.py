@@ -24,7 +24,7 @@ from OFS.SimpleItem import SimpleItem
 
 from Products.SnmpCollector.SnmpCollector import SnmpCollector
 
-from ConfmonItem import ConfmonItem
+from ZenModelItem import ZenModelItem
 from Device import manage_createDevice
 
 
@@ -39,7 +39,7 @@ def manage_addZDeviceLoader(context, id="", REQUEST = None):
                                      +'/manage_main') 
 
 
-class ZDeviceLoader(ConfmonItem,SimpleItem):
+class ZDeviceLoader(ZenModelItem,SimpleItem):
     """Load devices into the DMD database"""
 
     portal_type = meta_type = 'DeviceLoader'

@@ -15,9 +15,9 @@ from Acquisition import aq_parent
 
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError
-from Products.ZenModel.ConfmonBase import ConfmonBase
+from Products.ZenModel.ZenModelRM import ZenModelRM
         
-class Organizer(ConfmonBase):
+class Organizer(ZenModelRM):
     """
     OrganizerBase class is base for all hierarchical organization classes.
     It allows Organizers to be addressed and created with file system like
@@ -35,7 +35,7 @@ class Organizer(ConfmonBase):
 
 
     def __init__(self, id, description = ''):
-        ConfmonBase.__init__(self, id)
+        ZenModelRM.__init__(self, id)
         self.description = description
    
 
