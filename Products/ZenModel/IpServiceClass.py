@@ -13,6 +13,8 @@ $Id: IpServiceClass.py,v 1.9 2004/04/07 19:55:01 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
+import logging
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 
@@ -45,7 +47,11 @@ def addIpServiceToClass(ipservice):
         or port != serviceclass.port
         or proto != serviceclass.protocol):
         if port <= 1024:
-            classbase = ipservice.Services.IpServices.Privileged #aq
+            try:
+                classbase = ipservice.Services.IpServices.Privileged #aq
+            except AttributeError:
+                logging.warn("Priviledged ports not loaded")
+                return
         else:
             classbase = ipservice.Services.IpServices #aq
         id = ipservice.getIpServiceKey()

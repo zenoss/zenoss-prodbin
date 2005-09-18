@@ -23,7 +23,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="devicePath"
             tal:define="
-            dcs python:here.getDmdRoot('Devices').getOrganizerNames();
+            dcs python:here.getDmdRoot('Devices').getOrganizerNames(True);
             curdc device/getDeviceClassPath | request/devicePath | nothing"
             >
                 <option tal:repeat="dc dcs" tal:content="dc" 
@@ -147,7 +147,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="locationPath"
             tal:define="
-            locs python:here.getDmdRoot('Locations').getOrganizerNames();
+            locs python:here.getDmdRoot('Locations').getOrganizerNames(True);
             curloc device/getLocationName | request/locationPath | nothing"
             >
                 <option tal:repeat="loc locs" 
@@ -170,7 +170,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="systemPaths:list" multiple
             tal:define="
-            syss python:here.getDmdRoot('Systems').getOrganizerNames();
+            syss python:here.getDmdRoot('Systems').getOrganizerNames(True);
             cursyss device/getSystemNames | request/systemPaths | nothing"
             >
                 <option tal:repeat="sys syss" 
@@ -194,7 +194,7 @@
         <td class="tablevalues" align="left" colspan=3>
             <select class="tablevalues" name="groupPaths:list" multiple
             tal:define="
-            dgs python:here.getDmdRoot('Groups').getOrganizerNames();
+            dgs python:here.getDmdRoot('Groups').getOrganizerNames(True);
             curdgs device/getDeviceGroupNames | request/groupPaths | nothing"
             >
                 <option tal:repeat="dg dgs" 

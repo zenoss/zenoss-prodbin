@@ -82,7 +82,7 @@ class Organizer(ZenModelRM):
     getPathName = getOrganizerName
 
 
-    def getOrganizerNames(self):
+    def getOrganizerNames(self, addblank=False):
         """Return the DMD paths of all Organizers below this instance."""
         groupNames = []
         if self.id != self.dmdRootName:
@@ -90,6 +90,7 @@ class Organizer(ZenModelRM):
         for subgroup in self.children():
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 
+            if addblank: groupNames.append("")
             groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
         return groupNames
 

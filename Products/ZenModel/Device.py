@@ -708,10 +708,9 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         """Delete device from the DMD"""
         parent = self.getParent()
         parent._delObject(self.getId())
-        if REQUEST is not None:
-            # FIXME I need to fill the rightFrame but don't!!!
+        if REQUEST:
             REQUEST['RESPONSE'].redirect(parent.absolute_url() + 
-                                            "/viewDeviceClassOverview")
+                                            "/deviceOrganizerStatus")
 
 
     security.declareProtected('View', 'summary')
