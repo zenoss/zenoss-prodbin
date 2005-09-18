@@ -19,7 +19,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.CMFCore import permissions
 
-from Products.ZenModel.ConfmonAll import ConfmonAll
+from Products.ZenModel.ZenModelBase import ZenModelBase
 
 class NcoEvent(Implicit):
     security = ClassSecurityInfo()
@@ -69,7 +69,7 @@ class NcoEvent(Implicit):
 
 InitializeClass(NcoEvent)
 
-class NcoEventDetail(NcoEvent, ConfmonAll):
+class NcoEventDetail(NcoEvent, ZenModelBase):
     security = ClassSecurityInfo()
     security.setDefaultAccess("allow")
 
