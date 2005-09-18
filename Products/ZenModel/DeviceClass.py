@@ -332,9 +332,13 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zPingInterfaceDescription", "")
 
     
-    def deviceTreePropertyIds(self):
+    def deviceTreePropertyIds(self, all=True):
         """Return list of device tree property names."""
-        devs = self.getDmdRoot("Devices")
+        if all: 
+            devs = self.getDmdRoot("Devices")
+        else: 
+            if self.id == "Devices": return []
+            devs = aq_base(self)
         props = []
         for prop in devs.propertyIds():
             if not prop.startswith("z"): continue
@@ -371,7 +375,29 @@ class DeviceClass(DeviceOrganizer, Folder):
             if getattr(aq_base(obj), id, _marker) != _marker:
                 return obj.getPrimaryDmdId("Devices", "children")
 
-                
-            
-        
+
+    def setDeviceTreeProperty(self, propname, propvalue, REQUEST=None):
+        """
+        Add or set the value of the property propname on this node of 
+        the device Class tree.
+        """
+        if getattr(aq_base(self), propname, _marker) != _marker:
+            self._updateProperty(propname, propvalue)
+        else:
+            devs = self.getDmdRoot("Devices")
+            ptype = devs.getPropertyType(propname)
+            self._setProperty(propname, propvalue, type=ptype)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+    
+    def deleteDeviceTreeProperty(self, propname, REQUEST):
+        """
+        Delete device tree properties from the this DeviceClass object.
+        """
+        self._delProperty(propname)
+        if REQUEST: return self.callZenScreen(REQUEST)
+         
+
+
+
 InitializeClass(DeviceClass)

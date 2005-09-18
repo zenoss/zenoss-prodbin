@@ -40,8 +40,7 @@
     </tr>
     </span>
     <tr><td><img border=0 src="spacer_icon.gif"/></td></tr>
-    <tr tal:condition="python: 
-            'Manager' in request['AUTHENTICATED_USER'].getRoles()">
+    <tr tal:condition="here/isManager">
         <td class="tablevalues">
           <img border=0 src="tool.gif"/>
             <a href="/zport/dmd/manageActions" target="rightFrame">

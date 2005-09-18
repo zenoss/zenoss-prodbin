@@ -202,6 +202,14 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return filteredObjects  
 
 
+    def isManager(self):
+        """
+        Return true if user is authenticated and has Manager role.
+        """
+        user = self.REQUEST.get('AUTHENTICATED_USER', None)
+        if user: return "Manager" in user.getRoles()
+
+
     security.declareProtected('View', 'myUserGroups')
     def myUserGroups(self):
         user = self.REQUEST.get('AUTHENTICATED_USER')
@@ -214,5 +222,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
     security.declareProtected('View', 'getAllUserGroups')
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
-    
+
+
+
+
 InitializeClass(DataRoot)

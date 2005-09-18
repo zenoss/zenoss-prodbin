@@ -28,4 +28,46 @@
       </td>
     </tr>
 </table>
+<form tal:condition="here/isManager" method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+<tr class="tabletitle"><th>Add/Update Device Property</th></tr>
+<tr>
+    <td>
+        <select name="propname">
+            <option tal:repeat="propname here/deviceTreePropertyIds"
+                tal:content="propname" tal:attributes="value propname">
+                    zCricketDeviceType
+            </option>
+        </select>
+        <input class="tablevalues" type="text" name="propvalue"/>
+        <input class="tablevalues" type="submit" 
+            name="setDeviceTreeProperty:method" value=" Add " />
+    </td>
+</tr>
+</table>
+</form>
+<form tal:condition="here/isManager" method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+<tr class="tabletitle"><th>Delete Device Property</th></tr>
+<tr>
+    <td>
+        <select name="propname">
+            <option tal:repeat="
+                propname python:here.deviceTreePropertyIds(False)"
+                tal:content="propname" tal:attributes="value propname">
+                    zCricketDeviceType
+            </option>
+        </select>
+        <input class="tablevalues" type="submit" 
+            name="deleteDeviceTreeProperty:method" value=" Delete " />
+    </td>
+</tr>
+</table>
+</form>
 <span tal:replace="structure here/standard_html_footer"/>
