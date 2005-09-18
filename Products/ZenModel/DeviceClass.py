@@ -381,11 +381,14 @@ class DeviceClass(DeviceOrganizer, Folder):
         Add or set the value of the property propname on this node of 
         the device Class tree.
         """
+        devs = self.getDmdRoot("Devices")
+        ptype = devs.getPropertyType(propname)
+        if ptype == "lines": 
+            propvalue = propvalue.split(",")
+            propvalue = map(lambda x: x.strip(), propvalue)
         if getattr(aq_base(self), propname, _marker) != _marker:
             self._updateProperty(propname, propvalue)
         else:
-            devs = self.getDmdRoot("Devices")
-            ptype = devs.getPropertyType(propname)
             self._setProperty(propname, propvalue, type=ptype)
         if REQUEST: return self.callZenScreen(REQUEST)
 
