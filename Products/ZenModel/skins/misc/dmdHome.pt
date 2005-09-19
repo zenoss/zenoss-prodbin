@@ -1,10 +1,96 @@
 <span tal:replace="structure here/standard_html_header"/>
-<span metal:use-macro="here/viewSystemClassOverview/macros/overview" />
-<br/>
-<span metal:use-macro="here/viewDeviceGroupClassOverview/macros/overview" />
-<br/>
-<span metal:use-macro="here/viewLocationClassOverview/macros/overview" />
-<br/>
-<span metal:use-macro="here/viewNetworkClassOverview/macros/overview" />
-<br/>
+<br />
+<table border="0" cellpadding="3" width="100%" cellspacing="1">
+    <tr>
+      <th class="tabletitlel" colspan="5">Systems</th>
+    </tr>
+    <tr>
+        <th class="tableheader">Name</th>
+        <th class="tableheader">Devices</th>
+        <th class="tableheader">Events</th>
+        <th class="tableheader">Ping</th>
+        <th class="tableheader">Snmp</th>
+    </tr>
+    <tr tal:repeat="system python:here.getDmdRoot('Systems').children()">
+        <span tal:define="counts system/getAllCounts">
+        <td class="tablevalues">
+            <a tal:attributes="href system/getPrimaryUrlPath"
+                tal:content="system/getId">System</a>
+        </td>
+        <td class="tablevalues" align="center" tal:content="python:counts[0]"/>
+        <td class="tablevalues" colspan="1" align="left">
+        <table border="0" cellpadding="0" width="100%" 
+            align="center" bgcolor="#ffffff" cellspacing="1">
+          <tr>
+          <td class="statusvalues" align="center" bgcolor="_" width="16%"
+            tal:on-error="structure string:
+                <span style='color: white;'>Events unavailable</span>"
+            tal:repeat="evt python:here.netcool.getSystemEventSummary(
+                                                here.getOrganizerName())"
+            tal:attributes="bgcolor python:evt[1]"
+            tal:content="python:evt[0]">0</td>
+          </tr>
+        </table>
+        </td>
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: system.statusColor(counts[1])"
+            tal:content="python:counts[1]">0
+        </td>
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: system.statusColor(counts[2])"
+            tal:content="python:counts[2]">0
+        </td>
+        </span>
+    </tr>
+</table>
+<br />
+<table border="0" cellpadding="3" width="100%" cellspacing="1">
+    <tr>
+      <th class="tabletitlel" colspan="5">Devices</th>
+    </tr>
+    <tr>
+        <th class="tableheader">Class</th>
+        <th class="tableheader">Count</th>
+        <th class="tableheader">Ping</th>
+        <th class="tableheader">Snmp</th>
+    </tr>
+    <tr tal:repeat="devs python:here.getDmdRoot('Devices').children()">
+        <span tal:define="counts devs/getAllCounts">
+        <td class="tablevalues">
+            <a tal:attributes="href devs/getPrimaryUrlPath"
+                tal:content="devs/getId">System</a>
+        </td>
+        <td class="tablevalues" align="center" tal:content="python:counts[0]"/>
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: devs.statusColor(counts[1])"
+            tal:content="python:counts[1]">0
+        </td>
+        <td class="statusvalues" bgcolor="#00ff00" align="center"
+            tal:attributes="bgcolor python: devs.statusColor(counts[2])"
+            tal:content="python:counts[2]">0
+        </td>
+        </span>
+    </tr>
+</table>
+<br />
+<table border="0" cellpadding="3" width="100%" cellspacing="1">
+    <tr>
+      <th class="tabletitlel" colspan="3">Networks</th>
+    </tr>
+    <tr>
+        <th class="tableheader">Network</th>
+        <th class="tableheader">IPs Used</th>
+        <th class="tableheader">IPs Seen</th>
+    </tr>
+    <tr tal:repeat="net python:here.getDmdRoot('Networks').children()">
+        <td class="tablevalues">
+            <a tal:attributes="href net/getPrimaryUrlPath"
+                tal:content="net/getNetworkName">System</a>
+        </td>
+        <td class="tablevalues" align="center"
+            tal:content="python:net.countIpAddresses(inuse=True)">5</td>
+        <td class="tablevalues" align="center"
+            tal:content="net/countIpAddresses">5</td>
+    </tr>
+</table>
 <span tal:replace="structure here/standard_html_footer"/>

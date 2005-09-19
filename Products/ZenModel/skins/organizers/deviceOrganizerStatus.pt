@@ -30,7 +30,7 @@
             tal:on-error="structure string:
                 <span style='color: white;'>Events unavailable</span>"
             tal:repeat="evt python:here.netcool.getSystemEventSummary(
-                                                here.getDeviceGroupName())"
+                                                here.getOrganizerName())"
             tal:attributes="bgcolor python:evt[1]"
             tal:content="python:evt[0]">0</td>
           </tr>
@@ -57,14 +57,14 @@
     </tr>
 </table>
 <br tal:condition="here/children/countObjects">
-<table border=0 cellpadding=3 width=100% 
-    align=center bgcolor=#ffffff cellspacing=1
+<table border=0 cellpadding=3 cellspacing=1
     tal:define="objects here/children;
         tableName string:children;
         batch python:here.ZenTableManager.getBatch(tableName,objects);"
     tal:condition=objects>
     <tr>
-      <th class=tabletitle align=left colspan=4>
+      <th class=tabletitle align=left colspan=4
+        tal:content="string:Sub-${here/dmdRootName}">
         SubLocations
       </th>
     </tr>
@@ -112,4 +112,45 @@
 </table>
 <br tal:condition="here/devices/countObjects">
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+<br />
+<form tal:condition="here/isManager" method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" 
+    tal:attributes="value template/id"/>
+<table border="0" cellpadding="3" cellspacing="1">
+<tr class="tabletitlel">
+    <th tal:content="python:'Add '+here.dmdRootName[:-1]">Add Device</th>
+</tr>
+<tr>
+    <td class="tablevalues">
+        <input class="tablevalues" type="text" name="newPath" size="35"/>
+        <input class="tablevalues" type="submit" 
+            name="manage_addOrganizer:method" value=" Add " />
+    </td>
+</tr>
+</table>
+</form>
+<form tal:condition="here/isManager" method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" 
+    tal:attributes="value template/id"/>
+<table border="0" cellpadding="3" cellspacing="1">
+<tr class="tabletitlel">
+    <th tal:content="python:'Delete '+here.dmdRootName[:-1]">Add Device</th>
+</tr>
+<tr>
+    <td class="tablevalues">
+        <select name="orgname">
+            <option tal:repeat="
+                dcname python:here.children.objectIds()"
+                tal:content="dcname" tal:attributes="value dcname">
+                    zCricketDeviceType
+            </option>
+        </select>
+        <input class="tablevalues" type="submit" 
+            name="manage_deleteOrganizer:method" value=" Delete " />
+    </td>
+</tr>
+</table>
+</form>
 <span tal:replace="structure here/standard_html_footer"/>

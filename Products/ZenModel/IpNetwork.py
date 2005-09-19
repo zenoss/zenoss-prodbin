@@ -152,11 +152,14 @@ class IpNetwork(DeviceOrganizer):
 
 
     security.declareProtected('View', 'countIpAddresses')
-    def countIpAddresses(self):
+    def countIpAddresses(self, inuse=False):
         """get an ip on this network"""
-        count = self.ipaddresses.countObjects()
+        if inuse:
+            count = len(filter(lambda x: x.getDevice(), self.ipaddresses()))
+        else:
+            count = self.ipaddresses.countObjects()
         for net in self.children():
-            count += net.countIpAddresses()
+            count += net.countIpAddresses(inuse)
         return count
 
     security.declareProtected('View', 'countDevices')

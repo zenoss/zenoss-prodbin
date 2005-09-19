@@ -42,10 +42,19 @@ class Organizer(ZenModelRM):
     #security.declareProtected('Change Organizer', 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """add a device group to the database"""
-        self.createOrganizer(newPath)
-        if REQUEST: 
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+        if newPath.startswith("/"):
+            self.createOrganizer(newPath)
+        else:
+            org = self.__class__(newPath)
+            self.children.addRelation(org)
+        if REQUEST: return self.callZenScreen(REQUEST)
             
+
+    def manage_deleteOrganizer(self, orgname, REQUEST=None):
+        """Delete an Organizer from its parent name is relative to parent"""
+        self.children._delObject(orgname)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
 
     #security.declareProtected('Change Organizer', 'manage_deleteOrganizers')
     def manage_deleteOrganizers(self, organizerPaths, REQUEST=None):
@@ -58,8 +67,7 @@ class Organizer(ZenModelRM):
                 parent.removeRelation(organizer)
             except ZenPathError:
                 pass  # we may have already deleted a sub object
-        if REQUEST: 
-            REQUEST['RESPONSE'].redirect(REQUEST['HTTP_REFERER']) 
+        if REQUEST: return self.callZenScreen(REQUEST)
             
 
     def createOrganizer(self, path):

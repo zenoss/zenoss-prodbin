@@ -1,18 +1,17 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table border="0" cellpadding="3" cellspacing="1"
     tal:define="props here/deviceTreePropertyIds">
     <tr>
-      <th class="tabletitle" align="left" colspan="3">
+      <th class="tabletitlel" colspan="3">
       Device Class Configuration
       </th>
     </tr>
     <tr>
-      <th class="tableheader" align="left">Property</th>
-      <th class="tableheader" align="left">Path</th>
-      <th class="tableheader" align="left">Value</th>
+      <th class="tableheader" align="center">Property</th>
+      <th class="tableheader" align="center">Path</th>
+      <th class="tableheader" align="center">Value</th>
     </tr>
     <tr tal:repeat="prop props">
       <td class="tablevalues" align="left" tal:content="prop">
@@ -31,9 +30,8 @@
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1">
-<tr class="tabletitle"><th>Add/Update Device Property</th></tr>
+<table border="0" cellpadding="3" cellspacing="1">
+<tr class="tabletitlel"><th>Add/Update Device Property</th></tr>
 <tr>
     <td>
         <select name="propname">
@@ -52,9 +50,8 @@
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1">
-<tr class="tabletitle"><th>Delete Device Property</th></tr>
+<table border="0" cellpadding="3" cellspacing="1">
+<tr class="tabletitlel"><th>Delete Device Property</th></tr>
 <tr>
     <td>
         <select name="propname">
