@@ -59,7 +59,6 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 {'id':'previousYearRange', 'type': 'int', 'mode':'w'},
                 {'id':'futureYearRange', 'type': 'int', 'mode':'w'},
                 {'id':'defaultBatchSize', 'type': 'int', 'mode':'w'},
-                {'id':'performanceDateRanges', 'type': 'lines', 'mode':'w'},
                 )
 
     # Screen action bindings (and tab definitions)
