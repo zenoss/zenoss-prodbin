@@ -59,6 +59,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 {'id':'previousYearRange', 'type': 'int', 'mode':'w'},
                 {'id':'futureYearRange', 'type': 'int', 'mode':'w'},
                 {'id':'defaultBatchSize', 'type': 'int', 'mode':'w'},
+                {'id':'performanceDateRanges', 'type': 'lines', 'mode':'w'},
                 )
 
     # Screen action bindings (and tab definitions)
@@ -113,6 +114,16 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 'notPresent:6',
                 'lowerLayerDown:7',
                 ]
+
+
+    defaultDateRange = 129600
+    performanceDateRanges = [ 
+        ('Daily',129600,),
+        ('Weekly',864000,),
+        ('Monthly',3628800,),
+        ('Yearly',41472000,),
+        ]
+
 
     # number of previous year in date popup
     previousYearRange = 2

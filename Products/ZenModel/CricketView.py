@@ -21,14 +21,6 @@ from Acquisition import aq_base
 
 class CricketView:
 
-    defaultDateRange = 129600
-    performanceDateRanges = [ 
-        ('Daily',129600,),
-        ('Weekly',864000,),
-        ('Monthly',3628800,),
-        ('Yearly',41472000,),
-        ]
-
     # this actually happens in Instance.__init__(self)
     #def __init__(self):
     #    self._cricketTargetMap = {}
