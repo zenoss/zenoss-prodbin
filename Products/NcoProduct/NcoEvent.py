@@ -35,6 +35,7 @@ class NcoEvent(Implicit):
             setattr(self, fields[i], data[i])
         for i in range(len(defaultFields)):
             setattr(self, defaultFields[i], self.defaultdata[i])
+        if not hasattr(self, "Serial"): self.Serial = self.ServerSerial
         self.bgcolor = "#FFFFFF"
         self.fgcolor = "#000000"
         

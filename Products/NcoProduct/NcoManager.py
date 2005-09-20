@@ -51,6 +51,7 @@ defaultFields = ['Acknowledged', 'Severity', 'ServerSerial', 'ServerName']
 
 class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, ObjectCache):
 
+
     portal_type = meta_type = 'NcoManager'
    
     security = ClassSecurityInfo()
@@ -127,7 +128,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 select += " order by " + orderby
             elif self.defaultorderby:
                 select += " order by " + self.defaultorderby
-            #print select
+            print select
             if select[-1] != ';': select += ';'
             retdata = self.checkCache(select)
             if not retdata:
@@ -138,7 +139,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 self.addToCache(select, retdata)
                 self.cleanCache()
             return retdata
-        except: #FIXME get specific exceptions!!!!
+        except ValueError: #FIXME get specific exceptions!!!!
             LOG("NcoManager", ERROR, "Failure querying omnibus")
         return []
 
@@ -460,7 +461,16 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             event['Identifier'] = evid
 
         fields = self.getFieldList()
-        insert = "insert into status ("
+
+        sqlcmd = "insert"
+        if self.backend == "mysql":
+            curs = self._getCursor()
+            if curs.execute(
+                "select Identifier from status where Identifier='%s'"
+                % event['Identifier']):
+                sqlcmd = "update" 
+ 
+        insert = "%s into status (" % sqlcmd
         for fieldName in event.keys():
             if fieldName not in fields:
                 raise "NcoEventError", \
@@ -475,9 +485,12 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 insert = insert + "'" + value + "', "
         insert = insert[:-2] + ")"
 
-        insert += " updating(Summary, Severity);"
+        if self.backend == "netcool":
+            insert += " updating(Summary, Severity);"
+        if self.backend == "mysql" and sqlcmd == "update":
+            insert += ", count=count+1"
                   
-        #print insert
+        print insert
         curs = self._getCursor()
         curs.execute(insert)
         if not keepopen: self._closeDb()
@@ -492,7 +505,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         sql = "select KeyField, Conversion from conversions;"
         curs.execute(sql)
         for row in curs.fetchall():
-            conversions[row[0][:-1]] = row[1][:-1]
+            conversions[self._cleanstring(row[0])] = self._cleanstring(row[1])
         if conversions: self._conversions = conversions
         self._getColors(curs)
         self._getSchema(curs)
@@ -556,9 +569,12 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         sql = "describe status;"
         curs.execute(sql)
         for row in curs.fetchall():
-            col = row[0][:-1]
-            type = row[1] in (1, 4, 7, 8) #different date types
-            schema[row[0][:-1]] = type
+            col = self._cleanstring(row[0])
+            if self.backend == "netcool":
+                type = row[1] in (1, 4, 7, 8) #different date types
+            else:
+                type = row[1] in ("datetime", "timestamp")
+            schema[col] = type
         if schema: self._schema = schema 
 
 
@@ -569,7 +585,10 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
     
     def _cleanstring(self,value):
         """take the trailing \x00 off the end of a string"""
-        return cleanstring(value)
+        if self.backend == "netcool":
+            return cleanstring(value)
+        else:
+            return value
        
 
     def _convert(self, field, value):
@@ -611,7 +630,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                                         self.password)
         else: 
             import MySQLdb
-            return MySQLdb.connect(host=self.hostname, user=self.username
+            return MySQLdb.connect(host=self.hostname, user=self.username,
                                         passwd=self.password, db="alerts")
 
 
