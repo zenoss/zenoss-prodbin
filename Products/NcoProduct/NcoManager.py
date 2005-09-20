@@ -460,24 +460,28 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             evid += str(event['Severity'])
             event['Identifier'] = evid
 
-        fields = self.getFieldList()
-
-        sqlcmd = "insert"
+        insert = None
         if self.backend == "mysql":
             curs = self._getCursor()
             if curs.execute(
                 "select Identifier from status where Identifier='%s'"
                 % event['Identifier']):
-                sqlcmd = "update" 
- 
+                insert = self._buildUpdate(event)
+        if not insert: insert = self._buildInsert(event)
+        print insert
+        curs = self._getCursor()
+        curs.execute(insert)
+        if not keepopen: self._closeDb()
+
+
+    def _buildInsert(self, event):
+        """
+        insert into status (Node, AlertGroup) values ('box', 'device')
+        """
         insert = "%s into status (" % sqlcmd
         for fieldName in event.keys():
-            if fieldName not in fields:
-                raise "NcoEventError", \
-                    "Field %s not a valid Omnibus field" % fieldName
             insert = insert + fieldName + ", "
         insert = insert[:-2] + ") values ("
-
         for value in event.values():
             if type(value) == types.IntType or type(value) == types.LongType:
                 insert = insert + str(value) + ", "
@@ -489,12 +493,23 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             insert += " updating(Summary, Severity);"
         if self.backend == "mysql" and sqlcmd == "update":
             insert += ", count=count+1"
-                  
-        print insert
-        curs = self._getCursor()
-        curs.execute(insert)
-        if not keepopen: self._closeDb()
+        return insert
+        
 
+    def _updateEvent(self, event
+        """
+        update alerts set Node='sdf', count=count+1 where Identifier='sdf'
+        """
+        update = "update alerts set "
+        upar = []
+        for field, value in event.items():
+            if type(value) == types.IntType or type(value) == types.LongType:
+                formstr = "%s=%d"
+            else:
+                formstr = "%s='%s'"
+            upar.append(formstr % (field, value))
+        update += ",".join(upar) + " where Identifier='%s'" % event.Identifier
+        return update
 
 
     security.declareProtected('Manage NcoManager','manage_refreshConversions')
