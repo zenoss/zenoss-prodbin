@@ -129,10 +129,10 @@ class DeviceOrganizer(Organizer):
             
         url = "/HelpSys?help_url="+ "/".join(path)
 
-        return """<a class="tabletitle" href="%s"
-            onClick="window.open('%s','zope_help','width=600,height=500,
-            menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes'); 
-            return false;" onMouseOver="window.status='Open online help'; 
+        return """<a class="tabletitle" href="%s" \
+            onClick="window.open('%s','zope_help','width=600,height=500, \
+            menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes');  \
+            return false;" onMouseOver="window.status='Open online help'; \
             return true;" onMouseOut="window.status=''; return true;">Help!</a>
             """ % (url, url)
              

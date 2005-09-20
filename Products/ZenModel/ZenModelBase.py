@@ -31,6 +31,29 @@ class ZenModelBase:
 
     security = ClassSecurityInfo()
 
+    def __call__(self):
+        """
+        Invokes the default view.
+        """
+        view = "view"
+        if hasattr(self, "factory_type_information"):
+            view = self.factory_type_information[0]['immediate_view']
+        else:
+            raise 'Not Found', ('Cannot find default view for "%s"' %
+                                '/'.join(self.getPhysicalPath()))
+        return self.restrictedTraverse(view)()
+
+    index_html = None  # This special value informs ZPublisher to use __call__
+
+
+    security.declareProtected('View', 'view')
+    def view(self):
+        '''
+        Returns the default view even if index_html is overridden.
+        '''
+        return self()
+
+    
     def __hash__(self):
         return hash(self.id)
 
@@ -102,29 +125,6 @@ class ZenModelBase:
         
 
         
-    def __call__(self):
-        """
-        Invokes the default view.
-        """
-        view = "view"
-        if hasattr(self, "factory_type_information"):
-            view = self.factory_type_information[0]['immediate_view']
-        else:
-            raise 'Not Found', ('Cannot find default view for "%s"' %
-                                '/'.join(self.getPhysicalPath()))
-        return self.restrictedTraverse(view)()
-
-    index_html = None  # This special value informs ZPublisher to use __call__
-
-
-    security.declareProtected('View', 'view')
-    def view(self):
-        '''
-        Returns the default view even if index_html is overridden.
-        '''
-        return self()
-
-    
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())
