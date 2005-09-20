@@ -27,7 +27,6 @@ import DateTime
 
 from zLOG import LOG, ERROR
 
-import Sybase
 
 from NcoEvent import NcoEvent, NcoEventDetail, NcoEventJournal, NcoEventData
 from Products.ZenUtils.ObjectCache import ObjectCache
@@ -66,6 +65,8 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                     RoleManager.manage_options)
 
     _properties = (
+                    {'id':'backend', 'type':'string', 'mode':'w'},
+                    {'id':'hostname', 'type':'string', 'mode':'w'},
                     {'id':'omniname', 'type':'string', 'mode':'w'},
                     {'id':'username', 'type':'string', 'mode':'w'},
                     {'id':'password', 'type':'string', 'mode':'w'},
@@ -90,6 +91,8 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
 
         self.id = id
         self.title = title
+        self.backend = "netcool"
+        self.hostname = "localhost"
         self.omniname = omniname #omnibus db name
         self.username = username
         self.password = password
@@ -135,7 +138,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 self.addToCache(select, retdata)
                 self.cleanCache()
             return retdata
-        except:
+        except: #FIXME get specific exceptions!!!!
             LOG("NcoManager", ERROR, "Failure querying omnibus")
         return []
 
@@ -162,7 +165,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 self.addToCache(cachekey, retdata)
                 self.cleanCache()
             return retdata
-        except:
+        except: #FIXME get specific exceptions!!!!
             logging.exception("Failure querying oracle history")
             #LOG("NcoManager", ERROR, "Failure querying oracle history")
         return []
@@ -334,7 +337,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                     retdata.append((row[i], self._colors[sev],))
                 else:
                     retdata.append((0, self._colors[sev],))
-        except:
+        except: #FIXME get specific exceptions!!!!
             logging.exception("failed querying event database") 
             retdata = defaultdata
         return retdata    
@@ -591,19 +594,25 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
     def _getCursor(self):
         """try to get a cursor to get data from database"""
         if not hasattr(self, '_v_db') or not self._v_db:
-            self._v_db = Sybase.connect(
-                self.omniname,
-                self.username,
-                self.password)
-        try:
-            cur = self._v_db.cursor()
-        except:
-            self._v_db = Sybase.connect(
-                self.omniname,
-                self.username,
-                self.password)
-            cur = self._v_db.cursor()
+            self._v_db = self._getEventDb()
+        #try:
+        cur = self._v_db.cursor()
+        #FIXME - when else might this appen? need to catch specific exception
+        #except:
+        #    cur = self._v_db.cursor()
         return cur
+
+
+    def _getEventDb(self):
+        """Open omnibus connection"""
+        if self.backend == "netcool":
+            import Sybase
+            self._v_db = Sybase.connect(self.omniname,self.username,
+                                        self.password)
+        else: 
+            import MySQLdb
+            self._v_db = MySQLdb.connect(host=self.hostname, user=self.username
+                                        passwd=self.password, db="alerts")
 
 
     def _closeDb(self):
