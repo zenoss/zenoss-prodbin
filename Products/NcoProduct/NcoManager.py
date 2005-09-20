@@ -607,11 +607,11 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         """Open omnibus connection"""
         if self.backend == "netcool":
             import Sybase
-            self._v_db = Sybase.connect(self.omniname,self.username,
+            return Sybase.connect(self.omniname,self.username,
                                         self.password)
         else: 
             import MySQLdb
-            self._v_db = MySQLdb.connect(host=self.hostname, user=self.username
+            return MySQLdb.connect(host=self.hostname, user=self.username
                                         passwd=self.password, db="alerts")
 
 
