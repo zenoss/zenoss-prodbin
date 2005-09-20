@@ -482,15 +482,18 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         for fieldName in event.keys():
             insert = insert + fieldName + ", "
         insert = insert[:-2] + ") values ("
+        inar = []
         for value in event.values():
             if type(value) == types.IntType or type(value) == types.LongType:
-                insert = insert + str(value) + ", "
+                inar.append(str(value))
             else:
-                insert = insert + "'" + value + "', "
-        insert = insert[:-2] + ")"
+                inar.append("'" + value + "'")
+        insert = ",".join(inar) + ",FirstOccurrence=NULL,LastOccurrence=NULL)"
 
         if self.backend == "netcool":
             insert += " updating(Summary, Severity);"
+        if self.backend == "mysql" and sqlcmd == "update":
+            insert += ", count=count+1, LastOccurrence=NULL"
         return insert
         
 
