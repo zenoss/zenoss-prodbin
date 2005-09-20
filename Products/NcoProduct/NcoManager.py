@@ -128,7 +128,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 select += " order by " + orderby
             elif self.defaultorderby:
                 select += " order by " + self.defaultorderby
-            print select
+            #print select
             if select[-1] != ';': select += ';'
             retdata = self.checkCache(select)
             if not retdata:
@@ -468,7 +468,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 % event['Identifier']):
                 insert = self._buildUpdate(event)
         if not insert: insert = self._buildInsert(event)
-        print insert
+        #print insert
         curs = self._getCursor()
         curs.execute(insert)
         if not keepopen: self._closeDb()
@@ -478,7 +478,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         """
         insert into status (Node, AlertGroup) values ('box', 'device')
         """
-        insert = "%s into status (" % sqlcmd
+        insert = "insert into status ("
         for fieldName in event.keys():
             insert = insert + fieldName + ", "
         insert = insert[:-2] + ") values ("
@@ -491,16 +491,14 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
 
         if self.backend == "netcool":
             insert += " updating(Summary, Severity);"
-        if self.backend == "mysql" and sqlcmd == "update":
-            insert += ", count=count+1"
         return insert
         
 
-    def _updateEvent(self, event
+    def _buildUpdate(self, event):
         """
         update alerts set Node='sdf', count=count+1 where Identifier='sdf'
         """
-        update = "update alerts set "
+        update = "update status set "
         upar = []
         for field, value in event.items():
             if type(value) == types.IntType or type(value) == types.LongType:
@@ -508,7 +506,8 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             else:
                 formstr = "%s='%s'"
             upar.append(formstr % (field, value))
-        update += ",".join(upar) + " where Identifier='%s'" % event.Identifier
+        update += ",".join(upar) + ",count=count+1"
+        update += " where Identifier='%s'" % event['Identifier']
         return update
 
 
