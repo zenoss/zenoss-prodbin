@@ -15,60 +15,60 @@ $Id: NcoEventPopulator.py,v 1.21 2003/05/16 21:00:32 edahl Exp $"""
 
 __version__ = "$Revision: 1.21 $"[11:-2]
 
-
 import socket
 import time
 import sys
 import os.path
 import logging
 import xmlrpclib
-from AuthTransport import BasicAuthTransport
 
-import Sybase
+import Globals
 
+from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.ConfDaemon import ConfDaemon
 
-class NcoEventPopulator(ConfDaemon):
+from DbAccessBase import DbAccessBase
+
+class NcoEventPopulator(ConfDaemon, DbAccessBase):
 
     def __init__(self):
         ConfDaemon.__init__(self) 
-        self._omniname = self.options.omniname
-        self._omniusername = self.options.omniusername
-        self._omnipassword = self.options.omnipassword
-        self._zopeurl = self.options.zopeurl
-        self._zopeusername = self.options.zopeusername
-        self._zopepassword = self.options.zopepassword
-        self._cycletime = int(self.options.cycletime)
-        self._configCycleInterval = int(self.options.configcycle)
+        self.backend = self.options.backend
+        self.hostname = self.options.hostname
+        self.omniname = self.options.omniname
+        self.username = self.options.username
+        #self.password = self.options.password
+        self.password = ""
+        self.zurl = self.options.zopeurl
+        self.zusername = self.options.zopeusername
+        self.zpassword = self.options.zopepassword
+        self.cycletime = int(self.options.cycletime)
+        self.configCycleInterval = int(self.options.configcycle)
 
-        self._configTime = 0
-        self._deviceInfo = {} #[fqdn] -> (SystemName, Location, 
+        self.configTime = 0
+        self.deviceInfo = {} #[fqdn] -> (SystemName, Location, 
                               #          productionState, deviceClass) 
         self._v_db = None
 
 
     def getDeviceInfo(self):
         """getDeviceInfo() -> load device information from zope"""
-        
-        if time.time()-self._configTime > self._configCycleInterval*60:
+        if time.time()-self.configTime > self.configCycleInterval*60:
             self.log.info('Reloading device informtion from server')
-            trans = BasicAuthTransport(self._zopeusername, self._zopepassword)
-            server = xmlrpclib.Server(self._zopeurl, transport=trans)
+            url = basicAuthUrl(self.zusername, self.zpassword, self.zurl)
+            server = xmlrpclib.Server(url)
             for i in range(3):
                 try:
-                    self._deviceInfo = server.getEventDeviceInfo()
+                    self.deviceInfo = server.getEventDeviceInfo()
                 except socket.error:
                     self.log.critical("xmlrpc server %s not available" %
-                                        self._zopeurl)
+                                        self.zurl)
                     self.log.warn("failed to renew configuration information")
-                except xmlrpclib.Fault, e:
-                    self.log.exception("xmlrpc server %s returned an error" %
-                                        self._zopeurl)
                 except Exception, e:
                     self.log.exception("an unexpected exception was found")
 
-                if self._deviceInfo:
-                    self._configTime = time.time()
+                if self.deviceInfo:
+                    self.configTime = time.time()
                     return
                 else:
                     self.log.critical("no configuration found retry in 20 secs")
@@ -111,12 +111,12 @@ class NcoEventPopulator(ConfDaemon):
             curs = self._getCursor()
             for event in events:
                 node, serverSerial, serverName = event
-                node = node[:-1]
-                serverName = serverName[:-1]
-                if self._deviceInfo.has_key(node):
+                node = self._cleanstring(node)
+                serverName = self._cleanstring(serverName)
+                if self.deviceInfo.has_key(node):
                     self.log.info("Node %s found in device info" % node)
                     (systemName, location, 
-                    productionState, deviceClass) = self._deviceInfo[node]
+                    productionState, deviceClass) = self.deviceInfo[node]
                     self.updateEvent(curs, serverSerial, serverName, systemName,
                                     location, productionState, deviceClass)
                 else:
@@ -129,7 +129,7 @@ class NcoEventPopulator(ConfDaemon):
 
     def mainLoop(self):
         """mainLoop() -> entry point to begin operations"""
-        if self._cycletime:
+        if self.cycletime:
             while 1:
                 startLoop = time.time()
                 self.log.info("Starting event processing loop")
@@ -138,38 +138,13 @@ class NcoEventPopulator(ConfDaemon):
                 runTime = time.time()-startLoop
                 self.log.info("Ending event processing loop")
                 self.log.info("Loop runtime = %s seconds" % runTime)
-                if runTime < self._cycletime:
-                    time.sleep(self._cycletime - runTime)
+                if runTime < self.cycletime:
+                    time.sleep(self.cycletime - runTime)
         else:
             self.log.info("Starting single processing run")
             self.getDeviceInfo()
             self.processEvents()
             self.log.info("Ending single processing run")
-
-
-    def _getCursor(self):
-        """_getCursor() -> connect to db if nessesary then return cursor"""
-        if not hasattr(self, '_v_db') or not self._v_db:
-            self._v_db = Sybase.connect(
-                self._omniname,
-                self._omniusername,
-                self._omnipassword)
-        try:
-            cur = self._v_db.cursor()
-        except:
-            self._v_db = Sybase.connect(
-                self._omniomniname,
-                self._omniusername,
-                self._omnipassword)
-            cur = self._v_db.cursor()
-        return cur
-
-
-    def _closeDb(self):
-        """_closeDb() -> close the database connection set _v_db to None"""
-        if self._v_db: 
-            self._v_db.close()
-            self._v_db = None
 
 
     def buildOptions(self):
@@ -186,16 +161,16 @@ class NcoEventPopulator(ConfDaemon):
                         type="string", dest="omnipassword",
                         help="password for omnibus database")
 
-        self.parser.add_option("-z", "--zopeurl", action="store", 
-                        type="string", dest="zopeurl",
+        self.parser.add_option("-z", "--zurl", action="store", 
+                        type="string", dest="zurl",
                         help="url for zope server device class")
 
-        self.parser.add_option("-U", "--zopeusername", action="store", 
-                        type="string", dest="zopeusername",
+        self.parser.add_option("-U", "--zusername", action="store", 
+                        type="string", dest="zusername",
                         help="username for zope server")
 
-        self.parser.add_option("-P", "--zopepassword", action="store", 
-                        type="string", dest="zopepassword",
+        self.parser.add_option("-P", "--zpassword", action="store", 
+                        type="string", dest="zpassword",
                         help="password for zope server")
         
         self.parser.add_option("-y", "--cycletime", action="store", 
