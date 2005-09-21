@@ -105,6 +105,12 @@ class DeviceClass(DeviceOrganizer, Folder):
                 , 'permissions'   : (
                   permissions.View, )
                 },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.View, )
+                },
             )
          },
         )
@@ -176,8 +182,8 @@ class DeviceClass(DeviceOrganizer, Folder):
     security.declareProtected('View', 'deviceClassEvents')
     def deviceClassEvents(self):
         """get the event list of this object"""
-        self.REQUEST.set('ev_whereclause', "DeviceClass like '%s.*'" %
-                                    self.getDeviceClassPath())
+        self.REQUEST.set('ev_whereclause', "DeviceClass like '%s%%'" %
+                                    self.getOrganizerName())
         return self.viewEvents(self.REQUEST)
 
 
@@ -185,7 +191,7 @@ class DeviceClass(DeviceOrganizer, Folder):
     def deviceClassHistoryEvents(self):
         """get the history event list of this object"""
         self.REQUEST.set('ev_whereclause', "DeviceClass like '%s%%'" %
-                                    self.getDeviceClassPath())
+                                    self.getOrganizerName())
         self.REQUEST.set('ev_orderby', "LastOccurrence desc")
         return self.viewHistoryEvents(self.REQUEST)
 

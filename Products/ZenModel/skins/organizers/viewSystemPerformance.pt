@@ -1,8 +1,6 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table metal:use-macro="here/viewSystemStatus/macros/sysdescr"></table>
-<br>
 <table border=0 cellpadding=3 width=100%
     align="center" bgcolor="#ffffff" cellspacing=1
     tal:define="tableName string:perfdetail;
