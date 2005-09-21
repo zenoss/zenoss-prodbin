@@ -127,7 +127,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 select += " order by " + orderby
             elif self.defaultorderby:
                 select += " order by " + self.defaultorderby
-            #print select
+            print select
             if select[-1] != ';': select += ';'
             retdata = self.checkCache(select)
             if not retdata:
@@ -467,7 +467,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
                 % event['Identifier']):
                 insert = self._buildUpdate(event)
         if not insert: insert = self._buildInsert(event)
-        #print insert
+        print insert
         curs = self._getCursor()
         curs.execute(insert)
         if not keepopen: self._closeDb()
@@ -478,21 +478,22 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
         insert into status (Node, AlertGroup) values ('box', 'device')
         """
         insert = "insert into status ("
-        for fieldName in event.keys():
-            insert = insert + fieldName + ", "
-        insert = insert[:-2] + ") values ("
+        insert += ",".join(event.keys())
+        if self.backend == "mysql":
+            insert += ',FirstOccurrence, LastOccurrence'
+        insert += ") values ("
         inar = []
         for value in event.values():
             if type(value) == types.IntType or type(value) == types.LongType:
                 inar.append(str(value))
             else:
                 inar.append("'" + value + "'")
-        insert = ",".join(inar) + ",FirstOccurrence=NULL,LastOccurrence=NULL)"
-
+        insert += ",".join(inar)
+        if self.backend == "mysql":
+            insert += ",NULL,NULL"
+        insert += ")"
         if self.backend == "netcool":
             insert += " updating(Summary, Severity);"
-        if self.backend == "mysql" and sqlcmd == "update":
-            insert += ", count=count+1, LastOccurrence=NULL"
         return insert
         
 
@@ -508,7 +509,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             else:
                 formstr = "%s='%s'"
             upar.append(formstr % (field, value))
-        update += ",".join(upar) + ",count=count+1"
+        update += ",".join(upar) + ",count=count+1, LastOccurrence=NULL"
         update += " where Identifier='%s'" % event['Identifier']
         return update
 
