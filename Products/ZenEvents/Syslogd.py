@@ -4,8 +4,12 @@
 2000-06-12/bb:  added constants from syslog.h,
                 config options for time format, stop string
 """
-
 import sys, string, time, socket, re
+
+import Globals
+
+from Products.ZenEvents.SendEvent import SendEvent
+
 from SocketServer import *
 
 # constants from syslog.h
@@ -102,7 +106,9 @@ SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
 class Syslogd(ThreadingUDPServer, InterruptibleServer):
 
-    def __init__(self, addr='', port=SYSLOG_PORT, pri=LOG_DEBUG, timefmt=None, magic=None):
+    def __init__(self, addr='', port=SYSLOG_PORT, pri=LOG_DEBUG, 
+            timefmt=None, magic=None, username="monitor", 
+            password="sine440", url="http://localhost:8080/zport/dmd/netcool"):
 
         UDPServer.__init__(self, (addr, port), None)
 
@@ -111,7 +117,10 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
 
-        print 'syslogd started'
+        self.ev = SendEvent("syslog", username, password, url)
+        self.ev.sendEvent(socket.getfqdn(), "syslog", self.ev.Info,
+                        "syslog collector started")
+
 
     def finish_request(self, (msg, sock), client_address):
 
@@ -123,6 +132,8 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
         # The float denotes the original event time in case the
         # event comes through a gateway from a client that is not
         # syslog-compatible (Windows NT comes to mind :-).
+
+        print msg
 
         # extract original event time, if present
         if msg[:2] == '[[':
@@ -145,8 +156,8 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
             fac, pri = None, None
 
         # check if we can discard this message
-        if pri is not None and pri > self.priority:
-            return
+        #if pri is not None and pri > self.priority:
+        #    return
 
         # build the client address/name mapping
         client = client_address[0]
@@ -155,25 +166,43 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
         except KeyError:
             try:
                 host = socket.gethostbyaddr(client)[0]
-                host = host.split('.')[0]       # keep only the host name
+                #host = host.split('.')[0]       # keep only the host name
             except socket.error:
                 host = client
             self.hostmap[client] = host
 
-        # print the message
-        tm = time.strftime(self.timefmt, time.localtime(tm))
         if 0: # fac is not None and pri is not None:
             fp = ' <%s,%s>' % (fac_names[fac], pri_names[pri])
         else:
             fp = ''
-        sys.stdout.write(tm + ' ' + host + fp + ': ' + msg.strip() + '\n')
+        
+        # client - ip address
+        # host - fqdn 
+        # fp - facility
+        # msg - the message
+        # pri - priority of the message
+
+        facility = "syslog"
+        if msg.find(":") > -1:
+            facility, msg = msg.split(":", 1)
+
+        # map severity of message
+        sev = 1
+        if pri < 3: sev = 5
+        elif pri == 3: sev = 4
+        elif pri == 4: sev = 3
+        elif 7 > pri < 4: sev = 2
+        
+        identifier = "|".join((host, facility, str(sev), msg, str(time.time())))
+        self.ev.sendEvent(host, facility, sev, msg, 
+                            Identifier=identifier,IpAddress=client)
+        
+        sys.stdout.write(client + ' ' + host + ': ' + msg.strip() + '\n')
 
         # stop the server if the magic stop string appears in the message
         if msg.find(self.stop_magic) >= 0:
             print 'stopped.'
             self.stop()
 
-
 if __name__ == '__main__':
     Syslogd(timefmt='%H:%M:%S').serve()
-
