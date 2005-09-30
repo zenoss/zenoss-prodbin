@@ -193,7 +193,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
         elif pri == 4: sev = 3
         elif 7 > pri < 4: sev = 2
         
-        identifier = "|".join((host, facility, str(sev), msg, str(time.time())))
+        identifier = "|".join((host, facility, str(sev), msg))
         self.ev.sendEvent(host, facility, sev, msg, 
                             Identifier=identifier,IpAddress=client)
         
