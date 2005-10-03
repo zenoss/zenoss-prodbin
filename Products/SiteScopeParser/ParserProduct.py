@@ -121,10 +121,11 @@ class ParserProduct(Implicit,Persistent,RoleManager,Item,ObjectCache):
         whether or not the target is the first page in
         SiteScope'''
         p = None
+        req = getattr(self, 'REQUEST', None)
         if url.find("SiteScope.html") > 0:
-            p = SiteScopeFirstParser(self.REQUEST)
+            p = SiteScopeFirstParser(req)
         else:
-            p = SiteScopeParser(self.REQUEST)
+            p = SiteScopeParser(req)
         return p
 
 
@@ -208,17 +209,11 @@ class ParserProduct(Implicit,Persistent,RoleManager,Item,ObjectCache):
     security.declarePublic('Get list of all rows','getTableList')
     def getRowList(self, refUrl=None):
         "Returns all rows in the format of a list"
-
-        
-        if refUrl:
-            url = refUrl
-        else:
+        if not refUrl and getattr(self, 'REQUEST', False):
             form = self.REQUEST.form
             if form.has_key('refUrl'):
-                url = form['refUrl'][1:-1]
-            else:
-                url = None 
-        return self._getParseTree(url).getRows()
+                refUrl = form['refUrl'][1:-1]
+        return self._getParseTree(refUrl).getRows()
 
 
     security.declarePublic('Get HTML version of the table','index_html')
@@ -244,13 +239,15 @@ class ParserProduct(Implicit,Persistent,RoleManager,Item,ObjectCache):
             cols = row.columns()
             for key in cols.keys():
                 retval += "<td>"
-                if key == 'Condition':
+                if key in ('Condition', 'State'):
                     retval += row.ConditionImg()
                 elif key == 'Name':
                     retval += "<a href=" + row.NameAutoUrl() + ">"
                     retval += row.Name() + "</a>" 
-                else:    
-                    retval += cols[key]()
+                else:
+                    import pdb
+                    if type(cols[key]) != type(""): pdb.set_trace()
+                    retval += cols[key]
                 retval += "</td>"
             retval += "</tr>\n"
         retval += "</table></body></html>"

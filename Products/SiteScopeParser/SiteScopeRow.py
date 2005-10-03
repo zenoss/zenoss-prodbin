@@ -28,9 +28,12 @@ class SiteScopeRow(Explicit):
     security = ClassSecurityInfo()
     security.declareObjectPublic()
 
-    def __init__(self, row, request):
+    def __init__(self, row, request=None):
         self._row = row
-        self.myUrl = request['URL']
+        if request:
+            self.myUrl = request['URL']
+        else:
+            self.myUrl = ""
     
 
     def isNamed(self,name):
@@ -39,11 +42,13 @@ class SiteScopeRow(Explicit):
             retval = 1
         return retval
 
+
     def columns(self):
-        retval = {}
+        retdict = {}
         for key in self._row.keys():
-            retval[key] = getattr(self, key)
-        return retval
+            retdict[key] = self._getValue(key) 
+        return retdict
+
 
     def fixURLs(self, host, base):
         row = self._row
@@ -88,14 +93,15 @@ class SiteScopeRow(Explicit):
         if not user.has_role('Manager'):
             return 'nodata'
         return self._getValue('Condition')
-
+    
     security.declarePublic('ConditionUrl')
     def ConditionUrl(self):
         return self._getValue('Condition',1)
 
     security.declarePublic('ConditionImg')
     def ConditionImg(self):
-        col = self._row['Condition']
+        col = self._row.get('Condition', None)
+        if col == None: col = self._row.get('State')
         data = col['Data']
         if data.find('good') > -1: data = "good"
         elif data.find('error') > -1: data = "error"
@@ -105,6 +111,7 @@ class SiteScopeRow(Explicit):
                     % (col['Data'],
                     self.condition[data]))
         return img 
+
 
     security.declarePublic('More')
     def More(self):

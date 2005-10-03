@@ -24,7 +24,7 @@ import urllib
 class SiteScopeParser(HTMLParser):
     "A class to grok SiteScope secondary pages"
 
-    def __init__(self,request,formatter=NullFormatter()):
+    def __init__(self,request=None,formatter=NullFormatter()):
         "Build object, initialize values"
 
         HTMLParser.__init__(self,formatter)
@@ -115,7 +115,7 @@ class SiteScopeParser(HTMLParser):
         row's status in the alt property'''
 
         if self._columns:
-            self._tagDataProc = 'img'
+            #self._tagDataProc = 'img'
             self._row[
                 self._columns[
                     self.numtds]]['Data'] = self._getAttr(attrs,'alt')
