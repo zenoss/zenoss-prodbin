@@ -30,6 +30,7 @@ from zLOG import LOG, ERROR
 
 from NcoEvent import NcoEvent, NcoEventDetail, NcoEventJournal, NcoEventData
 from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.NcoProduct.DbAccessBase import DbAccessBase
 
 def manage_addNcoManager(context, id, REQUEST=None):
     '''make an NcoManager'''
@@ -48,7 +49,7 @@ def manage_addNcoManager(context, id, REQUEST=None):
 defaultFields = ['Acknowledged', 'Severity', 'ServerSerial', 'ServerName']
 
 
-class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, ObjectCache):
+class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, PropertyManager, ObjectCache):
 
 
     portal_type = meta_type = 'NcoManager'
@@ -487,7 +488,7 @@ class NcoManager(Implicit, Persistent, RoleManager, Item, PropertyManager, Objec
             if type(value) == types.IntType or type(value) == types.LongType:
                 inar.append(str(value))
             else:
-                inar.append("'" + value + "'")
+                inar.append(self._escapeValue(value))
         insert += ",".join(inar)
         if self.backend == "mysql":
             insert += ",NULL,NULL"

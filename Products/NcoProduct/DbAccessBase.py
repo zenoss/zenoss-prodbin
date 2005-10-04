@@ -67,6 +67,13 @@ class DbAccessBase:
             return value
 
 
+    def _escapeValue(self, value):
+        """escape string values"""
+        if self.backend == "mysql":
+            return self._v_db.escape(value)
+        return "'"+value+"'"
+
+
     def _checkConn(self):
         """check to see if the connection information in product works"""
         self._getCursor()
