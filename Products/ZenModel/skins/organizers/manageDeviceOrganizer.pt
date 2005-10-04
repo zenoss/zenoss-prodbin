@@ -11,7 +11,8 @@
             </th></tr>
         <tr>
         <tr>
-            <td class="tableheader" width="25%" align="left">Systems</td>
+            <td class="tableheader" width="25%" align="left"
+                tal:content="here/dmdRootName">Systems</td>
             <td class="tablevalues" align="left" colspan=3>
                 <select class="tablevalues" name="organizerPaths:list" 
                 multiple tal:define="
@@ -40,7 +41,8 @@
     <table border="0" cellpadding="3" width="100%" 
         align="left" bgcolor="#ffffff" cellspacing="1">
         <tr>
-            <td class="tableheader" width="25%" align="left">
+            <td class="tableheader" width="25%" align="left"
+                tal:content="string: New ${here/dmdRootName}">
                 New System</td>
             <td class="tablevalues" align="left" colspan="3">
                 <input class="tablevalues" type="text" 
