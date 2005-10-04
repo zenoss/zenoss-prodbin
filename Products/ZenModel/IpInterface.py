@@ -331,10 +331,10 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         return self.device()
 
     
-    def _getPingStatus(self):
+    def _getPingStatusObj(self):
         """get the first IpAddress on this interface for PingStatusInt"""
         if self.ipaddresses.countObjects():
-            return self.ipaddresses()[0]._getPingStatus()
+            return self.ipaddresses()[0]._getPingStatusObj()
 
 
 InitializeClass(IpInterface)

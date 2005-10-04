@@ -198,6 +198,7 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
         if self._pingStatus == None:
             d = self.getDevice()
             if d: return d._getPingStatusObj()
+        return self._pingStatus        
 
 
 InitializeClass(IpAddress)

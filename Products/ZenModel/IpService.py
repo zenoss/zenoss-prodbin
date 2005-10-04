@@ -19,7 +19,7 @@ from Globals import InitializeClass
 from Service import Service
 from IpServiceClass import addIpServiceToClass, getIpServiceClassId
 from DeviceResultInt import DeviceResultInt
-from PingStatusInt import PingStatusInt
+#from PingStatusInt import PingStatusInt
 
 def manage_addIpService(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -32,7 +32,7 @@ def manage_addIpService(context, id, title = None, REQUEST = None):
 
 addIpService = DTMLFile('dtml/addIpService',globals())
 
-class IpService(Service, PingStatusInt, DeviceResultInt):
+class IpService(Service, DeviceResultInt):
     """Service object"""
     portal_type = meta_type = 'IpService'
     protocols = ('tcp', 'udp')
@@ -96,8 +96,10 @@ class IpService(Service, PingStatusInt, DeviceResultInt):
     def getDevice(self):
         return self.server()
 
-    def _getPingStatusObj(self):
-        return self.server()._pingStatus
+    # FIXME - not sure what I was thinking here
+    # clearly status for a service isn't ICMP
+    #def _getPingStatusObj(self):
+    #    return self.server()._pingStatus
 
 
     def getKeyword(self):

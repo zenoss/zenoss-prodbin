@@ -595,19 +595,19 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         return self
 
 
-    def _getSnmpStatusNumber(self):
+    def getSnmpStatusNumber(self):
         '''get a device's raw snmp status number'''
         return self._snmpStatus.getStatus()
 
 
     security.declareProtected('View', 'getSnmpStatus')
-    def _getSnmpStatus(self):
+    def getSnmpStatus(self):
         '''get a device's snmp status and perform conversion'''
         return self._snmpStatus.getStatusString()
 
 
     security.declareProtected('View', 'getSnmpStatusColor')
-    def _getSnmpStatusColor(self):
+    def getSnmpStatusColor(self):
         '''get the device's snmp status color'''
         return self._snmpStatus.color()
 

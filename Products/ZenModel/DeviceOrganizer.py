@@ -38,11 +38,16 @@ class DeviceOrganizer(Organizer):
     def getAllCounts(self, devrel="devices"):
         """Count all devices within a device group and get the
         ping and snmp counts as well"""
-        counts = [
-            self.devices.countObjects(),
-            self._status("Ping", devrel),
-            self._status("Snmp", devrel),
-        ]
+        devices = getattr(self, devrel)
+        pingStatus = 0
+        snmpStatus = 0
+        devCount = devices.countObjects()
+        for dev in devices():
+            if dev.getPingStatusNumber() > 0:
+                pingStatus += 1
+            if dev.getSnmpStatusNumber() > 0:
+                snmpStatus += 1
+        counts = [devCount, pingStatus, snmpStatus]
         for group in self.children():
             sc = group.getAllCounts()
             for i in range(3): counts[i] += sc[i]

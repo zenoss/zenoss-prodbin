@@ -21,9 +21,6 @@ class PingStatusInt:
     security = ClassSecurityInfo()
 
     def _getPingStatusObj(self):
-        if (not hasattr(self, "_pingStatus") 
-            or getattr(self, "_pingStatus") == None):
-            self._pingStatus = ZenStatus.ZenStatus(-1)
         return self._pingStatus
 
 
@@ -31,8 +28,7 @@ class PingStatusInt:
     def getPingStatus(self):
         """get the ping status of the box if there is one"""
         ps = self._getPingStatusObj()
-        if ps:
-            return ps.getStatusString()
+        if ps: return ps.getStatusString()
         return "No Status"
 
 
@@ -40,8 +36,7 @@ class PingStatusInt:
     def getPingStatusColor(self):
         """get the snmp status color of the device if there is one"""
         ps = self._getPingStatusObj()
-        if ps:
-            return ps.color()
+        if ps: return ps.color()
         return ZenStatus.defaultColor
 
 
@@ -49,29 +44,29 @@ class PingStatusInt:
     def getPingStatusNumber(self):
         '''get a device's raw ping status number'''
         ps = self._getPingStatusObj()
-        if not ps: return -1
-        return ps.getStatus()
+        if ps: return ps.getStatus()
+        return -1
 
 
-    security.declareProtected('Change Device', 'incrPingStatus')
+    security.declareProtected('Manage Device Status', 'incrPingStatus')
     def incrPingStatus(self):
         """mark interface with failed ping"""
         ps = self._getPingStatusObj()
         if ps: return ps.incr()
 
 
-    security.declareProtected('Change Device', 'resetPingStatus')
+    security.declareProtected('Manage Device Status', 'resetPingStatus')
     def resetPingStatus(self):
         """mark interface with working ping status"""
         ps = self._getPingStatusObj()
         if ps: return ps.reset()
        
 
-    security.declareProtected('Change Device', 'setPingStatus')
+    security.declareProtected('Manage Device Status', 'setPingStatus')
     def setPingStatus(self, value):
         """set the value of operational status based on ping"""
         ps = self._getPingStatusObj()
-        if ps: ps.setStatus(value)
+        if ps: return ps.setStatus()
    
     
 
