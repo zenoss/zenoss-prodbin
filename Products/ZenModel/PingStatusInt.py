@@ -66,7 +66,7 @@ class PingStatusInt:
     def setPingStatus(self, value):
         """set the value of operational status based on ping"""
         ps = self._getPingStatusObj()
-        if ps: return ps.setStatus()
+        if ps: return ps.setStatus(value)
    
     
 
