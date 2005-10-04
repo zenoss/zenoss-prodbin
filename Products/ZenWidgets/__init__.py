@@ -25,6 +25,7 @@ except ImportError: pass
 def initialize(registrar):
     registrar.registerClass(
         ZenTableManager,
+        permission="Add ZenTableManager",
         constructors = (manage_addZenTableManager,),
         icon = "ZenTableManager_icon.gif"
     )
