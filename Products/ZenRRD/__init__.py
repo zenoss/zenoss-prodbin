@@ -25,26 +25,32 @@ def initialize(registrar):
 
     registrar.registerClass(
         RenderServer,
+        permission="Add DMD Objects",
         constructors = (addRenderServer, manage_addRenderServer),
         )
     registrar.registerClass(
         RRDTargetType,
+        permission="Add DMD Objects",
         constructors = (addRRDTargetType, manage_addRRDTargetType),
         )
     registrar.registerClass(
         RRDView,
+        permission="Add DMD Objects",
         constructors = (addRRDView, manage_addRRDView),
         )
     registrar.registerClass(
         RRDDataSource,
+        permission="Add DMD Objects",
         constructors = (addRRDDataSource, manage_addRRDDataSource),
         #icon = 'www/Folder_icon.gif',
         )
     registrar.registerClass(
         RRDThreshold,
+        permission="Add DMD Objects",
         constructors = (addRRDThreshold, manage_addRRDThreshold),
         )
     registrar.registerClass(
         RRDRelativeThresh,
+        permission="Add DMD Objects",
         constructors = (addRRDRelativeThresh, manage_addRRDRelativeThresh),
         )
