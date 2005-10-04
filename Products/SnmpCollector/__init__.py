@@ -20,10 +20,12 @@ def initialize(registrar):
     from SnmpAttMap import SnmpAttMap, addSnmpAttMap, manage_addSnmpAttMap
     registrar.registerClass(
         SnmpAttMap,
+        permission="Add DMD Objects",
         constructors = (addSnmpAttMap, manage_addSnmpAttMap),
         )
     registrar.registerClass(
         SnmpTableMap,
+        permission="Add DMD Objects",
         constructors = (addSnmpTableMap, manage_addSnmpTableMap),
         )
         #icon = 'www/Folder_icon.gif')
