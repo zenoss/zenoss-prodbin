@@ -27,7 +27,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from ImageFile import ImageFile
 import DateTime
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
 
@@ -77,13 +77,13 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 , 'name'          : 'Index'
                 , 'action'        : 'dmdIndex'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
           },

@@ -17,7 +17,7 @@ import re
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Device import Device
 from CricketServer import CricketServer
@@ -59,31 +59,31 @@ class Server(CricketServer, Device):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewDeviceStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewServerDetail'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewServerPerformance'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -99,7 +99,7 @@ class Server(CricketServer, Device):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
          },

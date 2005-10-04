@@ -17,7 +17,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Instance import Instance
 
@@ -57,13 +57,13 @@ class Product(Instance):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewProductOverview'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.ModifyPortalContent, )
+                  permissions.view, )
                 },
             )
           },

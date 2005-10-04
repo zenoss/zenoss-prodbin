@@ -15,7 +15,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.Utils import travAndColl
 
@@ -73,31 +73,31 @@ class System(DeviceOrganizer):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewSystemStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewSystemPerformance'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'systemEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'systemHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.ModifyPortalContent, )
+                  permissions.view, )
                 },
             )
          },

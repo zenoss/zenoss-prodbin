@@ -14,7 +14,7 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from DeviceOrganizer import DeviceOrganizer
 
@@ -59,13 +59,13 @@ class DeviceGroup(DeviceOrganizer):
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
           },

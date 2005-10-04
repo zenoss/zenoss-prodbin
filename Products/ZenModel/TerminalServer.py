@@ -18,7 +18,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Router import Router
 from IpAddress import findIpAddress
@@ -54,31 +54,31 @@ class TerminalServer(Router):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewDeviceStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewTerminalServerDetail'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },                
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -94,7 +94,7 @@ class TerminalServer(Router):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
          },

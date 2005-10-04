@@ -15,7 +15,7 @@ from Globals import DTMLFile
 
 from AccessControl import ClassSecurityInfo
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
@@ -60,25 +60,25 @@ class Location(DeviceOrganizer):
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'locationEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'locationHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
           },

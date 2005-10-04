@@ -17,7 +17,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
@@ -91,13 +91,13 @@ class IpNetwork(DeviceOrganizer):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewNetworkOverview'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
           },

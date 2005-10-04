@@ -11,6 +11,9 @@ $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
+from AccessControl import ClassSecurityInfo, Unauthorized
+from Globals import InitializeClass
+
 from Products.ZenModel.Organizer import Organizer
 
 class DeviceOrganizer(Organizer):
@@ -19,6 +22,8 @@ class DeviceOrganizer(Organizer):
     It has lots of methods for rolling up device statistics and information.
     """
     
+    security = ClassSecurityInfo()
+
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
@@ -110,7 +115,7 @@ class DeviceOrganizer(Organizer):
         return retval
 
 
-    #security.declareProtected('View', 'helpLink')
+    security.declareProtected('View', 'helpLink')
     def helpLink(self):
         '''return a link to the objects help file'''
         path = self.__class__.__module__.split('.')
@@ -124,7 +129,7 @@ class DeviceOrganizer(Organizer):
         app = self.getPhysicalRoot()
         try:
             app.restrictedTraverse(path)
-        except KeyError:
+        except (KeyError, Unauthorized):
             return ""
             
         url = "/HelpSys?help_url="+ "/".join(path)
@@ -135,4 +140,7 @@ class DeviceOrganizer(Organizer):
             return false;" onMouseOver="window.status='Open online help'; \
             return true;" onMouseOut="window.status=''; return true;">Help!</a>
             """ % (url, url)
-             
+
+
+InitializeClass(DeviceOrganizer)
+

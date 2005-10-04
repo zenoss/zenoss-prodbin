@@ -23,7 +23,7 @@ from Acquisition import aq_base
 from DateTime import DateTime
 from App.Dialogs import MessageDialog
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
@@ -150,31 +150,31 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewDeviceStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewDeviceDetail'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },                
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -190,7 +190,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
          },

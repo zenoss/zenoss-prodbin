@@ -76,6 +76,7 @@ productNames = (
 # Make the skins available as DirectoryViews.
 registerDirectory('skins', globals())
 registerDirectory('help', globals())
+registerDirectory('js', globals())
 
 
 confmonModules = []
@@ -128,6 +129,7 @@ def initialize(registrar):
         if factory: constructors.append(factory)
         if not constructors: continue
         kwargs['constructors'] = constructors
+        kwargs['permission'] = "Add DMD Objects"
         if os.path.exists(os.path.join(__path__[0], iconName)):
             kwargs['icon'] = iconName
         LOG("ZenModel__init__", DEBUG, "Register Class=%s" % className)

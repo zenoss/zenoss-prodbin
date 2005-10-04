@@ -17,7 +17,7 @@ from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelationshipManager import RelationshipManager
@@ -56,7 +56,7 @@ class Classification(ZenModelRM):
                 , 'name'          : 'View'
                 , 'action'        : 'classList'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 , 'visible'       : 0
                 },
             )

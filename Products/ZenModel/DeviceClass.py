@@ -18,7 +18,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.Utils import getObjByPath
 
@@ -85,31 +85,31 @@ class DeviceClass(DeviceOrganizer, Folder):
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceClassEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceClassHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'Config'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
          },

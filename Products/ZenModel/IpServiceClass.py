@@ -19,7 +19,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from ServiceClass import ServiceClass
 from Instance import Instance
@@ -102,13 +102,13 @@ class IpServiceClass(ServiceClass, Instance):
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewIpServiceClassOverview'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
           },

@@ -17,120 +17,140 @@ Services
 Systems
 Companies
 
-$Id: DmdBuilder.py,v 1.40 2004/02/14 19:11:00 edahl Exp $"""
+$Id: DmdBuilder.py,v 1.11 2004/04/06 22:33:07 edahl Exp $"""
 
-__version__ = "$Revision: 1.40 $"[11:-2]
+__version__ = "$Revision: 1.11 $"[11:-2]
 
 import sys
-import getopt
+import os
 
-import Zope
-app=Zope.app()
+import transaction
+import Zope2
+
 from OFS.Image import File
 from Acquisition import aq_base
 
 from Products.ZenModel.CompanyClass import CompanyClass
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.ServerClass import ServerClass
-from Products.ZenModel.LocationClass import LocationClass
-from Products.ZenModel.GroupClass import GroupClass
+from Products.ZenModel.Location import Location
+from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.ProductClass import ProductClass
-from Products.ZenModel.NetworkClass import NetworkClass
+from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.ServiceAreaClass import ServiceAreaClass
 from Products.ZenModel.ServiceClass import ServiceClass
-from Products.ZenModel.SystemClass import SystemClass
+from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
-from Products.ZenModel.RouterClass import RouterClass
-from Products.ZenModel.UbrRouterClass import UbrRouterClass
+from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DataRoot import DataRoot
-from Products.ZenRelations.SchemaManager import SchemaManager, manage_addSchemaManager
+from Products.ZenRelations.SchemaManager import SchemaManager
+from Products.ZenRelations.SchemaManager import manage_addSchemaManager
 from Products.ZenModel.Classifier import manage_addClassifier
+from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
+from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.SnmpClassifier import manage_addSnmpClassifier
-from Products.ZenModel.ZentinelPortal import manage_addZentinelSite
-from Products.ZenModel.ZDeviceLoader import ZDeviceLoader
+from Products.ZenModel.CricketConf import manage_addCricketConf
+from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
+from Products.ZenRRD.RenderServer import manage_addRenderServer
 
 classifications = {
-    'Companies':    CompanyClass,
     'Devices':      DeviceClass,
-    'Servers':      ServerClass,
-    'Groups':       GroupClass,
-    'Locations':    LocationClass,
-    'Networks':     NetworkClass,
+    'Groups':       DeviceGroup,
+    'Locations':    Location,
+    'Systems':      System,
+    'Services':     ServiceClass,
+    'Networks':     IpNetwork,
+    'Companies':    CompanyClass,
     'Products':     ProductClass,
     'ServiceAreas': ServiceAreaClass,
-    'Services':     ServiceClass,
-    'Systems':      SystemClass,
     'Monitors':     MonitorClass,
-    'Routers':      RouterClass,
-    'UbrRouters':   UbrRouterClass,
+    'Reports':      ReportClass,
 }
 
-arpSnmpMap = [
-    {'id':  'relationshipName', 'value':'arptable', 'type':'string'},
-    {'id':  'remoteClass', 'value':'Confmon.ArpEntry', 'type':'string'},
-    {'id':  'tableOid', 'value':'.1.3.6.1.2.1.4.22.1', 'type':'string'},
-    {'id':  '.2', 'value':      'macAddress', 'type': 'oid'},
-    {'id':  '.3', 'value':      'id', 'type':   'oid'},
-    ]
-
 class DmdBuilder:
+   
+    # Top level organizers for dmd
+    dmdroots = (
+        'Devices', 
+        'Groups', 
+        'Locations', 
+        'Systems', 
+        'Services',
+        'Networks', 
+        'Companies',
+        'Products', 
+        'Monitors', 
+        'Reports',
+        )
+   
+    # default product classes
+    prodRoots = ('Hardware','Software')
 
-    def _makeObjProps(self, obj, props):
-        obj._properties = ()
-        for propEntry in props:
-            if propEntry['type'] == 'oid':
-                # add to object's snmpMap
-                obj._oidmap[propEntry['id']] = propEntry['value']
-            obj._setProperty(propEntry['id'],propEntry['value'],type=propEntry['type'])
-        return obj
+    # default monitor classes
+    monRoots = ('StatusMonitors','Cricket')
 
-    def buildRoots(self, dmd):
-        dmdroots = ('Companies', 'Devices', 'Groups', 'Locations', 
-                'Networks', 'Products', 'ServiceAreas', 'Services',
-                'Systems', 'Monitors')
-        self.addroots(dmd, dmdroots)
-        dmd.Devices._setProperty('snmp_communities', ['public', 'private'],
-                                    type='lines')
-    def buildProducts(self, dmd):
-        prods = dmd.Products
-        prodRoots = ('Hardware','Software')
-        self.addroots(prods, prodRoots, "Products")
 
-    def buildMonitors(self, dmd):
-        mons = dmd.Monitors
-        monRoots = ('StatusMonitors','Cricket')
-        self.addroots(mons, monRoots, "Monitors")
+    deviceClasses = (
+        "/Unknown",
+        "/NetworkDevice/Router/UBRRouter",
+        "/NetworkDevice/Router/TerminalServer",
+        "/NetworkDevice/Router/Firewall",
+        "/NetworkDevice/Router/RSM",
+        "/NetworkDevice/Switch",
+        "/NetworkDevice/Switch/ContentSwitch",
+        "/NetworkDevice/CableModem",
+        "/Server/Linux",
+        "/Server/Windows",
+        "/Server/Solaris",
+        "/Server/Darwin",
+        "/Printer/LaserPrinter",
+        "/Printer/InkJetPrinter",
+        )
 
-    def buildServices(self, dmd):
-        srvs = dmd.Services
+
+    def __init__(self, portal, schema="schema.data"):
+        self.portal = portal
+        dmd = DataRoot('dmd')
+        self.portal._setObject(dmd.id, dmd)
+        self.dmd = self.portal._getOb('dmd')
+        self.schema = schema
+
+
+    def buildRoots(self):
+        self.addroots(self.dmd, self.dmdroots, isInTree=True)
+        self.dmd.Devices.buildDeviceTreeProperties()
+
+
+    def buildProducts(self):
+        prods = self.dmd.Products
+        self.addroots(prods, self.prodRoots, "Products")
+
+
+    def buildMonitors(self):
+        mons = self.dmd.Monitors
+        self.addroots(mons, self.monRoots, "Monitors")
+        manage_addCricketConf(mons.Cricket, "localhost")
+        crk = mons.Cricket._getOb("localhost")
+        crk.cricketurl = "/zport/RenderServer"
+        crk.cricketroot = os.path.join(os.environ['ZENHOME'], "cricket")
+        manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
+
+
+    def buildServices(self):
+        srvs = self.dmd.Services
         srvRoots = ('IpServices',)
         self.addroots(srvs, srvRoots, "Services")
 
-    def buildDevices(self, dmd):
-        devices = dmd.Devices
-        devroots = ('Servers', 'NetworkDevices',)
-        self.addroots(devices, devroots[0:1], "Servers")
-        self.addroots(devices, devroots[1:], "Devices")
 
-    def buildServers(self, dmd):
-        servers = dmd.Devices.Servers
-        servRoots = ('Linux', 'Solaris', 'Windows')
-        self.addroots(servers, servRoots, "Servers")
-        cvRoots=('OOL', 'IO')
-        self.addroots(dmd.Devices.Servers.Solaris, cvRoots, "Servers")
+    def buildDevices(self):
+        devices = self.dmd.Devices
+        for devicePath in self.deviceClasses:
+            devices.createOrganizer(devicePath)
 
-    def buildNetworkDevs(self, dmd):
-        netdevs = dmd.Devices.NetworkDevices
-        netRoots = ('Switch', 'CableModem')
-        routerRoots = ('Router', 'RSM', 'Firewall')
-        self.addroots(netdevs, netRoots, "Devices")
-        self.addroots(netdevs, routerRoots, "Routers")
-        self.addroots(netdevs, ('UBR',), "UbrRouters")
 
-    def buildNetcool(self, dmd):
-        if not hasattr(dmd, 'netcool'):
-            from Products.NcoProduct.NcoProduct import NcoProduct
-            nco = NcoProduct('netcool')
+    def buildNetcool(self):
+        try:
+            from Products.NcoProduct.DmdNcoManager import DmdNcoManager
+            nco = DmdNcoManager('netcool')
             nco.omniname = "NCOMS"
             nco.username = "ncoadmin"
             nco.password = "ncoadmin"
@@ -141,35 +161,41 @@ class DmdBuilder:
                 "LastOccurrence",
                 "Tally",
                 ]
-            dmd._setObject(nco.id, nco)
+            self.dmd._setObject(nco.id, nco)
             try:
-                dmd._getOb(nco.id).manage_refreshConversions()
+                self.dmd._getOb(nco.id).manage_refreshConversions()
             except:
-                print "Could not refresh Omnibus mappings, please do this by hand."
+                print "Could not refresh Omnibus mappings," \
+                    "please do this by hand."
+        except ImportError:
+            print "Unable to load netcool manager"
 
-    def addroots(self, base, rlist, classType=None):
+
+    def addroots(self, base, rlist, classType=None, isInTree=False):
         for rname in rlist:
             ctype = classType or rname
             if not hasattr(base, rname):
                 dr = classifications[ctype](rname)
                 base._setObject(dr.id, dr)
                 dr = base._getOb(dr.id)
-                if dr.id in ('Devices','Systems','Networks'):
+                dr.isInTree = isInTree
+                if dr.id in ('Devices','Networks'):
                     dr.createCatalog() 
 
-    def buildSchema(self, dmd, file):
-        if hasattr(dmd, 'ZenSchemaManager'):
+
+    def buildSchema(self, file):
+        if hasattr(self.portal, 'ZenSchemaManager'):
             return None
-        manage_addSchemaManager(dmd)
-        sm = dmd._getOb('ZenSchemaManager')
+        manage_addSchemaManager(self.portal)
+        sm = self.portal._getOb('ZenSchemaManager')
         sm.loadSchemaFromFile(file)
 
 
-    def buildClassifiers(self, dmd):
-        if hasattr(dmd, 'ZenClassifier'):
+    def buildClassifiers(self):
+        if hasattr(self.portal, 'ZenClassifier'):
             return
-        manage_addClassifier(dmd)
-        cl = dmd._getOb('ZenClassifier')
+        manage_addClassifier(self.portal)
+        cl = self.portal._getOb('ZenClassifier')
         snmpclassifiers = {
             'sysObjectIdClassifier' : '.1.3.6.1.2.1.1.2.0',
             'sysDescrClassifier' : '.1.3.6.1.2.1.1.1.0',
@@ -180,66 +206,15 @@ class DmdBuilder:
             snmpc.oid = snmpclassifiers[sclname]
 
 
-    def buildCss(self, dmd):
-        if hasattr(dmd, 'portal.css'):
-            return None
-        # add portal.css
-        data = open('www/portal.css').read()
-        portal = File('portal.css','portal.css',data)
-        dmd._setObject(portal.id(), portal)
-
-
-    def build(self, nco, schema, dmd):
-
-        self.buildSchema(dmd, schema)
-        self.buildClassifiers(dmd)
-        self.buildRoots(dmd)
-        self.buildMonitors(dmd)
-        self.buildServices(dmd)
-        self.buildProducts(dmd)
-        self.buildDevices(dmd)
-        self.buildServers(dmd)
-        self.buildNetworkDevs(dmd)
-        zd = ZDeviceLoader()
-        dmd._setObject('DeviceLoader', zd)
-        if nco: self.buildNetcool(dmd)
-        #self.buildCss(dmd)
-        get_transaction().note("initial load by DmdBuilder.py")
-        get_transaction().commit()
-
-
-#=================== begin main =================
-from optparse import OptionParser
-use = "%prog [-n] [-f schema]"
-parser=OptionParser(usage=use, version="%prog " + __version__)
-parser.add_option('-n', '--netcool',
-                    dest='nco',
-                    default=0,
-                    action="store_true",
-                    help="Add NcoProduct instance (needs sybase)")
-parser.add_option('-f', '--filename',
-                    dest="schema",
-                    default="schema.data",
-                    help="Location of the Dmd schema")
-parser.add_option('-s', '--sitename',
-                    dest="sitename",
-                    default="zport",
-                    help="name of portal object")
-(options, args) = parser.parse_args()
-
-schema = options.schema
-nco = options.nco
-#app = Zope.app()
-site = getattr(app, options.sitename, None)
-if not site:
-    manage_addZentinelSite(app, options.sitename)
-    site = app._getOb(options.sitename)
-
-if not hasattr(aq_base(site), 'dmd'):
-    dmd = DataRoot('dmd')
-    site._setObject(dmd.id, dmd)
-
-dmd = site._getOb('dmd')
-dmdbuilder = DmdBuilder()
-dmdbuilder.build(nco, schema, dmd)
-sys.exit(0)
+    def build(self):
+        self.buildSchema(self.schema)
+        self.buildClassifiers()
+        self.buildRoots()
+        self.buildMonitors()
+        self.buildServices()
+        self.buildProducts()
+        self.buildDevices()
+        manage_addZDeviceLoader(self.dmd)
+        manage_addZenTableManager(self.portal)
+        manage_addRenderServer(self.portal, "RenderServer")
+        self.buildNetcool()

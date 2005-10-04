@@ -14,8 +14,16 @@
 
 $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
- 
+
+import os
+
 import Globals
+
+from AccessControl.User import manage_addUserFolder
+
+from Products.Sessions.BrowserIdManager import constructBrowserIdManager
+from Products.Sessions.SessionDataManager import constructSessionDataManager
+
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.TypesTool import ContentFactoryMetadata
@@ -29,7 +37,7 @@ import DataRoot, DeviceClass, Classification
 import IpNetwork, IpServiceClass
 
 from Products.ZenModel import getFactoryTypeInformation
-
+from Products.ZenModel.DmdBuilder import DmdBuilder
 
 class ZentinelPortal ( PortalObjectBase ):
     """
@@ -59,7 +67,6 @@ class PortalGenerator:
 
     def setupTools(self, p):
         """Set up initial tools"""
-
         addCMFCoreTool = p.manage_addProduct['CMFCore'].manage_addTool
         addCMFCoreTool('CMF Actions Tool', None)
         addCMFCoreTool('CMF Member Data Tool', None)
@@ -71,34 +78,38 @@ class PortalGenerator:
         p.manage_addProduct['MailHost'].manage_addMailHost(
             'MailHost', smtp_host='localhost')
 
+
     def setupUserFolder(self, p):
         p.manage_addProduct['OFSP'].manage_addUserFolder()
 
-    def setupCookieAuth(self, p):
-        p.manage_addProduct['CMFCore'].manage_addCC(
-            id='cookie_authentication')
 
     def setupRoles(self, p):
         # Set up the suggested roles.
-        p.getPhysicalRoot().__ac_roles__ += ('OneViewUser', 'OneViewMonitor',)
+        #p.getPhysicalRoot().__ac_roles__ += ('ZenUser', 'ZenMonitor',)
+        p.__ac_roles__ += ('ZenUser', 'ZenMonitor',)
+
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
+        mp('Access Transient Objects',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Access session data',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Access contents information',
+                ['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Mail forgotten password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Query Vocabulary',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Search ZCatalog',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('View',['ZenUser','ZenMonitor','Manager',], 1)
+        mp('View History',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Set own password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
+        mp('Set own properties',['ZenUser','ZenMonitor','Manager',], 1)
+        mp('List undoable changes',['ZenUser','ZenMonitor','Manager',], 1)
 
-        mp('Set own password',['OneViewUser', 'OneViewMonitor', 'Manager',])
-        mp('Set own properties',['OneViewUser','OneViewMonitor','Manager',])
-        mp('List undoable changes',['OneViewUser','OneViewMonitor','Manager',])
-        
-        mp('View',['OneViewUser','OneViewMonitor','Manager',])
-        mp('Manage Device Status',['OneViewMonitor','Manager',])
-        
-        # Add some other permissions mappings that may be helpful.
-        mp('Delete objects',          ['Owner','Manager',],     1)
-        mp('FTP access',              ['Owner','Manager',],     1)
-        mp('Manage properties',       ['Owner','Manager',],     1)
-        mp('Undo changes',            ['Owner','Manager',],     1)
-        mp('View management screens', ['Owner','Manager',],     1)
+        mp('Manage Device Status',['ZenMonitor','Manager',], 1)
+
+        mp('Add DMD Objects', ['Owner','Manager',],     1)
+        #mp('Delete DMD Objects', ['Owner','Manager',],     1)
+        mp('Delete objects', ['Owner','Manager',],     1)
 
 
     def setupDefaultSkins(self, p):
@@ -121,47 +132,41 @@ class PortalGenerator:
             tool._setObject(t['id'], cfm)
        
 
-    def setupMimetypes(self, p):
-        p.manage_addProduct[ 'CMFCore' ].manage_addRegistry()
-        reg = p.content_type_registry
-
-        reg.addPredicate( 'link', 'extension' )
-        reg.getPredicate( 'link' ).edit( extensions="url, link" )
-        reg.assignTypeName( 'link', 'Link' )
-
-        reg.addPredicate( 'news', 'extension' )
-        reg.getPredicate( 'news' ).edit( extensions="news" )
-        reg.assignTypeName( 'news', 'News Item' )
-
-        reg.addPredicate( 'document', 'major_minor' )
-        reg.getPredicate( 'document' ).edit( major="text", minor="" )
-        reg.assignTypeName( 'document', 'Document' )
-
-        reg.addPredicate( 'image', 'major_minor' )
-        reg.getPredicate( 'image' ).edit( major="image", minor="" )
-        reg.assignTypeName( 'image', 'Image' )
-
-        reg.addPredicate( 'file', 'major_minor' )
-        reg.getPredicate( 'file' ).edit( major="application", minor="" )
-        reg.assignTypeName( 'file', 'File' )
+    def setupSessionManager(self, p):
+        """build a session manager and brower id manager for zport"""
+        constructBrowserIdManager(p, cookiepath="/zport")
+        constructSessionDataManager(p, "session_data_manager", 
+                    title="Session Data Manager",
+                    path='/temp_folder/session_data')
 
 
-    def setup(self, p, create_userfolder):
+    def setupDmd(self, p, schema):
+        """build the device management database."""
+        dmdBuilder = DmdBuilder(p, schema=schema)
+        dmdBuilder.build()
+
+
+    def setup(self, p, create_userfolder, schema):
+        if create_userfolder: self.setupUserFolder(p)
         self.setupTools(p)
         self.setupMailHost(p)
         self.setupRoles(p)
         self.setupPermissions(p)
         self.setupDefaultSkins(p)
         self.setupTypes(p, getFactoryTypeInformation() )
+        self.setupSessionManager(p)
+        self.setupDmd(p, schema)
 
-    def create(self, parent, id, create_userfolder):
+
+    def create(self, parent, id, create_userfolder, schema):
         id = str(id)
         portal = self.klass(id=id)
         parent._setObject(id, portal)
         # Return the fully wrapped object.
         p = parent.this()._getOb(id)
-        self.setup(p, create_userfolder)
+        self.setup(p, create_userfolder, schema)
         return p
+
 
     def setupDefaultProperties(self, p, title, description,
                                email_from_address, email_from_name,
@@ -177,18 +182,22 @@ class PortalGenerator:
 manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
-def manage_addZentinelPortal(self, id, title='Zentinel Portal', description='',
-                         create_userfolder=0,
+def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal', 
+                         schema="schema.data",
+                         description='',
+                         create_userfolder=True,
                          email_from_address='postmaster@localhost',
                          email_from_name='Portal Administrator',
                          validate_email=0, RESPONSE=None):
     '''
     Adds a portal instance.
     '''
+    if not os.path.exists(schema):
+        schema = os.path.join(os.path.dirname(__file__), schema)
     gen = PortalGenerator()
     from string import strip
     id = strip(id)
-    p = gen.create(self, id, create_userfolder)
+    p = gen.create(self, id, create_userfolder, schema=schema)
     gen.setupDefaultProperties(p, title, description,
                                email_from_address, email_from_name,
                                validate_email)

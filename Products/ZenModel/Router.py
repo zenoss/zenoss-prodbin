@@ -17,7 +17,7 @@ import re
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.CMFCore import permissions
+from AccessControl import Permissions as permissions
 
 from Device import Device
 from CricketRouter import CricketRouter
@@ -53,31 +53,31 @@ class Router(CricketRouter,Device):
                 , 'name'          : 'Status'
                 , 'action'        : 'viewRouterStatus'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'detail'
                 , 'name'          : 'Detail'
                 , 'action'        : 'viewDeviceDetail'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },                
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'deviceEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'deviceHistoryEvents'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -93,7 +93,7 @@ class Router(CricketRouter,Device):
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
-                  permissions.View, )
+                  permissions.view, )
                 },
             )
          },
