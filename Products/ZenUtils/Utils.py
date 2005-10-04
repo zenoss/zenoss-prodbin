@@ -202,7 +202,9 @@ def createHierarchyObj(root, name, factory, relpath, log=None):
     any missing relations in the path and factory is the constructor for 
     this object.
     """
+    rootName = root.id
     for id in zenpathsplit(name):
+        if id == rootName: continue
         if id == relpath or getattr(aq_base(root), relpath, False):
             root = getattr(root, relpath)
         if not getattr(aq_base(root), id, False):
