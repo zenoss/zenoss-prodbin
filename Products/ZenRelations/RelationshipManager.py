@@ -118,9 +118,13 @@ class RelationshipManager(RelationshipObjectManager):
 
 
     security.declareProtected('Manage Relations', 'manage_removeRelation')
-    def manage_removeRelation(self, name, obj = None):
-        """remove a relationship"""
-        self.removeRelation(name, obj)
+    def manage_removeRelation(self, name, id=None, REQUEST=None):
+        """remove a relationship to be called from UI"""
+        rel = getattr(self, name, None)
+        if rel == None: 
+            raise AttributeError("Relationship %s, not found" % name)
+        rel._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Relations', 'removeRelation')
