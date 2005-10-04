@@ -11,7 +11,9 @@ $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
+from Globals import InitializeClass
 from Acquisition import aq_parent
+from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError
@@ -32,14 +34,16 @@ class Organizer(ZenModelRM):
     _properties = (
                     {'id':'description', 'type':'string', 'mode':'w'},
                    ) 
-
+    
+    security = ClassSecurityInfo()
+    security.declareObjectProtected("View")
 
     def __init__(self, id, description = ''):
         ZenModelRM.__init__(self, id)
         self.description = description
    
 
-    #security.declareProtected('Change Organizer', 'manage_addOrganizer')
+    security.declareProtected('Add DMD Objects', 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """add a device group to the database"""
         if newPath.startswith("/"):
@@ -50,13 +54,14 @@ class Organizer(ZenModelRM):
         if REQUEST: return self.callZenScreen(REQUEST)
             
 
+    security.declareProtected('Delete objects', 'manage_deleteOrganizer')
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """Delete an Organizer from its parent name is relative to parent"""
         self.children._delObject(orgname)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Change Organizer', 'manage_deleteOrganizers')
+    security.declareProtected('Delete objects', 'manage_deleteOrganizers')
     def manage_deleteOrganizers(self, organizerPaths, REQUEST=None):
         """add a device group to the database"""
         orgroot = self.getDmdRoot(self.dmdRootName)
@@ -114,4 +119,5 @@ class Organizer(ZenModelRM):
         return catalog
 
 
+InitializeClass(Organizer)
 

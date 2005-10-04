@@ -107,6 +107,7 @@ class IpNetwork(DeviceOrganizer):
 
 
     def __init__(self, id, netmask=24, description=''):
+        if id.find("/") > -1: id, netmask = id.split("/",1)
         DeviceOrganizer.__init__(self, id, description)
         if id != "Networks": 
             checkip(id)

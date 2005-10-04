@@ -108,4 +108,5 @@
 </span>
 <br>
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+<span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
 <span tal:replace="structure here/standard_html_footer"/>
