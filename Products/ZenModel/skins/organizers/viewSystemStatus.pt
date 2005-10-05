@@ -86,13 +86,13 @@
         <td class=tablevalues align=center tal:content="sys/omniEventCount">
             5
         </td>
-        <span tal:define="status sys/pingStatus">
+        <span tal:define="status sys/omniPingStatus">
         <td class="statusvalues" bgcolor="#00ff00" align="center"
             tal:attributes="bgcolor python: sys.statusColor(status)"
             tal:content="status">0
         </td>
         </span>
-        <span tal:define="status sys/snmpStatus">
+        <span tal:define="status sys/omniSnmpStatus">
         <td class="statusvalues" bgcolor="#00ff00" align="center"
             tal:attributes="bgcolor python: sys.statusColor(status)"
             tal:content="status">0
