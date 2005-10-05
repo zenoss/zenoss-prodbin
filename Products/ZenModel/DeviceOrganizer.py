@@ -90,20 +90,33 @@ class DeviceOrganizer(Organizer):
                 status += 1
         return status
     
-    
-    def getDeviceGroupOmnibusEvents(self, omniField):
+   
+    def deviceGroupEvents(self):
         """get omnibus events for this device group"""
         self.REQUEST.set('ev_whereclause', 
-            "%s like '.*%s.*'" % (omniField, self.getOrganizerName()))
+            "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
         return self.viewEvents(self.REQUEST)
 
 
-    def getDeviceGroupOmnibusHistoryEvents(self, omniField):
+    def deviceGroupHistoryEvents(self):
         """get the history event list of this object"""
         self.REQUEST.set('ev_whereclause', 
-            "%s like '%%%s%%'" % (omniField, self.getOrganizerName()))
+            "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName()))
         self.REQUEST.set('ev_orderby', "LastOccurrence desc")
         return self.viewHistoryEvents(self.REQUEST)
+
+
+    def deviceGroupEventSummary(self):
+        """get omnibus event summary for this device group"""
+        where = "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
+        return self.getEventSummary(where)
+
+
+    #FIXME - this is strange the way it setup in NcoManager
+    #def deviceGroupEventCount(self, field):
+    #    """get omnibus event count for this device group"""
+    #    where = "%s like '%s'" % (field, self.getOrganizerName()))
+    #    return self.getEventCount(where)
 
 
     def statusColor(self, status):

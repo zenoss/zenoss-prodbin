@@ -48,6 +48,8 @@ class System(DeviceOrganizer):
 
     portal_type = meta_type = 'System'
 
+    eventsField = "System"
+
     default_catalog = 'systemSearch'
     
     _properties = (
@@ -115,18 +117,6 @@ class System(DeviceOrganizer):
         self.systemClass = systemClass
 
 
-    security.declareProtected('View', 'systemEvents')
-    def systemEvents(self):
-        """get the event list of this object"""
-        return DeviceOrganizer.getDeviceGroupOmnibusEvents(self, "System")
-
-
-    security.declareProtected('View', 'systemHistoryEvents')
-    def systemHistoryEvents(self):
-        """get the history event list of this object"""
-        return DeviceOrganizer.getDeviceGroupOmnibusHistoryEvents(self, "System")
-        
-    
     security.declareProtected('View', 'omniPingStatus')
     def omniPingStatus(self):
         """pingStatus() -> return the number of devices that are down"""
@@ -190,7 +180,6 @@ class System(DeviceOrganizer):
                 if int(num) == prodState:
                     return sev
         return "Unknown"
-
 
         
 InitializeClass(System)

@@ -42,7 +42,7 @@ class Location(DeviceOrganizer):
     # Organizer configuration
     dmdRootName = "Locations"
 
-    portal_type = meta_type = 'Location'
+    portal_type = meta_type = eventsField = 'Location'
     
 
     factory_type_information = ( 
@@ -64,13 +64,13 @@ class Location(DeviceOrganizer):
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'locationEvents'
+                , 'action'        : 'deviceGroupEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'locationHistoryEvents'
+                , 'action'        : 'deviceGroupHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },

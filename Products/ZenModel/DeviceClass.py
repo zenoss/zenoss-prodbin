@@ -57,8 +57,8 @@ class DeviceClass(DeviceOrganizer, Folder):
     manageDeviceSearchResults = DTMLFile('dtml/manageDeviceSearchResults',
                                             globals())
 
-    portal_type = meta_type = "DeviceClass"
-    
+    portal_type = meta_type = eventsField = "DeviceClass"
+
     manage_main = Folder.manage_main
 
     manage_options = Folder.manage_options[:-1] + (
@@ -89,13 +89,13 @@ class DeviceClass(DeviceOrganizer, Folder):
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'deviceClassEvents'
+                , 'action'        : 'deviceGroupEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'deviceClassHistoryEvents'
+                , 'action'        : 'deviceGroupHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -176,24 +176,6 @@ class DeviceClass(DeviceOrganizer, Folder):
         dev = devclass.devices._getOb(deviceName)
         if REQUEST: 
             REQUEST['RESPONSE'].redirect(dev.absolute_url())
-
-
-    #need to decuple these two methods out to actions
-    security.declareProtected('View', 'deviceClassEvents')
-    def deviceClassEvents(self):
-        """get the event list of this object"""
-        self.REQUEST.set('ev_whereclause', "DeviceClass like '%s%%'" %
-                                    self.getOrganizerName())
-        return self.viewEvents(self.REQUEST)
-
-
-    security.declareProtected('View', 'deviceClassHistoryEvents')
-    def deviceClassHistoryEvents(self):
-        """get the history event list of this object"""
-        self.REQUEST.set('ev_whereclause', "DeviceClass like '%s%%'" %
-                                    self.getOrganizerName())
-        self.REQUEST.set('ev_orderby', "LastOccurrence desc")
-        return self.viewHistoryEvents(self.REQUEST)
 
 
     security.declareProtected('View', 'getEventDeviceInfo')

@@ -42,6 +42,7 @@ class DeviceGroup(DeviceOrganizer):
 
     portal_type = meta_type = 'DeviceGroup'
 
+    eventsField = "Group"
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
