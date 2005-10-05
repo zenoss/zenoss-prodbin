@@ -12,7 +12,6 @@
         <th class="tableheader">Snmp</th>
     </tr>
     <tr tal:repeat="system python:here.getDmdRoot('Systems').children()">
-        <span tal:define="counts system/getAllCounts">
         <td class="tablevalues">
             <a tal:attributes="href system/getPrimaryUrlPath"
                 tal:content="system/getId">System</a>
@@ -23,22 +22,22 @@
             align="center" bgcolor="#ffffff" cellspacing="1">
           <tr>
           <td class="statusvalues" align="center" bgcolor="_" width="16%"
-            tal:repeat="evt python:here.netcool.getSystemEventSummary(
-                                                system.getOrganizerName())"
+            tal:repeat="evt here/netcool/deviceGroupEventSummary"
             tal:attributes="bgcolor python:evt[1]"
             tal:content="python:evt[0]">0</td>
           </tr>
         </table>
         </td>
         <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: system.statusColor(counts[1])"
-            tal:content="python:counts[1]">0
+            tal:define="pstatus system/omniPingStatus"
+            tal:attributes="bgcolor python: system.statusColor(pstatus)"
+            tal:content="pstatus">0
         </td>
         <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: system.statusColor(counts[2])"
-            tal:content="python:counts[2]">0
+            tal:define="sstatus system/omniSnmpStatus"
+            tal:attributes="bgcolor python: system.statusColor(sstatus)"
+            tal:content="sstatus">0
         </td>
-        </span>
     </tr>
 </table>
 <br />
@@ -48,26 +47,16 @@
     </tr>
     <tr>
         <th class="tableheader">Class</th>
-        <th class="tableheader">Count</th>
-        <th class="tableheader">Ping</th>
-        <th class="tableheader">Snmp</th>
+        <th class="tableheader">Sub Count</th>
+        <th class="tableheader">Device Count</th>
     </tr>
-    <tr tal:repeat="devs python:here.getDmdRoot('Devices').children()">
-        <span tal:define="counts devs/getAllCounts">
+    <tr tal:repeat="dev python:here.getDmdRoot('Devices').children()">
         <td class="tablevalues">
-            <a tal:attributes="href devs/getPrimaryUrlPath"
-                tal:content="devs/getId">System</a>
+            <a tal:attributes="href dev/getPrimaryUrlPath"
+                tal:content="dev/getId">System</a>
         </td>
-        <td class="tablevalues" align="center" tal:content="python:counts[0]"/>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: devs.statusColor(counts[1])"
-            tal:content="python:counts[1]">0
-        </td>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: devs.statusColor(counts[2])"
-            tal:content="python:counts[2]">0
-        </td>
-        </span>
+        <td class="tablevalues" align="center" tal:content="dev/countChildren"/>
+        <td class="tablevalues" align="center" tal:content="dev/countDevices"/>
     </tr>
 </table>
 <br />
