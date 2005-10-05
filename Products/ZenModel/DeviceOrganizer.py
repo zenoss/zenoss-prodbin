@@ -108,8 +108,8 @@ class DeviceOrganizer(Organizer):
 
     def deviceGroupEventSummary(self):
         """get omnibus event summary for this device group"""
-        where = "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
-        return self.getEventSummary(where)
+        where = "%s like '%s'" % (self.eventsField, self.getOrganizerName())
+        return self.netcool.getEventSummary(where)
 
 
     #FIXME - this is strange the way it setup in NcoManager
