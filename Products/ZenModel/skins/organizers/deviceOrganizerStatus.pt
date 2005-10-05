@@ -5,20 +5,11 @@
     align="center" bgcolor="#ffffff" cellspacing="1"
     metal:define-macro="status">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">
+      <th class="tabletitle" align="left" colspan="6">
         Status
       </th>
     </tr>
     <tr>
-      <td class="tableheader" align="left" colspan="1">
-        Ping
-      </td>
-      <span tal:define="status here/pingStatus">
-      <td class="statusvalues" bgcolor="#00ff00" colspan="1"
-      tal:attributes="bgcolor python: here.statusColor(status)">
-      <span tal:replace="status">ping status</span>     
-      </td>
-      </span>
       <td class="tableheader" align="left" colspan="1">
         Events
       </td>
@@ -35,17 +26,13 @@
           </tr>
         </table>
       </td>
-    </tr>
-    <tr>
       <th class="tableheader" align="left" colspan="1">
-        SNMP
+          Sub Count 
       </th>
-      <span tal:define="status here/snmpStatus">
-      <td class="statusvalues" bgcolor="#00ff00" colspan="1"
-          tal:attributes="bgcolor python: here.statusColor(status)"
-          tal:content="status">snmp status
+      <td class="tablevalues" colspan="1"
+          tal:content="here/countChildren">
+          100
       </td>
-      </span>
       <th class="tableheader" align="left" colspan="1">
           Device Count
       </th>
@@ -73,35 +60,22 @@
             Name 
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countChildren','Subs')">
+            Subs
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'countDevices','Devices')">
             Devices
         </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'pingStatus','Ping')">
-            Ping
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'snmpStatus','Snmp')">
-            Snmp
-        </th>
     </tr>
     <tr tal:repeat="group batch">
-        <span tal:define="counts group/getAllCounts">
         <td class="tablevalues" align="left" width="50%">
             <a href="_" target="rightFrame"
             tal:attributes="href group/getPrimaryUrlPath"
             tal:content="group/id">Name</a>
         </td>
-        <td class=tablevalues align=center tal:content="python:counts[0]"/>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: group.statusColor(counts[1])"
-            tal:content="python:counts[1]">0
-        </td>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:attributes="bgcolor python: group.statusColor(counts[2])"
-            tal:content="python:counts[2]">0
-        </td>
-        </span>
+        <td class=tablevalues align=center tal:content="group/countChildren"/>
+        <td class=tablevalues align=center tal:content="group/countDevices"/>
     </tr>
     <tr>
         <td colspan=4 class="tableheader" align='center'>

@@ -62,6 +62,13 @@ class DeviceOrganizer(Organizer):
         return count
 
 
+    def countChildren(self):
+        count = self.children.countObjects()
+        for child in self.children():
+            count += child.countChildren()
+        return count
+
+
     def pingStatus(self, devrel="devices"):
         """aggrigate ping status for all devices in this group and below"""
         status = self._status("Ping", devrel)
