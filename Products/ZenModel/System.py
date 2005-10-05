@@ -85,13 +85,13 @@ class System(DeviceOrganizer):
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'systemEvents'
+                , 'action'        : 'deviceGroupEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'systemHistoryEvents'
+                , 'action'        : 'deviceGroupHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
