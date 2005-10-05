@@ -28,6 +28,7 @@ import ZTUtils
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from OFS.SimpleItem import SimpleItem
+from OFS.PropertyManager import PropertyManager
 from DocumentTemplate.sequence.SortEx import sort
 
 from ZenTableState import ZenTableState
@@ -48,13 +49,24 @@ def manage_addZenTableManager(context, id="", REQUEST = None):
         REQUEST.RESPONSE.redirect(context.absolute_url()
                                      +'/manage_main') 
 
-class ZenTableManager(SimpleItem):
+class ZenTableManager(SimpleItem, PropertyManager):
     """ZenTableManager manages display of tabular data"""
     
     portal_type = meta_type = 'ZenTableManager'
 
+    _properties = (
+                    {'id':'defaultBatchSize', 'type':'int','mode':'w'}, 
+                   ) 
+
+    manage_options = (
+                        PropertyManager.manage_options +
+                        SimpleItem.manage_options
+                     )
+
+
     def __init__(self, id):
         self.id = id
+        self.defaultBatchSize = 40
 
 
     def setupTableState(self, tableName, **keys):
@@ -72,7 +84,8 @@ class ZenTableManager(SimpleItem):
         tableStates = self.getTableStates()
         tableState = tableStates.get(tableName, None)
         if not tableState:
-            tableStates[tableName] = ZenTableState(request, tableName, **keys)
+            tableStates[tableName] = ZenTableState(request, tableName, 
+                                            self.defaultBatchSize, **keys)
         if attrname == None:
             return tableStates[tableName]
         return getattr(tableState, attrname, None)

@@ -29,13 +29,13 @@ class ZenTableState:
     #this session info isn't anything worth protecting
     security.setDefaultAccess('allow') 
 
-    def __init__(self, request, tableName, **keys):
+    def __init__(self, request, tableName, defaultBatchSize, **keys):
         self.url = request.URL
         self.tableName = tableName
         self.sortedHeader = "primarySortKey"
         self.sortedSence="asc"
         self.sortRule = "cmp"
-        self.batchSize = 40
+        self.batchSize = defaultBatchSize
         self.start = 0
         self.filter = ""
         self.filterFields = []
