@@ -269,10 +269,10 @@ class SnmpCollector(ZCmdBase):
                 help="Comma separated list of collection maps to use")
         self.parser.add_option('-p', '--path',
                 dest='path',
-                help="start path for collection ie /Devices")
+                help="start path for collection ie /Servers")
         self.parser.add_option('-d', '--device',
                 dest='device',
-                help="Device path ie /Devices/Servers/www.confmon.com")
+                help="Device path ie /Servers/www.confmon.com")
         self.parser.add_option('-a', '--collectAge',
                 dest='collectAge',
                 default=0,
@@ -302,16 +302,18 @@ class SnmpCollector(ZCmdBase):
             self.options.collectMaps = self.options.collectMaps.split(',')
 
         if self.options.device:
-            device = self.getDmdObj(self.options.device)
+            device = self.dmd.getDmdRoot("Devices").getOrganizer(
+                                                    self.options.device)
             if not device:
-                raise PathNotFoundError, \
-                    "unable to locate device %s" % self.options.device
+                print "unable to locate device %s" % self.options.device
+                sys.exit(1)
             self.collectDevice(device)
         if self.options.path:
-            droot = self.getDmdObj(self.options.path)
+            droot = self.dmd.getDmdRoot("Devices").getOrganizer(
+                                                    self.options.path)
             if not droot:
-                raise PathNotFoundError, \
-                    "unable to find path %s" % self.options.path
+                print "unable to find path %s" % self.options.path
+                sys.exit(1)
             self.collectDevices(droot)
         else:
             print "unable to locate device or path specified"
