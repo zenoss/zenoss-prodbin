@@ -119,5 +119,13 @@ class Organizer(ZenModelRM):
         return catalog
 
 
+    def getSubOrganizers(self):
+        """build a list of all organizers below this one"""
+        orgs = self.children()
+        for child in self.children():
+            orgs.extend(child.getSubOrganizers())
+        return orgs
+
+
 InitializeClass(Organizer)
 

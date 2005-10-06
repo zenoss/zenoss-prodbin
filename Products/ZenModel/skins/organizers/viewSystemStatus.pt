@@ -65,11 +65,11 @@
             Snmp
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'pingStatus','Ping')">
+                    tableName,'omniPingStatus','Ping')">
             Ping
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'snmpStatus','Snmp')">
+                    tableName,'omniSnmpStatus','Snmp')">
             Snmp
         </th>
     </tr>
