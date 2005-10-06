@@ -319,6 +319,27 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")
 
+        # DataCollector properties
+        devs._setProperty("zCommandUsername", "")
+        devs._setProperty("zCommandPassword", "")
+        devs._setProperty("zCommandProtocol", "ssh")
+        devs._setProperty("zCommandPort", 22, type="int")
+        devs._setProperty("zCommandLoginTries", 1, type="int")
+        devs._setProperty("zCommandLoginTimeout", 10, type="float")
+        devs._setProperty("zCommandCommandTimeout", 10, type="float")
+        devs._setProperty("zCommandSearchPath", [], type="list")
+        devs._setProperty("zCommandExistanceText", "test -f %s")
+
+        devs._setProperty("zTelnetLoginRegex", "ogin:.$")
+        devs._setProperty("zTelnetPasswordRegex", "assword:")
+        devs._setProperty("zTelnetSuccessRegexList", 
+                            ['\$.$', '\#.$'], type="list")
+        devs._setProperty("zTelnetEnable", False, type="boolean")
+        devs._setProperty("zTelnetEnableRegex", "assword:")
+        devs._setProperty("zTelnetTermLength", 0, type="int")
+        devs._setProperty("zTelnetPromptTimeout", 10, type="float")
+
+
     
     def deviceTreePropertyIds(self, all=True):
         """Return list of device tree property names."""

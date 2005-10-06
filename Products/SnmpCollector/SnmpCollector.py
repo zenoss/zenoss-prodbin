@@ -272,7 +272,7 @@ class SnmpCollector(ZCmdBase):
                 help="start path for collection ie /Servers")
         self.parser.add_option('-d', '--device',
                 dest='device',
-                help="Device path ie /Servers/www.confmon.com")
+                help="Device path ie www.zentinel.com")
         self.parser.add_option('-a', '--collectAge',
                 dest='collectAge',
                 default=0,
@@ -302,7 +302,7 @@ class SnmpCollector(ZCmdBase):
             self.options.collectMaps = self.options.collectMaps.split(',')
 
         if self.options.device:
-            device = self.dmd.getDmdRoot("Devices").getOrganizer(
+            device = self.dmd.getDmdRoot("Devices").findDevice(
                                                     self.options.device)
             if not device:
                 print "unable to locate device %s" % self.options.device
