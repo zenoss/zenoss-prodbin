@@ -102,8 +102,7 @@ class DeviceClass(DeviceOrganizer, Folder):
                 { 'id'            : 'config'
                 , 'name'          : 'Config'
                 , 'action'        : 'viewDeviceClassConfig'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
