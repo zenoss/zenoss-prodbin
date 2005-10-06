@@ -80,6 +80,7 @@ class SnmpCollector(ZCmdBase):
                                 community = device.snmpCommunity,
                                 port = device.snmpPort)
                 if self.testSnmpConnection(snmpsess):
+                    device._p_jar.sync() 
                     self._collectCustomMaps(device, snmpsess)
                     device.setSnmpLastCollection()
                     trans = transaction.get()
