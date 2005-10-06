@@ -97,10 +97,4 @@ class DmdNcoManager(NcoManager):
             return tdown
         
 
-    security.declareProtected('View','getSystemEventSummary')
-    def getSystemEventSummary(self, system):
-        where = "System like '" + system + "'"
-        return self.getEventSummary(where)
-
-
 InitializeClass(NcoManager)
