@@ -73,7 +73,7 @@ class DeviceResultInt:
         """get the snmp status of the box if there is one"""
         d = self.getDevice()
         if d:
-            return d._getSnmpStatus()
+            return d.getSnmpStatus()
         return "No Status"
 
 
@@ -82,7 +82,7 @@ class DeviceResultInt:
         """get the snmp status of the box if there is one"""
         d = self.getDevice()
         if d:
-            return d._getSnmpStatusNumber()
+            return d.getSnmpStatusNumber()
         return -1
 
     
@@ -107,7 +107,7 @@ class DeviceResultInt:
         """get the snmp status color of the device if there is one"""
         d = self.getDevice()
         if d:
-            return d._getSnmpStatusColor()
+            return d.getSnmpStatusColor()
         return "#d02090"
 
 
