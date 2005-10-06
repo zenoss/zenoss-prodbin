@@ -116,10 +116,10 @@ class CommandCollector(ZCmdBase):
                 help="Comma separated list of collection maps to use")
         self.parser.add_option('-p', '--path',
                 dest='path',
-                help="start path for collection ie /Devices")
+                help="start path for collection ie /Server")
         self.parser.add_option('-d', '--device',
                 dest='device',
-                help="Device path ie /Devices/Servers/www.confmon.com")
+                help="Device path ie /Server/www.confmon.com")
         self.parser.add_option('-a', '--collectAge',
                 dest='collectAge',
                 default=0,
@@ -136,10 +136,12 @@ class CommandCollector(ZCmdBase):
         devices = None
         droot = None
         if self.options.device:
-            device = self.getDmdObj(self.options.device)
+            device = self.dmd.getDmdRoot("Devices").getOrganizer(
+                                                    self.options.device)
             devices = (device,)
         if self.options.path:
-            droot = self.getDmdObj(self.options.path)
+            droot = self.dmd.getDmdRoot("Devices").getOrganizer(
+                                                    self.options.path)
         if self.options.ignoreMaps and self.options.collectMaps:
             print "--ignore and --collect are mutually exclusive"
             sys.exit(1)
