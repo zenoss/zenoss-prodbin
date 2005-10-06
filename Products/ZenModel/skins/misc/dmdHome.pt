@@ -48,7 +48,7 @@
     </tr>
     <tr>
         <th class="tableheader">Class</th>
-        <th class="tableheader">Sub Count</th>
+        <th class="tableheader">Sub Classes</th>
         <th class="tableheader">Device Count</th>
     </tr>
     <tr tal:repeat="dev python:here.getDmdRoot('Devices').children()">

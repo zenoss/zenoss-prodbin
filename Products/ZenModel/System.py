@@ -128,9 +128,9 @@ class System(DeviceOrganizer):
         return status
    
 
-    security.declareProtected('View', 'cmtsPingStatus')
+    security.declareProtected('View', 'omniCmtsPingStatus')
     def omniCmtsPingStatus(self):
-        """cmtsPingStatus() -> return the number of ubrs that are down"""
+        """omniCmtsPingStatus() -> return the number of ubrs that are down"""
         status = -1
         try:
             status = self.netcool.getOmniStatus(
@@ -141,7 +141,7 @@ class System(DeviceOrganizer):
         return status
 
 
-    security.declareProtected('View', 'snmpStatus')
+    security.declareProtected('View', 'omniSnmpStatus')
     def omniSnmpStatus(self):
         """snmpStatus() -> return the number of devices with snmp problems"""
         status = -1
