@@ -50,7 +50,7 @@
 <table border="0" cellpadding="3" width="100%"
     align="center" bgcolor="#ffffff" cellspacing="1">
   <tr>
-      <th class="tabletitle" align="left" colspan="5">
+      <th class="tabletitle" align="left" colspan="3">
         Subnetworks
       </th>
   </tr>
@@ -67,14 +67,6 @@
                 tableName,'countIpAddresses','Number of IPs','cmp')">
         Number of IPs
     </th>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'pingStatus','Ping')">
-        Ping
-    </th>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'snmpStatus','Snmp')">
-        Snmp
-    </th>
   </tr>
   <tr tal:repeat="net batch">
     <td class="tablevalues" align="left">
@@ -89,18 +81,6 @@
         tal:content="python: net.countIpAddresses()">
         hosts
     </td>
-    <span tal:define="status net/pingStatus">
-    <td class="statusvalues" bgcolor="#00ff00" align="center"
-        tal:attributes="bgcolor python: net.statusColor(status)"
-        tal:content="status">0
-    </td>
-    </span>
-    <span tal:define="status net/snmpStatus">
-    <td class="statusvalues" bgcolor="#00ff00" align="center"
-        tal:attributes="bgcolor python: net.statusColor(status)"
-        tal:content="status">0
-    </td>
-    </span>
   </tr>
   <tr>
     <td colspan=5 class="tableheader" align='center'>
