@@ -57,7 +57,8 @@ class Organizer(ZenModelRM):
     security.declareProtected('Delete objects', 'manage_deleteOrganizer')
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """Delete an Organizer from its parent name is relative to parent"""
-        self.children._delObject(orgname)
+        if orgname:
+            self.children._delObject(orgname)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 

@@ -37,8 +37,7 @@ class NcoEventPopulator(ConfDaemon, DbAccessBase):
         self.hostname = self.options.hostname
         self.omniname = self.options.omniname
         self.username = self.options.username
-        #self.password = self.options.password
-        self.password = ""
+        self.password = self.options.password
         self.zurl = self.options.zopeurl
         self.zusername = self.options.zopeusername
         self.zpassword = self.options.zopepassword

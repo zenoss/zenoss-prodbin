@@ -24,6 +24,9 @@ $Id: CricketConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 
 __version__ = "$Revision: 1.30 $"[11:-2]
 
+import logging
+import transaction
+
 import xmlrpclib
 from AuthTransport import BasicAuthTransport
 
@@ -39,7 +42,6 @@ from Products.ZenModel.StatusColor import StatusColor
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
-from zLOG import LOG, WARNING
 
 def manage_addCricketConf(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -191,9 +193,9 @@ class CricketConf(Monitor, StatusColor):
                     cd = device.cricketGenerate()
                     if cd: 
                         cricketData.extend(cd)
-                        get_transaction().commit()
+                        transaction.commit()
         else:
-            for device in self.devices.objectValuesAll():
+            for device in self.devices():
                 device._p_jar.sync()
                 statusmon = device.monitors()
                 if len(statusmon) > 0: 
@@ -204,11 +206,10 @@ class CricketConf(Monitor, StatusColor):
                     cd = device.cricketGenerate()
                     if cd: 
                         cricketData.extend(cd)
-                        get_transaction().commit()
+                        transaction.commit()
                 except ZentinelException:
-                    msg = 'problem with cricket gen on device %s\n' % device.id
-                    #msg += self.exceptMsg()
-                    LOG('CricketConf', WARNING, msg)
+                    logging.exception(
+                        "problem with cricketGen on device %s", devic.id)
         return cricketData
     
     

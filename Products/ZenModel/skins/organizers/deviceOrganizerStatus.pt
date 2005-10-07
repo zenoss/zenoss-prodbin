@@ -93,7 +93,7 @@
     tal:attributes="value template/id"/>
 <table border="0" cellpadding="3" cellspacing="1">
 <tr class="tabletitlel">
-    <th tal:content="python:'Add '+here.dmdRootName[:-1]">Add Device</th>
+    <th tal:content="string:Add ${here/meta_type}">Add Device</th>
 </tr>
 <tr>
     <td class="tablevalues">
@@ -110,11 +110,12 @@
     tal:attributes="value template/id"/>
 <table border="0" cellpadding="3" cellspacing="1">
 <tr class="tabletitlel">
-    <th tal:content="python:'Delete '+here.dmdRootName[:-1]">Add Device</th>
+    <th tal:content="string:Delete ${here/meta_type}">Add Device</th>
 </tr>
 <tr>
     <td class="tablevalues">
         <select name="orgname">
+            <option value=""></option>
             <option tal:repeat="
                 dcname python:here.children.objectIds()"
                 tal:content="dcname" tal:attributes="value dcname">

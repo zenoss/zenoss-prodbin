@@ -141,15 +141,16 @@ class DeviceClass(DeviceOrganizer, Folder):
         """return the python class object for this device class"""
         import sys
         from Device import Device
-        modpath = self.baseModulePath
-        aqpath = list(self.getPrimaryPath())
-        aqpath.reverse()
-        for name in aqpath:
-            fullpath = ".".join((modpath, name))
+        for obj in aq_chain(self):
+            if obj.meta_type != "DeviceClass": continue 
+            if obj.id == "Devices": break
+            cname = getattr(aq_base(obj), "zPythonClass", None)
+            if not cname: cname = obj.id
+            fullpath = ".".join((self.baseModulePath, cname))
             if sys.modules.has_key(fullpath):
                 mod = sys.modules[fullpath]
-                if hasattr(mod, name):
-                    return getattr(mod, name)
+                if hasattr(mod, cname):
+                    return getattr(mod, cname)
         return Device 
 
 
@@ -290,6 +291,9 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs = self.getDmdRoot("Devices")
         if getattr(aq_base(devs), "zSnmpCommunities", False): return
 
+        # map deviec class to python classs (seperate from device class name)
+        devs._setProperty("zPythonClass", "")
+
         # Snmp collection properties
         devs._setProperty("zSnmpCommunities", ["public", "private"], 
                             type="lines")
@@ -326,13 +330,13 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zCommandLoginTries", 1, type="int")
         devs._setProperty("zCommandLoginTimeout", 10, type="float")
         devs._setProperty("zCommandCommandTimeout", 10, type="float")
-        devs._setProperty("zCommandSearchPath", [], type="list")
+        devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceText", "test -f %s")
 
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
         devs._setProperty("zTelnetSuccessRegexList", 
-                            ['\$.$', '\#.$'], type="list")
+                            ['\$.$', '\#.$'], type="lines")
         devs._setProperty("zTelnetEnable", False, type="boolean")
         devs._setProperty("zTelnetEnableRegex", "assword:")
         devs._setProperty("zTelnetTermLength", 0, type="int")

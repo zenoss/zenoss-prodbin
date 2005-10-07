@@ -195,12 +195,12 @@ class StatusMonitorConf(Monitor, StatusColor):
          monitor configuration'''
         self.setPingHeartbeat()
         devices = []
-        servurl = self.REQUEST['SERVER_URL']
+        #servurl = self.REQUEST['SERVER_URL']
         for dev in self.devices.objectValuesAll():
             try:
                 url = dev.absolute_url() # bug in here new devices have bad req
-                if url.find("http") != 0:
-                    url = servurl + url
+                #if url.find("http") != 0:
+                #    url = servurl + url
                 if dev.productionState >= self.prodStateThreshold:
                     devices.append(( 
                         dev.id, None, url,

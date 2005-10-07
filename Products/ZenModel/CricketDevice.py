@@ -14,8 +14,7 @@ __version__ = "$Revision: 1.21 $"[11:-2]
 
 
 import re
-
-from zLOG import LOG, WARNING
+import logging
 
 from Products.ZenRRD.utils import RRDObjectNotFound
 from Products.ZenRRD.RRDTargetType import lookupTargetType
@@ -103,8 +102,8 @@ class CricketDevice:
         try:
             lookupTargetType(objpaq, deviceType)
         except RRDObjectNotFound:
-            LOG("CricketBuilder", WARNING, 
-                "RRDTargetType %s for device not found" % deviceType)
+            logging.warn(
+                "RRDTargetType %s for device not found", deviceType)
         return deviceType
 
 

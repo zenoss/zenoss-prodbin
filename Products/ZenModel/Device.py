@@ -343,7 +343,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         uses default 'Loopback0' and 'Ethernet0' if none of these are found
         returns the first interface if there is any"""
         if hasattr(self, 'zManageInterfaceNames'):
-            intnames = self.manageInterfaceNames
+            intnames = self.zManageInterfaceNames
         else:
             intnames = ('Loopback0', 'Ethernet0', 'hme0', 'ge0', 'eth0')
         for intname in intnames:
