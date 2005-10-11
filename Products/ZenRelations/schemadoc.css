@@ -1,0 +1,115 @@
+body {
+    background-color: #FFFFFF;
+    color: #000000;
+    font-family:  Verdana, Arial, Helvetica, sans-serif;
+    font-size:  8pt;
+}
+
+form {
+    margin-bottom:0;
+    border:0;
+    margin:0;
+}
+
+table {
+    width: 100%;
+}
+
+.tabletitle {  
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #FFFFFF;
+    background-color: #5A6F8F;
+}
+
+.tabletitlel {  
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #FFFFFF;
+    background-color: #5A6F8F;
+    text-align: left;
+}
+
+a.tabletitle:link {  
+    color: #FFFFFF;
+}
+a.tabletitle:visited {  
+    color: #FFFFFF;
+}
+a.tabletitle:active {  
+    color: #777777;
+}
+a.tabletitle:hover {  
+    color: #000000;
+}
+.tabletitleselected { 
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 14px;
+    font-weight: bold; 
+    color: #333333;
+    background-color: #CCCCCC;
+}
+a.tabletitleselected:link {  
+    color: #333333;
+    text-decoration: none;;
+}
+a.tabletitleselected:visited {  
+    color: #333333;
+    text-decoration: none;;
+}
+a.tabletitleselected:active {  
+    color: #777777;
+    text-decoration: none;;
+}
+a.tabletitleselected:hover {  
+    color: #000000;
+    text-decoration: none;;
+}
+
+
+.tableheader { 
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: normal; 
+    color: #000000;
+    background-color: #CCCCCC;
+}
+
+.tableheaderselected { 
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 12px;
+    font-weight: normal; 
+    color: #FFFFFF;
+    background-color: #999999;
+}
+
+.statusbar { 
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 4pt;
+    font-weight: normal; 
+    color: #000000;
+    background-color: #CCCCCC;
+}
+
+.tablevalues {  
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px; 
+    font-weight: normal; 
+    color: #000040; 
+    background-color: #EEEEEF;
+}
+
+a.tablevalues:link {  
+    color: #000040;
+}
+a.tablevalues:visited {  
+    color: #000040;
+}
+a.tablevalues:hover {  
+    color: #000000;
+}
+a.tablevalues:active {  
+    color: #777777;
+}

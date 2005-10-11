@@ -17,8 +17,6 @@ from Products.ZenModel.Device import *
 
 class DeviceTest(ZenModelBaseTest):
 
-    def testManage_createDevice(self):
-        manage_createDevice(
 
 
 def main():
