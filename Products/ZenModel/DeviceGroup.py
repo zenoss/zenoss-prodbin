@@ -16,6 +16,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from DeviceOrganizer import DeviceOrganizer
 
 def manage_addDeviceGroup(context, id, description = None, REQUEST = None):
@@ -43,6 +45,10 @@ class DeviceGroup(DeviceOrganizer):
     portal_type = meta_type = 'DeviceGroup'
 
     eventsField = "Group"
+
+    _relations = DeviceOrganizer._relations + (
+        ("devices", ToMany(ToMany,"Device","groups")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

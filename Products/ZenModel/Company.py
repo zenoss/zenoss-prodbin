@@ -16,6 +16,8 @@ from Globals import DTMLFile, InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Instance import Instance
 
 def manage_addCompany(context, id, REQUEST = None):
@@ -34,16 +36,18 @@ class Company(Instance):
     portal_type = meta_type = 'Company'
 
     _properties = (
-                    {'id':'url', 'type':'string', 'mode':'w'},
-                    {'id':'supportNumber', 'type':'string', 'mode':'w'},
-                    {'id':'address1', 'type':'string', 'mode':'w'},
-                    {'id':'address2', 'type':'string', 'mode':'w'},
-                    {'id':'city', 'type':'string', 'mode':'w'},
-                    {'id':'state', 'type':'string', 'mode':'w'},
-                    {'id':'zip', 'type':'string', 'mode':'w'},
-                )
-
-
+        {'id':'url', 'type':'string', 'mode':'w'},
+        {'id':'supportNumber', 'type':'string', 'mode':'w'},
+        {'id':'address1', 'type':'string', 'mode':'w'},
+        {'id':'address2', 'type':'string', 'mode':'w'},
+        {'id':'city', 'type':'string', 'mode':'w'},
+        {'id':'state', 'type':'string', 'mode':'w'},
+        {'id':'zip', 'type':'string', 'mode':'w'},
+        )
+    _relations = (
+        ("products", ToMany(ToOne,"Product","manufacturer")),
+    )
+ 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 

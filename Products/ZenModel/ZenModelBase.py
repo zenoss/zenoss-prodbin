@@ -78,8 +78,8 @@ class ZenModelBase:
             links = []
             curDir = self.primaryAq()
             while curDir.id != terminator:
-                if curDir.meta_type == 'To Many Relationship':
-                    curDir = curDir.aq_parent
+                if curDir.meta_type == 'ToManyContRelationship':
+                    curDir = curDir.getPrimaryParent()
                     continue
                 links.append(
                     (curDir.getPrimaryUrlPath(),
@@ -141,7 +141,7 @@ class ZenModelBase:
         return zenpathsplit(path)
 
 
-    def createHierarchyObj(self, root, name, factory, relpath, log=None):
+    def createHierarchyObj(self, root, name, factory, relpath="", log=None):
         return createHierarchyObj(root, name, factory, relpath, log) 
 
 

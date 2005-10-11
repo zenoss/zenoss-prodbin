@@ -17,6 +17,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Product import Product
 
 def manage_addSoftware(context, id, title = None, REQUEST = None):
@@ -34,9 +36,12 @@ class Software(Product):
     """Software object"""
     portal_type = meta_type = 'Software'
 
-    _properties = (Product._properties + (
-                    {'id':'version', 'type':'string', 'mode':'w'},
-                ))
+    _properties = Product._properties + (
+        {'id':'version', 'type':'string', 'mode':'w'},
+        )
+    _relations = Product._relations + (
+        ("copies", ToMany(ToMany,"Device","software")),
+        )
 
     factory_type_information = ( 
         { 

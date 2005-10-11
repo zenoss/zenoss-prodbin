@@ -20,7 +20,7 @@ from Acquisition import aq_base, aq_parent, aq_chain
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions as permissions
 
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenRelations.RelSchema import *
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 
@@ -68,6 +68,10 @@ class DeviceClass(DeviceOrganizer, Folder):
     baseModulePath = "Products.ZenModel"  
 
     class_default_catalog = 'deviceSearch'
+
+    _relations = DeviceOrganizer._relations + (
+        ("devices", ToManyCont(ToOne,"Device","deviceClass")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -202,10 +206,13 @@ class DeviceClass(DeviceOrganizer, Folder):
         
         zcatalog = self._getCatalog()
         if not query or not zcatalog: return []
-        
-        ips = self.Networks.ipSearch({'id':query})
+        ips = None 
+        try:
+            ips = self.Networks.ipSearch({'id':query})
+        except AttributeError: pass
         names = zcatalog({'id':query})
-        return self._convertResultsToObj(ips + names)
+        if ips: names += ips
+        return self._convertResultsToObj(names)
    
 
     security.declareProtected('View', 'searchDeviceSummary')
@@ -220,25 +227,22 @@ class DeviceClass(DeviceOrganizer, Folder):
 
     def _convertResultsToObj(self, results):
         devices = []
-        myroot = self.getPhysicalRoot()
         for brain in results:
-            devobj = getObjByPath(myroot, brain.getPrimaryUrlPath)
+            devobj = self.restrictedTraverse(brain.getPrimaryId)
             devices.append(devobj)
         return devices
 
     security.declareProtected('View', 'getDeviceFromSearchResult')
     def getDeviceFromSearchResult(self, brain):
-        if brain.has_key('getPrimaryUrlPath'):
-            myroot = self.getPhysicalRoot()
-            return getObjByPath(myroot, brain.getPrimaryUrlPath)
+        if brain.has_key('getPrimaryId'):
+            return self.restrictedTraverse(brain.getPrimaryId)
 
 
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
         ret = self._getCatalog()({'id': devicename})
         if ret:
-            devobj = getObjByPath(self.getPhysicalRoot(), 
-                                ret[0].getPrimaryUrlPath)
+            devobj = self.restrictedTraverse(ret[0].getPrimaryId)
             return devobj
 
 
@@ -260,7 +264,7 @@ class DeviceClass(DeviceOrganizer, Folder):
                         extra=makeIndexExtraParams('id'))
         zcat.addIndex('summary', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('summary'))
-        zcat.addColumn('getPrimaryUrlPath')
+        zcat.addColumn('getPrimaryId')
     
         # Make catalog for IpInterfaces
         interfaceSearch = "interfaceSearch"
@@ -273,7 +277,7 @@ class DeviceClass(DeviceOrganizer, Folder):
                         extra=makeIndexExtraParams('getDeviceName'))
         zcat.addIndex('interfaceName', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('getInterfaceName'))
-        zcat.addColumn('getPrimaryUrlPath')
+        zcat.addColumn('getPrimaryId')
         
 
     def _makeLexicon(self, zcat):

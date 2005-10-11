@@ -47,7 +47,8 @@ class InterfaceMap(CustomRelMap):
     srpSideA = re.compile(r'A')
 
     def __init__(self):
-        CustomRelMap.__init__(self, 'interfaces', 'ZenModel.IpInterface')
+        CustomRelMap.__init__(self, 'interfaces', 
+                            'Products.ZenModel.IpInterface')
         self.ciscoIfDescrTable = {}
         self.ciscoSRPInts = {}
 

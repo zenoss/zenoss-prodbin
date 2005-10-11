@@ -1,4 +1,0 @@
-Device:interfaces:4:0:IpInterface:device:1:0
-Device:location:1:0:Location:devices:2:0
-Device:groups:2:0:Group:devices:2:0
-Server:admin:1:0:Admin:server:1:0

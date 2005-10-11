@@ -16,6 +16,8 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenRelations.RelSchema import *
+
 from Service import Service
 from IpServiceClass import addIpServiceToClass, getIpServiceClassId
 from DeviceResultInt import DeviceResultInt
@@ -33,16 +35,26 @@ def manage_addIpService(context, id, title = None, REQUEST = None):
 addIpService = DTMLFile('dtml/addIpService',globals())
 
 class IpService(Service, DeviceResultInt):
-    """Service object"""
+    """
+    IpService object
+    """
+
     portal_type = meta_type = 'IpService'
+
     protocols = ('tcp', 'udp')
+
     _properties = (
-                    {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
-                    {'id':'protocol', 'type':'string', 'mode':'', 
-                        'setter': 'setProtocol'},
-                    {'id':'ipaddress', 'type':'string', 'mode':''},
-                    {'id':'discoveryAgent', 'type':'string', 'mode':''},
-                   ) 
+        {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
+        {'id':'protocol', 'type':'string', 'mode':'', 'setter': 'setProtocol'},
+        {'id':'ipaddress', 'type':'string', 'mode':''},
+        {'id':'discoveryAgent', 'type':'string', 'mode':''},
+        ) 
+    _relations = (
+        ("server", ToOne(ToManyCont,"Device","ipservices")),
+        ("ipserviceclass", ToOne(ToManyCont,"IpServiceClass","ipservices")),
+        ("clients", ToMany(ToMany,"Device","clientofservices")),
+        )
+
 
     def __init__(self, id,ipaddress = ''):
         Service.__init__(self, id)

@@ -39,7 +39,7 @@ class RouteMap(CustomRelMap):
     prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
     def __init__(self):
-        CustomRelMap.__init__(self, 'routes', 'ZenModel.IpRouteEntry')
+        CustomRelMap.__init__(self, 'routes', 'Products.ZenModel.IpRouteEntry')
 
 
 

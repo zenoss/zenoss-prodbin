@@ -20,6 +20,5 @@ from Instance import Instance
 
 class Monitor(Instance):
     meta_type = 'Monitor'
-
-
+    
 InitializeClass(Monitor)

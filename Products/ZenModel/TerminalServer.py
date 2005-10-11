@@ -20,6 +20,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Router import Router
 from IpAddress import findIpAddress
 
@@ -38,7 +40,13 @@ addTerminalServer = DTMLFile('dtml/addTerminalServer',globals())
 
 class TerminalServer(Router):
     """TerminalServer object"""
+
     portal_type = meta_type = 'TerminalServer'
+
+    _relations = (
+        ("devices", ToMany(ToOne, "Device", "termserver")),
+        )
+
     factory_type_information = ( 
         { 
             'id'             : 'TerminalServer',

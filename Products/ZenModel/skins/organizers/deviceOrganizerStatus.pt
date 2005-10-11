@@ -42,7 +42,7 @@
       </td>
     </tr>
 </table>
-<br tal:condition="here/children/countObjects">
+<br tal:condition="here/countChildren">
 <table border=0 cellpadding=3 cellspacing=1
     tal:define="objects here/children;
         tableName string:children;
@@ -117,7 +117,7 @@
         <select name="orgname">
             <option value=""></option>
             <option tal:repeat="
-                dcname python:here.children.objectIds()"
+                dcname here/childIds"
                 tal:content="dcname" tal:attributes="value dcname">
                     zCricketDeviceType
             </option>

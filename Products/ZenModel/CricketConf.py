@@ -37,6 +37,8 @@ from Globals import InitializeClass
 from Products.PythonScripts.standard import url_quote
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
 
@@ -61,11 +63,14 @@ class CricketConf(Monitor, StatusColor):
     security.setDefaultAccess('allow')
 
     _properties = (
-                    {'id':'cricketroot','type':'string','mode':'w'},
-                    {'id':'cricketurl','type':'string','mode':'w'},
-                    {'id':'cricketuser','type':'string','mode':'w'},
-                    {'id':'cricketpass','type':'string','mode':'w'},
-                )
+        {'id':'cricketroot','type':'string','mode':'w'},
+        {'id':'cricketurl','type':'string','mode':'w'},
+        {'id':'cricketuser','type':'string','mode':'w'},
+        {'id':'cricketpass','type':'string','mode':'w'},
+        )
+    _relations = Monitor._relations + (
+        ("devices", ToMany(ToOne,"Device","cricket")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

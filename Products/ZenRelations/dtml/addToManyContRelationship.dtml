@@ -1,12 +1,12 @@
 <dtml-var manage_page_header>
 
 <dtml-var "manage_form_title(this(), _,
-           form_title='Add ToManyRelationship',
-           help_product='RelationshipManager',
+           form_title='Add ToManyConRelationship',
+           help_product='ZenRelaitons',
            help_topic='ToManyRelationship_Add.stx'
 	   )">
 
-<form action="manage_addToManyRelationship" method="post">
+<form action="manage_addToManyContRelationship" method="post">
 <table cellspacing="0" cellpadding="2" border="0">
   <tr>
     <td align="left" valign="top">

@@ -19,6 +19,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Device import Device
 from CricketServer import CricketServer
 
@@ -37,11 +39,16 @@ class Server(CricketServer, Device):
     """Server object"""
     portal_type = meta_type = 'Server'
     
-    _properties = (Device._properties + 
-                   (
+    _properties = Device._properties + (
                     {'id':'sshVersion', 'type':'int', 'mode':'w'},
                     {'id':'snmpSysedgeMode', 'type':'string', 'mode':''},
-                   ))
+                   )
+    _relations = Device._relations + (
+        ("harddisks", ToManyCont(ToOne, "HardDisk", "server")),
+        ("filesystems", ToManyCont(ToOne, "FileSystem", "server")),
+        #("processes", ToManyCont(ToOne, "ServerProcess", "server")),
+        ("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

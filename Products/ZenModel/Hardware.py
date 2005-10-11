@@ -17,6 +17,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Product import Product
 
 def manage_addHardware(context, id, title = None, REQUEST = None):
@@ -33,6 +35,10 @@ addHardware = DTMLFile('dtml/addHardware',globals())
 class Hardware(Product):
     """Hardware object"""
     portal_type = meta_type = 'Hardware'
+
+    _relations = Product._relations + (
+        ("devices", ToMany(ToOne,"Device","model")),
+        )
 
     factory_type_information = ( 
         { 

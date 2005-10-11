@@ -18,6 +18,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Router import Router
 from IpAddress import findIpAddress
 
@@ -37,66 +39,11 @@ addUBRRouter = DTMLFile('dtml/addUBRRouter',globals())
 class UBRRouter(Router):
     """UBRRouter object"""
     portal_type = meta_type = 'UBRRouter'
-    factory_type_information = ( 
-        { 
-            'id'             : 'UBRRouter',
-            'meta_type'      : 'UBRRouter',
-            'description'    : """Base class for all routers""",
-            'icon'           : 'UBRRouter_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addUBRRouter',
-            'immediate_view' : 'viewRouterStatus',
-            'actions'        :
-               ( 
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'viewRouterStatus'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'detail'
-                , 'name'          : 'Detail'
-                , 'action'        : 'viewDeviceDetail'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'performance'
-                , 'name'          : 'Performance'
-                , 'action'        : 'viewDevicePerformance'
-                , 'permissions'   : (
-                  permissions.view, )
-                },                
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'deviceEvents'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'deviceHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editDevice'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'management'
-                , 'name'          : 'Management'
-                , 'action'        : 'deviceManagement'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-         },
+
+    _relations = Router._relations + (
+        ("dhcpservers", ToMany(ToMany, "Server", "dhcpubrclients")),
         )
+
     
     security = ClassSecurityInfo()
    

@@ -37,15 +37,12 @@ class ZenModelItem(ZenModelBase):
     security.declareProtected('View', 'getPrimaryUrlPath')
     def getPrimaryUrlPath(self):
         """get the physicalpath as a url"""
-        return urllib.quote('/'.join(self.getPrimaryPath()))
+        return self.absolute_url_path()
 
-    def aq_primary(self):
-        """return this object with is acquisition path set to primary path"""
-        return getObjByPath(self.getPhysicalRoot(), self.getPrimaryPath()[1:])
 
     def primaryAq(self):
         """return this object with is acquisition path set to primary path"""
-        return self.aq_primary()
+        return self
 
 
 InitializeClass(ZenModelItem)

@@ -18,6 +18,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
+from Products.ZenRelations.RelSchema import *
+
 from IpAddress import findIpAddress
 from IpNetwork import addIpAddressToNetworks
 
@@ -41,19 +43,24 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
     meta_type = 'IpRouteEntry'
     
     _properties = (
-                    {'id':'routemask', 'type':'string', 'mode':''},
-                    {'id':'nexthopip', 'type':'string', 
-                        'mode':'', 'setter':'setNextHop'},
-                    {'id':'routeproto', 'type':'string', 'mode':''},
-                    {'id':'routeage', 'type':'string', 'mode':''},
-                    {'id':'routetype', 'type':'string', 'mode':''},
-                    {'id':'metric1', 'type':'int', 'mode':''},
-                    {'id':'metric2', 'type':'int', 'mode':''},
-                    {'id':'metric3', 'type':'int', 'mode':''},
-                    {'id':'metric4', 'type':'int', 'mode':''},
-                    {'id':'metric5', 'type':'int', 'mode':''},
-                   ) 
-    
+        {'id':'routemask', 'type':'string', 'mode':''},
+        {'id':'nexthopip', 'type':'string', 
+            'mode':'', 'setter':'setNextHop'},
+        {'id':'routeproto', 'type':'string', 'mode':''},
+        {'id':'routeage', 'type':'string', 'mode':''},
+        {'id':'routetype', 'type':'string', 'mode':''},
+        {'id':'metric1', 'type':'int', 'mode':''},
+        {'id':'metric2', 'type':'int', 'mode':''},
+        {'id':'metric3', 'type':'int', 'mode':''},
+        {'id':'metric4', 'type':'int', 'mode':''},
+        {'id':'metric5', 'type':'int', 'mode':''},
+        ) 
+    _relations = DeviceComponent._relations + (
+        ("device", ToOne(ToManyCont,"Device","routes")),
+        ("interface", ToOne(ToMany,"IpInterface","iproutes")),
+        ("nexthop", ToOne(ToMany,"IpAddress","clientroutes")),
+        )
+
     security = ClassSecurityInfo()
 
     ipcheck = re.compile(r'^127.|^0.').search

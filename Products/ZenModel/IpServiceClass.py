@@ -21,6 +21,8 @@ from Globals import InitializeClass
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from ServiceClass import ServiceClass
 from Instance import Instance
 
@@ -78,13 +80,16 @@ class IpServiceClass(ServiceClass, Instance):
     #view = PageTemplateFile('zpt/viewServiceOverview.zpt',globals())
 
     _properties = (
-                    {'id':'keyword', 'type':'string', 'mode':'w'},
-                    {'id':'port', 'type':'int', 'mode':'w'},
-                    {'id':'protocol', 'type':'selection', 'mode':'w',
-                        'select_variable':'protocols'},
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                    {'id':'contact', 'type':'string', 'mode':'w'},
-                   ) 
+        {'id':'keyword', 'type':'string', 'mode':'w'},
+        {'id':'port', 'type':'int', 'mode':'w'},
+        {'id':'protocol', 'type':'selection', 'mode':'w',
+            'select_variable':'protocols'},
+        {'id':'description', 'type':'text', 'mode':'w'},
+        {'id':'contact', 'type':'string', 'mode':'w'},
+        ) 
+    _relations = ServiceClass._relations + (
+        ("ipservices", ToManyCont(ToOne, "IpService", "ipserviceclass")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

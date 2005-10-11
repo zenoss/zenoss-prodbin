@@ -18,6 +18,8 @@ from Globals import InitializeClass
 from OFS.FindSupport import FindSupport
 from Acquisition import aq_parent    
 
+from Products.ZenRelations.RelSchema import *
+
 from Products.ZenUtils.IpUtil import *
 from Products.ZenUtils.Utils import getObjByPath
 
@@ -57,10 +59,14 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
     default_catalog = 'ipSearch'
 
     _properties = (
-                 {'id':'netmask', 'type':'string', 
-                    'mode':'w', 'setter':'setNetmask'},
-                 {'id':'reverseName', 'type':'string', 'mode':'w'},
-                 )
+        {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},
+        {'id':'reverseName', 'type':'string', 'mode':'w'},
+        )
+    _relations = (
+        ("network", ToOne(ToManyCont,"IpNetwork","ipaddresses")),
+        ("interface", ToOne(ToMany,"IpInterface","ipaddresses")),
+        ("clientroutes", ToMany(ToOne,"IpRouteEntry","nexthop")),
+        )
 
     factory_type_information = ( 
         { 
@@ -199,6 +205,20 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
             d = self.getDevice()
             if d: return d._getPingStatusObj()
         return self._pingStatus        
+
+    
+    def index_object(self):
+        """interfaces use hostname + interface name as uid"""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.catalog_object(self, self.getId())
+            
+                                                
+    def unindex_object(self):
+        """interfaces use hostname + interface name as uid"""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.uncatalog_object(self.getId())
 
 
 InitializeClass(IpAddress)

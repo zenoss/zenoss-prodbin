@@ -15,9 +15,10 @@ from Globals import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo
 
+from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError
-from Products.ZenModel.ZenModelRM import ZenModelRM
+from ZenModelRM import ZenModelRM
         
 class Organizer(ZenModelRM):
     """
@@ -29,19 +30,35 @@ class Organizer(ZenModelRM):
     dmdRootName - root in the dmd database for this organizer
     """
 
-    dmdSubRel = "children"
-
     _properties = (
                     {'id':'description', 'type':'string', 'mode':'w'},
                    ) 
-    
+ 
     security = ClassSecurityInfo()
     security.declareObjectProtected("View")
 
     def __init__(self, id, description = ''):
         ZenModelRM.__init__(self, id)
         self.description = description
-   
+ 
+
+    def children(self):
+        """Return children of our organizer who have same type as parent."""
+        return self.objectValues(spec=self.meta_type)
+
+
+    def childIds(self):
+        """Return Ids of children within our organizer."""
+        return self.objectIds(spec=self.meta_type)
+
+
+    def countChildren(self):
+        """Return a count of all our contained children."""
+        count = len(self.objectIds(spec=self.meta_type))
+        for child in self.children():
+            count += child.countChildren()
+        return count
+        
 
     security.declareProtected('Add DMD Objects', 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
@@ -50,7 +67,7 @@ class Organizer(ZenModelRM):
             self.createOrganizer(newPath)
         else:
             org = self.__class__(newPath)
-            self.children.addRelation(org)
+            self._setObject(newPath, org)
         if REQUEST: return self.callZenScreen(REQUEST)
             
 
@@ -58,7 +75,7 @@ class Organizer(ZenModelRM):
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """Delete an Organizer from its parent name is relative to parent"""
         if orgname:
-            self.children._delObject(orgname)
+            self._delObject(orgname)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -79,18 +96,18 @@ class Organizer(ZenModelRM):
     def createOrganizer(self, path):
         """Create and return and an Organizer from its path."""
         return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), path,
-                            self.__class__, self.dmdSubRel)
+                            self.__class__)
 
 
     def getOrganizer(self, path):
         """Return and an Organizer from its path."""
-        return self.getHierarchyObj(self.getDmdRoot(self.dmdRootName), 
-                                    path, self.dmdSubRel)
+        if path.startswith("/"): path = path[1:]
+        return self.getDmdRoot(self.dmdRootName).restrictedTraverse(path) 
 
 
     def getOrganizerName(self):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
-        return self.getPrimaryDmdId(self.dmdRootName, self.dmdSubRel)
+        return self.getPrimaryDmdId(self.dmdRootName)
    
     # getPathName used by Device in _setRelations when setting a device to many
     getPathName = getOrganizerName

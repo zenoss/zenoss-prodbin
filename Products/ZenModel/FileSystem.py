@@ -15,6 +15,8 @@ __version__ = "$Revision: 1.12 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenRelations.RelSchema import *
+
 from DeviceComponent import DeviceComponent
 
 def manage_addFileSystem(context, id, REQUEST = None):
@@ -38,20 +40,23 @@ class FileSystem(DeviceComponent):
     manage_editFileSystemForm = DTMLFile('dtml/manageEditFileSystem',globals())
     
     _properties = (
-                 {'id':'mount', 'type':'string', 'mode':''},
-                 {'id':'storageDevice', 'type':'string', 'mode':''},
-                 {'id':'type', 'type':'string', 'mode':''},
-                 {'id':'blockSize', 'type':'int', 'mode':''},
-                 {'id':'totalBytes', 'type':'long', 'mode':''},
-                 {'id':'usedBytes', 'type':'long', 'mode':''},
-                 {'id':'availBytes', 'type':'long', 'mode':''},
-                 {'id':'totalFiles', 'type':'long', 'mode':''},
-                 {'id':'availFiles', 'type':'long', 'mode':''},
-                 {'id':'capacity', 'type':'int', 'mode':''},
-                 {'id':'inodeCapacity', 'type':'int', 'mode':''},
-                 {'id':'maxNameLen', 'type':'int', 'mode':''},
-                 {'id':'snmpindex', 'type':'int', 'mode':''},
-                )
+        {'id':'mount', 'type':'string', 'mode':''},
+        {'id':'storageDevice', 'type':'string', 'mode':''},
+        {'id':'type', 'type':'string', 'mode':''},
+        {'id':'blockSize', 'type':'int', 'mode':''},
+        {'id':'totalBytes', 'type':'long', 'mode':''},
+        {'id':'usedBytes', 'type':'long', 'mode':''},
+        {'id':'availBytes', 'type':'long', 'mode':''},
+        {'id':'totalFiles', 'type':'long', 'mode':''},
+        {'id':'availFiles', 'type':'long', 'mode':''},
+        {'id':'capacity', 'type':'int', 'mode':''},
+        {'id':'inodeCapacity', 'type':'int', 'mode':''},
+        {'id':'maxNameLen', 'type':'int', 'mode':''},
+        {'id':'snmpindex', 'type':'int', 'mode':''},
+        )
+    _relations = DeviceComponent._relations + (
+        ("server", ToOne(ToManyCont, "Server", "filesystems")),
+        )
     
 
     def __init__(self, id, title = None): 

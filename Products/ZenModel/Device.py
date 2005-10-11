@@ -15,6 +15,7 @@ $Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
 __version__ = "$Revision: 1.121 $"[11:-2]
 
 import time
+import logging
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -24,6 +25,8 @@ from DateTime import DateTime
 from App.Dialogs import MessageDialog
 
 from AccessControl import Permissions as permissions
+
+from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
@@ -36,8 +39,6 @@ from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 
 CopyError='Copy Error'
-
-from logging import debug, info, warn, critical, exception
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
@@ -108,32 +109,46 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     relationshipManagerPathRestriction = '/Devices'
 
     _properties = (
-                    {'id':'pingStatus', 'type':'int', 
-                        'mode':'w', 'setter':'setPingStatus'},
-                    {'id':'snmpStatus', 'type':'int', 
-                        'mode':'w', 'setter':'setSnmpStatus'},
-                    {'id':'productionState', 'type':'keyedselection', 
-                       'mode':'w', 'select_variable':'getProdStateConversions',
-                       'setter':'setProdState'},
-                    {'id':'tag', 'type':'string', 'mode':'w'},
-                    {'id':'serialNumber', 'type':'string', 'mode':'w'},
-                    {'id':'snmpPort', 'type':'int', 'mode':'w'},
-                    {'id':'snmpCommunity', 'type':'string', 'mode':'w'},
-                    {'id':'snmpAgent', 'type':'string', 'mode':'w'},
-                    {'id':'snmpDescr', 'type':'string', 'mode':''},
-                    {'id':'snmpOid', 'type':'string', 'mode':''},
-                    {'id':'snmpUpTime', 'type':'int', 'mode':''},
-                    {'id':'snmpContact', 'type':'string', 'mode':''},
-                    {'id':'snmpSysName', 'type':'string', 'mode':''},
-                    {'id':'snmpLocation', 'type':'string', 'mode':''},
-                    {'id':'snmpLastCollection', 'type':'Date', 'mode':''},
-                    {'id':'osVersion', 'type':'string', 'mode':'w'},
-                    {'id':'rackSlot', 'type':'int', 'mode':'w'},
-                    {'id':'comments', 'type':'text', 'mode':'w'},
-                    {'id':'cpuType', 'type':'string', 'mode':'w'},
-                    {'id':'totalMemory', 'type':'float', 'mode':'w'},
-                   ) 
-   
+        {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
+        {'id':'snmpStatus', 'type':'int', 'mode':'w', 'setter':'setSnmpStatus'},
+        {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
+           'select_variable':'getProdStateConversions','setter':'setProdState'},
+        {'id':'tag', 'type':'string', 'mode':'w'},
+        {'id':'serialNumber', 'type':'string', 'mode':'w'},
+        {'id':'snmpPort', 'type':'int', 'mode':'w'},
+        {'id':'snmpCommunity', 'type':'string', 'mode':'w'},
+        {'id':'snmpAgent', 'type':'string', 'mode':'w'},
+        {'id':'snmpDescr', 'type':'string', 'mode':''},
+        {'id':'snmpOid', 'type':'string', 'mode':''},
+        {'id':'snmpUpTime', 'type':'int', 'mode':''},
+        {'id':'snmpContact', 'type':'string', 'mode':''},
+        {'id':'snmpSysName', 'type':'string', 'mode':''},
+        {'id':'snmpLocation', 'type':'string', 'mode':''},
+        {'id':'snmpLastCollection', 'type':'Date', 'mode':''},
+        {'id':'osVersion', 'type':'string', 'mode':'w'},
+        {'id':'rackSlot', 'type':'int', 'mode':'w'},
+        {'id':'comments', 'type':'text', 'mode':'w'},
+        {'id':'cpuType', 'type':'string', 'mode':'w'},
+        {'id':'totalMemory', 'type':'float', 'mode':'w'},
+        ) 
+
+    _relations = (
+        ("arptable", ToManyCont(ToOne, "ArpEntry", "device")),
+        ("clientofservices", ToMany(ToMany, "IpService", "clients")),
+        ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
+        ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
+        ("interfaces", ToManyCont(ToOne, "IpInterface", "device")),
+        ("ipservices", ToManyCont(ToOne, "IpService", "server")),
+        ("location", ToOne(ToMany, "Location", "devices")),
+        ("model", ToOne(ToMany, "Hardware", "devices")),
+        ("software", ToMany(ToMany, "Software", "copies")),
+        ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
+        ("cricket", ToOne(ToMany, "CricketConf", "devices")),
+        ("routes", ToManyCont(ToOne, "IpRouteEntry", "device")),
+        ("systems", ToMany(ToMany, "System", "devices")),
+        ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
+        )
+
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
@@ -184,6 +199,11 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 { 'id'            : 'management'
                 , 'name'          : 'Management'
                 , 'action'        : 'deviceManagement'
+                , 'permissions'   : ("Change Device",)
+                },
+                { 'id'            : 'config'
+                , 'name'          : 'Config'
+                , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'viewHistory'
@@ -412,31 +432,31 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         self.comments = comments
 
         if manufacturer and model:
-            info("setting manufacturer to %s model to %s"
+            logging.info("setting manufacturer to %s model to %s"
                             % (manufacturer, model))
             self.setModel(manufacturer, model)
 
         if locationPath: 
             if rack:
                 locationPath += "/%s" % rack
-                info("setting rack location to %s" % locationPath)
+                logging.info("setting rack location to %s" % locationPath)
                 self.setRackLocation(locationPath)
             else:
-                info("setting location to %s" % locationPath)
+                logging.info("setting location to %s" % locationPath)
                 self.setLocation(locationPath)
 
         if groupPaths: 
-            info("setting group %s" % groupPaths)
+            logging.info("setting group %s" % groupPaths)
             self.setGroups(groupPaths)
 
         if systemPaths: 
-            info("setting system %s" % systemPaths)
+            logging.info("setting system %s" % systemPaths)
             self.setSystems(systemPaths)
 
-        info("setting status monitor to %s" % statusMonitors)
+        logging.info("setting status monitor to %s" % statusMonitors)
         self.setStatusMonitors(statusMonitors)
 
-        info("setting cricket monitor to %s" % cricketMonitor)
+        logging.info("setting cricket monitor to %s" % cricketMonitor)
         self.setCricketMonitor(cricketMonitor)
        
         if REQUEST: 
@@ -695,10 +715,10 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         try:
             sc.collectDevice(self)
         except:
-            exception('exception while collecting snmp for device %s'
+            logging.exception('exception while collecting snmp for device %s'
                               %  self.getId())
         else:
-            info('collected snmp information for device %s'
+            logging.info('collected snmp information for device %s'
                             % self.getId())
 
 
@@ -706,11 +726,25 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security.declareProtected('Change Device', 'deleteDevice')
     def deleteDevice(self, REQUEST=None):
         """Delete device from the DMD"""
-        parent = self.getParent()
+        parent = self.getPrimaryParent()
         parent._delObject(self.getId())
         if REQUEST:
             REQUEST['RESPONSE'].redirect(parent.absolute_url() + 
                                             "/deviceOrganizerStatus")
+
+
+    def index_object(self):
+        """A common method to allow Findables to index themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.catalog_object(self, self.getId())
+            
+                                                
+    def unindex_object(self):
+        """A common method to allow Findables to unindex themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.uncatalog_object(self.getId())
 
 
     security.declareProtected('View', 'summary')

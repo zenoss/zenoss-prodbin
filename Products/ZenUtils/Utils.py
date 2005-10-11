@@ -79,20 +79,6 @@ def parseconfig(options):
         setattr(options, key, value)
 
 
-def lookupClass(productName, classname=None):
-        """look in sys.modules for our class"""
-        import sys
-        if sys.modules.has_key(productName):
-            mod = sys.modules[productName]
-        elif sys.modules.has_key("Products."+productName):
-            mod = sys.modules["Products."+productName]
-        else:
-            return None
-        if not classname:
-            classname = productName.split('.')[-1]
-        return getattr(mod,classname)
-
-
 def cleanstring(value):
     """take the trailing \x00 off the end of a string"""
     if type(value) == types.StringType and value[-1] == struct.pack('x'):
@@ -196,7 +182,7 @@ def OLDgetHierarchyObj(root, name, factory, lastfactory=None,
     return root
 
 
-def createHierarchyObj(root, name, factory, relpath, log=None):
+def createHierarchyObj(root, name, factory, relpath="", log=None):
     """
     Create a hierarchy object from its path we use relpath to skip down
     any missing relations in the path and factory is the constructor for 
@@ -218,7 +204,7 @@ def createHierarchyObj(root, name, factory, relpath, log=None):
     return root
 
 
-def getHierarchyObj(root, name, relpath):
+def getHierarchyObj(root, name, relpath=None):
     """Return an object using its path relations are optional in the path."""
     for id in zenpathsplit(name):
         if id == relpath or getattr(aq_base(root), relpath, False):

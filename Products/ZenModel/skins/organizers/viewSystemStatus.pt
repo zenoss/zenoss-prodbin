@@ -4,39 +4,6 @@
 
 <table metal:use-macro="here/deviceOrganizerStatus/macros/status"></table>
 
-<span tal:define="objects here/serviceareas/objectValuesAll;
-    tableName string:systemstatusserviceareas;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition="objects">
-<br>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1">
-    <tr>
-        <th class="tabletitle" align="left" colspan="2">
-            Service Areas
-        </th>
-    </tr>
-    <tr>
-        <th class="tableheader" align="left">
-            Area
-        </th>
-        <th class="tableheader" align="left">
-            Description
-        </th>
-    </tr>
-    <tr tal:repeat="area objects">
-        <td class="tablevalues" align="left">
-            <a href="_" target="rightFrame"
-                tal:attributes="href area/getPrimaryUrlPath">
-                    <span tal:replace="area/id">id</span>
-            </a>
-        </td>
-        <td class="tablevalues" align="left">
-            <span tal:replace="area/description">desc</span>
-        </td>
-    </tr>
-</table>
-</span>
 <span tal:define="objects here/children;
     tableName string:systemstatuschildren;
     tableTitle string: Sub-Systems;

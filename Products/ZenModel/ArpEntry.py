@@ -15,6 +15,8 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenRelations.RelSchema import *
+
 from Instance import Instance
 
 def manage_addArpEntry(context, id, title = None, REQUEST = None):
@@ -29,11 +31,18 @@ def manage_addArpEntry(context, id, title = None, REQUEST = None):
 addArpEntry = DTMLFile('dtml/addArpEntry',globals())
 
 class ArpEntry(Instance):
-    """ArpEntry object"""
+    """
+    ArpEntry object
+    """
+
     meta_type = 'ArpEntry'
+
     _properties = (
-                    {'id':'macAddress', 'type':'string', 'mode':'w'},
-                   ) 
+        {'id':'macAddress', 'type':'string', 'mode':'w'},
+        ) 
+    _relations = (
+        ("device", ToOne(ToManyCont,"Device","arptable")),
+        )
 
     def __init__(self, id, title = None, macAddress = ''):
         Instance.__init__(self, id, title)

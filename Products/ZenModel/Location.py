@@ -17,7 +17,9 @@ from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
 
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenRelations.RelSchema import *
+
+from DeviceOrganizer import DeviceOrganizer
 
 
 def manage_addLocation(context, id, description = "", REQUEST = None):
@@ -44,6 +46,9 @@ class Location(DeviceOrganizer):
 
     portal_type = meta_type = eventsField = 'Location'
     
+    _relations = DeviceOrganizer._relations + (
+        ("devices", ToMany(ToOne,"Device","location")),
+        )
 
     factory_type_information = ( 
         { 

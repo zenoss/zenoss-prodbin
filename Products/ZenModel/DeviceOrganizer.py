@@ -14,7 +14,7 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 from AccessControl import ClassSecurityInfo, Unauthorized
 from Globals import InitializeClass
 
-from Products.ZenModel.Organizer import Organizer
+from Organizer import Organizer
 
 class DeviceOrganizer(Organizer):
     """
@@ -59,13 +59,6 @@ class DeviceOrganizer(Organizer):
         count = self.devices.countObjects()
         for group in self.children():
             count += group.countDevices()
-        return count
-
-
-    def countChildren(self):
-        count = self.children.countObjects()
-        for child in self.children():
-            count += child.countChildren()
         return count
 
 

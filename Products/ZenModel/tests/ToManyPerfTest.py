@@ -1,6 +1,7 @@
 
-import Zope
-Zope.startup()
+import Zope2
+app = Zope2.app()
+
 from Products.ZenModel.IpInterface import manage_addIpInterface
 
 class PerfTest:
@@ -64,5 +65,4 @@ class PerfTest:
         return device
 
 
-app = Zope.app()
 pt = PerfTest(app, 1000)

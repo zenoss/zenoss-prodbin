@@ -19,6 +19,8 @@ from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
@@ -71,9 +73,13 @@ class IpNetwork(DeviceOrganizer):
     portal_type = meta_type = 'IpNetwork'
 
     _properties = (
-                    {'id':'netmask', 'type':'string', 'mode':'w'},
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                   ) 
+        {'id':'netmask', 'type':'string', 'mode':'w'},
+        {'id':'description', 'type':'text', 'mode':'w'},
+        ) 
+    
+    _relations = DeviceOrganizer._relations + (
+        ("ipaddresses", ToManyCont(ToOne, "IpAddress", "network")),
+        )
                    
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -129,14 +135,14 @@ class IpNetwork(DeviceOrganizer):
     security.declareProtected('Change Network', 'addSubNetwork')
     def addSubNetwork(self, ip, netmask=24):
         """add subnetwork to this network and return it"""
-        manage_addIpNetwork(self.children,ip,netmask)
+        manage_addIpNetwork(self,ip,netmask)
         return self.getSubNetwork(ip)
 
 
     security.declareProtected('View', 'getSubNetwork')
     def getSubNetwork(self, ip):
         """get an ip on this network"""
-        return self.children._getOb(ip, None)
+        return self._getOb(ip, None)
 
     
     security.declareProtected('Change Network', 'addIpAddress')

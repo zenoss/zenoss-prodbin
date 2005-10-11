@@ -17,6 +17,8 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Products.ZenUtils.Utils import travAndColl
 
 from DeviceOrganizer import DeviceOrganizer
@@ -53,11 +55,14 @@ class System(DeviceOrganizer):
     default_catalog = 'systemSearch'
     
     _properties = (
-                    {'id':'systemClass', 'type':'string', 'mode':'w'},
-                    {'id':'productionState', 'type':'keyedselection', 
-                        'mode':'w', 'select_variable':'getProdStateConversions'},
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                   ) 
+        {'id':'systemClass', 'type':'string', 'mode':'w'},
+        {'id':'productionState', 'type':'keyedselection', 
+            'mode':'w', 'select_variable':'getProdStateConversions'},
+        {'id':'description', 'type':'text', 'mode':'w'},
+        ) 
+    _relations = DeviceOrganizer._relations + (
+        ("devices", ToMany(ToMany, "Device", "systems")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

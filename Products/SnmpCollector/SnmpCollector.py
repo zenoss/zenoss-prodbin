@@ -24,6 +24,7 @@ from Acquisition import aq_base
 
 from Products.ZenModel.Exceptions import *
 
+from Products.ZenRelations.utils import importClass
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getObjByPath
 
@@ -80,7 +81,7 @@ class SnmpCollector(ZCmdBase):
                                 community = device.snmpCommunity,
                                 port = device.snmpPort)
                 if self.testSnmpConnection(snmpsess):
-                    device._p_jar.sync() 
+                    if device._p_jar: device._p_jar.sync() 
                     self._collectCustomMaps(device, snmpsess)
                     device.setSnmpLastCollection()
                     trans = transaction.get()
@@ -212,35 +213,23 @@ class SnmpCollector(ZCmdBase):
                 ("remoteClass %s must specify the module and class" 
                                             % snmpmap.remoteClass)
 
-        constructor = (self._lookupClass(snmpmap.remoteClass)
-                    or getObjByPath(self.app.Control_Panel.Products, fpath))
-        if constructor:
-            remoteObj = constructor(datamap['id'])
-            if not remoteObj: 
-                raise "ObjectCreationError", ("failed to create object for %s" 
-                                % datamap['id'])
-            rel = device._getOb(snmpmap.relationshipName, None) 
-            if rel:
-                rel._setObject(remoteObj.id, remoteObj)
-            else:
-                raise "ObjectCreationError", \
-                    ("No relation %s found on device %s" 
-                     % (snmpmap.relationshipName, device.id))
-            remoteObj = rel._getOb(remoteObj.id)
-            self._updateObject(remoteObj, datamap)
-            self.log.debug("   Added object %s to relationship %s" 
-                % (remoteObj.id, snmpmap.relationshipName))
+        constructor = importClass(snmpmap.remoteClass)
+        remoteObj = constructor(datamap['id'])
+        if not remoteObj: 
+            raise "ObjectCreationError", ("failed to create object for %s" 
+                            % datamap['id'])
+        rel = device._getOb(snmpmap.relationshipName, None) 
+        if rel:
+            rel._setObject(remoteObj.id, remoteObj)
         else:
             raise "ObjectCreationError", \
-                ("Can not find factory function for %s" 
-                    % snmpmap.remoteClass)
+                ("No relation %s found on device %s" 
+                 % (snmpmap.relationshipName, device.id))
+        remoteObj = rel._getOb(remoteObj.id)
+        self._updateObject(remoteObj, datamap)
+        self.log.debug("   Added object %s to relationship %s" 
+            % (remoteObj.id, snmpmap.relationshipName))
    
-
-    def _lookupClass(self, productName):
-        """look in sys.modules for our class"""
-        from Products.ZenUtils.Utils import lookupClass
-        return lookupClass(productName)
-
 
     def findSnmpCommunity(self, name, device, port=161):
         """look for snmp community based on list we get through aq"""
@@ -273,7 +262,7 @@ class SnmpCollector(ZCmdBase):
                 help="start path for collection ie /Servers")
         self.parser.add_option('-d', '--device',
                 dest='device',
-                help="Device path ie www.zentinel.com")
+                help="Device fqdn ie www.zentinel.com")
         self.parser.add_option('-a', '--collectAge',
                 dest='collectAge',
                 default=0,

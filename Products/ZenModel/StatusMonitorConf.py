@@ -23,6 +23,8 @@ from zLOG import LOG, WARNING
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
 from Products.ZenModel.ZenDate import ZenDate
@@ -43,20 +45,22 @@ class StatusMonitorConf(Monitor, StatusColor):
     portal_type = meta_type = "StatusMonitorConf"
 
     _properties = (
-                    {'id':'chunk','type':'int','mode':'w'},
-                    {'id':'timeOut','type':'float','mode':'w'},
-                    {'id':'tries','type':'int','mode':'w'},
-                    {'id':'snmpTimeOut','type':'float','mode':'w'},
-                    {'id':'snmpTries','type':'int','mode':'w'},
-                    {'id':'cycleInterval','type':'int','mode':'w'},
-                    {'id':'snmpCycleInterval','type':'int','mode':'w'},
-                    {'id':'cycleFailWarn','type':'int','mode':'w'},
-                    {'id':'cycleFailCritical','type':'int','mode':'w'},
-                    {'id':'configCycleInterval','type':'int','mode':'w'},
-                    {'id':'maxFailures','type':'int','mode':'w'},
-                    {'id':'prodStateThreshold','type':'int','mode':'w'},
-    )
-
+        {'id':'chunk','type':'int','mode':'w'},
+        {'id':'timeOut','type':'float','mode':'w'},
+        {'id':'tries','type':'int','mode':'w'},
+        {'id':'snmpTimeOut','type':'float','mode':'w'},
+        {'id':'snmpTries','type':'int','mode':'w'},
+        {'id':'cycleInterval','type':'int','mode':'w'},
+        {'id':'snmpCycleInterval','type':'int','mode':'w'},
+        {'id':'cycleFailWarn','type':'int','mode':'w'},
+        {'id':'cycleFailCritical','type':'int','mode':'w'},
+        {'id':'configCycleInterval','type':'int','mode':'w'},
+        {'id':'maxFailures','type':'int','mode':'w'},
+        {'id':'prodStateThreshold','type':'int','mode':'w'},
+        )
+    _relations = (
+        ("devices", ToMany(ToMany,"Device","monitors")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

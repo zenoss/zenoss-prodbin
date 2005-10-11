@@ -19,16 +19,16 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenRelations.RelSchema import *
+
 from Instance import Instance
 
 def manage_addProduct(context, id, title = None, REQUEST = None):
     """make a Product"""
     d = Product(id, title)
     context._setObject(id, d)
-
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+    if REQUEST:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
 
 addProduct = DTMLFile('dtml/addProduct',globals())
 
@@ -37,9 +37,12 @@ class Product(Instance):
     """Product object"""
     portal_type = meta_type = 'Product'
     _properties = (
-                    {'id':'partNumber', 'type':'string', 'mode':'w'},
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                   ) 
+        {'id':'partNumber', 'type':'string', 'mode':'w'},
+        {'id':'description', 'type':'text', 'mode':'w'},
+        ) 
+    _relations = (
+        ("manufacturer", ToOne(ToMany,"Company","products")),
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

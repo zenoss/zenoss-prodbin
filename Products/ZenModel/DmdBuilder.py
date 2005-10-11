@@ -42,8 +42,6 @@ from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DataRoot import DataRoot
-from Products.ZenRelations.SchemaManager import SchemaManager
-from Products.ZenRelations.SchemaManager import manage_addSchemaManager
 from Products.ZenModel.Classifier import manage_addClassifier
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
@@ -183,14 +181,6 @@ class DmdBuilder:
                     dr.createCatalog() 
 
 
-    def buildSchema(self, file):
-        if hasattr(self.portal, 'ZenSchemaManager'):
-            return None
-        manage_addSchemaManager(self.portal)
-        sm = self.portal._getOb('ZenSchemaManager')
-        sm.loadSchemaFromFile(file)
-
-
     def buildClassifiers(self):
         if hasattr(self.portal, 'ZenClassifier'):
             return
@@ -207,7 +197,6 @@ class DmdBuilder:
 
 
     def build(self):
-        self.buildSchema(self.schema)
         self.buildClassifiers()
         self.buildRoots()
         self.buildMonitors()

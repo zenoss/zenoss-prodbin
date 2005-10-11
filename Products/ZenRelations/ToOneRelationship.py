@@ -21,39 +21,18 @@ from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base, aq_parent
 
-from SchemaManager import SchemaError
 from RelationshipBase import RelationshipBase
-from RelTypes import *
 
 from Products.ZenRelations.Exceptions import InvalidContainer
 
+
 def manage_addToOneRelationship(context, id, REQUEST = None):
-                                    
     """ToOneRelationship Factory"""
     r =  ToOneRelationship(id)
-    try:
-        if not getattr(aq_base(context), "getRelSchema", False):
-            raise InvalidContainer, \
-                "Container %s is not a RelatioshipManager" % context.id
-        context._setObject(id, r)
-    except SchemaError:
-        if REQUEST:
-            return   MessageDialog(
-                title = "Relationship Schema Error",
-                message = "There is no Relationship Schema defined for "
-                          "Relationship %s" % id,
-                action = "manage_main")
-        raise
-    except InvalidContainer:
-        if REQUEST:
-            return MessageDialog(
-                title = "Relationship Add Error",
-                message = "Must add Relationship to RelationshipManager",
-                action = "manage_main")
-        raise
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main')
+    context._setObject(id, r)
+    if REQUEST:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+                                     
 
 
 addToOneRelationship = DTMLFile('dtml/addToOneRelationship',globals())
@@ -63,7 +42,7 @@ class ToOneRelationship(RelationshipBase):
     """ToOneRelationship represents a to one Relationship 
     on a RelationshipManager"""
 
-    meta_type = 'To One Relationship'
+    meta_type = 'ToOneRelationship'
    
     security = ClassSecurityInfo()
 
@@ -78,23 +57,11 @@ class ToOneRelationship(RelationshipBase):
         return self.obj
 
 
-    def addRelation(self, obj):
-        """form a relation with obj"""
-        name = self.id
-        rs = self.getRelSchema(name)
-        self._checkSchema(name, rs, obj)
-        self._add(obj)
-        obj = obj.__of__(self)
-        obj._add(rs.remoteAtt(name), aq_parent(self))
- 
+    def hasobject(self, obj):
+        """does this relation point to the object passed"""
+        return self.obj == obj
 
-    def removeRelation(self, obj=None):
-        """remove the relationship with the current object if there is one."""
-        if obj == None or self.obj == obj:
-            self._remoteRemove(obj)
-            self._remove(obj)
-        
-        
+
     def _add(self, obj):
         """add a to one side of a relationship
         if a relationship already exists clear it"""
@@ -110,13 +77,8 @@ class ToOneRelationship(RelationshipBase):
     def _remoteRemove(self, obj=None):
         """clear the remote side of this relationship"""
         if self.obj:
-            rs = self.getRelSchema(self.id)
-            self.obj._remove(rs.remoteAtt(self.id), aq_parent(self))
-
-
-    def hasobject(self, obj):
-        """does this relation point to the object passed"""
-        return self.obj == obj
+            remoteRel = getattr(aq_base(self.obj), self.remoteName())
+            remoteRel._remove(self.__primary_parent__)
 
 
     security.declareProtected('View', 'getRelatedId')
@@ -128,42 +90,33 @@ class ToOneRelationship(RelationshipBase):
             return None
 
  
-    security.declareProtected('View', 'getPrimaryLink')
-    def getPrimaryLink(self, target='rightFrame'):
-        """get the link tag of a related object"""
-        link = None
-        if self.obj:
-            link = "<a href='"+ self.obj.getPrimaryUrlPath()+"'"
-            if target:
-                link += " target='"+ target+ "'"
-            link += " >"+ self.obj.id+ "</a>"
-        return link
-
-
     def _getCopy(self, container):
         """create toone copy and if we are the one side of one to many
         we set our side of the relation to point towards the related
         object (we maintain the relationship across the copy)"""
         rel = self.__class__(self.id)
-        rel = rel.__of__(container)
-        name = self.id
-        rs = self.getRelSchema(name)
-        rtype = rs.remoteType(name)
-        if (rtype == TO_MANY and self.obj):
+        rel.__primary_parent__ = container
+        if (self.remoteTypeName() == "ToMany" and self.obj):
             rel.addRelation(self.obj)
         return rel
 
 
     def manage_beforeDelete(self, item, container):
-        """if relationship is being deleted remove the remote side"""
-        self._remoteRemove()
+        """
+        there are 4 possible states for _operation during beforeDelete
+        -1 = object being deleted remove relation
+        0 = copy, 1 = move, 2 = rename
+        ToOne doesn't propagate beforeDelete because its not a container
+        """
+        if item._operation < 1: 
+            self._remoteRemove()
 
 
     def manage_workspace(self, REQUEST):
         """ZMI function to return the workspace of the related object"""
         if self.obj:
             objurl = self.obj.getPrimaryUrlPath()
-            raise "Redirect", REQUEST['BASE0']+objurl+'/manage_workspace'
+            REQUEST['RESPONSE'].redirect(objurl+'/manage_workspace')
         else:
             return MessageDialog(
                 title = "No Relationship Error",
@@ -174,35 +127,21 @@ class ToOneRelationship(RelationshipBase):
 
     def manage_main(self, REQUEST=None):
         """ZMI function to redirect to parent relationship manager"""
-        raise "Redirect", self.aq_parent.absolute_url()+'/manage_workspace'
+        REQUEST['RESPONSE'].redirect(
+            self.getPrimaryParent().getPrimaryUrlPath()+'/manage_workspace')
 
-        
-    def checkRelation(self, repair=False, log=None):
-        """confirm that this relation is still bidirectional
-        if clean is set remove any bad relations"""
-        if not self.obj: return
-        rs = self.getRelSchema(self.id)
-        ratt = rs.remoteAtt(self.id)
-        rrel = getattr(self.obj, ratt)
-        parent = aq_parent(self)
-        if not rrel.hasobject(parent):
-            if log: log.critical(
-                    "BAD ToOne relation %s from %s to %s" 
-                    % (self.id, parent.getPrimaryDmdId(), 
-                        self.obj.getPrimaryDmdId()))
-            if repair: 
-                goodobj = self.getDmdObj(self.obj.getPrimaryDmdId()) 
-                if goodobj:
-                    if log: log.warn("RECONNECTING relation %s to obj %s" %
-                        (self.id, goodobj.getPrimaryDmdId()))
-                    self._remove()
-                    parent.addRelation(self.id, goodobj)
-                else:
-                    if log: log.warn(
-                        "CLEARING relation %s to obj %s" %
-                        (self.id, self.obj.getPrimaryDmdId()))
-                    self._remove()
-
+    
+    #FIXME - please make me go away, I'm so ugly!
+    security.declareProtected('View', 'getPrimaryLink')
+    def getPrimaryLink(self, target='rightFrame'):
+        """get the link tag of a related object"""
+        link = None
+        if self.obj:
+            link = "<a href='"+ self.obj.getPrimaryUrlPath()+"'"
+            if target:
+                link += " target='"+ target+ "'"
+            link += " >"+ self.obj.id+ "</a>"
+        return link
 
 
 InitializeClass(ToOneRelationship)

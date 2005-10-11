@@ -17,6 +17,8 @@ from Globals import Persistent
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenRelations.RelSchema import *
+
 from DeviceComponent import DeviceComponent
 
 def manage_addHardDisk(context, id, title = None, REQUEST = None):
@@ -44,6 +46,10 @@ class HardDisk(DeviceComponent):
                  {'id':'snmpindex', 'type':'int', 'mode':''},
                  {'id':'hostresindex', 'type':'int', 'mode':''},
                 )    
+
+    _relations = DeviceComponent._relations + (
+        ("server", ToOne(ToManyCont, "Server", "harddisks")),
+        )
 
     def __init__(self, id, title = None): 
         DeviceComponent.__init__(self, id, title)

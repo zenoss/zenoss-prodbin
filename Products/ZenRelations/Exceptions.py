@@ -13,16 +13,19 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
-class RelationshipManagerError(ZentinelException): pass
+class ZenRelationsError(ZentinelException): pass
 
-class ObjectNotFound(RelationshipManagerError): pass
+class ObjectNotFound(ZenRelationsError): pass
 
-class RelationshipExistsError(RelationshipManagerError):pass
+class RelationshipExistsError(ZenRelationsError):pass
 
-class SchemaError(RelationshipManagerError): pass
+class ZenSchemaError(ZenRelationsError): pass
 
-class InvalidContainer(RelationshipManagerError): 
+class InvalidContainer(ZenRelationsError): 
     """
     Relationship got added to a container that isn't a RelationshipManager.
     """
     pass
+
+zenmarker = "__ZENMARKER__"
+

@@ -24,7 +24,8 @@ from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
+from Products.ZenRelations.RelSchema import *
+
 from IpAddress import IpAddress, findIpAddress
 from IpNetwork import addIpAddressToNetworks 
 from Products.ZenUtils.IpUtil import *
@@ -61,20 +62,24 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
     default_catalog = 'interfaceSearch'
     
     _properties = (
-                 {'id':'ips', 'type':'lines', 
-                    'mode':'w', 'setter':'setIpAddresses'},
-                 {'id':'name', 'type':'string', 'mode':'w'},
-                 {'id':'ifindex', 'type':'string', 'mode':'w'},
-                 {'id':'macaddress', 'type':'string', 'mode':'w'},
-                 {'id':'type', 'type':'string', 'mode':'w'},
-                 {'id':'description', 'type':'string', 'mode':'w'},
-                 {'id':'mtu', 'type':'int', 'mode':'w'},
-                 {'id':'speed', 'type':'long', 'mode':'w'},
-                 {'id':'adminStatus', 'type':'int', 'mode':'w'},
-                 {'id':'operStatus', 'type':'int', 'mode':'w'},
-                )
-   
-    noPropertiesCopy = ('ips','macaddress')
+        {'id':'ips', 'type':'lines', 'mode':'w', 'setter':'setIpAddresses'},
+        {'id':'name', 'type':'string', 'mode':'w'},
+        {'id':'ifindex', 'type':'string', 'mode':'w'},
+        {'id':'macaddress', 'type':'string', 'mode':'w'},
+        {'id':'type', 'type':'string', 'mode':'w'},
+        {'id':'description', 'type':'string', 'mode':'w'},
+        {'id':'mtu', 'type':'int', 'mode':'w'},
+        {'id':'speed', 'type':'long', 'mode':'w'},
+        {'id':'adminStatus', 'type':'int', 'mode':'w'},
+        {'id':'operStatus', 'type':'int', 'mode':'w'},
+        )
+    _relations = DeviceComponent._relations + (
+        ("device", ToOne(ToManyCont,"Device","interfaces")),
+        ("ipaddresses", ToMany(ToOne,"IpAddress","interface")),
+        ("iproutes", ToMany(ToOne,"IpRouteEntry","interface")),
+        )
+
+    zNoPropertiesCopy = ('ips','macaddress')
    
     localipcheck = re.compile(r'^127.|^0.').search
     localintcheck = re.compile(r'^lo0').search
@@ -118,6 +123,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         self.adminStatus = 0
         self.operStatus = 0
         self._ipAddresses = []
+        self.uid = ""
 
 
     security.declareProtected('View', 'viewName')
@@ -335,6 +341,21 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         """get the first IpAddress on this interface for PingStatusInt"""
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0]._getPingStatusObj()
+    
+    
+    def index_object(self):
+        """interfaces use hostname + interface name as uid"""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            self.uid = self.device().getId() + "." + self.getId()
+            cat.catalog_object(self, self.uid)
+            
+                                                
+    def unindex_object(self):
+        """interfaces use hostname + interface name as uid"""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.uncatalog_object(self.uid)
 
 
 InitializeClass(IpInterface)

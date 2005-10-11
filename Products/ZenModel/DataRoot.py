@@ -58,7 +58,6 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 {'id':'interfaceStateConversions','type':'lines','mode':'w'},
                 {'id':'previousYearRange', 'type': 'int', 'mode':'w'},
                 {'id':'futureYearRange', 'type': 'int', 'mode':'w'},
-                {'id':'defaultBatchSize', 'type': 'int', 'mode':'w'},
                 )
 
     # Screen action bindings (and tab definitions)
@@ -129,15 +128,16 @@ class DataRoot(ZenModelRM, OrderedFolder):
    
     # number of future years in date popup
     futureYearRange = 2
-    
-    #default batch size of large lists
-    defaultBatchSize = 20
+   
+    # when calculating the primary path this will be its root
+    zPrimaryBasePath = ("", "zport")
 
 
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
 
 
+    
     security.declareProtected('View', 'getProdStateConversions')
     def getProdStateConversions(self):
         """getProdStateConversions() -> return a list of tuples 

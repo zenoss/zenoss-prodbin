@@ -24,7 +24,7 @@ class IpServiceMap(CustomRelMap):
     prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
     def __init__(self):
-        CustomRelMap.__init__(self, 'ipservices', 'ZenModel.IpService')
+        CustomRelMap.__init__(self, 'ipservices', 'Products.ZenModel.IpService')
 
 
     def condition(self, device, snmpsess, log):

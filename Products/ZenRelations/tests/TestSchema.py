@@ -5,20 +5,65 @@
 #################################################################
 
 from OFS.PropertyManager import PropertyManager
-from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager as RM
+from Products.ZenRelations.RelSchema import *
 
-# Test schema classes see schema.data for relationships
-class Device(RelationshipManager, PropertyManager):
+class DataRoot(RM): 
+    def manage_afterAdd(self, item, container):
+        self.zPrimaryBasePath = container.getPhysicalPath()
+        RM.manage_afterAdd(self, item, container)
+
+class Device(RM, PropertyManager):
     _properties = (
-                    {'id':'pingStatus', 'type':'int', 
-                        'mode':'w', 'setter':'setPingStatus'},
-                  )
+        {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
+        )
+    _relations = (
+        ("location", ToOne(ToMany, "TestSchema.Location", "devices")),
+        ("groups", ToMany(ToMany, "TestSchema.Group", "devices")),
+        ("interfaces", ToManyCont(ToOne, "TestSchema.IpInterface", "device")),
+        )
+    pingStatus = 0 
 
-class Server(Device):pass
-class IpInterface(RelationshipManager):pass
-class Group(RelationshipManager):pass
-class Location(RelationshipManager):pass
-class Admin(RelationshipManager):pass
+
+class Server(Device):
+    _relations = (
+        ("admin", ToOne(ToOne, "TestSchema.Admin", "server")),
+        ) + Device._relations
+
+class IpInterface(RM):
+    _relations = (
+        ("device", ToOne(ToMany,"TestSchema.Device","ipinterfaces")),
+        )
+    beforeDelete = False
+    afterAdd = False
+    def manage_beforeDelete(self, item, container):
+        self.beforeDelete = True
+    def manage_afterAdd(self, item, container):
+        if (not hasattr(self, "__primary_parent__") or 
+            self.__primary_parent__ != container): 
+            raise ZenRelationsError("__primary_parent__ not set in afterAdd")
+        self.afterAdd = True
+
+class Group(RM):
+    _relations = (
+        ("devices", ToMany(ToMany, "TestSchema.Device", "groups")),
+        )
+class Location(RM):
+    _relations = (
+        ("devices", ToMany(ToOne, "TestSchema.Device", "location")),
+        )
+
+class Admin(RM):
+    _relations = (
+        ("server", ToOne(ToOne, "TestSchema.Server", "admin")),
+        )
+
+class Organizer(RM):
+    _relations = (
+    ("parent", ToOne(ToManyCont,"TestSchema.Organizer","children")),
+    ("children", ToManyCont(ToOne,"TestSchema.Organizer","parent")),
+    )
+
 
 
 def create(context, klass, id):
@@ -27,12 +72,4 @@ def create(context, klass, id):
     context._setObject(id, inst)
     inst = context._getOb(id)
     return inst
-
-
-def build(context, klass, id):
-    """create instance attache to context and build relationships"""
-    inst = klass(id)
-    context._setObject(id, inst)
-    inst = context._getOb(id)
-    inst.buildRelations()
-    return inst
+build = create

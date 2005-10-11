@@ -24,31 +24,25 @@ from Products.CMFCore.DynamicType import DynamicType
 from Products.ZCatalog.CatalogAwareness import CatalogAware
 
 from Products.ZenRelations.RelationshipManager import RelationshipManager
-from Products.ZenRelations.Exceptions import SchemaError
 
 from Products.ZenUtils.Utils import getSubObjects
 
-from ConfmonPropManager import ConfmonPropManager
 from ZenModelBase import ZenModelBase
 
 
 class ZenModelRM(ZenModelBase, RelationshipManager, Historical, 
-                    ConfmonPropManager, DynamicType, CatalogAware): 
+                 DynamicType, CatalogAware): 
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
     Catalog Indexing, and Historical change tracking.
     """
 
+    zenRelationsBaseModule = "Products.ZenModel"
+
     meta_type = 'ZenModelRM'
 
     default_catalog = ''
-
-    manage_options = (
-                        RelationshipManager.manage_options[:1] +
-                        ConfmonPropManager.manage_options +
-                        RelationshipManager.manage_options[1:]
-                     )
 
     isInTree = 0 #should this class show in left nav tree
 
@@ -71,9 +65,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
         
     def manage_afterAdd(self, item, container):
         """setup relationshipmanager add object to index and build relations """
-        RelationshipManager.manage_afterAdd(self, item, container)
-        self.buildRelations()
         if self.default_catalog: self.index_object()
+        RelationshipManager.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
@@ -88,16 +81,15 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
 
     def index_object(self):
         """A common method to allow Findables to index themselves."""
-        if hasattr(self, self.default_catalog):
-            getattr(self, self.default_catalog).catalog_object(self, 
-                                                self.getPrimaryUrlPath())
-
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: cat.catalog_object(self, self.getPrimaryId())
+            
+                                                
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
-        if hasattr(self, self.default_catalog):
-            key = self.getPrimaryUrlPath()
-            cat = getattr(self, self.default_catalog)
-            cat.uncatalog_object(key)
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: cat.uncatalog_object(self.getPrimaryId())
+            
 
     #actions?
     def getTreeItems(self):
@@ -107,11 +99,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
                 nodes.append(item)
         return nodes
   
-
-    def getClassPath(self):
-        """path with quotes minus self id"""
-        return '/'.join(self.getPrimaryPath()[:-1])
-
 
     def getSubObjects(self, filter=None, decend=None, retobjs=None):
         return getSubObjects(self, filter, decend, retobjs)
@@ -154,7 +141,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
                 RelationshipManager._setObject(nobj, sobj.id, sobj)
         nobj.buildRelations() #build out any missing relations
         # copy properties to new object
-        noprop = getattr(nobj, 'noPropertiesCopy', [])
+        noprop = getattr(nobj, 'zNoPropertiesCopy', [])
         for name in nobj.getPropertyNames():
             if (getattr(self, name, None) and name not in noprop and
                 hasattr(nobj, "_updateProperty")):

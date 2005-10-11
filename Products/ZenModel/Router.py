@@ -89,6 +89,11 @@ class Router(CricketRouter,Device):
                 , 'action'        : 'deviceManagement'
                 , 'permissions'   : ("Change Device",)
                 },
+                { 'id'            : 'config'
+                , 'name'          : 'Config'
+                , 'action'        : 'viewDeviceClassConfig'
+                , 'permissions'   : ("Change Device",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
