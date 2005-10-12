@@ -1,3 +1,4 @@
+from Exceptions import ZenImportError
 
 def importClass(classpath, baseModule=None):
     """lookup a class by its path use baseModule path if passed"""
@@ -5,7 +6,10 @@ def importClass(classpath, baseModule=None):
     try:
         mod = __import__(classpath)
     except ImportError:
-        mod = __import__(".".join(classpath.split(".")[:-1]))
+        try:
+            mod = __import__(".".join(classpath.split(".")[:-1]))
+        except:
+            raise ZenImportError("failed importing class %s" % classpath)
     for comp in classpath.split(".")[1:]:
         mod = getattr(mod, comp)
     classdef = getattr(mod, comp, None)

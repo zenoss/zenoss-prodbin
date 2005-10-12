@@ -40,8 +40,8 @@ class PrimaryPathManagerTest(RMBaseTest):
         dev = self.build(self.app.dataroot, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
         self.failUnless(eth0.getPrimaryPath("dev") == 
-                        ("", "dev", "interfaces", "eth0"))
-        self.failUnless(eth0.getPrimaryId("dev") == "/dev/interfaces/eth0")
+                        ("interfaces", "eth0"))
+        self.failUnless(eth0.getPrimaryId("dev") == "/interfaces/eth0")
        
 
     def testGetPrimaryPath3(self):
@@ -404,6 +404,17 @@ class ToManyRelationshipTest(RMBaseTest):
         anna.addRelation("devices", dev)
         self.failUnless(dev.location() == anna)
         anna.removeRelation("devices", dev)
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+
+
+    def test_delObjectOneToMany(self):
+        """Test removing from a to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        anna = self.create(self.app, Location, "anna")
+        anna.addRelation("devices", dev)
+        self.failUnless(dev.location() == anna)
+        anna.devices._delObject(dev.getPrimaryId())
         self.failIf(dev.location() == anna)
         self.failIf(dev in anna.devices())
 

@@ -72,7 +72,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToMany unlinks from its remote relations if its being deleted.
         ToMany will not propagate beforeDelete because its not a container.
         """
-        if item._operation < 1: 
+        if getattr(item, "_operation", -1) < 1: 
             self._remoteRemove()
         
 
@@ -113,7 +113,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         Delete object by its absolute id (ie /zport/dmd/bla/bla)
         (this is sent out in the object*All API)
         """
-        obj = self.restrictedTraverse(id)
+        obj = self.unrestrictedTraverse(id)
         self.removeRelation(obj)
 
     
@@ -126,7 +126,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         (this is sent out in the object*All API)
         """
         try:
-            return self.restrictedTraverse(id)
+            return self.unrestrictedTraverse(id)
         except KeyError: 
             if default != zenmarker: return default
             else: raise AttributeError(id)

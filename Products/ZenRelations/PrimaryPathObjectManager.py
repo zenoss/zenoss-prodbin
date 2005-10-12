@@ -10,13 +10,14 @@ $Id: RelationshipBase.py,v 1.26 2003/10/03 16:16:01 edahl Exp $"""
 
 __version__ = "$Revision: 1.26 $"[11:-2]
 
-
-from Acquisition import aq_base
+# base classes for PrimaryPathObjectManager
 from RelCopySupport import RelCopyContainer
 from OFS.ObjectManager import ObjectManager
+from OFS.SimpleItem import Item
 
+from Acquisition import aq_base
 
-class PrimaryPathObjectManager(RelCopyContainer, ObjectManager):
+class PrimaryPathObjectManager(RelCopyContainer, ObjectManager, Item):
     """
     ZenRelations adds relationships to Zope's normal containment style data
     system.  Relationships give us a networked data model as opposed to a
@@ -31,6 +32,9 @@ class PrimaryPathObjectManager(RelCopyContainer, ObjectManager):
     __primary_parent__.  This is set every time an object is added to the 
     database using _setObject.
     """
+    
+    manage_options = ObjectManager.manage_options + Item.manage_options
+        
     
     
     def getPrimaryPath(self, fromNode=None):

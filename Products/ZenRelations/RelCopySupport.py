@@ -17,12 +17,15 @@ __version__ = '$Revision: 1.15 $'
 
 import types
 
+# base class for RelCopyContainer
+from OFS.CopySupport import CopyContainer
+
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 
 from OFS import Moniker
-from OFS.CopySupport import CopyContainer, CopyError, \
-                            _cb_decode, eInvalid, eNotFound
+from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound
+                            
 from App.Dialogs import MessageDialog
 
 from Products.ZenRelations.Exceptions import *

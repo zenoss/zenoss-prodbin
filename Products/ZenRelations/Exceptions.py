@@ -13,6 +13,8 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
+class ZenImportError(ZentinelException): pass
+
 class ZenRelationsError(ZentinelException): pass
 
 class ObjectNotFound(ZenRelationsError): pass

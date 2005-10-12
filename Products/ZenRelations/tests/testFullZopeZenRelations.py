@@ -19,7 +19,9 @@ from Products.ZenRelations.Exceptions import *
 class FullZopeTestCases(ZopeTestCase):
 
     def beforeSetUp(self):
-        """install ZenRelations need to do before setup because commit happes"""
+        """
+        install ZenRelations need to do before setup because commit happes
+        """
         ZopeLite.installProduct("ZenRelations")
 
 
@@ -27,7 +29,7 @@ class FullZopeTestCases(ZopeTestCase):
         '''Creates and configures the folder.'''
         if self.app._getOb(folder_name, False):
             self.app._delObject(folder_name)
-            transaction.commit()
+            transaction.savepoint()
         self.app.manage_addFolder(folder_name)
         self.folder = getattr(self.app, folder_name)
         self.folder._addRole(user_role)
@@ -47,13 +49,13 @@ class FullZopeTestCases(ZopeTestCase):
     def beforeTearDown(self):
         if self.folder._p_jar is not None:
             self.app._delObject(folder_name)
-            transaction.commit()
+            transaction.savepoint()
 
 
     def testCutPasteRM(self):
         """test cut and past of a RM make sure primarypath is set properly"""
         dev = build(self.dataroot, Device, "dev")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_cutObjects( ids=('dev',) ) 
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         self.failIf(self.dataroot._getOb('dev', False))
@@ -66,7 +68,7 @@ class FullZopeTestCases(ZopeTestCase):
         """add contained relationship to cut/paste test"""
         dev = build(self.dataroot, Device, "dev")
         eth0 = create(dev.interfaces, IpInterface, "eth0")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_cutObjects( ids=('dev',) ) 
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         self.failIf(self.dataroot._getOb('dev', False))
@@ -101,7 +103,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev.admin.addRelation(jim)
         dev.groups.addRelation(group)
         dev.location.addRelation(loc)
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_cutObjects( ids=('dev',) ) 
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         self.failIf(self.dataroot._getOb('dev', False))
@@ -116,7 +118,7 @@ class FullZopeTestCases(ZopeTestCase):
     def testCopyPasteRMPP(self):
         """test that primary path gets set correctly after copy and paste"""
         dev = build(self.dataroot, Device, "dev")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         self.failUnless(self.dataroot.subfolder._getOb('dev'))
@@ -128,7 +130,7 @@ class FullZopeTestCases(ZopeTestCase):
     def testCopyPasteRMSamePath(self):
         """Copy/Paste RM in same folder as original"""
         dev = build(self.dataroot, Device, "dev")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.manage_pasteObjects( cookie )
         self.failUnless(self.dataroot._getOb('dev'))
@@ -139,7 +141,7 @@ class FullZopeTestCases(ZopeTestCase):
         """test that Properties are copied correctly"""
         dev = build(self.dataroot, Device, "dev")
         dev.pingStatus = 3
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.manage_pasteObjects( cookie )
         self.failUnless(self.dataroot.copy_of_dev._getOb('pingStatus'))
@@ -153,7 +155,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
         dev.admin.addRelation(jim)
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         copy = self.dataroot.subfolder._getOb("dev")
@@ -165,7 +167,7 @@ class FullZopeTestCases(ZopeTestCase):
         """link on to one side of a one to many relationship"""
         dev = create(self.dataroot, Device, "dev")
         anna = create(self.dataroot, Location, "anna")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=("anna",))
         self.failUnless(cookie)
         self.dataroot.dev.manage_linkObjects(ids=("location",), cb_copy_data=cookie)
@@ -177,7 +179,7 @@ class FullZopeTestCases(ZopeTestCase):
         """link on to many side of a one to many relationship"""
         dev = create(self.dataroot, Device, "dev")
         anna = create(self.dataroot, Location, "anna")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=("dev",))
         self.failUnless(cookie)
         self.dataroot.anna.manage_linkObjects(ids=("devices",), 
@@ -190,7 +192,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Test linking objects using the UI code, ids are lists"""
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('jim',))
         self.failUnless(cookie)
         self.dataroot.dev.manage_linkObjects(ids="admin", 
@@ -203,7 +205,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Test linking objects using the UI code, ids are strings"""
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids='jim')
         self.failUnless(cookie)
         self.dataroot.dev.manage_linkObjects(ids="admin", 
@@ -216,7 +218,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Test linking objects using the UI code, fail too many ids"""
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids='jim')
         self.failUnless(cookie)
         self.failUnlessRaises(ZenRelationsError, 
@@ -238,7 +240,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Copy/paste to check RM with OneToManyCont subobject"""
         dev = build(self.dataroot, Device, "dev")
         eth0 = create(dev.interfaces, IpInterface, "eth0")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         copy = self.dataroot.subfolder._getOb("dev")
@@ -255,7 +257,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev = build(self.dataroot, Device, "dev")
         anna = build(self.dataroot, Location, "anna")
         dev.location.addRelation(anna)
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         copy = self.dataroot.subfolder._getOb("dev")
@@ -269,7 +271,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev = build(self.dataroot, Device, "dev")
         group = build(self.dataroot, Group, "group")
         dev.groups.addRelation(group)
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.subfolder.manage_pasteObjects( cookie )
         copy = self.dataroot.subfolder._getOb("dev")
@@ -284,7 +286,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev = build(self.dataroot, Server, "dev")
         jim = build(self.dataroot, Admin, "jim")
         dev.admin.addRelation(jim)
-        transaction.commit()
+        transaction.savepoint()
         self.dataroot.manage_renameObject("dev", "newdev")
         self.failUnless(self.dataroot._getOb("newdev"))
         self.failUnless(dev.admin.hasobject(jim))
@@ -295,7 +297,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Copy/paste to check RM with OneToManyCont subobject"""
         dev = build(self.dataroot, Device, "dev")
         eth0 = create(dev.interfaces, IpInterface, "eth0")
-        transaction.commit()
+        transaction.savepoint()
         self.dataroot.manage_renameObject("dev", "newdev")
         self.failUnless(self.dataroot._getOb("newdev"))
         self.failUnless(self.dataroot.getPhysicalPath() == 
@@ -311,7 +313,7 @@ class FullZopeTestCases(ZopeTestCase):
         anna = build(self.dataroot, Location, "anna")
         dev.location.addRelation(anna)
         self.failUnless(dev.location() == anna)
-        transaction.commit()
+        transaction.savepoint()
         self.dataroot.manage_renameObject("dev", "newdev")
         self.failUnless(self.dataroot._getOb("newdev"))
         self.failUnless(anna.devices.hasobject(dev))
@@ -323,7 +325,7 @@ class FullZopeTestCases(ZopeTestCase):
         dev = build(self.dataroot, Device, "dev")
         group = build(self.dataroot, Group, "group")
         dev.groups.addRelation(group)
-        transaction.commit()
+        transaction.savepoint()
         self.dataroot.manage_renameObject("dev", "newdev")
         self.failUnless(self.dataroot._getOb("newdev"))
         self.failUnless(group.devices.hasobject(dev))
@@ -334,7 +336,7 @@ class FullZopeTestCases(ZopeTestCase):
         """Copy/Paste to form a one to many link between device and location"""
         dev = build(self.dataroot, Device, "dev")
         loc = build(self.dataroot, Location, "loc")
-        transaction.commit()
+        transaction.savepoint()
         cookie = self.dataroot.manage_copyObjects(ids=('dev',))
         self.dataroot.loc.devices.manage_pasteObjects(cookie )
         self.failUnless(dev.location() == loc)

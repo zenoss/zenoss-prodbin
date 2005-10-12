@@ -19,11 +19,6 @@ import logging
 # Base classes for RelationshipManager
 from PrimaryPathObjectManager import PrimaryPathObjectManager
 from ZenPropertyManager import ZenPropertyManager
-from OFS.CopySupport import CopySource
-from Globals import Persistent
-from Acquisition import Implicit
-from AccessControl.Role import RoleManager
-from OFS.SimpleItem import Item
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -49,9 +44,7 @@ def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
 addRelationshipManager = DTMLFile('dtml/addRelationshipManager',globals())
 
 
-class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager,
-                          CopySource, Persistent, Implicit, RoleManager, Item):
-                          
+class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     """
     RelationshipManger is an ObjectManager like class that can contain
     relationships (in fact relationships can only be added to a 
@@ -90,9 +83,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager,
 
     manage_options = (
         PrimaryPathObjectManager.manage_options + 
-        ZenPropertyManager.manage_options +
-        RoleManager.manage_options + 
-        Item.manage_options
+        ZenPropertyManager.manage_options
         )
 
     manage_main=DTMLFile('dtml/RelationshipManagerMain', globals())
@@ -186,7 +177,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager,
     def cb_isMoveable(self):
         """Prevent move unless we are being called from our primary path."""
         if (self.getPhysicalPath() == self.getPrimaryPath()):
-            return CopySource.cb_isMoveable(self)
+            return PrimaryPathObjectManager.cb_isMoveable(self)
         return 0
 
 

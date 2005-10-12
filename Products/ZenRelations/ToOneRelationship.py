@@ -15,13 +15,15 @@ __version__ = "$Revision: 1.23 $"[11:-2]
 
 import copy
 
+# Base classes for ToOneRelationship
+from RelationshipBase import RelationshipBase
+from OFS.SimpleItem import Item
+
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base, aq_parent
-
-from RelationshipBase import RelationshipBase
 
 from Products.ZenRelations.Exceptions import InvalidContainer
 
@@ -38,7 +40,8 @@ def manage_addToOneRelationship(context, id, REQUEST = None):
 addToOneRelationship = DTMLFile('dtml/addToOneRelationship',globals())
 
 
-class ToOneRelationship(RelationshipBase):
+#class ToOneRelationship(RelationshipBase, Implicit, Traversable, Persistent):
+class ToOneRelationship(RelationshipBase, Item):
     """ToOneRelationship represents a to one Relationship 
     on a RelationshipManager"""
 
@@ -83,7 +86,7 @@ class ToOneRelationship(RelationshipBase):
 
     security.declareProtected('View', 'getRelatedId')
     def getRelatedId(self):
-        '''return the id of the our related object''',
+        '''return the id of the our related object'''
         if self.obj:
             return self.obj.id
         else:
@@ -91,9 +94,11 @@ class ToOneRelationship(RelationshipBase):
 
  
     def _getCopy(self, container):
-        """create toone copy and if we are the one side of one to many
+        """
+        Create ToOne copy. If this is the one side of one to many
         we set our side of the relation to point towards the related
-        object (we maintain the relationship across the copy)"""
+        object (maintain the relationship across the copy).
+        """
         rel = self.__class__(self.id)
         rel.__primary_parent__ = container
         if (self.remoteTypeName() == "ToMany" and self.obj):
@@ -103,12 +108,16 @@ class ToOneRelationship(RelationshipBase):
 
     def manage_beforeDelete(self, item, container):
         """
-        there are 4 possible states for _operation during beforeDelete
-        -1 = object being deleted remove relation
-        0 = copy, 1 = move, 2 = rename
-        ToOne doesn't propagate beforeDelete because its not a container
+        There are 4 possible states during when beforeDelete is called.
+        They are defined by the attribute _operation and can be: 
+            -1 = object being deleted remove relation
+            0 = copy, 1 = move, 2 = rename
+        Any state less than 1 will provoke deletion of the remote end of the
+        relationship.
+        ToOne doesn't call beforeDelete on its related object because its 
+        not a container.
         """
-        if item._operation < 1: 
+        if getattr(item, "_operation", -1) < 1: 
             self._remoteRemove()
 
 

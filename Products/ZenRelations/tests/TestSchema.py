@@ -7,6 +7,7 @@
 from OFS.PropertyManager import PropertyManager
 from Products.ZenRelations.RelationshipManager import RelationshipManager as RM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.Exceptions import *
 
 class DataRoot(RM): 
     def manage_afterAdd(self, item, container):
@@ -40,7 +41,7 @@ class IpInterface(RM):
         self.beforeDelete = True
     def manage_afterAdd(self, item, container):
         if (not hasattr(self, "__primary_parent__") or 
-            self.__primary_parent__ != container): 
+            item.__primary_parent__ != container): 
             raise ZenRelationsError("__primary_parent__ not set in afterAdd")
         self.afterAdd = True
 

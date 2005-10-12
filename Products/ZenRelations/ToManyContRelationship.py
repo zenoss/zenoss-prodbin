@@ -92,7 +92,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         0 = copy, 1 = move, 2 = rename
         ToManyCont will propagate beforeDelete because its a container
         """
-        if item._operation < 1: 
+        if getattr(item, "_operation", -1) < 1: 
             self._remoteRemove()
         ToManyRelationshipBase.manage_beforeDelete(self, item, container)
         

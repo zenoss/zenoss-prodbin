@@ -9,14 +9,15 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.48 $"[11:-2]
 
+# Base classes for ToManyRelationshipBase
+from PrimaryPathObjectManager import PrimaryPathObjectManager
+from RelationshipBase import RelationshipBase
+
 from Globals import DTMLFile
 from Acquisition import aq_base, aq_parent
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from App.Management import Tabs
-
-from RelationshipBase import RelationshipBase
-from PrimaryPathObjectManager import PrimaryPathObjectManager
 
 from Products.ZenRelations.Exceptions import zenmarker
 
@@ -29,11 +30,6 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
 
     manage_main = DTMLFile('dtml/ToManyRelationshipMain',globals())
    
-    manage_options = (
-        PrimaryPathObjectManager.manage_options + 
-        RelationshipBase.manage_options
-        )
-    
     _operation = -1 # if a Relationship's are only deleted
 
 

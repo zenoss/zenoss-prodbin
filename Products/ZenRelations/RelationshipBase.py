@@ -15,11 +15,7 @@ __version__ = "$Revision: 1.26 $"[11:-2]
 
 import sys
 
-# Base classes for RelationshipBase
-from Acquisition import Implicit, aq_base
-from Globals import Persistent
-from OFS.SimpleItem import Item
-
+  
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -28,15 +24,10 @@ from Acquisition import aq_base
 from Products.ZenRelations.Exceptions import *
 from Products.ZenRelations.utils import importClass
 
-class RelationshipBase(Implicit, Persistent, Item):
+class RelationshipBase(object):
     """
     Abstract base class for all relationship classes.
     """
-
-    manage_options = (
-        Item.manage_options
-        )
-
 
     _operation = -1 # if a Relationship's are only deleted
 
@@ -138,15 +129,4 @@ class RelationshipBase(Implicit, Persistent, Item):
         return 0
    
  
-    def manage_beforeDelete(self, item, container):
-        """
-        there are 4 possible states for _operation during beforeDelete
-        -1 = object being deleted remove relation
-        0 = copy, 1 = move, 2 = rename
-        ToOne doesn't propagate beforeDelete because its not a container
-        """
-        if item._operation < 1: 
-            self._remoteRemove()
-
-
 InitializeClass(RelationshipBase)
