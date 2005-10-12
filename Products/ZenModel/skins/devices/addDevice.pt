@@ -50,22 +50,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader" align="left">Snmp Community</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="snmpCommunity"
-                tal:attributes="value device/snmpCommunity | 
-                        request/snmpCommunity | string:public"/>
-        </td>
-        <td class="tableheader" align="left">Snmp Port</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="snmpPort:int" 
-                tal:attributes="value device/snmpPort | 
-                        request/snmpPort | python:161"/>
-        </td>
-    </tr>
-    <tr>
         <td class="tableheader" align="left">Rack Slot</td>
         <td class="tablevalues" align="left">
             <input class="tablevalues" type="text" 

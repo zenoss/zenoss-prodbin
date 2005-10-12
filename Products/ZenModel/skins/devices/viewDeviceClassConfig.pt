@@ -2,7 +2,7 @@
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table border="0" cellpadding="3" cellspacing="1"
-    tal:define="props here/deviceTreePropertyIds">
+    tal:define="props here/zenPropertyIds">
     <tr>
       <th class="tabletitlel" colspan="3">
       Device Class Configuration
@@ -18,11 +18,11 @@
         zPingInterfaceRegex
       </td>
       <td class="tablevalues" align="left" 
-        tal:content="python: here.deviceTreePropertyPath(prop)"> 
+        tal:content="python: here.zenPropertyPath(prop)"> 
         /Devices/Servers
       </td>
       <td class="tablevalues" align='left'
-        tal:content="python: here.deviceTreePropertyString(prop)"> 
+        tal:content="python: here.zenPropertyString(prop)"> 
         int
       </td>
     </tr>
@@ -35,14 +35,14 @@
 <tr>
     <td>
         <select name="propname">
-            <option tal:repeat="propname here/deviceTreePropertyIds"
+            <option tal:repeat="propname here/zenPropertyIds"
                 tal:content="propname" tal:attributes="value propname">
                     zCricketDeviceType
             </option>
         </select>
         <input class="tablevalues" type="text" name="propvalue" size="35"/>
         <input class="tablevalues" type="submit" 
-            name="setDeviceTreeProperty:method" value=" Add " />
+            name="setZenProperty:method" value=" Add " />
     </td>
 </tr>
 </table>
@@ -56,13 +56,13 @@
     <td>
         <select name="propname">
             <option tal:repeat="
-                propname python:here.deviceTreePropertyIds(False)"
+                propname python:here.zenPropertyIds(False)"
                 tal:content="propname" tal:attributes="value propname">
                     zCricketDeviceType
             </option>
         </select>
         <input class="tablevalues" type="submit" 
-            name="deleteDeviceTreeProperty:method" value=" Delete " />
+            name="deleteZenProperty:method" value=" Delete " />
     </td>
 </tr>
 </table>

@@ -115,8 +115,6 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
            'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'tag', 'type':'string', 'mode':'w'},
         {'id':'serialNumber', 'type':'string', 'mode':'w'},
-        {'id':'snmpPort', 'type':'int', 'mode':'w'},
-        {'id':'snmpCommunity', 'type':'string', 'mode':'w'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
         {'id':'snmpOid', 'type':'string', 'mode':''},

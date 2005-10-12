@@ -38,6 +38,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
     Catalog Indexing, and Historical change tracking.
     """
 
+    zenPropertyPrefix = "z"
+
     zenRelationsBaseModule = "Products.ZenModel"
 
     meta_type = 'ZenModelRM'
@@ -148,3 +150,10 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
                 val = getattr(self, name)
                 nobj._updateProperty(name, val)
         return aq_base(nobj)
+
+    
+    def getZenRootNode(self):
+        """Return the root node for our zProperties."""
+        return self.getDmdRoot(self.dmdRootName)
+
+    

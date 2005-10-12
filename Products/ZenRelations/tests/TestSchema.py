@@ -63,7 +63,15 @@ class Organizer(RM):
     ("parent", ToOne(ToManyCont,"TestSchema.Organizer","children")),
     ("children", ToManyCont(ToOne,"TestSchema.Organizer","parent")),
     )
+    def buildOrgProps(self):
+        self._setProperty("zenFloat", -1.0, type="float")
+        self._setProperty("zenInt", -1, type="int")
+        self._setProperty("zenString", "", type="string")
+        self._setProperty("zenBool", True, type="boolean")
+        self._setProperty("zenLines", [], type="lines")
 
+    def getZenRootNode(self):
+        return self.unrestrictedTraverse("/dataroot/Orgs")
 
 
 def create(context, klass, id):

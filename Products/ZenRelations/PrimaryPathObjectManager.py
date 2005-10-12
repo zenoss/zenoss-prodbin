@@ -33,7 +33,7 @@ class PrimaryPathObjectManager(RelCopyContainer, ObjectManager):
     """
     
     
-    def getPrimaryPath(self):
+    def getPrimaryPath(self, fromNode=None):
         """
         Return the primary path of this object by following __primary_parent__
         """
@@ -47,12 +47,18 @@ class PrimaryPathObjectManager(RelCopyContainer, ObjectManager):
         ppath.reverse()
         basepath = getattr(obj, "zPrimaryBasePath", [])
         for i in range(len(basepath)-1,-1,-1): ppath.insert(0,basepath[i])
+        try:
+            idx = ppath.index(fromNode)
+            ppath = ppath[idx+1:]
+        except ValueError: pass
         return tuple(ppath)
 
     
-    def getPrimaryId(self):
+    def getPrimaryId(self, fromNode=None):
         """Return the primary path in the form /zport/dmd/xyz"""
-        return "/".join(self.getPrimaryPath())
+        pid = "/".join(self.getPrimaryPath(fromNode))
+        if fromNode: pid = "/" + pid
+        return pid
 
 
     def getPrimaryUrlPath(self):

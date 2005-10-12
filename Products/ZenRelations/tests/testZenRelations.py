@@ -35,6 +35,15 @@ class PrimaryPathManagerTest(RMBaseTest):
         self.failUnless(eth0.getPrimaryId() == "/dataroot/dev/interfaces/eth0")
        
 
+    def testGetPrimaryPath2(self):
+        "absolute primary path of a contained object using fromNode"
+        dev = self.build(self.app.dataroot, Device, "dev")
+        eth0 = self.create(dev.interfaces, IpInterface, "eth0")
+        self.failUnless(eth0.getPrimaryPath("dev") == 
+                        ("", "dev", "interfaces", "eth0"))
+        self.failUnless(eth0.getPrimaryId("dev") == "/dev/interfaces/eth0")
+       
+
     def testGetPrimaryPath3(self):
         "absolute primary path of a related object using zPrimaryBasePath"
         dev = self.build(self.app.dataroot, Device, "dev")

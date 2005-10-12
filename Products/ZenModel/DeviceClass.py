@@ -301,6 +301,8 @@ class DeviceClass(DeviceOrganizer, Folder):
         # Snmp collection properties
         devs._setProperty("zSnmpCommunities", ["public", "private"], 
                             type="lines")
+        devs._setProperty("zSnmpCommunity", "public")
+        devs._setProperty("zSnmpPort", 161, type="int")
         devs._setProperty("zSnmpCollectorIgnoreMaps", [], type="lines")
         devs._setProperty("zSnmpCollectorCollectMaps", [], type="lines")
         devs._setProperty("zRouterMapCollectOnlyLocal", True, type="boolean")
@@ -332,8 +334,8 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zCommandProtocol", "ssh")
         devs._setProperty("zCommandPort", 22, type="int")
         devs._setProperty("zCommandLoginTries", 1, type="int")
-        devs._setProperty("zCommandLoginTimeout", 10, type="float")
-        devs._setProperty("zCommandCommandTimeout", 10, type="float")
+        devs._setProperty("zCommandLoginTimeout", 10.0, type="float")
+        devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
         devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceText", "test -f %s")
 
@@ -344,79 +346,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zTelnetEnable", False, type="boolean")
         devs._setProperty("zTelnetEnableRegex", "assword:")
         devs._setProperty("zTelnetTermLength", 0, type="int")
-        devs._setProperty("zTelnetPromptTimeout", 10, type="float")
-
-
-    
-    def deviceTreePropertyIds(self, all=True):
-        """Return list of device tree property names."""
-        if all: 
-            devs = self.getDmdRoot("Devices")
-        else: 
-            if self.id == "Devices": return []
-            devs = aq_base(self)
-        props = []
-        for prop in devs.propertyIds():
-            if not prop.startswith("z"): continue
-            props.append(prop)
-        props.sort()
-        return props
-
-
-    def deviceTreePropertyMap(self):
-        """Return property mapping of device tree properties."""
-        devs = self.getDmdRoot("Devices")
-        pnames = self.deviceTreePropertyIds()
-        pmap = []
-        for pdict in devs.propertyMap():
-            if pdict['id'] in pnames:
-                pmap.append(pdict)
-        pmap.sort(lambda x, y: cmp(x['id'], y['id']))
-        return pmap
-            
-
-    def deviceTreePropertyString(self, id):
-        """Return the value of a device tree property as a string"""
-        value = getattr(self, id, "")
-        devs = self.getDmdRoot("Devices")
-        type = devs.getPropertyType(id)
-        if type == "lines": 
-            value = ", ".join(value)
-        return value
-
-
-    def deviceTreePropertyPath(self, id):
-        """Return the primaryId of where a device tree property is found."""
-        for obj in aq_chain(self):
-            if getattr(aq_base(obj), id, _marker) != _marker:
-                return obj.getPrimaryDmdId("Devices", "children")
-
-
-    def setDeviceTreeProperty(self, propname, propvalue, REQUEST=None):
-        """
-        Add or set the value of the property propname on this node of 
-        the device Class tree.
-        """
-        devs = self.getDmdRoot("Devices")
-        ptype = devs.getPropertyType(propname)
-        if ptype == "lines": 
-            propvalue = propvalue.split(",")
-            propvalue = map(lambda x: x.strip(), propvalue)
-        if getattr(aq_base(self), propname, _marker) != _marker:
-            self._updateProperty(propname, propvalue)
-        else:
-            self._setProperty(propname, propvalue, type=ptype)
-        if REQUEST: return self.callZenScreen(REQUEST)
-
-    
-    def deleteDeviceTreeProperty(self, propname, REQUEST):
-        """
-        Delete device tree properties from the this DeviceClass object.
-        """
-        self._delProperty(propname)
-        if REQUEST: return self.callZenScreen(REQUEST)
-         
-
+        devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
 
 
 InitializeClass(DeviceClass)

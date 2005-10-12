@@ -33,6 +33,7 @@ class Organizer(ZenModelRM):
     _properties = (
                     {'id':'description', 'type':'string', 'mode':'w'},
                    ) 
+    
  
     security = ClassSecurityInfo()
     security.declareObjectProtected("View")
@@ -143,6 +144,7 @@ class Organizer(ZenModelRM):
         for child in self.children():
             orgs.extend(child.getSubOrganizers())
         return orgs
+
 
 
 InitializeClass(Organizer)
