@@ -1,0 +1,69 @@
+<dtml-var standard_html_header>
+<dtml-var top>
+<br>
+<table border=0 colspan=1 cellpadding=3 width="100%">
+    <tr>
+        <th class="tabletitle" colspan="4">
+            History for <dtml-var getId>
+        </th>
+    </tr>
+    <dtml-let hist="manage_change_history()">
+        <dtml-if hist>
+            <dtml-comment>
+            <form method="POST">
+            </dtml-comment>
+                <tr>
+                    <th class="tableheader" align="left">
+                        Time of change
+                    </th>
+                    <th class="tableheader" align="left">
+                        User
+                    </th>
+                    <th class="tableheader" align="left">
+                        Description
+                    </th>
+                    <dtml-comment>
+                    <th class="tableheader" align="left">
+                        Select
+                    </th>
+                    </dtml-comment>
+                </tr>
+                <dtml-in hist prefix="hstry">
+                    <tr>
+                        <td class="tablevalues">
+                            <dtml-var expr="hstry_item['time'].toZone('US/Eastern')">
+                        </td>
+                        <td class="tablevalues">
+                            <dtml-var expr="hstry_item['user_name']">
+                        </td>
+                        <td class="tablevalues">
+                            <dtml-var expr="hstry_item['description']">
+                        </td>
+                        <dtml-comment>
+                        <td class="tablevalues">
+                            <input type="checkbox" name="keys:list"
+                                value="<dtml-var expr="hstry_item['key']">">
+                        </td>
+                        </dtml-comment>
+                    </tr>
+                </dtml-in>
+            <dtml-comment>
+                <tr>
+                    <td colspan="4" align="right">
+                        <input type="submit"
+                            name="manage_historicalComparison:method"
+                            value="Compare">
+                    </td>
+                </tr>
+            </form>
+            </dtml-comment>
+        <dtml-else>
+            <tr>
+                <td colspan="2" class="tablevalues">
+                    No history is available
+                </td>
+            </tr>
+        </dtml-if>
+    </dtml-let>
+</table>
+<dtml-var standard_html_footer>

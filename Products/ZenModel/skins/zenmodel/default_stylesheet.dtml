@@ -1,0 +1,148 @@
+<dtml-unless do_inline_css>
+<dtml-call "RESPONSE.setHeader('Content-Type','text/css')">
+</dtml-unless>
+<dtml-with stylesheet_properties>
+body {
+    background-color: &dtml-bg_color;;
+    color: &dtml-base_font_color;;
+    font-family:  &dtml-primary_font_family;;
+    font-size:  &dtml-base_font_size;;
+}
+
+form {
+    margin-bottom:0;
+    border:0;
+    margin:0;
+}
+
+table {
+    width: 100%;
+}
+
+a:link {
+    color: &dtml-link_color;;
+}
+
+a:visited {
+    color: &dtml-vlink_color;;
+}
+
+a:active {
+    color: &dtml-alink_color;
+}
+
+a:hover {
+    color:  &dtml-hover_color;;
+}
+
+<dtml-comment>top frame and top row of tables use this style</dtml-comment>
+
+.tabletitle {  
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tabletitle_font_size;; 
+    font-weight: bold; 
+    color: &dtml-tabletitle_color;;
+    background-color: &dtml-tabletitle_bg_color;;
+}
+
+.tabletitlel {  
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tabletitle_font_size;; 
+    font-weight: bold; 
+    color: &dtml-tabletitle_color;;
+    background-color: &dtml-tabletitle_bg_color;;
+    text-align: left;
+}
+
+a.tabletitle:link {  
+    color: &dtml-tabletitle_color;;
+}
+a.tabletitle:visited {  
+    color: &dtml-tabletitle_color;;
+}
+a.tabletitle:active {  
+    color: &dtml-alink_color;;
+}
+a.tabletitle:hover {  
+    color: &dtml-hover_color;;
+}
+<dtml-comment>selected tabletitles use this style</dtml-comment>
+.tabletitleselected { 
+    font-family: &dtml-primary_font_family;; 
+    font-size: &dtml-tabletitle_font_size;;
+    font-weight: bold; 
+    color: &dtml-tabletitleselected_color;;
+    background-color: &dtml-tabletitleselected_bg_color;;
+}
+a.tabletitleselected:link {  
+    color: &dtml-tabletitleselected_color;;
+    text-decoration: none;;
+}
+a.tabletitleselected:visited {  
+    color: &dtml-tabletitleselected_color;;
+    text-decoration: none;;
+}
+a.tabletitleselected:active {  
+    color: &dtml-alink_color;;
+    text-decoration: none;;
+}
+a.tabletitleselected:hover {  
+    color: &dtml-hover_color;;
+    text-decoration: none;;
+}
+
+
+<dtml-comment>field lables use this style</dtml-comment>
+.tableheader { 
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tableheader_font_size;;
+    font-weight: normal; 
+    color: &dtml-tableheader_color;;
+    background-color: &dtml-tableheader_bg_color;;
+}
+
+<dtml-comment>selected tableheaders use this style</dtml-comment>
+.tableheaderselected { 
+    font-family: &dtml-primary_font_family;; 
+    font-size: &dtml-tableheader_font_size;;
+    font-weight: normal; 
+    color: &dtml-tableheaderselected_color;;
+    background-color: &dtml-tableheaderselected_bg_color;;
+}
+
+.statusbar { 
+    font-family: &dtml-primary_font_family;; 
+    font-size: &dtml-statusbar_font_size;;
+    font-weight: normal; 
+    color: &dtml-tableheader_color;;
+    background-color: &dtml-tabletitleselected_bg_color;;
+}
+
+<dtml-comment>field values use this style</dtml-comment>
+.tablevalues {  
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
+    font-weight: normal; 
+    color: &dtml-tablevalues_color;; 
+    background-color: &dtml-tablevalues_bg_color;;
+}
+
+a.tablevalues:link {  
+    color: &dtml-tablevalues_color;;
+}
+a.tablevalues:visited {  
+    color: &dtml-tablevalues_color;;
+}
+a.tablevalues:hover {  
+    color: &dtml-hover_color;;
+}
+a.tablevalues:active {  
+    color: &dtml-alink_color;;
+}
+
+.statusvalues {  
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
+    font-weight: normal;
+}
+</dtml-with>
