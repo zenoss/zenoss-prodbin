@@ -173,15 +173,6 @@ class ZenModelBase:
         return getObjByPath(self.getPhysicalRoot(), path)
 
 
-    def exceptMsg(self):
-        """format the exception information to be used in logging"""
-        import traceback
-        import cStringIO
-        sio = cStringIO.StringIO()
-        traceback.print_exc(None,sio)
-        return sio.getvalue()
-   
-
     def getNowString(self):
         """return the current time as a string"""
         return DateTime().strftime('%Y/%m/%d %H:%M:%S')

@@ -13,6 +13,7 @@ $Id: StatusMonitorConf.py,v 1.40 2004/04/22 02:13:23 edahl Exp $"""
 __version__ = "$Revision: 1.40 $"[11:-2]
 
 import re
+import logging
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -202,9 +203,8 @@ class StatusMonitorConf(Monitor, StatusColor):
         #servurl = self.REQUEST['SERVER_URL']
         for dev in self.devices.objectValuesAll():
             try:
-                url = dev.absolute_url() # bug in here new devices have bad req
-                #if url.find("http") != 0:
-                #    url = servurl + url
+                dev = dev.primaryAq()
+                url = dev.absolute_url()
                 if dev.productionState >= self.prodStateThreshold:
                     devices.append(( 
                         dev.id, None, url,
@@ -212,8 +212,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                     devices += self.getExtraPingInterfaces(dev)
             except:
                 msg = "exception getting device %s\n" % dev.getId()
-                msg += self.execptMsg()
-                LOG("StatusMonitorConf", WARNING, msg)
+                logging.exception(msg)
         return devices
 
 
@@ -262,9 +261,8 @@ class StatusMonitorConf(Monitor, StatusColor):
         servurl = self.REQUEST['SERVER_URL']
         for dev in self.devices.objectValuesAll():
             try:
+                dev = dev.primaryAq()
                 url = dev.absolute_url() # bug in here new devices have bad req
-                if url.find("http") != 0:
-                    url = servurl + url
                 if (dev.productionState >= self.prodStateThreshold
                     and dev.zSnmpCommunity):
                    devices.append(( 
@@ -274,8 +272,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                         dev.zSnmpPort))
             except:
                 msg = "exception getting device %s\n" % dev.getId()
-                msg += self.execptMsg()
-                LOG("StatusMonitorConf", WARNING, msg)
+                logging.exception(msg)
         return devices
    
 
@@ -293,8 +290,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                     elif snmpStatus > 0: device.incrSnmpStatus()
             except:
                 msg = "exception updating device %s\n" % dev.getId()
-                msg += self.execptMsg()
-                LOG("StatusMonitorConf", WARNING, msg)
+                logging.exception(msg)
                     
   
     def getPingHeartbeat(self):

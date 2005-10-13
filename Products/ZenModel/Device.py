@@ -661,7 +661,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     ####################################################################
 
 
-    security.declareProtected('Manage Device Status', 'resetPingStatus')
+    security.declareProtected('Manage Device Status', 'resetSnmpStatus')
     def resetSnmpStatus(self):
         '''reset device's snmp status to zero'''
         self._snmpStatus.reset()
