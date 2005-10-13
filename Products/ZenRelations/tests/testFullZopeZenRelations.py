@@ -49,7 +49,18 @@ class FullZopeTestCases(ZopeTestCase):
     def beforeTearDown(self):
         if self.folder._p_jar is not None:
             self.app._delObject(folder_name)
-            transaction.savepoint()
+        transaction.savepoint()
+
+
+    def testCreateSaveReadAndDelete(self):
+        """commit an object to the db and then read it"""
+        dev = build(self.dataroot, Device, "dev")
+        transaction.commit()
+        self.failUnless(dev.location() == None)
+        self.failUnless(dev.interfaces() == [])
+        self.failUnless(dev.groups() == [])
+        self.dataroot._delObject("dev")
+        transaction.commit()
 
 
     def testCutPasteRM(self):

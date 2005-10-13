@@ -13,6 +13,7 @@ __version__ = "$Revision: 1.26 $"[11:-2]
 # base classes for PrimaryPathObjectManager
 from RelCopySupport import RelCopyContainer
 from OFS.ObjectManager import ObjectManager
+from AccessControl.Role import RoleManager
 from OFS.SimpleItem import Item
 
 from Acquisition import aq_base

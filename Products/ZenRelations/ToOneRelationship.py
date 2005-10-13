@@ -17,7 +17,7 @@ import copy
 
 # Base classes for ToOneRelationship
 from RelationshipBase import RelationshipBase
-from OFS.SimpleItem import Item
+from OFS.SimpleItem import SimpleItem
 
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -40,8 +40,7 @@ def manage_addToOneRelationship(context, id, REQUEST = None):
 addToOneRelationship = DTMLFile('dtml/addToOneRelationship',globals())
 
 
-#class ToOneRelationship(RelationshipBase, Implicit, Traversable, Persistent):
-class ToOneRelationship(RelationshipBase, Item):
+class ToOneRelationship(RelationshipBase, SimpleItem):
     """ToOneRelationship represents a to one Relationship 
     on a RelationshipManager"""
 
