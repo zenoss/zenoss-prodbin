@@ -103,7 +103,7 @@ class Organizer(ZenModelRM):
     def getOrganizer(self, path):
         """Return and an Organizer from its path."""
         if path.startswith("/"): path = path[1:]
-        return self.getDmdRoot(self.dmdRootName).restrictedTraverse(path) 
+        return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path) 
 
 
     def getOrganizerName(self):

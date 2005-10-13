@@ -117,9 +117,7 @@ class PortalGenerator:
         ps = getToolByName(p, 'portal_skins')
         addDirectoryViews(ps, 'skins', globals())
         ps.manage_addProduct['OFSP'].manage_addFolder(id='custom')
-        ps.addSkinSelection('Basic',
-            'custom, devices, organizers, misc, images', 
-            make_default=1)
+        ps.addSkinSelection('Basic', "custom", "zenmodel", make_default=1)
         p.setupCurrentSkin()
 
 

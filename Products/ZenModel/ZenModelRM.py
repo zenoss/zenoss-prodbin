@@ -12,26 +12,22 @@ __version__ = "$Revision: 1.50 $"[11:-2]
 
 import time
 
+# base classes of ZenModelRM
+from ZenModelBase import ZenModelBase
+from Products.ZenRelations.RelationshipManager import RelationshipManager
+from OFS.History import Historical
+#from Products.ZCatalog.CatalogAwareness import CatalogAware
+
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
 
-from OFS.History import Historical
-
-from Products.CMFCore.DynamicType import DynamicType
-from Products.ZCatalog.CatalogAwareness import CatalogAware
-
-from Products.ZenRelations.RelationshipManager import RelationshipManager
-
 from Products.ZenUtils.Utils import getSubObjects
 
-from ZenModelBase import ZenModelBase
 
-
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical, 
-                 DynamicType, CatalogAware): 
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical): 
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
@@ -65,34 +61,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
         return self.getId()
     
         
-    def manage_afterAdd(self, item, container):
-        """setup relationshipmanager add object to index and build relations """
-        if self.default_catalog: self.index_object()
-        RelationshipManager.manage_afterAdd(self, item, container)
-
-
-    def manage_afterClone(self, item):
-        RelationshipManager.manage_afterClone(self, item)
-        if self.default_catalog: self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        RelationshipManager.manage_beforeDelete(self, item, container)
-        if self.default_catalog: self.unindex_object()
-
-
-    def index_object(self):
-        """A common method to allow Findables to index themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: cat.catalog_object(self, self.getPrimaryId())
-            
-                                                
-    def unindex_object(self):
-        """A common method to allow Findables to unindex themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: cat.uncatalog_object(self.getPrimaryId())
-            
-
     #actions?
     def getTreeItems(self):
         nodes = []
@@ -114,18 +82,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
     def getModificationTimeString(self):
         """return the modification time as a string"""
         return self.bobobase_modification_time().strftime('%Y/%m/%d %H:%M:%S')
-
-
-    def classificationDecend(self, obj):
-        from Products.ZenModel.Classification import Classification
-        return isinstance(obj, Classification)
-
-
-    def classInstDecend(self, obj):
-        from Products.ZenModel.Classification import Classification
-        from Products.ZenModel.Instance import Instance
-        return (isinstance(obj, Classification) or 
-                isinstance(obj, Instance))
 
 
     def changePythonClass(self, newPythonClass, container):
@@ -157,3 +113,29 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical,
         return self.getDmdRoot(self.dmdRootName)
 
     
+    def creator(self):
+        """
+        Method needed for CatalogAwarnessInterface.  Implemented here so that
+        Subclasses (who would have the same implementation) don't need to.
+        Other methods (except reindex_all) are implemented on the concreate
+        class.
+        """
+        users=[]
+        for user, roles in self.get_local_roles():
+            if 'Owner' in roles:
+                users.append(user)
+        return ', '.join(users)
+
+
+    def reindex_all(self, obj=None):
+        """
+        Called for in the CataLogAwarenessInterface not sure this is needed.
+        """
+        if obj is None: obj=self
+        if hasattr(aq_base(obj), 'index_object'):
+            obj.index_object()
+        if hasattr(aq_base(obj), 'objectValues'):
+            sub=obj.objectValues()
+            for item in obj.objectValues():
+                self.reindex_all(item)
+        return 'done!'

@@ -21,7 +21,7 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
 def manage_addProduct(context, id, title = None, REQUEST = None):
     """make a Product"""
@@ -33,7 +33,7 @@ def manage_addProduct(context, id, title = None, REQUEST = None):
 addProduct = DTMLFile('dtml/addProduct',globals())
 
     
-class Product(Instance):
+class Product(ZenModelRM):
     """Product object"""
     portal_type = meta_type = 'Product'
     _properties = (
@@ -79,7 +79,7 @@ class Product(Instance):
         partNumber = '',
         description = ''):
 
-        Instance.__init__(self, id, title)
+        ZenModelRM.__init__(self, id, title)
         self.name = id
         self.partNumber = partNumber
         self.description = description

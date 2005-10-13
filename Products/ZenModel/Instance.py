@@ -15,7 +15,6 @@ __version__ = "$Revision: 1.26 $"[11:-2]
 import types
 
 from AccessControl import ClassSecurityInfo
-from OFS.History import Historical
 from DateTime import DateTime
 from Globals import DTMLFile
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
@@ -24,18 +23,10 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from CricketView import CricketView
 
-class Instance(ZenModelRM, CricketView, Historical): 
+class Instance(ZenModelRM): 
     """Base class for all confmon classes"""
 
     meta_type = 'Instance'
-
-    #need to figure out how to make this an action
-    #index_html = PageTemplateFile('skins/devices/deviceIndex.pt',globals())
-    
-
-    manage_options = (ZenModelRM.manage_options[:2] + 
-                        Historical.manage_options +
-                        ZenModelRM.manage_options[2:])
 
     security = ClassSecurityInfo()
     

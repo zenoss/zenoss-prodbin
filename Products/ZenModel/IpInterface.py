@@ -343,6 +343,24 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
             return self.ipaddresses()[0]._getPingStatusObj()
     
     
+    def manage_afterAdd(self, item, container):
+        """setup relationshipmanager add object to index and build relations """
+        if item == self or item == self.device(): 
+            self.index_object()
+
+
+    def manage_afterClone(self, item):
+        DeviceComponent.manage_afterClone(self, item)
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        if (item == self or item == self.device()
+            or getattr(item, "_operation", -1) < 1): 
+            DeviceComponent.manage_beforeDelete(self, item, container)
+            self.unindex_object()
+
+
     def index_object(self):
         """interfaces use hostname + interface name as uid"""
         cat = getattr(self, self.default_catalog, None)

@@ -16,8 +16,8 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
-class Service(Instance):
+class Service(ZenModelRM):
     portal_type = meta_type = 'Service'
-    manage_options = Instance.manage_options
+    manage_options = ZenModelRM.manage_options

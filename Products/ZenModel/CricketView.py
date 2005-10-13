@@ -6,10 +6,6 @@
 
 __doc__="""CricketView
 
-Mixin to provide hooks to cricket management functions
-which allow targetmap management and graphing
-configuration generation is in CricketDevice and CricketServer
-
 $Id: CricketView.py,v 1.13 2004/04/06 21:05:03 edahl Exp $"""
 
 __version__ = "$Revision: 1.13 $"[11:-2]
@@ -20,13 +16,11 @@ from Acquisition import aq_base
 
 
 class CricketView:
-
-    # this actually happens in Instance.__init__(self)
-    #def __init__(self):
-    #    self._cricketTargetMap = {}
-    #    self._cricketTargetPath = ''
-    #    self._cricketMTargets = [(targettype, targetpath),] 
-  
+    """
+    Mixin to provide hooks to cricket management functions
+    which allow targetmap management and graphing
+    configuration generation is in CricketDevice and CricketServer
+    """
 
     def cricketGraphUrl(self, target=None, targettype=None, 
                         view=None, drange=None):

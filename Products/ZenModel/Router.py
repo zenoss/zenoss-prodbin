@@ -90,7 +90,7 @@ class Router(CricketRouter,Device):
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'config'
-                , 'name'          : 'Config'
+                , 'name'          : 'zProperties'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : ("Change Device",)
                 },

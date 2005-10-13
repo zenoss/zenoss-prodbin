@@ -18,7 +18,7 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
 def manage_addCompany(context, id, REQUEST = None):
     """make a Company"""
@@ -31,7 +31,7 @@ def manage_addCompany(context, id, REQUEST = None):
 
 addCompany = DTMLFile('dtml/addCompany',globals())
 
-class Company(Instance):
+class Company(ZenModelRM):
     """Company object"""
     portal_type = meta_type = 'Company'
 
@@ -86,7 +86,7 @@ class Company(Instance):
         state = '',
         zip = ''):
 
-        Instance.__init__(self, id)
+        ZenModelRM.__init__(self, id)
         self.url = url
         self.supportNumber = supportNumber
         self.name = id

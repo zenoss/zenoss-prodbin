@@ -15,7 +15,8 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
+from CricketView import CricketView
 
 
 def manage_addDeviceComponent(context, id, REQUEST = None):
@@ -29,11 +30,16 @@ def manage_addDeviceComponent(context, id, REQUEST = None):
                                      +'/manage_main') 
 
 
-class DeviceComponent(Instance):
+class DeviceComponent(ZenModelRM, CricketView):
     
     portal_type = meta_type = "DeviceComponent"
 
     security = ClassSecurityInfo()
+
+    def __init__(self, id, title=None):
+        ZenModelRM.__init__(self, id)
+        self._cricketTargetMap = {}
+        self._cricketTargetPath = ''
 
 
     def getParentDeviceName(self):

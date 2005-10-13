@@ -12,6 +12,11 @@ $Id: IpAddress.py,v 1.42 2004/04/15 00:54:14 edahl Exp $"""
 
 __version__ = "$Revision: 1.42 $"[11:-2]
 
+#base classes for IpAddress
+from ZenModelRM import ZenModelRM
+from DeviceResultInt import DeviceResultInt
+from PingStatusInt import PingStatusInt
+
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -23,9 +28,6 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import *
 from Products.ZenUtils.Utils import getObjByPath
 
-from DeviceResultInt import DeviceResultInt
-from PingStatusInt import PingStatusInt
-from Instance import Instance
 from Products.ZenModel.Exceptions import * 
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
@@ -52,7 +54,7 @@ def findIpAddress(context, ip):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(Instance, PingStatusInt, DeviceResultInt):
+class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt):
     """IpAddress object"""
     portal_type = meta_type = 'IpAddress'
 
@@ -92,7 +94,7 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
 
     def __init__(self, id, netmask=24):
         checkip(id)
-        Instance.__init__(self, id)
+        ZenModelRM.__init__(self, id)
         self._pingStatus = None
         self._netmask = maskToBits(netmask)
         self.reverseName = ""
@@ -206,7 +208,23 @@ class IpAddress(Instance, PingStatusInt, DeviceResultInt):
             if d: return d._getPingStatusObj()
         return self._pingStatus        
 
-    
+   
+    def manage_afterAdd(self, item, container):
+        """setup relationshipmanager add object to index and build relations """
+        if item == self: 
+            self.index_object()
+
+
+    def manage_afterClone(self, item):
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        if item == self or getattr(item, "_operation", -1) < 1: 
+            ZenModelRM.manage_beforeDelete(self, item, container)
+            self.unindex_object()
+
+
     def index_object(self):
         """interfaces use hostname + interface name as uid"""
         cat = getattr(self, self.default_catalog, None)

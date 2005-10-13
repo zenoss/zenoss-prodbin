@@ -17,6 +17,13 @@ __version__ = "$Revision: 1.121 $"[11:-2]
 import time
 import logging
 
+# base classes for device
+from ZenModelRM import ZenModelRM
+from DeviceResultInt import DeviceResultInt
+from PingStatusInt import PingStatusInt
+from CricketDevice import CricketDevice
+from CricketView import CricketView
+
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -31,10 +38,6 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
 from Exceptions import DeviceExistsError
-from Instance import Instance
-from DeviceResultInt import DeviceResultInt
-from PingStatusInt import PingStatusInt
-from CricketDevice import CricketDevice
 from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 
@@ -99,8 +102,12 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
-    """Device object"""
+class Device(ZenModelRM, PingStatusInt, DeviceResultInt, 
+             CricketView, CricketDevice):
+    """
+    Device is a key class within zenmon.  It represents the combination of
+    compute hardware running an operating system.
+    """
 
     portal_type = meta_type = 'Device'
     
@@ -156,7 +163,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
             'icon'           : 'Device_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDevice',
-            'immediate_view' : 'viewIndex',
+            'immediate_view' : 'viewDeviceStatus',
             'actions'        :
             ( 
                 { 'id'            : 'status'
@@ -200,7 +207,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'config'
-                , 'name'          : 'Config'
+                , 'name'          : 'zProperties'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : ("Change Device",)
                 },
@@ -217,7 +224,7 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
     security = ClassSecurityInfo()
     
     def __init__(self, id):
-        Instance.__init__(self, id)
+        ZenModelRM.__init__(self, id)
         self._pingStatus = ZenStatus(-1)
         self._snmpStatus = ZenStatus(-1)
         self.commandStatus = "Not Tested"
@@ -241,6 +248,8 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         self._snmpLastCollection = ZenDate('1968/1/8')
         self.cpuType = ""
         self.totalMemory = 0.0
+        self._cricketTargetMap = {}
+        self._cricketTargetPath = ''
 
     
     def __getattr__(self, name):
@@ -729,6 +738,31 @@ class Device(Instance, PingStatusInt, DeviceResultInt, CricketDevice):
         if REQUEST:
             REQUEST['RESPONSE'].redirect(parent.absolute_url() + 
                                             "/deviceOrganizerStatus")
+
+
+    def manage_afterAdd(self, item, container):
+        """
+        Device only propagates afterAdd if it is the added object.
+        """
+        if item == self: 
+            self.index_object()
+            ZenModelRM.manage_afterAdd(self, item, container)
+
+
+    def manage_afterClone(self, item):
+        """Not really sure when this is called."""
+        ZenModelRM.manage_afterClone(self, item)
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        """
+        Device only propagates beforeDelete if we are being deleted or copied.
+        Moving and renaming don't propagate.
+        """
+        if item == self or getattr(item, "_operation", -1) < 1: 
+            ZenModelRM.manage_beforeDelete(self, item, container)
+            self.unindex_object()
 
 
     def index_object(self):

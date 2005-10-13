@@ -16,6 +16,7 @@ from OFS.Folder import Folder
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
+from zExceptions import Redirect
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions as permissions
@@ -104,7 +105,7 @@ class DeviceClass(DeviceOrganizer, Folder):
                   permissions.view, )
                 },
                 { 'id'            : 'config'
-                , 'name'          : 'Config'
+                , 'name'          : 'zProperties'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : ("Change Device",)
                 },
@@ -122,7 +123,7 @@ class DeviceClass(DeviceOrganizer, Folder):
 
     
     def getPeerDeviceClassNames(self, pyclass):
-        "build a list of all device paths that have the python class pyclass"
+        "Return a list of all device paths that have the python class pyclass"
         dcnames = []
         if pyclass == self.getPythonDeviceClass():
             dcnames.append(self.getOrganizerName())
@@ -132,9 +133,11 @@ class DeviceClass(DeviceOrganizer, Folder):
             
 
     def createInstance(self, id):
-        """create an instance based on its location in the device tree
+        """
+        Create an instance based on its location in the device tree
         walk up the primary aq path looking for a python instance class that
-        matches the name of the closest node in the device tree"""
+        matches the name of the closest node in the device tree.
+        """
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(id)
         self.devices._setObject(id, aq_base(dev))
@@ -142,7 +145,12 @@ class DeviceClass(DeviceOrganizer, Folder):
 
     
     def getPythonDeviceClass(self):
-        """return the python class object for this device class"""
+        """
+        Return the python class object to be used for device instances in this 
+        device class.  This is done by walking up the aq_chain of a deviceclass 
+        to find a node that has the same name as a python class or has an 
+        attribute named zPythonClass that matches a python class.
+        """
         import sys
         from Device import Device
         for obj in aq_chain(self):
@@ -200,7 +208,7 @@ class DeviceClass(DeviceOrganizer, Folder):
    
 
     security.declareProtected('View', 'searchDevices')
-    def searchDevices(self, query=None):
+    def searchDevices(self, query=None, REQUEST=None):
         '''Returns the concatenation of a device name,
         ip and mac search on the list of devices'''
         
@@ -212,6 +220,8 @@ class DeviceClass(DeviceOrganizer, Folder):
         except AttributeError: pass
         names = zcatalog({'id':query})
         if ips: names += ips
+        if len(names) == 1:
+            raise Redirect(names[0].getPrimaryId)
         return self._convertResultsToObj(names)
    
 
@@ -228,21 +238,21 @@ class DeviceClass(DeviceOrganizer, Folder):
     def _convertResultsToObj(self, results):
         devices = []
         for brain in results:
-            devobj = self.restrictedTraverse(brain.getPrimaryId)
+            devobj = self.unrestrictedTraverse(brain.getPrimaryId)
             devices.append(devobj)
         return devices
 
     security.declareProtected('View', 'getDeviceFromSearchResult')
     def getDeviceFromSearchResult(self, brain):
         if brain.has_key('getPrimaryId'):
-            return self.restrictedTraverse(brain.getPrimaryId)
+            return self.unrestrictedTraverse(brain.getPrimaryId)
 
 
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
         ret = self._getCatalog()({'id': devicename})
         if ret:
-            devobj = self.restrictedTraverse(ret[0].getPrimaryId)
+            devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
             return devobj
 
 

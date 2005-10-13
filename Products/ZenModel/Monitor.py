@@ -16,9 +16,9 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 
 from Globals import InitializeClass
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
-class Monitor(Instance):
+class Monitor(ZenModelRM):
     meta_type = 'Monitor'
     
 InitializeClass(Monitor)

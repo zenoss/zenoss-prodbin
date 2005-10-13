@@ -24,7 +24,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from ServiceClass import ServiceClass
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
 
 def manage_addIpServiceClass(context, protocol, port, keyword='',
@@ -70,11 +70,11 @@ def getIpServiceClassId(protocol, port):
 
 addIpServiceClass = DTMLFile('dtml/addIpServiceClass',globals())
 
-class IpServiceClass(ServiceClass, Instance):
+class IpServiceClass(ServiceClass, ZenModelRM):
     """Service object"""
     portal_type = meta_type = 'IpServiceClass'
     isInTree = 0 # don't want these guys in left tree
-    manage_options = Instance.manage_options #FIXME
+    manage_options = ZenModelRM.manage_options #FIXME
     protocols = ('tcp', 'udp')
 
     #view = PageTemplateFile('zpt/viewServiceOverview.zpt',globals())
