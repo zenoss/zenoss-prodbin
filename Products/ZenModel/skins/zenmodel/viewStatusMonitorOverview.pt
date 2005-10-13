@@ -1,0 +1,75 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table border="0" cellpadding="3" width="100%" 
+    align="center" bgcolor="#ffffff" cellspacing="1">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+      Status Monitor Configuration
+      </th>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Last Ping Poll</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/getPingHeartbeatString">mon name
+      </td>
+      <td class="tableheader" align="left">Last SNMP Poll</td>
+      <td class="tablevalues" align="left"
+        tal:content="here/getSnmpHeartbeatString">chnk
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Monitor Name</td>
+      <td class="tablevalues" align="left" tal:content="here/id">mon name</td>
+      <td class="tableheader" align="left">Chunk Size</td>
+      <td class="tablevalues" align="left" tal:content="here/chunk">chnk</td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Ping Timeout</td>
+      <td class="tablevalues" align="left" tal:content="here/timeOut" />
+      <td class="tableheader" align="left">Ping Tries</td>
+      <td class="tablevalues" align="left" tal:content="here/tries">2</td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Snmp Timeout</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/snmpTimeOut">snmptimeout
+      </td>
+      <td class="tableheader" align="left">Snmp Tries</td>
+      <td class="tablevalues" align="left"
+        tal:content="here/snmpTries">tries
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cycle Fail Warning</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/cycleFailWarn">snmptimeout
+      </td>
+      <td class="tableheader" align="left">Cycle Fail Critical</td>
+      <td class="tablevalues" align="left"
+          tal:content="here/cycleFailCritical">tries
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cycle Interval</td>
+      <td class="tablevalues" align="left"
+          tal:content="here/cycleInterval">tries</td>
+      <td class="tableheader" align="left">Snmp Cycle Interval</td>
+      <td class="tablevalues" align="left"
+          tal:content="here/snmpCycleInterval">tries
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Maximum Failures</td>
+      <td class="tablevalues" align='left'
+          tal:content="here/maxFailures">fails
+      </td>
+      <td class="tableheader" align="left">Configuration Reload Interval</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/configCycleInterval">fails
+      </td>
+    </tr>
+</table>
+<br>
+<table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+<span tal:replace="structure here/standard_html_footer"/>
