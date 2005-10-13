@@ -16,7 +16,7 @@
     </td>
     <td align="left" valign="top">
     <select name="default_catalog:utf8:text">
-        <dtml-in expr="myClassifier.getClassifierNames()" prefix="id">
+        <dtml-in expr="ZenClassifier.getClassifierNames()" prefix="id">
             <option><dtml-var id_item></option>
         </dtml-in>
     </select>

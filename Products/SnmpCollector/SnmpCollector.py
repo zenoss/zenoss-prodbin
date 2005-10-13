@@ -31,6 +31,26 @@ from Products.ZenUtils.Utils import getObjByPath
 from SnmpSession import SnmpSession
 from pysnmp.error import PySnmpError
 
+
+def findSnmpCommunity(context, name, community=None, port=None):
+    """look for snmp community based on list we get through aq"""
+    if community: communities = (community,)
+    else: communities = getattr(context, "zSnmpCommunities", ())
+    if not port: port = getattr(context, "zSnmpPort", 161)
+    session = SnmpSession(name, timeout=3, port=port)
+    oid = '.1.3.6.1.2.1.1.2.0'
+    retval = None
+    for community in communities: #aq
+        session.community = community
+        try:
+            session.get(oid)
+            retval = session.community
+            break
+        except (SystemExit, KeyboardInterrupt): raise
+        except: pass #keep trying until we run out
+    return retval 
+
+
 class SnmpCollector(ZCmdBase):
     
 
@@ -47,7 +67,7 @@ class SnmpCollector(ZCmdBase):
         for device in deviceRoot.getSubDevices():
             try:
                 self.collectDevice(device)
-            except SystemExit: raise
+            except (SystemExit, KeyboardInterrupt): raise
             except:  
                 self.log.exception(
                     "Failure collecting device %s" % device.getId())
@@ -55,31 +75,13 @@ class SnmpCollector(ZCmdBase):
                     
     def collectDevice(self, device):
         self.log.info('Collecting device %s' % device.id)
-        community = device.snmpCommunity
-        if not community:
-            community = self.findSnmpCommunity(device.id, device,
-                                                port=device.snmpPort)
-            if community: 
-                device.snmpCommunity = community
-                device.resetSnmpStatus()
-                self.log.info("Found community %s for device %s" % 
-                                (community, device.id))
-                trans = transaction.get()
-                trans.note("Automated data collection by SnmpCollector.py")
-                trans.commit()
-            else:
-                self.log.warn('no communty not found for device %s' 
-                                % device.id)
-                return 
-
         age = device.getSnmpLastCollection()+(
                         self.options.collectAge/1440.0)
-        if (community and device.getSnmpStatusNumber() <= 0 
-            and age <= DateTime()):
+        if device.getSnmpStatusNumber() <= 0 and age <= DateTime():
             try:
                 snmpsess = SnmpSession(device.id, 
-                                community = device.snmpCommunity,
-                                port = device.snmpPort)
+                                community = device.zSnmpCommunity,
+                                port = device.zSnmpPort)
                 if self.testSnmpConnection(snmpsess):
                     if device._p_jar: device._p_jar.sync() 
                     self._collectCustomMaps(device, snmpsess)
@@ -91,6 +93,7 @@ class SnmpCollector(ZCmdBase):
                     self.log.warn(
                         "no valid snmp connection to %s" 
                             % device.getId())
+            except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception('Error collecting data from %s' 
                                     % device.id)
@@ -124,6 +127,7 @@ class SnmpCollector(ZCmdBase):
                 datamap = None
                 try:
                     datamap = custmap.collect(device, snmpsess, self.log)
+                except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("problem collecting snmp")
                 if datamap:
@@ -132,6 +136,7 @@ class SnmpCollector(ZCmdBase):
                             self._updateRelationship(device, datamap, custmap)
                         else:
                             self._updateObject(device, datamap)
+                    except (SystemExit, KeyboardInterrupt): raise
                     except:
                         self.log.exception("ERROR: implementing datamap %s"
                                                 % datamap)
@@ -193,6 +198,7 @@ class SnmpCollector(ZCmdBase):
                     else:
                         if att != value:
                                 setattr(aq_base(obj), attname, value) 
+                except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("ERROR: setting attribute %s"
                                             % attname)
@@ -233,17 +239,7 @@ class SnmpCollector(ZCmdBase):
 
     def findSnmpCommunity(self, name, device, port=161):
         """look for snmp community based on list we get through aq"""
-        session = SnmpSession(name, timeout=3, port=port)
-        oid = '.1.3.6.1.2.1.1.2.0'
-        retval = None
-        for community in device.zSnmpCommunities: #aq
-            session.community = community
-            try:
-                session.get(oid)
-                retval = session.community
-                break
-            except: pass #keep trying until we run out
-        return retval 
+        return findSnmpCommunity(device, name, port=port)
    
 
     def buildOptions(self):

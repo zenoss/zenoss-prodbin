@@ -102,17 +102,23 @@ class SnmpClassifier(ZCatalog):
 
     def getDeviceSnmpInfo(self, deviceName, loginInfo, log):
         """get the snmp information from the device based on our oid"""
-        port = loginInfo.get('snmpPort', 161)
         from Products.SnmpCollector.SnmpSession import SnmpSession
+        from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
+        devices = self.getDmdRoot("Devices")
+        port = loginInfo.get('snmpPort', None)
+        if not port: 
+            port = getattr(devices, "zSnmpPort", 161)
+        community = loginInfo.get("snmpCommunity", None)
+        if not community: 
+            community = findSnmpCommunity(devices, deviceName, port=port)
         import pysnmp
         try:
-            snmpsess = SnmpSession(deviceName,
-                                    community=loginInfo['snmpCommunity'],
-                                    port=port)
+            snmpsess = SnmpSession(deviceName, community=community, port=port)
             data = snmpsess.get(self.oid)
             return data[self.oid]
         except pysnmp.mapping.udp.error.SnmpOverUdpError:
             log.info('snmp problem with device %s' % deviceName)
+        except (SystemExit, KeyboardInterrupt): raise
         except:
             log.exception("problem with device %s" % deviceName)
                             
