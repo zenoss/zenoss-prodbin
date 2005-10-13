@@ -69,11 +69,13 @@ function submitAction(myform, url) {
 
 
 <span metal:define-macro="getProducts">
-<script type="text/javascript" src="/zport/portal_skins/misc/init.js"></script>
-<script type="text/javascript" src="/zport/portal_skins/misc/urllib.js">
+<script type="text/javascript" src="/zport/portal_skins/zenmodel/init.js">
 </script>
-<script type="text/javascript" src="/zport/portal_skins/misc/xml.js"></script>
-<script type="text/javascript" src="/zport/portal_skins/misc/xmlrpc.js">
+<script type="text/javascript" src="/zport/portal_skins/zenmodel/urllib.js">
+</script>
+<script type="text/javascript" src="/zport/portal_skins/zenmodel/xml.js">
+</script>
+<script type="text/javascript" src="/zport/portal_skins/zenmodel/xmlrpc.js">
 </script>
 <script type="text/javascript">
 <!--
