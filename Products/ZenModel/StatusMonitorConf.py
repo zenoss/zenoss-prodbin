@@ -266,12 +266,12 @@ class StatusMonitorConf(Monitor, StatusColor):
                 if url.find("http") != 0:
                     url = servurl + url
                 if (dev.productionState >= self.prodStateThreshold
-                    and dev.snmpCommunity):
+                    and dev.zSnmpCommunity):
                    devices.append(( 
                         dev.id, url,
                         dev.getSnmpStatusNumber(),
-                        dev.snmpCommunity,
-                        dev.snmpPort))
+                        dev.zSnmpCommunity,
+                        dev.zSnmpPort))
             except:
                 msg = "exception getting device %s\n" % dev.getId()
                 msg += self.execptMsg()

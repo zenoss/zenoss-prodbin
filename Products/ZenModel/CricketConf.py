@@ -117,7 +117,7 @@ class CricketConf(Monitor, StatusColor):
         for dev in self.devices.objectValuesAll():
             #if dev.productionState == 'Pre-Production':
             devices.append({
-                'snmp_community': dev.snmpCommunity,
+                'snmp_community': dev.zSnmpCommunity,
                 'name': dev.getParent().id,
                 'dns_name': dev.id,
                 'url_path': dev.getPrimaryUrlPath()})

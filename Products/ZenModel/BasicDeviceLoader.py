@@ -28,7 +28,7 @@ class BasicDeviceLoader:
                 manufacturer="", model="", groupPath="", 
                 locationPath="", rack="",
                 statusMonitorName="localhost", cricketMonitorName="localhost",
-                snmpCommunity="public", snmpPort=161,
+                snmpCommunity="", snmpPort=None,
                 loginName="", loginPassword=""):
         """load a device into the database"""
         info("adding device %s" % deviceName)
@@ -70,9 +70,6 @@ class BasicDeviceLoader:
         info("setting cricket monitor to %s" % cricketMonitorName)
         device.setCricketMonitor(cricketMonitorName)
        
-        device.snmpCommunity = snmpCommunity
-        device.snmpPort = snmpPort
-
         return device
 
     

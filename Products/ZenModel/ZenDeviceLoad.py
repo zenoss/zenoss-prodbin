@@ -7,7 +7,7 @@
 __doc__="""CVDeviceUpload
 
 Upload devices from a file with format:
-fqdn:snmpCommunity:prodState:pingStatus:snmpStatus:system:manufacturer:model:location:cricket
+fqdn:prodState:pingStatus:snmpStatus:system:manufacturer:model:location:cricket
 
 $Id: CVServerBackup.py,v 1.1.1.1 2004/10/14 20:55:29 edahl Exp $"""
 
@@ -23,16 +23,15 @@ from Products.ZenModel.Exceptions import DeviceExistsError
 
 DEVICE_NAME=0
 DEVICE_CLASS=1
-SNMP_COMMUNITY=2
-PRODUCTION_STATE=3
-PING_STATUS=4
-SNMP_STATUS=5
-SYSTEM_PATH=6
-GROUP_PATH=7
-MANUFACTURER=8
-MODEL=9
-LOCATION_PATH=10
-CRICKET_MONITOR=11
+PRODUCTION_STATE=2
+PING_STATUS=3
+SNMP_STATUS=4
+SYSTEM_PATH=5
+GROUP_PATH=6
+MANUFACTURER=7
+MODEL=8
+LOCATION_PATH=9
+CRICKET_MONITOR=10
 
 
 class ZenDeviceLoad(BasicLoader):
@@ -47,7 +46,6 @@ class ZenDeviceLoad(BasicLoader):
         try:
             dev = manage_createDevice(self.dmd, deviceName,
                                     line[DEVICE_CLASS],
-                                    snmpCommunity=line[SNMP_COMMUNITY],
                                     productionState=line[PRODUCTION_STATE],
                                     manufacturer=line[MANUFACTURER],
                                     model=line[MODEL],

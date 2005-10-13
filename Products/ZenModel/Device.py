@@ -45,7 +45,7 @@ CopyError='Copy Error'
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
-            snmpCommunity="public", snmpPort=161,
+            snmpCommunity="", snmpPort=None,
             rackSlot=0, productionState=1000, comments="",
             manufacturer="", model="", 
             locationPath="", rack="",
