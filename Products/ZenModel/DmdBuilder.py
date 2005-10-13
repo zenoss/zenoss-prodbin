@@ -182,10 +182,10 @@ class DmdBuilder:
 
 
     def buildClassifiers(self):
-        if hasattr(self.portal, 'ZenClassifier'):
+        if hasattr(self.dmd, 'ZenClassifier'):
             return
-        manage_addClassifier(self.portal)
-        cl = self.portal._getOb('ZenClassifier')
+        manage_addClassifier(self.dmd)
+        cl = self.dmd._getOb('ZenClassifier')
         snmpclassifiers = {
             'sysObjectIdClassifier' : '.1.3.6.1.2.1.1.2.0',
             'sysDescrClassifier' : '.1.3.6.1.2.1.1.1.0',
