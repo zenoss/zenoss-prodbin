@@ -100,6 +100,7 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         """
         rel = self.__class__(self.id)
         rel.__primary_parent__ = container
+        rel = rel.__of__(container)
         if (self.remoteTypeName() == "ToMany" and self.obj):
             rel.addRelation(self.obj)
         return rel

@@ -4,63 +4,35 @@
 #
 #################################################################
 
+import os, sys
+if __name__ == '__main__':
+  execfile(os.path.join(sys.path[0], 'framework.py')) 
+
 import pdb
 import unittest
 
 import transaction
 
-from Testing.ZopeTestCase import ZopeLite
-from Testing.ZopeTestCase.ZopeTestCase import ZopeTestCase, user_role, \
-                                    folder_name, standard_permissions
-from TestSchema import *
+from Testing import ZopeTestCase
+from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
+
+from Products.ZenRelations.tests.TestSchema import *
 
 from Products.ZenRelations.Exceptions import *
 
-class FullZopeTestCases(ZopeTestCase):
+ZopeTestCase.installProduct("ZenRelations")
 
-    def beforeSetUp(self):
-        """
-        install ZenRelations need to do before setup because commit happes
-        """
-        ZopeLite.installProduct("ZenRelations")
+class FullZopeTestCases(ZopeTestCase.ZopeTestCase):
 
-
-    def _setupFolder(self):
-        '''Creates and configures the folder.'''
-        if self.app._getOb(folder_name, False):
-            self.app._delObject(folder_name)
-            transaction.savepoint()
-        self.app.manage_addFolder(folder_name)
-        self.folder = getattr(self.app, folder_name)
-        self.folder._addRole(user_role)
-        self.folder.manage_role(user_role, standard_permissions)
-
-
+    
     def afterSetUp(self):
         """setup schema manager and add needed permissions"""
+        self.setRoles(['Manager'])
+        perms = ["Add Relationship Managers","Delete objects","Copy or Move",] 
+        perms.extend(standard_permissions)
+        self.setPermissions(perms)
         self.dataroot = create(self.folder, DataRoot, "dataroot")
-        self.dataroot.manage_permission(
-                              "Add Relationship Managers", [user_role,])
-        self.dataroot.manage_permission("Delete objects", [user_role,])
-        self.dataroot.manage_permission("Copy or Move", [user_role,])
         create(self.dataroot, DataRoot, "subfolder")
-
-
-    def beforeTearDown(self):
-        if self.folder._p_jar is not None:
-            self.app._delObject(folder_name)
-        transaction.savepoint()
-
-
-    def testCreateSaveReadAndDelete(self):
-        """commit an object to the db and then read it"""
-        dev = build(self.dataroot, Device, "dev")
-        transaction.commit()
-        self.failUnless(dev.location() == None)
-        self.failUnless(dev.interfaces() == [])
-        self.failUnless(dev.groups() == [])
-        self.dataroot._delObject("dev")
-        transaction.commit()
 
 
     def testCutPasteRM(self):
@@ -365,12 +337,12 @@ class FullZopeTestCases(ZopeTestCase):
 #         self.failUnless(eth0.device() == dev)
 
 
-
 def test_suite():
-    return unittest.makeSuite(ToOneRel, 'to one rel tests')
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(FullZopeTestCases))
+    return suite
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
 
-if __name__=="__main__":
-    unittest.main()
+if __name__ == '__main__':
+    framework()

@@ -4,13 +4,17 @@
 #
 #################################################################
 
+import os, sys
+if __name__ == '__main__':
+  execfile(os.path.join(sys.path[0], 'framework.py')) 
+
 import pdb
 import unittest
 
 import Globals
 
-from RMBaseTest import RMBaseTest
-from TestSchema import *
+from Products.ZenRelations.tests.RMBaseTest import RMBaseTest
+from Products.ZenRelations.tests.TestSchema import *
 
 from Products.ZenRelations.Exceptions import *
 
@@ -603,10 +607,15 @@ class ToManyRelationshipTest(RMBaseTest):
 
 
 def test_suite():
-    return unittest.makeSuite(ToOneRel, 'to one rel tests')
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(PrimaryPathManagerTest))
+    suite.addTest(makeSuite(RelationshipManagerTest))
+    suite.addTest(makeSuite(ToOneRelationshipTest))
+    suite.addTest(makeSuite(ToManyContRelationshipTest))
+    suite.addTest(makeSuite(ToManyRelationshipTest))
+    return suite
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
 
-if __name__=="__main__":
-    unittest.main()
+if __name__ == '__main__':
+    framework()

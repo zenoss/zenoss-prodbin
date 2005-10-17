@@ -211,7 +211,7 @@ class IpNetwork(DeviceOrganizer):
         makeConfmonLexicon(zcat)
         zcat.addIndex('id', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('id'))
-        zcat.addColumn('getPrimaryUrlPath')
+        zcat.addColumn('getPrimaryId')
     
      
 InitializeClass(IpNetwork)

@@ -184,6 +184,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         """
         rel = self.__class__(self.id)
         rel.__primary_parent__ = container
+        rel = rel.__of__(container)
         norelcopy = getattr(self, 'zNoRelationshipCopy', [])
         if self.id in norelcopy: return rel
         if self.remoteTypeName() == "ToMany":

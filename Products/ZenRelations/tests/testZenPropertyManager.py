@@ -10,7 +10,7 @@ import unittest
 import Globals
 from Acquisition import aq_base
 
-from TestSchema import *
+from Products.ZenRelations.tests.TestSchema import *
 
 from Products.ZenRelations.Exceptions import *
 
@@ -112,7 +112,7 @@ class ZenPropertyManagerTest(unittest.TestCase):
 
 
 def test_suite():
-    return unittest.makeSuite(ToOneRel, 'to one rel tests')
+    return unittest.makeSuite(ZenPropertyManagerTest)
 
 def main():
     unittest.TextTestRunner().run(test_suite())

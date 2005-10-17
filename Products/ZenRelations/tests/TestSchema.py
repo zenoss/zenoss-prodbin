@@ -9,12 +9,16 @@ from Products.ZenRelations.RelationshipManager import RelationshipManager as RM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.Exceptions import *
 
-class DataRoot(RM): 
+class TestBaseClass(RM):
+    zenRelationsBaseModule = "Products.ZenRelations.tests"
+
+class DataRoot(TestBaseClass): 
+
     def manage_afterAdd(self, item, container):
         self.zPrimaryBasePath = container.getPhysicalPath()
-        RM.manage_afterAdd(self, item, container)
+        TestBaseClass.manage_afterAdd(self, item, container)
 
-class Device(RM, PropertyManager):
+class Device(TestBaseClass, PropertyManager):
     _properties = (
         {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
         )
@@ -31,7 +35,7 @@ class Server(Device):
         ("admin", ToOne(ToOne, "TestSchema.Admin", "server")),
         ) + Device._relations
 
-class IpInterface(RM):
+class IpInterface(TestBaseClass):
     _relations = (
         ("device", ToOne(ToMany,"TestSchema.Device","ipinterfaces")),
         )
@@ -45,21 +49,21 @@ class IpInterface(RM):
             raise ZenRelationsError("__primary_parent__ not set in afterAdd")
         self.afterAdd = True
 
-class Group(RM):
+class Group(TestBaseClass):
     _relations = (
         ("devices", ToMany(ToMany, "TestSchema.Device", "groups")),
         )
-class Location(RM):
+class Location(TestBaseClass):
     _relations = (
         ("devices", ToMany(ToOne, "TestSchema.Device", "location")),
         )
 
-class Admin(RM):
+class Admin(TestBaseClass):
     _relations = (
         ("server", ToOne(ToOne, "TestSchema.Server", "admin")),
         )
 
-class Organizer(RM):
+class Organizer(TestBaseClass):
     _relations = (
     ("parent", ToOne(ToManyCont,"TestSchema.Organizer","children")),
     ("children", ToManyCont(ToOne,"TestSchema.Organizer","parent")),
