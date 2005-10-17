@@ -5,24 +5,29 @@
 #################################################################
 
 import unittest
+import transaction
 
 from OFS.Folder import manage_addFolder
 
-from Testing.ZopeTestCase import ZopeLite
+from Testing.ZopeTestCase import ZopeLite, connections
 
 from TestSchema import create, build, DataRoot
+
+#ZopeLite.installProduct("ZenRelations")
 
 class RMBaseTest(unittest.TestCase):
     
     def setUp(self):
         self.app = ZopeLite.app()
-        ZopeLite.installProduct("ZenRelations")
         dataroot = self.create(self.app, DataRoot, "dataroot")
         dataroot.zPrimaryBasePath = ("",)
         manage_addFolder(self.app, "folder")
 
     def tearDown(self):
+        transaction.abort()
+        self.app._p_jar.close()
         self.app = None
+
 
     def create(self, context, klass, id):
         """create an instance and attach it to the context passed"""

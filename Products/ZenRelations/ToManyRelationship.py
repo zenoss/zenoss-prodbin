@@ -117,19 +117,13 @@ class ToManyRelationship(ToManyRelationshipBase):
         self.removeRelation(obj)
 
     
-    #FIXME - if a ToMany is walked by restrictedTraverse it will fail
-    #   This is a schema error for in all cases I can think of now...
-    #   We should only traverse ToManyCont...
-    def _getOb(self, id, default=None):
+    def _getOb(self, id, default=zenmarker):
         """
-        Return object by its absolute id (ie /zport/dmd/bla/bla)
-        (this is sent out in the object*All API)
+        ToManyRelationships don't support _getOb!!!
+        Returns default or raises AttributeError.
         """
-        try:
-            return self.unrestrictedTraverse(id)
-        except KeyError: 
-            if default != zenmarker: return default
-            else: raise AttributeError(id)
+        if default != zenmarker: return default
+        raise AttributeError(id)
 
 
     def objectIdsAll(self):

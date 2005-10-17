@@ -41,9 +41,9 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
     def findObjectsById(self, partid):
         """Return a list of objects by running find on their id"""
         objects = []
-        for fullid in self.objectIdsAll():
-            if fullid.find(partid) > -1:
-                objects.append(self._getOb(fullid))
+        for id, obj in self.objectItemsAll():
+            if id.find(partid) > -1:
+                objects.append(obj)
         return objects 
 
     

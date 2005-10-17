@@ -6,6 +6,7 @@
 
 import pdb
 import unittest
+import transaction
 
 import Globals
 from Acquisition import aq_base
@@ -29,6 +30,8 @@ class ZenPropertyManagerTest(unittest.TestCase):
 
 
     def tearDown(self):
+        transaction.abort()
+        self.app._p_jar.close()
         self.app = None
 
 

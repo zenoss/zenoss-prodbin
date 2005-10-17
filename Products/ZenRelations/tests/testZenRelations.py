@@ -603,7 +603,7 @@ class ToManyRelationshipTest(RMBaseTest):
         group = self.create(self.app, Group, "group")
         dev.addRelation("groups", group)
         self.failUnless(group in dev.groups())
-        self.failUnless(dev.groups._getOb("group") == group)
+        self.failUnlessRaises(AttributeError, dev.groups._getOb, "group")
 
 
 def test_suite():
