@@ -119,9 +119,10 @@ class ToManyRelationship(ToManyRelationshipBase):
     
     def _getOb(self, id, default=zenmarker):
         """
-        ToManyRelationships don't support _getOb!!!
-        Returns default or raises AttributeError.
+        Return object based on its primaryId. plain id will not work!!!
         """
+        objs = filter(lambda x: x.getPrimaryId() == id, self._objects)
+        if len(objs) == 1: return objs[0]
         if default != zenmarker: return default
         raise AttributeError(id)
 

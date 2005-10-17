@@ -199,8 +199,6 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         """
         Lookup the schema definition for a relationship. 
         All base classes are checked until RelationshipManager is found.
-        FIXME - it might be better to build out _relations when class is
-            loaded so that we don't have to do lookups like this at runtime.
         """
         for name, schema in cls._relations:
             if name == relname: return schema

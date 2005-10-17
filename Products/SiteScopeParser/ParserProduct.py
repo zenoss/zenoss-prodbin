@@ -245,8 +245,6 @@ class ParserProduct(Implicit,Persistent,RoleManager,Item,ObjectCache):
                     retval += "<a href=" + row.NameAutoUrl() + ">"
                     retval += row.Name() + "</a>" 
                 else:
-                    import pdb
-                    if type(cols[key]) != type(""): pdb.set_trace()
                     retval += cols[key]
                 retval += "</td>"
             retval += "</tr>\n"

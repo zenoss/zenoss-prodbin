@@ -371,9 +371,7 @@ def main():
     while 1:
         reactor.iterate()
         if client.commandsFinished():
-            import pdb
-            pdb.set_trace()
-            #break
+            break
     import pprint
     pprint.pprint(client.getResults())
 
