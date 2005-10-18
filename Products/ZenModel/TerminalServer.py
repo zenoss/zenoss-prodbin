@@ -43,7 +43,7 @@ class TerminalServer(Router):
 
     portal_type = meta_type = 'TerminalServer'
 
-    _relations = (
+    _relations = Router._relations + (
         ("devices", ToMany(ToOne, "Device", "termserver")),
         )
 
