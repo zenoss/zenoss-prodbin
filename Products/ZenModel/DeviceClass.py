@@ -140,7 +140,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         """
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(id)
-        self.devices._setObject(id, aq_base(dev))
+        self.devices._setObject(id, dev)
         return self.devices._getOb(id)
 
     
