@@ -88,8 +88,8 @@ class Organizer(ZenModelRM):
             try:
                 organizer = orgroot.getOrganizer(organizerName)
                 parent = aq_parent(organizer)
-                parent.removeRelation(organizer)
-            except ZenPathError:
+                parent._delObject(organizer.getId())
+            except KeyError:
                 pass  # we may have already deleted a sub object
         if REQUEST: return self.callZenScreen(REQUEST)
             
