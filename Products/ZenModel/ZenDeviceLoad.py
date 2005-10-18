@@ -41,8 +41,12 @@ class ZenDeviceLoad(BasicLoader):
 
     def loaderBody(self, line):
         line = line.split(":")
-        if len(line) != 11: raise ValueError("Wrong number of values in line")
-        deviceName = line[DEVICE_NAME]
+        if len(line) == 10: 
+            devicePath, deviceName = os.path.split(line[DEVICE_NAME])
+        else:
+            deviceName = line[DEVICE_NAME]
+            if len(line) != 11: 
+                raise ValueError("Wrong number of values in line")
         try:
             dev = manage_createDevice(self.dmd, deviceName,
                                     line[DEVICE_CLASS],
