@@ -63,7 +63,7 @@ class ZenModelBase:
         Call and return screen that was passed in the referer value of REQUEST
         """
         screenName = REQUEST['zenScreenName']
-        REQUEST['URL'] = "%s/%s" % (REQUEST['URL'], screenName)
+        #REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)
         screen = getattr(self, screenName, False)
         if not screen: 
             raise AttributeError("Screen %s not found in context %s" 
