@@ -53,7 +53,7 @@ class IpServiceMap(CustomRelMap):
             #if port > 1024 or tcpports.has_key(port): continue
             #if addr == '0.0.0.0': tcpports[port]=1
             #tcpports[port]=1
-            serv['id'] = '%s-tcp-%05d' % (addr, port)
+            serv['id'] = 'tcp-%s.%05d' % (addr, port)
             serv['ipaddress'] = addr
             serv['setPort'] = port
             serv['setProtocol'] = 'tcp'
@@ -71,7 +71,7 @@ class IpServiceMap(CustomRelMap):
             if port <= 0 or port > 1024 or udpports.has_key(port): continue
             #if addr == '0.0.0.0': udpports[port]=1
             udpports[port]=1
-            serv['id'] = '%s-udp-%s.%05d' % (device.getId(), addr, port)
+            serv['id'] = 'udp-%s.%05d' % (addr, port)
             serv['ipaddress'] = addr
             serv['setPort'] = port
             serv['setProtocol'] = 'udp'

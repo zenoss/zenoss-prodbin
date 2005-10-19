@@ -164,6 +164,10 @@ class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt):
         return self.id + "/" + str(self._netmask)
 
 
+    def __str__(self):
+        return self.getIpAddress()
+
+
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
         if self.interface():

@@ -15,7 +15,7 @@
     <tr>
       <td class=tableheader align=left>IP Addresses</td>
       <td class=tablevalues colspan=3>
-          <span tal:repeat="ip here/getIpAddresses" omit-tag="">
+          <span tal:repeat="ip here/getIpAddressObjs" omit-tag="">
             <a class=tablevalues 
                 tal:condition="python:hasattr(ip,'getIpAddress')"
                 tal:content="ip/getIpAddress"

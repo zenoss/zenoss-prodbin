@@ -267,15 +267,15 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
 
 
     def getIpAddress(self):
-        """return the ipaddress with its netmask ie: 1.1.1.1/24"""
+        """Return the first ipaddress with its netmask ie: 1.1.1.1/24"""
         if len(self.ipaddresses()):
             return self.ipaddresses()[0].getIpAddress()
         elif len(self._ipAddresses):
             return self._ipAddresses[0]
 
 
-    def getIpAddresses(self):
-        """get a list of the ips on this interface in the format 1.1.1.1/24"""
+    def getIpAddressObjs(self):
+        """Return a list of the ip objects on this interface."""
         retval=[]
         for ip in self.ipaddresses.objectValuesAll():
             retval.append(ip)
@@ -284,6 +284,11 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         for ip in self._ipAddresses:
             retval.append(ip)
         return retval
+
+
+    def getIpAddresses(self):
+        """Return list of ip addresses as strings in the form 1.1.1.1/24."""
+        return map(str, self.getIpAddressObjs())
 
 
     def getNetwork(self):

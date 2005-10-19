@@ -516,7 +516,7 @@
         tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
       </td>
       <td class="tablevalues">
-          <span tal:repeat="ip intf/getIpAddresses" omit-tag="">
+          <span tal:repeat="ip intf/getIpAddressObjs" omit-tag="">
             <a class=tablevalues 
                 tal:condition="python:hasattr(ip,'getIpAddress')"
                 tal:content="ip/getIpAddress"
