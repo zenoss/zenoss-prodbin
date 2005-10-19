@@ -18,7 +18,7 @@ from OFS.SimpleItem import Item
 
 from Acquisition import aq_base
 
-class PrimaryPathObjectManager(RelCopyContainer, ObjectManager, Item):
+class PrimaryPathObjectManager(ObjectManager, RelCopyContainer, Item):
     """
     ZenRelations adds relationships to Zope's normal containment style data
     system.  Relationships give us a networked data model as opposed to a
