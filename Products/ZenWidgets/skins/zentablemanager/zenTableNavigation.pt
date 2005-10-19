@@ -10,7 +10,7 @@
     &nbsp;&nbsp;
     <span tal:replace="
         structure python:here.ZenTableManager.getTableNavigation(
-                                    tableName, batch)" />
+                                    here, tableName, batch)" />
     &nbsp;&nbsp;
     Not
     <input class="tableheader" type=checkbox name=negateFilter value=1 

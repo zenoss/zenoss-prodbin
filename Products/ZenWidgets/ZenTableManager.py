@@ -195,10 +195,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
         return sort(objects, sortOn)
 
 
-    def getTableNavigation(self, tableName, batch):
+    def getTableNavigation(self, context, tableName, batch):
         """generate the navigation links for bar at bottom of table"""
         tableState = self.getTableState(tableName)
-        url = self.REQUEST.URL
+        url = context.absolute_url_path()
         navbar = "\n"
         if tableState.batchSize==0: return navbar
         if tableState.start != 0 and tableState.totalobjs:
