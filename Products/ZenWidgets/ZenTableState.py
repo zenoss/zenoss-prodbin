@@ -59,20 +59,19 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
-        startReset = 0
         if (request.has_key('tableName') 
             and request['tableName'] == self.tableName):
+            if self.url != request.URL: self.start = 1
             for attname in self.__dict__.keys():
                 if (request.has_key(attname) and 
                     getattr(self,attname) != request[attname]):
                     setattr(self,attname, request[attname])
                     if attname in self.changesThatResetStart: 
-                        startReset = 1
+                        self.start = 1
             if (not request.has_key("negateFilter") 
                 and self.negateFilter):
                 self.negateFilter = 0
-                startReset = 1
-            if startReset: self.start = 0
+                self.start = 1
             if not self.filter:
                 self.negateFilter = 0
 
