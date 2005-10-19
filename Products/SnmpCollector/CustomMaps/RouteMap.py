@@ -28,7 +28,7 @@ class RouteMap(CustomRelMap):
              #'.4': 'metric2',
              #'.5': 'metric3',
              #'.6': 'metric4',
-             '.7': 'setNextHop',
+             '.7': 'setNextHopIp',
              '.8': 'routetype',
              '.9': 'routeproto',
              #'.10' : 'routeage',

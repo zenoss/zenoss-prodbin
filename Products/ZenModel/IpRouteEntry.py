@@ -45,7 +45,7 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
     _properties = (
         {'id':'routemask', 'type':'string', 'mode':''},
         {'id':'nexthopip', 'type':'string', 
-            'mode':'', 'setter':'setNextHop'},
+            'mode':'', 'setter':'setNextHopIp'},
         {'id':'routeproto', 'type':'string', 'mode':''},
         {'id':'routeage', 'type':'string', 'mode':''},
         {'id':'routetype', 'type':'string', 'mode':''},
@@ -113,8 +113,8 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
         return "No Interface"
 
        
-    security.declareProtected('Change Device', 'setNextHop')
-    def setNextHop(self, nextHopIp):
+    security.declareProtected('Change Device', 'setNextHopIp')
+    def setNextHopIp(self, nextHopIp):
         """if the nexthop is a 127. or 0. address store locally
         else link to it in the network hierarchy"""
         if self.ipcheck(nextHopIp) or not nextHopIp:
