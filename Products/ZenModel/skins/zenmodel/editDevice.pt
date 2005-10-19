@@ -1,8 +1,8 @@
 <span tal:replace="structure here/standard_html_header"/>
 <script metal:use-macro="here/miscmacros/macros/getProducts"></script>
 <span metal:use-macro="here/top/macros/header" />
-<form method=post tal:attributes="action request/URL1"
-    tal:define="myurl string:${request/URL1}/editDevice">
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
 <br />

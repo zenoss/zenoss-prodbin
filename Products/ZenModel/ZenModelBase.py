@@ -91,40 +91,23 @@ class ZenModelBase:
     
     
     security.declareProtected('View', 'confmonTabs')
-    def confmonTabs(self):
+    def zentinelTabs(self, templateName):
         '''return a list of hashs that define the screen tabs for this object'''
-        typeInfo = self.getTypeInfo()
-        #FIXME maybe we should fix this broke when we went to CMF-1.5.x
-        #if typeInfo:
-        if 0:
-            actions = copy.deepcopy(typeInfo.getActions())
-        else:
-            actions = copy.deepcopy(self.factory_type_information[0]['actions'])
         tabs = []
         secman = getSecurityManager()
         urlbase = self.getPrimaryUrlPath()
+        actions = self.factory_type_information[0]['actions']
         for a in actions:
             perm = a['permissions'][0] #just check first in list
-            if ((a.has_key('visible') and not a['visible']) or
+            if (not a.get('visible', True) or
                 not secman.checkPermission(perm, self)):
                 continue
-            tabs.append(a) 
-        return self.selectedTab(tabs, self.REQUEST['URL'])
+            a = a.copy()
+            if a['action'] == templateName: a['selected'] = True
+            tabs.append(a)
+        return tabs
 
     
-    def selectedTab(self, tabs, url):
-        """figure out which tab is currently selected if non have been clicked
-        set first tab to selected"""
-        for tab in tabs:
-            if url.find(tab['action']) > 0:
-                tab['selected'] = 1
-                break
-        else:
-            tabs[0]['selected'] = 1
-        return tabs
-        
-
-        
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())

@@ -64,7 +64,8 @@ class ZenPropertyManager(PropertyManager):
             if 'w' in prop.get('mode', 'wd'):
                 value=REQUEST.get(name, '')
                 self._updateProperty(name, value)
-        self.index_object()
+        if getattr(self, "index_object", False):
+            self.index_object()
         if REQUEST:
             message="Saved changes."
             return self.manage_propertiesForm(self,REQUEST,

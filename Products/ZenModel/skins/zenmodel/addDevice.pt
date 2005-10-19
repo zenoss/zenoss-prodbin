@@ -10,8 +10,13 @@
                                     and here or None"
     >
     <tr><th class=tabletitle colspan=4 align="center">
-        <a class=tabletitle
-            tal:attributes="href request/URL">Device Loader</a></th></tr>
+            <a class=tabletitle
+                tal:attributes="
+                    href string:${here/absolute_url_path}/${template/id}">
+                    Device Loader
+            </a>
+        </th>
+    </tr>
     <tr>
         <td class="tableheader" align="left">Device Name</td>
         <td class="tablevalues" align="left">
@@ -148,7 +153,7 @@
             <select class="tablevalues" name="locationPath"
             tal:define="
             locs python:here.getDmdRoot('Locations').getOrganizerNames(True);
-            curloc device/getLocationName | request/locationPath | nothing"
+            curloc request/locationPath | device/getLocationName | nothing"
             >
                 <option tal:repeat="loc locs" 
                     tal:attributes="value loc;selected python:loc==curloc"
@@ -161,7 +166,7 @@
         <td class="tablevalues" align="left" colspan="3">
             <input class="tablevalues" type="text" 
                 size="40" name="newLocationPath" />
-            <input class="tableheader" type="submit" name="setLocation:method"
+            <input class="tableheader" type="submit" name="addLocation:method"
               value="Add" />
         </td>
     </tr>

@@ -1,7 +1,7 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span metal:define-macro="header"
-    tal:define="global ctabs here/confmonTabs;
-    global numbcols python:len(ctabs)">
+    tal:define="global ztabs python:here.zentinelTabs(template.id);
+                global numbcols python:len(ztabs)">
     <table border=0 cellpadding=3 cellspacing=0 
         width="100%" bgcolor="#FFFFFF">
     <tr>
@@ -19,8 +19,7 @@
     <table border=0 cellpadding=3 cellspacing=1 align="center" 
         width="100%" bgcolor="#FFFFFF" metal:define-macro="buttons">
         <tr>
-            <td class="tabletitle" align="center"
-                tal:repeat="tab ctabs"
+            <td class="tabletitle" align="center" tal:repeat="tab ztabs"
                 tal:attributes="
                     class python:tab.get('selected', None) and 
                             'tabletitleselected' or 'tabletitle'">

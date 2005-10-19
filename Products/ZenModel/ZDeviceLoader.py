@@ -119,7 +119,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
 
     security.declareProtected('Change Device', 'setLocation')
-    def setLocation(self, newLocationPath, REQUEST=None):
+    def addLocation(self, newLocationPath, REQUEST=None):
         """add a location to the database"""
         self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         if REQUEST:

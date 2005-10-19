@@ -508,16 +508,17 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     security.declareProtected('Change Device', 'setLocation')
     def setLocation(self, locationPath, REQUEST=None):
         """set the location of a device within a generic location path"""
-        locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
+        locobj = self.getDmdRoot("Locations").getOrganizer(locationPath)
         self.addRelation("location", locobj)
-        if REQUEST:
-            REQUEST['message'] = "Set Location %s at time:" % locationPath
-            return self.callZenScreen(REQUEST)
 
 
     def addLocation(self, newLocationPath, REQUEST=None):
         """Add a new location and relate it to this device"""
-        return self.setLocation(newLocationPath, REQUEST)
+        locobj = self.getDmdRoot("Locations").createOrganizer(newLocationPath)
+        if REQUEST:
+            REQUEST['locationPath'] = newLocationPath
+            REQUEST['message'] = "Added Location %s at time:" % newLocationPath
+            return self.callZenScreen(REQUEST)
    
 
     security.declareProtected('Change Device', 'setCricketMonitor')
