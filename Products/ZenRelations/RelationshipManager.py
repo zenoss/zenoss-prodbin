@@ -127,7 +127,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             if not schema.checkType(object):
                 raise ZenSchemaError("Relaitonship %s type %s != %s" %
                             (id, object.meta_type, schema.__class__.__name__))
-        PrimaryPathObjectManager._setObject(self, id, object, roles, 
+        return PrimaryPathObjectManager._setObject(self, id, object, roles, 
                                             user, set_owner)                
 
 

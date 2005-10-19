@@ -108,6 +108,16 @@ class RelationshipManagerTest(RMBaseTest):
         self.failUnless(dev.lookupSchema("admin").remoteName == "server")
 
 
+    def testSetObjectRM(self):
+        """Make sure that _setObject returns id and sets object correctlly"""
+        dev = self.build(self.app.dataroot, Server, "dev")
+        from OFS.Folder import Folder
+        folder = Folder("folder")
+        id = dev._setObject("folder", folder)
+        self.assert_(id == "folder")
+        self.assert_(dev._getOb(id) == folder)
+
+        
     def testGetProperties(self):
         pass
 
