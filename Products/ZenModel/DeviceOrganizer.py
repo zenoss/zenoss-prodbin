@@ -31,8 +31,20 @@ class DeviceOrganizer(Organizer):
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devices())
         for subgroup in self.children():
-            devices.extend(subgroup.getSubDevices(devfilter))
+            devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
+
+
+    def getSubDevicesGen(self, devrel="devices"):
+        """get all the devices under and instance of a DeviceGroup"""
+        devices = getattr(self, devrel, None)
+        if not devices: 
+            raise AttributeError, "%s not found on %s" % (devrel, self.id)
+        for dev in devices.objectValuesGen():
+            yield dev
+        for subgroup in self.children():
+            for dev in subgroup.getSubDevicesGen(devrel):
+                yield dev
 
 
     def getAllCounts(self, devrel="devices"):

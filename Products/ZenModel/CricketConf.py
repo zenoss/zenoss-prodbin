@@ -44,6 +44,7 @@ from Products.ZenModel.StatusColor import StatusColor
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
+from ZenDate import ZenDate
 
 def manage_addCricketConf(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -187,35 +188,10 @@ class CricketConf(Monitor, StatusColor):
         return self.cricketroot
 
 
-    security.declareProtected('View','cricketGenerate')
-    def cricketGenerate(self, devicename=None):
-        """generate the data needed to build cricket config files"""
-        cricketData = []
-        if devicename:
-            devs = self.devices.findObjectsById(devicename)
-            if len(devs) > 0:
-                for device in devs: 
-                    cd = device.cricketGenerate()
-                    if cd: 
-                        cricketData.extend(cd)
-                        transaction.commit()
-        else:
-            for device in self.devices():
-                device._p_jar.sync()
-                statusmon = device.monitors()
-                if len(statusmon) > 0: 
-                    statusmon = statusmon[0]
-                    if statusmon.maxFailures <= device.getSnmpStatusNumber():
-                        continue
-                try:
-                    cd = device.cricketGenerate()
-                    if cd: 
-                        cricketData.extend(cd)
-                        transaction.commit()
-                except ZentinelException:
-                    logging.exception(
-                        "problem with cricketGen on device %s", devic.id)
-        return cricketData
-    
-    
+    security.declareProtected('View','cricketDeviceList')
+    def cricketDeviceList(self):
+        """Return a list of urls that point to our managed devices"""
+        return [ dev.getPrimaryUrlPath(full=True) for dev in self.devices() ]
+            
+
 InitializeClass(CricketConf)

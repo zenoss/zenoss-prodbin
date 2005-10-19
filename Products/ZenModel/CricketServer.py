@@ -26,11 +26,12 @@ from Device import Device
 class CricketServer:
 
 
-    def cricketGenerate(self):
+    def cricketGenerate(self, force=False):
         """build the cricket config for the entire device"""
-        cd = Device.cricketGenerate(self)
-        self.addTargetData(cd, self.cricketFilesystems())
-        self.addTargetData(cd, self.cricketDisks())
+        cd = Device.cricketGenerate(self, force)
+        if cd:
+            self.addTargetData(cd, self.cricketFilesystems())
+            self.addTargetData(cd, self.cricketDisks())
         return cd
       
 

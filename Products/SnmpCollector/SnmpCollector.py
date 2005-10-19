@@ -31,6 +31,7 @@ from Products.ZenUtils.Utils import getObjByPath
 from SnmpSession import SnmpSession
 from pysnmp.error import PySnmpError
 
+zenmarker = "__ZENMARKER__"
 
 def findSnmpCommunity(context, name, community=None, port=None):
     """look for snmp community based on list we get through aq"""
@@ -59,46 +60,37 @@ class SnmpCollector(ZCmdBase):
         self._customMaps = []
         import CustomMaps
         CustomMaps.initCustomMaps(self)
-        
 
 
     def collectDevices(self, deviceRoot):
         """collect snmp data and set it in objects based on roots""" 
-        for device in deviceRoot.getSubDevices():
-            try:
-                self.collectDevice(device)
-            except (SystemExit, KeyboardInterrupt): raise
-            except:  
-                self.log.exception(
-                    "Failure collecting device %s" % device.getId())
+        for device in deviceRoot.getSubDevicesGen():
+            self.collectDevice(device)
 
                     
     def collectDevice(self, device):
         self.log.info('Collecting device %s' % device.id)
-        age = device.getSnmpLastCollection()+(
-                        self.options.collectAge/1440.0)
-        if device.getSnmpStatusNumber() <= 0 and age <= DateTime():
-            try:
-                snmpsess = SnmpSession(device.id, 
-                                community = device.zSnmpCommunity,
-                                port = device.zSnmpPort)
-                if self.testSnmpConnection(snmpsess):
-                    if device._p_jar: device._p_jar.sync() 
-                    self._collectCustomMaps(device, snmpsess)
-                    device.setSnmpLastCollection()
-                    trans = transaction.get()
-                    trans.note("Automated data collection by SnmpCollector.py")
-                    trans.commit()
-                else:
-                    self.log.warn(
-                        "no valid snmp connection to %s" 
-                            % device.getId())
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception('Error collecting data from %s' 
-                                    % device.id)
-        else:
+        age = device.getSnmpLastCollection()+(self.options.collectAge/1440.0)
+        if device.getSnmpStatusNumber() > 0 and age >= DateTime():
             self.log.info("skipped collection of %s" % device.getId())
+            return
+        try:
+            snmpsess = SnmpSession(device.id, 
+                            community = device.zSnmpCommunity,
+                            port = device.zSnmpPort)
+            if self.testSnmpConnection(snmpsess):
+                if device._p_jar: device._p_jar.sync() 
+                if self._collectCustomMaps(device, snmpsess):
+                    device.setLastChange()
+                device.setSnmpLastCollection()
+                trans = transaction.get()
+                trans.note("Automated data collection by SnmpCollector.py")
+                trans.commit()
+            else:
+                self.log.warn("no valid snmp connection to %s", device.id)
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.exception('Error collecting data from %s', device.id)
 
 
     def testSnmpConnection(self, snmpsess):
@@ -108,8 +100,8 @@ class SnmpCollector(ZCmdBase):
         except SystemExit: raise
         except PySnmpError, msg:
             self.log.debug(msg)
-            return None
-        return 1
+            return False
+        return True
 
 
     def addCustomMap(self, collector):
@@ -120,9 +112,9 @@ class SnmpCollector(ZCmdBase):
 
     def _collectCustomMaps(self, device, snmpsess):
         """run through custom snmp collectors"""
+        changed = False
         for custmap in self._customMaps:
-            if self._passCustMap(device, custmap):
-                continue
+            if self._passCustMap(device, custmap): continue
             if custmap.condition(device, snmpsess, self.log):
                 datamap = None
                 try:
@@ -130,17 +122,19 @@ class SnmpCollector(ZCmdBase):
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("problem collecting snmp")
-                if datamap:
-                    try:
-                        if hasattr(custmap, 'relationshipName'):
-                            self._updateRelationship(device, datamap, custmap)
-                        else:
-                            self._updateObject(device, datamap)
-                    except (SystemExit, KeyboardInterrupt): raise
-                    except:
-                        self.log.exception("ERROR: implementing datamap %s"
-                                                % datamap)
-   
+                if not datamap: continue
+                try:
+                    if hasattr(custmap, 'relationshipName'):
+                        if self._updateRelationship(device, datamap, custmap):
+                            changed = True
+                    else:
+                        if self._updateObject(device, datamap):
+                            changed = True
+                except (SystemExit, KeyboardInterrupt): raise
+                except:
+                    self.log.exception("ERROR: implementing datamap %s",datamap)
+        return changed               
+
 
     def _passCustMap(self, device, custmap):
         """check to see if we should use this map"""
@@ -165,49 +159,59 @@ class SnmpCollector(ZCmdBase):
 
     def _updateRelationship(self, device, datamaps, snmpmap):
         """populate the relationship with collected data"""
+        changed = False
         rel = getattr(device, snmpmap.relationshipName, None)
-        if rel:
-            relids = rel.objectIdsAll()
-            for datamap in datamaps:
-                if datamap.has_key('id'):
-                    if datamap['id'] in relids:
-                        self._updateObject(rel._getOb(datamap['id']), datamap)
-                        relids.remove(datamap['id'])
-                    else:
-                        self._createRelObject(device, snmpmap, datamap)
-                else:
-                    self.log.warn("ignoring datamap no id found")
-            for id in relids:
-                rel._delObject(id)
-        else:
+        if not rel:
             self.log.warn("No relationship %s found on %s" % 
                                 (snmpmap.relationshipName, device.id))
-
-
+            return changed 
+        relids = rel.objectIdsAll()
+        for datamap in datamaps:
+            if not datamap.has_key('id'):
+                self.log.warn("ignoring datamap no id found")
+                continue
+            if datamap['id'] in relids:
+                if self._updateObject(rel._getOb(datamap['id']), datamap):
+                    changed = True
+                relids.remove(datamap['id'])
+            else:
+                self._createRelObject(device, snmpmap, datamap)
+                changed = True
+        for id in relids:
+            rel._delObject(id)
+            changed = True
+            self.log.info("Removing object %s from relation %s on obj %s",
+                            id, rel.id, device.id)
+        return changed
 
 
     def _updateObject(self, obj, datamap):
         """update an object using a datamap"""
         for attname, value in datamap.items():
-            if attname[0] == '_': continue
-            if hasattr(aq_base(obj), attname):
-                try:
-                    att = getattr(obj, attname)
-                    if callable(att):
-                        att(value)
-                    else:
-                        if att != value:
-                                setattr(aq_base(obj), attname, value) 
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
-                    self.log.exception("ERROR: setting attribute %s"
-                                            % attname)
-                self.log.debug("   Set attribute %s to %s on object %s" 
-                                % (attname, value, obj.id))
-            else:
-                self.log.warn('attribute %s not found on object %s' 
-                                % (attname, obj.id))
-        obj.index_object() #FIXME do we really need this?
+            if attname.startswith("_"): continue
+            att = getattr(aq_base(obj), attname, zenmarker)
+            if att == zenmarker:
+                self.log.warn('attribute %s not found on object %s', 
+                              attname, obj.id)
+                continue
+            if callable(att): 
+                setter = getattr(obj, attname)
+                getter = getattr(obj, attname.replace("set","get"), "")
+                if getter and value != getter():
+                    setter(value)
+                    self.log.debug(
+                        "   Calling function '%s' with '%s'on object %s", 
+                        attname, value, obj.id)
+            elif att != value:
+                setattr(aq_base(obj), attname, value) 
+                self.log.debug("   Set attribute %s to %s on object %s",
+                               attname, value, obj.id)
+        try: changed = obj._p_changed
+        except: changed = False
+        if getattr(aq_base(obj), "index_object", False) and changed:
+            obj.index_object() 
+        if not changed: obj._p_deactivate()
+        return changed
         
 
     def _createRelObject(self, device, snmpmap, datamap):
@@ -233,7 +237,7 @@ class SnmpCollector(ZCmdBase):
                  % (snmpmap.relationshipName, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         self._updateObject(remoteObj, datamap)
-        self.log.debug("   Added object %s to relationship %s" 
+        self.log.info("   Added object %s to relationship %s" 
             % (remoteObj.id, snmpmap.relationshipName))
    
 
@@ -294,7 +298,7 @@ class SnmpCollector(ZCmdBase):
                 print "unable to locate device %s" % self.options.device
                 sys.exit(1)
             self.collectDevice(device)
-        if self.options.path:
+        elif self.options.path:
             droot = self.dmd.getDmdRoot("Devices").getOrganizer(
                                                     self.options.path)
             if not droot:

@@ -66,10 +66,12 @@ class PrimaryPathObjectManager(ObjectManager, RelCopyContainer, Item):
         return pid
 
 
-    def getPrimaryUrlPath(self):
+    def getPrimaryUrlPath(self, full=False):
         """Return the primary path as an absolute url"""
         objaq = self.primaryAq()
+        if full: return objaq.absolute_url()
         return objaq.absolute_url_path()
+        
 
 
     def primaryAq(self):

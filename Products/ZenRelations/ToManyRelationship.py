@@ -147,6 +147,12 @@ class ToManyRelationship(ToManyRelationshipBase):
         return [ob.__of__(self) for ob in self._objects]
 
 
+    def objectValuesGen(self):
+        """Generator that returns all related objects."""
+        for obj in self._objects:
+            yield obj.__of__(self)
+
+
     def objectValues(self, spec=None):
         """
         ToManyRelationship doesn't publish objectValues to prevent 

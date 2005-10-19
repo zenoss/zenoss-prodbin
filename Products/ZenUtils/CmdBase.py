@@ -46,12 +46,11 @@ class CmdBase:
 
     def setLoggingStream(self, stream):
         from logging import StreamHandler, Formatter
-        root = logging.getLogger()
+        self.log = logging.getLogger(self.__class__.__name__)
         hdlr = StreamHandler(stream)
         fmt = Formatter(logging.BASIC_FORMAT)
         hdlr.setFormatter(fmt)
-        root.addHandler(hdlr)
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.addHandler(hdlr)
         self.log.setLevel(self.options.logseverity)
 
 

@@ -47,7 +47,7 @@ def findIpAddress(context, ip):
         raise IpAddressConflict, "IP address conflict for IP: %s" % ip
     if ret:
         ipobj = getObjByPath(searchCatalog.getPhysicalRoot(), 
-                            ret[0].getPrimaryUrlPath) 
+                            ret[0].getPrimaryId) 
         return ipobj
 
 

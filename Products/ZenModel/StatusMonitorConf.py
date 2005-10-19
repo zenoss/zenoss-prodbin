@@ -200,14 +200,12 @@ class StatusMonitorConf(Monitor, StatusColor):
          monitor configuration'''
         self.setPingHeartbeat()
         devices = []
-        #servurl = self.REQUEST['SERVER_URL']
         for dev in self.devices.objectValuesAll():
             try:
-                dev = dev.primaryAq()
-                url = dev.absolute_url()
                 if dev.productionState >= self.prodStateThreshold:
+                    dev = dev.primaryAq()
                     devices.append(( 
-                        dev.id, None, url,
+                        dev.id, None, dev.absolute_url()
                         dev.getPingStatusNumber()))
                     devices += self.getExtraPingInterfaces(dev)
             except:
@@ -220,7 +218,6 @@ class StatusMonitorConf(Monitor, StatusColor):
     def getExtraPingInterfaces(self, dev):
         """collect other interfaces to ping based on 
         aquired value pingInterfaceSpecifications"""
-        dev = dev.primaryAq()
         intDescr = getattr(dev, 'zPingInterfaceDescription', None)
         intName = getattr(dev, 'zPingInterfaceName', None)
         catalog = getattr(dev, 'interfaceSearch', None)

@@ -157,6 +157,12 @@ class ToManyContRelationship(ToManyRelationshipBase):
     objectValuesAll = objectValues
 
 
+    def objectValuesGen(self):
+        """Generator that returns all related objects."""
+        for obj in self._objects.values():
+            yield obj.__of__(self)
+
+
     def objectItems(self, spec=None):
         """over ride to only return owned objects for many to many rel"""
         if spec:

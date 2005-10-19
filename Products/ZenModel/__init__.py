@@ -52,7 +52,6 @@ productNames = (
     "IpServiceClass",
     "ServiceClass",
     "Location",
-    "NetworkClass",
     "IpNetwork",
     "IpAddress",
     "IpRouteEntry",

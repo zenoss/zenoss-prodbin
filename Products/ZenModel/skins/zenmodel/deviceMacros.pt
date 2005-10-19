@@ -9,10 +9,29 @@
       <td class=statusvalues bgcolor=#00ff00
         tal:attributes="bgcolor python: here.getPingStatusColor()"
         tal:content="here/getPingStatus">0</td>
+      <td class=tableheader align=left>Events</td>
+      <td class=tablevalues align=left>
+        <table border=0 cellpadding=0 width=100% align=center 
+            bgcolor=#ffffff cellspacing=1>
+          <tr>
+            <td class=statusvalues align=center bgcolor=_ width=16%
+            tal:on-error="structure string:
+                <span style='color: white;'>Events unavailable</span>"
+            tal:repeat="evt python:here.netcool.getDeviceEventSummary(here.id)"
+            tal:attributes="bgcolor python:evt[1]">
+                <span tal:replace="python:evt[0]">evtcnt</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
       <td class=tableheader align=left>SNMP</td>
       <td class=statusvalues bgcolor=#00ff00
         tal:attributes="bgcolor python: here.getSnmpStatusColor()"
         tal:content="here/getSnmpStatus">0</td>
+        <th class="tableheader" align="left">Last Change</th>
+        <td class="tablevalues" tal:content="here/getLastChangeString"/>
     </tr>
     <tr>
       <td class=tableheader align=left>Uptime</td>
@@ -26,20 +45,8 @@
         tal:content="python:here.convertProdState(here.productionState)">
         device state
       </td>
-      <td class=tableheader align=left>Events</td>
-      <td class=tablevalues align=left>
-    <table border=0 cellpadding=0 width=100% align=center 
-        bgcolor=#ffffff cellspacing=1>
-      <tr>
-      <td class=statusvalues align=center bgcolor=_ width=16%
-        tal:on-error="structure string:
-            <span style='color: white;'>Events unavailable</span>"
-        tal:repeat="evt python:here.netcool.getDeviceEventSummary(here.id)"
-        tal:attributes="bgcolor python:evt[1]">
-            <span tal:replace="python:evt[0]">evtcnt</span></td>
-      </tr>
-    </table>
-      </td>
+      <th class=tableheader align=left>First Seen</th>
+      <td class="tablevalues" tal:content="here/getCreatedTimeString" />
     </tr>
 </table>
 
@@ -68,23 +75,6 @@
           sysName
       </span>
       </td>
-    </tr>
-    <tr>
-        <th class=tableheader align=left>
-            Creation Time
-        </th>
-        <td class="tablevalues"
-            tal:content="here/getCreatedTimeString">
-            creation time
-        </td>
-
-        <th class="tableheader" align="left">
-            Last Modification
-        </th>
-        <td class="tablevalues"
-            tal:content="here/getModificationTimeString">
-            mod time
-        </td>
     </tr>
 </table>
 

@@ -246,6 +246,8 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         self.comments = ""
         self.snmpPort = 161
         self._snmpLastCollection = ZenDate('1968/1/8')
+        self._lastChange = ZenDate('1968/1/8')
+        self._lastCricketGenerate = ZenDate('1968/1/8')
         self.cpuType = ""
         self.totalMemory = 0.0
         self._cricketTargetMap = {}
@@ -353,12 +355,32 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         return ''
 
 
-    security.declareProtected('View', 'getLastSnmpCollection')
+    security.declareProtected('View', 'getLastChange')
+    def getLastChange(self):
+        return self._lastChange.getDate()
+
+    
+    security.declareProtected('View', 'getLastChangeString')
+    def getLastChangeString(self):
+        return self._lastChange.getString()
+
+
+    security.declareProtected('View', 'getLastChange')
+    def getLastCricketGenerate(self):
+        return self._lastCricketGenerate.getDate()
+
+    
+    security.declareProtected('View', 'getLastChangeString')
+    def getLastCricketGenerateString(self):
+        return self._lastCricketGenerate.getString()
+
+
+    security.declareProtected('View', 'getSnmpLastCollection')
     def getSnmpLastCollection(self):
         return self._snmpLastCollection.getDate()
 
     
-    security.declareProtected('View', 'getLastSnmpCollectionString')
+    security.declareProtected('View', 'getSnmpLastCollectionString')
     def getSnmpLastCollectionString(self):
         return self._snmpLastCollection.getString()
 
@@ -474,6 +496,16 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     security.declareProtected('Change Device', 'setProdState')
     def setProdState(self, state):
         self.productionState = int(state)
+
+
+    security.declareProtected('Change Device', 'setLastChange')
+    def setLastChange(self, value=None):
+        self._lastChange.setDate(value)
+
+
+    security.declareProtected('Change Device', 'setLastCricketGenerate')
+    def setLastCricketGenerate(self, value=None):
+        self._lastCricketGenerate.setDate(value)
 
 
     security.declareProtected('Change Device', 'setSnmpLastCollection')
@@ -638,6 +670,15 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     def getSnmpStatusColor(self):
         '''get the device's snmp status color'''
         return self._snmpStatus.color()
+
+
+    def pastSnmpMaxFailures(self):
+        """Device has more SNMP failures than maxFailures on its status mon."""
+        statusmon = self.monitors()
+        if len(statusmon) > 0: 
+            statusmon = statusmon[0]
+            return statusmon.maxFailures < self.getSnmpStatusNumber()
+        return False
 
 
     def _getDeviceName(self):

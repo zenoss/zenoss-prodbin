@@ -131,6 +131,10 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
         self.addRelation('interface', interface)
 
 
+    def getInterface(self):
+        return self.interface()
+
+
     security.declareProtected('View', 'getDevice')
     def getDevice(self):
         """get a routes device for DeviceResultInt"""
