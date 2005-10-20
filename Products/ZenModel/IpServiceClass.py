@@ -88,7 +88,7 @@ class IpServiceClass(ServiceClass, ZenModelRM):
         {'id':'contact', 'type':'string', 'mode':'w'},
         ) 
     _relations = ServiceClass._relations + (
-        ("ipservices", ToManyCont(ToOne, "IpService", "ipserviceclass")),
+        ("ipservices", ToMany(ToOne, "IpService", "ipserviceclass")),
         )
 
     # Screen action bindings (and tab definitions)

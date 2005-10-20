@@ -51,7 +51,7 @@ class IpService(Service, DeviceResultInt):
         ) 
     _relations = (
         ("server", ToOne(ToManyCont,"Device","ipservices")),
-        ("ipserviceclass", ToOne(ToManyCont,"IpServiceClass","ipservices")),
+        ("ipserviceclass", ToOne(ToMany,"IpServiceClass","ipservices")),
         ("clients", ToMany(ToMany,"Device","clientofservices")),
         )
 
