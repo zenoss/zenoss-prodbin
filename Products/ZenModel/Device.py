@@ -237,6 +237,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         self.snmpDescr = ""
         self.snmpOid = ""
         self._snmpUpTime = ZenStatus(-1)
+        self._lastPollSnmpUpTime = ZenStatus(0)
         self.snmpContact = ""
         self.snmpSysName = ""
         self.snmpLocation = ""
@@ -263,6 +264,8 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
             return self._snmpStatus.getStatus()
         elif name == 'snmpUpTime':
             return self._snmpUpTime.getStatus()
+        elif name == 'lastPollSnmpUpTime':
+            return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
             return self._snmpLastCollection.getDate()
         else:
@@ -725,6 +728,18 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     def setSnmpUpTime(self, value):
         """set the value of the snmpUpTime status object"""
         self._snmpUpTime.setStatus(value)
+
+
+    security.declareProtected('Manage Device Status', 'setSnmpUpTime')
+    def getLastPollSnmpUpTime(self):
+        """set the value of the snmpUpTime status object"""
+        return self._lastPollSnmpUpTime.getStatus()
+
+
+    security.declareProtected('Manage Device Status', 'setSnmpUpTime')
+    def setLastPollSnmpUpTime(self, value):
+        """set the value of the snmpUpTime status object"""
+        self._lastPollSnmpUpTime.setStatus(value)
 
 
     def snmpAgeCheck(self, hours):

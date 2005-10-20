@@ -28,7 +28,7 @@ from Products.ZenRelations.utils import importClass
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getObjByPath
 
-from SnmpSession import SnmpSession
+from SnmpSession import SnmpSession, ZenSnmpError
 from pysnmp.error import PySnmpError
 
 zenmarker = "__ZENMARKER__"
@@ -80,9 +80,13 @@ class SnmpCollector(ZCmdBase):
                             port = device.zSnmpPort)
             if self.testSnmpConnection(snmpsess):
                 if device._p_jar: device._p_jar.sync() 
-                if self._checkForCiscoChange():
+                if self._checkForCiscoChange(device, snmpsess):
                     if self._collectCustomMaps(device, snmpsess):
                         device.setLastChange()
+                    try:
+                        uptime = snmpsess.get('.1.3.6.1.2.1.1.3.0').values()[0]
+                        device.setLastPollSnmpUpTime(uptime)
+                    except (ZenSnmpError, PySnmpError): pass
                     device.setSnmpLastCollection()
                     trans = transaction.get()
                     trans.note("Automated data collection by SnmpCollector.py")
@@ -101,22 +105,19 @@ class SnmpCollector(ZCmdBase):
         """test to see if snmp connection is ok"""
         try:
             data = snmpsess.get('.1.3.6.1.2.1.1.2.0')
-        except PySnmpError, msg:
-            self.log.debug(msg)
+        except (ZenSnmpError, PySnmpError):
             return False
         return True
 
 
-    def self._checkForCiscoChange(self, device, snmpsess):
+    def _checkForCiscoChange(self, device, snmpsess):
         """Check to see if the running config changed since last poll."""
         changed = True
-        lastpolluptime = getattr(aq_base(device), "lastpolluptime", 0)
+        lastpolluptime = device.getLastPollSnmpUpTime()
         try:
             lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
             if lastchange < lastpolluptime: changed = False
-            device.lastpolluptime = snmpsess.get(
-                                    '.1.3.6.1.2.1.1.3.0').values()[0]
-        except PySnmpError: pass
+        except (ZenSnmpError, PySnmpError): pass
         return changed
 
 

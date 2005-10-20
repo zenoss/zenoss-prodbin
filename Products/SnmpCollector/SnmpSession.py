@@ -15,20 +15,21 @@ __version__ = "$Revision: 1.16 $"[11:-2]
 import copy
 from struct import unpack
 
-#from pysnmp import asn1, v1, v2c
-#from pysnmp import role, asynrole
-#from pysnmp.compat.pysnmp2x import asn1, v1, v2c, role
 from pysnmp.compat.pysnmp2x import asn1, v1
 from pysnmp.proto import v2c
 from pysnmp.mapping.udp import role
 from pysnmp.proto.api import alpha
+
+from Products.ZenUtils.Exceptions import ZentinelException
+
+class ZenSnmpError(ZentinelException): pass
 
 class SnmpSession:
 
     def __init__(self, host, community='public', port=161,
                  version=1, timeout=2, retries=2, callback=None):
         if version != 1 and version != 2:
-            raise "SNMPVersionError", ('Unsupported SNMP protocol version: %s' 
+            raise ZenSnmpError('Unsupported SNMP protocol version: %s' 
                                         % (version,))
         self.community = community
         if version == 2:
@@ -248,7 +249,7 @@ class SnmpSession:
             rsp.decode(answer)
             # Make sure response matches request
             if not req.match(rsp):
-                raise 'Unmatched response: %s vs %s' % (req, rsp)
+                raise ZenSnmpError('Unmatched response: %s vs %s' % (req, rsp))
             # Fetch Object ID's and associated values
             oids = map(lambda x: x['name'].get(), \
                        rsp['pdu'].values()[0]['variable_bindings'])
@@ -256,8 +257,8 @@ class SnmpSession:
                        rsp['pdu'].values()[0]['variable_bindings'])
             # Check for remote SNMP agent failure
             if rsp['pdu'].values()[0]['error_status']:
-                raise str(rsp['pdu'].values()[0]['error_status']) + ' at '\
-                      + str(oids[rsp['pdu'].values()[0]['error_index'].get()-1])
+                raise ZenSnmpError(str(rsp['pdu'].values()[0]['error_status'])+
+                ' at '+str(oids[rsp['pdu'].values()[0]['error_index'].get()-1]))
             # The following is taken from RFC1905 
             # (fixed not to depend of repetitions)
             N = 0;
@@ -297,12 +298,12 @@ class SnmpSession:
         (answer, src) = self.client.send_and_receive(myreq)    
         rsp.decode(answer)
         if req != rsp:
-            raise 'Unmatched response: %s vs %s' % (str(req), str(rsp))
-        #if rsp['error_status'] and rsp['error_status'] != 2:
+            raise ZenSnmpError('Unmatched response: %s vs %s' % 
+                                (str(req), str(rsp)))
         if rsp['error_status']:
-            raise "SNMPError", 'SNMP error #' + str(rsp['error_status']) + ' for OID #' \
-                  + str(rsp['error_index'])
-        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode, \
+            raise ZenSnmpError('SNMP error #' + str(rsp['error_status']) + 
+                    ' for OID #' + str(rsp['error_index']))
+        oids = map(lambda x: x[0], map(asn1.OBJECTID().decode,
                                        rsp['encoded_oids']))
         vals = map(lambda x: x[0](), map(asn1.decode, rsp['encoded_vals']))
         return (oids, vals, rsp)
