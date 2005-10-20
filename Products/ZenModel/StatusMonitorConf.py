@@ -205,7 +205,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                 if dev.productionState >= self.prodStateThreshold:
                     dev = dev.primaryAq()
                     devices.append(( 
-                        dev.id, None, dev.absolute_url()
+                        dev.id, None, dev.absolute_url(),
                         dev.getPingStatusNumber()))
                     devices += self.getExtraPingInterfaces(dev)
             except:
