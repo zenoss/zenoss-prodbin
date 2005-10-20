@@ -61,24 +61,4 @@
     </tr>
 </table>
 <br />
-<table border="0" cellpadding="3" width="100%" cellspacing="1">
-    <tr>
-      <th class="tabletitlel" colspan="3">Networks</th>
-    </tr>
-    <tr>
-        <th class="tableheader">Network</th>
-        <th class="tableheader">IPs Used</th>
-        <th class="tableheader">IPs Seen</th>
-    </tr>
-    <tr tal:repeat="net python:here.getDmdRoot('Networks').children()">
-        <td class="tablevalues">
-            <a tal:attributes="href net/getPrimaryUrlPath"
-                tal:content="net/getNetworkName">System</a>
-        </td>
-        <td class="tablevalues" align="center"
-            tal:content="python:net.countIpAddresses(inuse=True)">5</td>
-        <td class="tablevalues" align="center"
-            tal:content="net/countIpAddresses">5</td>
-    </tr>
-</table>
 <span tal:replace="structure here/standard_html_footer"/>
