@@ -59,7 +59,6 @@ class IpServiceMap(CustomRelMap):
             serv['setProtocol'] = 'tcp'
             serv['discoveryAgent'] = 'IpServiceMap-' + __version__
             datamaps.append(serv)
-            log.debug('Adding TCP Service %s %s' % (addr, port))
 
         #udp services
         udptable = snmpsess.getTable(self.connUdpOid)
@@ -76,7 +75,6 @@ class IpServiceMap(CustomRelMap):
             serv['setPort'] = port
             serv['setProtocol'] = 'udp'
             serv['discoveryAgent'] = 'IpServiceMap-' + __version__
-            log.debug('Adding UDP Service %s %s' % (addr, port))
             datamaps.append(serv)
 
         return datamaps
