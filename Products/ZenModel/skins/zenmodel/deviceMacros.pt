@@ -560,7 +560,7 @@
     </tr>
     <tr tal:condition="objects">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'storageDevice','Storage Device')">Device
+                            tableName,'mount','Mount')">Mount
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'totalBytes','Total bytes')">Total Bytes
@@ -575,7 +575,7 @@
                             tableName,'capacity','% Util')">% Util
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'mount','Mount')">Mount
+                            tableName,'storageDevice','Storage Device')">Device
         </th>
     </tr>
     <tr tal:condition="not:objects">
@@ -584,8 +584,9 @@
         </th>
     </tr>
     <tr tal:repeat="fsys batch">
-      <td class="tablevalues"
-        tal:content="fsys/storageDevice">vol
+      <td class="tablevalues">
+          <a class=tablevalues tal:content="fsys/mount" 
+            tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
       </td>
       <td class="tablevalues"
         tal:content="fsys/totalBytes">vol
@@ -600,11 +601,47 @@
         tal:content="fsys/capacity">vol
       </td>
       <td class="tablevalues"
-        tal:content="fsys/mount">vol
+        tal:content="fsys/storageDevice">vol
       </td>
     </tr>
     <tr>
         <td colspan=6 class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table border="0" cellpadding="3" width="100%"
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    metal:define-macro="hardDiskList"
+    tal:define="tableName string:hardDiskList;
+    objects here/harddisks/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='description');">
+    <tr>
+      <th class="tabletitle" align="left" colspan="1">
+        Hard Disks
+      </th>
+    </tr>
+    <tr tal:condition="objects">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'description','Name')">sd0
+        </th>
+    </tr>
+    <tr tal:condition="not:objects">
+        <th class="tableheader" align="left">
+            No Hard Disks
+        </th>
+    </tr>
+    <tr tal:repeat="disk batch">
+      <td class="tablevalues">
+          <a class=tablevalues tal:content="disk/description" 
+            tal:attributes="href disk/getPrimaryUrlPath">sd0</a>
+      </td>
+    </tr>
+    <tr>
+        <td colspan=1 class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>

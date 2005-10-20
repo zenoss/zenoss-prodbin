@@ -317,7 +317,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         devs._setProperty("zSnmpCollectorCollectMaps", [], type="lines")
         devs._setProperty("zRouterMapCollectOnlyLocal", True, type="boolean")
         devs._setProperty("zRouterMapCollectOnlyIndirect", True, type="boolean")
-        devs._setProperty("zInterfaceMapIgnoreTypes", [], type="lines")
+        devs._setProperty("zInterfaceMapIgnoreTypes", "")
         devs._setProperty("zInterfaceMapIgnoreNames", "")
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
         devs._setProperty("zFileSystemMapIgnoreNames", "")

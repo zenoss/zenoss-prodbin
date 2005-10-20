@@ -1,0 +1,52 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br/>
+<table metal:define-macro="objectperf" 
+    border=0 cellpadding=3 width=100% 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    >
+    <tr><th class=tabletitle align=left colspan=4>File System</th></tr>
+    <tr>
+      <td class=tableheader align=left>Mount Point</td>
+      <td class=tablevalues tal:content="here/mount">/usr</td>
+      <td class=tableheader align=left>Storage Device</td>
+      <td class=tablevalues tal:content="here/storageDevice">1</td>
+    </tr>  
+    <tr>
+      <td class=tableheader align=left>Type</td>
+      <td class=tablevalues tal:content="here/type">/usr</td>
+      <td class=tableheader align=left>Block Size</td>
+      <td class=tablevalues tal:content="here/blockSize">1</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Total Bytes</td>
+      <td class=tablevalues tal:content="here/totalBytes">/usr</td>
+      <td class=tableheader align=left>Use Bytes</td>
+      <td class=tablevalues tal:content="here/usedBytes">1</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Available Bytes</td>
+      <td class=tablevalues colspan="3" tal:content="here/availBytes">/usr</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Total Files</td>
+      <td class=tablevalues tal:content="here/totalFiles">1</td>
+      <td class=tableheader align=left>Available Files</td>
+      <td class=tablevalues tal:content="here/availFiles">1</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Capacity Bytes</td>
+      <td class=tablevalues tal:content="string:${here/capacity}%">1</td>
+      <td class=tableheader align=left>Capacity Files</td>
+      <td class=tablevalues tal:content="string:${here/inodeCapacity}%">1</td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Max Name Length</td>
+      <td class=tablevalues tal:content="here/maxNameLen">1</td>
+      <td class=tableheader align=left>Snmp Index</td>
+      <td class=tablevalues tal:content="here/snmpindex">1</td>
+    </tr>
+</table>
+<br/>
+<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+<span tal:replace="structure here/standard_html_footer"/>

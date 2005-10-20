@@ -9,6 +9,8 @@
   <br>
   <table metal:use-macro="here/deviceMacros/macros/fileSysList"></table>
   <br>
+  <table metal:use-macro="here/deviceMacros/macros/hardDiskList"></table>
+  <br>
   <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
   <br>
   <span metal:use-macro="here/top/macros/buttons" />

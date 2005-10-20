@@ -59,6 +59,32 @@ class FileSystem(DeviceComponent):
         )
     
 
+    factory_type_information = ( 
+        { 
+            'id'             : 'FileSystem',
+            'meta_type'      : 'FileSystem',
+            'description'    : """Arbitrary device grouping class""",
+            'icon'           : 'FileSystem_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addFileSystem',
+            'immediate_view' : 'viewFileSystem',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'viewFileSystem'
+                , 'permissions'   : ('View',)
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ('View',)
+                },
+            )
+          },
+        )
+
+
     def __init__(self, id, title = None): 
         DeviceComponent.__init__(self, id, title)
         self.mount = ""

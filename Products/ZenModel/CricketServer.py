@@ -26,7 +26,7 @@ from Device import Device
 class CricketServer:
 
 
-    def cricketGenerate(self, force=False):
+    def cricketGenerate(self):
         """build the cricket config for the entire device"""
         cd = Device.cricketGenerate(self, force)
         if cd:

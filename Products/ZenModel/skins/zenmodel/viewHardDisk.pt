@@ -1,0 +1,20 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br/>
+<table metal:define-macro="objectperf" 
+    border=0 cellpadding=3 width=100% 
+    align="center" bgcolor="#ffffff" cellspacing=1
+    >
+    <tr><th class="tabletitle" align="left" colspan="6">HardDisk</th></tr>
+    <tr>
+      <td class=tableheader width="16%" align=left>Name</td>
+      <td class=tablevalues width="16%" tal:content="here/description">sd0</td>
+      <td class=tableheader width="16%" align=left>Snmp Index</td>
+      <td class=tablevalues width="16%" tal:content="here/snmpindex">1</td>
+      <td class=tableheader width="16%" align=left>Host Resources Index</td>
+      <td class=tablevalues width="16%" tal:content="here/hostresindex">1</td>
+    </tr>
+</table>
+<br/>
+<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+<span tal:replace="structure here/standard_html_footer"/>

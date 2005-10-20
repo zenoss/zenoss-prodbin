@@ -189,9 +189,14 @@ class CricketConf(Monitor, StatusColor):
 
 
     security.declareProtected('View','cricketDeviceList')
-    def cricketDeviceList(self):
+    def cricketDeviceList(self, force=False):
         """Return a list of urls that point to our managed devices"""
-        return [ dev.getPrimaryUrlPath(full=True) for dev in self.devices() ]
+        devlist = []
+        for dev in self.devices():
+            if (force or (not dev.pastSnmpMaxFailures() and 
+                dev.getLastChange() > dev.getLastCricketGenerate())):
+                devlist.append(dev.getPrimaryUrlPath(full=True))
+        return devlist
             
 
 InitializeClass(CricketConf)

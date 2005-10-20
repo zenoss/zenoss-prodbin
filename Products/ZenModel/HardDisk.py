@@ -42,14 +42,41 @@ class HardDisk(DeviceComponent):
     manage_editHardDiskForm = DTMLFile('dtml/manageEditHardDisk',globals())
     
     _properties = (
-                 {'id':'description', 'type':'string', 'mode':''},
-                 {'id':'snmpindex', 'type':'int', 'mode':''},
-                 {'id':'hostresindex', 'type':'int', 'mode':''},
+                 {'id':'description', 'type':'string', 'mode':'w'},
+                 {'id':'snmpindex', 'type':'int', 'mode':'w'},
+                 {'id':'hostresindex', 'type':'int', 'mode':'w'},
                 )    
 
     _relations = DeviceComponent._relations + (
         ("server", ToOne(ToManyCont, "Server", "harddisks")),
         )
+
+    
+    factory_type_information = ( 
+        { 
+            'id'             : 'HardDisk',
+            'meta_type'      : 'HardDisk',
+            'description'    : """Arbitrary device grouping class""",
+            'icon'           : 'HardDisk_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addHardDisk',
+            'immediate_view' : 'viewHardDisk',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'viewHardDisk'
+                , 'permissions'   : ('View',)
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ('View',)
+                },
+            )
+          },
+        )
+
 
     def __init__(self, id, title = None): 
         DeviceComponent.__init__(self, id, title)

@@ -65,8 +65,8 @@ class CricketBuilder(CmdBase):
         url = basicAuthUrl(self.options.zopeusername, 
                             self.options.zopepassword,
                             self.options.zopeurl)
-        server = xmlrpclib.Server(url)
-        cricketDevices = server.cricketDeviceList()
+        server = xmlrpclib.Server(url, allow_none=True)
+        cricketDevices = server.cricketDeviceList(self.options.force)
         if self.options.devicename:
             cricketDevices = filter(
                 lambda x: x.endswith(self.options.devicename), cricketDevices)
@@ -81,7 +81,7 @@ class CricketBuilder(CmdBase):
             self.log.info("building device %s", devurl.split("/")[-1])
             devurl = basicAuthUrl(self.options.zopeusername, 
                                   self.options.zopepassword, devurl)
-            device = xmlrpclib.Server(devurl, allow_none=True)
+            device = xmlrpclib.Server(devurl)
             cricketData = device.cricketGenerate(self.options.force)
             if self.options.debug:
                 pprint.pprint(cricketData)
