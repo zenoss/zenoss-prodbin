@@ -28,7 +28,7 @@ class CricketServer:
 
     def cricketGenerate(self):
         """build the cricket config for the entire device"""
-        cd = Device.cricketGenerate(self, force)
+        cd = Device.cricketGenerate(self)
         if cd:
             self.addTargetData(cd, self.cricketFilesystems())
             self.addTargetData(cd, self.cricketDisks())

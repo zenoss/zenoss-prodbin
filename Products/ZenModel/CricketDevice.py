@@ -25,7 +25,7 @@ class RelationNotFound(ZenModelError): pass
 
 class CricketDevice:
 
-    def cricketGenerate(self, force=False):
+    def cricketGenerate(self):
         """generate the cricket config data structure for this device"""
         cd = []
         self.addTargetData(cd, self.cricketDevice())
