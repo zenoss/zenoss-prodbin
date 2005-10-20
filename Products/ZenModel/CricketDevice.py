@@ -174,7 +174,7 @@ class CricketDevice:
             for im in intarray:
                 ar = im.split(':') 
                 if len(ar) == 2:
-                    intmap[k] = v
+                    intmap[ar[0]] = ar[1]
         else:
             intmap = defaultmap
         cricketType = 'StandardInterface'
