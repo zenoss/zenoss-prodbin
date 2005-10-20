@@ -540,7 +540,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     security.declareProtected('Change Device', 'setLocation')
     def setLocation(self, locationPath, REQUEST=None):
         """set the location of a device within a generic location path"""
-        locobj = self.getDmdRoot("Locations").getOrganizer(locationPath)
+        locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
         self.addRelation("location", locobj)
 
 
