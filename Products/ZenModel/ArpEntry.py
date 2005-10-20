@@ -17,7 +17,7 @@ from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 
-from Instance import Instance
+from ZenModelRM import ZenModelRM
 
 def manage_addArpEntry(context, id, title = None, REQUEST = None):
     """make a ArpEntry"""
@@ -30,7 +30,7 @@ def manage_addArpEntry(context, id, title = None, REQUEST = None):
 
 addArpEntry = DTMLFile('dtml/addArpEntry',globals())
 
-class ArpEntry(Instance):
+class ArpEntry(ZenModelRM):
     """
     ArpEntry object
     """
@@ -45,7 +45,7 @@ class ArpEntry(Instance):
         )
 
     def __init__(self, id, title = None, macAddress = ''):
-        Instance.__init__(self, id, title)
+        ZenModelRM.__init__(self, id, title)
         self.macAddress = macAddress
 
 InitializeClass(ArpEntry)
