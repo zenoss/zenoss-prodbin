@@ -82,7 +82,7 @@ class CricketBuilder(CmdBase):
             devurl = basicAuthUrl(self.options.zopeusername, 
                                   self.options.zopepassword, devurl)
             device = xmlrpclib.Server(devurl)
-            cricketData = device.cricketGenerate(self.options.force)
+            cricketData = device.cricketGenerate()
             if self.options.debug:
                 pprint.pprint(cricketData)
             for targetpath, targetdatas in cricketData:
