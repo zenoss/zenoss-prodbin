@@ -80,12 +80,16 @@ class SnmpCollector(ZCmdBase):
                             port = device.zSnmpPort)
             if self.testSnmpConnection(snmpsess):
                 if device._p_jar: device._p_jar.sync() 
-                if self._collectCustomMaps(device, snmpsess):
-                    device.setLastChange()
-                device.setSnmpLastCollection()
-                trans = transaction.get()
-                trans.note("Automated data collection by SnmpCollector.py")
-                trans.commit()
+                if self._checkForCiscoChange():
+                    if self._collectCustomMaps(device, snmpsess):
+                        device.setLastChange()
+                    device.setSnmpLastCollection()
+                    trans = transaction.get()
+                    trans.note("Automated data collection by SnmpCollector.py")
+                    trans.commit()
+                else:
+                    self.log.info(
+                        "skipping device %s no change detected", device.id)
             else:
                 self.log.warn("no valid snmp connection to %s", device.id)
         except (SystemExit, KeyboardInterrupt): raise
@@ -97,11 +101,23 @@ class SnmpCollector(ZCmdBase):
         """test to see if snmp connection is ok"""
         try:
             data = snmpsess.get('.1.3.6.1.2.1.1.2.0')
-        except SystemExit: raise
         except PySnmpError, msg:
             self.log.debug(msg)
             return False
         return True
+
+
+    def self._checkForCiscoChange(self, device, snmpsess):
+        """Check to see if the running config changed since last poll."""
+        changed = True
+        lastpolluptime = getattr(aq_base(device), "lastpolluptime", 0)
+        try:
+            lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
+            if lastchange < lastpolluptime: changed = False
+            device.lastpolluptime = snmpsess.get(
+                                    '.1.3.6.1.2.1.1.3.0').values()[0]
+        except PySnmpError: pass
+        return changed
 
 
     def addCustomMap(self, collector):
