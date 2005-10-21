@@ -51,7 +51,7 @@ class Software(Product):
             'icon'           : 'Software_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addSoftware',
-            'immediate_view' : 'viewSoftwareOverview',
+            'immediate_view' : 'viewProductOverview',
             'actions'        :
             ( 
                 { 'id'            : 'overview'

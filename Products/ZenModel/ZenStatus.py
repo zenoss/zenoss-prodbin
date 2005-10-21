@@ -49,7 +49,7 @@ class ZenStatus(Persistent):
 
 
     def setStatus(self, status):
-        self.status = status
+        self.status = int(status)
 
     def incr(self):
         """increment the failure status"""

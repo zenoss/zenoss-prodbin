@@ -20,6 +20,7 @@ $Id: DataCollector.py,v 1.8 2003/12/18 23:07:44 edahl Exp $"""
 __version__ = "$Revision: 1.8 $"[11:-2]
 
 import sys
+import transaction
 
 from twisted.internet import reactor
 
@@ -166,11 +167,12 @@ class DataCollector(ZCmdBase):
                 self.updateObject(device, datamap)
             else:
                 self.updateRelationship(device, datamap)
-            get_transaction().note(
-                "Automated data collection by DataCollector.py")
-            get_transaction().commit()
+            trans = transaction.get()
+            trans.note("Automated data collection by DataCollector.py")
+            trans.commit()
+        except(SystemExit, KeyboardInterrupt): raise
         except:
-            get_transaction().abort()
+            transaction.abort()
             self.log.exception("ERROR: appling datamap %s to device %s"
                                     % (datamap.getName(), device.getId()))
             
@@ -217,6 +219,7 @@ class DataCollector(ZCmdBase):
                     else:
                         if att != value:
                                 setattr(aq_base(obj), attname, value) 
+                except(SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("ERROR: setting attribute %s"
                                             % attname)
@@ -284,7 +287,7 @@ class DataCollector(ZCmdBase):
                 help="Comma separated list of collection maps to use")
         self.parser.add_option('-p', '--path',
                 dest='path',
-                help="start path for collection ie /Devices")
+                help="start path for collection ie /NetworkDevices")
         self.parser.add_option('-d', '--device',
                 dest='device',
                 help="fully qualified device name ie www.confmon.com")
@@ -311,7 +314,7 @@ class DataCollector(ZCmdBase):
             devices.append(device)
         if self.options.path:
             devices = self.dataroot.getDmdRoot("Devices")
-            droot = devices.getDeviceClass(self.options.path)
+            droot = devices.getOrganizer(self.options.path)
             if not droot:
                 print "unable to locate device class %s" % self.options.path
                 sys.exit(2)

@@ -77,7 +77,7 @@ class TelnetClientProtocol(telnet.Telnet):
         self.hostname = self.factory.hostname
         self.log = self.factory.log
         self.log.info("connected to device %s" % self.hostname)
-        self.setTimeout(self.factory.loginTimeout)
+        self.setTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.startTimeout()        
 
     # the following functions turn off all telnet options
@@ -155,6 +155,8 @@ class TelnetClientProtocol(telnet.Telnet):
 
     def defaultTimeout(self):
         self.transport.loseConnection()
+        if self.factory.commandsFinished():
+            self.factory.clientFinished()
         self.log.warn("dropping connection to %s: "
             "state '%s' timeout %.1f seconds regex '%s' buffer '%s'" % 
             (self.factory.hostname, self.mode, self.timeout, 
@@ -162,12 +164,13 @@ class TelnetClientProtocol(telnet.Telnet):
                                                     
 
     def loginTimeout(self):
-        if self.loginTries == 1:
+        if self.factory.loginTries == 1:
             self.transport.loseConnection()
+            self.factory.clientFinished()
             self.log.warn("login to device %s failed" % self.hostname)
             return "Done"
         else:
-            self.loginTries -= 1
+            self.factory.loginTries -= 1
             return "Login"
    
 
@@ -260,8 +263,7 @@ class TelnetClientProtocol(telnet.Telnet):
     def curCommand(self):
         return self.factory.commands[self.factory.cmdindex]
 
-
-
+    
 class TelnetClient(CollectorClient.CollectorClient):
     
     def __init__(self, hostname, port, commands=[], options=None, 
@@ -316,7 +318,13 @@ class TelnetClient(CollectorClient.CollectorClient):
                 "Telnet server not found on %s port %s" % (
                                 self.hostname, self.port)
         if self.termlen:
-            self.commands.append("terminal length 0")
+            self.commands.insert(0, "terminal length 0")
+
+
+
+    def commandsFinished(self):
+        """called by protocol to see if all commands have been run"""
+        return len(self.commands) == self.cmdindex + 1
 
 
     def Command(self, commands):

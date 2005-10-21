@@ -119,10 +119,7 @@ class CollectorClient(protocol.ClientFactory):
 
     def commandsFinished(self):
         """called by protocol to see if all commands have been run"""
-        if len(self.results) == len(self.commands):
-            return 1
-        else:
-            return 0
+        return len(self.results) == len(self.commands):
 
 
     def clientFinished(self):

@@ -355,7 +355,7 @@ class DeviceClass(DeviceOrganizer, Folder):
                             ['\$.$', '\#.$'], type="lines")
         devs._setProperty("zTelnetEnable", False, type="boolean")
         devs._setProperty("zTelnetEnableRegex", "assword:")
-        devs._setProperty("zTelnetTermLength", 0, type="int")
+        devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
 
 

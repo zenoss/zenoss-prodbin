@@ -48,7 +48,7 @@ class Hardware(Product):
             'icon'           : 'Hardware_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addHardware',
-            'immediate_view' : 'viewHardwareOverview',
+            'immediate_view' : 'viewProductOverview',
             'actions'        :
             ( 
                 { 'id'            : 'overview'

@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.59 $"[11:-2]
 
 import re
 import copy
+import logging
 
 from Globals import Persistent
 from Globals import DTMLFile
@@ -191,9 +192,9 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
             if hasattr(ipobj, 'interface'):
                 dev = ipobj.getDevice()
                 if dev and dev != self.device():
-                    raise IpAddressConflict, \
-                        "IP Address %s exists on device %s" % (ip, dev.getId())
-                                
+                    logging.warn(
+                        "When adding IP Address %s to %s found it on device %s",
+                            ip, self.getId(), dev.getId())
             self.addRelation('ipaddresses', ipobj)
         #never seen this ip make a new one in correct subnet
         else:  
