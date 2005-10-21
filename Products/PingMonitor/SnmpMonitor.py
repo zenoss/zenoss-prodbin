@@ -132,7 +132,7 @@ class SnmpMonitor(ConfDaemon):
         
             self.manager.send(myreq, (device.address, device.snmpPort))
             device.timeout = time.time() + self.timeout
-            self.pending[device.address] = (device, req)
+            self.pending[req['request_id']] = (device, req)
             self.reqId += 1
 
 
@@ -143,17 +143,15 @@ class SnmpMonitor(ConfDaemon):
             self.log.warn('exception occurred')
             self.log.warn(exception)
         else:
-            if self.pending.has_key(src[0]):
-                (device, req) = self.pending[src[0]]
+            (rsp, rest) = v1.decode(response)
+            rspid = rsp['request_id']
+            if self.pending.has_key(rspid):
+                (device, req) = self.pending[rspid]
             else:
                 self.log.warn("reply from %s didn't match any request" 
                                     % src[0]) 
                 return
             try:
-                (rsp, rest) = v1.decode(response)
-                if rsp != req:
-                    self.log.warn("Response and request don't match for %s" 
-                                    % src[0])
                 vals = map(lambda x: x[0](), map(asn1.decode, 
                                 rsp['encoded_vals']))
                 device.uptime = vals[0]
@@ -164,14 +162,14 @@ class SnmpMonitor(ConfDaemon):
                 self.log.warn("%s responded but decode failed: %s" % 
                                     (device.hostname, msg))
             self.processed.append(device)
-            del self.pending[src[0]]
+            del self.pending[rspid]
             if len(self.pending) == 0 and not self.cycleInterval:
                 self.manager.close()
 
 
     def processTimeout(self, now):
         """look for get requests that have timed out"""
-        for ip, (device, req) in self.pending.items():
+        for reqid, (device, req) in self.pending.items():
             if device.timeout < now:
                 device.retries -= 1
                 if device.retries > 0:
@@ -179,7 +177,7 @@ class SnmpMonitor(ConfDaemon):
                 else:
                     #snmp is down log error update zope
                     #and send to netcool if we have a server
-                    del self.pending[ip]
+                    del self.pending[reqid]
                     device.message = ("no snmp response from %s" 
                                         % device.hostname)
                     self.log.warn(device.message)

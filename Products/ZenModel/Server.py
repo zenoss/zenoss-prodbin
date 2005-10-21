@@ -76,7 +76,7 @@ class Server(CricketServer, Device):
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
-                , 'action'        : 'viewServerPerformance'
+                , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (
                   permissions.view, )
                 },
