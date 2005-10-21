@@ -200,12 +200,12 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
                     sumdata = retdata[identifier]
                 else:
                     if deviceclass:
-                        url = burl + '/Devices' + deviceclass +'/'+ node
+                        url = burl + '/Devices' + deviceclass +'/devices/'+ node
                     else: 
                         url = ''
                     sumdata = SummaryData(node, url, identifier)
                 if not sumdata.url and deviceclass:
-                    sumdata.url = burl + '/Devices' + deviceclass +'/'+ node
+                    sumdata.url = burl + '/Devices' + deviceclass +'/devices/'+ node
                 sumdata.incEventCount()
                 sumdata.incTallySum(tally)
                 retdata[identifier] = sumdata
