@@ -116,7 +116,7 @@ class SnmpCollector(ZCmdBase):
         lastpolluptime = device.getLastPollSnmpUpTime()
         try:
             lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
-            if lastchange > lastpolluptime: changed = False
+            if lastchange < lastpolluptime: changed = False
         except (ZenSnmpError, PySnmpError): pass
         return changed
 
