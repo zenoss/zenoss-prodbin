@@ -29,7 +29,7 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
     security = ClassSecurityInfo()
 
     manage_main = DTMLFile('dtml/ToManyRelationshipMain',globals())
-   
+
     _operation = -1 # if a Relationship's are only deleted
 
 

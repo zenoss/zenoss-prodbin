@@ -155,7 +155,7 @@ class SnmpMonitor(ConfDaemon):
                 vals = map(lambda x: x[0](), map(asn1.decode, 
                                 rsp['encoded_vals']))
                 device.uptime = vals[0]
-                self.log.debug("%s has uptime of %d" % 
+                self.log.debug("%s has uptime of %s" % 
                                 (device.hostname, device.uptime))
             except pysnmp.compat.pysnmp2x.asn1.TypeError, msg:
                 device.uptime = -99

@@ -255,7 +255,6 @@ class StatusMonitorConf(Monitor, StatusColor):
          monitor configuration'''
         self.setSnmpHeartbeat()
         devices = []
-        servurl = self.REQUEST['SERVER_URL']
         for dev in self.devices.objectValuesAll():
             try:
                 dev = dev.primaryAq()
