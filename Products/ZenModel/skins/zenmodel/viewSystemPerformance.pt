@@ -4,7 +4,7 @@
 <table border=0 cellpadding=3 width=100%
     align="center" bgcolor="#ffffff" cellspacing=1
     tal:define="tableName string:perfdetail;
-    drange python: here.ZenTableManager.setTableState(tableName,'drange',129600);"
+    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);"
     >
     <tr>
         <th class=tabletitle align=left>
