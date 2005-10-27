@@ -45,6 +45,8 @@ class StatusMonitorConf(Monitor, StatusColor):
     '''Configuration for monitors'''
     portal_type = meta_type = "StatusMonitorConf"
 
+    monitorRootName = "StatusMonitors"
+
     _properties = (
         {'id':'chunk','type':'int','mode':'w'},
         {'id':'timeOut','type':'float','mode':'w'},

@@ -207,7 +207,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             navbar += self._navLink(url, tableName, "Prev",
                             batch.previous.first, tableState.negateFilter)
         else:
-            navbar += "First Previous\n"
+            navbar += "First Prev\n"
         navbar += tableState.getComboBox()
         if batch.next:
             navbar += self._navLink(url, tableName, "Next",

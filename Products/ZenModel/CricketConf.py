@@ -39,10 +39,10 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Products.ZenModel.Monitor import Monitor
-from Products.ZenModel.StatusColor import StatusColor
-
 from Products.ZenUtils.Exceptions import ZentinelException
+
+from Monitor import Monitor
+from StatusColor import StatusColor
 
 from ZenDate import ZenDate
 
@@ -59,6 +59,8 @@ addCricketConf = DTMLFile('dtml/addCricketConf',globals())
 class CricketConf(Monitor, StatusColor):
     '''Configuration for cricket'''
     portal_type = meta_type = "CricketConf"
+    
+    monitorRootName = "Cricket"
 
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
@@ -108,8 +110,8 @@ class CricketConf(Monitor, StatusColor):
         self.cricketurl = ''
         self.cricketuser = ''
         self.cricketpass = ''
-        
-        
+
+
     security.declareProtected('View','getDevices')
     def getDevices(self):
         '''get the devices associated with this

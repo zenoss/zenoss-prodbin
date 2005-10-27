@@ -68,32 +68,54 @@ class Organizer(ZenModelRM):
             self.createOrganizer(newPath)
         else:
             org = self.__class__(newPath)
-            self._setObject(newPath, org)
+            self._setObject(org.id, org)
         if REQUEST: return self.callZenScreen(REQUEST)
             
 
     security.declareProtected('Delete objects', 'manage_deleteOrganizer')
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """Delete an Organizer from its parent name is relative to parent"""
-        if orgname:
-            self._delObject(orgname)
-        if REQUEST: return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('Delete objects', 'manage_deleteOrganizers')
-    def manage_deleteOrganizers(self, organizerPaths, REQUEST=None):
-        """add a device group to the database"""
-        orgroot = self.getDmdRoot(self.dmdRootName)
-        for organizerName in organizerPaths:
+        if orgname.startswith("/"):
             try:
+                orgroot = self.getDmdRoot(self.dmdRootName)
                 organizer = orgroot.getOrganizer(organizerName)
                 parent = aq_parent(organizer)
                 parent._delObject(organizer.getId())
             except KeyError:
                 pass  # we may have already deleted a sub object
+        else:
+            self._delObject(orgname)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Delete objects', 'manage_deleteOrganizers')
+    def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
+        """add a device group to the database"""
+        for organizerName in organizerPaths:
+            self.manage_deleteOrganizer(organizerName)
         if REQUEST: return self.callZenScreen(REQUEST)
             
+    
+    def moveTargets(self):
+        """Return list of all organizers excluding our self."""
+        return filter(lambda x: x != self.getOrganizerName(),
+            self.getDmdRoot(self.dmdRootName).getOrganizerNames())
 
+   
+    def moveOrganizer(self, moveTarget, organizerPaths=None, REQUEST=None):
+        """Move organizer to moveTarget."""
+        target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
+        movedStuff = False
+        for organizerName in organizerPaths:
+            if moveTarget.find(organizerName) > -1: continue
+            obj = self._getOb(organizerName)
+            obj._operation = 1 #move object
+            self._delObject(organizerName)
+            target._setObject(organizerName, obj)
+            movedStuff = True
+        if REQUEST and movedStuff: return target.callZenScreen(REQUEST)
+        
+    
     def createOrganizer(self, path):
         """Create and return and an Organizer from its path."""
         return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), path,
@@ -109,16 +131,12 @@ class Organizer(ZenModelRM):
     def getOrganizerName(self):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
         return self.getPrimaryDmdId(self.dmdRootName)
-   
-    # getPathName used by Device in _setRelations when setting a device to many
-    getPathName = getOrganizerName
 
 
     def getOrganizerNames(self, addblank=False):
         """Return the DMD paths of all Organizers below this instance."""
         groupNames = []
-        if self.id != self.dmdRootName:
-            groupNames.append(self.getOrganizerName())
+        groupNames.append(self.getOrganizerName())
         for subgroup in self.children():
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 

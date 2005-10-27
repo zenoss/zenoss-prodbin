@@ -92,7 +92,8 @@ class RelCopyContainer(CopyContainer):
             else: raise
         if REQUEST: return self.manage_main(self, REQUEST)
             
-   
+
+
     def _verifyObjectPaste(self, object, validate_src=1):
         """
         check to see if this object is allowed to be pasted into this path

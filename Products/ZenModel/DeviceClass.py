@@ -10,6 +10,8 @@ $Id: DeviceClass.py,v 1.76 2004/04/22 19:09:53 edahl Exp $"""
 
 __version__ = "$Revision: 1.76 $"[11:-2]
 
+import types
+
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from OFS.Folder import Folder
@@ -122,15 +124,20 @@ class DeviceClass(DeviceOrganizer, Folder):
     security = ClassSecurityInfo()
 
     
-    def getPeerDeviceClassNames(self, pyclass):
+    def getPeerDeviceClassNames(self, pyclass=None):
         "Return a list of all device paths that have the python class pyclass"
+        if pyclass == None: 
+            pyclass = self.getPythonDeviceClass()
+            dclass = self.getDmdRoot("Devices")
+            return dclass.getPeerDeviceClassNames(pyclass)
         dcnames = []
         if pyclass == self.getPythonDeviceClass():
             dcnames.append(self.getOrganizerName())
         for subclass in self.children():
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
         return dcnames
-            
+    moveTargets = getPeerDeviceClassNames
+
 
     def createInstance(self, id):
         """
@@ -164,31 +171,25 @@ class DeviceClass(DeviceOrganizer, Folder):
                 if hasattr(mod, cname):
                     return getattr(mod, cname)
         return Device 
+   
 
+    def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
+        """
+        Override default moveDevices because this is a contained relation. 
+        """
+        if not moveTarget: 
+            raise ValueError("Move target %s not valid" % moveTarget)
+        target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
+        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname)
+            dev._operation = 1 # moving object state
+            self.devices._delObject(devname)
+            target.devices._setObject(devname, dev)
+        if REQUEST:
+            REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
-    def moveDeviceClass(self, deviceName, devicePath, REQUEST=None):
-        """move the device to another device class a bunch if stuff must happen
-        check to see if we need to change the python class of the device
-        if so run buildRelations to add any missing relations
-        run manage_afterAdd to set the primaryPath of this and other objects"""
-        dev = self.devices._getOb(deviceName)
-        assert(dev)
-        if dev.getDeviceClassPath() == devicePath: return
-        devclass = self.getDmdRoot("Devices").getOrganizer(devicePath)
-        newPyDevClass = devclass.getPythonDeviceClass()
-        if dev.__class__ != newPyDevClass:
-            raise ValueError, \
-                "Can't move %s to new path %s because it has a" \
-                "different python class." % (deviceName, devicePath)
-            #dev = dev.changePythonClass(newPyDevClass, devclass.devices) 
-            #devclass.devices._setObject(dev.id, dev)
-        else:
-            clip = self.devices.manage_cutObjects(ids=(deviceName,))
-            devclass.devices.manage_pasteObjects(clip)
-        dev = devclass.devices._getOb(deviceName)
-        if REQUEST: 
-            REQUEST['RESPONSE'].redirect(dev.absolute_url())
-
+    
 
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):

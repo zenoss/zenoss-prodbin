@@ -1,4 +1,3 @@
-#################################################################
 #
 #   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
@@ -637,7 +636,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
             raise AttributeError, "Relation %s not found" % relName
         curRelIds = {}
         for value in rel.objectValuesAll():
-            curRelIds[value.getPathName()] = value
+            curRelIds[value.getOrganizerName()] = value
         for path in relPaths:
             if not curRelIds.has_key(path):
                 robj = objGetter(path)

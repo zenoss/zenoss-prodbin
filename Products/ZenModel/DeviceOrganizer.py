@@ -1,4 +1,3 @@
-
 #################################################################
 #
 #   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
@@ -15,8 +14,10 @@ from AccessControl import ClassSecurityInfo, Unauthorized
 from Globals import InitializeClass
 
 from Organizer import Organizer
+from DeviceManagerBase import DeviceManagerBase
 
-class DeviceOrganizer(Organizer):
+
+class DeviceOrganizer(Organizer, DeviceManagerBase):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -24,6 +25,19 @@ class DeviceOrganizer(Organizer):
     
     security = ClassSecurityInfo()
 
+
+    def moveTargets(self):
+        """see IDeviceManager"""
+        myname = self.getOrganizerName()
+        return filter(lambda x: x != myname, 
+                    self.getDmdRoot(self.dmdRootName).getOrganizerNames())
+
+
+    def getMoveTarget(self, moveTargetName): 
+        """see IDeviceManager"""
+        return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
+
+    
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)

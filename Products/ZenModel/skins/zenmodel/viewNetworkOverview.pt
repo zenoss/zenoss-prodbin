@@ -41,19 +41,18 @@
     </tr>
   </tbody>
 </table>
-<span 
-    tal:define="objects here/children;
-    tableName string:networkoverviewsubnets;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition="objects">
 <br>
 <table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1">
+    align="center" bgcolor="#ffffff" cellspacing="1"
+    tal:define="objects here/children;
+    tableName string:networkoverviewsubnets;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
   <tr>
       <th class="tabletitle" align="left" colspan="3">
         Subnetworks
       </th>
   </tr>
+  <span tal:condition="objects">
   <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Address','cmp')">
@@ -83,12 +82,15 @@
     </td>
   </tr>
   <tr>
-    <td colspan=5 class="tableheader" align='center'>
-        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+    <td colspan="3" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool" />
     </td>
   </tr>
+  </span>
+  <tr tal:condition="here/isManager">
+    <form metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
+  </tr>
 </table>
-</span>
 <br>
 <table border="0" cellpadding="3" width="100%"
     align="center" bgcolor="#ffffff" cellspacing="1"
@@ -158,5 +160,4 @@
     </td>
   </tr>
 </table>
-<span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
 <span tal:replace="structure here/standard_html_footer"/>

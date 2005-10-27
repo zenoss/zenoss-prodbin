@@ -5,15 +5,11 @@
     align="center" bgcolor="#ffffff" cellspacing="1"
     metal:define-macro="status">
     <tr>
-      <th class="tabletitle" align="left" colspan="6">
-        Status
-      </th>
+      <th class="tabletitle" align="left" colspan="6">Status</th>
     </tr>
     <tr>
-      <td class="tableheader" align="left" colspan="1">
-        Events
-      </td>
-      <td class="tablevalues" colspan="1" align="left">
+      <td class="tableheader" align="left">Events</td>
+      <td class="tablevalues" align="left">
         <table border="0" cellpadding="0" width="100%" 
             align="center" bgcolor="#ffffff" cellspacing="1">
           <tr>
@@ -26,34 +22,25 @@
           </tr>
         </table>
       </td>
-      <th class="tableheader" align="left" colspan="1">
-          Sub Count 
-      </th>
-      <td class="tablevalues" colspan="1"
-          tal:content="here/countChildren">
-          100
-      </td>
-      <th class="tableheader" align="left" colspan="1">
-          Device Count
-      </th>
-      <td class="tablevalues" colspan="1"
-          tal:content="here/countDevices">
-          100
-      </td>
+      <th class="tableheader" align="left">Sub Count</th>
+      <td class="tablevalues" tal:content="here/countChildren">100</td>
+      <th class="tableheader" align="left">Device Count</th>
+      <td class="tablevalues" tal:content="here/countDevices">100</td>
     </tr>
 </table>
-<br tal:condition="here/countChildren">
+<br />
+<form method="post" tal:attributes="action here/absolute_url_path">
 <table border=0 cellpadding=3 cellspacing=1
     tal:define="objects here/children;
         tableName string:children;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition=objects>
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
       <th class=tabletitle align=left colspan=4
         tal:content="string:Sub-${here/dmdRootName}">
         SubLocations
       </th>
     </tr>
+    <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')">
@@ -68,63 +55,49 @@
             Devices
         </th>
     </tr>
-    <tr tal:repeat="group batch">
+    <tr tal:repeat="devorg batch">
         <td class="tablevalues" align="left" width="50%">
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="organizerPaths:list" 
+                tal:attributes="value devorg/getId"/>
             <a href="_" target="rightFrame"
-            tal:attributes="href group/getPrimaryUrlPath"
-            tal:content="group/id">Name</a>
+            tal:attributes="href devorg/getPrimaryUrlPath"
+            tal:content="devorg/id">Name</a>
         </td>
-        <td class=tablevalues align=center tal:content="group/countChildren"/>
-        <td class=tablevalues align=center tal:content="group/countDevices"/>
+        <td class=tablevalues align=center tal:content="devorg/countChildren"/>
+        <td class=tablevalues align=center tal:content="devorg/countDevices"/>
     </tr>
     <tr>
-        <td colspan=4 class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        <td colspan=4 class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
+    </span>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="3">
+    <span metal:define-macro="editor" tal:omit-tag="">
+        <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+        <input class="tableheader" type="text" name="newPath"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addOrganizer:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" name="moveOrganizer:method"
+                value="Move To" />
+        <select class="tableheader" name="moveTarget"
+        tal:define="targets here/moveTargets">
+            <option value=""></option>
+            <option tal:repeat="target targets" 
+                tal:content="target">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteOrganizers:method" value=" Delete " />
+    </span>
+    </td>
+    </tr>
 </table>
+</form>
 <br tal:condition="here/devices/countObjects">
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
-<br />
-<span tal:condition="here/isManager" metal:define-macro="editor">
-<form method="post">
-<input type="hidden" name="zenScreenName" 
-    tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" cellspacing="1">
-<tr class="tabletitlel">
-    <th tal:content="string:Add ${here/meta_type}">Add Device</th>
-</tr>
-<tr>
-    <td class="tablevalues">
-        <input class="tablevalues" type="text" name="newPath" size="35"/>
-        <input class="tablevalues" type="submit" 
-            name="manage_addOrganizer:method" value=" Add " />
-    </td>
-</tr>
-</table>
-</form>
-<form method="post">
-<input type="hidden" name="zenScreenName" 
-    tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" cellspacing="1">
-<tr class="tabletitlel">
-    <th tal:content="string:Delete ${here/meta_type}">Add Device</th>
-</tr>
-<tr>
-    <td class="tablevalues">
-        <select name="orgname">
-            <option value=""></option>
-            <option tal:repeat="
-                dcname here/childIds"
-                tal:content="dcname" tal:attributes="value dcname">
-                    zCricketDeviceType
-            </option>
-        </select>
-        <input class="tablevalues" type="submit" 
-            name="manage_deleteOrganizer:method" value=" Delete " />
-    </td>
-</tr>
-</table>
-</form>
-</span>
 <span tal:replace="structure here/standard_html_footer"/>

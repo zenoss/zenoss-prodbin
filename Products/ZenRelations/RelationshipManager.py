@@ -94,6 +94,15 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         self._operation = -1
         if buildRelations: self.buildRelations()
 
+
+    def getRelationshipManagerId(self):
+        """
+        Return our simple id if we are called from our primary path
+        else return the full primary id.
+        """
+        if self.getPhysicalPath() == self.getPrimaryPath(): return self.id
+        return self.getPrimaryId()
+
     
     ##########################################################################
     #

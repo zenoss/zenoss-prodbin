@@ -16,10 +16,13 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 
 from AccessControl import Permissions as permissions
+from Acquisition import aq_parent
 
 from Products.ZenRelations.RelSchema import *
 
 from Product import Product
+from DeviceManagerBase import DeviceManagerBase
+
 
 def manage_addHardware(context, id, title = None, REQUEST = None):
     """make a Hardware"""
@@ -32,7 +35,7 @@ def manage_addHardware(context, id, title = None, REQUEST = None):
 
 addHardware = DTMLFile('dtml/addHardware',globals())
 
-class Hardware(Product):
+class Hardware(Product, DeviceManagerBase):
     """Hardware object"""
     portal_type = meta_type = 'Hardware'
 
@@ -69,5 +72,16 @@ class Hardware(Product):
 
     def __init__(self, id, title = None, value = ''):
         Product.__init__(self, id, title)
+
+
+    def moveTargets(self):
+        """see IManageDevice"""
+        return filter(lambda x: x != self.id, aq_parent(self).objectIds()) 
+            
+           
+    def getMoveTarget(self, moveTargetName):
+        """see IManageDevice"""
+        return aq_parent(self)._getOb(moveTargetName)
+
 
 InitializeClass(Hardware)
