@@ -1,0 +1,23 @@
+<span tal:replace="structure here/standard_html_header"/>
+<form action="manage_users" metho="post">
+<table>
+    <tr><th class="tabletitle">User Folder</th></tr>
+    <tr tal:repeat="user here/user_names">
+        <td class="tablevalues" tal:content="user">
+        <!--
+        <input type="checkbox" name="names:list" tal:attributes="value user" />
+            <a tal:content="user" tal:attributes=
+                "href string:manage_users?name=${user}&submit=Edit">
+                edahl
+            </a>
+        -->
+        </td>
+    </tr>
+    <!--
+    <tr><td class="tableheader">
+        <input class="tableheader" type="submit" name="submit" value="Add..." />
+        <input class="tableheader" type="submit" name="submit" value="Delete" />
+    </td></tr>
+    -->
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

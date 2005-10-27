@@ -15,27 +15,52 @@ $Id: Classifier.py,v 1.4 2004/03/26 23:58:44 edahl Exp $"""
 __version__ = "$Revision: 1.4 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
-from Globals import Persistent
 from Globals import InitializeClass
-
+from AccessControl import Permissions as permissions
 from OFS.OrderedFolder import OrderedFolder
+
+from ZenModelItem import ZenModelItem
 
 def manage_addClassifier(context, title = None, REQUEST = None):
     """make a device"""
     ce = Classifier('ZenClassifier', title)
     context._setObject(ce.id, ce)
+    if REQUEST:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+                                     
 
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main')
 
-
-#addClassifier = DTMLFile('dtml/addClassifier',globals())
-
-class Classifier(OrderedFolder):
+class Classifier(ZenModelItem, OrderedFolder):
 
     meta_type = 'Classifier'
+    
+    # Screen action bindings (and tab definitions)
+    factory_type_information = ( 
+        { 
+            'id'             : 'Classifier',
+            'meta_type'      : 'Classifier',
+            'description'    : """Class to manage product information""",
+            'icon'           : 'Classifier_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addClassifier',
+            'immediate_view' : 'manageClassifiers',
+            'actions'        :
+            ( 
+                { 'id'            : 'overview'
+                , 'name'          : 'Overview'
+                , 'action'        : 'manageClassifiers'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+          },
+        )
     
     security = ClassSecurityInfo()
     
@@ -72,5 +97,6 @@ class Classifier(OrderedFolder):
         cid = self.curClassifierEntryId
         self.curClassifierEntryId += 1
         return "ClassifierEntry-" + str(cid)
+
 
 InitializeClass(Classifier)

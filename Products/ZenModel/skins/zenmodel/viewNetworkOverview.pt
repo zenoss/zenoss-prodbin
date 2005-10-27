@@ -1,9 +1,9 @@
 <span tal:replace="structure here/standard_html_header"/>
+<script metal:use-macro="here/miscmacros/macros/toggle" />
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table border="0" cellpadding="3" width="100%" align="center" bgcolor=
 "#ffffff" cellspacing="1">
-  <tbody>
     <tr>
       <th class="tabletitle" align="left" colspan="4">
        Network
@@ -39,9 +39,9 @@
         tal:content="here/description">desc
       </td>
     </tr>
-  </tbody>
 </table>
 <br>
+<form method="post" tal:attributes="action here/absolute_url_path">
 <table border="0" cellpadding="3" width="100%"
     align="center" bgcolor="#ffffff" cellspacing="1"
     tal:define="objects here/children;
@@ -69,6 +69,9 @@
   </tr>
   <tr tal:repeat="net batch">
     <td class="tablevalues" align="left">
+    <input tal:condition="here/isManager" 
+        type="checkbox" name="organizerPaths:list" 
+        tal:attributes="value net/getId"/>
     <a href="_" target="rightFrame"
         tal:attributes="href net/getPrimaryUrlPath"
         tal:content="net/id">address</a>
@@ -83,12 +86,14 @@
   </tr>
   <tr>
     <td colspan="3" class="tableheader" align='center'>
-        <form metal:use-macro="here/zenTableNavigation/macros/navtool" />
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
   </span>
   <tr tal:condition="here/isManager">
-    <form metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
+    <td class="tableheader" colspan="3">
+        <span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
+    </td>
   </tr>
 </table>
 <br>
@@ -155,9 +160,10 @@
     </td>
     </tr>
   <tr>
-    <td colspan=5 class="tableheader" align='center'>
-        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+    <td colspan=5 class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
 </table>
+</form>
 <span tal:replace="structure here/standard_html_footer"/>

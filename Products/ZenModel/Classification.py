@@ -111,32 +111,6 @@ class Classification(ZenModelRM):
         return catalog
 
 
-    security.declareProtected('View', 'helpLink')
-    def helpLink(self):
-        '''return a link to the objects help file'''
-        path = self.__class__.__module__.split('.')
-        className = path[-1].replace('Class','')
-        product = path[-2]
-       
-        path = ("", "Control_Panel", "Products", product, "Help", 
-                "%s.stx"%className)
-
-        # check to see if we have a help screen
-        app = self.getPhysicalRoot()
-        try:
-            app.restrictedTraverse(path)
-        except KeyError:
-            return ""
-            
-        url = "/HelpSys?help_url="+ "/".join(path)
-
-        return """<a class="tabletitle" href="%s" \
-        onClick="window.open('%s','zope_help','width=600,height=500,menubar=yes,\
-        toolbar=yes,scrollbars=yes,resizable=yes'); return false;" \
-        onMouseOver="window.status='Open online help'; return true;" \
-        onMouseOut="window.status=''; return true;">Help!</a>""" % (url, url)
-
-    
     def createInstance(self, id):
         """must be implemented in lower class to create the appropriate
         instnace for a certain classification"""

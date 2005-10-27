@@ -1,4 +1,5 @@
 <span tal:replace="structure here/standard_html_header"/>
+<script metal:use-macro="here/miscmacros/macros/toggle" />
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table border="0" cellpadding="3" width="100%" align="center" bgcolor=

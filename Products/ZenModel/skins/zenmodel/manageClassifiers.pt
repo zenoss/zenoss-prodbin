@@ -1,0 +1,4 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<h1>Classifiers</h1>
+<span tal:replace="structure here/standard_html_footer"/>

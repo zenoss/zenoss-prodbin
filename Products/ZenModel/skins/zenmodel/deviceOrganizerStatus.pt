@@ -1,4 +1,5 @@
 <span tal:replace="structure here/standard_html_header"/>
+<script metal:use-macro="here/miscmacros/macros/toggle" />
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table border="0" cellpadding="3" width="100%" 
@@ -93,6 +94,10 @@
         |
         <input class="tableheader" type="submit" 
             name="manage_deleteOrganizers:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
     </span>
     </td>
     </tr>

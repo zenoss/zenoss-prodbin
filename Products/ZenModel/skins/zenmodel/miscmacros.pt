@@ -113,3 +113,31 @@ function getProducts(compsel){
 //-->
 </script>
 </span>
+
+
+<script type="text/javascript" metal:define-macro="toggle">
+<!-- 
+
+isSelected = false;
+
+function toggleSelect(form) {
+    if (isSelected == false) {
+        for (i = 0; i < form.length; i++)
+            form.elements[i].checked = true ;
+        isSelected = true;
+        form.SelectButton.value = "Deselect All";
+        return isSelected;
+    }
+    else {
+        for (i = 0; i < form.length; i++)
+            form.elements[i].checked = false ;
+        isSelected = false;
+        form.SelectButton.value = "Select All";
+        return isSelected;       
+    }
+}
+
+//-->
+</script>
+
+
