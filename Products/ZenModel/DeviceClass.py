@@ -177,8 +177,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         """
         Override default moveDevices because this is a contained relation. 
         """
-        if not moveTarget: 
-            raise ValueError("Move target %s not valid" % moveTarget)
+        if not moveTarget or not deviceNames: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         for devname in deviceNames:

@@ -796,6 +796,14 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
                                             "/deviceOrganizerStatus")
 
 
+    security.declareProtected('Change Device', 'renameDevice')
+    def renameDevice(self, newId, REQUEST=None):
+        """Delete device from the DMD"""
+        parent = self.getPrimaryParent()
+        parent.manage_renameObject(self.getId(), newId)
+        if REQUEST: return self()
+
+
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.

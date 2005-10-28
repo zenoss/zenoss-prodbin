@@ -104,6 +104,7 @@ class Organizer(ZenModelRM):
    
     def moveOrganizer(self, moveTarget, organizerPaths=None, REQUEST=None):
         """Move organizer to moveTarget."""
+        if not moveTarget or not organizerPaths: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         movedStuff = False
         for organizerName in organizerPaths:

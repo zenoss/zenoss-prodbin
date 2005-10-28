@@ -9,8 +9,8 @@
   <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
     <tr>
         <td class="tableheader" align="left">Device Class Path</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="moveTarget"
+        <td class="tableheader" align="left" colspan=3>
+            <select class="tableheader" name="moveTarget"
             tal:define="
             dcs here/moveTargets;
             curdc here/getDeviceClassName"
@@ -33,13 +33,20 @@
   </td>
   </tr>
   <tr>
+  <td class=tableheader>Change the name of this device</td>
+  <td class=tableheader>
+      <input class="tableheader" type="text" name="newId" size="25"/>
+      <input class="tableheader" type="submit" name="renameDevice:method"
+          value=" rename device " />
+  </td>
+  </tr>
+  <tr>
   <td class=tableheader>Delete this device from the database</td>
   <td class=tableheader>
       <input class="tableheader" type="submit" name="deleteDevice:method"
           value=" Delete Device " />
   </td>
   </tr>
-  <tr>
   </table>
 </form>
 <span tal:replace="structure here/standard_html_footer" />
