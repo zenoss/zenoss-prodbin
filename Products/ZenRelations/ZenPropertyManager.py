@@ -124,6 +124,11 @@ class ZenPropertyManager(PropertyManager):
                 return obj.getPrimaryId(self.getZenRootNode().getId())
 
 
+    def zenPropertyType(self, id):
+        """Return the type of this property."""
+        return self.getZenRootNode().getPropertyType(id)
+
+    
     def setZenProperty(self, propname, propvalue, REQUEST=None):
         """
         Add or set the propvalue of the property propname on this node of 

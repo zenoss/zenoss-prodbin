@@ -4,7 +4,7 @@
 <table border="0" cellpadding="3" cellspacing="1"
     tal:define="props here/zenPropertyIds">
     <tr>
-      <th class="tabletitlel" colspan="3">
+      <th class="tabletitlel" colspan="4">
       Device Class Configuration
       </th>
     </tr>
@@ -12,6 +12,7 @@
       <th class="tableheader" align="center">Property</th>
       <th class="tableheader" align="center">Path</th>
       <th class="tableheader" align="center">Value</th>
+      <th class="tableheader" align="center">Type</th>
     </tr>
     <tr tal:repeat="prop props">
       <td class="tablevalues" align="left" tal:content="prop">
@@ -23,6 +24,10 @@
       </td>
       <td class="tablevalues" align='left'
         tal:content="python: here.zenPropertyString(prop)"> 
+        int
+      </td>
+      <td class="tablevalues" align='left'
+        tal:content="python: here.zenPropertyType(prop)"> 
         int
       </td>
     </tr>
