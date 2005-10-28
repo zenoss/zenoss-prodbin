@@ -93,6 +93,11 @@ class CricketConf(Monitor, StatusColor):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editCricketConf'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -199,6 +204,23 @@ class CricketConf(Monitor, StatusColor):
                 dev.getLastChange() > dev.getLastCricketGenerate())):
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
-            
+           
+
+    security.declareProtected('Manage DMD', 'manage_editCricketConf')
+    def manage_editCricketConf(self, 
+                cricketroot = '', cricketurl = '',
+                cricketuser = '', cricketpass = '', REQUEST=None):
+        """
+        Edit a CricketConfig from a web page.
+        """
+        self.cricketroot = cricketroot
+        self.cricketurl = cricketurl
+        self.cricketuser = cricketuser
+        self.cricketpass = cricketpass
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
+
+
 
 InitializeClass(CricketConf)

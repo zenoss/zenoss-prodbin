@@ -9,8 +9,18 @@
     </tr>
     <tr>
       <td class="tableheader" align="left">Cricket Root</td>
-      <td class="tablevalues" colspan="3" align='left'
+      <td class="tablevalues" align='left'
         tal:content="here/cricketroot">mon name</td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket URL</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/cricketurl" />
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket User</td>
+      <td class="tablevalues" align='left'
+        tal:content="here/cricketuser" />
     </tr>
 </table>
 <br>

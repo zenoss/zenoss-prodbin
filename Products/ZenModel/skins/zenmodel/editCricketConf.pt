@@ -1,0 +1,53 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<br />
+<table border="0" cellpadding="3" width="100%" 
+    align="left" bgcolor="#ffffff" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <td class=tableheader colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket Root</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="cricketroot" size="50"
+            tal:attributes="value here/cricketroot" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket URL</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="cricketurl" size="50"
+            tal:attributes="value here/cricketurl" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket User</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="cricketuser" 
+            tal:attributes="value here/cricketuser" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Cricket Password</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="cricketpass" 
+            tal:attributes="value here/cricketpass" />
+      </td>
+    </tr>
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td align="left"  class="tableheader" colspan=3>
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editCricketConf:method" />
+        </td>
+    </tr>
+</table>
+</form>
+<span tal:replace="structure here/standard_html_footer"/>
+

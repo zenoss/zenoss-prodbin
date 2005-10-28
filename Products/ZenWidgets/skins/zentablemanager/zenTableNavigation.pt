@@ -7,11 +7,10 @@
     <input type='hidden' name='tableName' value="_"
         tal:attributes="value tableName">
     <div style="padding-left: 10px; float: left; text-align:left;">
-        Page
         <span tal:replace="python:ts.start+1" />
         of
         <span tal:replace="ts/totalobjs" />
-    &nbsp;|&nbsp;
+    &nbsp;&nbsp;
     <span tal:replace="
         structure python:here.ZenTableManager.getTableNavigation(
                                     here, tableName, batch)" />
@@ -23,7 +22,7 @@
     Filter
     <input class="tableheader" type="text" name="filter" size=15 value=""
         tal:attributes="value ts/filter" />
-    &nbsp;|&nbsp;
+    &nbsp;&nbsp;
     Page Size
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
         tal:attributes="value ts/batchSize">

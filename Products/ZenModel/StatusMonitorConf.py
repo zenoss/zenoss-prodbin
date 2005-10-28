@@ -83,6 +83,11 @@ class StatusMonitorConf(Monitor, StatusColor):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editStatusMonitorConf'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -328,6 +333,34 @@ class StatusMonitorConf(Monitor, StatusColor):
             not isinstance(self.snmpHeartbeat, ZenDate)):
             self.snmpHeartbeat = ZenDate()
         self.snmpHeartbeat.setDate()
+
+    
+    security.declareProtected('Manage DMD', 'manage_editStatusMonitorConf')
+    def manage_editStatusMonitorConf(self, 
+                    chunk=75,timeOut=1.5,tries=2,
+                    snmpTimeOut=3.0,snmpTries=2,
+                    cycleInterval=60,snmpCycleInterval=60,
+                    configCycleInterval=20,
+                    cycleFailWarn=2,cycleFailCritical=3,
+                    maxFailures=1440,prodStateThreshold=1000, REQUEST=None):
+        """
+        Edit a StatusMonitorConf from a web page.
+        """
+        self.chunk = chunk
+        self.timeOut = timeOut
+        self.tries = tries
+        self.snmpTimeOut = snmpTimeOut
+        self.snmpTries = snmpTries
+        self.cycleInterval = cycleInterval
+        self.snmpCycleInterval = snmpCycleInterval
+        self.configCycleInterval = configCycleInterval
+        self.cycleFailWarn = cycleFailWarn
+        self.cycleFailCritical = cycleFailCritical
+        self.maxFailures = maxFailures
+        self.prodStateThreshold = prodStateThreshold
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
 
 
 InitializeClass(StatusMonitorConf)
