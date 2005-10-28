@@ -64,6 +64,7 @@ class Organizer(ZenModelRM):
     security.declareProtected('Add DMD Objects', 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """add a device group to the database"""
+        if not newPath: return self.callZenScreen(REQUEST)
         if newPath.startswith("/"):
             self.createOrganizer(newPath)
         else:
@@ -91,6 +92,7 @@ class Organizer(ZenModelRM):
     security.declareProtected('Delete objects', 'manage_deleteOrganizers')
     def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
         """add a device group to the database"""
+        if not organizerPaths: return self.callZenScreen(REQUEST)
         for organizerName in organizerPaths:
             self.manage_deleteOrganizer(organizerName)
         if REQUEST: return self.callZenScreen(REQUEST)
