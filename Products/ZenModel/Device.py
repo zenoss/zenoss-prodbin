@@ -36,11 +36,10 @@ from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
-from Exceptions import DeviceExistsError
 from ZenStatus import ZenStatus
 from ZenDate import ZenDate
+from Exceptions import *
 
-CopyError='Copy Error'
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
@@ -68,7 +67,8 @@ def manage_createDevice(context, deviceName, devicePath="",
             manufacturer = manufacturer and manufacturer \
                            or cEntry.getManufacturer
             model = model and model or cEntry.getProduct
-   
+        else:
+            raise ZentinelException("Unable to classify device %s", deviceName)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
     device.manage_editDevice(
@@ -82,21 +82,13 @@ def manage_createDevice(context, deviceName, devicePath="",
     return device
 
 
-def classifyDevice(context, deviceName, devicePath, 
-                snmpCommunity, snmpPort, loginName, loginPassword):
-    """get a device if devicePath is None try classifier"""
-    return devicePath
-
-
-
 def manage_addDevice(context, id, REQUEST = None):
     """make a device"""
     serv = Device(id)
     context._setObject(serv.id, serv)
-
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+                                     
 
 addDevice = DTMLFile('dtml/addDevice',globals())
 

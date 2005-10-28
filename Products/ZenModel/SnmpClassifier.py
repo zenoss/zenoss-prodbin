@@ -13,6 +13,8 @@ $Id: SnmpClassifier.py,v 1.9 2003/05/23 17:25:35 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
+import re
+
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import Persistent
@@ -97,6 +99,7 @@ class SnmpClassifier(ZCatalog):
    
     def buildQuery(self, snmpInfo):
         """make query a series of or statements"""
+        snmpInfo = re.sub(r"[,()]", "", snmpInfo)
         return " or ".join(snmpInfo.split())
 
 

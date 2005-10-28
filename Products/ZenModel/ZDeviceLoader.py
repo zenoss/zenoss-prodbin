@@ -16,8 +16,6 @@ __version__ = "$Revision: 1.19 $"[11:-2]
 import logging
 import StringIO
 
-#import transaction
-
 from AccessControl import ClassSecurityInfo
 
 from OFS.SimpleItem import SimpleItem
@@ -70,9 +68,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
             REQUEST = None):
-
-        """load a device into the database"""
-
+        """
+        Load a device into the database connecting its major relations
+        and collecting its configuration. 
+        """
+        if not deviceName: return self.callZenScreen(REQUEST)
         if REQUEST:
             response = REQUEST.response
             self.setupLog(response)
@@ -93,7 +93,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         except:
             logging.exception('load of device %s failed' % device)
         else:
-            #transaction.commit()
             device.collectConfig()
             logging.info("device %s loaded!" % deviceName)
             self.navlinks(device, response)
