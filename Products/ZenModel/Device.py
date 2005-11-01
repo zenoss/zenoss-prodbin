@@ -764,6 +764,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         """collect the configuration of this device"""
         from Products.SnmpCollector.SnmpCollector import SnmpCollector
         sc = SnmpCollector(noopts=1,app=self.getPhysicalRoot())
+        sc.options.force = True
         if REQUEST:
             response = REQUEST.RESPONSE
             sc.setLoggingStream(response)

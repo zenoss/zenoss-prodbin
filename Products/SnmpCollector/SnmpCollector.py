@@ -80,13 +80,10 @@ class SnmpCollector(ZCmdBase):
                             port = device.zSnmpPort)
             if self.testSnmpConnection(snmpsess):
                 if device._p_jar: device._p_jar.sync() 
-                if self._checkForCiscoChange(device, snmpsess):
+                if (self._checkForCiscoChange(device, snmpsess)
+                    or self.options.force):
                     if self._collectCustomMaps(device, snmpsess):
                         device.setLastChange()
-                    try:
-                        uptime = snmpsess.get('.1.3.6.1.2.1.1.3.0').values()[0]
-                        device.setLastPollSnmpUpTime(uptime)
-                    except (ZenSnmpError, PySnmpError): pass
                     device.setSnmpLastCollection()
                     trans = transaction.get()
                     trans.note("Automated data collection by SnmpCollector.py")
@@ -113,10 +110,16 @@ class SnmpCollector(ZCmdBase):
     def _checkForCiscoChange(self, device, snmpsess):
         """Check to see if the running config changed since last poll."""
         changed = True
+        if not device.snmpOid.startswith(".1.3.6.1.4.1.9"): return changed
         lastpolluptime = device.getLastPollSnmpUpTime()
+        self.log.debug("lastpolluptime = %s", lastpolluptime)
         try:
             lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
-            if lastchange < lastpolluptime: changed = False
+            self.log.debug("lastchange = %s", lastchange)
+            if lastchange == lastpolluptime: 
+                changed = False
+            else:
+                device.setLastPollSnmpUpTime(lastchange)
         except (ZenSnmpError, PySnmpError): pass
         return changed
 
@@ -292,6 +295,11 @@ class SnmpCollector(ZCmdBase):
                 type='int',
                 help="number of times to try to write if a "
                     "readconflict is found")
+        self.parser.add_option("-F", "--force",
+                    dest="force", action='store_true',
+                    help="force collection of config data " 
+                         "(even without change to the device)")
+    
 
    
     def mainCollector(self):
