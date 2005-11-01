@@ -15,8 +15,14 @@ form {
     margin:0;
 }
 
-table {
+table.zentable {
     width: 100%;
+    background-color: #ffffff;
+}
+
+td {
+    //padding:3px;
+    //border:1px;
 }
 
 a:link {
@@ -36,6 +42,14 @@ a:hover {
 }
 
 <dtml-comment>top frame and top row of tables use this style</dtml-comment>
+
+.navcontrol {
+    margin-bottom:0;
+    border:0;
+    margin:0;
+    padding:0;
+    font-size: 8pt;
+}
 
 .tabletitle {  
     font-family: &dtml-primary_font_family;;
@@ -145,4 +159,79 @@ a.tablevalues:active {
     font-size: &dtml-tablevalues_font_size;; 
     font-weight: normal;
 }
+
+.dpDiv {
+	}
+
+.dpTable {
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	text-align: center;
+    color: &dtml-tablevalues_color;; 
+    background-color: &dtml-tablevalues_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
+	}
+
+.dpTR {
+	}
+
+.dpTitleTR {
+	}
+
+.dpDayTR {
+	}
+
+.dpTodayButtonTR {
+	}
+
+.dpTD {
+	cursor: pointer;
+	}
+
+.dpDayHighlightTD {
+	background-color: &dtml-tableheader_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
+	cursor: pointer;
+	}
+
+.dpTitleTD {
+	}
+
+.dpButtonTD {
+	}
+
+.dpTodayButtonTD {
+	}
+
+.dpDayTD {
+	background-color: &dtml-tableheader_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
+	color: white;
+	}
+
+.dpTitleText {
+	font-size: 12px;
+	color: black;
+	}
+
+.dpDayHighlight {
+	color:  &dtml-tabletitle_bg_color;;
+	font-weight: bold;
+	}
+
+.dpButton {
+	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+    color: &dtml-tableheader_color;;
+	background: &dtml-tableheader_bg_color;;
+	padding: 0px;
+	}
+
+.dpTodayButton {
+	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+    color: &dtml-tableheader_color;;
+	background: &dtml-tableheader_bg_color;;
+	}
+
 </dtml-with>

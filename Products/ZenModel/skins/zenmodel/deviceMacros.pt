@@ -12,7 +12,7 @@
       <td class=tableheader align=left>Events</td>
       <td class=tablevalues align=left>
         <table border=0 cellpadding=0 width=100% align=center 
-            bgcolor=#ffffff cellspacing=1>
+            bgcolor=#ffffff cellspacing=1 metal:define-macro="devrainbow">
           <tr>
             <td class=statusvalues align=center bgcolor=_ width=16%
             tal:on-error="structure string:

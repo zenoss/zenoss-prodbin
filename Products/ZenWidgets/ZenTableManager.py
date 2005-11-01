@@ -78,7 +78,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         return tableState
 
 
-    def getTableState(self, tableName, attrname=None, **keys):
+    def getTableState(self, tableName, attrname=None, default=None, **keys):
         """return an existing table state or a single value from the state"""
         request = self.REQUEST
         tableStates = self.getTableStates()
@@ -86,26 +86,37 @@ class ZenTableManager(SimpleItem, PropertyManager):
         if not tableState:
             tableStates[tableName] = ZenTableState(request, tableName, 
                                             self.defaultBatchSize, **keys)
+            tableState = tableStates[tableName]
+        else:
+            tableState.setTableStateFromKeys(keys)
         if attrname == None:
             return tableStates[tableName]
         return getattr(tableState, attrname, None)
 
 
+    def getReqTableState(self, tableName, attrname):
+        """
+        Return attrname from request if present if not return from tableState.
+        """
+        request = self.REQUEST
+        if request.has_key(attrname):
+            return request[attrname]
+        return self.getTableState(tableName, attrname)
+
+
     def setTableState(self, tableName, attrname, value):
-        """set the value of a table state attribute and return it"""
+        """Set the value of a table state attribute and return it."""
         tableState = self.getTableState(tableName)
-        setattr(tableState, attrname, value)
-        return value
+        return tableState.setTableState(attrname, value)
 
 
-    def setReqTableState(self, tableName, attrname, defaultValue):
+    def setReqTableState(self, tableName, attrname, default=None, reset=False):
         """set the a value in the table state from the request"""
         tableState = self.getTableState(tableName)
-        value = defaultValue
-        if self.REQUEST.has_key(attrname):
-            value = self.REQUEST[attrname]
-        self.setTableState(tableName, attrname, value)
-        return value
+        value = self.REQUEST.get(attrname, None)
+        tableState = self.getTableState(tableName)
+        return tableState.setTableState(attrname, value,
+                                        default=default, reset=reset)
 
 
     def getBatch(self, tableName, objects, **keys):
@@ -115,7 +126,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
             objects = self.filterObjects(objects, tableState)
         if tableState.sortedHeader:
             objects = self.sortObjects(objects, tableState)
-        tableState.buildComboBox(objects)
+        tableState.totalobjs = len(objects)
+        tableState.buildPageNavigation(objects)
         if tableState.batchSize > 0:
             objects = ZTUtils.Batch(objects, tableState.batchSize,
                         start=tableState.start, orphan=0)
@@ -193,38 +205,6 @@ class ZenTableManager(SimpleItem, PropertyManager):
                     tableState.sortRule, 
                     tableState.sortedSence),)
         return sort(objects, sortOn)
-
-
-    def getTableNavigation(self, context, tableName, batch):
-        """generate the navigation links for bar at bottom of table"""
-        tableState = self.getTableState(tableName)
-        url = context.absolute_url_path()
-        navbar = "\n"
-        if tableState.batchSize==0: return navbar
-        if tableState.start != 0 and tableState.totalobjs:
-            navbar += self._navLink(url, tableName, "First", 
-                            0, tableState.negateFilter)
-            navbar += self._navLink(url, tableName, "Prev",
-                            batch.previous.first, tableState.negateFilter)
-        else:
-            navbar += "First Prev\n"
-        navbar += tableState.getComboBox()
-        if batch.next:
-            navbar += self._navLink(url, tableName, "Next",
-                            batch.next.first, tableState.negateFilter)
-            navbar += self._navLink(url, tableName, "Last", 
-                            tableState.lastindex, tableState.negateFilter)
-        else:
-            navbar += "Next Last"
-        return navbar + "\n"
- 
-
-    def _navLink(self, url, tableName, label, start, negateFilter):
-        link = """<a href="%s?tableName=%s&start:int=%d""" % (
-                    url, tableName, start)
-        if negateFilter: link += "&negateFilter=1"
-        link += "\">%s</a> " % label
-        return link
 
 
     def getTableStates(self):

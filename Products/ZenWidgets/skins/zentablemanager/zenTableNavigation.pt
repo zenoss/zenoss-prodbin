@@ -1,19 +1,33 @@
 <form metal:define-macro="navtool" class="tableheader"
-    action="_" method="POST" tal:attributes="action here/absolute_url_path">
+    action="_" method="POST" tal:attributes="action request/URL">
+    <input type='hidden' name='tableName'
+        tal:attributes="value tableName" />
+    <input type='hidden' name='zenScreenName'
+        tal:attributes="value template/id" />
     <div metal:define-macro="navbody" 
         tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
         tal:condition="python: ts.totalobjs > 6 or ts.filter"
         style="boarder:0; padding-top:2px;margin-bottom:2px;">
-    <input type='hidden' name='tableName' value="_"
-        tal:attributes="value tableName">
     <div style="padding-left: 10px; float: left; text-align:left;">
         <span tal:replace="python:ts.start+1" />
         of
         <span tal:replace="ts/totalobjs" />
     &nbsp;&nbsp;
-    <span tal:replace="
-        structure python:here.ZenTableManager.getTableNavigation(
-                                    here, tableName, batch)" />
+    <input class="navcontrol" type="submit"
+        alt="first" name="first" value="|<"/>
+    <input class="navcontrol" type="submit"
+        alt="prev" name="prev" value="<"/>
+    <select class="tableheader" name="start:int" valign="top"
+        onchange="this.form.submit()">
+        <option tal:repeat="page ts/getPageNavigation" 
+            tal:content="page/label" 
+            tal:attributes="value page/index;
+                            selected python: page['index'] == ts.start" />
+    </select>
+    <input class="navcontrol" type="submit"
+        alt="next" name="next" value=">" />
+    <input class="navcontrol" type="submit" 
+        alt="last" name="last" value=">|" />
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     Not
@@ -26,7 +40,46 @@
     Page Size
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
         tal:attributes="value ts/batchSize">
-    <input class="tableheader" type="submit" value="ok" />
+    <input class="navcontrol" type="submit" value="ok" />
+    </div>
+    </div>
+</form>
+
+<form metal:define-macro="navtoolnofilter" class="tableheader"
+    action="_" method="POST" tal:attributes="action request/URL">
+    <input type='hidden' name='tableName'
+        tal:attributes="value tableName" />
+    <div metal:define-macro="navbodynofilter" 
+        tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
+        tal:condition="python: ts.totalobjs > ts.batchSize"
+        style="boarder:0; padding-top:2px;margin-bottom:2px;">
+    <input type='hidden' name='zenScreenName'
+        tal:attributes="value template/id" />
+    <div style="padding-left: 10px; float: left; text-align:left;">
+        <span tal:replace="python:ts.start+1" />
+        of
+        <span tal:replace="ts/totalobjs" />
+    &nbsp;&nbsp;
+    <input class="navcontrol" type="submit"
+        alt="first" name="first" value="|<"/>
+    <input class="navcontrol" type="submit"
+        alt="prev" name="prev" value="<"/>
+    <select class="tableheader" name="start:int" valign="top"
+        onchange="this.form.submit()">
+        <option tal:repeat="page ts/getPageNavigation" 
+            tal:content="page/label" 
+            tal:attributes="value page/index;
+                            selected python: page['index'] == ts.start" />
+    </select>
+    <input class="navcontrol" type="submit"
+        alt="next" name="next" value=">" />
+    <input class="navcontrol" type="submit" 
+        alt="last" name="last" value=">|" />
+    </div>
+    <div style="padding-right: 10px; float: right; text-align:right;">
+    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+        tal:attributes="value ts/batchSize">
+    <input class="navcontrol" type="submit" value="ok" />
     </div>
     </div>
 </form>

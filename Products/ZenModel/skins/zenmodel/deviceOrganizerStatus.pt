@@ -1,10 +1,8 @@
 <span tal:replace="structure here/standard_html_header"/>
-<script metal:use-macro="here/miscmacros/macros/toggle" />
+<script metal:use-macro="here/miscmacros/macros/toggle"></script>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
-    metal:define-macro="status">
+<table class="zentable" metal:define-macro="status">
     <tr>
       <th class="tabletitle" align="left" colspan="6">Status</th>
     </tr>
@@ -12,7 +10,8 @@
       <td class="tableheader" align="left">Events</td>
       <td class="tablevalues" align="left">
         <table border="0" cellpadding="0" width="100%" 
-            align="center" bgcolor="#ffffff" cellspacing="1">
+            align="center" bgcolor="#ffffff" cellspacing="1" 
+            metal:define-macro="orgrainbow">
           <tr>
           <td class="statusvalues" align="center" bgcolor="_" width="16%"
             tal:on-error="structure string:
@@ -31,8 +30,8 @@
 </table>
 <br />
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table border=0 cellpadding=3 cellspacing=1
-    tal:define="objects here/children;
+<table class="zentable" 
+        tal:define="objects here/children;
         tableName string:children;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
@@ -77,8 +76,10 @@
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
     <span metal:define-macro="editor" tal:omit-tag="">
+        <!--
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
+        -->
         <input class="tableheader" type="text" name="newPath"/>
         <input class="tableheader" type="submit" 
             name="manage_addOrganizer:method" value=" Add " /> 

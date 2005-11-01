@@ -1,8 +1,6 @@
 <form method="post" tal:attributes="action here/absolute_url_path" 
     name="deviceListForm" metal:define-macro="devList">
-<table 
-    border="0" cellpadding="3" width="100%" align="center" 
-    bgcolor="#ffffff" cellspacing="1"
+<table class="zentable"
     tal:define="objects here/devices/objectValuesAll;
         tableName string:devicelistmacro;
         batch python:here.ZenTableManager.getBatch(tableName,objects);"

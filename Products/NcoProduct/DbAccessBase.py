@@ -18,7 +18,7 @@ class DbAccessBase:
         else: 
             import MySQLdb
             self._v_db = MySQLdb.connect(host=self.hostname, user=self.username,
-                                        passwd=self.password, db="alerts")
+                                        passwd=self.password, db="events")
         return self._v_db.cursor()
 
 

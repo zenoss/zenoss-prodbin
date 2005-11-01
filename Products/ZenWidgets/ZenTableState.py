@@ -22,8 +22,22 @@ from AccessControl import ClassSecurityInfo
 
 class ZenTableState:
 
-    changesThatResetStart = ("batchSize", "filter", 
-                            "negateFilter", "sortedHeader", "sortedSence")
+    changesThatResetStart = [
+        "batchSize", "filter", 
+        "negateFilter", "sortedHeader", 
+        "sortedSence", 
+        ]
+
+    requestAtts = [ 
+        "batchSize", 
+        "filter",
+        "filterFields", 
+        "negateFilter",
+        "sortedHeader", 
+        "sortedSence",
+        "sortRule", 
+        "start",
+        ]
 
     security = ClassSecurityInfo()
     #this session info isn't anything worth protecting
@@ -37,6 +51,7 @@ class ZenTableState:
         self.sortRule = "cmp"
         self.batchSize = defaultBatchSize
         self.start = 0
+        self.lastindex = 0
         self.filter = ""
         self.filterFields = []
         self.negateFilter = 0
@@ -48,32 +63,59 @@ class ZenTableState:
         self.abbrThresh = self.abbrStartLabel + \
                         self.abbrEndLabel + self.abbrPadding
         self.tableClass = "tableheader"
+        self.resetStart = False
+        self.setTableStateFromKeys(keys)
 
-        self.comboBox = ""  
-        # do we really need to protect the state like this??
-        for k, v in keys.items():
-            if hasattr(self, k):
-                setattr(self, k, v)
-        #self.__dict__.update(keys)
+
+    def setTableStateFromKeys(self, keys):
+        self.__dict__.update(keys)
+        for key in keys.keys():
+            if key not in self.requestAtts:
+                self.requetatts.append(key)
 
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
-        if self.url != request.URL: self.start = 0
         if (request.has_key('tableName') 
             and request['tableName'] == self.tableName):
-            for attname in self.__dict__.keys():
-                if (request.has_key(attname) and 
-                    getattr(self,attname) != request[attname]):
-                    setattr(self,attname, request[attname])
-                    if attname in self.changesThatResetStart: 
-                        self.start = 0
+            for attname in self.requestAtts:
+                if request.has_key(attname):
+                    self.setTableState(attname, request[attname])
             if (not request.has_key("negateFilter") 
                 and self.negateFilter):
                 self.negateFilter = 0
-                self.start = 0
+                self.resetStart = True
             if not self.filter:
                 self.negateFilter = 0
+        if self.url != request.URL or request.get("first",False): 
+            self.resetStart = True
+        if request.get("last", False): self.start=self.lastindex
+        elif request.get("next", False): 
+            np = self.start + self.batchSize
+            if np > self.lastindex: self.start = self.lastindex
+            else: self.start = np
+        elif request.get("prev", False):
+            pp = self.start - self.batchSize
+            if pp < 0: self.start = 0
+            else: self.start = pp
+        if self.resetStart:
+            self.start = 0
+            self.resetStart = False
+
+
+    def setTableState(self, attname, value, default=None, reset=False):
+        if not hasattr(self, attname) and default:
+            setattr(self, attname, default)
+            value = defauldefault=default, reset=reset)t
+            if reset and attname not in self.changesThatResetStart:
+                self.changesThatResetStart.append(attname) 
+            if attname not in self.requestAtts:
+                self.requestAtts.append(attname)
+        elif getattr(self,attname, None) != value:
+            setattr(self, attname, value)
+            if attname in self.changesThatResetStart: 
+                self.resetStart = True
+        return value
 
 
     def addFilterField(self, fieldName):
@@ -82,30 +124,21 @@ class ZenTableState:
             self.filterFields.append(fieldName)
 
 
-    def getComboBox(self):
-        return self.comboBox
+    def getPageNavigation(self):
+        return self.pagenav
 
 
-    def buildComboBox(self, objects):
-        """make labels for the combo that show the names of items"""
-        if self.batchSize == 0: 
-            self.comboBox = ""
-            return
-        self.totalobjs = len(objects)
-        clines = []
-        cline = """<select class="%s" name="start:int" """ % self.tableClass
-        cline += """onchange="this.form.submit()">\n"""
+    def buildPageNavigation(self, objects):
+        self.pagenav = []
+        if self.batchSize == 0: return self.pagenav
         lastindex=0
         for index in range(0, self.totalobjs, self.batchSize):
-            pageLabel = self._pageLabel(objects, index)
-            cline += "<option "
-            if self.start == index: cline += "selected "
-            cline += """value="%d">%s</option>\n""" % (index, pageLabel)
+            pg = {}
+            pg['label'] = self._pageLabel(objects, index)
+            pg['index'] = index
+            self.pagenav.append(pg)
             lastindex=index
-        cline += """</select>\n"""
-        clines.append(cline)
         self.lastindex = lastindex
-        self.comboBox = "".join(clines)
 
 
     def _pageLabel(self, objects, index):

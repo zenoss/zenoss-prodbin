@@ -44,8 +44,6 @@ def manage_addNcoManager(context, id, REQUEST=None):
             context.absolute_url()+'/manage_main')
             
 
-#addNcoManager = DTMLFile('dtml/addNcoManager',globals())
-
 defaultFields = ['Acknowledged', 'Severity', 'ServerSerial', 'ServerName']
 
 
@@ -111,24 +109,27 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
 
 
     security.declareProtected('View','getEvents')
-    def getEvents(self, where=None, orderby=None, resultFields=None):
-        """get events from the omnibus database"""
+    def getEvents(self,where="",orderby="",resultFields=[],severity=0):
+        """Return events from the event database"""
         try:
             if resultFields:
                 resultFields = list(resultFields) + defaultFields
             else:
-                resultFields = self.resultFields + defaultFields
+                resultFields = list(self.resultFields) + defaultFields
             select = ("select " + ','.join(resultFields)
                         + " from status")
             if where: 
-                select += " where " + where 
+                where = " where " + where 
             elif self.defaultwhere:
-                select += " where " + self.defaultwhere
+                where = " where " + self.defaultwhere
+            if severity and not where.find("Severity") > -1:
+                where += " and Severity >= %s" % severity
+            select += where
             if orderby:
                 select += " order by " + orderby
             elif self.defaultorderby:
                 select += " order by " + self.defaultorderby
-            print select
+            #print select
             if select[-1] != ';': select += ';'
             retdata = self.checkCache(select)
             if not retdata:
@@ -139,20 +140,21 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
                 self.addToCache(select, retdata)
                 self.cleanCache()
             return retdata
-        except ValueError: #FIXME get specific exceptions!!!!
-            LOG("NcoManager", ERROR, "Failure querying omnibus")
+        except:
+            logging.exception("Failure querying events")
+            raise
         return []
 
 
     security.declareProtected('View','getHistoryEvents')
     def getHistoryEvents(self, startdate=None, enddate=None,
-                        where="", orderby=None, resultFields=None):
+                        where="", orderby=None, resultFields=None, severity=0):
         """query an oracle event history database"""
         try:
             import DCOracle2
             if not resultFields:
                 resultFields = self.resultFields
-            select = self.historySelectPrep(where, orderby, resultFields)
+            select = self.historySelectPrep(where,orderby,resultFields,severity)
             startdate, enddate = self.historyDatesPrep(startdate, enddate)
             cachekey = select, str(startdate), str(enddate)
             #print cachekey 
@@ -161,14 +163,15 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
             if not retdata:
                 curs = self._getHistoryCursor()
                 curs.execute(select, startdate, enddate)
-                retdata = self._getEvents(curs, resultFields, hist=1)
+                retdata = self._getEvents(curs, resultFields)
+                                            
                 self._closeHistoryDb()
                 self.addToCache(cachekey, retdata)
                 self.cleanCache()
             return retdata
-        except: #FIXME get specific exceptions!!!!
+        except: 
             logging.exception("Failure querying oracle history")
-            #LOG("NcoManager", ERROR, "Failure querying oracle history")
+            raise
         return []
         
 
@@ -216,7 +219,7 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
         return retdata.values()
 
 
-    def historySelectPrep(self, where, orderby, resultFields):
+    def historySelectPrep(self, where, orderby, resultFields, severity=0):
         """build the select for a history query 
         (we need to handle date conversions)"""
         if not resultFields:
@@ -235,6 +238,8 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
         if where: where += " and"
         else: where = ""
         where += " LastOccurrence >= :1 and FirstOccurrence <= :2"
+        if severity and not where.find("Severity") > -1:
+            where += " and Severity >= %s" % severity
         select += " where " + where
         if orderby and orderby > 0:
             select += " order by " + orderby
@@ -276,7 +281,7 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
         return startdate, enddate
 
 
-    def _getEvents(self, curs, resultFields, hist=0): 
+    def _getEvents(self, curs, resultFields):
         """check cache and execute query against passed cursor"""
         result = []
         outfields = resultFields[:-len(defaultFields)]
@@ -338,9 +343,9 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
                     retdata.append((row[i], self._colors[sev],))
                 else:
                     retdata.append((0, self._colors[sev],))
-        except: #FIXME get specific exceptions!!!!
+        except: 
             logging.exception("failed querying event database") 
-            retdata = defaultdata
+            raise
         return retdata    
             
 

@@ -3,53 +3,56 @@
 <br>
 <script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
 
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
-    tal:define="tableName string:viewevents;
+<form method="post" tal:attributes="action request/URL"
+    tal:define="
     whereclause request/ev_whereclause | python:None;
     orderby request/ev_orderby | python:None;
     resultFields request/ev_resultfields | here/netcool/resultFields;
-    filteratt python: here.scSortedTableSetAtt(tableName,'filterattribute',
-                                                'getAllEventText');
-    objects python:here.netcool.getEvents(where=whereclause, 
-                            orderby=orderby, resultFields=resultFields);
-    batch python:here.scSortedTableGetBatch(tableName,objects,'');
-    sevlevel python: here.scSortedTableSetAtt(tableName,'severity',2);
-    evcolspan python:len(resultFields)+1;">
-    <!-- <tr>
-        <td class="tabletitle" colspan=3 tal:attributes="colspan evcolspan">
-        Live Events
-        </td>
-    </tr> -->
+    ">
+<table class="zentable"
+    metal:define-macro="eventTable"
+    tal:define="tableName string:viewevents;
+    sevlevel python: here.ZenTableManager.setReqTableState(
+                        tableName,'severity',default=2,reset=True);
+    objects python:here.netcool.getEvents(where=whereclause, orderby=orderby, 
+                        resultFields=resultFields, severity=sevlevel);
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='');
+    evcolspan python:len(resultFields)+1;"
+    >
+    <input type='hidden' name='tableName'
+        tal:attributes="value tableName" />
+    <input type='hidden' name='zenScreenName'
+        tal:attributes="value template/id" />
     <tr>
         <td class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
-        <form action="_" method="POST" tal:attributes="action request/URL">
-            Live Events:
+            Events:
             &nbsp; &nbsp;
-            <input type='hidden' name='tableName' value="_"
-                tal:attributes="value tableName">
             Not
-            <input class=tabletitle type=checkbox name=negatefilter value=1 
-                tal:attributes="checked python:here.scGetSortedTableState(
-                                        tableName, 'negatefilter')"/>
+            <input class=tabletitle type=checkbox name=negateFilter value=1 
+                tal:attributes="checked 
+                    python:here.ZenTableManager.getTableState(
+                                        tableName, 'negateFilter')"/>
             Filter
             <input class="tableheader" type="text" name="filter" 
                 size=25 value="_" 
-                tal:attributes="value python: here.scGetSortedTableState(
-                                    tableName,'filter')">
+                tal:attributes="value python:here.ZenTableManager.getTableState(
+                                        tableName,'filter')">
             &nbsp; &nbsp;
             Severity Filter
-            <span tal:replace="structure python:here.scGenericPopup(
-                tableName, 'severity:int',
-                here.netcool.getSeverities())"/>
-        </form>    
+            <select class="tableheader" name="severity:int"
+                    onchange="this.form.submit()">
+                <option tal:repeat="sev here/netcool/getSeverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1]; 
+                                    selected python:sev[1]==sevlevel" />
+            </select>
         </td>
     </tr>
     <tr>
         <th tal:repeat="headername resultFields"
-            tal:replace="structure python:here.scSortedTableHeader(
-                    tableName,headername,headername,'cmp')">
-            Name
+            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,headername,headername,'cmp')">Name
         </th>
         <th class=tableheader> </th>
     </tr>
@@ -74,8 +77,10 @@
     <tr>
         <td colspan=4 class="tableheader" align='center'
             tal:attributes="colspan evcolspan">
-            <form metal:use-macro="here/miscmacros/macros/navtool"></form>
+            <span metal:use-macro=
+                "here/zenTableNavigation/macros/navbodynofilter" />
         </td>
     </tr>
 </table>
+</form>    
 <span tal:replace="structure here/standard_html_footer"/>

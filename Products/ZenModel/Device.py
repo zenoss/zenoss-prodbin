@@ -739,14 +739,6 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         if DateTime() > lastcoll + hours: return 1
 
 
-    #need to decuple these two methods out to actions
-    security.declareProtected('View', 'deviceEvents')
-    def deviceEvents(self):
-        """get the event list of this object"""
-        self.REQUEST.set('ev_whereclause', "Node = '%s'"%self.id)
-        return self.viewEvents(self.REQUEST)
-
-
     security.declareProtected('View', 'deviceHistoryEvents')
     def deviceHistoryEvents(self):
         """get the history event list of this object"""

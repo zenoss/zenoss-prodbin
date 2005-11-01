@@ -60,16 +60,26 @@ class ZenModelBase:
     
     def callZenScreen(self, REQUEST):
         """
-        Call and return screen that was passed in the referer value of REQUEST
+        Call and return screen specified by zenScreenName value of REQUEST.
+        If zenScreenName is not present call the default screen.  This is used
+        in functions that are called from forms to get back to the correct
+        screen with the correct context.
         """
-        screenName = REQUEST['zenScreenName']
-        #REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)
+        screenName = REQUEST.get("zenScreenName", "")
+        REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)
         screen = getattr(self, screenName, False)
-        if not screen: 
-            raise AttributeError("Screen %s not found in context %s" 
-                                % (screenName, self.getPhysicalPath()))
+        if not screen: return self()
         return screen()
 
+
+    def zenScreenUrl(self):
+        """
+        Return the url for the current screen as defined by zenScreenName.
+        If zenScreenName is not found in the request the request url is used. 
+        """
+        screenName = self.REQUEST.get("zenScreenName", "")
+        if not screenName: return self.REQUEST.URL
+        return self.getPrimaryUrlPath() + "/" + screenName
 
 
     security.declareProtected('View', 'breadCrumbs')
@@ -159,6 +169,18 @@ class ZenModelBase:
     def getNowString(self):
         """return the current time as a string"""
         return DateTime().strftime('%Y/%m/%d %H:%M:%S')
+
+
+    def todayDate(self):
+        """Return today's date as a string in the format 'mm/dd/yyyy'."""
+        return DateTime().strftime("%m/%d/%Y")
+
+
+    def yesterdayDate(self):
+        """Return yesterday's date as a string in the format 'mm/dd/yyyy'."""
+        yesterday = DateTime()-1
+        return yesterday.strftime("%m/%d/%Y")
+
 
     
     security.declareProtected('View', 'helpLink')
