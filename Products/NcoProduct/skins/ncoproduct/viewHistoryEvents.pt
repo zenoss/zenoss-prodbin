@@ -77,16 +77,18 @@ function datePickerClosed(targetInput) {
                                 tableName,'filter')">
         &nbsp; &nbsp;
         Severity Filter
-        <span tal:replace="structure python:here.scGenericPopup(
-            tableName, 'severity:int',
-            here.netcool.getSeverities())"/>
+        <select class="tableheader" name="severity:int">
+            <option tal:repeat="sev here/netcool/getSeverities"
+                tal:content="python:sev[0]"
+                tal:attributes="value python:sev[1]; 
+                                selected python:sev[1]==sevlevel" />
+        </select>
         </td>
     </tr>
     <tr>
-        <th tal:repeat="headername here/netcool/resultFields"
-            tal:replace="structure python:here.scSortedTableHeader(
-                    tableName,headername,headername,'cmp')">
-            Name
+        <th tal:repeat="headername resultFields"
+            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,headername,headername,'cmp')">Name
         </th>
         <th class=tableheader> </th>
     </tr>
