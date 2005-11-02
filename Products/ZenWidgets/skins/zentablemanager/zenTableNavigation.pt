@@ -14,10 +14,13 @@
         <span tal:replace="ts/totalobjs" />
     &nbsp;&nbsp;
     <input class="navcontrol" type="submit"
-        alt="first" name="first" value="|<"/>
+        alt="first" name="first" value="|<"
+        tal:attributes="disabled python:ts.start==0" />
     <input class="navcontrol" type="submit"
-        alt="prev" name="prev" value="<"/>
+        alt="prev" name="prev" value="<"
+        tal:attributes="disabled python:ts.start==0" />
     <select class="tableheader" name="start:int" valign="top"
+        tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
         onchange="this.form.submit()">
         <option tal:repeat="page ts/getPageNavigation" 
             tal:content="page/label" 
@@ -25,9 +28,11 @@
                             selected python: page['index'] == ts.start" />
     </select>
     <input class="navcontrol" type="submit"
-        alt="next" name="next" value=">" />
+        alt="next" name="next" value=">" 
+        tal:attributes="disabled not:batch/next" />
     <input class="navcontrol" type="submit" 
-        alt="last" name="last" value=">|" />
+        alt="last" name="last" value=">|"
+        tal:attributes="disabled not:batch/next" />
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     Not
@@ -61,10 +66,13 @@
         <span tal:replace="ts/totalobjs" />
     &nbsp;&nbsp;
     <input class="navcontrol" type="submit"
-        alt="first" name="first" value="|<"/>
+        alt="first" name="first" value="|<"
+        tal:attributes="disabled python:ts.start==0" />
     <input class="navcontrol" type="submit"
-        alt="prev" name="prev" value="<"/>
+        alt="prev" name="prev" value="<"
+        tal:attributes="disabled python:ts.start==0" />
     <select class="tableheader" name="start:int" valign="top"
+        tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
         onchange="this.form.submit()">
         <option tal:repeat="page ts/getPageNavigation" 
             tal:content="page/label" 
@@ -72,9 +80,11 @@
                             selected python: page['index'] == ts.start" />
     </select>
     <input class="navcontrol" type="submit"
-        alt="next" name="next" value=">" />
+        alt="next" name="next" value=">"
+        tal:attributes="disabled not:batch/next" />
     <input class="navcontrol" type="submit" 
-        alt="last" name="last" value=">|" />
+        alt="last" name="last" value=">|"
+        tal:attributes="disabled not:batch/next" />
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""

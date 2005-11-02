@@ -14,10 +14,11 @@
     tal:define="tableName string:viewevents;
     sevlevel python: here.ZenTableManager.setReqTableState(
                         tableName,'severity',default=2,reset=True);
+    deftsort python: here.ZenTableManager.setReqTableState(
+                        tableName,'sortedHeader',default='',reset=True);
     objects python:here.netcool.getEvents(where=whereclause, orderby=orderby, 
                         resultFields=resultFields, severity=sevlevel);
-    batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='');
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
     >
     <input type='hidden' name='tableName'

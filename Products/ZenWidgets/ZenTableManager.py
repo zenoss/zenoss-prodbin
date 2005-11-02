@@ -87,8 +87,6 @@ class ZenTableManager(SimpleItem, PropertyManager):
             tableStates[tableName] = ZenTableState(request, tableName, 
                                             self.defaultBatchSize, **keys)
             tableState = tableStates[tableName]
-        else:
-            tableState.setTableStateFromKeys(keys)
         if attrname == None:
             return tableStates[tableName]
         return getattr(tableState, attrname, None)

@@ -76,17 +76,17 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
-        if (request.has_key('tableName') 
-            and request['tableName'] == self.tableName):
-            for attname in self.requestAtts:
-                if request.has_key(attname):
-                    self.setTableState(attname, request[attname])
-            if (not request.has_key("negateFilter") 
-                and self.negateFilter):
-                self.negateFilter = 0
-                self.resetStart = True
-            if not self.filter:
-                self.negateFilter = 0
+        if request.get('tableName', None) != self.tableName:
+            return
+        for attname in self.requestAtts:
+            if request.has_key(attname):
+                self.setTableState(attname, request[attname])
+        if (not request.has_key("negateFilter") 
+            and self.negateFilter):
+            self.negateFilter = 0
+            self.resetStart = True
+        if not self.filter:
+            self.negateFilter = 0
         if self.url != request.URL or request.get("first",False): 
             self.resetStart = True
         if request.get("last", False): self.start=self.lastindex
@@ -104,17 +104,19 @@ class ZenTableState:
 
 
     def setTableState(self, attname, value, default=None, reset=False):
-        if not hasattr(self, attname) and default:
+        if not hasattr(self, attname) and default != None:
             setattr(self, attname, default)
-            value = defauldefault=default, reset=reset)t
+            value = default
             if reset and attname not in self.changesThatResetStart:
                 self.changesThatResetStart.append(attname) 
             if attname not in self.requestAtts:
                 self.requestAtts.append(attname)
-        elif getattr(self,attname, None) != value:
+        elif value != None and getattr(self,attname, None) != value:
             setattr(self, attname, value)
             if attname in self.changesThatResetStart: 
                 self.resetStart = True
+        else:
+            value = getattr(self,attname, None) 
         return value
 
 
