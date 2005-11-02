@@ -18,9 +18,19 @@
         </td>
         <td class="tablevalues" align="center" 
             tal:content="system/countDevices"/>
-        <td class="tablevalues" align="left"
-            tal:define="eventsum system/deviceGroupEventSummary">
-        <table metal:use-macro="here/deviceMacros/macros/statrainbow" />
+        <td class="tablevalues" align="left">
+        <table border=0 cellpadding=0 width=100% align=center 
+            bgcolor=#ffffff cellspacing=1>
+          <tr>
+            <td class=statusvalues align=center bgcolor=_ width=16%
+            tal:on-error="structure string:
+                <span style='color: white;'>Events unavailable</span>"
+            tal:repeat="evt system/deviceGroupEventSummary"
+            tal:attributes="bgcolor python:evt[1]">
+                <span tal:replace="python:evt[0]">evtcnt</span>
+            </td>
+          </tr>
+        </table>
         </td>
         <td class="statusvalues" bgcolor="#00ff00" align="center"
             tal:define="pstatus system/omniPingStatus"
