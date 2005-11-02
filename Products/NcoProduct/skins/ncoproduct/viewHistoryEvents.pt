@@ -1,4 +1,6 @@
 <span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<span metal:define-macro="body">
 <script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
@@ -20,7 +22,6 @@ function datePickerClosed(targetInput) {
     return true;
 };
 </script>
-<span metal:use-macro="here/top/macros/header" />
 <br>
 <form method="post" tal:attributes="action request/URL"
     tal:define="
@@ -116,4 +117,5 @@ function datePickerClosed(targetInput) {
 </table>
 </span>
 </form>
+</span>
 <span tal:replace="structure here/standard_html_footer"/>

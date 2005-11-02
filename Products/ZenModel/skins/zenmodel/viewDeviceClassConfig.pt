@@ -1,7 +1,7 @@
 <span tal:replace="structure here/standard_html_header"/>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table border="0" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="props here/zenPropertyIds">
     <tr>
       <th class="tabletitlel" colspan="4">
@@ -35,7 +35,7 @@
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1">
 <tr class="tabletitlel"><th>Add/Update Device Property</th></tr>
 <tr>
     <td>
@@ -55,7 +55,7 @@
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table border="0" cellpadding="3" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1">
 <tr class="tabletitlel"><th>Delete Device Property</th></tr>
 <tr>
     <td>
