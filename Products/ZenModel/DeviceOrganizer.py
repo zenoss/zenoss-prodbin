@@ -130,9 +130,9 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         """get the history event list of this object"""
         return "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName())
 
+
     def eventHistoryOrderby(self):
-        self.REQUEST.set('ev_orderby', "LastOccurrence desc")
-        return self.viewHistoryEvents(self.REQUEST)
+        return "LastOccurrence desc"
 
 
     def deviceGroupEventSummary(self):
