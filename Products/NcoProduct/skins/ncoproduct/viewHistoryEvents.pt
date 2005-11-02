@@ -29,19 +29,26 @@ function datePickerClosed(targetInput) {
     orderby request/ev_orderby | here/eventHistoryOrderby | string:; 
     resultFields request/ev_resultfields | here/eventResultFields |
                     here/netcool/resultFields;
+    tableName string:viewhistoryevents;
+    deftsort python: here.ZenTableManager.getTableState(
+                        tableName,sortedHeader='');
+    startdate python: here.ZenTableManager.setReqTableState(
+                    tableName,'startDate', default=here.yesterdayDate());
+    enddate python: here.ZenTableManager.setReqTableState(
+                    tableName,'endDate', default=here.todayDate());
     ">
 <span metal:define-macro="events">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr class=tableheader>
     <td>Start Date: 
     <input class="tableheader" type="text" name="startDate" readonly="true"
-        tal:attributes="value here/yesterdayDate"/>
+        tal:attributes="value startdate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('startDate');"/>
     </td>
     <td>End Date: 
     <input class="tableheader" type="text" name="endDate" readonly="true"
-        tal:attributes="value here/todayDate"/>
+        tal:attributes="value enddate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('endDate');" />
     </td>
@@ -53,13 +60,8 @@ function datePickerClosed(targetInput) {
 <br>
 <table class="zentable" cellpadding="3" cellspacing="1" 
     tal:define="
-    tableName string:viewhistoryevents;
     sevlevel python: here.ZenTableManager.setReqTableState(
                     tableName,'severity', default=2, reset=True);
-    startdate python: here.ZenTableManager.setReqTableState(
-                    tableName,'startDate', default=here.yesterdayDate);
-    enddate python: here.ZenTableManager.setReqTableState(
-                    tableName,'endDate', default=here.todayDate());
     objects python:here.netcool.getHistoryEvents(startdate,enddate,
                     whereclause,orderby,resultFields,sevlevel);
     batch python:here.ZenTableManager.getBatch(tableName,objects);
