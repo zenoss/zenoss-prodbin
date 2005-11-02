@@ -117,17 +117,20 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         return status
     
    
-    def deviceGroupEvents(self):
+    ####################################################################
+    # EventView Functions
+    ####################################################################
+    
+    def eventWhere(self):
         """get omnibus events for this device group"""
-        self.REQUEST.set('ev_whereclause', 
-            "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
-        return self.viewEvents(self.REQUEST)
+        return "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
+            
 
-
-    def deviceGroupHistoryEvents(self):
+    def eventHistoryWhere(self):
         """get the history event list of this object"""
-        self.REQUEST.set('ev_whereclause', 
-            "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName()))
+        return "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName()))
+
+    def eventHistoryOrderby(self):
         self.REQUEST.set('ev_orderby', "LastOccurrence desc")
         return self.viewHistoryEvents(self.REQUEST)
 

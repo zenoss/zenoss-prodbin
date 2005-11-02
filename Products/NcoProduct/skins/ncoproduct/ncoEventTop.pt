@@ -9,7 +9,7 @@
     </tr>
     <tr>
         <td class="tabletitle" colspan="1" align="center"
-            tal:repeat="tab python:event.confmonTabs()">
+            tal:repeat="tab python:event.zentinelTabs(template.id)">
             <a href="_"
             class="tabletitle"
             tal:attributes="href python:tab['action']+'?serverserial='

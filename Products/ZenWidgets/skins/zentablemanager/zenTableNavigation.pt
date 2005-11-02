@@ -1,5 +1,7 @@
 <form metal:define-macro="navtool" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL">
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
     <input type='hidden' name='zenScreenName'
@@ -40,10 +42,12 @@
         tal:attributes="checked ts/negateFilter" />
     Filter
     <input class="tableheader" type="text" name="filter" size=15 value=""
+        onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/filter" />
     &nbsp;&nbsp;
     Page Size
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+        onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/batchSize">
     <input class="navcontrol" type="submit" value="ok" />
     </div>
@@ -52,6 +56,8 @@
 
 <form metal:define-macro="navtoolnofilter" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL">
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
     <div metal:define-macro="navbodynofilter" 
@@ -88,6 +94,7 @@
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+        onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/batchSize">
     <input class="navcontrol" type="submit" value="ok" />
     </div>

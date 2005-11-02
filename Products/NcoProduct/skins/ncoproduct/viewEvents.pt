@@ -2,20 +2,22 @@
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
-
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 <form method="post" tal:attributes="action request/URL"
     tal:define="
-    whereclause request/ev_whereclause | python:None;
-    orderby request/ev_orderby | python:None;
-    resultFields request/ev_resultfields | here/netcool/resultFields;
+    whereclause request/ev_whereclause | here/eventWhere | string:;
+    orderby request/ev_orderby | here/eventOrderby | string:;
+    resultFields request/ev_resultfields | here/eventResultFields | 
+                    here/netcool/resultFields;
     ">
 <table class="zentable"
     metal:define-macro="eventTable"
     tal:define="tableName string:viewevents;
+    deftsort python: here.ZenTableManager.getTableState(
+                        tableName,sortedHeader='');
     sevlevel python: here.ZenTableManager.setReqTableState(
                         tableName,'severity',default=2,reset=True);
-    deftsort python: here.ZenTableManager.setReqTableState(
-                        tableName,'sortedHeader',default='',reset=True);
     objects python:here.netcool.getEvents(where=whereclause, orderby=orderby, 
                         resultFields=resultFields, severity=sevlevel);
     batch python:here.ZenTableManager.getBatch(tableName,objects);
@@ -36,7 +38,7 @@
                                         tableName, 'negateFilter')"/>
             Filter
             <input class="tableheader" type="text" name="filter" 
-                size=25 value="_" 
+                size=25 onkeypress="submitViaEnter(event)"
                 tal:attributes="value python:here.ZenTableManager.getTableState(
                                         tableName,'filter')">
             &nbsp; &nbsp;

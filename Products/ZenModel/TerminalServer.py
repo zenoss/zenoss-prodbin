@@ -78,13 +78,13 @@ class TerminalServer(Router):
                 },                
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'deviceEvents'
+                , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'deviceHistoryEvents'
+                , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },

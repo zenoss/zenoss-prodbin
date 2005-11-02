@@ -1,5 +1,9 @@
 <span tal:replace="structure here/standard_html_header"/>
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/blockSubmitViaEnter.js"></script>
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table class="zentable" metal:define-macro="status">
@@ -34,6 +38,9 @@
         tal:define="objects here/children;
         tableName string:children;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
     <tr>
       <th class=tabletitle align=left colspan=4
         tal:content="string:Sub-${here/dmdRootName}">
@@ -76,11 +83,8 @@
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
     <span metal:define-macro="editor" tal:omit-tag="">
-        <!--
-        <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
-        -->
-        <input class="tableheader" type="text" name="newPath"/>
+        <input class="tableheader" type="text" name="newPath"
+            onkeydown="blockSubmitViaEnter(event)"/>
         <input class="tableheader" type="submit" 
             name="manage_addOrganizer:method" value=" Add " /> 
         |

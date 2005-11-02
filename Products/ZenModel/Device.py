@@ -171,13 +171,13 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'deviceEvents'
+                , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'deviceHistoryEvents'
+                , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -739,12 +739,29 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         if DateTime() > lastcoll + hours: return 1
 
 
+    ####################################################################
+    # EventView Functions
+    ####################################################################
+
+    def eventWhere(self):
+        """see IEventView"""
+        return "Node = '%s'" % self.id
+
+
+    def eventResultFields(self):
+        """see IEventView"""
+        return filter(lambda x: x!='Node', self.netcool.resultFields)
+
+
     security.declareProtected('View', 'deviceHistoryEvents')
-    def deviceHistoryEvents(self):
-        """get the history event list of this object"""
-        self.REQUEST.set('ev_whereclause', "Node = '%s'"%self.id)
-        self.REQUEST.set('ev_orderby', "LastOccurrence desc")
-        return self.viewHistoryEvents(self.REQUEST)
+    def eventHistoryWhere(self):
+        """see IEventView"""
+        return "Node = '%s'"%self.id
+
+
+    def eventHistoryOrderby(self):
+        """see IEventView"""
+        return "LastOccurrence desc"
 
 
     ####################################################################

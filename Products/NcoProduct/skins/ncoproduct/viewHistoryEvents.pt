@@ -24,9 +24,10 @@ function datePickerClosed(targetInput) {
 <br>
 <form method="post" tal:attributes="action request/URL"
     tal:define="
-    whereclause request/ev_whereclause | here/netcool/defaultwhere;
-    orderby request/ev_orderby | here/netcool/defaultorderby;
-    resultFields request/ev_resultfields | here/netcool/resultFields;
+    whereclause request/ev_whereclause | here/eventHistoryWhere | string:;
+    orderby request/ev_orderby | here/eventHistoryOrderby | string:; 
+    resultFields request/ev_resultfields | here/eventResultFields |
+                    here/netcool/resultFields;
     ">
 <span metal:define-macro="events">
 <table class="zentable">
