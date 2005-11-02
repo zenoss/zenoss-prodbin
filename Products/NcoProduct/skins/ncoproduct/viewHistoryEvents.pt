@@ -111,7 +111,7 @@ function datePickerClosed(targetInput) {
     <tr>
         <td colspan=4 class="tableheader" align='center'
             tal:attributes="colspan evcolspan">
-            <span metal:use-macro="here/miscmacros/macros/navbodynofilter" />
+            <span metal:use-macro="here/zenTableNavigation/macros/navbodynofilter" />
         </td>
     </tr>
 </table>
