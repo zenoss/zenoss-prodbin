@@ -74,12 +74,12 @@ class Hardware(Product, DeviceManagerBase):
         Product.__init__(self, id, title)
 
 
-    def moveTargets(self):
+    def deviceMoveTargets(self):
         """see IManageDevice"""
         return filter(lambda x: x != self.id, aq_parent(self).objectIds()) 
             
            
-    def getMoveTarget(self, moveTargetName):
+    def getDeviceMoveTarget(self, moveTargetName):
         """see IManageDevice"""
         return aq_parent(self)._getOb(moveTargetName)
 

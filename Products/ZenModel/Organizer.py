@@ -98,7 +98,7 @@ class Organizer(ZenModelRM):
         if REQUEST: return self.callZenScreen(REQUEST)
             
     
-    def moveTargets(self):
+    def deviceMoveTargets(self):
         """Return list of all organizers excluding our self."""
         return filter(lambda x: x != self.getOrganizerName(),
             self.getDmdRoot(self.dmdRootName).getOrganizerNames())

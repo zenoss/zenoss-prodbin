@@ -26,14 +26,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
     security = ClassSecurityInfo()
 
 
-    def moveTargets(self):
+    def childMoveTargets(self):
         """see IDeviceManager"""
         myname = self.getOrganizerName()
         return filter(lambda x: x != myname, 
                     self.getDmdRoot(self.dmdRootName).getOrganizerNames())
 
 
-    def getMoveTarget(self, moveTargetName): 
+    def getChildMoveTarget(self, moveTargetName): 
         """see IDeviceManager"""
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
 

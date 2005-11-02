@@ -33,7 +33,7 @@
 	</tr>
 	<tr tal:repeat="device batch">
 		<td class="tablevalues" align="left">
-            <input tal:condition="here/isManager" 
+            <input tal:condition="here/editableDeviceList" 
                 type="checkbox" name="deviceNames:list" 
                 tal:attributes="value device/getRelationshipManagerId"/>
             <a class="tablevalues" href="_" target="rightFrame"
@@ -57,12 +57,12 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    <tr tal:condition="here/isManager">
+    <tr tal:condition="here/editableDeviceList">
         <td class="tableheader" align="left" colspan="5">
             <input class="tableheader" type="submit" name="moveDevices:method"
                     value="Move To" />
             <select class="tableheader" name="moveTarget"
-            tal:define="targets here/moveTargets">
+            tal:define="targets here/deviceMoveTargets">
                 <option value=""></option>
                 <option tal:repeat="target targets" 
                     tal:content="target">/Server/Linux</option>

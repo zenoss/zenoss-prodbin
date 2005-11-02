@@ -22,13 +22,13 @@ from DeviceManagerBase import DeviceManagerBase
 class Monitor(ZenModelRM, DeviceManagerBase):
     meta_type = 'Monitor'
     
-    def moveTargets(self):
+    def deviceMoveTargets(self):
         """see IManageDevice"""
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
         return filter(lambda x: x != self.id, mroot.objectIds())
            
 
-    def getMoveTarget(self, moveTargetName):
+    def getDeviceMoveTarget(self, moveTargetName):
         """see IManageDevice"""
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
         return mroot._getOb(moveTargetName)

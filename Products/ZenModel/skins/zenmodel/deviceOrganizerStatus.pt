@@ -87,7 +87,7 @@
         <input class="tableheader" type="submit" name="moveOrganizer:method"
                 value="Move To" />
         <select class="tableheader" name="moveTarget"
-        tal:define="targets here/moveTargets">
+        tal:define="targets here/childMoveTargets">
             <option value=""></option>
             <option tal:repeat="target targets" 
                 tal:content="target">/Server/Linux</option>

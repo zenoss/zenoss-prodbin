@@ -6,13 +6,13 @@ class IDeviceManager:
     or monitor configurations.
     """
 
-    def moveTargets(self):
+    def deviceMoveTargets(self):
         """
         Return a list of potential targets to which a device can be moved.
         Should remove self from of list.
         """
 
-    def getMoveTarget(self, moveTargetName):
+    def getDeviceMoveTarget(self, moveTargetName):
         """
         Return the moveTarget based on its name.
         """

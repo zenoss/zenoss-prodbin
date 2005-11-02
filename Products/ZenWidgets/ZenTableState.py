@@ -25,7 +25,7 @@ class ZenTableState:
     changesThatResetStart = [
         "batchSize", "filter", 
         "negateFilter", "sortedHeader", 
-        "sortedSence", 
+        "sortedSence", "URL",
         ]
 
     requestAtts = [ 
@@ -37,6 +37,7 @@ class ZenTableState:
         "sortedSence",
         "sortRule", 
         "start",
+        "URL",
         ]
 
     security = ClassSecurityInfo()
@@ -44,7 +45,7 @@ class ZenTableState:
     security.setDefaultAccess('allow') 
 
     def __init__(self, request, tableName, defaultBatchSize, **keys):
-        self.url = request.URL
+        self.URL = request.URL
         self.tableName = tableName
         self.sortedHeader = "primarySortKey"
         self.sortedSence="asc"
@@ -76,6 +77,7 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
+        if self.URL != request.URL: self.start=0
         if request.get('tableName', None) != self.tableName:
             return
         for attname in self.requestAtts:
@@ -87,9 +89,10 @@ class ZenTableState:
             self.resetStart = True
         if not self.filter:
             self.negateFilter = 0
-        if self.url != request.URL or request.get("first",False): 
+        if request.get("first",False): 
             self.resetStart = True
-        if request.get("last", False): self.start=self.lastindex
+        elif request.get("last", False): 
+            self.start=self.lastindex
         elif request.get("next", False): 
             np = self.start + self.batchSize
             if np > self.lastindex: self.start = self.lastindex

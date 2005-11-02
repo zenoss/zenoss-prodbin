@@ -8,12 +8,12 @@ class DeviceManagerBase:
     to manage their device relations.
     """
 
-    def moveTargets(self):
+    def deviceMoveTargets(self):
         """see IManageDevice"""
         raise NotImplementedError
 
     
-    def getMoveTarget(self, moveTargetName):
+    def getDeviceMoveTarget(self, moveTargetName):
         """see IManageDevice"""
         raise NotImplementedError
         
@@ -22,7 +22,7 @@ class DeviceManagerBase:
         """see IManageDevice"""
         if not moveTarget or not deviceNames: return self()
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
-        target = self.getMoveTarget(moveTarget)
+        target = self.getDeviceMoveTarget(moveTarget)
         for devname in deviceNames:
             dev = self.devices._getOb(devname)
             self.devices.removeRelation(dev)

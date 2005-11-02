@@ -113,6 +113,16 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         return self.getDmdRoot(self.dmdRootName)
 
     
+    def editableDeviceList(self):
+        """
+        Return true if user has Manager role and self has a deviceList.
+        """
+        user = self.REQUEST.get('AUTHENTICATED_USER', None)
+        if user: 
+            return "Manager" in user.getRoles() and \
+                getattr(aq_base(self), "deviceMoveTargets", False)
+
+
     def creator(self):
         """
         Method needed for CatalogAwarnessInterface.  Implemented here so that

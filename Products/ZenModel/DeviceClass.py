@@ -44,7 +44,7 @@ addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
 
 
 
-class DeviceClass(DeviceOrganizer, Folder):
+class DeviceClass(DeviceOrganizer):
     """
     DeviceClass is a device organizer that manages the primary classification
     of device objects within the zenmon system.  It manages properties
@@ -136,7 +136,7 @@ class DeviceClass(DeviceOrganizer, Folder):
         for subclass in self.children():
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
         return dcnames
-    moveTargets = getPeerDeviceClassNames
+    deviceMoveTargets = getPeerDeviceClassNames
 
 
     def createInstance(self, id):
@@ -299,6 +299,13 @@ class DeviceClass(DeviceOrganizer, Folder):
         cn.name='Case Normalizer'
         cn.group='Case Normalizer'
         manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
+
+
+    def recatalogDevices(self):
+        """Go through all devices in this tree and reindex them."""
+        for dev in self.getSubDevicesGen():
+            dev.unindex_object()
+            dev.index_object()
 
 
     def buildDeviceTreeProperties(self):
