@@ -55,7 +55,7 @@ function datePickerClosed(targetInput) {
         onclick="displayDatePicker('endDate');" />
     </td>
     <td>
-    <input class="tableheader" type="submit" name="submit" value=" Search " />
+    <input class="tableheader" type="submit" name="search" value=" Search " />
     </td>
     </tr>
 </table>
