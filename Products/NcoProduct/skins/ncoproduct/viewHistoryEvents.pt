@@ -34,13 +34,13 @@ function datePickerClosed(targetInput) {
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr class=tableheader>
     <td>Start Date: 
-    <input class="tableheader" type="text" name="startDate" readonly="false"
+    <input class="tableheader" type="text" name="startDate" readonly="true"
         tal:attributes="value here/yesterdayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('startDate');"/>
     </td>
     <td>End Date: 
-    <input class="tableheader" type="text" name="endDate" readonly="false"
+    <input class="tableheader" type="text" name="endDate" readonly="true"
         tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('endDate');" />
@@ -56,25 +56,25 @@ function datePickerClosed(targetInput) {
     tableName string:viewhistoryevents;
     sevlevel python: here.ZenTableManager.setReqTableState(
                     tableName,'severity', default=2, reset=True);
-    startdate python: here.ZenTableManager.getTableState(
+    startdate python: here.ZenTableManager.setReqTableState(
                     tableName,'startDate', default=here.yesterdayDate);
-    enddate python: here.ZenTableManager.getTableState(
+    enddate python: here.ZenTableManager.setReqTableState(
                     tableName,'endDate', default=here.todayDate());
     objects python:here.netcool.getHistoryEvents(startdate,enddate,
                     whereclause,orderby,resultFields,sevlevel);
-    batch python:here.scSortedTableGetBatch(tableName,objects,'');
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(here.netcool.resultFields)+1;"
     tal:on-error="structure here/eventsError">
     <tr>
     <td class="tabletitle" colspan=3 tal:attributes="colspan evcolspan">
         History Events:
         &nbsp; &nbsp;
-        <input type='hidden' name='tableName' value="_"
-            tal:attributes="value tableName">
+        <input type='hidden' name='tableName' tal:attributes="value tableName">
         Filter
-        <input class="tableheader" type="text" name="filter" size=25 
-            tal:attributes="value python: here.scGetSortedTableState(
-                                tableName,'filter')">
+        <input class="tableheader" type="text" name="filter" 
+            size=25 onkeypress="submitViaEnter(event)"
+            tal:attributes="value python:here.ZenTableManager.getTableState(
+                                    tableName,'filter')">
         &nbsp; &nbsp;
         Severity Filter
         <select class="tableheader" name="severity:int">
@@ -111,9 +111,9 @@ function datePickerClosed(targetInput) {
         </td>
     </tr>
     <tr>
-        <td colspan=4 class="tableheader" align='center'
-            tal:attributes="colspan evcolspan">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbodynofilter" />
+        <td class="tableheader" tal:attributes="colspan evcolspan">
+            <span metal:use-macro=
+                "here/zenTableNavigation/macros/navbodynofilter" />
         </td>
     </tr>
 </table>

@@ -78,8 +78,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan=4 class="tableheader" align='center'
-            tal:attributes="colspan evcolspan">
+        <td class="tableheader" tal:attributes="colspan evcolspan">
             <span metal:use-macro=
                 "here/zenTableNavigation/macros/navbodynofilter" />
         </td>
