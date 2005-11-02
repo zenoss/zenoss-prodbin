@@ -18,9 +18,9 @@
         </td>
         <td class="tablevalues" align="center" 
             tal:content="system/countDevices"/>
-        <td class="tablevalues" colspan="1" align="left">
-        <table metal:use-macro=
-            "system/deviceOrganizerStatus/macros/orgrainbow" />
+        <td class="tablevalues" align="left"
+            tal:define="eventsum system/deviceGroupEventSummary">
+        <table metal:use-macro="here/deviceMacros/macros/orgrainbow" />
         </td>
         <td class="statusvalues" bgcolor="#00ff00" align="center"
             tal:define="pstatus system/omniPingStatus"
