@@ -6,7 +6,8 @@
         src="/zport/portal_skins/zenmodel/blockSubmitViaEnter.js"></script>
 <span metal:use-macro="here/top/macros/header" />
 <br>
-<table class="zentable" metal:define-macro="status">
+<table class="zentable"  cellpadding="3" cellspacing="1"
+    metal:define-macro="status">
     <tr>
       <th class="tabletitle" align="left" colspan="6">Status</th>
     </tr>
@@ -34,7 +35,7 @@
 </table>
 <br />
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table class="zentable" 
+<table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="objects here/children;
         tableName string:children;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">

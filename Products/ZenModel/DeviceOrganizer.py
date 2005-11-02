@@ -123,12 +123,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
     
     def eventWhere(self):
         """get omnibus events for this device group"""
-        return "%s like '%s'" % (self.eventsField, self.getOrganizerName()))
+        return "%s like '%s'" % (self.eventsField, self.getOrganizerName())
             
 
     def eventHistoryWhere(self):
         """get the history event list of this object"""
-        return "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName()))
+        return "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName())
 
     def eventHistoryOrderby(self):
         self.REQUEST.set('ev_orderby', "LastOccurrence desc")

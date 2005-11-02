@@ -2,7 +2,7 @@
     name="deviceListForm" metal:define-macro="devList">
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<table class="zentable"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="objects here/devices/objectValuesAll;
         tableName string:devicelistmacro;
         batch python:here.ZenTableManager.getBatch(tableName,objects);"

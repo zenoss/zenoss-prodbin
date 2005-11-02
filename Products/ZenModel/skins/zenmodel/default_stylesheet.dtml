@@ -20,11 +20,6 @@ table.zentable {
     background-color: #ffffff;
 }
 
-td {
-    //padding:3px;
-    //border:1px;
-}
-
 a:link {
     color: &dtml-link_color;;
 }

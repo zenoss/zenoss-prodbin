@@ -30,7 +30,7 @@ function datePickerClosed(targetInput) {
                     here/netcool/resultFields;
     ">
 <span metal:define-macro="events">
-<table class="zentable">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr class=tableheader>
     <td>Start Date: 
     <input class="tableheader" type="text" name="startDate" readonly="false"
@@ -50,7 +50,7 @@ function datePickerClosed(targetInput) {
     </tr>
 </table>
 <br>
-<table class="zentable" 
+<table class="zentable" cellpadding="3" cellspacing="1"> 
     tal:define="
     tableName string:viewhistoryevents;
     sevlevel python: here.ZenTableManager.setReqTableState(

@@ -11,7 +11,7 @@
     resultFields request/ev_resultfields | here/eventResultFields | 
                     here/netcool/resultFields;
     ">
-<table class="zentable"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="eventTable"
     tal:define="tableName string:viewevents;
     deftsort python: here.ZenTableManager.getTableState(
