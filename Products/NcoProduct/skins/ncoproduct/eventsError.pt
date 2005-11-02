@@ -1,5 +1,7 @@
-<table>
+<table class="zentable" cellpadding="3" cellspacing="1">
 <tr>
-<td>Events Unavailable</td>
+<td class="errortitle">
+    Events Unavailable
+</td>
 </tr>
 </table>

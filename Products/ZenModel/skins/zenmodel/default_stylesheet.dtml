@@ -46,6 +46,13 @@ a:hover {
     font-size: 8pt;
 }
 
+.errortitle {
+    font-size: 14pt;
+    font-weight: bold; 
+    color: #ff0000;
+    background-color: &dtml-tableheader_bg_color;;
+}
+
 .tabletitle {  
     font-family: &dtml-primary_font_family;;
     font-size: &dtml-tabletitle_font_size;; 

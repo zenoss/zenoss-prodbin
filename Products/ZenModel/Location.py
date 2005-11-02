@@ -51,5 +51,45 @@ class Location(DeviceOrganizer):
         )
 
     security = ClassSecurityInfo()
+    
+    # Screen action bindings (and tab definitions)
+    factory_type_information = ( 
+        { 
+            'id'             : 'Location',
+            'meta_type'      : 'Location',
+            'description'    : """Base class for all devices""",
+            'icon'           : 'Location_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addLocation',
+            'immediate_view' : 'deviceOrganizerStatus',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+         },
+        )
 
 InitializeClass(Location)

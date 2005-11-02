@@ -50,7 +50,7 @@ function datePickerClosed(targetInput) {
     </tr>
 </table>
 <br>
-<table class="zentable" cellpadding="3" cellspacing="1"> 
+<table class="zentable" cellpadding="3" cellspacing="1" 
     tal:define="
     tableName string:viewhistoryevents;
     sevlevel python: here.ZenTableManager.setReqTableState(

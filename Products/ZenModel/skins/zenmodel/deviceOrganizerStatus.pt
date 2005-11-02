@@ -2,8 +2,6 @@
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenmodel/blockSubmitViaEnter.js"></script>
 <span metal:use-macro="here/top/macros/header" />
 <br>
 <table class="zentable"  cellpadding="3" cellspacing="1"
@@ -84,8 +82,7 @@
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
     <span metal:define-macro="editor" tal:omit-tag="">
-        <input class="tableheader" type="text" name="newPath"
-            onkeydown="blockSubmitViaEnter(event)"/>
+        <input class="tableheader" type="text" name="newPath"/>
         <input class="tableheader" type="submit" 
             name="manage_addOrganizer:method" value=" Add " /> 
         |

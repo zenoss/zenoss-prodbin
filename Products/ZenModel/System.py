@@ -90,13 +90,13 @@ class System(DeviceOrganizer):
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
-                , 'action'        : 'deviceGroupEvents'
+                , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
-                , 'action'        : 'deviceGroupHistoryEvents'
+                , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
