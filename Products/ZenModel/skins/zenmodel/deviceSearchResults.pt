@@ -4,7 +4,8 @@
     align="center" bgcolor="#ffffff" 
     tal:define="
         tableName string:devicesearchresults;
-        query python: here.ZenTableManager.setReqTableState(tableName,'query','');
+        query python: here.ZenTableManager.setReqTableState(
+                           tableName,'query', default='', reset=True);
         objects python: here.Devices.searchDevices(query);
         batch python: here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
