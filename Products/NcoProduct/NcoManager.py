@@ -257,7 +257,7 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
         if not enddate: 
             enddate = DateTime.DateTime()
         elif type(enddate) == types.StringType:
-            enddate = Datetime.DateTime(enddate)
+            enddate = DateTime.DateTime(enddate)
         enddate = enddate.latestTime()
         if not startdate: 
             startdate = enddate - 1
