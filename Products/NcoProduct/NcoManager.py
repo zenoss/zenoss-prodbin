@@ -317,10 +317,6 @@ class NcoManager(DbAccessBase, Implicit, Persistent, RoleManager, Item, Property
     def getEventSummary(self, where=None):
         """getEventSummary(where) return a list of tuples with number of events
         and the color of the severity that the number represents""" 
-        defaultdata = (
-            (0, "#ff0000"), (0, "#ff941a"), (0, "#ffff00"), 
-            (0, "#63b8ff"), (0, "#b23aee"), (0, "#00cd00"),
-        )
         severities = [5,4,3,2,1,0]
         select = 'select '
         for severity in severities:
