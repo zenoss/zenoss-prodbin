@@ -22,6 +22,7 @@
                         resultFields=resultFields, severity=sevlevel);
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
+    tal:on-error="structure here/eventsError"
     >
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
