@@ -1,4 +1,6 @@
 <span tal:replace="structure here/standard_html_header"/>
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 <form method="post" tal:attributes="action request/URL">
 <table 
     border=0 cellpadding=3 cellspacing=1 width="100%"
@@ -9,6 +11,7 @@
                            tableName,'query', default='', reset=True);
         objects python: here.Devices.searchDevices(query);
         batch python: here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
       <th class="tabletitle" colspan="5">Results</th>
     </tr>
