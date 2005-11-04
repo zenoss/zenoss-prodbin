@@ -123,6 +123,7 @@ isSelected = false;
 function toggleSelect(form) {
     if (isSelected == false) {
         for (i = 0; i < form.length; i++)
+            if (form.elements[i].name == "negateFilter") { continue }
             form.elements[i].checked = true ;
         isSelected = true;
         form.SelectButton.value = "Deselect All";
@@ -130,6 +131,7 @@ function toggleSelect(form) {
     }
     else {
         for (i = 0; i < form.length; i++)
+            if (form.elements[i].name == "negateFilter") { continue }
             form.elements[i].checked = false ;
         isSelected = false;
         form.SelectButton.value = "Select All";
