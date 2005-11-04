@@ -109,18 +109,15 @@ class ZenTableState:
     def setTableState(self, attname, value, default=None, reset=False):
         if not hasattr(self, attname) and default != None:
             setattr(self, attname, default)
-            value = default
             if reset and attname not in self.changesThatResetStart:
                 self.changesThatResetStart.append(attname) 
             if attname not in self.requestAtts:
                 self.requestAtts.append(attname)
-        elif value != None and getattr(self,attname, None) != value:
+        if value != None and getattr(self,attname, None) != value:
             setattr(self, attname, value)
             if attname in self.changesThatResetStart: 
                 self.resetStart = True
-        else:
-            value = getattr(self,attname, None) 
-        return value
+        return getattr(self,attname) 
 
 
     def addFilterField(self, fieldName):
