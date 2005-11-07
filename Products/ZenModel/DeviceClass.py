@@ -137,6 +137,7 @@ class DeviceClass(DeviceOrganizer):
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
         return dcnames
     deviceMoveTargets = getPeerDeviceClassNames
+    childMoveTargets = getPeerDeviceClassNames
 
 
     def createInstance(self, id):
