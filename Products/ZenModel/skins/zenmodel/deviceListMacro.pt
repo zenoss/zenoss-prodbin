@@ -15,6 +15,9 @@
       </th>
     </tr>
     <span metal:define-macro="devListBody" tal:omit-tag="">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
     <tr>
         <th 
             tal:replace="structure python:here.ZenTableManager.getTableHeader(

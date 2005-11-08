@@ -11,7 +11,6 @@
                            tableName,'query', default='', reset=True);
         objects python: here.Devices.searchDevices(query);
         batch python: here.ZenTableManager.getBatch(tableName,objects);">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
       <th class="tabletitle" colspan="5">Results</th>
     </tr>
