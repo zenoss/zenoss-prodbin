@@ -1,8 +1,0 @@
-use events;
-insert into resolutions values ( '1600:1',1600,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );
-insert into resolutions values ( '3300:1',3300,1,'Clear','Clearing the Event with a Resolution to prove functionality','','','' );
-insert into resolutions values ( '100:1',100,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );
-insert into resolutions values ( '200:1',200,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );
-insert into resolutions values ( '300:1',300,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );
-insert into resolutions values ( '0:1',0,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );
-insert into resolutions values ( '400:1',400,1,'Responded to ping','Device responded to ping, therefore I am clearing the event','','','' );

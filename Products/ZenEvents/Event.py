@@ -9,70 +9,69 @@
 #
 ###############################################################################
 
-from datetime import datetime, timedelta
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
 
-CLEAR=0
-DEBUG=10
-INFORMATION=20
-WARNING=30
-CRITICAL=40
-FATAL=50
-
-
-requiredFields = ("device","summary",)
-
-
-def EventFromDict(eventdict):
-    for field in requiredFields:
-        if not eventdict.has_key(field): raise "BadEventError"
-    return apply(Event, [], eventdict)
-   
-
+def eventFromDb(manager, data, fields):
+    """Construct an event from a database row."""
+    evt = Event(manager.absolute_url_path())
+    defaultFields = manager.defaultFields
+    defaultLen = len(defaultFields)
+    evt.data = data[:-defaultLen]
+    evt.defaultdata = data[-defaultLen:]
+    for i in range(len(fields)):
+        setattr(evt, fields[i], data[i])
+    for i in range(len(defaultFields)):
+        setattr(evt, defaultFields[i], evt.defaultdata[i])
+        if defaultFields[i] == manager.severityField:
+            setattr(evt, defaultFields[i] + "Name", 
+                manager.convert(manager.severityField, evt.defaultdata[i]))
+    if not hasattr(evt, "Serial"): evt.Serial = evt.ServerSerial
+    return evt
+    
 
 class Event(object):
-   
-    fields = ['device', 'startdate', 'enddate', 'lastupdate',
-                'summary', 'severity', 'classid', 'ipaddress',
-                'monitor', 'monitorhost', ]
-
-    def __init__(self, device, *args, **kargs):
-        self._oid = None
-        self._serial = 0L
-        self.device = device
-        self.startdate = datetime.utcnow()
-        self.lastupdate = datetime.utcnow()
-        self.enddate = None
-        self.summary = ""
-        self.severity = -1
-        self.classid = -1 
-        self.ipaddress = ""
-        self.monitor = ""
-        self.monitorhost = ""
-
-        for k, v in kargs.items():
-            if not k in self.fields:
-                self.fields.append(k)
-            setattr(self, k, v)
-
-    def getfields(self):
-        return self.fields
+    """
+    Class that represents an event in our system.
+    """
+    security = ClassSecurityInfo()
+    security.setDefaultAccess("allow")
+ 
+    def __init__(self, baseUrl=""):
+        self.baseUrl = baseUrl
+        self.bgcolor = "#FFFFFF"
+        self.fgcolor = "#000000"
+        self.Severity = 0
+        self.SeverityName = "Clear"
+        self.Acknowledged = False
+        
+  
+    def getEventDetailHref(self):
+        """build an href to call the detail of this event"""
+        params = "/viewNcoEventFields?serverserial=%d&servername=%s" % (
+                        self.ServerSerial, self.ServerName)
+        return self.baseUrl + params
 
 
-    def gettext(self):
-        """return all event data as a big text string"""
-        text = [] 
-        for field in self.getfields():
-            text.append(str(getattr(self, field)))
-        return " ".join(text)
+    def getCssClass(self):
+        """return the css class name to be used for this event.
+        """
+        acked = self.Acknowledged and "true" or "false"
+        return "zenevents_%s_%s" % (self.SeverityName.lower(), acked)
 
-    def getdict(self):
-        evdict = {}
-        for field in self.getfields():
-            evdict[field] = getattr(self, field)
-        return evdict
-    
-    def getarray(self):
-        evarray = []
-        for field in self.getfields():
-            evarray.append((field, getattr(self, field)))
-        return evarray
+
+    def getfieldcount(self):
+        """return the number of fields"""
+        return len(self.data)
+
+
+    def getfield(self, index):
+        """return the value of a field"""
+        return self.data[index]
+
+
+    def getSeverityNumber(self):
+        """return the severity as an integer"""
+        return self.defaultdata[1]
+
+InitializeClass(Event)

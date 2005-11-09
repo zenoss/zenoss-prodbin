@@ -1,0 +1,74 @@
+.zenevents_critical_true {
+    color: #FFFFFF;
+    background-color: #CD0000;
+}
+
+.zenevents_critical_false {
+    color: #000000;
+    background-color: #FF0000;
+}
+
+.zenevents_error_true {
+    color: #FFFFFF;
+    background-color: #b56300;
+}
+
+.zenevents_error_false {
+    color: #000000;
+    background-color: #ffb329;
+}
+
+
+.zenevents_warning_true {
+    color: #FFFFFF;
+    background-color: #CDCD00;
+}
+
+.zenevents_warning_false {
+    color: #000000;
+    background-color: #ffff00;
+}
+
+.zenevents_info_true {
+    color: #FFFFFF;
+    background-color: #4F94CD;
+}
+
+.zenevents_info_false {
+    color: #000000;
+    background-color: #6368FF;
+}
+
+.zenevents_debug_true {
+    color: #FFFFFF;
+    background-color: #C8C8C8;
+}
+
+.zenevents_debug_false {
+    color: #000000;
+    background-color: #AFAFAF;
+}
+
+
+.zenevents_clear_true {
+    color: #FFFFFF;
+    background-color: #00CD00;
+}
+
+.zenevents_clear_false {
+    color: #000000;
+    background-color: #00FF00;
+}
+
+
+.zenevents_unknown_true {
+    color: #FFFFFF;
+    background-color: #00CD00;
+}
+
+.zenevents_unknown_false {
+    color: #000000;
+    background-color: #00FF00;
+}
+
+

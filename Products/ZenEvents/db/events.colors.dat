@@ -1,8 +1,0 @@
-use events;
-insert into colors values ( 0,0,139,0,0,205,0 );
-insert into colors values ( 1,200,200,200,175,175,175 );
---insert into colors values ( 1,104,34,139,178,58,238 );
-insert into colors values ( 2,79,148,205,99,184,255 );
-insert into colors values ( 3,205,205,0,255,255,0 );
-insert into colors values ( 4,181,99,0,255,179,41 );
-insert into colors values ( 5,205,0,0,255,0,0 );

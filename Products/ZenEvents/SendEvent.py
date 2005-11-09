@@ -3,26 +3,26 @@ import logging
 import socket
 import xmlrpclib
 
-from Products.ZenUtils.Utils import basicAuthUrl
+import zenutils
 
 class SendEvent(object):
 
     def __init__(self, agent, username, password, url):
         self.agent = agent
-        self.url = basicAuthUrl(username, password, url)
+        self.url = zenutils.basicAuthUrl(username, password, url)
         self.server = xmlrpclib.Server(self.url)
         severities = self.server.getSeverities()
         for name, value in severities:
             setattr(self, name, value)
 
 
-    def sendEvent(self, deviceName, component, severity, msg, **kwargs):
+    def sendEvent(self, deviceName, evclass, msg, severity, **kwargs):
         """
         Send a ZenEvent to the event manager.  Events must have:
         deviceName - which is the FQDN of the device
-        component - sub component of the event (i.e. process, interface, etc)
-        severity - the severity of the event 
+        evclass - the event class of the event
         msg - the event message
+        severity - the severity of the event 
 
         agent - is the management collection system that the event came through
 
@@ -31,9 +31,9 @@ class SendEvent(object):
         """
         event = {}
         event['Node'] = deviceName
-        event['AlertGroup'] = component
-        event['Severity'] = severity
+        event['Class'] = evclass
         event['Summary'] = msg
+        event['Severity'] = severity
         event['Agent'] = self.agent
         event['Manager'] = socket.getfqdn()
         event.update(kwargs)
