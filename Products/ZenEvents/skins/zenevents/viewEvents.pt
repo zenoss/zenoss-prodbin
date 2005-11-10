@@ -18,7 +18,7 @@
                         tableName,sortedHeader='');
     sevlevel python: here.ZenTableManager.setReqTableState(
                         tableName,'severity',default=2,reset=True);
-    objects here/getEventList;
+    objects python:here.getEventList(severity=sevlevel);
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
     tal:on-error="structure here/eventsError"

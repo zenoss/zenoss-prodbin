@@ -63,7 +63,7 @@ function datePickerClosed(targetInput) {
     tal:define="
     sevlevel python: here.ZenTableManager.setReqTableState(
                     tableName,'severity', default=0, reset=True);
-    objects python:here.getEventHistoryList();
+    objects python:here.getEventHistoryList(severity=sevlevel);
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
     >

@@ -393,7 +393,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
 
 
     def _severityWhere(self, where, severity):
-        if severity != None and not where.find(self.severityField) > -1:
+        if severity != None and where.find(self.severityField) == -1:
             if where: where += " and "
             where += " %s >= %s" % (self.severityField, severity)
         return where
