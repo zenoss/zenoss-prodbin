@@ -13,6 +13,7 @@ class DbAccessBase(object):
                                         self.password)
         elif self.backend == "mysql": 
             import MySQLdb
+            import MySQLdb.converters
             mysqlconv = MySQLdb.converters.conversions.copy()
             from MySQLdb.constants import FIELD_TYPE
             mysqlconv[FIELD_TYPE.DATETIME] = DateTime.DateTime
