@@ -15,9 +15,9 @@ from Globals import InitializeClass
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
+from ManagedEntity import ManagedEntity
 
-
-class DeviceOrganizer(Organizer, DeviceManagerBase):
+class DeviceOrganizer(Organizer, ManagedEntity, DeviceManagerBase):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -117,37 +117,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         return status
     
    
-    ####################################################################
-    # EventView Functions
-    ####################################################################
-    
-    def eventWhere(self):
-        """get omnibus events for this device group"""
-        return "%s like '%s'" % (self.eventsField, self.getOrganizerName())
-            
-
-    def eventHistoryWhere(self):
-        """get the history event list of this object"""
-        return "%s like '%%%s%%'" % (self.eventsField, self.getOrganizerName())
-
-
-    def eventHistoryOrderby(self):
-        return "LastOccurrence desc"
-
-
-    def deviceGroupEventSummary(self):
-        """get omnibus event summary for this device group"""
-        where = "%s like '%s'" % (self.eventsField, self.getOrganizerName())
-        return self.netcool.getEventSummary(where)
-
-
-    #FIXME - this is strange the way it setup in NcoManager
-    #def deviceGroupEventCount(self, field):
-    #    """get omnibus event count for this device group"""
-    #    where = "%s like '%s'" % (field, self.getOrganizerName()))
-    #    return self.getEventCount(where)
-
-
     def statusColor(self, status):
         """colors for status fields for device groups"""
         retval = '#00ff00'

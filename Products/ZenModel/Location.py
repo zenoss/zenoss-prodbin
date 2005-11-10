@@ -44,7 +44,7 @@ class Location(DeviceOrganizer):
     # Organizer configuration
     dmdRootName = "Locations"
 
-    portal_type = meta_type = eventsField = 'Location'
+    portal_type = meta_type = event_key = 'Location'
     
     _relations = DeviceOrganizer._relations + (
         ("devices", ToMany(ToOne,"Device","location")),

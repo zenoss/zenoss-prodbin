@@ -8,8 +8,8 @@
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
     orderby request/ev_orderby | here/eventOrderby | string:;
-    resultFields request/ev_resultfields | here/eventResultFields | 
-                    here/ZenEventManager/resultFields;
+    resultFields request/ev_resultfields | here/getResultFields | 
+                    here/ZenEventManager/defaultResultFields;
     ">
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="eventTable"
@@ -18,11 +18,10 @@
                         tableName,sortedHeader='');
     sevlevel python: here.ZenTableManager.setReqTableState(
                         tableName,'severity',default=2,reset=True);
-    objects python:here.ZenEventManager.getEventList(
-                        where=whereclause,orderby=orderby, 
-                        resultFields=resultFields, severity=sevlevel);
+    objects here/getEventList;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
+    tal:on-error="structure here/eventsError"
     >
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
@@ -56,7 +55,7 @@
         <th class=tableheader> </th>
     </tr>
     <tr tal:repeat="event batch" 
-        tal:attributes="class python:event.getCssClass()">
+        tal:attributes="class event/getCssClass">
         <tal:block tal:repeat="index python: range(event.getfieldcount())">
         <td tal:content="python: event.getfield(index)">
             event data 

@@ -50,7 +50,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         self.createdTime = DateTime(time.time())
         RelationshipManager.__init__(self, id, title)
 
+   
+    security.declareProtected('View', 'getDmdKey')
+    def getDmdKey(self):
+        return self.getId()
     
+        
     security.declareProtected('View', 'primarySortKey')
     def primarySortKey(self):
         return self.getId()

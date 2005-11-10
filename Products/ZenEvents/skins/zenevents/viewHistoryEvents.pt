@@ -29,8 +29,7 @@ function datePickerClosed(targetInput) {
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
     orderby here/ZenEventHistory/defaultOrderby;
-    resultFields request/ev_resultfields | here/eventResultFields |
-                    here/ZenEventHistory/resultFields;
+    resultFields request/ev_resultfields | here/getResultFields;
     tableName string:viewhistoryevents;
     deftsort python: here.ZenTableManager.getTableState(
                         tableName,sortedHeader='');
@@ -64,8 +63,7 @@ function datePickerClosed(targetInput) {
     tal:define="
     sevlevel python: here.ZenTableManager.setReqTableState(
                     tableName,'severity', default=0, reset=True);
-    objects python:here.ZenEventHistory.getEventList(resultFields,
-                    whereclause,orderby,sevlevel,startdate,enddate);
+    objects python:here.getEventHistoryList();
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
     >

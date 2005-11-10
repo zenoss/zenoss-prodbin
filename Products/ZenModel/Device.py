@@ -19,7 +19,7 @@ import logging
 # base classes for device
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
-from PingStatusInt import PingStatusInt
+from ManagedEntity import ManagedEntity
 from CricketDevice import CricketDevice
 from CricketView import CricketView
 
@@ -93,22 +93,20 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(ZenModelRM, PingStatusInt, DeviceResultInt, 
+class Device(ZenModelRM, ManagedEntity, DeviceResultInt, 
              CricketView, CricketDevice):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.
     """
 
-    portal_type = meta_type = 'Device'
+    event_key = portal_type = meta_type = 'Device'
     
     default_catalog = "deviceSearch" #device ZCatalog
 
     relationshipManagerPathRestriction = '/Devices'
 
     _properties = (
-        {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
-        {'id':'snmpStatus', 'type':'int', 'mode':'w', 'setter':'setSnmpStatus'},
         {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
            'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'tag', 'type':'string', 'mode':'w'},
@@ -216,8 +214,6 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     
     def __init__(self, id):
         ZenModelRM.__init__(self, id)
-        self._pingStatus = ZenStatus(-1)
-        self._snmpStatus = ZenStatus(-1)
         self.commandStatus = "Not Tested"
         self._v_stamp = None
         self.productionState = 1000
@@ -249,10 +245,6 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     def __getattr__(self, name):
         if name == 'datacenter':
             return self.getDataCenter()
-        elif name == 'pingStatus':
-            return self._pingStatus.getStatus()
-        elif name == 'snmpStatus':
-            return self._snmpStatus.getStatus()
         elif name == 'snmpUpTime':
             return self._snmpUpTime.getStatus()
         elif name == 'lastPollSnmpUpTime':
@@ -266,11 +258,7 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
-        if id == 'pingStatus':
-            self.setPingStatus(value)
-        elif id == 'snmpStatus':
-            self.setSnmpStatus(value)
-        elif id == 'snmpLastCollection':
+        if id == 'snmpLastCollection':
             self.setSnmpLastCollection(value)
         else:    
             setattr(self,id,value)
@@ -381,14 +369,13 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
 
     security.declareProtected('View', 'getManageInterface')
     def getManageInterface(self):
-        """return the management interface of a device looks first
-        for manageInterfaceNames in aquisition path if not found
+        """
+        Return the management interface of a device looks first
+        for zManageInterfaceNames in aquisition path if not found
         uses default 'Loopback0' and 'Ethernet0' if none of these are found
-        returns the first interface if there is any"""
-        if hasattr(self, 'zManageInterfaceNames'):
-            intnames = self.zManageInterfaceNames
-        else:
-            intnames = ('Loopback0', 'Ethernet0', 'hme0', 'ge0', 'eth0')
+        returns the first interface if there is any.
+        """
+        intnames = getattr(self, 'zManageInterfaceNames')
         for intname in intnames:
             if hasattr(self.interfaces, intname):
                 return self.interfaces._getOb(intname)
@@ -399,9 +386,11 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     
     security.declareProtected('View', 'getDeviceInterfaceIndexDict')
     def getDeviceInterfaceIndexDict(self):
-        """build a dictionary of interfaces keyed on ifindex
+        """
+        Build a dictionary of interfaces keyed on ifindex
         Used by SnmpCollector.CustomMaps.RouteMap to connect routes
-        with interfaces"""
+        with interfaces.
+        """
         dict = {}
         for i in self.interfaces.objectValuesAll():
             dict[i.ifindex] = i
@@ -651,19 +640,13 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
 
     def getSnmpStatusNumber(self):
         '''get a device's raw snmp status number'''
-        return self._snmpStatus.getStatus()
+        return self.getStatus('SnmpStatus')
 
 
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         '''get a device's snmp status and perform conversion'''
-        return self._snmpStatus.getStatusString()
-
-
-    security.declareProtected('View', 'getSnmpStatusColor')
-    def getSnmpStatusColor(self):
-        '''get the device's snmp status color'''
-        return self._snmpStatus.color()
+        return self.getStatusString('SnmpStatus')
 
 
     def pastSnmpMaxFailures(self):
@@ -697,24 +680,6 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
     ####################################################################
 
 
-    security.declareProtected('Manage Device Status', 'resetSnmpStatus')
-    def resetSnmpStatus(self):
-        '''reset device's snmp status to zero'''
-        self._snmpStatus.reset()
-
-
-    security.declareProtected('Manage Device Status', 'incrSnmpStatus')
-    def incrSnmpStatus(self):
-        '''increment a device's snmp status by one'''
-        self._snmpStatus.incr()
-
-
-    security.declareProtected('Manage Device Status', 'setSetSnmp')
-    def setSnmpStatus(self, value):
-        """set snmp status"""
-        self._snmpStatus.setStatus(value)
-
-
     security.declareProtected('Manage Device Status', 'setSnmpUpTime')
     def setSnmpUpTime(self, value):
         """set the value of the snmpUpTime status object"""
@@ -737,31 +702,6 @@ class Device(ZenModelRM, PingStatusInt, DeviceResultInt,
         lastcoll = self.getSnmpLastCollection()
         hours = hours/24.0
         if DateTime() > lastcoll + hours: return 1
-
-
-    ####################################################################
-    # EventView Functions
-    ####################################################################
-
-    def eventWhere(self):
-        """see IEventView"""
-        return "Node = '%s'" % self.id
-
-
-    def eventResultFields(self):
-        """see IEventView"""
-        return filter(lambda x: x!='Node', self.netcool.resultFields)
-
-
-    security.declareProtected('View', 'deviceHistoryEvents')
-    def eventHistoryWhere(self):
-        """see IEventView"""
-        return "Node = '%s'"%self.id
-
-
-    def eventHistoryOrderby(self):
-        """see IEventView"""
-        return "LastOccurrence desc"
 
 
     ####################################################################

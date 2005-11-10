@@ -20,7 +20,7 @@
             Device
         </td>
         <td class=tablevalues align=left>
-            <a class=tablevalues target="rightFrame"
+            <a class=tablevalues 
                 tal:condition="here/getDeviceUrl"
                 tal:content="here/getDeviceName" 
                 tal:attributes="href here/getDeviceUrl">device</a>
@@ -76,7 +76,7 @@
     </th>
     <tr tal:repeat="route batch">
         <td class="tablevalues" align="left">
-            <a href="_" target="rightFrame"
+            <a href="_" 
             tal:attributes="href route/getDeviceUrl"
             tal:content="route/getDeviceName">devicenamelink</a>
         </td>

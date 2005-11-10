@@ -34,7 +34,7 @@
         tal:attributes="src mon/icon"/>
       </td>
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
-      <a href="_" target="rightFrame"
+      <a href="_" 
       tal:attributes="href mon/getPrimaryUrlPath">
       <span tal:replace="mon/id">id</span></a>
       </td>
@@ -52,7 +52,7 @@
       <td class="tableheader" align="left" colspan="4" nowrap>
       <table border=0 colspan=0 cellpadding=0>
       <tr><td class="tableheader">Search</td><td>
-      <form action="searchResults" method="POST" target="rightFrame">
+      <form action="searchResults" method="POST" >
       <input type="text" name="query"></form></td></tr></table>
       </td>
     </tr>

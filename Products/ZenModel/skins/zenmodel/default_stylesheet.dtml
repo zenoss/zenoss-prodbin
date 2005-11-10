@@ -18,6 +18,9 @@ form {
 table.zentable {
     width: 100%;
     background-color: #ffffff;
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
+    font-weight: normal; 
 }
 
 a:link {
@@ -154,6 +157,12 @@ a.tablevalues:hover {
 }
 a.tablevalues:active {  
     color: &dtml-alink_color;;
+}
+
+.errorvalues {
+    font-weight: bold;
+    color: #ff0000;
+    background-color: &dtml-tablevalues_bg_color;;
 }
 
 .statusvalues {  

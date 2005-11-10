@@ -1,4 +1,4 @@
-<span tal:replace="structure here/standard_html_header"/>
+<span tal:replace="structure here/events_html_header"/>
   <span metal:use-macro="here/top/macros/header" />
   <br>
   <table metal:use-macro="here/deviceMacros/macros/deviceStatusInfo"></table>

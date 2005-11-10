@@ -99,7 +99,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 ]
 
     statusConversions = [
-                'Not Tested:-1',
+                'Up:0',
+                'Unknown:-1',
                 'No DNS:-2',
                 ]
 

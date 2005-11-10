@@ -25,7 +25,7 @@
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
       <img border="0" src="_"
         tal:attributes="src mon/icon"/>
-      <a href="_" target="rightFrame"
+      <a href="_" 
       tal:attributes="href mon/getPrimaryUrlPath">
       <span tal:replace="mon/id">id</span></a>
       </td>
@@ -37,7 +37,7 @@
       <td align="left" class="tableheader" colspan="4" nowrap>
       <table border=0 colspan=0 cellpadding=0>
       <tr><td>Search</td><td>
-      <form action="searchResults" method="POST" target="rightFrame">
+      <form action="searchResults" method="POST" >
       <input type="text" name="query"></form></td></tr></table>
       </td></tr>
   </tbody>

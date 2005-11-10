@@ -50,7 +50,7 @@ class System(DeviceOrganizer):
 
     portal_type = meta_type = 'System'
 
-    eventsField = "System"
+    event_key = "System"
 
     default_catalog = 'systemSearch'
     

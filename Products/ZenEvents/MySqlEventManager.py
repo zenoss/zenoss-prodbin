@@ -6,7 +6,7 @@ from EventManagerBase import EventManagerBase
 
 def manage_addMySqlEventManager(context, id=None, REQUEST=None):
     '''make an MySqlEventManager'''
-    if not id: id = "MySqlEventManager"
+    if not id: id = "ZenEventManager"
     ncp = MySqlEventManager(id) 
     context._setObject(id, ncp)
     ncp = context._getOb(id)
@@ -24,7 +24,7 @@ class MySqlEventManager(EventManagerBase):
 
     security = ClassSecurityInfo()
     
-    def getEventSummary(self, where=""):
+    def getEventSummary(self, where="", acked=None):
         """
         Return a list of tuples with number of events
         and the color of the severity that the number represents.

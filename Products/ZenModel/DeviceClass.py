@@ -60,7 +60,7 @@ class DeviceClass(DeviceOrganizer):
     manageDeviceSearchResults = DTMLFile('dtml/manageDeviceSearchResults',
                                             globals())
 
-    portal_type = meta_type = eventsField = "DeviceClass"
+    portal_type = meta_type = event_key = "DeviceClass"
 
     manage_main = Folder.manage_main
 

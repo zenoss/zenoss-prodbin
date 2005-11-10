@@ -20,7 +20,7 @@
       URL
       </td>
       <td width="14%" class="tablevalues" colspan="1" align="left">
-      <a href="_" target="rightFrame"
+      <a href="_" 
           tal:attributes="href here/url"
           tal:content="here/url">URL</a>
       </td>
@@ -97,7 +97,7 @@
   </tr>
   <tr tal:repeat="prod batch">
     <td class="tablevalues" align="left">
-    <a href="_" target="rightFrame"
+    <a href="_" 
     tal:attributes="href prod/getPrimaryUrlPath">
     <span tal:replace="prod/id">name</span></a>
     </td>

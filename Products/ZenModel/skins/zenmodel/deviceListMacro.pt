@@ -41,7 +41,7 @@
             <input tal:condition="here/editableDeviceList" 
                 type="checkbox" name="deviceNames:list" 
                 tal:attributes="value device/getRelationshipManagerId"/>
-            <a class="tablevalues" href="_" target="rightFrame"
+            <a class="tablevalues" href="_" 
                 tal:attributes="href device/getDeviceUrl"
                 tal:content="device/id">device
             </a>
@@ -106,7 +106,7 @@
 </tr>
 <tr tal:repeat="device batch">
     <td class="tablevalues" align="left">
-        <a class="tablevalues" href="_" target="rightFrame"
+        <a class="tablevalues" href="_" 
             tal:attributes="href device/getDeviceUrl"
             tal:content="device/id">device
         </a>

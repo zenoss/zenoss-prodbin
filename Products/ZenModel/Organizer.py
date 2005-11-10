@@ -134,6 +134,7 @@ class Organizer(ZenModelRM):
     def getOrganizerName(self):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
         return self.getPrimaryDmdId(self.dmdRootName)
+    getDmdKey = getOrganizerName
 
 
     def getOrganizerNames(self, addblank=False):

@@ -44,7 +44,7 @@ class DeviceGroup(DeviceOrganizer):
 
     portal_type = meta_type = 'DeviceGroup'
 
-    eventsField = "Group"
+    event_key = "Group"
 
     _relations = DeviceOrganizer._relations + (
         ("devices", ToMany(ToMany,"Device","groups")),

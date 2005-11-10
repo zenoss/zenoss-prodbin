@@ -72,7 +72,7 @@
     <input tal:condition="here/isManager" 
         type="checkbox" name="organizerPaths:list" 
         tal:attributes="value net/getId"/>
-    <a href="_" target="rightFrame"
+    <a href="_" 
         tal:attributes="href net/getPrimaryUrlPath"
         tal:content="net/id">address</a>
     </td>
@@ -132,12 +132,12 @@
   </tr>
   <tr tal:repeat="ip batch">
     <td class="tablevalues" align="left">
-        <a href="_" target="rightFrame"
+        <a href="_" 
         tal:attributes="href ip/absolute_url"
         tal:content="ip/getIpAddress">1.1.1.1/24</a>
     </td>
     <td class="tablevalues" align="left">
-        <a href="_" target="rightFrame"
+        <a href="_" 
         tal:condition="ip/getDeviceUrl"
         tal:attributes="href ip/getDeviceUrl"
         tal:content="ip/getDeviceName">devicenamelink</a>

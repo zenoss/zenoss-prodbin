@@ -1,35 +1,36 @@
-<table border=0 cellpadding=3 width=100% align=center 
-    bgcolor=#ffffff cellspacing=1
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro=deviceStatusInfo>
     <tr>
       <th class=tabletitle align=left colspan=4>Status</th>
     </tr>
     <tr>
       <td class=tableheader align=left>Ping</td>
-      <td class=statusvalues bgcolor=#00ff00
-        tal:attributes="bgcolor python: here.getPingStatusColor()"
-        tal:content="here/getPingStatus">0</td>
+      <td tal:define="status python:here.getStatus('PingStatus')"
+        tal:attributes="class python: here.getStatusCssClass(status)"
+        tal:content="status">
+        0</td>
       <td class=tableheader align=left>Events</td>
       <td class=tablevalues align=left>
-        <table border=0 cellpadding=0 width=100% align=center 
-            bgcolor=#ffffff cellspacing=1>
-          <tr>
-            <td class=statusvalues align=center bgcolor=_ width=16%
+        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+            metal:define-macro="eventrainbow"
             tal:on-error="structure string:
-                <span style='color: white;'>Events unavailable</span>"
-            tal:repeat="evt python:here.netcool.getDeviceEventSummary(here.id)"
-            tal:attributes="bgcolor python:evt[1]">
-                <span tal:replace="python:evt[0]">evtcnt</span>
-            </td>
+                <span class='errorvalues'>Events unavailable</span>">
+            <tr>
+                <td align=center width=16%
+                tal:repeat="evt here/getEventSummary"
+                tal:attributes="class python:evt[0]">
+                    <span tal:replace="python:evt[1]">evtcnt</span>
+                </td>
           </tr>
         </table>
       </td>
     </tr>
     <tr>
       <td class=tableheader align=left>SNMP</td>
-      <td class=statusvalues bgcolor=#00ff00
-        tal:attributes="bgcolor python: here.getSnmpStatusColor()"
-        tal:content="here/getSnmpStatus">0</td>
+      <td tal:define="status python:here.getStatus('SnmpStatus')"
+        tal:attributes="class python: here.getStatusCssClass(status)"
+        tal:content="status">
+        0</td>
         <th class="tableheader" align="left">Last Change</th>
         <td class="tablevalues" tal:content="here/getLastChangeString"/>
     </tr>
@@ -50,8 +51,7 @@
     </tr>
 </table>
 
-<table border=0 cellpadding=3 width=100% align=center 
-    bgcolor=#ffffff cellspacing=1
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="deviceOverviewBrief">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -78,8 +78,7 @@
     </tr>
 </table>
 
-<table border=0 cellpadding=3 width=100% align=center 
-    bgcolor=#ffffff cellspacing=1
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="deviceOverview">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -182,8 +181,7 @@
 </table>
 
 
-<table border=0 cellpadding=3 width=100% align=center 
-    bgcolor=#ffffff cellspacing=1
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="routerOverview">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -263,7 +261,7 @@
       <td class=tablevalues 
         tal:define="loc here/getLocationName">
         <a class=tablevalues href=_
-        target=rightFrame tal:condition=loc
+        tal:condition=loc
         tal:attributes="href python: here.location().getPrimaryUrlPath()"
         tal:content="loc" >location</a>
       </td>
@@ -313,8 +311,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
-"#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="deviceLinks">
     <tr>
       <th class="tabletitle" align="left" colspan="4">
@@ -337,7 +334,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/systems/objectValuesAll">
-          <a href="_" target="rightFrame"
+          <a href="_" 
           tal:attributes="href item/getPrimaryUrlPath"
           tal:content="item/getOrganizerName">ID</a>
       </span>
@@ -349,7 +346,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/dhcpservers/objectValuesAll">
-          <a href="_" target="rightFrame"
+          <a href="_" 
           tal:attributes="href item/getPrimaryUrlPath"
           tal:content="item/id">ID</a>
       </span>
@@ -362,7 +359,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/dhcpubrclients/objectValuesAll">
-          <a href="_" target="rightFrame"
+          <a href="_" 
           tal:attributes="href item/getPrimaryUrlPath"
           tal:content="item/id">ID></a>
       </span>
@@ -374,7 +371,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/groups/objectValuesAll">
-          <a href="_" target="rightFrame"
+          <a href="_" 
           tal:attributes="href item/getPrimaryUrlPath"
           tal:content="item/getOrganizerName">ID</a>
       </span>
@@ -386,7 +383,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/monitors/objectValuesAll">
-          <a href="_" target="rightFrame"
+          <a href="_" 
           tal:attributes="href item/getPrimaryUrlPath"
           tal:content="item/id">ID</a>
       </span>
@@ -406,8 +403,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
     objects here/ipservices/objectValuesAll;
@@ -440,7 +436,7 @@
     </tr>
     <tr tal:repeat="srv batch">
         <td class="tablevalues">
-            <a class="tablevalues" target="rightFrame"
+            <a class="tablevalues" 
                 href="_" tal:content="srv/getKeyword"
                 tal:attributes="href srv/ipServiceClassUrl">keyword</a>
         </td>
@@ -459,8 +455,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="interfaceList"
     tal:define="tableName string:interfacelist;
     objects here/interfaces/objectValuesAll;
@@ -546,8 +541,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
     objects here/filesystems/objectValuesAll;
@@ -612,8 +606,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="hardDiskList"
     tal:define="tableName string:hardDiskList;
     objects here/harddisks/objectValuesAll;
@@ -648,8 +641,7 @@
 </table>
 
 
-<table border="0" cellpadding="3" width="100%" 
-    balign="center" gcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
     objects here/routes/objectValuesAll;
@@ -712,21 +704,19 @@
     </tr>
 </table>
 
-<span metal:define-macro="pingStatus" 
-    tal:define="status device/getPingStatus">
-    <td class="statusvalues" bgcolor="#ff0000" align="left"
-        tal:attributes="bgcolor python: device.getPingStatusColor()"
-        tal:content="status">
+<tal:block metal:define-macro="pingStatus" 
+    tal:define="status python:device.getStatus('PingStatus')">
+    <td tal:attributes="class python:device.getStatusCssClass(status)"
+        tal:content="status" align="center">
         ping status
     </td>
-</span>
+</tal:block>
 
-<span metal:define-macro="snmpStatus" 
-    tal:define="status device/getSnmpStatus">
-    <td class="statusvalues" bgcolor="#ffff00" align="left"
-        tal:attributes="bgcolor python: device.getSnmpStatusColor()"
-        tal:content="status">
+<tal:block metal:define-macro="snmpStatus" 
+    tal:define="status python:device.getStatus('SnmpStatus')">
+    <td tal:attributes="class python:device.getStatusCssClass(status)"
+        tal:content="status" align="center">
         snmp status
     </td>
-</span>
+</tal:block>
 

@@ -16,21 +16,11 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from ZenModelRM import ZenModelRM
+from ManagedEntity import ManagedEntity
 from CricketView import CricketView
 
 
-def manage_addDeviceComponent(context, id, REQUEST = None):
-    """make a device"""
-    d = DeviceComponent(id)
-    context._setObject(id, d)
-    d = context._getOb(id)
-
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
-
-
-class DeviceComponent(ZenModelRM, CricketView):
+class DeviceComponent(ZenModelRM, ManagedEntity, CricketView):
     
     portal_type = meta_type = "DeviceComponent"
 
@@ -56,5 +46,15 @@ class DeviceComponent(ZenModelRM, CricketView):
         dev = self.device()
         if dev: url = dev.absolute_url()
         return url
+    
+    
+    def getStatus(self, statClass):
+        """Return the status number for this component of class statClass.
+        """
+        return self.getEventManager().getComponentStatus(
+                self.getParentDeviceName(), self.id, statclass=statClass)
+                                        
+
+
 
 InitializeClass(DeviceComponent)
