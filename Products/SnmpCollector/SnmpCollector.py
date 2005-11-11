@@ -324,15 +324,13 @@ class SnmpCollector(ZCmdBase):
                 sys.exit(1)
             self.collectDevice(device)
         elif self.options.path:
-            droot = self.dmd.getDmdRoot("Devices").getOrganizer(
-                                                    self.options.path)
-            if not droot:
+            try:
+                droot = self.dmd.getDmdRoot("Devices").getOrganizer(
+                                                        self.options.path)
+            except KeyError:
                 print "unable to find path %s" % self.options.path
                 sys.exit(1)
             self.collectDevices(droot)
-        else:
-            print "unable to locate device or path specified"
-            sys.exit(1)
 
 
 #InitializeClass(SnmpCollector)

@@ -156,14 +156,13 @@ class ZenModelBase:
     
     def getDmdObj(self, path):
         """get object from path that starts at dmd ie. /Devices/Servers/box"""
-        from Products.ZenUtils.Utils import getObjByPath
-        return getObjByPath(self.getDmd(), path)
+        if path.startswith("/"): path = path[1:]
+        return self.getDmd().unrestrictedTraverse(path)
    
 
     def getZopeObj(self, path):
         "get object from path tat starts at zope root ie. /zport/dmd/Devices"
-        from Products.ZenUtils.Utils import getObjByPath
-        return getObjByPath(self.getPhysicalRoot(), path)
+        return self.unrestrictedTraverse(path)
 
 
     def getNowString(self):

@@ -40,13 +40,16 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     statusTable = "status"
     detailsTable = "details"
     journalTable = "journal"
-    lastTime = "LastOccurrence"
-    firstTime = "FirstOccurrence"
-    deviceField = "Node"
-    componentField = "Component"
-    classField = "Class"
-    severityField = "Severity"
-    countField = "Count"
+    LastOccurrence = "LastOccurrence"
+    FirstOccurrence = "FirstOccurrence"
+    DeviceField = "Node"
+    ComponentField = "Component"
+    ClassField = "Class"
+    SeverityField = "Severity"
+    CountField = "Count"
+    ProdStateField = "ProdState"
+    DeviceGroupField = "DeviceGroups"
+    SystemField = "Systems"
 
     DeviceWhere = "Node = '%s'"
     DeviceResultFields = ("Component", "Class", "Summary", "FirstOccurrence",
@@ -54,10 +57,10 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "Component = '%s'"
     ComponentResultFields = ("Class", "Summary", "FirstOccurrence",
                             "LastOccurrence", "Count" )
-    DeviceClassWhere = "DeviceClass = '%s'"
-    LocationWhere = "Location = '%s'"
-    SystemWhere = "Systems like '%%|%s%%'"
-    DeviceGroupWhere = "DeviceGroup like '%%|%s%%'"
+    DeviceClassWhere = "DeviceClass = '%s%%%%'"
+    LocationWhere = "Location = '%s%%%%'"
+    SystemWhere = "Systems like '%%%%|%s%%%%'"
+    DeviceGroupWhere = "DeviceGroups like '%%%%|%s%%%%'"
 
     defaultOrderby = "Severity desc, LastOccurrence desc" 
 
@@ -91,12 +94,14 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         {'id':'statusTable', 'type':'string', 'mode':'w'},
         {'id':'detailsTable', 'type':'string', 'mode':'w'},
         {'id':'journalTable', 'type':'string', 'mode':'w'},
-        {'id':'lastTime', 'type':'string', 'mode':'w'},
-        {'id':'firstTime', 'type':'string', 'mode':'w'},
-        {'id':'deviceField', 'type':'string', 'mode':'w'},
-        {'id':'componentField', 'type':'string', 'mode':'w'},
-        {'id':'severityField', 'type':'string', 'mode':'w'},
-        {'id':'countField', 'type':'string', 'mode':'w'},
+        {'id':'LastOccurrence', 'type':'string', 'mode':'w'},
+        {'id':'FirstOccurrence', 'type':'string', 'mode':'w'},
+        {'id':'DeviceField', 'type':'string', 'mode':'w'},
+        {'id':'ComponentField', 'type':'string', 'mode':'w'},
+        {'id':'SeverityField', 'type':'string', 'mode':'w'},
+        {'id':'CountField', 'type':'string', 'mode':'w'},
+        {'id':'DeviceGroupField', 'type':'string', 'mode':'w'},
+        {'id':'SystemField', 'type':'string', 'mode':'w'},
         {'id':'DeviceWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceResultFields', 'type':'lines', 'mode':'w'},
         {'id':'ComponentWhere', 'type':'string', 'mode':'w'},
@@ -161,8 +166,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
-                         self.lastTime, startdate,
-                         self.firstTime, enddate)
+                         self.LastOccurrence, startdate,
+                         self.FirstOccurrence, enddate)
             select.append(where)
             if not orderby:
                 orderby = self.defaultOrderby
@@ -194,8 +199,12 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         Return a list of tuples with number of events
         and the color of the severity that the number represents.
         """ 
-        where = self.lookupManagedEntityWhere(me)
-        return self.getEventSummary(where, acked)
+        try:
+            where = self.lookupManagedEntityWhere(me)
+            return self.getEventSummary(where, acked)
+        except:
+            logging.exception("event summary for %s failed" % me.getDmdKey())
+            raise
 
 
     def getEventSummary(self, where=None, acked=None):
@@ -282,22 +291,28 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         return event
 
 
-    def getStatusME(self, me, statusclass, **kwargs):
+    def getStatusME(self, me, statusclass=None, **kwargs):
         """
         """ 
         if me.event_key == "Device":
             return self.getDeviceStatus(me.getId(), statusclass, **kwargs)
         elif me.event_key == "Component":
-            return self.getComponentStatus(me.getParentDeviceName(), me.getId(),
-                                           statusclass, **kwargs)
-        return self.getOrganizerStatus(me.meta_type, me.getId(), **kwargs) 
+            return self.getComponentStatus(me.getParentDeviceName(), 
+                                      me.getId(), statusclass, **kwargs)
+        return self.getOrganizerStatus(me, statusclass=statusclass, **kwargs) 
 
 
-    def getOrganizerStatus(self, orgType, orgName, severity=None, where=""):
+    def getOrganizerStatus(self,org, statusclass=None, severity=None, where=""):
         """see IEventStatus
         """
-        select = "select %s from %s where " % (orgType, self.statusTable)
-        select += self._severityWhere(where, severity)
+        orgfield = self.lookupManagedEntityField(org)
+        select = "select %s from %s " % (orgfield, self.statusTable)
+        if statusclass: 
+            if where: where += " and "
+            where += " %s = '%s'" % (self.ClassField, statusclass)
+        where = self._severityWhere(where, severity)
+        if where: select += "where " + where
+        print select
         statusCache = self.checkCache(select)
         if not statusCache:
             db = self.connect()
@@ -305,30 +320,30 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             curs.execute(select)
             statusCache=[]
             orgdict={}
-            for org, count in curs.fetchall():
-                org = self.cleanstring(org)
-                for org in org.split("|"):
-                    orgdict.setdefault(org, 0)
-                    orgdict[org] += 1
+            for row in curs.fetchall():
+                orgfield = self.cleanstring(row[0])
+                for orgfield in orgfield.split("|"):
+                    orgdict.setdefault(orgfield, 0)
+                    orgdict[orgfield] += 1
             for key, value in orgdict.items():
                 statusCache.append((key, value))
             self.addToCache(select,statusCache)
             db.close()
         countevts = 0
-        for sys in statusCache:
-            if sys.startswith(orgName):
-                countevts += 1
+        for key, value  in statusCache:
+            if key.startswith(org.getOrganizerName()):
+                countevts += value
         return countevts
 
 
-    def getDeviceStatus(self, device, statclass=None, countField=None, 
+    def getDeviceStatus(self, device, statclass=None, CountField=None, 
                         severity=None, where=""):
         """see IEventStatus
         """
-        if countField == None: countField = self.countField
+        if CountField == None: CountField = self.CountField
         select = "select %s, %s from %s where " % (
-                  self.deviceField, self.countField, self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.classField, statclass)
+                  self.DeviceField, self.CountField, self.statusTable)
+        if statclass: select += "%s = '%s'" % (self.ClassField, statclass)
         select += self._severityWhere(where, severity)
         print select
         statusCache = self.checkCache(select)
@@ -350,14 +365,14 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getComponentStatus(self, device, component, statclass=None, 
-                            countField=None, severity=None, where=""):
+                            CountField=None, severity=None, where=""):
         """see IEventStatus
         """
-        if countField == None: countField = self.countField
+        if CountField == None: CountField = self.CountField
         select = "select %s, %s, %s from %s where "\
-                  % (self.deviceField, self.componentField, countField,
+                  % (self.DeviceField, self.ComponentField, CountField,
                   self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.classField, statclass)
+        if statclass: select += "%s = '%s'" % (self.ClassField, statclass)
         select += self._severityWhere(where, severity)
         statusCache = self.checkCache(select)
         if not statusCache:
@@ -385,6 +400,13 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         return wheretmpl % managedEntity.getDmdKey()
 
 
+    def lookupManagedEntityField(self, managedEntity):
+        """Lookup database field for managed entity default is event_key.
+        """
+        key = managedEntity.event_key + "Field"
+        return getattr(aq_base(self), key, managedEntity.event_key)
+
+
     def lookupManagedEntityResultFields(self, managedEntity):
         """Lookup and result fields for managed entity.
         """
@@ -393,9 +415,9 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
 
 
     def _severityWhere(self, where, severity):
-        if severity != None and where.find(self.severityField) == -1:
+        if severity != None and where.find(self.SeverityField) == -1:
             if where: where += " and "
-            where += " %s >= %s" % (self.severityField, severity)
+            where += " %s >= %s" % (self.SeverityField, severity)
         return where
 
 

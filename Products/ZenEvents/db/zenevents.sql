@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS status
     Location        varchar(255) default "",
     Systems         varchar(255) default "",
     DeviceGroups    varchar(255) default "",
-    ps_id           smallint default 0,
+    ProdState       smallint default 0,
     PRIMARY KEY ( Identifier )
 ) ENGINE=MEMORY MAX_ROWS=20000;
 
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS history
     Location        varchar(255),
     Systems         varchar(255),
     DeviceGroups    varchar(255),
-    ps_id           smallint default 0,
+    ProdState       smallint default 0,
     DeletedTime     timestamp,
     PRIMARY KEY ( ServerSerial, ServerName ),
     INDEX DateRange (FirstOccurrence, LastOccurrence)
@@ -94,7 +94,7 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.Location,
             OLD.Systems,
             OLD.DeviceGroups,
-            OLD.ps_id,
+            OLD.ProdState,
             NULL
             );
 

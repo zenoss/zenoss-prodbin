@@ -30,6 +30,12 @@ class ZCmdBase(CmdBase):
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
+        self.parser.add_option('--host',
+                    dest="host",default="localhost",
+                    help="hostname of zeo server")
+        self.parser.add_option('--port',
+                    dest="port",type="int", default=8100,
+                    help="port of zeo server")
         self.parser.add_option('-R', '--dataroot',
                     dest="dataroot",
                     default="/zport/dmd",
@@ -39,18 +45,24 @@ class ZCmdBase(CmdBase):
     def getDataRoot(self, app):
         if not self.dataroot:
             if not self.app: 
-                import Zope2
-                self.app = Zope2.app()
-            self.dataroot = getObjByPath(self.app, self.options.dataroot)
+                from ZEO import ClientStorage
+                from ZODB import DB
+                addr = (self.options.host, self.options.port)
+                storage=ClientStorage.ClientStorage(addr)
+                db=DB(storage)
+                connection=db.open()
+                root=connection.root()
+                self.app=root['Application']
+                #import Zope2
+                #self.app = Zope2.app()
+            self.dataroot = self.app.unrestrictedTraverse(self.options.dataroot)
             self.dmd = self.dataroot
-            if not self.dataroot:
-                raise DataRootError, "Data root %s not found " \
-                                        % self.options.dataroot
 
 
     def getDmdObj(self, path):
         """return an object based on a path starting from the dmd"""
-        return getObjByPath(self.dataroot, path)
+        return self.app.unrestrictedTraverse(self.options.dataroot+path)
+
 
     def findDevice(self, name):
         """return a device based on its FQDN"""

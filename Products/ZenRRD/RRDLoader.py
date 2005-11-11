@@ -21,6 +21,7 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 import sys
 
 import Globals
+import transaction
 
 from OFS.Folder import manage_addFolder
 
@@ -39,18 +40,16 @@ class RRDLoader(BasicLoader):
 
     def __init__(self):
         BasicLoader.__init__(self)
-        self.configroot = getObjByPath(self.dmd, self.options.configroot)
-        if not self.configroot:
-            path = '/'.join(self.options.configroot.split('/')[:-1])
-            context = getObjByPath(self.dmd, path)
-            if not context:
-                print "ERROR: can't find configroot %s" % \
-                            self.options.configroot
-                sys.exit(1)
-            else:
-                manage_addFolder(context, 'rrdconfig')
-                self.configroot = context._getOb('rrdconfig')
-                get_transaction().commit()
+        path = self.options.configroot
+        context = self.dmd.getDmdObj(self.options.configroot)
+        if not context:
+            print "ERROR: can't find configroot %s" % \
+                        self.options.configroot
+            sys.exit(1)
+        if not getattr(context, "rrdconfig", False):
+            manage_addFolder(context, 'rrdconfig')
+            transaction.savepoint()
+            self.configroot = context._getOb('rrdconfig')
 
         
     def loaderBody(self, line):
@@ -70,8 +69,8 @@ class RRDLoader(BasicLoader):
         BasicLoader.buildOptions(self)
         self.parser.add_option('-r', '--configroot',
                     dest='configroot',
-                    default='/Devices/rrdconfig',
-                    help='load location path (ie /Devices/rrdconfig)')
+                    default='/Devices',
+                    help='load location path (ie /Devices)')
 
 
 if __name__ == '__main__':
