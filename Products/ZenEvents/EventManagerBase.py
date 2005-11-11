@@ -353,9 +353,9 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
                 curs = db.cursor()
                 curs.execute(select)
                 statusCache = {}
-                for device, count in curs.fetchall():
-                    device = self.cleanstring(device)
-                    statusCache[device] = count
+                for dev, count in curs.fetchall():
+                    dev = self.cleanstring(dev)
+                    statusCache[dev] = count
                 self.addToCache(select,statusCache)
                 db.close()
             except:
