@@ -14,6 +14,6 @@ insert into conversions values ( 'Severity2','Severity',2,'Info' );
 insert into conversions values ( 'Severity1','Severity',1,'Debug' );
 insert into conversions values ( 'Severity-1','Severity',-1,'Unknown' );
 insert into conversions values ( 'OwnerUID0','OwnerUID',0,'Root' );
-insert into conversions values ( 'OwnerUID65534','OwnerUID',65534,'Nobody' );
+insert into conversions values ( 'OwnerUID65365','OwnerUID',65365,'Nobody' );
 insert into conversions values ( 'OwnerGID0','OwnerGID',0,'Public' );
 insert into conversions values ( 'OwnerGID1','OwnerGID',1,'System' );

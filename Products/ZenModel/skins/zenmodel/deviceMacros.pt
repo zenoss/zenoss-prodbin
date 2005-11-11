@@ -13,7 +13,8 @@
       <td class=tablevalues align=left>
         <table class="zentable" border=0 cellpadding=0 cellspacing=1
             metal:define-macro="eventrainbow"
-            >
+            tal:on-error="structure string:
+                <span class='errorvalues'>Events unavailable</span>">
             <tr>
                 <td align=center width=16%
                 tal:repeat="evt here/getEventSummary"

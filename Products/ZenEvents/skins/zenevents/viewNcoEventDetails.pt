@@ -4,9 +4,8 @@
     serverserial request/serverserial;
     servername request/servername;
     sesskey python:tableName+str(serverserial)+servername;
-    ishist python:here.scSortedTableSetAtt(sesskey,'ev_ishist',0);
     params python:'&serverserial='+str(serverserial)+'&servername='+servername;
-    event python:here.getEventDetail(serverserial, servername, ishist);
+    event python:here.getEventDetail(serverserial, servername);
     objects event/getEventDetails;
     batch python:here.scSortedTableGetBatch(sesskey, objects, usebatch=0);"
     >     

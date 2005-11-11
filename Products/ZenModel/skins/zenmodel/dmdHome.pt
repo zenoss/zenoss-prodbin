@@ -1,6 +1,6 @@
 <span tal:replace="structure here/standard_html_header"/>
 <br />
-<table border="0" cellpadding="3" width="100%" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitlel" colspan="5">Systems</th>
     </tr>
@@ -19,27 +19,27 @@
         <td class="tablevalues" align="center" 
             tal:content="system/countDevices"/>
         <td class="tablevalues" align="left">
-        <table border=0 cellpadding=0 width=100% align=center 
-            bgcolor=#ffffff cellspacing=1>
-          <tr>
-            <td class=statusvalues align=center bgcolor=_ width=16%
+        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+            metal:define-macro="eventrainbow"
             tal:on-error="structure string:
-                <span style='color: white;'>Events unavailable</span>"
-            tal:repeat="evt system/deviceGroupEventSummary"
-            tal:attributes="bgcolor python:evt[1]">
-                <span tal:replace="python:evt[0]">evtcnt</span>
-            </td>
+                <span class='errorvalues'>Events unavailable</span>">
+            <tr>
+                <td align=center width=16%
+                tal:repeat="evt system/getEventSummary"
+                tal:attributes="class python:evt[0]">
+                    <span tal:replace="python:evt[1]">evtcnt</span>
+                </td>
           </tr>
         </table>
         </td>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:define="pstatus system/omniPingStatus"
-            tal:attributes="bgcolor python: system.statusColor(pstatus)"
+        <td align="center"
+            tal:define="pstatus python:system.getStatus('PingStatus')"
+            tal:attributes="class python:system.getStatusCssClass(pstatus)"
             tal:content="pstatus">0
         </td>
-        <td class="statusvalues" bgcolor="#00ff00" align="center"
-            tal:define="sstatus system/omniSnmpStatus"
-            tal:attributes="bgcolor python: system.statusColor(sstatus)"
+        <td align="center"
+            tal:define="sstatus python:system.getStatus('SnmpStatus')"
+            tal:attributes="class python:system.getStatusCssClass(sstatus)"
             tal:content="sstatus">0
         </td>
     </tr>

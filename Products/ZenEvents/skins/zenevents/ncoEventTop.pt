@@ -3,7 +3,7 @@
     metal:define-macro="ncoEventTop">
     <tr>
         <td class="tabletitle" colspan=3>
-            Netcool Event Serial <span tal:replace="event/ServerSerial"/>
+            Event Serial <span tal:replace="event/ServerSerial"/>
             Server <span tal:replace="event/ServerName"/>
         </td>
     </tr>

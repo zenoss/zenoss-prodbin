@@ -4,9 +4,8 @@
     serverserial request/serverserial;
     servername request/servername;
     sesskey python:tableName+str(serverserial)+servername;
-    ishist python:here.scSortedTableSetAtt(sesskey,'ev_ishist',0);
     params python:'&serverserial='+str(serverserial)+'&servername='+servername;
-    event python:here.getEventDetail(serverserial, servername,ishist);
+    event python:here.getEventDetail(serverserial, servername);
     objects event/getEventJournals;
     batch python:here.scSortedTableGetBatch(sesskey, objects, usebatch=0);"
     tal:on-error="python: 'Unable to load Event Detail for Serial %s Server %s' 

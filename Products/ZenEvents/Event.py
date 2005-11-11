@@ -12,24 +12,6 @@
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-def eventFromDb(manager, data, fields):
-    """Construct an event from a database row."""
-    evt = Event(manager.absolute_url_path())
-    defaultFields = manager.defaultFields
-    defaultLen = len(defaultFields)
-    evt.data = data[:-defaultLen]
-    evt.defaultdata = data[-defaultLen:]
-    for i in range(len(fields)):
-        setattr(evt, fields[i], data[i])
-    for i in range(len(defaultFields)):
-        setattr(evt, defaultFields[i], evt.defaultdata[i])
-        if defaultFields[i] == manager.severityField:
-            setattr(evt, defaultFields[i] + "Name", 
-                manager.convert(manager.severityField, evt.defaultdata[i]))
-    if not hasattr(evt, "Serial"): evt.Serial = evt.ServerSerial
-    return evt
-    
-
 class Event(object):
     """
     Class that represents an event in our system.
@@ -37,13 +19,26 @@ class Event(object):
     security = ClassSecurityInfo()
     security.setDefaultAccess("allow")
  
-    def __init__(self, baseUrl=""):
-        self.baseUrl = baseUrl
-        self.bgcolor = "#FFFFFF"
-        self.fgcolor = "#000000"
+    def __init__(self, manager, data, fields):
         self.Severity = 0
         self.SeverityName = "Clear"
         self.Acknowledged = False
+       
+        self.baseUrl = manager.absolute_url_path()
+        defaultFields = manager.defaultFields
+        defaultLen = len(defaultFields)
+        self.data = data[:-defaultLen]
+        self.defaultdata = data[-defaultLen:]
+        for i in range(len(fields)):
+            setattr(self, fields[i], data[i])
+        for i in range(len(defaultFields)):
+            setattr(self, defaultFields[i], self.defaultdata[i])
+            if defaultFields[i] == manager.severityField:
+                setattr(self, defaultFields[i] + "Name", 
+                    manager.convert(manager.severityField, self.defaultdata[i]))
+        if not hasattr(self, "Serial"): self.Serial = self.ServerSerial
+    
+
         
   
     def getEventDetailHref(self):

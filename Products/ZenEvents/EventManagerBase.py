@@ -27,7 +27,8 @@ from Products.ZenUtils.ObjectCache import ObjectCache
 from interfaces import IEventList, IEventStatus, ISendEvents
 
 from DbAccessBase import DbAccessBase
-from Event import eventFromDb
+from Event import Event
+from EventDetail import EventDetail, EventData, EventJournal
 
 
 class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager, 
@@ -72,6 +73,9 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     defaultIdentifier = ('Node', 'Component', 'Class', 'Severity')
 
     requiredEventFields = ('Node', 'Summary', 'Class', 'Severity')
+
+    eventPopSelect = \
+        "select Node, ServerSerial, ServerName from status where ProdState=0"
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
     
@@ -178,7 +182,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
                 select.append("limit %d, %d" % offset, rows)
             select.append(';')
             select = " ".join(select)
-            print select
+            #print select
             retdata = self.checkCache(select)
             if not retdata:
                 db = self.connect()
@@ -223,22 +227,13 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         if event: return event
         db = self.connect()
         fields = self.getFieldList()
-        allfields = fields + self.defaultFields
-        if ishist:
-            nfields=[]
-            for field in allfields:
-                if self.isDate(field):
-                    nfields.append("TO_CHAR(%s, 'YYYY/MM/DD HH24:MI:SS')" 
-                                                    % field)
-                else:
-                    nfields.append(field)
-            allfields = nfields
+        allfields = fields + list(self.defaultFields)
         selectevent = "select " 
         selectevent += ", ".join(allfields)
         selectevent += " from %s where" % self.statusTable
         selectevent += " ServerSerial = " + str(serverserial)
         selectevent += " and ServerName = '" + servername + "'"
-        if not ishist: selectevent += ";"
+        if self.backend!="oracle": selectevent += ";"
         
         #print selectevent
         curs = db.cursor()
@@ -250,27 +245,27 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
                 "No Event Detail for Serial %s Server %s" % (
                                     serverserial, servername))
         evrow = map(self.convert, allfields, evrow)
-        event = NcoEventDetail(evrow, fields)
+        event = EventDetail(self, evrow, fields)
         event = event.__of__(self)
         selectdetails = "select Name, Detail from %s where" % (
                                                 self.detailsTable)
         selectdetails += " Identifier = '" + event.Identifier + "'"
-        if not ishist: selectdetails += ";"
+        if self.backend!="oracle": selectdetails += ";"
         #print selectdetails
         curs = db.cursor()
         curs.execute(selectdetails)
         detailrows = curs.fetchall()
         details = []
         for name, detail in detailrows:
-            ddict = NcoEventData(name, detail)
+            ddict = EventData(name, detail)
             details.append(ddict)
         event.details = details
         curs.close()
 
-        selectjournals = "select UID, Chrono, Text1, Text2, Text3, Text4"
+        selectjournals = "select UID, Chrono, Text"
         selectjournals += " from %s where" % self.journalTable
         selectjournals += " Serial = " + str(event.Serial)
-        if not ishist: selectjournals += ";"
+        if self.backend!="oracle": selectjournals += ";"
         #print selectjournals
         curs = db.cursor()
         curs.execute(selectjournals)
@@ -281,7 +276,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             date = self.dateString(row[1])
             textar = map(lambda x: x and x or '', row[2:])
             text = "".join(textar)
-            jdict = NcoEventJournal(user,date,text)
+            jdict = EventJournal(user,date,text)
             journals.append(jdict)
         event.journals = journals
         curs.close()
@@ -312,7 +307,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             where += " %s = '%s'" % (self.ClassField, statusclass)
         where = self._severityWhere(where, severity)
         if where: select += "where " + where
-        print select
+        #print select
         statusCache = self.checkCache(select)
         if not statusCache:
             db = self.connect()
@@ -345,7 +340,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
                   self.DeviceField, self.CountField, self.statusTable)
         if statclass: select += "%s = '%s'" % (self.ClassField, statclass)
         select += self._severityWhere(where, severity)
-        print select
+        #print select
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
@@ -433,7 +428,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
                     nrow.append(self.convert(outfields[i], row[i]))
                 else:
                     nrow.append(self.cleanstring(row[i]))
-            evt = eventFromDb(self, nrow, resultFields)
+            evt = Event(self, nrow, resultFields)
             result.append(evt)
         return result
 
@@ -490,7 +485,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             db = self.connect()
             close = True
         insert = self.buildSendCmd(event)
-        print insert
+        #print insert
         curs = db.cursor()
         curs.execute(insert)
         if close: db.close()
