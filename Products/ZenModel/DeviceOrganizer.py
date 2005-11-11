@@ -12,6 +12,7 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo, Unauthorized
 from Globals import InitializeClass
+from AccessControl import Permissions as permissions
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
@@ -24,6 +25,47 @@ class DeviceOrganizer(Organizer, ManagedEntity, DeviceManagerBase):
     """
     
     security = ClassSecurityInfo()
+
+
+    # Screen action bindings (and tab definitions)
+    factory_type_information = ( 
+        { 
+            'id'             : 'DeviceGroup',
+            'meta_type'      : 'DeviceGroup',
+            'description'    : """Base class for all devices""",
+            'icon'           : 'DeviceGroup.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addDeviceGroup',
+            'immediate_view' : 'deviceOrganizerStatus',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+         },
+        )
 
 
     def childMoveTargets(self):

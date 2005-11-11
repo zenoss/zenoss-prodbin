@@ -73,12 +73,12 @@ class System(DeviceOrganizer):
             'icon'           : 'System_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addSystem',
-            'immediate_view' : 'viewSystemStatus',
+            'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             ( 
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
-                , 'action'        : 'viewSystemStatus'
+                , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : (
                   permissions.view, )
                 },

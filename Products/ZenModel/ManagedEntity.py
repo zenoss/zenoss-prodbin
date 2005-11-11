@@ -30,10 +30,11 @@ class ManagedEntity(object):
         return self.getEventHistory().getEventListME(self, **kwargs)
         
 
-    def getStatus(self, statclass, **kwargs):
+    def getStatus(self, statusclass=None, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        return self.getEventManager().getStatusME(self, statclass, **kwargs)
+        return self.getEventManager().getStatusME(self, 
+                                        statusclass=statusclass, **kwargs)
 
 
     def getStatusString(self, statclass, **kwargs):
