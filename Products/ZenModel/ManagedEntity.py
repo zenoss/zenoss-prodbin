@@ -15,7 +15,8 @@ class ManagedEntity(object):
 
 
     def getResultFields(self):
-        return self.getEventManager().lookupManagedEntityResultFields(self) 
+        return self.getEventManager().lookupManagedEntityResultFields(
+                                                                self.event_key) 
         
 
     def getEventList(self, **kwargs):

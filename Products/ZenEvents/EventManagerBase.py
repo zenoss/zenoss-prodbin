@@ -58,8 +58,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "Component = '%s'"
     ComponentResultFields = ("Class", "Summary", "FirstOccurrence",
                             "LastOccurrence", "Count" )
-    DeviceClassWhere = "DeviceClass = '%s%%%%'"
-    LocationWhere = "Location = '%s%%%%'"
+    DeviceClassWhere = "DeviceClass like '%s%%%%'"
+    LocationWhere = "Location like '%s%%%%'"
     SystemWhere = "Systems like '%%%%|%s%%%%'"
     DeviceGroupWhere = "DeviceGroups like '%%%%|%s%%%%'"
 
@@ -320,9 +320,11 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             orgdict={}
             for row in curs.fetchall():
                 orgfield = self.cleanstring(row[0])
-                for orgfield in orgfield.split("|"):
-                    orgdict.setdefault(orgfield, 0)
-                    orgdict[orgfield] += 1
+                if not orgfield: continue
+                if orgfield.startswith("|"): orgfield = orgfield[1:]
+                for orgname in orgfield.split("|"):
+                    orgdict.setdefault(orgname, 0)
+                    orgdict[orgname] += 1
             for key, value in orgdict.items():
                 statusCache.append((key, value))
             self.addToCache(select,statusCache)

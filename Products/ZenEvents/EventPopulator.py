@@ -15,18 +15,11 @@ $Id: EventPopulator.py,v 1.21 2003/05/16 21:00:32 edahl Exp $"""
 
 __version__ = "$Revision: 1.21 $"[11:-2]
 
-import socket
-import time
-import sys
-import os.path
 import logging
-import xmlrpclib
 
 import Globals
 
 from Products.ZenUtils.ZenZopeThread import ZenZopeThread
-
-from DbAccessBase import DbAccessBase
 
 poplog = logging.getLogger("EventPopulator")
 
@@ -46,7 +39,6 @@ class EventPopulator(ZenZopeThread):
         self.dcfield = manager.lookupManagedEntityField("DeviceClass")
         self.sysfield = manager.lookupManagedEntityField("System")
         self.grpfield = manager.lookupManagedEntityField("DeviceGroup")
-        self.closedb()
 
 
     def manager(self):
@@ -120,6 +112,7 @@ class EventPopulator(ZenZopeThread):
     def run(self):
         """Main loop of populator daemon.
         """
+        import time
         while 1:
             startLoop = time.time()
             runTime = 0
