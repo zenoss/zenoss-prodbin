@@ -15,11 +15,17 @@ __version__ = "$Revision: 1.8 $"[11:-2]
 from Products.CMFCore.DirectoryView import registerDirectory
 
 from MySqlEventManager import MySqlEventManager, manage_addMySqlEventManager
+from EventPopulator import EventPopulator
 
 registerDirectory('skins', globals())
+
+zeneventpopulator = None
 
 def initialize(registrar):
     registrar.registerClass(
         MySqlEventManager,
         constructors = (manage_addMySqlEventManager,)
         )
+
+    zeneventpopulator = EventPopulator()
+    zeneventpopulator.start()

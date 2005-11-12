@@ -63,6 +63,10 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     SystemWhere = "Systems like '%%%%|%s%%%%'"
     DeviceGroupWhere = "DeviceGroups like '%%%%|%s%%%%'"
 
+    eventPopCycle = 10
+    eventPopSelect = \
+        "select Node, ServerSerial, ServerName from status where ProdState=0"
+
     defaultOrderby = "Severity desc, LastOccurrence desc" 
 
     defaultResultFields = ("Node", "Component", "Class", "Summary", 
@@ -73,9 +77,6 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     defaultIdentifier = ('Node', 'Component', 'Class', 'Severity')
 
     requiredEventFields = ('Node', 'Summary', 'Class', 'Severity')
-
-    eventPopSelect = \
-        "select Node, ServerSerial, ServerName from status where ProdState=0"
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
     
@@ -113,6 +114,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
+        {'id':'eventPopCycle', 'type':'int', 'mode':'w'},
+        {'id':'eventPopSelect', 'type':'string', 'mode':'w'},
         {'id':'DeviceGroupWhere', 'type':'string', 'mode':'w'},
         {'id':'requiredEventFields', 'type':'lines', 'mode':'w'},
         {'id':'defaultIdentifier', 'type':'lines', 'mode':'w'},
@@ -147,7 +150,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
 
     def getEventListME(self, me, **kwargs):
         where = self.lookupManagedEntityWhere(me)
-        resultfields = self.lookupManagedEntityResultFields(me)
+        resultfields = self.lookupManagedEntityResultFields(me.event_key)
         return self.getEventList(resultFields=resultfields,where=where,**kwargs)
 
         
@@ -300,7 +303,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     def getOrganizerStatus(self,org, statusclass=None, severity=None, where=""):
         """see IEventStatus
         """
-        orgfield = self.lookupManagedEntityField(org)
+        orgfield = self.lookupManagedEntityField(org.event_key)
         select = "select %s from %s " % (orgfield, self.statusTable)
         if statusclass: 
             if where: where += " and "
@@ -395,17 +398,17 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         return wheretmpl % managedEntity.getDmdKey()
 
 
-    def lookupManagedEntityField(self, managedEntity):
+    def lookupManagedEntityField(self, event_key):
         """Lookup database field for managed entity default is event_key.
         """
-        key = managedEntity.event_key + "Field"
-        return getattr(aq_base(self), key, managedEntity.event_key)
+        key = event_key + "Field"
+        return getattr(aq_base(self), key, event_key)
 
 
-    def lookupManagedEntityResultFields(self, managedEntity):
+    def lookupManagedEntityResultFields(self, event_key):
         """Lookup and result fields for managed entity.
         """
-        key = managedEntity.event_key + "ResultFields"
+        key = event_key + "ResultFields"
         return getattr(aq_base(self), key, self.defaultResultFields)
 
 

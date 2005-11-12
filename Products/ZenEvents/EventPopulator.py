@@ -28,14 +28,18 @@ from Products.ZenUtils.ZenZopeThread import ZenZopeThread
 
 from DbAccessBase import DbAccessBase
 
+poplog = logging.getLogger("EventPopulator")
+
 class EventPopulator(ZenZopeThread):
 
     def __init__(self):
         ZenZopeThread.__init__(self)
         self.cycletime = 10
-        self.opendb()
-        manager = self.manager()
+
+
+    def getConfig(self, manager):
         self.cycletime = manager.eventPopCycle
+        self.running = manager.eventPopRunning
         self.newevtsel = manager.eventPopSelect
         self.prodfield = manager.ProdStateField
         self.locfield = manager.lookupManagedEntityField("Location")
@@ -45,7 +49,7 @@ class EventPopulator(ZenZopeThread):
         self.closedb()
 
 
-    def manager(self)
+    def manager(self):
         return self.app.zport.dmd.ZenEventManager
 
 
@@ -58,7 +62,7 @@ class EventPopulator(ZenZopeThread):
         """
         data = []
         curs = db.cursor()
-        curs.execute(newevtsel)
+        curs.execute(self.newevtsel)
         data = curs.fetchall()
         return data
 
@@ -69,46 +73,48 @@ class EventPopulator(ZenZopeThread):
         """Update event info in unprocessed events.
         """
         update = "update status set "
-        if systems: update += " %s = '%s'" % (self.sysfield, systemName) 
-        if location: update += " %s = '%s'" % (self.locfield, location)
-        if deviceClass: update += " %s = '%s'" % (self.dcfield, deviceClass)
-        if deviceGroups: update += " %s = '%s'" % (self.grpfield, deviceGroups)
-        update += " %s = %s" % (self.prodfield, productionState) 
+        fields = []
+        if systems: fields.append(" %s = '%s'" % (self.sysfield, systems))
+        if location: fields.append(" %s = '%s'" % (self.locfield, location))
+        if deviceClass: 
+            fields.append(" %s = '%s'" % (self.dcfield, deviceClass))
+        if deviceGroups: 
+            fields.append(" %s = '%s'" % (self.grpfield, deviceGroups))
+        fields.append(" %s = %s" % (self.prodfield, productionState))
+        update += ",".join(fields)
         update += " where ServerSerial = '%s' and ServerName = '%s';" % (
-                        serverSerial serverName)
-        #print update
+                        serverSerial, serverName)
+        print update
         curs.execute(update)
 
 
-    def processEvents(self):
+    def processEvents(self, manager):
         """Process new events.
         """
         try:
-            self.opendb()
-            db = self.manager().connect()
+            db = manager.connect()
             events = self.getNewEvents(db)
             curs = db.cursor()
             for event in events:
                 node, serverSerial, serverName = event
-                node = self.cleanstring(node)
-                serverName = self.cleanstring(serverName)
-                dev = self.finddev(node):
+                node = manager.cleanstring(node)
+                serverName = manager.cleanstring(serverName)
+                dev = self.finddev(node)
                 if dev:
-                    self.log.info("device %s found" % node)
+                    poplog.debug("device %s found" % node)
                     location = dev.getLocationName()
                     prodstate = dev.productionState
                     devclass  = dev.getDeviceClassName()
-                    devgroups = dev.getDeviceGroupNames()
-                    devsyss = dev.getSystemNames()
+                    devgroups = "|"+"|".join(dev.getDeviceGroupNames())
+                    devsyss = "|"+"|".join(dev.getSystemNames())
                     self.updateEvent(curs, serverSerial, serverName, devsyss,
                                     location, prodstate, devclass, devgroups)
                 else:
                     self.updateEvent(curs, serverSerial, serverName)
-                    self.log.warn("device %s not found" % node)
+                    poplog.warn("device %s not found" % node)
             db.close()
-            self.closedb()
         except:
-            self.log.exception("Problem processing events")
+            poplog.exception("problem processing events")
 
 
     def run(self):
@@ -116,11 +122,18 @@ class EventPopulator(ZenZopeThread):
         """
         while 1:
             startLoop = time.time()
-            logging.info("Starting event processing loop")
-            self.getDeviceInfo()
-            self.processEvents()
-            runTime = time.time()-startLoop
-            logging.info("Ending event processing loop")
-            logging.info("Loop runtime = %s seconds" % runTime)
+            runTime = 0
+            self.opendb()
+            manager = self.manager()
+            self.getConfig(manager)
+            if manager.eventPopRunning:
+                poplog.debug("starting event processing loop")
+                self.processEvents(manager)
+                runTime = time.time()-startLoop
+                poplog.debug("ending event processing loop")
+                poplog.info("processing loop time = %0.2f seconds", runTime)
+            else:
+                poplog.info("not running")
+            self.closedb()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
