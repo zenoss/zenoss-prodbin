@@ -63,16 +63,21 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     SystemWhere = "Systems like '%%%%|%s%%%%'"
     DeviceGroupWhere = "DeviceGroups like '%%%%|%s%%%%'"
 
-    eventPopCycle = 10
+    eventPopRunning = True
+    eventPopCycle = 11
     eventPopSelect = \
-        "select Node, ServerSerial, ServerName from status where ProdState=0"
+        "select Node, EventUuid from status where ProdState=0"
+
+    maintenanceRunning = True
+    maintenanceCycle = 10
+    maintenanceProcedures = ("close_events", "clean_old_events")
 
     defaultOrderby = "Severity desc, LastOccurrence desc" 
 
     defaultResultFields = ("Node", "Component", "Class", "Summary", 
                            "FirstOccurrence", "LastOccurrence", "Count" )
 
-    defaultFields = ('Acknowledged', 'Severity', 'ServerSerial', 'ServerName')
+    defaultFields = ('Acknowledged', 'Severity', 'EventUuid')
 
     defaultIdentifier = ('Node', 'Component', 'Class', 'Severity')
 
@@ -114,8 +119,12 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
+        {'id':'eventPopRunning', 'type':'boolean', 'mode':'w'},
         {'id':'eventPopCycle', 'type':'int', 'mode':'w'},
         {'id':'eventPopSelect', 'type':'string', 'mode':'w'},
+        {'id':'maintenanceRunning', 'type':'boolean', 'mode':'w'},
+        {'id':'maintenanceCycle', 'type':'int', 'mode':'w'},
+        {'id':'maintenanceProcedures', 'type':'lines', 'mode':'w'},
         {'id':'DeviceGroupWhere', 'type':'string', 'mode':'w'},
         {'id':'requiredEventFields', 'type':'lines', 'mode':'w'},
         {'id':'defaultIdentifier', 'type':'lines', 'mode':'w'},
@@ -222,10 +231,10 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         raise NotImplementedError
 
 
-    def getEventDetail(self, serverserial, servername):
+    def getEventDetail(self, eventUuid):
         """Return an EventDetail object for a particular event.
         """
-        cachekey = 'ncoeventdetail'+str(serverserial)+servername
+        cachekey = 'eventdetail%s' % eventUuid
         event = self.checkCache(cachekey)
         if event: return event
         db = self.connect()
@@ -234,8 +243,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         selectevent = "select " 
         selectevent += ", ".join(allfields)
         selectevent += " from %s where" % self.statusTable
-        selectevent += " ServerSerial = " + str(serverserial)
-        selectevent += " and ServerName = '" + servername + "'"
+        selectevent += " EventUuid = '%s'" % eventUuid
         if self.backend!="oracle": selectevent += ";"
         
         #print selectevent
@@ -245,14 +253,13 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         curs.close()
         if not evrow:
             raise ("NoEventDetailFound", 
-                "No Event Detail for Serial %s Server %s" % (
-                                    serverserial, servername))
+                "No Event Detail for EventUuid %s" % eventUuid)
         evrow = map(self.convert, allfields, evrow)
         event = EventDetail(self, evrow, fields)
         event = event.__of__(self)
         selectdetails = "select Name, Detail from %s where" % (
                                                 self.detailsTable)
-        selectdetails += " Identifier = '" + event.Identifier + "'"
+        selectdetails += " EventUuid = '%s'" % event.EventUuid
         if self.backend!="oracle": selectdetails += ";"
         #print selectdetails
         curs = db.cursor()
@@ -265,9 +272,9 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         event.details = details
         curs.close()
 
-        selectjournals = "select UID, Chrono, Text"
+        selectjournals = "select UserName, CTime, Text"
         selectjournals += " from %s where" % self.journalTable
-        selectjournals += " Serial = " + str(event.Serial)
+        selectjournals += " EventUuid = '%s'" % event.EventUuid
         if self.backend!="oracle": selectjournals += ";"
         #print selectjournals
         curs = db.cursor()
@@ -275,7 +282,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         jrows = curs.fetchall()
         journals = []
         for row in jrows:
-            user = self.convert('OwnerUID', row[0])
+            user = self.cleanstring(row[0])
             date = self.dateString(row[1])
             textar = map(lambda x: x and x or '', row[2:])
             text = "".join(textar)
@@ -530,7 +537,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     def getSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 
         """
-        if not self._conversions: return []
+        if not self._conversions: 
+            raise ZenEventError("no converstions found run refresh")
         sevs = [] 
         list = range(self.severityCount)
         list.reverse()

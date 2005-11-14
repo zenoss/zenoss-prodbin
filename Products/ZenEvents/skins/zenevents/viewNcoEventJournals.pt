@@ -1,15 +1,13 @@
 <span tal:replace="structure here/standard_html_header"/>
 <tal:block
-    tal:define="tableName string:ncoeventdetail;
-    serverserial request/serverserial;
-    servername request/servername;
-    sesskey python:tableName+str(serverserial)+servername;
-    params python:'&serverserial='+str(serverserial)+'&servername='+servername;
-    event python:here.getEventDetail(serverserial, servername);
+    tal:define="tableName string:eventdetail;
+    eventUuid request/eventUuid;
+    sesskey python:tableName+eventUuid;
+    params python:'&eventUuid=%s' % eventUuid;
+    event python:here.getEventDetail(eventUuid);
     objects event/getEventJournals;
     batch python:here.scSortedTableGetBatch(sesskey, objects, usebatch=0);"
-    tal:on-error="python: 'Unable to load Event Detail for Serial %s Server %s' 
-                                % (servername, serverserial)"
+    tal:on-error="python:'Unable to load detail for event: %s' % eventUuid"
     >    
 <head metal:use-macro="here/ncoEventHeader/macros/ncoEventHeader"></head>
 

@@ -23,7 +23,6 @@ class Event(object):
         self.Severity = 0
         self.SeverityName = "Clear"
         self.Acknowledged = False
-       
         self.baseUrl = manager.absolute_url_path()
         defaultFields = manager.defaultFields
         defaultLen = len(defaultFields)
@@ -33,18 +32,16 @@ class Event(object):
             setattr(self, fields[i], data[i])
         for i in range(len(defaultFields)):
             setattr(self, defaultFields[i], self.defaultdata[i])
-            if defaultFields[i] == manager.severityField:
+            if defaultFields[i] == manager.SeverityField:
                 setattr(self, defaultFields[i] + "Name", 
-                    manager.convert(manager.severityField, self.defaultdata[i]))
-        if not hasattr(self, "Serial"): self.Serial = self.ServerSerial
+                    manager.convert(manager.SeverityField, self.defaultdata[i]))
     
 
         
   
     def getEventDetailHref(self):
         """build an href to call the detail of this event"""
-        params = "/viewNcoEventFields?serverserial=%d&servername=%s" % (
-                        self.ServerSerial, self.ServerName)
+        params = "/viewNcoEventFields?eventUuid=%s" % self.EventUuid
         return self.baseUrl + params
 
 

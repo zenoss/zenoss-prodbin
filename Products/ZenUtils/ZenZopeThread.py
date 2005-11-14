@@ -14,14 +14,11 @@ class ZenZopeThread(Thread):
     def opendb(self):
         """Open a connection to the zope database.
         """
-        try:
-            from Zope2 import DB
-            self.conn = DB.open()
-            root = self.conn.root()
-            self.app  = root['Application']
-        except:
-            logging.exception("failed to start thread %s", 
-                                self.__class__.__name__)
+        from Zope2 import DB
+        self.conn = DB.open()
+        root = self.conn.root()
+        self.app  = root['Application']
+
 
     def syncdb(self):
         """Sync the connection to the zope database.

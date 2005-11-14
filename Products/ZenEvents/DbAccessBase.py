@@ -20,6 +20,7 @@ class DbAccessBase(object):
             mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime
             db = MySQLdb.connect(host=self.database, user=self.username,
                             passwd=self.password, db="events",conv=mysqlconv)
+            db.autocommit(1)
         elif self.backend == "oracle":
             import DCOracle2
             connstr = "%s/%s@%s" % (self.username, self.password, self.database)

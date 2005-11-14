@@ -32,7 +32,7 @@ class MySqlEventManager(EventManagerBase):
         select = "select count(*) from %s where " % self.statusTable
         select += where
         if where: select += " and "
-        select += "%s = %%s" % self.severityField
+        select += "%s = %%s" % self.SeverityField
         print select
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
@@ -56,7 +56,7 @@ class MySqlEventManager(EventManagerBase):
         """
         insert = "insert into %s (" % self.statusTable
         insert += ",".join(event.keys())
-        insert += ',FirstOccurrence, LastOccurrence, Count'
+        insert += ',FirstOccurrence, LastOccurrence, Count, EventUuid'
         insert += ") values ("
         inar = []
         for value in event.values():
@@ -65,7 +65,7 @@ class MySqlEventManager(EventManagerBase):
             else:
                 inar.append("'"+self.escape(value)+"'")
         insert += ",".join(inar)
-        insert += ",NULL,NULL,1"
+        insert += ",NULL,NULL,1,UUID()"
         insert += ")"
         insert += " on duplicate key update Count=Count+1, LastOccurrence=Null;"
         return insert

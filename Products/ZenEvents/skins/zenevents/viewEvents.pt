@@ -65,7 +65,7 @@
             <a href="_"
                 tal:attributes="href python:
                 'javascript:popupwindow(\''+event.getEventDetailHref()
-                +'\',\'ncoeventdetail'+str(event.ServerSerial)+'\',450,550)'">
+                +'\',\'ncoeventdetail'+str(event.EventUuid)+'\',450,550)'">
                 *
             </a>
         </td>

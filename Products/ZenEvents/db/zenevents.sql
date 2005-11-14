@@ -1,12 +1,11 @@
-DROP DATABASE events;
+--DROP DATABASE events;
 CREATE DATABASE IF NOT EXISTS events;
 USE events;
 
 CREATE TABLE IF NOT EXISTS status
 (
     Identifier      varchar(255) not null,
-    ServerSerial    serial,
-    ServerName      varchar(128) default "events",
+    EventUuid       char(128) not null,
     Node            varchar(128) not null,
     IpAddress       char(15),
     Component       varchar(128) default "",
@@ -30,14 +29,14 @@ CREATE TABLE IF NOT EXISTS status
     Systems         varchar(255) default "",
     DeviceGroups    varchar(255) default "",
     ProdState       smallint default 0,
-    PRIMARY KEY ( Identifier )
+    PRIMARY KEY ( Identifier ),
+    Index UuidIdx (EventUuid)
 ) ENGINE=MEMORY MAX_ROWS=20000;
 
 CREATE TABLE IF NOT EXISTS history
 (
     Identifier      varchar(255) not null,
-    ServerSerial    bigint unsigned not null,
-    ServerName      varchar(128),
+    EventUuid       char(128) not null,
     Node            varchar(128),
     IpAddress       char(15),
     Component       varchar(128),
@@ -62,16 +61,14 @@ CREATE TABLE IF NOT EXISTS history
     DeviceGroups    varchar(255),
     ProdState       smallint default 0,
     DeletedTime     timestamp,
-    PRIMARY KEY ( ServerSerial, ServerName ),
+    PRIMARY KEY ( EventUuid ),
     INDEX DateRange (FirstOccurrence, LastOccurrence)
 ) ENGINE=INNODB;
 
---DROP TRIGGER IF EXISTS status_delete;
 CREATE TRIGGER status_delete BEFORE DELETE ON status
     FOR EACH ROW INSERT INTO history VALUES (
             OLD.Identifier,
-            OLD.ServerSerial,
-            OLD.ServerName,
+            OLD.EventUuid,
             OLD.Node,
             OLD.IpAddress,
             OLD.Component,
@@ -98,85 +95,21 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             NULL
             );
 
-CREATE TABLE IF NOT EXISTS manage_ctrl
-(
-    Quit        boolean default false,
-    LoopTime    int default 60
-);
-
-CREATE TABLE IF NOT EXISTS test
-(
-    inserttime   timestamp 
-);
-
-DROP PROCEDURE IF EXISTS manage_loop;
-DELIMITER //
-CREATE PROCEDURE manage_loop()
-BEGIN
-    DECLARE done boolean DEFAULT false;
-    DECLARE cycletime INT DEFAULT 60;
-
-    SELECT LoopTime INTO done from manage_ctrl limit 1;
-    WHILE NOT done DO
-        INSERT INTO test VALUES (NULL);
-        SELECT SLEEP(cycletime); 
-        SELECT Quit INTO done from manage_ctrl limit 1;
-    END WHILE;
-END;//
-DELIMITER ;
-
-DROP PROCEDURE IF EXISTS close_events;
-DELIMITER //
-CREATE PROCEDURE close_events()
-BEGIN
-    DECLARE done boolean DEFAULT false;
-    DECLARE evnode, evcomp, evclass, evkey varchar(128) default "";
-    DECLARE clears CURSOR FOR 
-        SELECT Node, Component, Class, AlertKey FROM status WHERE Severity = 0;
-    DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = true;
-    OPEN clears;
-    REPEAT 
-        FETCH clears INTO evnode, evcomp, evclass, evkey;
-        DELETE FROM status where 
-            Node = evnode AND Class = evclass
-            AND Component = evcomp AND AlertKey = evkey;
-    UNTIL done END REPEAT; 
-    CLOSE clears;
-END;//
-DELIMITER ;
-   
-
-DROP PROCEDURE IF EXISTS clean_old_events;
-DELIMITER //
-CREATE PROCEDURE clean_old_events()
-BEGIN
-    DELETE FROM status where 
-        DATE_ADD(StateChange, INTERVAL 4 HOUR) < NOW();   
-    DELETE FROM history where 
-        DATE_ADD(StateChange, INTERVAL 3 MONTH) < NOW();   
-END;//
-DELIMITER ;
-   
-
 CREATE TABLE IF NOT EXISTS journal
 (
-    KeyField     varchar(255) not null,
-    Serial       int,
-    UID          int,
-    Chrono       datetime,
-    Text         text,
-    PRIMARY KEY ( KeyField )
+    EventUuid    char(128) not null,
+    UserName     varchar(64),
+    CTime        timestamp,
+    Text         text
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS details
 (
-    KeyField   varchar(255) not null,
-    Identifier varchar(255),
-    AttrVal    int,
-    Sequence   int,
-    Name       varchar(255),
-    Detail     varchar(255),
-    PRIMARY KEY  ( KeyField )
+    EventUuid   char(128) not null,
+    AttrVal     int,
+    Sequence    int,
+    Name        varchar(255),
+    Detail      varchar(255)
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS conversions

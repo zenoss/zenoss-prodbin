@@ -16,10 +16,12 @@ from Products.CMFCore.DirectoryView import registerDirectory
 
 from MySqlEventManager import MySqlEventManager, manage_addMySqlEventManager
 from EventPopulator import EventPopulator
+from MaintenanceThread import MaintenanceThread
 
 registerDirectory('skins', globals())
 
 zeneventpopulator = None
+zeneventmaintenance = None
 
 def initialize(registrar):
     registrar.registerClass(
@@ -30,3 +32,7 @@ def initialize(registrar):
     if not zeneventpopulator:
         zeneventpopulator = EventPopulator()
         zeneventpopulator.start()
+    global zeneventmaintenance
+    if not zeneventmaintenance:
+        zeneventmaintenance = MaintenanceThread()
+        zeneventmaintenance.start()
