@@ -186,6 +186,7 @@ class DeviceClass(DeviceOrganizer):
             dev._operation = 1 # moving object state
             self.devices._delObject(devname)
             target.devices._setObject(devname, dev)
+            dev.setLastChange()
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 

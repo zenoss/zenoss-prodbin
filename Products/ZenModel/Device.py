@@ -471,6 +471,7 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
         logging.info("setting cricket monitor to %s" % cricketMonitor)
         self.setCricketMonitor(cricketMonitor)
        
+        self.setLastChange()
         if REQUEST: 
             REQUEST['message'] = "Device Saved at time:"
             return self.callZenScreen(REQUEST)
@@ -743,6 +744,7 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
         """Delete device from the DMD"""
         parent = self.getPrimaryParent()
         parent.manage_renameObject(self.getId(), newId)
+        self.setLastChange()
         if REQUEST: return self()
 
 
