@@ -1,8 +1,0 @@
-#!/bin/sh
-
-. $ZENHOME/bin/zenfunctions
-. $ZENHOME/etc/webclient.conf
-
-ZOPE_URL="Control_Panel/Database/manage_pack?days:float=0"
-
-webclient

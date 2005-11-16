@@ -20,7 +20,7 @@ CFGDIR=$ZENHOME/etc
 
 ZOPE_CLIENT=$ZENHOME/bin/snarf
 
-ZENPRODUCTS="Confmon NcoProduct ConfUtils SiteScopeParser RelationshipManager PingMonitor SnmpCollector RRDProduct DataCollector ZenWidgets"
+ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations PingMonitor SnmpCollector ZenRRD DataCollector ZenWidgets ZenEvents"
 
 
 start() {

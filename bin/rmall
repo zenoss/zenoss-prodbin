@@ -14,5 +14,6 @@ for d in $ZENPRODUCTS
 do
     echo Removing product $d...
     rm -rf $d
+    rm -f VERSION.txt
 done
 exit;

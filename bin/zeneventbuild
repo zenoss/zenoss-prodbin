@@ -1,0 +1,22 @@
+#!/bin/sh
+
+if [ "$ZENHOME" = "" ]; then 
+    echo ERROR: ZENHOME envrionment variable not set.
+    exit 1
+fi
+
+EVTDB=$ZENHOME/Products/ZenEvents/db
+
+if [ -d $EVTDB ]; then 
+    cd $EVTDB
+else
+    echo ERROR: $EVTDB not installed. 
+    exit 1
+fi
+
+mysql -u root --password=$1 < zenevents.sql
+mysql -u root --password=$1 < zenprocs.sql
+for f in *.dat
+do
+    mysql -u root --password=$1 < $f
+done

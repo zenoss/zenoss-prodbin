@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py $*
