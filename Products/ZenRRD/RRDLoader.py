@@ -38,8 +38,10 @@ from Products.ZenRRD.RRDThreshold import RRDThreshold
 
 class RRDLoader(BasicLoader):
 
-    def __init__(self):
-        BasicLoader.__init__(self)
+    def __init__(self, noopts=0, app=None):
+        self.filename = os.path.join(os.path.dirname(__file__), 
+                            "rrddata.txt")
+        BasicLoader.__init__(self, app)
         path = self.options.configroot
         context = self.dmd.getDmdObj(self.options.configroot)
         if not context:

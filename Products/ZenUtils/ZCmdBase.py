@@ -41,20 +41,29 @@ class ZCmdBase(CmdBase):
                     default="/zport/dmd",
                     help="root object for data load (i.e. /zport/dmd)")
 
+    def opendb(self):
+        if self.app: return 
+        from ZEO import ClientStorage
+        from ZODB import DB
+        addr = (self.options.host, self.options.port)
+        storage=ClientStorage.ClientStorage(addr)
+        db=DB(storage)
+        self.connection=db.open()
+        root=connection.root()
+        self.app=root['Application']
+
+
+    def syncdb(self):
+        self.connection.sync()
+
+
+    def closedb(self):
+        self.connection.close()
+
 
     def getDataRoot(self, app):
+        if not self.app: self.opendb()
         if not self.dataroot:
-            if not self.app: 
-                from ZEO import ClientStorage
-                from ZODB import DB
-                addr = (self.options.host, self.options.port)
-                storage=ClientStorage.ClientStorage(addr)
-                db=DB(storage)
-                connection=db.open()
-                root=connection.root()
-                self.app=root['Application']
-                #import Zope2
-                #self.app = Zope2.app()
             self.dataroot = self.app.unrestrictedTraverse(self.options.dataroot)
             self.dmd = self.dataroot
 

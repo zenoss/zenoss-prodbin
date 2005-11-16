@@ -145,30 +145,6 @@ class DmdBuilder:
             devices.createOrganizer(devicePath)
 
 
-    def buildNetcool(self):
-        try:
-            from Products.NcoProduct.DmdNcoManager import DmdNcoManager
-            nco = DmdNcoManager('netcool')
-            nco.omniname = "NCOMS"
-            nco.username = "ncoadmin"
-            nco.password = "ncoadmin"
-            nco.resultFields = [
-                "System",
-                "Node",
-                "Summary",
-                "LastOccurrence",
-                "Tally",
-                ]
-            self.dmd._setObject(nco.id, nco)
-            try:
-                self.dmd._getOb(nco.id).manage_refreshConversions()
-            except:
-                print "Could not refresh Omnibus mappings," \
-                    "please do this by hand."
-        except ImportError:
-            print "Unable to load netcool manager"
-
-
     def addroots(self, base, rlist, classType=None, isInTree=False):
         for rname in rlist:
             ctype = classType or rname
@@ -186,14 +162,14 @@ class DmdBuilder:
             return
         manage_addClassifier(self.dmd)
         cl = self.dmd._getOb('ZenClassifier')
-        snmpclassifiers = {
-            'sysObjectIdClassifier' : '.1.3.6.1.2.1.1.2.0',
-            'sysDescrClassifier' : '.1.3.6.1.2.1.1.1.0',
-        }
-        for sclname in snmpclassifiers.keys():
+        snmpclassifiers = (
+            ('sysObjectIdClassifier', '.1.3.6.1.2.1.1.2.0'),
+            ('sysDescrClassifier', '.1.3.6.1.2.1.1.1.0'),
+        )
+        for sclname, oid in snmpclassifiers:
             manage_addSnmpClassifier(cl, sclname)
             snmpc = cl._getOb(sclname)
-            snmpc.oid = snmpclassifiers[sclname]
+            snmpc.oid = oid
 
 
     def build(self):
@@ -206,4 +182,6 @@ class DmdBuilder:
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addRenderServer(self.portal, "RenderServer")
+        manage_addMySqlEventManager(self.dmd)
+        manage_addMySqlEventManager(self.dmd,history=True)
         self.buildNetcool()

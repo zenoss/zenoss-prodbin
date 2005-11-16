@@ -4,13 +4,18 @@ from Globals import InitializeClass
 
 from EventManagerBase import EventManagerBase
 
-def manage_addMySqlEventManager(context, id=None, REQUEST=None):
+def manage_addMySqlEventManager(context, id=None, history=False, REQUEST=None):
     '''make an MySqlEventManager'''
-    if not id: id = "ZenEventManager"
-    ncp = MySqlEventManager(id) 
-    context._setObject(id, ncp)
-    ncp = context._getOb(id)
-    ncp.installIntoPortal()
+    if not id: 
+        id = "ZenEventManager"
+        if history: id = "ZenEventHistory"
+    evtmgr = MySqlEventManager(id) 
+    context._setObject(id, evtmgr)
+    evtmgr = context._getOb(id)
+    if history: 
+        evtmgr.status = "history"
+        evtmgr.defaultOrderby="%s asc" % evtmgr.LastOccurrenceField
+    evtmgr.installIntoPortal()
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 

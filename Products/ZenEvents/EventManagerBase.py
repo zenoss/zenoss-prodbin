@@ -134,7 +134,7 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     security = ClassSecurityInfo()
     
 
-    def __init__(self, id, title='', username='',
+    def __init__(self, id, title='', username='root',
                  password='', database='', port=0,
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
         self.id = id
