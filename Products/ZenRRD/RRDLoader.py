@@ -19,6 +19,7 @@ $Id: RRDLoader.py,v 1.2 2004/02/18 16:19:18 edahl Exp $"""
 __version__ = "$Revision: 1.2 $"[11:-2]
 
 import sys
+import os
 
 import Globals
 import transaction

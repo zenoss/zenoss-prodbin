@@ -27,18 +27,23 @@ zenhome = os.environ['ZENHOME']
 
 import Globals
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.CmdBase import CmdBase
 
-class zenbuild(ZCmdBase):
+class zenbuild(CmdBase):
     
     def __init__(self):
-        ZCmdBase.__init__(self)
-        self.options.dataroot = "/"
-        self.dmd = None
+        CmdBase.__init__(self)
+        if not os.environ.has_key("ZENHOME"):
+            print "ERROR: ZENHOME not set."
+            sys.exit(1)
+        zopeconf = os.path.join(os.environ['ZENHOME'], "etc/zope.conf")
+        import Zope2
+        Zope2.configure(zopeconf)
+        self.app = Zope2.app()
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        CmdBase.buildOptions(self)
         self.parser.add_option('-f', '--filename',
                 dest="schema",
                 default="schema.data",
@@ -50,20 +55,30 @@ class zenbuild(ZCmdBase):
 
 
     def build(self):
-        site = getattr(self.app, options.sitename, None)
-        if site: return
-        from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
-        manage_addZentinelPortal(app, options.sitename, schema=options.schema)
-        site = self.app._getOb(options.sitename)
-        trans = transaction.get()
-        trans.note("Initial ZentinelPortal load by zenbuild.py")
-        trans.commit()
-        print "ZentinelPortal loaded at %s" % options.sitename
+        site = getattr(self.app, self.options.sitename, None)
+        if not site:
+            from Products.ZenModel.ZentinelPortal import \
+                manage_addZentinelPortal
+            manage_addZentinelPortal(self.app, self.options.sitename, 
+                                    schema=self.options.schema)
+            site = self.app._getOb(self.options.sitename)
+            trans = transaction.get()
+            trans.note("Initial ZentinelPortal load by zenbuild.py")
+            trans.commit()
+            print "ZentinelPortal loaded at %s" % self.options.sitename
 
         # Load RRD Data
+        from Products.ZenRRD.RRDLoader import RRDLoader
         rrdloader = RRDLoader(noopts=True, app=self.app) 
         rrdloader.loadDatabase()
+        
 
         # Load IpService data
+        from Products.ZenModel.IpServiceLoader import IpServiceLoader
         ipsvcloader = IpServiceLoader(noopts=True, app=self.app) 
         ipsvcloader.loadDatabase()
+
+
+if __name__ == "__main__":
+    zb = zenbuild()
+    zb.build()

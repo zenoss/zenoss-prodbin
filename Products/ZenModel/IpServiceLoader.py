@@ -12,6 +12,8 @@ $Id: IpServiceLoader.py,v 1.5 2004/04/15 23:47:50 edahl Exp $'''
 
 __version__ = "$Revision: 1.5 $"[11:-2]
 
+import os
+
 import Globals #initalize imports correctly magic!
 
 from Products.ZenUtils.BasicLoader import BasicLoader

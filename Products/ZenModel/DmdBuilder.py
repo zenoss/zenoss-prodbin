@@ -49,6 +49,7 @@ from Products.ZenModel.SnmpClassifier import manage_addSnmpClassifier
 from Products.ZenModel.CricketConf import manage_addCricketConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
+from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 
 classifications = {
     'Devices':      DeviceClass,
@@ -184,4 +185,3 @@ class DmdBuilder:
         manage_addRenderServer(self.portal, "RenderServer")
         manage_addMySqlEventManager(self.dmd)
         manage_addMySqlEventManager(self.dmd,history=True)
-        self.buildNetcool()

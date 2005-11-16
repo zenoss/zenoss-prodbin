@@ -51,6 +51,21 @@ class ZCmdBase(CmdBase):
         self.connection=db.open()
         root=connection.root()
         self.app=root['Application']
+        self.getContext()
+
+
+   def getContext(self):
+        from ZPublisher.HTTPRequest import HTTPRequest
+        from ZPublisher.HTTPResponse import HTTPResponse
+        from ZPublisher.BaseRequest import RequestContainer
+        resp = HTTPResponse(stdout=None)
+        env = {
+            'SERVER_NAME':'localhost',
+            'SERVER_PORT':'8080',
+            'REQUEST_METHOD':'GET'
+            }
+        req = HTTPRequest(None, env, resp)
+        self.app = self.app.__of__(RequestContainer(REQUEST = req))
 
 
     def syncdb(self):

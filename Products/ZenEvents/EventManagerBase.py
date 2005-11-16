@@ -41,8 +41,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
     statusTable = "status"
     detailsTable = "details"
     journalTable = "journal"
-    LastOccurrence = "LastOccurrence"
-    FirstOccurrence = "FirstOccurrence"
+    LastOccurrenceField = "LastOccurrence"
+    FirstOccurrenceField = "FirstOccurrence"
     DeviceField = "Node"
     ComponentField = "Component"
     ClassField = "Class"
@@ -104,8 +104,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         {'id':'statusTable', 'type':'string', 'mode':'w'},
         {'id':'detailsTable', 'type':'string', 'mode':'w'},
         {'id':'journalTable', 'type':'string', 'mode':'w'},
-        {'id':'LastOccurrence', 'type':'string', 'mode':'w'},
-        {'id':'FirstOccurrence', 'type':'string', 'mode':'w'},
+        {'id':'LastOccurrenceField', 'type':'string', 'mode':'w'},
+        {'id':'FirstOccurrenceField', 'type':'string', 'mode':'w'},
         {'id':'DeviceField', 'type':'string', 'mode':'w'},
         {'id':'ComponentField', 'type':'string', 'mode':'w'},
         {'id':'SeverityField', 'type':'string', 'mode':'w'},
@@ -182,8 +182,8 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
-                         self.LastOccurrence, startdate,
-                         self.FirstOccurrence, enddate)
+                         self.LastOccurrenceField, startdate,
+                         self.FirstOccurrenceField, enddate)
             select.append(where)
             if not orderby:
                 orderby = self.defaultOrderby
