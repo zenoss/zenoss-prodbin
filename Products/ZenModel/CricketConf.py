@@ -28,7 +28,6 @@ import logging
 import transaction
 
 import xmlrpclib
-from AuthTransport import BasicAuthTransport
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -40,6 +39,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.Exceptions import ZentinelException
+from Products.ZenUtils.Utils import basicAuthUrl
 
 from Monitor import Monitor
 from StatusColor import StatusColor
@@ -171,8 +171,9 @@ class CricketConf(Monitor, StatusColor):
     def cricketCustomSummary(self, gopts, drange):
         "fill out full path for custom gopts and call to server"
         gotps = self._fullCricketPath(gopts)
-        trans = BasicAuthTransport(self.cricketuser, self.cricketpass)
-        server = xmlrpclib.Server(self.cricketurl,transport=trans)
+        url = basicAuthUrl(self.cricketuser, self.cricketpass,
+                            self.cricketurl)
+        server = xmlrpclib.Server(url)
         return server.summary(gopts, drange)
         
 

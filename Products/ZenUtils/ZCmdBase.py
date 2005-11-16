@@ -49,12 +49,12 @@ class ZCmdBase(CmdBase):
         storage=ClientStorage.ClientStorage(addr)
         db=DB(storage)
         self.connection=db.open()
-        root=connection.root()
+        root=self.connection.root()
         self.app=root['Application']
         self.getContext()
 
 
-   def getContext(self):
+    def getContext(self):
         from ZPublisher.HTTPRequest import HTTPRequest
         from ZPublisher.HTTPResponse import HTTPResponse
         from ZPublisher.BaseRequest import RequestContainer
