@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.43 $"[11:-2]
 
 import os
 import sys
+import time
 
 import Globals
 import transaction
@@ -330,10 +331,10 @@ class SnmpCollector(ZCmdBase):
             except KeyError:
                 print "unable to find path %s" % self.options.path
                 sys.exit(1)
-            self.collectDevices(droot)
+            while 1:
+                self.collectDevices(droot)
+                time.sleep(self.options.cycle)
 
-
-#InitializeClass(SnmpCollector)
 
 if __name__ == '__main__':
     snmpcoll = SnmpCollector()
