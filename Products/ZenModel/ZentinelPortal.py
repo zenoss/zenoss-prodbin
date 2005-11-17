@@ -26,7 +26,6 @@ from Products.Sessions.SessionDataManager import constructSessionDataManager
 
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
-from Products.CMFCore.TypesTool import ContentFactoryMetadata
 from Products.CMFCore.utils import getToolByName
 
 import Company, DeviceGroup, Location
@@ -36,7 +35,6 @@ import System, Monitor, CricketConf, StatusMonitorConf
 import DataRoot, DeviceClass, Classification
 import IpNetwork, IpServiceClass
 
-from Products.ZenModel import getFactoryTypeInformation
 from Products.ZenModel.DmdBuilder import DmdBuilder
 
 class ZentinelPortal ( PortalObjectBase ):
@@ -121,15 +119,6 @@ class PortalGenerator:
         p.setupCurrentSkin()
 
 
-    def setupTypes(self, p, initial_types):
-        tool = getToolByName(p, 'portal_types', None)
-        if tool is None:
-            return
-        for t in initial_types:
-            cfm = apply(ContentFactoryMetadata, (), t)
-            tool._setObject(t['id'], cfm)
-       
-
     def setupSessionManager(self, p):
         """build a session manager and brower id manager for zport"""
         constructBrowserIdManager(p, cookiepath="/zport")
@@ -151,7 +140,6 @@ class PortalGenerator:
         self.setupRoles(p)
         self.setupPermissions(p)
         self.setupDefaultSkins(p)
-        self.setupTypes(p, getFactoryTypeInformation() )
         self.setupSessionManager(p)
         self.setupDmd(p, schema)
 

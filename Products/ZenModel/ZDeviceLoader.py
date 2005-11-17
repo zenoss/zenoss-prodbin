@@ -17,6 +17,7 @@ import logging
 import StringIO
 
 from AccessControl import ClassSecurityInfo
+from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
@@ -49,6 +50,26 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
    
     security = ClassSecurityInfo()
 
+    factory_type_information = ( 
+        { 
+            'id'             : 'Device',
+            'meta_type'      : 'Device',
+            'description'    : """Base class for all devices""",
+            'icon'           : 'Device_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addDevice',
+            'immediate_view' : 'addDevice',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'addDevice'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+        },
+        )
 
     def __init__(self, id):
         self.id = id
@@ -73,13 +94,12 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         and collecting its configuration. 
         """
         if not deviceName: return self.callZenScreen(REQUEST)
-        if REQUEST:
-            response = REQUEST.response
-            self.setupLog(response)
-        else:
-            response = StringIO.StringIO()
-        response.write("<html><body bgcolor='#ffffff'><pre>")
         device = None
+        if REQUEST:
+            response = REQUEST.RESPONSE
+            dlh = self.deviceLoggingHeader()
+            idx = dlh.rindex("</table>")
+            response.write(dlh[:idx])
         try:
             device = manage_createDevice(self, deviceName, devicePath,
                 tag, serialNumber,
@@ -93,10 +113,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         except:
             logging.exception('load of device %s failed' % device)
         else:
-            device.collectConfig()
+            device.collectConfig(wrap=False, REQUEST=REQUEST)
             logging.info("device %s loaded!" % deviceName)
-            self.navlinks(device, response)
-        response.write("</pre></body></html>")
+        if REQUEST:
+            self.loaderFooter(device, response)
+            self.clearLog()
 
 
     def addManufacturer(self, newManufacturerName, REQUEST=None):
@@ -172,17 +193,26 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         """setup logging package to send to browser"""
         from logging import StreamHandler, Formatter
         root = logging.getLogger()
-        hdlr = StreamHandler(response)
-        fmt = Formatter(logging.BASIC_FORMAT)
-        hdlr.setFormatter(fmt)
-        root.addHandler(hdlr)
+        self._v_handler = StreamHandler(response)
+        fmt = Formatter("""<tr class="tablevalues">
+        <td>%(asctime)s</td><td>%(levelname)s</td>
+        <td>%(name)s</td><td>%(message)s</td></tr>
+        """)
+        self._v_handler.setFormatter(fmt)
+        root.addHandler(self._v_handler)
         root.setLevel(10)
 
 
-    def navlinks(self, devObj, response):
+    def clearLog(self):
+        log = logging.getLogger()
+        if getattr(self, "_v_handler", False):
+            log.removeHandler(self._v_handler)
+
+
+    def loaderFooter(self, devObj, response):
         """add navigation links to the end of the loader output"""
         devurl = devObj.absolute_url()
-        response.write("""Review the settings for <a href=%s>%s</a>\n"""
-                % (devurl, devObj.getId()))
-        response.write(
-        """Add another <a href="/zport/dmd/DeviceLoader/addDevice">device</a>\n""")
+        response.write("""<tr class="tableheader"><td colspan="4">
+            Navigate to device <a href=%s>%s</a></td></tr>""" 
+            % (devurl, devObj.getId()))
+        response.write("</table></body></html>")

@@ -22,12 +22,13 @@ from CmdBase import CmdBase
 
 class ZenDaemon(CmdBase):
     
-    def __init__(self):
-        CmdBase.__init__(self)
-        signal.signal(signal.SIGINT, self.sigTerm)
-        signal.signal(signal.SIGTERM, self.sigTerm)
-        if self.options.daemon and sys.platform != 'win32':
-            self.becomeDaemon() 
+    def __init__(self, noopts=0):
+        CmdBase.__init__(self, noopts)
+        if not noopts:
+            signal.signal(signal.SIGINT, self.sigTerm)
+            signal.signal(signal.SIGTERM, self.sigTerm)
+            if self.options.daemon and sys.platform != 'win32':
+                self.becomeDaemon() 
 
 
     def becomeDaemon(self):
@@ -75,7 +76,7 @@ class ZenDaemon(CmdBase):
                     default=0,
                     action="store_true",
                     help="Cycle continuously on cycleInterval from zope")
-        self.parser.add_option('-d', '--daemon',
+        self.parser.add_option('-D', '--daemon',
                     dest='daemon',
                     default=0,
                     action="store_true",

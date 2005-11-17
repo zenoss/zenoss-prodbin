@@ -28,11 +28,11 @@ def initialize(registrar):
         MySqlEventManager,
         constructors = (manage_addMySqlEventManager,)
         )
-    global zeneventpopulator
-    if not zeneventpopulator:
-        zeneventpopulator = EventPopulator()
-        zeneventpopulator.start()
-    global zeneventmaintenance
-    if not zeneventmaintenance:
-        zeneventmaintenance = MaintenanceThread()
-        zeneventmaintenance.start()
+#    global zeneventpopulator
+#    if not zeneventpopulator:
+#        zeneventpopulator = EventPopulator()
+#        zeneventpopulator.start()
+#    global zeneventmaintenance
+#    if not zeneventmaintenance:
+#        zeneventmaintenance = MaintenanceThread()
+#        zeneventmaintenance.start()

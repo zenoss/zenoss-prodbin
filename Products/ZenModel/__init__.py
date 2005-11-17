@@ -26,7 +26,6 @@ import os
 
 from AccessControl import ModuleSecurityInfo
 
-import Products.CMFCore
 from Products.CMFCore.permissions import AddPortalContent
 from Products.CMFCore.DirectoryView import registerDirectory
 
@@ -86,20 +85,6 @@ def loadConfmonModules():
         confmonModules.append(mod)
 
 
-def getFactoryTypeInformation():
-    # make list of factory type info
-    if not confmonModules: loadConfmonModules()
-    factory_type_information = []
-    for module in confmonModules:
-        name = module.__name__.split('.')[-1]
-        confclass = getattr(module, name, None)
-        if confclass:
-            if confclass.__dict__.has_key("factory_type_information"):
-                fti = getattr(confclass, "factory_type_information")
-                factory_type_information.extend(fti)
-    return factory_type_information
-
-
 def initialize(registrar):
     from zLOG import LOG, DEBUG
     contentClasses = ()
@@ -134,13 +119,3 @@ def initialize(registrar):
         LOG("ZenModel__init__", DEBUG, "Register Class=%s" % className)
         LOG("ZenModel__init__", DEBUG, "kwargs=%s" % constructors)
         apply(registrar.registerClass, args, kwargs)
-
-    fti = getFactoryTypeInformation()
-    # initialize factory type info with CMF
-    Products.CMFCore.utils.ContentInit(
-                'ZenModel', 
-                content_types = contentClasses,
-                permission = AddPortalContent,
-                extra_constructors=contentConstructors,
-                fti = fti,
-                ).initialize(registrar)

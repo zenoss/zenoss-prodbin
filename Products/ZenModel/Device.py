@@ -710,14 +710,18 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
     ####################################################################
 
     security.declareProtected('Change Device', 'collectConfig')
-    def collectConfig(self, REQUEST=None):
+    def collectConfig(self, wrap=True, REQUEST=None):
         """collect the configuration of this device"""
         from Products.SnmpCollector.SnmpCollector import SnmpCollector
         sc = SnmpCollector(noopts=1,app=self.getPhysicalRoot())
         sc.options.force = True
         if REQUEST:
             response = REQUEST.RESPONSE
-            sc.setLoggingStream(response)
+            if wrap:
+                dlh = self.deviceLoggingHeader()
+                idx = dlh.rindex("</table>")
+                response.write(dlh[:idx])
+            sc.setWebLoggingStream(response)
         try:
             sc.collectDevice(self)
         except:
@@ -726,6 +730,9 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
         else:
             logging.info('collected snmp information for device %s'
                             % self.getId())
+        if REQUEST:
+            if wrap: response.write(self.deviceLoggingFooter())
+            sc.clearWebLoggingStream()
 
 
 

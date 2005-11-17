@@ -16,6 +16,8 @@ __version__ = "$Revision: 1.43 $"[11:-2]
 import os
 import sys
 import time
+import types
+import logging
 
 import Globals
 import transaction
@@ -23,16 +25,23 @@ import transaction
 from DateTime import DateTime
 from Acquisition import aq_base
 
-from Products.ZenModel.Exceptions import *
 
 from Products.ZenRelations.utils import importClass
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Exceptions import ZentinelException
+from Products.ZenModel.Exceptions import *
 
 from SnmpSession import SnmpSession, ZenSnmpError
 from pysnmp.error import PySnmpError
 
+class SnmpCollectorError(ZentinelException):
+    """
+    Problem occurred during collection.
+    """
+    
 zenmarker = "__ZENMARKER__"
+
+slog = logging.getLogger("SnmpCollector")
 
 def findSnmpCommunity(context, name, community=None, port=None):
     """look for snmp community based on list we get through aq"""
@@ -58,6 +67,7 @@ class SnmpCollector(ZCmdBase):
 
     def __init__(self, noopts=0,app=None):
         ZCmdBase.__init__(self,noopts,app)
+        self.cycletime = self.options.cycletime*60
         self._customMaps = []
         import CustomMaps
         CustomMaps.initCustomMaps(self)
@@ -65,15 +75,22 @@ class SnmpCollector(ZCmdBase):
 
     def collectDevices(self, deviceRoot):
         """collect snmp data and set it in objects based on roots""" 
+        if type(deviceRoot) == types.StringType:
+            deviceRoot = self.dmd.Devices.getOrganizer(deviceRoot)
         for device in deviceRoot.getSubDevicesGen():
             self.collectDevice(device)
 
                     
     def collectDevice(self, device):
-        self.log.info('Collecting device %s' % device.id)
+        if type(device) == types.StringType:
+            device = self.dmd.Devices.findDevice(self.options.device)
+            if not device: 
+                raise SnmpCollectorError(
+                    "Device %s not found" % self.options.device)
+        slog.info('Collecting device %s' % device.id)
         age = device.getSnmpLastCollection()+(self.options.collectAge/1440.0)
         if device.getSnmpStatusNumber() > 0 and age >= DateTime():
-            self.log.info("skipped collection of %s" % device.getId())
+            slog.info("skipped collection of %s" % device.getId())
             return
         try:
             snmpsess = SnmpSession(device.id, 
@@ -90,13 +107,15 @@ class SnmpCollector(ZCmdBase):
                     trans.note("Automated data collection by SnmpCollector.py")
                     trans.commit()
                 else:
-                    self.log.info(
+                    slog.info(
                         "skipping device %s no change detected", device.id)
             else:
-                self.log.warn("no valid snmp connection to %s", device.id)
+                slog.warn("no valid snmp connection to %s", device.id)
         except (SystemExit, KeyboardInterrupt): raise
         except:
-            self.log.exception('Error collecting data from %s', device.id)
+            slog.exception('Error collecting data from %s', device.id)
+        else:
+            slog.info('Collection complete')
 
 
     def testSnmpConnection(self, snmpsess):
@@ -113,10 +132,10 @@ class SnmpCollector(ZCmdBase):
         changed = True
         if not device.snmpOid.startswith(".1.3.6.1.4.1.9"): return changed
         lastpolluptime = device.getLastPollSnmpUpTime()
-        self.log.debug("lastpolluptime = %s", lastpolluptime)
+        slog.debug("lastpolluptime = %s", lastpolluptime)
         try:
             lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
-            self.log.debug("lastchange = %s", lastchange)
+            slog.debug("lastchange = %s", lastchange)
             if lastchange == lastpolluptime: 
                 changed = False
             else:
@@ -136,13 +155,13 @@ class SnmpCollector(ZCmdBase):
         changed = False
         for custmap in self._customMaps:
             if self._passCustMap(device, custmap): continue
-            if custmap.condition(device, snmpsess, self.log):
+            if custmap.condition(device, snmpsess, slog):
                 datamap = None
                 try:
-                    datamap = custmap.collect(device, snmpsess, self.log)
+                    datamap = custmap.collect(device, snmpsess, slog)
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
-                    self.log.exception("problem collecting snmp")
+                    slog.exception("problem collecting snmp")
                 if not datamap: continue
                 try:
                     if hasattr(custmap, 'relationshipName'):
@@ -153,7 +172,7 @@ class SnmpCollector(ZCmdBase):
                             changed = True
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
-                    self.log.exception("ERROR: implementing datamap %s",datamap)
+                    slog.exception("ERROR: implementing datamap %s",datamap)
         return changed               
 
 
@@ -183,13 +202,13 @@ class SnmpCollector(ZCmdBase):
         changed = False
         rel = getattr(device, snmpmap.relationshipName, None)
         if not rel:
-            self.log.warn("No relationship %s found on %s" % 
+            slog.warn("No relationship %s found on %s" % 
                                 (snmpmap.relationshipName, device.id))
             return changed 
         relids = rel.objectIdsAll()
         for datamap in datamaps:
             if not datamap.has_key('id'):
-                self.log.warn("ignoring datamap no id found")
+                slog.warn("ignoring datamap no id found")
                 continue
             if datamap['id'] in relids:
                 if self._updateObject(rel._getOb(datamap['id']), datamap):
@@ -201,7 +220,7 @@ class SnmpCollector(ZCmdBase):
         for id in relids:
             rel._delObject(id)
             changed = True
-            self.log.info("Removing object %s from relation %s on obj %s",
+            slog.info("Removing object %s from relation %s on obj %s",
                             id, rel.id, device.id)
         return changed
 
@@ -212,7 +231,7 @@ class SnmpCollector(ZCmdBase):
             if attname.startswith("_"): continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
-                self.log.warn('attribute %s not found on object %s', 
+                slog.warn('attribute %s not found on object %s', 
                               attname, obj.id)
                 continue
             if callable(att): 
@@ -220,12 +239,12 @@ class SnmpCollector(ZCmdBase):
                 getter = getattr(obj, attname.replace("set","get"), "")
                 if getter and value != getter():
                     setter(value)
-                    self.log.debug(
+                    slog.debug(
                         "   Calling function '%s' with '%s'on object %s", 
                         attname, value, obj.id)
             elif att != value:
                 setattr(aq_base(obj), attname, value) 
-                self.log.debug("   Set attribute %s to %s on object %s",
+                slog.debug("   Set attribute %s to %s on object %s",
                                attname, value, obj.id)
         try: changed = obj._p_changed
         except: changed = False
@@ -258,7 +277,7 @@ class SnmpCollector(ZCmdBase):
                  % (snmpmap.relationshipName, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         self._updateObject(remoteObj, datamap)
-        self.log.info("   Added object %s to relationship %s" 
+        slog.info("   Added object %s to relationship %s" 
             % (remoteObj.id, snmpmap.relationshipName))
    
 
@@ -270,24 +289,25 @@ class SnmpCollector(ZCmdBase):
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
 
-        self.parser.add_option('-i', '--ignore',
+        self.parser.add_option('--ignore',
                 dest='ignoreMaps',
                 default=None,
                 help="Comma separated list of collection maps to ignore")
-        self.parser.add_option('-c', '--collect',
+        self.parser.add_option('--collect',
                 dest='collectMaps',
                 default=None,
                 help="Comma separated list of collection maps to use")
         self.parser.add_option('-p', '--path',
-                dest='path',
+                dest='path', default="/",
                 help="start path for collection ie /Servers")
         self.parser.add_option('-d', '--device',
                 dest='device',
                 help="Device fqdn ie www.zentinel.com")
-        self.parser.add_option('-a', '--collectAge',
-                dest='collectAge',
-                default=0,
-                type='int',
+        self.parser.add_option('--cycletime',
+                dest='cycletime',default=60,type='int',
+                help="run collection every x minutes")
+        self.parser.add_option('--collectage',
+                dest='collectAge',default=0,type='int',
                 help="don't collect from devices whos collect date "
                         "is with in this many minutes")
         self.parser.add_option('--writetries',
@@ -301,10 +321,7 @@ class SnmpCollector(ZCmdBase):
                     help="force collection of config data " 
                          "(even without change to the device)")
     
-
-   
-    def mainCollector(self):
-        #FIXME this should use args but it isn't getting setup correctly!!! -EAD
+    def checkoptions(self):
         if (not self.options.path and 
             not self.options.device):
            print "no device or path specified must have one!"
@@ -317,25 +334,37 @@ class SnmpCollector(ZCmdBase):
         if self.options.collectMaps:
             self.options.collectMaps = self.options.collectMaps.split(',')
 
-        if self.options.device:
-            device = self.dmd.getDmdRoot("Devices").findDevice(
-                                                    self.options.device)
-            if not device:
-                print "unable to locate device %s" % self.options.device
-                sys.exit(1)
-            self.collectDevice(device)
-        elif self.options.path:
+  
+    def main(self):
+        self.checkoptions()
+        try:
+            if self.options.device:
+                return self.collectDevice(self.options.device)
+            if not self.options.cycle:
+                return self.collectDevices(self.options.path)
+        except SnmpCollectorError, e:
+            slog.critical(e)
+            raise SystemExit
+        while 1:
+            startLoop = time.time()
+            runTime = 0
             try:
-                droot = self.dmd.getDmdRoot("Devices").getOrganizer(
-                                                        self.options.path)
-            except KeyError:
-                print "unable to find path %s" % self.options.path
-                sys.exit(1)
-            while 1:
-                self.collectDevices(droot)
-                time.sleep(self.options.cycle)
+                self.getDataRoot()
+                slog.debug("starting collector loop")
+                self.collectDevices(self.options.path)
+                runTime = time.time()-startLoop
+                slog.debug("ending collector loop")
+                slog.info("loop time = %0.2f seconds",runTime)
+            except SnmpCollectorError, e:
+                slog.critical(e)
+            except:
+                slog.exception("problem in main loop")
+            self.closedb()
+            if runTime < self.cycletime:
+                time.sleep(self.cycletime - runTime)
 
+                    
 
 if __name__ == '__main__':
     snmpcoll = SnmpCollector()
-    snmpcoll.mainCollector()
+    snmpcoll.main()

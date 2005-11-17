@@ -6,9 +6,7 @@
 
 __doc__="""ZenDaemon
 
-Add data base access functions for command line programs
-
-$Id: ZZenDaemon.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
+$Id: ZC.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
@@ -17,7 +15,7 @@ from Utils import getObjByPath
 
 class DataRootError(Exception):pass
 
-class ZZenDaemon(ZenDaemon):
+class ZCmdBase(ZenDaemon):
 
 
     def __init__(self, noopts=0, app=None):
@@ -74,9 +72,12 @@ class ZZenDaemon(ZenDaemon):
 
     def closedb(self):
         self.connection.close()
+        self.app = None
+        self.dataroot = None
+        self.dmd = None
 
 
-    def getDataRoot(self, app):
+    def getDataRoot(self, app=None):
         if not self.app: self.opendb()
         if not self.dataroot:
             self.dataroot = self.app.unrestrictedTraverse(self.options.dataroot)
