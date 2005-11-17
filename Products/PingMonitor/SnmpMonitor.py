@@ -27,17 +27,17 @@ from random import randrange
 
 import Globals
 
-from Products.ZenUtils.ConfDaemon import ConfDaemon
+from Products.ZenUtils.StatusMonitor import StatusMonitor
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 
-class SnmpMonitor(ConfDaemon):
+class SnmpMonitor(StatusMonitor):
     
     ncoClass = 100
     ncoAgent = "SnmpMonitor"
     ncoAlertGroup = "SnmpTest"
 
     def __init__(self):
-        ConfDaemon.__init__(self)
+        StatusMonitor.__init__(self)
         self.pingconfsrv = self.options.zopeurl
         self.username = self.options.zopeusername
         self.password = self.options.zopepassword
@@ -322,7 +322,7 @@ class SnmpMonitor(ConfDaemon):
 
 
     def buildOptions(self):
-        ConfDaemon.buildOptions(self)
+        StatusMonitor.buildOptions(self)
         self.parser.add_option("-z", "--zopeurl", action="store", 
                 type="string", dest="zopeurl",
                 help="XMLRPC url path for zope configuration server ")

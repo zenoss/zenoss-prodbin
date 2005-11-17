@@ -31,17 +31,17 @@ import logging
 
 import Globals # make zope imports work
 
-from Products.ZenUtils.ConfDaemon import ConfDaemon
+from Products.ZenUtils.StatusMonitor import StatusMonitor
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 
-class PingMonitor(ConfDaemon):
+class PingMonitor(StatusMonitor):
 
     ncoClass = 100
     ncoAgent = "PingMonitor"
     ncoAlertGroup = "Ping"
 
     def __init__(self):
-        ConfDaemon.__init__(self)
+        StatusMonitor.__init__(self)
         self.pingconfsrv = self.options.zopeurl
         self.username = self.options.zopeusername
         self.password = self.options.zopepassword
@@ -376,7 +376,7 @@ class PingMonitor(ConfDaemon):
 
 
     def buildOptions(self):
-        ConfDaemon.buildOptions(self)
+        StatusMonitor.buildOptions(self)
         self.parser.add_option("-z", "--zopeurl", action="store", 
                 type="string", dest="zopeurl",
                 help="XMLRPC url path for zope configuration server ")

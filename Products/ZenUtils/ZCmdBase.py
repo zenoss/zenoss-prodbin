@@ -4,24 +4,24 @@
 #
 #################################################################
 
-__doc__="""CmdBase
+__doc__="""ZenDaemon
 
 Add data base access functions for command line programs
 
-$Id: ZCmdBase.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
+$Id: ZZenDaemon.py,v 1.9 2004/02/16 17:19:31 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
-from CmdBase import CmdBase
+from ZenDaemon import ZenDaemon
 from Utils import getObjByPath
 
 class DataRootError(Exception):pass
 
-class ZCmdBase(CmdBase):
+class ZZenDaemon(ZenDaemon):
 
 
     def __init__(self, noopts=0, app=None):
-        CmdBase.__init__(self, noopts)
+        ZenDaemon.__init__(self, noopts)
         self.dataroot = None
         self.app = app
         self.getDataRoot(app)
@@ -29,7 +29,7 @@ class ZCmdBase(CmdBase):
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
-        CmdBase.buildOptions(self)
+        ZenDaemon.buildOptions(self)
         self.parser.add_option('--host',
                     dest="host",default="localhost",
                     help="hostname of zeo server")
