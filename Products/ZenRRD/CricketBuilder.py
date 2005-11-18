@@ -144,7 +144,6 @@ class CricketBuilder(ZenDaemon):
                 self.log.info("build time = %0.2f seconds",runTime)
             except:
                 self.log.exception("problem in main loop")
-            self.closedb()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
 
