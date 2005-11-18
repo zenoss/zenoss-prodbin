@@ -12,13 +12,13 @@ SYBASE=$ZENHOME/sybase
 export SYBASE
 
 PYTHON=$ZENHOME/bin/python
-PYTHONPATH=$ZENHOME/lib/python:$ZENHOME/Products
+PYTHONPATH=$ZENHOME/lib/python:$ZENHOME
 export PYTHONPATH
 
 VARDIR=$ZENHOME/var
 CFGDIR=$ZENHOME/etc
 
-ZOPE_CLIENT=$ZENHOME/bin/snarf
+ARGS=`echo "$*" | sed 's/run //'`
 
 ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations PingMonitor SnmpCollector ZenRRD DataCollector ZenWidgets ZenEvents"
 
@@ -31,11 +31,11 @@ fi
 
 start() {
     exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-        --cycle --logconfig $LOGFILE --daemon
+        --cycle --logconfig $LOGFILE --daemon $ARGS
 }
 
 run() {
-    exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $* 
+    exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
 }
 
 stop() {

@@ -14,7 +14,7 @@ start() {
 }
 
 run() {
-    exec $PYTHON $PRGHOME/$PRGNAME $* 
+    exec $PYTHON $PRGHOME/$PRGNAME $ARGS
 }
 
 

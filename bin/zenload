@@ -1,0 +1,3 @@
+#!/bin/sh
+. $ZENHOME/bin/zenfunctions 
+$PYTHON $ZENHOME/Products/ZenModel/ZenDeviceLoad.py $*
