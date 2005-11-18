@@ -299,7 +299,7 @@ class StatusMonitorConf(Monitor, StatusColor):
 
 
     def getPingHeartbeatString(self):
-        return self.pingHeartbeatetString()
+        return self.pingHeartbeat.getString()
 
 
     def getSnmpHeartbeat(self):
