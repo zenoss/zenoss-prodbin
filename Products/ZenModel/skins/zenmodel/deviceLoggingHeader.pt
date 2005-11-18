@@ -1,0 +1,11 @@
+<span tal:replace="structure here/standard_html_header"/>
+  <span metal:use-macro="here/top/macros/header" />
+  <br>
+  <table class="zentable" cellpadding="3" cellspacing="1">
+    <tr><th class="tabletitle" colspan="4">Collection Log</th></tr>
+    <tr>
+        <th class="tableheader">Time</th>
+        <th class="tableheader">Level</th>
+        <th class="tableheader">Module</th>
+        <th class="tableheader">Message</th>
+    </tr>

@@ -197,7 +197,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         fmt = Formatter("""<tr class="tablevalues">
         <td>%(asctime)s</td><td>%(levelname)s</td>
         <td>%(name)s</td><td>%(message)s</td></tr>
-        """)
+        """, "%Y-%m-%d %H:%M:%S")
         self._v_handler.setFormatter(fmt)
         root.addHandler(self._v_handler)
         root.setLevel(10)

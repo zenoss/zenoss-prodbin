@@ -62,7 +62,7 @@ class CmdBase:
         fmt = Formatter("""<tr class="tablevalues">
         <td>%(asctime)s</td><td>%(levelname)s</td>
         <td>%(name)s</td><td>%(message)s</td></tr>
-        """)
+        ""","%Y-%m-%d %H:%M:%S")
         self.handler.setFormatter(fmt)
         self.log.addHandler(self.handler)
         self.log.setLevel(self.options.logseverity)
