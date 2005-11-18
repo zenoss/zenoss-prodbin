@@ -117,7 +117,8 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         self.priority = pri
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
-
+        
+        logging.info("start")
         self.ev = SendEvent("syslog", self.options.zopeusername, 
                             self.options.zopepassword, self.options.zopeurl)
         self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
@@ -136,7 +137,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         # event comes through a gateway from a client that is not
         # syslog-compatible (Windows NT comes to mind :-).
 
-        print msg
+        logging.debug(msg) 
 
         # extract original event time, if present
         if msg[:2] == '[[':
@@ -204,7 +205,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
 
         # stop the server if the magic stop string appears in the message
         if msg.find(self.stop_magic) >= 0:
-            print 'stopped.'
+            logging.info('stopped.')
             self.stop()
     
     

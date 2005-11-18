@@ -13,55 +13,58 @@ $Id: CricketBuilder.py,v 1.6 2004/04/07 00:02:44 edahl Exp $"""
 __version__ = "$Revision: 1.6 $"[11:-2]
 
 import time
-import os.path
+import os
 import xmlrpclib
 import pprint
 
 import Globals
 
-from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
 
 from utils import RRDException
 
 class TargetDataError(RRDException):pass
 
-class CricketBuilder(CmdBase):
+class CricketBuilder(ZenDaemon):
 
     def __init__(self):
-        CmdBase.__init__(self)
+        ZenDaemon.__init__(self)
         self.curtargetpath = ''
         self.curtarget = ''
-
+        self.cycletime = self.options.cycletime*60
+        crkhome = os.path.join(os.environ['ZENHOME'], "cricket")
+        self.crkcfg = os.path.join(crkhome, "cricket-config")
+        self.crkcompile = os.path.join(crkhome, "bin", "compile")
 
 
     def buildOptions(self):
-
-        CmdBase.buildOptions(self)
-
+        ZenDaemon.buildOptions(self)
         self.parser.add_option("-z", "--zopeurl",
                     dest="zopeurl",
                     help="XMLRPC url path for cricket configuration server ")
-
         self.parser.add_option("-u", "--zopeusername",
                     dest="zopeusername",
                     help="username for zope server")
-
         self.parser.add_option("-p", "--zopepassword",
                     dest="zopepassword")
-   
         self.parser.add_option("-d", "--devicename",
                     dest="devicename")
-
         self.parser.add_option("-F", "--force",
                     dest="force", action='store_true',
                     help="force generation of cricket data " 
                          "(even without change to the device)")
-    
-        self.parser.add_option("-D", "--debug",
+        self.parser.add_option("--debug",
                     dest="debug", action='store_true')
-    
+        self.parser.add_option("--cycletime",
+                    dest="cycletime", type='int', default=60)
+   
+
     def build(self):
+        if not os.path.exists(self.crkcfg):
+            self.log.critical("directory: %s not found", self.crkcfg)
+            raise SystemExit
+        os.chdir(self.crkcfg)
         url = basicAuthUrl(self.options.zopeusername, 
                             self.options.zopepassword,
                             self.options.zopeurl)
@@ -74,6 +77,7 @@ class CricketBuilder(CmdBase):
             pprint.pprint(cricketDevices)
         for devurl in cricketDevices:
             self.buildDevice(devurl)
+        os.system(self.crkcompile)
 
 
     def buildDevice(self, devurl):        
@@ -124,8 +128,30 @@ class CricketBuilder(CmdBase):
             if value.find(' ') > -1: value = '"%s"' % value
             tfile.write("\t%s = %s\n" % (attrib, value))
         tfile.write('\n')
-   
+ 
+
+    def main(self):
+        if not self.options.cycle:
+            return self.build()
+        while 1:
+            startLoop = time.time()
+            runTime = 0
+            try:
+                slog.debug("starting build loop")
+                self.build()
+                runTime = time.time()-startLoop
+                slog.debug("ending build loop")
+                slog.info("build time = %0.2f seconds",runTime)
+            except SnmpCollectorError, e:
+                slog.critical(e)
+            except:
+                slog.exception("problem in main loop")
+            self.closedb()
+            if runTime < self.cycletime:
+                time.sleep(self.cycletime - runTime)
+
+        
 
 if __name__ == '__main__':
     cb = CricketBuilder()
-    cb.build()
+    cb.main()
