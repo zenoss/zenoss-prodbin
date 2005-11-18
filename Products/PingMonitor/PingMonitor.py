@@ -36,7 +36,7 @@ from StatusMonitor import StatusMonitor
 
 class PingMonitor(StatusMonitor):
 
-    ncoClass = 100
+    ncoClass = "PingStatus"
     ncoAgent = "PingMonitor"
     ncoAlertGroup = "Ping"
 
@@ -349,14 +349,14 @@ class PingMonitor(StatusMonitor):
         event['Class'] = self.ncoClass
         event['Agent'] = self.ncoAgent
         event['Severity'] = pingJob.severity
-        event['Type'] = pingJob.type
+        #event['Type'] = pingJob.type
         event['AlertGroup'] = self.ncoAlertGroup
-        event['NodeAlias'] = pingJob.address
-        event['ManagingHost'] = os.uname()[1]
+        event['IpAddress'] = pingJob.address
+        event['Manager'] = os.uname()[1]
         event['OwnerUID'] = 65534
         event['OwnerGID'] = 0
-        if nosev:
-            event['Identifier'] = pingJob.hostname + "|Ping"
+#        if nosev:
+#            event['Identifier'] = pingJob.hostname + "|Ping"
 
         try:
             server.sendEvent(event)

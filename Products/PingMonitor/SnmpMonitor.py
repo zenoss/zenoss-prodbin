@@ -30,7 +30,7 @@ from StatusMonitor import StatusMonitor
 
 class SnmpMonitor(StatusMonitor):
     
-    ncoClass = 100
+    ncoClass = "SnmpStatus"
     ncoAgent = "SnmpMonitor"
     ncoAlertGroup = "SnmpTest"
 
@@ -298,10 +298,10 @@ class SnmpMonitor(StatusMonitor):
         event['Class'] = self.ncoClass
         event['Agent'] = self.ncoAgent
         event['Severity'] = statusTest.severity
-        event['Type'] = statusTest.type
+        #event['Type'] = statusTest.type
         event['AlertGroup'] = self.ncoAlertGroup
-        event['NodeAlias'] = statusTest.address
-        event['ManagingHost'] = os.uname()[1]
+        event['IpAddress'] = statusTest.address
+        event['Manager'] = os.uname()[1]
         event['OwnerUID'] = 65534
         event['OwnerGID'] = 0
         self.ncoeventqueue.append(event)
