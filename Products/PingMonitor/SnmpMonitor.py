@@ -19,16 +19,14 @@ import sys
 import xmlrpclib
 import logging
 import asyncore
-#from pysnmp import asn1, v1
-#from pysnmp import asynrole
 import pysnmp
 from pysnmp.compat.pysnmp2x import asn1, v1, v2c, asynrole
 from random import randrange
 
 import Globals
 
-from Products.ZenUtils.StatusMonitor import StatusMonitor
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
+from StatusMonitor import StatusMonitor
 
 class SnmpMonitor(StatusMonitor):
     

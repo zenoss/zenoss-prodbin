@@ -18,7 +18,7 @@ import sys
 import socket
 import time
 
-from ZenDaemon import ZenDaemon
+from Products.ZenUtils.ZenDaemon import ZenDaemon
 
 class StatusMonitor(ZenDaemon):
     

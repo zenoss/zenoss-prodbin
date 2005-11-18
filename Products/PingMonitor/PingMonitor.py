@@ -31,8 +31,8 @@ import logging
 
 import Globals # make zope imports work
 
-from Products.ZenUtils.StatusMonitor import StatusMonitor
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
+from StatusMonitor import StatusMonitor
 
 class PingMonitor(StatusMonitor):
 
