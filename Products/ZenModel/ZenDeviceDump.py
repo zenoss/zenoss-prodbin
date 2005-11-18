@@ -22,7 +22,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 class ZenDeviceDump(ZCmdBase):
     """
     Dumps Device objects one per line in the following format:
-    fqdn::prodState:pingStatus:snmpStatus:sys1|sys2:grp1|grp2:manufacturer:model:location:cricket
+    fqdn::prodState:sys1|sys2:grp1|grp2:manufacturer:model:location:cricket
     """
 
     def __init__(self):
@@ -56,15 +56,11 @@ class ZenDeviceDump(ZCmdBase):
             systems = "|".join(device.getSystemNames())
             groups = "|".join(device.getDeviceGroupNames())
             cricket = device.getCricketServerName()
-            pingstatus = str(device.getPingStatusNumber())
-            snmpstatus = str(device.getSnmpStatusNumber())
             productionState = str(device.productionState)
             self.outfile.write(":".join((
                                 fqdn,
                                 deviceClass, 
                                 productionState,
-                                pingstatus,
-                                snmpstatus,
                                 systems,
                                 groups,
                                 manuf,

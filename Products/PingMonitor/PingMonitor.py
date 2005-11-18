@@ -176,13 +176,9 @@ class PingMonitor(StatusMonitor):
         try:
             hostname = pingJob.hostname
             self.log.debug("processing PingJob for %s" % hostname)
-            server = None
-            url = basicAuthUrl(self.username, self.password, pingJob.url)
-            server = xmlrpclib.Server(url)
             # device has never been pinged
             if pingJob.pingStatus < 0:
                 self.log.debug("reset ping status on %s" % hostname)
-                server.resetPingStatus()
                 pingJob.pingStatus = 0
 
             # ping attempt failed
@@ -190,7 +186,6 @@ class PingMonitor(StatusMonitor):
                 if (pingJob.url 
                     and not self._checkManageInt(hostname)):
                     self.log.debug("incr ping status on %s" % hostname)
-                    server.incrPingStatus()
     
                 if (self.ncoserver 
                     and pingJob.pingStatus >= self.cycleFailWarn
@@ -211,9 +206,6 @@ class PingMonitor(StatusMonitor):
             else:
                 # device was down but is back up
                 if pingJob.pingStatus > 0:
-                    if pingJob.url:
-                        server.resetPingStatus()
-
                     if (self.ncoserver
                         and (pingJob.pingStatus >= self.cycleFailWarn
                         or pingJob.pingStatus >= self.cycleFailCritical)):
@@ -225,7 +217,6 @@ class PingMonitor(StatusMonitor):
                         pingJob.pingStatus = 0
                     self.log.info(pingJob.message)
                 self.log.debug(pingJob.message)
-            del server
         except SystemExit: raise
         except:
             self.log.exception(

@@ -24,14 +24,12 @@ from Products.ZenModel.Exceptions import DeviceExistsError
 DEVICE_NAME=0
 DEVICE_CLASS=1
 PRODUCTION_STATE=2
-PING_STATUS=3
-SNMP_STATUS=4
-SYSTEM_PATH=5
-GROUP_PATH=6
-MANUFACTURER=7
-MODEL=8
-LOCATION_PATH=9
-CRICKET_MONITOR=10
+SYSTEM_PATH=3
+GROUP_PATH=4
+MANUFACTURER=5
+MODEL=6
+LOCATION_PATH=7
+CRICKET_MONITOR=8
 
 
 class ZenDeviceLoad(BasicLoader):
@@ -41,13 +39,9 @@ class ZenDeviceLoad(BasicLoader):
 
     def loaderBody(self, line):
         line = line.split(":")
-        if len(line) == 10: 
-            deviceClass, deviceName = os.path.split(line[DEVICE_NAME])
-            line.insert(1,deviceClass)
-        else:
-            deviceName = line[DEVICE_NAME]
-        if len(line) != 11: 
+        if len(line) != 9: 
             raise ValueError("Wrong number of values in line")
+        deviceName = line[DEVICE_NAME]
         try:
             dev = manage_createDevice(self.dmd, deviceName,
                                     line[DEVICE_CLASS],
@@ -59,11 +53,9 @@ class ZenDeviceLoad(BasicLoader):
                                     locationPath=line[LOCATION_PATH],
                                     cricketMonitor=line[CRICKET_MONITOR],
                                     )
-            dev.setPingStatus(int(line[PING_STATUS]))
-            dev.setSnmpStatus(int(line[SNMP_STATUS]))
             self.log.info("loaded device %s" % deviceName)
-        except DeviceExistsError:
-            self.log.warn("device %s already exists" % deviceName)
+        except DeviceExistsError, e:
+            self.log.info(e)
 
 
 if __name__ == '__main__':

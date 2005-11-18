@@ -282,56 +282,44 @@ class StatusMonitorConf(Monitor, StatusColor):
     security.declareProtected('View','updateSnmpDevices')
     def updateSnmpDevices(self, devices):
         '''process the snmp status information form the snmpmonitor'''
-        for url, uptime, snmpStatus in devices:
+        for url, uptime in devices:
             try:
                 path = url.split('/')[3:]
                 device = self.getZopeObj(path)
-                if device:
-                    if uptime: device.setSnmpUpTime(long(uptime))
-                    if snmpStatus == 0 and device.getSnmpStatusNumber() != 0: 
-                        device.resetSnmpStatus()
-                    elif snmpStatus > 0: device.incrSnmpStatus()
+                if device and uptime:
+                    device.setSnmpUpTime(long(uptime))
             except:
-                msg = "exception updating device %s\n" % dev.getId()
+                msg = "error updating device %s\n" % dev.getId()
                 logging.exception(msg)
                     
   
     def getPingHeartbeat(self):
         """return ping heartbeat object"""
-        if not self.pingHeartbeat:
-            self.pingHeartbeat = ZenDate("1968/8/1")
         return self.pingHeartbeat
 
 
     def getPingHeartbeatString(self):
-        return self.getPingHeartbeat().getString()
+        return self.pingHeartbeatetString()
 
 
     def getSnmpHeartbeat(self):
         """return snmp heartbeat object"""
-        if not self.snmpHeartbeat:
-            self.snmpHeartbeat = ZenDate("1968/8/1")
         return self.snmpHeartbeat
 
 
     def getSnmpHeartbeatString(self):
-        return self.getSnmpHeartbeat().getString()
+        return self.snmpHeartbeat.getString()
 
 
     security.declareProtected('Manage Device Status', 'setPingHeartbeat')
     def setPingHeartbeat(self):
         """set the last time the ping monitor ran"""
-        if not self.pingHeartbeat:
-            self.pingHeartbeat = ZenDate()
         self.pingHeartbeat.setDate()
 
 
     security.declareProtected('Manage Device Status', 'setSnmpHeartbeat')
     def setSnmpHeartbeat(self):
         """set the last time the snmp monitor ran"""
-        if (not self.snmpHeartbeat or 
-            not isinstance(self.snmpHeartbeat, ZenDate)):
-            self.snmpHeartbeat = ZenDate()
         self.snmpHeartbeat.setDate()
 
     

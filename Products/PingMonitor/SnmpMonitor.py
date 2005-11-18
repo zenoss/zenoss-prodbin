@@ -203,8 +203,7 @@ class SnmpMonitor(StatusMonitor):
                         self.devices.append(device)
                     device.currentStatus = 0
                     self.log.debug('reset status for %s' % device.hostname)
-                    messages.append((device.url, str(device.uptime), 
-                                        device.currentStatus))
+                    messages.append((device.url, str(device.uptime)))
                     device.updateup = randrange(1,10)
                     if self.ncoserver:
                         device.message = ("snmp agent up on device %s" 
@@ -216,8 +215,7 @@ class SnmpMonitor(StatusMonitor):
                 if (device.updateup == 1):
                     device.updateup = randrange(1,10)
                     self.log.debug('will send uptime for %s' % device.hostname)
-                    messages.append((device.url, str(device.uptime), 
-                                        device.currentStatus))
+                    messages.append((device.url, str(device.uptime)))
                 else:
                     device.updateup -= 1
                 device.lastuptime = device.uptime
@@ -229,7 +227,7 @@ class SnmpMonitor(StatusMonitor):
                 self.log.debug(
                     'snmp failed set status for %s to %d' 
                     % (device.hostname, device.currentStatus)) 
-                messages.append((device.url, str(-1), device.currentStatus))
+                messages.append((device.url, str(-1)))
                 if self.ncoserver:
                     device.message = ("snmp agent down on device %s" 
                                                 % device.hostname)
