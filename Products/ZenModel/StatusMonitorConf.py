@@ -213,7 +213,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                     dev = dev.primaryAq()
                     devices.append(( 
                         dev.id, None, dev.absolute_url(),
-                        dev.getPingStatusNumber()))
+                        dev.getStatus("PingStatus")))
                     devices += self.getExtraPingInterfaces(dev)
             except:
                 msg = "exception getting device %s\n" % dev.getId()

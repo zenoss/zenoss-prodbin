@@ -112,7 +112,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
 
         UDPServer.__init__(self, (addr, port), None)
         ZenDaemon.__init__(self)
-
+        self.pidfile = "pidfile"
         self.hostmap = {}       # client address/name mapping
         self.priority = pri
         self.timefmt = timefmt or '%b %d %H:%M:%S'
