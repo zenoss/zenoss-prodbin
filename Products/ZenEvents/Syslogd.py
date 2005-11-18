@@ -197,8 +197,8 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         elif pri == 4: sev = 3
         elif 7 > pri < 4: sev = 2
         
-        identifier = "|".join((host, facility, str(sev), msg))
-        self.ev.sendEvent(host, facility, sev, msg, 
+        identifier = "|".join((host, "Syslog", facility, str(sev), msg))
+        self.ev.sendEvent(host, "Syslog", msg, sev, Component=facility, 
                             Identifier=identifier,IpAddress=client)
         
         sys.stdout.write(client + ' ' + host + ': ' + msg.strip() + '\n')
