@@ -4,7 +4,7 @@
 2000-06-12/bb:  added constants from syslog.h,
                 config options for time format, stop string
 """
-import sys, string, time, socket, re
+import sys, string, time, socket, re, logging
 
 import Globals
 
