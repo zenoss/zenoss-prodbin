@@ -30,8 +30,12 @@ if [ $SYS = "Darwin" ]; then
 fi
 
 start() {
-    $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+    exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
         --cycle --logconfig $LOGFILE --daemon
+}
+
+run() {
+    exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $* 
 }
 
 stop() {
@@ -60,14 +64,6 @@ status() {
     fi
 }
 
-webclient() {
-    ${ZOPE_CLIENT} ${ZOPE_ADDRESS}/${ZOPE_URL} - > /dev/null 2>&1
-}
-
 help() {
-    $PYTHON $PRGHOME/$PRGNAME -h
+    exec $PYTHON $PRGHOME/$PRGNAME -h
 }
-
-alias cdz="cd $ZENHOME"
-alias cdp="cd $ZENHOME/Products"
-alias zp=$PYTHON

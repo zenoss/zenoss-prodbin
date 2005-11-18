@@ -15,6 +15,9 @@ stop() {
 }
 
 case "$1" in
+  run)
+        run
+        ;;
   start)
         start
         ;;
@@ -31,8 +34,7 @@ case "$1" in
         help
         ;;
   *)
-        echo $"Usage: $0 {start|stop|restart|status|help}"
+        echo $"Usage: $0 {run|start|stop|restart|status|help}"
         exit 1
 esac
-
 exit $?

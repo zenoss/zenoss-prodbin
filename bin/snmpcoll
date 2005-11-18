@@ -10,10 +10,18 @@ LOGFILE=$CFGDIR/snmpcollectorlog.ini
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {
-    $PYTHON $PRGHOME/$PRGNAME --cycle --logconfig $LOGFILE --daemon 
+    exec $PYTHON $PRGHOME/$PRGNAME --cycle --logconfig $LOGFILE --daemon 
 }
 
+run() {
+    exec $PYTHON $PRGHOME/$PRGNAME $* 
+}
+
+
 case "$1" in
+  run)
+        run
+        ;;
   start)
         start
         ;;
@@ -30,8 +38,7 @@ case "$1" in
         help
         ;;
   *)
-        echo $"Usage: $0 {start|stop|restart|status|help}"
+        echo $"Usage: $0 {run|start|stop|restart|status|help}"
         exit 1
 esac
-
 exit $?
