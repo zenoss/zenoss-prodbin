@@ -4,7 +4,7 @@
 2000-06-12/bb:  added constants from syslog.h,
                 config options for time format, stop string
 """
-import sys, string, time, socket, re, logging
+import sys, string, time, socket, re
 
 import Globals
 
@@ -118,7 +118,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
         
-        logging.info("start")
+        self.log.info("start")
         self.ev = SendEvent("syslog", self.options.zopeusername, 
                             self.options.zopepassword, self.options.zopeurl)
         self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
@@ -137,7 +137,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         # event comes through a gateway from a client that is not
         # syslog-compatible (Windows NT comes to mind :-).
 
-        logging.debug(msg) 
+        self.log.debug(msg) 
 
         # extract original event time, if present
         if msg[:2] == '[[':
@@ -205,7 +205,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
 
         # stop the server if the magic stop string appears in the message
         if msg.find(self.stop_magic) >= 0:
-            logging.info('stopped.')
+            self.log.info('stopped.')
             self.stop()
     
     
