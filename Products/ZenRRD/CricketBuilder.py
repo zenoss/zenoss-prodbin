@@ -142,8 +142,6 @@ class CricketBuilder(ZenDaemon):
                 runTime = time.time()-startLoop
                 slog.debug("ending build loop")
                 slog.info("build time = %0.2f seconds",runTime)
-            except SnmpCollectorError, e:
-                slog.critical(e)
             except:
                 slog.exception("problem in main loop")
             self.closedb()
