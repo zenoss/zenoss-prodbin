@@ -212,6 +212,7 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
                         "syslog collector stopped", self.ev.Warning,
                         Component="syslog")
+        ZenDaemon.sigTerm(self, signum, frame)
         sys.exit(0)
 
     

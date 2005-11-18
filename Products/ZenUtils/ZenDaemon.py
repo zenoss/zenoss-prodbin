@@ -53,9 +53,9 @@ class ZenDaemon(CmdBase):
                     (e.errno, e.strerror))
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
         zenhome = os.path.join(os.environ['ZENHOME'], 'var')
-        pidfile = os.path.join(zenhome, myname)
+        self.pidfile = os.path.join(zenhome, myname)
         if os.path.exists(zenhome):
-            file = open(pidfile, 'w')
+            file = open(self.pidfile, 'w')
             file.write(str(os.getpid()))
             file.close()
         else:
@@ -64,6 +64,9 @@ class ZenDaemon(CmdBase):
 
 
     def sigTerm(self, signum, frame):
+        if os.path.exists(self.pidfile):
+            self.log.info("delete pidfile %s", self.pidfile)
+            os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
         sys.exit(0)
 

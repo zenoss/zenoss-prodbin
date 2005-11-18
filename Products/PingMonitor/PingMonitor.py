@@ -398,7 +398,7 @@ class PingMonitor(StatusMonitor):
         self.parser.add_option('-g', '--configcycle',
                 dest='configcycle', default=20,
                 help="number of minutes between config reads")
-        self.parser.add_option('-D', '--devicefile',
+        self.parser.add_option('--devicefile',
                 dest='devicefile', default="",
                 help="file with list of devices to ping")
 
