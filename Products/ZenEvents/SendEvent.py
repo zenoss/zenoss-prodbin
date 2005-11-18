@@ -3,13 +3,13 @@ import logging
 import socket
 import xmlrpclib
 
-import zenutils
+from Products.ZenUtils.Utils import  basicAuthUrl
 
 class SendEvent(object):
 
     def __init__(self, agent, username, password, url):
         self.agent = agent
-        self.url = zenutils.basicAuthUrl(username, password, url)
+        self.url = basicAuthUrl(username, password, url)
         self.server = xmlrpclib.Server(self.url)
         severities = self.server.getSeverities()
         for name, value in severities:

@@ -9,6 +9,7 @@ import sys, string, time, socket, re
 import Globals
 
 from Products.ZenEvents.SendEvent import SendEvent
+from Products.ZenUtils.ZenDaemon import  ZenDaemon
 
 from SocketServer import *
 
@@ -104,22 +105,24 @@ class InterruptibleServer:
 
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
-class Syslogd(ThreadingUDPServer, InterruptibleServer):
+class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
 
     def __init__(self, addr='', port=SYSLOG_PORT, pri=LOG_DEBUG, 
-            timefmt=None, magic=None, username="monitor", 
-            password="sine440", url="http://localhost:8080/zport/dmd/netcool"):
+            timefmt=None, magic=None):
 
         UDPServer.__init__(self, (addr, port), None)
+        ZenDaemon.__init__(self)
 
         self.hostmap = {}       # client address/name mapping
         self.priority = pri
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
 
-        self.ev = SendEvent("syslog", username, password, url)
-        self.ev.sendEvent(socket.getfqdn(), "syslog", self.ev.Info,
-                        "syslog collector started")
+        self.ev = SendEvent("syslog", self.options.zopeusername, 
+                            self.options.zopepassword, self.options.zopeurl)
+        self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
+                        "syslog collector started", self.ev.Info,
+                        Component="syslog")
 
 
     def finish_request(self, (msg, sock), client_address):
@@ -203,6 +206,28 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer):
         if msg.find(self.stop_magic) >= 0:
             print 'stopped.'
             self.stop()
+    
+    
+    def sigTerm(self, signum, frame):
+        self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
+                        "syslog collector stopped", self.ev.Warning,
+                        Component="syslog")
+        sys.exit(0)
+
+    
+    def buildOptions(self):
+        ZenDaemon.buildOptions(self)
+        self.parser.add_option('-u', '--zopeusername',
+                    dest='zopeusername', default="monitor",
+                    help="Zope username to send events")
+        self.parser.add_option('-p', '--zopepassword',
+                    dest='zopepassword', default="monitor",
+                    help="Zope password to send events")
+        self.parser.add_option('--zopeurl',
+                    dest='zopeurl', 
+                    default="http://localhost:8080/zport/dmd/ZenEventManager",
+                    help="Zope password to send events")
+
 
 if __name__ == '__main__':
     Syslogd(timefmt='%H:%M:%S').serve()
