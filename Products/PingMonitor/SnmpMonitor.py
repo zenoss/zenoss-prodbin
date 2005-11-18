@@ -208,7 +208,7 @@ class SnmpMonitor(StatusMonitor):
                     if self.ncoserver:
                         device.message = ("snmp agent up on device %s" 
                                                     % device.hostname)
-                        device.severity = 1
+                        device.severity = 0
                         device.type = 2
                         self.queueNcoEvent(device)
                 #update uptime of device
