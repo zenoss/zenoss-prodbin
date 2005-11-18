@@ -2,9 +2,10 @@
 
 . $ZENHOME/bin/zenfunctions
 
-PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=Syslogd.py
-CFGFILE=$CFGDIR/syslog.conf
+PRGHOME=$ZENHOME/Products/ZenRRD
+PRGNAME=CricketBuilder.py
+LOGFILE=$CFGDIR/crkbuildlog.ini
+CFGFILE=$CFGDIR/crkbuild.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in
