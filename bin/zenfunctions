@@ -22,6 +22,12 @@ ZOPE_CLIENT=$ZENHOME/bin/snarf
 
 ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations PingMonitor SnmpCollector ZenRRD DataCollector ZenWidgets ZenEvents"
 
+SYS=`uname`
+PS="ps -eo pid"
+
+if [ $SYS = "Darwin" ]; then
+    PS="ps -xo pid"
+fi
 
 start() {
     $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
@@ -29,7 +35,7 @@ start() {
 }
 
 stop() {
-    kill `cat $PIDFILE | cut -f1 -d' '`
+    kill `cat $PIDFILE`
 }
 
 restart() {
@@ -39,8 +45,9 @@ restart() {
 
 status() {
     if [ -f $PIDFILE ]; then
-        PID=`cat $PIDFILE | cut -f1 -d' '`
-        if [ -d /proc/$PID ]; then
+        PID=`cat $PIDFILE`
+        RPID=`$PS | grep $PID`
+        if [ ${RPID:-""} = $PID ]; then
             echo $PRGNAME \(pid $PID\) is running...
             exit 109
         else
