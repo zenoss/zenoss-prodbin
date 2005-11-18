@@ -18,16 +18,19 @@ export PYTHONPATH
 VARDIR=$ZENHOME/var
 CFGDIR=$ZENHOME/etc
 
-ARGS=`echo "$*" | sed 's/run //'`
-
 ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations PingMonitor SnmpCollector ZenRRD DataCollector ZenWidgets ZenEvents"
 
 SYS=`uname`
 PS="ps -eo pid"
+EXREG="-r"
 
 if [ $SYS = "Darwin" ]; then
     PS="ps -xo pid"
+    EXREG="-E"
 fi
+
+ARGS=`echo "$*" | sed ${EXREG} 's/(run|start)//'`
+
 
 start() {
     exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \

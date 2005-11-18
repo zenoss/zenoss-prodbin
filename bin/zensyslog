@@ -1,0 +1,38 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenEvents
+PRGNAME=Syslogd.py
+CFGFILE=$CFGDIR/syslog.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+start() {
+    exec $PYTHON $PRGHOME/$PRGNAME > $ZENHOME/log/syslogd.log 2>&1 \
+        --configfile $CFGFILE --daemon $ARGS
+}
+
+case "$1" in
+  run)
+        run
+        ;;
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        restart
+        ;;
+  status)
+        status
+        ;;
+  help)
+        help
+        ;;
+  *)
+        echo $"Usage: $0 {run|start|stop|restart|status|help}"
+        exit 1
+esac
+exit $?
