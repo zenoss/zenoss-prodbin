@@ -1,0 +1,49 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+ZOPECMDS="zeoctl zopectl" 
+ZENCMDS="zensnmp zensnmpcoll"
+ZENCMDSROOT="zenping zensyslog"
+
+FUNC=$1
+
+issue() {
+    for cmd in $ZOPECMDS
+    do
+        echo -n "Daemon: $cmd "
+        $ZENHOME/bin/$cmd "$FUNC"
+    done
+    for cmd in $ZENCMDS
+    do
+        echo -n "Daemon: " 
+        $ZENHOME/bin/$cmd "$FUNC"
+    done
+    for cmd in $ZENCMDSROOT
+    do
+        echo -n "Daemon: " 
+        if [ $FUNC = "status" ]; then
+            $ZENHOME/bin/$cmd "$FUNC"
+        else 
+            sudo $ZENHOME/bin/$cmd "$FUNC"
+        fi
+    done
+}
+
+case "$1" in
+  start)
+        issue
+        ;;
+  stop)
+        issue
+        ;;
+  restart)
+        issue
+        ;;
+  status)
+        issue
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+exit $?

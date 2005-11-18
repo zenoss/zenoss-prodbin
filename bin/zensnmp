@@ -10,10 +10,6 @@ CFGFILE=$CFGDIR/pingmon.conf
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-stop() {
-    kill -9 `cat $PIDFILE`
-}
-
 case "$1" in
   run)
         run

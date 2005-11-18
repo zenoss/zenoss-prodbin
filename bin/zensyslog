@@ -8,9 +8,15 @@ CFGFILE=$CFGDIR/syslog.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {
-    exec $PYTHON $PRGHOME/$PRGNAME > $ZENHOME/log/syslogd.log 2>&1 \
-        --configfile $CFGFILE --daemon $ARGS
+    if [ ! -f $PIDFILE ]; then    
+        echo $PRGNAME starting...
+        exec $PYTHON $PRGHOME/$PRGNAME > $ZENHOME/log/syslogd.log 2>&1 \
+            --configfile $CFGFILE --daemon $ARGS
+    else
+        echo $PRGNAME is already running
+    fi
 }
+
 
 case "$1" in
   run)

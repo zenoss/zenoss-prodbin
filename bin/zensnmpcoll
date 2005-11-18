@@ -2,6 +2,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
+
 PRGHOME=$ZENHOME/Products/SnmpCollector
 PRGNAME=SnmpCollector.py
 
@@ -10,7 +11,12 @@ LOGFILE=$CFGDIR/snmpcollectorlog.ini
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {
-    exec $PYTHON $PRGHOME/$PRGNAME --cycle --logconfig $LOGFILE --daemon 
+    if [ ! -f $PIDFILE ]; then    
+        echo $PRGNAME starting...
+        exec $PYTHON $PRGHOME/$PRGNAME --cycle --logconfig $LOGFILE --daemon 
+    else
+        echo $PRGNAME is already running
+    fi
 }
 
 run() {
