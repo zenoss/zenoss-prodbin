@@ -5,7 +5,7 @@
 PRGHOME=$ZENHOME/Products/PingMonitor
 PRGNAME=SnmpMonitor.py
 
-LOGFILE=$CFGDIR/pingmonlog.ini
+LOGFILE=$CFGDIR/snmpmonlog.ini
 CFGFILE=$CFGDIR/pingmon.conf
 
 PIDFILE=$VARDIR/$PRGNAME.pid
