@@ -4,7 +4,7 @@
 2000-06-12/bb:  added constants from syslog.h,
                 config options for time format, stop string
 """
-import sys, string, time, socket, re
+import sys, string, time, socket, re, os
 
 import Globals
 
@@ -89,36 +89,21 @@ conf_pat = re.compile(r'''
 class InterruptibleServer:
     "Mix-in class for {TCP,UDP}Server that allows to stop the service"
 
-    def serve(self):
-        "Run the service until it is stopped with the stop() method."
-        self.running = 1
-        while self.running:
-            try:
-                self.handle_request()
-            except KeyboardInterrupt:
-                self.stop()
-
-    def stop(self):             # called by handle_request()
-        "Stop the service."
-        self.running = 0
-
-
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
-class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
+class Syslogd(ThreadingUDPServer, ZenDaemon):
 
     def __init__(self, addr='', port=SYSLOG_PORT, pri=LOG_DEBUG, 
             timefmt=None, magic=None):
 
         UDPServer.__init__(self, (addr, port), None)
         ZenDaemon.__init__(self)
-        self.pidfile = "pidfile"
         self.hostmap = {}       # client address/name mapping
         self.priority = pri
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
         
-        self.log.info("start")
+        self.log.info("syslog start")
         self.ev = SendEvent("syslog", self.options.zopeusername, 
                             self.options.zopepassword, self.options.zopeurl)
         self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
@@ -136,8 +121,6 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         # The float denotes the original event time in case the
         # event comes through a gateway from a client that is not
         # syslog-compatible (Windows NT comes to mind :-).
-
-        self.log.debug(msg) 
 
         # extract original event time, if present
         if msg[:2] == '[[':
@@ -200,22 +183,9 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
         identifier = "|".join((host, "Syslog", facility, str(sev), msg))
         self.ev.sendEvent(host, "Syslog", msg, sev, Component=facility, 
                             Identifier=identifier,IpAddress=client)
-        
-        sys.stdout.write(client + ' ' + host + ': ' + msg.strip() + '\n')
+        sys.log.debug(client + ' ' + host + ': ' + msg.strip() + '\n')
 
-        # stop the server if the magic stop string appears in the message
-        if msg.find(self.stop_magic) >= 0:
-            self.log.info('stopped.')
-            self.stop()
     
-    
-    def sigTerm(self, signum, frame):
-        self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
-                        "syslog collector stopped", self.ev.Warning,
-                        Component="syslog")
-        ZenDaemon.sigTerm(self, signum, frame)
-        sys.exit(0)
-
     
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -229,6 +199,27 @@ class Syslogd(ThreadingUDPServer, InterruptibleServer, ZenDaemon):
                     dest='zopeurl', 
                     default="http://localhost:8080/zport/dmd/ZenEventManager",
                     help="Zope password to send events")
+
+
+    def serve(self):
+        "Run the service until it is stopped with the stop() method."
+        self.running = 1
+        while self.running:
+            self.handle_request()
+
+
+    def sigTerm(self, signum, frame):
+        self.running = 0
+        if os.path.exists(self.pidfile):
+            self.log.info("delete pidfile %s", self.pidfile)
+            os.remove(self.pidfile)
+        self.log.info('Daemon %s shutting down' % self.__class__.__name__)
+        try:
+            self.ev.sendEvent(socket.getfqdn(), "SyslogStatus",
+                        "syslog collector stopped", self.ev.Warning,
+                        Component="syslog")
+        except: pass # if this fails we still want to shutdown nicely
+
 
 
 if __name__ == '__main__':
