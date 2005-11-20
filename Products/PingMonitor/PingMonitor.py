@@ -197,7 +197,7 @@ class PingMonitor(StatusMonitor):
                     self.log.warn("%s Ping Status = %d" % 
                         (pingJob.message, pingJob.pingStatus))
                     pingJob.type = 1
-                    self._sendEvent(pingJob, 1)
+                    self._sendEvent(pingJob)
                 else:
                     self.log.debug("%s no event sent Ping Status = %d" % 
                         (pingJob.message, pingJob.pingStatus))
@@ -209,7 +209,7 @@ class PingMonitor(StatusMonitor):
                     if (self.ncoserver
                         and (pingJob.pingStatus >= self.cycleFailWarn
                         or pingJob.pingStatus >= self.cycleFailCritical)):
-                        pingJob.severity = 1
+                        pingJob.severity = 0
                         pingJob.type = 2
                         self._sendEvent(pingJob)
                     pingJob.pingStatus = 0
@@ -355,9 +355,6 @@ class PingMonitor(StatusMonitor):
         event['Manager'] = os.uname()[1]
         event['OwnerUID'] = 65534
         event['OwnerGID'] = 0
-#        if nosev:
-#            event['Identifier'] = pingJob.hostname + "|Ping"
-
         try:
             server.sendEvent(event)
         except SystemExit: raise
