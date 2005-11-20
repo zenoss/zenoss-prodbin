@@ -183,7 +183,7 @@ class Syslogd(ThreadingUDPServer, ZenDaemon):
         identifier = "|".join((host, "Syslog", facility, str(sev), msg))
         self.ev.sendEvent(host, "Syslog", msg, sev, Component=facility, 
                             Identifier=identifier,IpAddress=client)
-        sys.log.debug(client + ' ' + host + ': ' + msg.strip() + '\n')
+        self.log.debug(client + ' ' + host + ': ' + msg.strip())
 
     
     
