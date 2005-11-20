@@ -73,11 +73,12 @@ status() {
             echo $PRGNAME program running\; pid=$PID
             exit 109
         else
-            echo $PRGNAME \(pid $PID\) not found
+            echo $PRGNAME \(pid $PID\) not running
+            rm -f $PIDFILE
             exit 100
         fi
     else
-        echo $PRGNAME not found
+        echo $PRGNAME not running
         exit 100
     fi
 }
