@@ -241,7 +241,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
 
             #delete ips that are no longer in use
             for ip in ipids:
-                ipobj = getattr(self.ipaddresses, ip)
+                ipobj = self.ipaddresses._getOb(ip)
                 self.removeRelation('ipaddresses', ipobj)
             for ip in localips:
                 self._ipAddresses.remove(ip)
