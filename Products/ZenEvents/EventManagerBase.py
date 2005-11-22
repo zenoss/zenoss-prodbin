@@ -21,6 +21,7 @@ from OFS.SimpleItem import Item
 from OFS.PropertyManager import PropertyManager
 from OFS.ObjectManager import ObjectManager
 import DateTime
+from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
 
@@ -30,8 +31,9 @@ from DbAccessBase import DbAccessBase
 from Event import Event
 from EventDetail import EventDetail, EventData, EventJournal
 
+from Products.ZenModel.ZenModelBase import ZenModelBase
 
-class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager, 
+class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager, 
                         PropertyManager, Item):
     """
     Data connector to backend of the event management system.
@@ -131,6 +133,36 @@ class EventManagerBase(DbAccessBase, ObjectCache, ObjectManager,
         {'id':'defaultFields', 'type':'lines', 'mode':'w'},
         )
     
+    factory_type_information = ( 
+        { 
+            'id'             : 'EventManagerBase',
+            'meta_type'      : 'EventManagerBase',
+            'description'    : """Detail view of netcool event""",
+            'icon'           : 'EventManagerBase_icon.gif',
+            'product'        : 'ZenEvents',
+            'factory'        : '',
+            'immediate_view' : 'viewEventManager',
+            'actions'        :
+            ( 
+                { 'id'            : 'overview'
+                , 'name'          : 'Overview'
+                , 'action'        : 'viewEventManager'
+                , 'permissions'   : ( permissions.view, )
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editEventManager'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'changes'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ( permissions.view, )
+                },
+            )
+          },
+        )
+
     security = ClassSecurityInfo()
     
 

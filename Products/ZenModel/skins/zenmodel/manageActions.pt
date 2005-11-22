@@ -17,6 +17,14 @@
 </tr>
 <tr>
     <td class=tablevalues>
+        <a class=tablevalues href="/zport/dmd/ZenEventManager">
+            Event Manager
+        </a>
+    </td>
+    <td class=tablevalues>Load devices into the system</td>
+</tr>
+<tr>
+    <td class=tablevalues>
         <a class=tablevalues href="/zport/dmd/ZenClassifier/manageClassifiers">
             Manage Classifiers
         </a>
