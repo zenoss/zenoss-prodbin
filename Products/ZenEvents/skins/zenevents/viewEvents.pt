@@ -14,15 +14,15 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="eventTable"
     tal:define="tableName string:viewevents;
-    deftsort python: here.ZenTableManager.getTableState(
-                        tableName,sortedHeader='');
-    sevlevel python: here.ZenTableManager.setReqTableState(
+    ztm     here/ZenTableManager;
+    deftsort python: ztm.getTableState(tableName,sortedHeader='');
+    sevlevel python: ztm.setReqTableState(
                         tableName,'severity',default=2,reset=True);
     objects python:here.getEventList(severity=sevlevel);
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    batch python:ztm.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
-    tal:on-error="structure here/eventsError"
     >
+    <!--tal:on-error="structure here/eventsError"-->
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
     <input type='hidden' name='zenScreenName'
@@ -34,7 +34,7 @@
             Filter
             <input class="tableheader" type="text" name="filter" 
                 size=25 onkeypress="submitViaEnter(event)"
-                tal:attributes="value python:here.ZenTableManager.getTableState(
+                tal:attributes="value python:ztm.getTableState(
                                         tableName,'filter')">
             &nbsp; &nbsp;
             Severity Filter
@@ -49,23 +49,20 @@
     </tr>
     <tr>
         <th tal:repeat="headername resultFields"
-            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+            tal:replace="structure python:ztm.getTableHeader(
                     tableName,headername,headername,'cmp')">Name
         </th>
         <th class=tableheader> </th>
     </tr>
     <tr tal:repeat="event batch" 
         tal:attributes="class event/getCssClass">
-        <tal:block tal:repeat="index python: range(event.getfieldcount())">
-        <td tal:content="python: event.getfield(index)">
-            event data 
-        </td>
+        <tal:block tal:repeat="data python:event.getDataList(resultFields)">
+        <td tal:content="data">event data</td>
         </tal:block>
         <td>
-            <a href="_"
-                tal:attributes="href python:
+            <a tal:attributes="href python:
                 'javascript:popupwindow(\''+event.getEventDetailHref()
-                +'\',\'ncoeventdetail'+str(event.EventUuid)+'\',450,550)'">
+                +'\',\'ncoeventdetail'+str(event.evid)+'\',450,550)'">
                 *
             </a>
         </td>

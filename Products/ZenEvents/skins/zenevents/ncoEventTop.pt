@@ -3,7 +3,7 @@
     metal:define-macro="ncoEventTop">
     <tr>
         <td class="tabletitle" colspan=3 
-            tal:content="string:Event: ${eventUuid}">
+            tal:content="string:Event: ${evid}">
         </td>
     </tr>
     <tr>
@@ -12,7 +12,7 @@
             <a href="_"
             class="tabletitle"
             tal:attributes="href 
-                python:tab['action']+'?eventUuid=%s'%eventUuid"
+                python:tab['action']+'?evid=%s'%evid"
             tal:content="tab/name">
             TabName
             </a>

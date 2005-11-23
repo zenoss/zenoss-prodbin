@@ -1,0 +1,19 @@
+==========================
+Event Design
+==========================
+
+
+Event objects need to be persisted in the mysql database.
+
+On queries from within zope they must use the zope security stuff to allow
+controled access to there data.
+
+They must be constructable out side of a zope frame work as well.
+
+To meet these requirements there needs to be three types of event:
+
+1. Event - event that lives outsize of zope context and can go into/outof mysql.
+2. ZEvent - event in zope context inherits from Event has subset of fields
+        populated as defined by resultFields in a getEventList query.
+3. ZEventDetail - full event information (allfields, detail, and log) 
+

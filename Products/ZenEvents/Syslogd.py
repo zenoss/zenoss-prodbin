@@ -9,15 +9,12 @@ import sys, string, time, socket, re, os
 import Globals
 
 from Products.ZenEvents.SendEvent import SendEvent
-from Products.ZenUtils.ZenDaemon import  ZenDaemon
-
-from SocketServer import *
 
 # constants from syslog.h
-LOG_EMERG       = 0
+LOG_EMERGENCY   = 0
 LOG_ALERT       = 1
-LOG_CRIT        = 2
-LOG_ERR         = 3
+LOG_CRITICAL    = 2
+LOG_ERRROR      = 3
 LOG_WARNING     = 4
 LOG_NOTICE      = 5
 LOG_INFO        = 6
@@ -86,23 +83,24 @@ conf_pat = re.compile(r'''
     ''', re.VERBOSE)
 
 
-class InterruptibleServer:
-    "Mix-in class for {TCP,UDP}Server that allows to stop the service"
-
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
+
+from Products.ZenUtils.ZenDaemon import  ZenDaemon
+from SocketServer import ThreadingUDPServer
+from threadding import Lock
 
 class Syslogd(ThreadingUDPServer, ZenDaemon):
 
     def __init__(self, addr='', port=SYSLOG_PORT, pri=LOG_DEBUG, 
             timefmt=None, magic=None):
 
-        UDPServer.__init__(self, (addr, port), None)
+        ThreaddingUDPServer.__init__(self, (addr, port), None)
         ZenDaemon.__init__(self)
         self.hostmap = {}       # client address/name mapping
         self.priority = pri
         self.timefmt = timefmt or '%b %d %H:%M:%S'
         self.stop_magic = magic or '_stop'
-        
+        self.hostmapLock = Lock() 
         self.log.info("syslog start")
         self.ev = SendEvent("syslog", self.options.zopeusername, 
                             self.options.zopepassword, self.options.zopeurl)
@@ -111,27 +109,24 @@ class Syslogd(ThreadingUDPServer, ZenDaemon):
                         Component="syslog")
 
 
-    def finish_request(self, (msg, sock), client_address):
+    def resolvaddr(self, clientip):
+        # build the client address/name mapping
+        host = self.hostmap.get(clientip, False)
+        if host: return host
+        try:
+            host = socket.gethostbyaddr(clientip)[0]
+            #host = host.split('.')[0]       # keep only the host name
+        except socket.error:
+            host = clientip
+        self.hostmap[clientip] = host   #GIL protected shared write
+        return host
 
-        # get the time when the message arrives
-        tm = time.time()
 
-        # Messages are in the form "[[float]]<int>message text...\n"
-        # The [[float]] and <int> parts and the newline are optional.
-        # The float denotes the original event time in case the
-        # event comes through a gateway from a client that is not
-        # syslog-compatible (Windows NT comes to mind :-).
-
-        # extract original event time, if present
-        if msg[:2] == '[[':
-            pos = msg.find(']]')
-            try:
-                tm = float(msg[2:pos])
-            except:
-                pass
-            msg = msg[pos+2:]   # use rest of message
-
-        # extract log facility and priority, if present
+    def priParse(self, msg):
+        """Extract log facility and priority, if present.
+        """
+        pri = None
+        fac = None
         if msg[:1] == '<':
             pos = msg.find('>')
             fac, pri = LOG_UNPACK(int(msg[1:pos]))
@@ -139,35 +134,26 @@ class Syslogd(ThreadingUDPServer, ZenDaemon):
         elif msg and msg[0] < ' ':
             fac, pri = LOG_KERN, ord(msg[0])
             msg = msg[1:]
-        else:
-            fac, pri = None, None
+        return fac, pri, msg
 
-        # check if we can discard this message
-        #if pri is not None and pri > self.priority:
-        #    return
 
-        # build the client address/name mapping
-        client = client_address[0]
-        try:
-            host = self.hostmap[client]
-        except KeyError:
-            try:
-                host = socket.gethostbyaddr(client)[0]
-                #host = host.split('.')[0]       # keep only the host name
-            except socket.error:
-                host = client
-            self.hostmap[client] = host
+    def finish_request(self, (msg, sock), client_address):
 
-        if 0: # fac is not None and pri is not None:
-            fp = ' <%s,%s>' % (fac_names[fac], pri_names[pri])
-        else:
-            fp = ''
-        
-        # client - ip address
-        # host - fqdn 
-        # fp - facility
-        # msg - the message
-        # pri - priority of the message
+        self.log.debug(msg)
+        ipaddr = client_address[0]
+        hostname = self.resolvaddr(ipaddr)
+        evt = SyslogEvent(hostname, ipaddr, msg)
+        self.ev.sendEvent(evt)
+
+
+
+        evt.pri, evt.fac, msg = self.priparse(msg) 
+        self.log.debug("fac=%s pri=%s", fac, pri)
+        if pri < self.basePriority: 
+            self.log.debug("droping event due to priority below threshold")
+            return
+        evt.facility = fac_names.get(fac,None)
+        evt.priority = pri_names.get(pri,None)
 
         facility = "syslog"
         if msg.find(":") > -1:
@@ -183,7 +169,7 @@ class Syslogd(ThreadingUDPServer, ZenDaemon):
         identifier = "|".join((host, "Syslog", facility, str(sev), msg))
         self.ev.sendEvent(host, "Syslog", msg, sev, Component=facility, 
                             Identifier=identifier,IpAddress=client)
-        self.log.info(client + ' ' + host + ': ' + msg.strip())
+        #self.log.info(client + ' ' + host + ': ' + msg.strip())
 
     
     

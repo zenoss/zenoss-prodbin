@@ -1,0 +1,25 @@
+<span tal:replace="structure here/standard_html_header"/>
+<tal:block
+    tal:define="tableName string:eventdetail;
+    evid request/evid;
+    sesskey python:tableName+evid;
+    params python:'&evid=%s' % evid;
+    event python:here.getEventDetail(evid);
+    objects event/getEventLogs;
+    "
+    >    
+<table metal:use-macro="here/ncoEventTop/macros/ncoEventTop"/>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+        <th class="tableheader">Date</th>
+        <th class="tableheader">User</th>
+        <th class="tableheader">Text</th>
+    </tr>
+    <tr tal:repeat="log objects">
+        <td class=tablevalues tal:content="python:log[1]">date</td>
+        <td class=tableheader tal:content="python:log[0]">user</td>
+        <td class=tablevalues tal:content="python:log[2]">text</td>
+    </tr>
+</table>
+</tal:block>
+<span tal:replace="structure here/standard_html_footer"/>

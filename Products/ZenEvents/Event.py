@@ -9,61 +9,43 @@
 #
 ###############################################################################
 
-from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo
+#import time
+import socket
 
 class Event(object):
     """
-    Class that represents an event in our system.
+    Event that lives independant of zope context.  As interface that allows
+    it to be persisted to/from the event backend.
     """
-    security = ClassSecurityInfo()
-    security.setDefaultAccess("allow")
- 
-    def __init__(self, manager, data, fields):
-        self.Severity = 0
-        self.SeverityName = "Clear"
-        self.Acknowledged = False
-        self.baseUrl = manager.absolute_url_path()
-        defaultFields = manager.defaultFields
-        defaultLen = len(defaultFields)
-        self.data = data[:-defaultLen]
-        self.defaultdata = data[-defaultLen:]
+    
+    def __init__(self):
+        # not sure we need sub second time stamps
+        # if we do uncomment and change event backend to use
+        # double presicion values for these two fields.
+        #self.firstTime = time.time()
+        #self.lastTime = time.time()
+        self.manager = socket.getfqdn()
+
+    
+    def updateFromFields(self, fields, data):
+        """
+        Update event from list of fields and list of data values.  
+        They must have the same length.  To be used when pulling data 
+        from the backend db.
+        """
         for i in range(len(fields)):
             setattr(self, fields[i], data[i])
-        for i in range(len(defaultFields)):
-            setattr(self, defaultFields[i], self.defaultdata[i])
-            if defaultFields[i] == manager.SeverityField:
-                setattr(self, defaultFields[i] + "Name", 
-                    manager.convert(manager.SeverityField, self.defaultdata[i]))
-    
-
-        
-  
-    def getEventDetailHref(self):
-        """build an href to call the detail of this event"""
-        params = "/viewNcoEventFields?eventUuid=%s" % self.EventUuid
-        return self.baseUrl + params
 
 
-    def getCssClass(self):
-        """return the css class name to be used for this event.
+    def updateFromDict(self, data):
+        """Update event from dict.  Keys that don't match attributes are
+        put into the detail list of the event.
         """
-        acked = self.Acknowledged and "true" or "false"
-        return "zenevents_%s_%s" % (self.SeverityName.lower(), acked)
+        for key, value in data.items():
+            setattr(self, key, value)
 
 
-    def getfieldcount(self):
-        """return the number of fields"""
-        return len(self.data)
-
-
-    def getfield(self, index):
-        """return the value of a field"""
-        return self.data[index]
-
-
-    def getSeverityNumber(self):
-        """return the severity as an integer"""
-        return self.defaultdata[1]
-
-InitializeClass(Event)
+    def getDataList(self, fields):
+        """return a list of data elements that map to the fields parameter.
+        """
+        return map(lambda x: getattr(self, x), fields)

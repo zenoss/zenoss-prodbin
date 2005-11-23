@@ -12,6 +12,8 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 
 import logging
 import types
+import random
+random.seed()
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -28,8 +30,9 @@ from Products.ZenUtils.ObjectCache import ObjectCache
 from interfaces import IEventList, IEventStatus, ISendEvents
 
 from DbAccessBase import DbAccessBase
-from Event import Event
-from EventDetail import EventDetail, EventData, EventJournal
+from ZEvent import ZEvent
+from EventDetail import EventDetail
+from Exceptions import *
 
 from Products.ZenModel.ZenModelBase import ZenModelBase
 
@@ -40,26 +43,28 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     """
     #implements(IEventList, IEventStatus, ISendEvents)
 
+    #FQDNID = hash(socket.getfqdn())
+
     statusTable = "status"
-    detailsTable = "details"
-    journalTable = "journal"
-    LastOccurrenceField = "LastOccurrence"
-    FirstOccurrenceField = "FirstOccurrence"
-    DeviceField = "Node"
-    ComponentField = "Component"
-    ClassField = "Class"
-    SeverityField = "Severity"
-    CountField = "Count"
-    ProdStateField = "ProdState"
+    detailTable = "detail"
+    logTable = "log"
+    lastTimeField = "lastTime"
+    firstTimeField = "firstTime"
+    deviceField = "device"
+    componentField = "component"
+    eventClassField = "eventClass"
+    severityField = "severity"
+    countField = "count"
+    prodStateField = "prodState"
     DeviceGroupField = "DeviceGroups"
     SystemField = "Systems"
 
-    DeviceWhere = "Node = '%s'"
-    DeviceResultFields = ("Component", "Class", "Summary", "FirstOccurrence",
-                            "LastOccurrence", "Count" )
-    ComponentWhere = "Component = '%s'"
-    ComponentResultFields = ("Class", "Summary", "FirstOccurrence",
-                            "LastOccurrence", "Count" )
+    DeviceWhere = "device = '%s'"
+    DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
+                            "lastTime", "count" )
+    ComponentWhere = "component = '%s'"
+    ComponentResultFields = ("eventClass", "summary", "firstTime",
+                            "lastTime", "count" )
     DeviceClassWhere = "DeviceClass like '%s%%%%'"
     LocationWhere = "Location like '%s%%%%'"
     SystemWhere = "Systems like '%%%%|%s%%%%'"
@@ -68,22 +73,22 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     eventPopRunning = True
     eventPopCycle = 11
     eventPopSelect = \
-        "select Node, EventUuid from status where ProdState=0"
+        "select device, evid from status where prodState=0"
 
     maintenanceRunning = True
     maintenanceCycle = 10
     maintenanceProcedures = ("close_events", "clean_old_events")
 
-    defaultOrderby = "Severity desc, LastOccurrence desc" 
+    defaultOrderby = "severity desc, lastTime desc" 
 
-    defaultResultFields = ("Node", "Component", "Class", "Summary", 
-                           "FirstOccurrence", "LastOccurrence", "Count" )
+    defaultResultFields = ("device", "component", "eventClass", "summary", 
+                           "firstTime", "lastTime", "count" )
 
-    defaultFields = ('Acknowledged', 'Severity', 'EventUuid')
+    defaultFields = ('acknowledged', 'severity', 'evid')
 
-    defaultIdentifier = ('Node', 'Component', 'Class', 'Severity')
+    defaultIdentifier = ('device', 'component', 'eventClass', 'severity')
 
-    requiredEventFields = ('Node', 'Summary', 'Class', 'Severity')
+    requiredEventFields = ('device', 'summary', 'eventClass', 'severity')
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
     
@@ -104,19 +109,18 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'defaultOrderby', 'type':'text', 'mode':'w'},
         {'id':'defaultResultFields', 'type':'lines', 'mode':'w'},
         {'id':'statusTable', 'type':'string', 'mode':'w'},
-        {'id':'detailsTable', 'type':'string', 'mode':'w'},
-        {'id':'journalTable', 'type':'string', 'mode':'w'},
-        {'id':'LastOccurrenceField', 'type':'string', 'mode':'w'},
-        {'id':'FirstOccurrenceField', 'type':'string', 'mode':'w'},
-        {'id':'DeviceField', 'type':'string', 'mode':'w'},
-        {'id':'ComponentField', 'type':'string', 'mode':'w'},
-        {'id':'SeverityField', 'type':'string', 'mode':'w'},
-        {'id':'CountField', 'type':'string', 'mode':'w'},
+        {'id':'detailTable', 'type':'string', 'mode':'w'},
+        {'id':'logTable', 'type':'string', 'mode':'w'},
+        {'id':'lastTimeField', 'type':'string', 'mode':'w'},
+        {'id':'firstTimeField', 'type':'string', 'mode':'w'},
+        {'id':'deviceField', 'type':'string', 'mode':'w'},
+        {'id':'componentField', 'type':'string', 'mode':'w'},
+        {'id':'severityField', 'type':'string', 'mode':'w'},
+        {'id':'countField', 'type':'string', 'mode':'w'},
         {'id':'DeviceGroupField', 'type':'string', 'mode':'w'},
         {'id':'SystemField', 'type':'string', 'mode':'w'},
         {'id':'DeviceWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceResultFields', 'type':'lines', 'mode':'w'},
-        {'id':'ComponentWhere', 'type':'string', 'mode':'w'},
         {'id':'ComponentResultFields', 'type':'lines', 'mode':'w'},
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
@@ -167,7 +171,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     
 
     def __init__(self, id, title='', username='root',
-                 password='', database='', port=0,
+                 password='', database='127.0.0.1', port=3306,
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
         self.id = id
         self.title = title
@@ -179,6 +183,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
         self.severityCount = 0
         self._schema = {}
+        self._fieldlist = []
         self._conversions = {}  # [Colname] = {Value:Conversion,}
         self._colors = ()
         self._ackedcolors = ()
@@ -214,8 +219,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
-                         self.LastOccurrenceField, startdate,
-                         self.FirstOccurrenceField, enddate)
+                         self.lastTimeField, startdate,
+                         self.firstTimeField, enddate)
             select.append(where)
             if not orderby:
                 orderby = self.defaultOrderby
@@ -232,7 +237,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 db = self.connect()
                 curs = db.cursor()
                 curs.execute(select)
-                retdata = self._buildEvents(curs, resultFields)
+                retdata = []
+                for row in curs.fetchall():
+                    row = map(self.convert, resultFields, row)
+                    evt = ZEvent(self, resultFields, row)
+                    retdata.append(evt)
                 db.close()
                 self.addToCache(select, retdata)
                 self.cleanCache()
@@ -263,65 +272,53 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         raise NotImplementedError
 
 
-    def getEventDetail(self, eventUuid):
+    def getEventDetail(self, evid=None, dedupid=None):
         """Return an EventDetail object for a particular event.
         """
-        cachekey = 'eventdetail%s' % eventUuid
+        idfield = evid and "evid" or "dedupid"
+        if not evid: evid = dedupid
+        cachekey = '%s%s' % (idfield, evid)
         event = self.checkCache(cachekey)
         if event: return event
         db = self.connect()
         fields = self.getFieldList()
-        allfields = fields + list(self.defaultFields)
         selectevent = "select " 
-        selectevent += ", ".join(allfields)
+        selectevent += ", ".join(fields)
         selectevent += " from %s where" % self.statusTable
-        selectevent += " EventUuid = '%s'" % eventUuid
-        if self.backend!="oracle": selectevent += ";"
+        selectevent += " %s = '%s'" % (idfield, evid)
+        if self.backend=="omnibus": selectevent += ";"
         
         #print selectevent
         curs = db.cursor()
         curs.execute(selectevent)
         evrow = curs.fetchone()
-        curs.close()
         if not evrow:
-            raise ("NoEventDetailFound", 
-                "No Event Detail for EventUuid %s" % eventUuid)
-        evrow = map(self.convert, allfields, evrow)
-        event = EventDetail(self, evrow, fields)
+            raise (ZenEventNotFound,"Event evid %s not found" % evid)
+        evdata = map(self.convert, fields, evrow)
+        event = EventDetail(self, fields, evdata)
         event = event.__of__(self)
-        selectdetails = "select Name, Detail from %s where" % (
-                                                self.detailsTable)
-        selectdetails += " EventUuid = '%s'" % event.EventUuid
-        if self.backend!="oracle": selectdetails += ";"
-        #print selectdetails
-        curs = db.cursor()
-        curs.execute(selectdetails)
-        detailrows = curs.fetchall()
-        details = []
-        for name, detail in detailrows:
-            ddict = EventData(name, detail)
-            details.append(ddict)
-        event.details = details
-        curs.close()
 
-        selectjournals = "select UserName, CTime, Text"
-        selectjournals += " from %s where" % self.journalTable
-        selectjournals += " EventUuid = '%s'" % event.EventUuid
-        if self.backend!="oracle": selectjournals += ";"
-        #print selectjournals
-        curs = db.cursor()
-        curs.execute(selectjournals)
+        selectdetail = "select name, value from %s where" % self.detailTable
+        selectdetail += " evid = '%s'" % event.evid
+        if self.backend=="omnibus": selectevent += ";"
+        #print selectdetail
+        curs.execute(selectdetail)
+        event._details = curs.fetchall()
+
+        selectlogs = "select userName, ctime, text"
+        selectlogs += " from %s where" % self.logTable
+        selectlogs += " evid = '%s' order by ctime desc" % event.evid
+        if self.backend=="omnibus": selectevent += ";"
+        #print selectlogs
+        curs.execute(selectlogs)
         jrows = curs.fetchall()
-        journals = []
+        logs = []
         for row in jrows:
             user = self.cleanstring(row[0])
             date = self.dateString(row[1])
-            textar = map(lambda x: x and x or '', row[2:])
-            text = "".join(textar)
-            jdict = EventJournal(user,date,text)
-            journals.append(jdict)
-        event.journals = journals
-        curs.close()
+            text = row[2]
+            logs.append((user, date, text))
+        event._logs = logs
         db.close()
         self.addToCache(cachekey, event)
         self.cleanCache()
@@ -346,7 +343,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         select = "select %s from %s " % (orgfield, self.statusTable)
         if statusclass: 
             if where: where += " and "
-            where += " %s = '%s'" % (self.ClassField, statusclass)
+            where += " %s = '%s'" % (self.eventClassField, statusclass)
         where = self._severityWhere(where, severity)
         if where: select += "where " + where
         #print select
@@ -375,14 +372,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return countevts
 
 
-    def getDeviceStatus(self, device, statclass=None, CountField=None, 
+    def getDeviceStatus(self, device, statclass=None, countField=None, 
                         severity=None, where=""):
         """see IEventStatus
         """
-        if CountField == None: CountField = self.CountField
+        if countField == None: countField = self.countField
         select = "select %s, %s from %s where " % (
-                  self.DeviceField, self.CountField, self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.ClassField, statclass)
+                  self.deviceField, self.countField, self.statusTable)
+        if statclass: select += "%s = '%s'" % (self.eventClassField, statclass)
         select += self._severityWhere(where, severity)
         #print select
         statusCache = self.checkCache(select)
@@ -404,14 +401,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getComponentStatus(self, device, component, statclass=None, 
-                            CountField=None, severity=None, where=""):
+                            countField=None, severity=None, where=""):
         """see IEventStatus
         """
-        if CountField == None: CountField = self.CountField
+        if countField == None: countField = self.countField
         select = "select %s, %s, %s from %s where "\
-                  % (self.DeviceField, self.ComponentField, CountField,
+                  % (self.deviceField, self.ComponentField, countField,
                   self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.ClassField, statclass)
+        if statclass: select += "%s = '%s'" % (self.eventClassField, statclass)
         select += self._severityWhere(where, severity)
         statusCache = self.checkCache(select)
         if not statusCache:
@@ -454,27 +451,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def _severityWhere(self, where, severity):
-        if severity != None and where.find(self.SeverityField) == -1:
+        if severity != None and where.find(self.severityField) == -1:
             if where: where += " and "
-            where += " %s >= %s" % (self.SeverityField, severity)
+            where += " %s >= %s" % (self.severityField, severity)
         return where
-
-
-    def _buildEvents(self, curs, resultFields):
-        """check cache and execute query against passed cursor"""
-        result = []
-        outfields = resultFields[:-len(self.defaultFields)]
-        outlen = len(outfields)
-        for row in curs.fetchall():
-            nrow = []
-            for i in range(len(row)):
-                if i < outlen:
-                    nrow.append(self.convert(outfields[i], row[i]))
-                else:
-                    nrow.append(self.cleanstring(row[i]))
-            evt = Event(self, nrow, resultFields)
-            result.append(evt)
-        return result
 
 
     def _setupDateRange(self, startdate=DateTime.DateTime(), 
@@ -495,7 +475,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     
     
     #==========================================================================
-    # Schema management functions
+    # Event sending functions
     #==========================================================================
 
     security.declareProtected('Send Events', 'sendEvents')
@@ -512,36 +492,24 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def sendEvent(self, event, db=None):
         """Send an event to the backend.
         """
-        for field in self.requiredEventFields:
-            if not event.has_key(field):
-                raise ZenEventError(
-                    "Required event field %s not found" % field)
-        
-        if not event.has_key('Identifier'):
-            evid = []
-            for field in self.defaultIdentifier:
-                value = event.get(field, "")
-                evid.append(str(value))
-            event['Identifier'] = "|".join(evid)
-
-        close = False
-        if db == None:  
-            db = self.connect()
-            close = True
-        insert = self.buildSendCmd(event)
-        #print insert
-        curs = db.cursor()
-        curs.execute(insert)
-        if close: db.close()
+        raise NotImplementedError
             
 
-
-    def buildSendCmd(self, event):
-        """Build the insert or update command needed to send event to backend.
+    def eventDataMaps(self, event):
+        """Return tuple (statusdata, detaildata) for this event.
         """
-        raise NotImplementedError
-        
-        
+        statusfields = self.getFieldList()
+        statusdata = {}
+        detaildata = {}
+        for name, value in event.__dict__.items():
+            if name in statusfields:
+                statusdata[name] = value
+            else: 
+                detaildata[name] = value
+        return statusdata, detaildata 
+
+
+
     #==========================================================================
     # Schema management functions
     #==========================================================================
@@ -562,7 +530,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def getFieldList(self):
         """Return a list of all fields in the status table of the  backend.
         """
-        return self._schema.keys()
+        return self._fieldlist
 
     
     security.declareProtected('View','getSeverities')
@@ -580,19 +548,17 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
    
     def getStatusCssClass(self, status):
-        if status == 0: statname = "clear"
-        elif status == 1: statname = "warning"
-        elif status == 2: statname = "error"
-        elif status >= 3: statname = "critical"
-        else: statname = "unknown"
-        return self.getCssClass(statname)
+        if status < 0: status = "unknown"
+        elif status > 3: status = 3
+        return "zenstatus_%s" % status
 
 
-    def getCssClass(self, severityname, acked=False):
+    def getEventCssClass(self, severity, acked=False):
         """return the css class name to be used for this event.
         """
-        acked = acked and "true" or "false"
-        return "zenevents_%s_%s" % (severityname.lower(), acked)
+        value = severity < 0 and "unknown" or severity
+        acked = acked and "acked" or "noack"
+        return "zenevents_%s_%s" % (value, acked)
 
 
     def isDate(self, colName):
@@ -628,10 +594,12 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def loadSchema(self, db):
         """Load schema from database. If field is a date set value to true."""
         schema = {}
+        fieldlist = []
         sql = "describe %s;" % self.statusTable
         curs = db.cursor()
         curs.execute(sql)
         for row in curs.fetchall():
+            fieldlist.append(row[0])
             col = self.cleanstring(row[0])
             if self.backend == "omnibus":
                 type = row[1] in (1, 4, 7, 8) #different date types
@@ -639,6 +607,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 type = row[1] in ("datetime", "timestamp")
             schema[col] = type
         if schema: self._schema = schema 
+        self._fieldlist = fieldlist
         curs.close()
 
 
@@ -691,6 +660,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     #==========================================================================
     # Utility functions
     #==========================================================================
+
+    def _genuuid(self):
+        """globally unique id based on timestamp, fqdn, and random number.
+        """
+        d=datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        r = "%04d" % random.randint(0, 1000)
+        return d+str(d.microsecond)+r+self.FQDNID
+
 
     def installIntoPortal(self):
         """Install skins into portal.

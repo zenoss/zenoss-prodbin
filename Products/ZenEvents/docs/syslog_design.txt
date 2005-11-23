@@ -1,0 +1,133 @@
+=======================================================================
+Syslog event collection design document
+=======================================================================
+
+Syslog collector receives syslog events from managed entities and performs
+normalization mapping before entering them into the backend event database.
+
+Syslog format is defined in RFC-3164.
+
+=======================================================================
+Stages of syslog processing:
+=======================================================================
+
+sending hostname resolution
+PRI parse - break out priority and facility and perform convertion to strings
+HEADER parse - original TIMESTAMP and HOSTAME
+Tag parse - handle PID or other Tag info (orig severity for ntsyslog)
+
+if defaultIdentifierFields and checkForDuplicate: 
+    process further?
+    update count and lastoccurrence in backend
+    return
+    
+event dictionary lookup keys:
+    Cisco - FACILITY-SUBFACILITY-SEVERITY-MNEMONIC
+    NT - Souce-EventId
+    Unix - Tag (process), msg tokens.
+
+import event dictionary mappings
+
+extract regex into message object
+
+if device context check: 
+    device association - retrieve device configuration context
+    check mappings from device context
+
+if defined mapfunc:
+    mapfunc(device, event, eventmanager, eventdictionary)
+
+if defined resfunction:
+    resolutionfunc(device, event, eventmanager, eventdictionary)
+
+
+
+=======================================================================
+Event attributes availible at user parse time
+=======================================================================
+
+pri - PRI as defined by rfc-3164 if not found set to <13>
+            
+priority - as received in the PRI.  value is converted to the following:
+            debug, info, notice, warning, error, critical, alert, emergency
+
+facility - as received in the PRI.  Value is converted to the following:
+            auth, authpriv, cron, daemon, kern, lpr, mail, mark, news, 
+            syslog, user, uucp and local0 through local7
+
+eventtime - TIMESTAMP received if availible if not rcpttime used
+
+rcpttime - time the event was recieved
+
+hostname - host that generated the event (or from HOSTNAME field if availible)
+
+ipaddress - ip that the event came from
+
+tag - most likely the name of the process that sent this message
+
+pid - pid of process that generated the event [optional]
+
+message - message section as defined by rfc-3164 
+
+ntseverity - original nt severity of an event forwarded by ntsyslog
+
+ntevtid - nt eventid in the nt event log as sent by ntsyslog
+
+
+=======================================================================
+Event dictionary schema
+=======================================================================
+
+uuid - primary key id that is univerally unique (for shared contribution)
+keys - varchar with keys used to lookup an event dict object
+severity - set default severity of event to this
+class - set class to this
+regex - regex to perform extraction on the event message
+mapfunc - name of custom user processing function
+explanation - textual explanation of the event
+resolution - textual description of the recomended resolution actions
+resolutionfunc - name of function to call to initiate automatic resolution
+
+
+=======================================================================
+EXAMPLES
+=======================================================================
+Cisco:
+=======================================================================
+http://www.cisco.com/warp/public/477/RME/rme_syslog.html
+
+Cisco syslog templates:
+
+%FACILITY-SUBFACILITY-SEVERITY-MNEMONIC: Message-text
+
+%CARD-SEVERITY-MSG:SLOT %FACILITY-SEVERITY-MNEMONIC: Message-text
+
+example:
+
+%LINK-2-BADVCALL: Interface [chars], undefined entry point
+
+Default mapping:
+
+FACILITY-SUBFACILITY -> Component
+FACILITY-SUBFACILITY -> facility
+SEVERITY -> priority
+FACILITY-SUBFACILITY-SEVERITY-MNEMONIC -> Class
+
+Extraction regex on message-text may change component (ie to interface name).
+
+
+=======================================================================
+NTSyslog example:
+=======================================================================
+PRI.TIMESTAMP...... SOURCE.SEV.. EVID  Message
+<14>Nov 21 13:19:23 scecli[info] 1704  Security policy in the Group policy...
+
+Source -> Component
+Source-EVID -> Class
+TIMESTAMP -> FirstOccurrence & LastOccurrence
+
+=======================================================================
+Linux
+=======================================================================
+PRI. Tag............  Message
+<86> dropbear[17775]: exit before auth (user 'root', 0 fails): Exited normally

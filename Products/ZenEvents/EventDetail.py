@@ -1,5 +1,5 @@
 
-from Event import Event
+from ZEvent import ZEvent
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Acquisition import Implicit
 
@@ -7,7 +7,7 @@ from AccessControl import Permissions as permissions
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-class EventDetail(Event, ZenModelItem, Implicit):
+class EventDetail(ZEvent, ZenModelItem, Implicit):
     security = ClassSecurityInfo()
     security.setDefaultAccess("allow")
 
@@ -17,26 +17,26 @@ class EventDetail(Event, ZenModelItem, Implicit):
             'meta_type'      : 'EventDetail',
             'description'    : """Detail view of netcool event""",
             'icon'           : 'EventDetail_icon.gif',
-            'product'        : 'NcoProduct',
+            'product'        : 'ZenEvents',
             'factory'        : '',
-            'immediate_view' : 'viewNcoEventFields',
+            'immediate_view' : 'viewEventFields',
             'actions'        :
             ( 
                 { 'id'            : 'fields'
                 , 'name'          : 'Fields'
-                , 'action'        : 'viewNcoEventFields'
+                , 'action'        : 'viewEventFields'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'details'
                 , 'name'          : 'Details'
-                , 'action'        : 'viewNcoEventDetails'
+                , 'action'        : 'viewEventDetail'
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'journal'
-                , 'name'          : 'Journal'
-                , 'action'        : 'viewNcoEventJournals'
+                { 'id'            : 'log'
+                , 'name'          : 'Log'
+                , 'action'        : 'viewEventLog'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -44,27 +44,27 @@ class EventDetail(Event, ZenModelItem, Implicit):
           },
         )
 
-    def __init__(self, manager, data, fields, details=None, journals=None):
-        Event.__init__(self, manager, data, fields)
-        self.fields = []
-        for i in range(len(fields)):
-            tdict = EventData(fields[i], data[i])
-            self.fields.append(tdict)
-        self.details = details
-        self.jounals = journals
+    def __init__(self, manager, fields, data, details=None, logs=None):
+        ZEvent.__init__(self, manager, fields, data)
+        self._fields = fields
+        self._details = details
+        self._logs = logs
 
     def getEventFields(self):
-        """return an array of event fields dictionaries keys:(field,value)"""
-        return self.fields
+        """return an array of event fields tuples (field,value)"""
+        return [(x, getattr(self, x)) for x in self._fields]
+
 
     def getEventDetails(self):
-        """return array of details dictionaries keys:(field,value)"""
-        return self.details
+        """return array of detail tuples (field,value)"""
+        return self._details
 
-    def getEventJournals(self):
-        """return an array of journal dictionaries keys:(user,date,text)"""
-        return self.journals
+
+    def getEventLogs(self):
+        """return an array of log tuples (user,date,text)"""
+        return self._logs
         
+
 InitializeClass(EventDetail)
 
 class EventData:
@@ -76,12 +76,11 @@ class EventData:
 InitializeClass(EventData)
 
 
-class EventJournal:
+class EventLog:
     security = ClassSecurityInfo()
     security.setDefaultAccess("allow")
     def __init__(self, user, date, text):
         self.user = user
         self.date = date
         self.text = text
-
-InitializeClass(EventJournal)
+InitializeClass(EventLog)
