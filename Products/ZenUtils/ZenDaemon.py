@@ -24,6 +24,10 @@ class ZenDaemon(CmdBase):
     
     def __init__(self, noopts=0):
         CmdBase.__init__(self, noopts)
+        self.zenhome = os.path.join(os.environ['ZENHOME'])
+        self.zenvar = os.path.join(self.zenhome, "var")
+        myname = sys.argv[0].split(os.sep)[-1] + ".pid"
+        self.pidfile = os.path.join(self.zenvar, myname)
         if not noopts:
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
@@ -51,10 +55,7 @@ class ZenDaemon(CmdBase):
         except OSError, e:
             print >>sys.stderr, ("fork #2 failed: %d (%s)" % 
                     (e.errno, e.strerror))
-        myname = sys.argv[0].split(os.sep)[-1] + ".pid"
-        zenhome = os.path.join(os.environ['ZENHOME'], 'var')
-        self.pidfile = os.path.join(zenhome, myname)
-        if os.path.exists(zenhome):
+        if os.path.exists(self.zenvar):
             file = open(self.pidfile, 'w')
             file.write(str(os.getpid()))
             file.close()
