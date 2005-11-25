@@ -1,5 +1,6 @@
 #!/bin/sh
-PYTHONPATH=$ZENHOME/lib/python:$ZENHOME/Products
+. $ZENHOME/bin/zenfunctions
 rm -rf $ZENHOME/zendocs/api
+mkdir -p $ZENHOME/zendocs/api
 cd $ZENHOME/Products
-$ZENHOME/bin/epydoc -o $ZENHOME/zendocs/api -n ZenMon --inheritance listed DataCollector/ NcoProduct/ PingMonitor/ SiteScopeParser/ SnmpCollector/ ZenEvents/ ZenModel/ ZenRRD/ ZenRelations/ ZenUtils/ ZenWidgets/
+$ZENHOME/bin/epydoc -o $ZENHOME/zendocs/api -n ZenMon --inheritance listed $ZENPRODUCTS
