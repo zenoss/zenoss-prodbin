@@ -10,7 +10,7 @@ $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
-from AccessControl import ClassSecurityInfo, Unauthorized
+from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from AccessControl import Permissions as permissions
 
@@ -68,18 +68,6 @@ class DeviceOrganizer(Organizer, ManagedEntity, DeviceManagerBase):
         )
 
 
-    def childMoveTargets(self):
-        """see IDeviceManager"""
-        myname = self.getOrganizerName()
-        return filter(lambda x: x != myname, 
-                    self.getDmdRoot(self.dmdRootName).getOrganizerNames())
-
-
-    def getChildMoveTarget(self, moveTargetName): 
-        """see IDeviceManager"""
-        return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
-
-    
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)

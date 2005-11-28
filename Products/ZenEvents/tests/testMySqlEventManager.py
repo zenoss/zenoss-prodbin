@@ -1,4 +1,3 @@
-
 import pdb
 import unittest
 import Globals
@@ -66,7 +65,8 @@ class MySqlEventMangerTest(unittest.TestCase):
         self.evt.ntseverity = "Error"
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
-        self.assert_(("ntseverity", self.evt.ntseverity) in evdetail.details)
+        self.assert_(("ntseverity", self.evt.ntseverity) in 
+                        evdetail.getEventDetails())
 
     
     def testEventDetailFields(self):
@@ -74,12 +74,12 @@ class MySqlEventMangerTest(unittest.TestCase):
         self.evt.ntsource = "Zope"
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
-        self.assert_(("ntseverity", self.evt.ntseverity) in evdetail.details)
-        self.assert_(("ntsource", self.evt.ntsource) in evdetail.details)
+        details = evdetail.getEventDetails()
+        self.assert_(("ntseverity", self.evt.ntseverity) in details)
+        self.assert_(("ntsource", self.evt.ntsource) in details)
     
     
     def testEventDetailgetEventFields(self):
-        pdb.set_trace()
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
         feilds = evdetail.getEventFields()

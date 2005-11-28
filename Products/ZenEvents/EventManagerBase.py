@@ -65,6 +65,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "component = '%s'"
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
+    EventClassWhere = "EventClass like '%s%%%%'"
     DeviceClassWhere = "DeviceClass like '%s%%%%'"
     LocationWhere = "Location like '%s%%%%'"
     SystemWhere = "Systems like '%%%%|%s%%%%'"
@@ -122,6 +123,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceResultFields', 'type':'lines', 'mode':'w'},
         {'id':'ComponentResultFields', 'type':'lines', 'mode':'w'},
+        {'id':'EventClassWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
@@ -494,21 +496,6 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """
         raise NotImplementedError
             
-
-    def eventDataMaps(self, event):
-        """Return tuple (statusdata, detaildata) for this event.
-        """
-        statusfields = self.getFieldList()
-        statusdata = {}
-        detaildata = {}
-        for name, value in event.__dict__.items():
-            if name in statusfields:
-                statusdata[name] = value
-            else: 
-                detaildata[name] = value
-        return statusdata, detaildata 
-
-
 
     #==========================================================================
     # Schema management functions

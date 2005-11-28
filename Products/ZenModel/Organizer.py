@@ -43,6 +43,18 @@ class Organizer(ZenModelRM):
         self.description = description
  
 
+    def childMoveTargets(self):
+        """see IDeviceManager"""
+        myname = self.getOrganizerName()
+        return filter(lambda x: x != myname, 
+                    self.getDmdRoot(self.dmdRootName).getOrganizerNames())
+
+
+    def getChildMoveTarget(self, moveTargetName): 
+        """see IDeviceManager"""
+        return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
+
+    
     def children(self):
         """Return children of our organizer who have same type as parent."""
         return self.objectValues(spec=self.meta_type)

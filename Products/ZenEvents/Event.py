@@ -11,20 +11,46 @@
 
 #import time
 import socket
+import DateTime
 
 class Event(object):
     """
     Event that lives independant of zope context.  As interface that allows
     it to be persisted to/from the event backend.
+    dedupid,
+    evid,
+    device,
+    ipAddress,
+    component,
+    eventClass,
+    eventGroup,
+    eventKey,
+    facility,
+    severity,
+    priority,
+    summary,
+    stateChange,
+    firstTime,
+    lastTime,
+    count,
+    acknowledged,
+    prodState,
+    manager,
+    agent,
+    DeviceClass,
+    Location,
+    Systems,
+    DeviceGroups,
     """
     
-    def __init__(self):
+    def __init__(self, **kwargs):
         # not sure we need sub second time stamps
         # if we do uncomment and change event backend to use
         # double presicion values for these two fields.
         #self.firstTime = time.time()
         #self.lastTime = time.time()
         self.manager = socket.getfqdn()
+        if kwargs: self.updateFromDict(kwargs)
 
     
     def updateFromFields(self, fields, data):
@@ -43,6 +69,14 @@ class Event(object):
         """
         for key, value in data.items():
             setattr(self, key, value)
+
+
+    def initTime(self, timestamp):
+        """Initialize first and last time from timestamp value.
+        """
+        tstamp = DateTime.DateTime(timestamp)
+        self.firstTime = tstamp
+        self.lastTime = tstamp
 
 
     def getDataList(self, fields):

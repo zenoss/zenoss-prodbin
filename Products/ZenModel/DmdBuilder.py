@@ -50,6 +50,7 @@ from Products.ZenModel.CricketConf import manage_addCricketConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
+from Products.ZenEvents.EventClass import manage_addEventClass
 
 classifications = {
     'Devices':      DeviceClass,
@@ -180,6 +181,7 @@ class DmdBuilder:
         self.buildServices()
         self.buildProducts()
         self.buildDevices()
+        manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addRenderServer(self.portal, "RenderServer")

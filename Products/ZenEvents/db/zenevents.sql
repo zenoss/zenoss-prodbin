@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS status
     device          varchar(128) not null,
     ipAddress       char(15) default "",
     component       varchar(128) default "",
-    eventClass      varchar(64) default "Unknown",
+    eventDictKey    varchar(128) default "",
     eventGroup      varchar(64) default "",
     eventKey        varchar(64) default "",
     facility        varchar(8) default "unknown",
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS status
     prodState       smallint default 0,
     manager         varchar(128) not null,
     agent           varchar(64) not null,
+    EventClass      varchar(255) default "/Unknown",
     DeviceClass     varchar(255) default "",
     Location        varchar(255) default "",
     Systems         varchar(255) default "",
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS history
     device          varchar(128) not null,
     ipAddress       char(15) default "",
     component       varchar(128) default "",
-    eventClass      varchar(64) not null,
+    eventDictKey    varchar(128) default "",
     eventGroup      varchar(64) default "",
     eventKey        varchar(64) default "",
     facility        varchar(8) default "",
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS history
     prodState       smallint default 0,
     manager         varchar(128) not null,
     agent           varchar(64) not null,
+    EventClass      varchar(255) default "/Unknown",
     DeviceClass     varchar(255) default "",
     Location        varchar(255) default "",
     Systems         varchar(255) default "",
@@ -70,7 +72,7 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.device,
             OLD.ipAddress,
             OLD.component,
-            OLD.eventClass,
+            OLD.eventDictKey,
             OLD.eventGroup,
             OLD.eventKey,
             OLD.facility,
@@ -85,6 +87,7 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.prodState,
             OLD.manager,
             OLD.agent,
+            OLD.EventClass,
             OLD.DeviceClass,
             OLD.Location,
             OLD.Systems,
@@ -92,22 +95,38 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             NULL
             );
 
+
+CREATE TABLE IF NOT EXISTS heartbeat
+(
+    dedupid         varchar(255) not null,
+    device          varchar(128) not null,
+    component       varchar(128) default "",
+    firstTime       timestamp,
+    lastTime        timestamp,
+    PRIMARY KEY ( dedupid )
+) ENGINE=MEMORY MAX_ROWS=10000;
+
+
 CREATE TABLE IF NOT EXISTS log
 (
-    evid    char(128) not null,
-    userName     varchar(64),
-    ctime        timestamp,
-    text         text
+    evid        char(36) not null,
+    userName    varchar(64),
+    ctime       timestamp,
+    text        text,
+    Index evididx (evid)
 ) ENGINE=INNODB;
+
 
 CREATE TABLE IF NOT EXISTS detail
 (
-    evid   char(128) not null,
+    evid        char(36) not null,
     sequence    int,
     name        varchar(255),
     value       varchar(255),
-    PRIMARY KEY ( evid, name )
+    PRIMARY KEY ( evid, name ),
+    Index evididx (evid)
 ) ENGINE=INNODB;
+
 
 CREATE TABLE IF NOT EXISTS conversions
 (
