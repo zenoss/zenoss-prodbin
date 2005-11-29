@@ -38,13 +38,12 @@ class EventClass(Organizer, ManagedEntity):
     isInTree = True
 
     dmdRootName = "Events"
-    meta_type = event_key = "EventClass"
+
+    meta_type = event_key = "eventClass"
 
     default_catalog = "eventClassSearch"
 
     zenRelationsBaseModule = "Products.ZenEvents"
-
-    security = ClassSecurityInfo()
 
 
     _relations = (
@@ -96,6 +95,8 @@ class EventClass(Organizer, ManagedEntity):
             )
          },
         )
+
+    security = ClassSecurityInfo()
 
 
     def find(self, query):

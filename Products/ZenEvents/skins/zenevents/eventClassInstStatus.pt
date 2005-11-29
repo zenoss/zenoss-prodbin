@@ -1,0 +1,54 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">Status</th>
+    </tr>
+    <tr>
+      <td class="tableheader">Events</td>
+      <td class="tablevalues">
+        <table metal:use-macro="here/deviceMacros/macros/eventrainbow" />
+      </td>
+      <th class="tableheader" align="left">Total Event Count</th>
+      <td class="tablevalues" align="center" tal:content="here/getStatus">
+        100</td>
+    </tr>
+</table>
+<br>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" align="left" colspan="2">EventClassInst</th>
+    </tr>
+    <tr>
+      <td class="tableheader">ClassName</td>
+      <td class="tablevalues" tal:content="here/className">name</td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Regex</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2" tal:content="here/regex">regex</td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Explanation</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2" tal:content="here/explanation">
+        regex</td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Resolution</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2" tal:content="here/resolution">
+        regex</td>
+    </tr>
+    <!--
+    <tr>
+      <td class="tableheader">Apply Device Context</td>
+      <td class="tablevalues" tal:content="here/applyDeviceContext">regex</td>
+    </tr>
+    -->
+</table>
+<span tal:replace="structure here/standard_html_footer"/>

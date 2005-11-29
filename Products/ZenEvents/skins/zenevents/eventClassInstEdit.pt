@@ -1,0 +1,59 @@
+<span tal:replace="structure here/standard_html_header"/>
+<span metal:use-macro="here/top/macros/header" />
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<br />
+<table border="0" cellpadding="3" width="100%" 
+    align="left" bgcolor="#ffffff" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <td class=tableheader colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+      <td class="tableheader">Class Name</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="className" size="54"
+            tal:attributes="value here/className" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Regex</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            name="regex:text" tal:content="here/regex">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Explanation</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            name="explanation:text" tal:content="here/explanation">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Resolution</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            name="resolution:text" tal:content="here/resolution">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editEventClassInst:method" />
+        </td>
+    </tr>
+</table>
+</form>
+<span tal:replace="structure here/standard_html_footer"/>

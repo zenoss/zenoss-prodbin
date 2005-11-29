@@ -119,7 +119,7 @@
             Name 
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'eventClassKey','EventClassKey')">
+                    tableName,'className','ClassName')">
             Name 
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -135,8 +135,8 @@
             <a tal:attributes="href evinst/getPrimaryUrlPath"
             tal:content="evinst/id">Name</a>
         </td>
-        <td class="tablevalues" align="center" 
-            tal:content="evinst/eventClassKey"/>
+        <td class="tablevalues"
+            tal:content="evinst/className"/>
         <td class="tablevalues" tal:content="python:evinst.getStatus()"
             align="center">0</td>
     </tr>

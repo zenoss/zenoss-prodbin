@@ -23,7 +23,7 @@ class Syslogd(UDPServer, ZeoPoolBase):
         self._hostmap = {}       # client address/name mapping
         self.log.info("syslog start")
         self.statusEvt = Event(device=socket.getfqdn(), 
-                                eventClass="SyslogStatus", 
+                                eventClass="/Status/ZenSyslog", 
                                 summary="syslog collector started",
                                 severity=0, component="syslog")
         self.heartbeat = Event(device=socket.getfqdn(), component="zensyslog")
@@ -51,10 +51,10 @@ class Syslogd(UDPServer, ZeoPoolBase):
         return app.unrestrictedTraverse(self.options.zempath)
 
 
-    def getEventClass(self, app):
+    def getEvents(self, app):
         """Return our ZenEventManager based on zempath option.
         """
-        return app.unrestrictedTraverse(self.options.eventclasspath)
+        return app.unrestrictedTraverse(self.options.eventspath)
 
 
     def process_request(self, request, client_address):
@@ -102,9 +102,9 @@ class Syslogd(UDPServer, ZeoPoolBase):
         self.parser.add_option('--zempath',
             dest='zempath', default="/zport/dmd/ZenEventManager",
             help="zope path to our ZenEventManager /zport/dmd/ZenEventManager")
-        self.parser.add_option('--eventclasstpath',
-            dest='eventclasspath', default="/zport/dmd/EventClasses",
-            help="zope path to our EventClasses /zport/dmd/EventClasses")
+        self.parser.add_option('--eventstpath',
+            dest='eventspath', default="/zport/dmd/Events",
+            help="zope path to our Events /zport/dmd/Events")
         self.parser.add_option('--debug',
             dest='debug', action="store_true", 
             help="debug mode no threads")

@@ -21,20 +21,18 @@ class EventClassInst(ZenModelRM, ManagedEntity):
 
     meta_type = "EventClassInst"
     
-    event_key = "EventClass"
+    event_key = "eventClass"
 
     default_catalog = "eventClassSearch"
 
     zenRelationsBaseModule = "Products.ZenEvents"
 
-    security = ClassSecurityInfo()
-
     _properties = (
-        {'id':'eventClassKey', 'type':'string', 'mode':'w'},
+        {'id':'className', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'explanation', 'type':'text', 'mode':'w'},
         {'id':'resolution', 'type':'text', 'mode':'w'},
-        {'id':'applyDeviceContext', 'type':'boolean', 'mode':'w'},
+        #{'id':'applyDeviceContext', 'type':'boolean', 'mode':'w'},
         )
 
 
@@ -52,12 +50,18 @@ class EventClassInst(ZenModelRM, ManagedEntity):
             'icon'           : 'EventClassInst.gif',
             'product'        : 'ZenEvents',
             'factory'        : 'manage_addEventClassInst',
-            'immediate_view' : 'EventClassInstOverview',
+            'immediate_view' : 'eventClassInstStatus',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'EventClassInstOverview'
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'eventClassInstStatus'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'eventClassInstEdit'
                 , 'permissions'   : (
                   Permissions.view, )
                 },
@@ -65,6 +69,18 @@ class EventClassInst(ZenModelRM, ManagedEntity):
                 , 'name'          : 'zProperties'
                 , 'action'        : 'viewDeviceClassConfig'
                 , 'permissions'   : ("Change Device",)
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (
+                  Permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
@@ -76,15 +92,17 @@ class EventClassInst(ZenModelRM, ManagedEntity):
          },
         )
 
-    def __init__(self, id, eventClassKey=None):
+    security = ClassSecurityInfo()
+
+    def __init__(self, id, className=None):
         ZenModelRM.__init__(self, id)
-        self.eventClassKey = eventClassKey
-        if not eventClassKey:
-            self.eventClassKey = id
+        self.className = className
+        if not className:
+            self.className = id
         self.regex = ""    
         self.explanation = ""
         self.resolution = ""
-        self.applyDeviceContext = False
+        #self.applyDeviceContext = False
 
 
     def applyValues(self, evt):
@@ -98,6 +116,20 @@ class EventClassInst(ZenModelRM, ManagedEntity):
         if not getattr(aq_base(self), "_v_cregex", False):
             self._v_cregex = re.compile(self.regex)
         return self._v_cregex.search(evt.summary)
+
+
+    security.declareProtected('Manage DMD', 'manage_editEventClassInst')
+    def manage_editEventClassInst(self, className='', regex='', explanation='', 
+                                resolution='', REQUEST=None):
+        """Edit a EventClassInst from a web page.
+        """
+        self.className = className
+        self.regex = regex
+        self.explanation = explanation
+        self.resolution = resolution
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
 
 
 InitializeClass(EventClassInst)

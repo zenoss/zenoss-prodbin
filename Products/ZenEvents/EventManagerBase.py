@@ -65,7 +65,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "component = '%s'"
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
-    EventClassWhere = "EventClass like '%s%%%%'"
+    eventClassWhere = "eventClass like '%s%%%%'"
     DeviceClassWhere = "DeviceClass like '%s%%%%'"
     LocationWhere = "Location like '%s%%%%'"
     SystemWhere = "Systems like '%%%%|%s%%%%'"
@@ -123,7 +123,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceResultFields', 'type':'lines', 'mode':'w'},
         {'id':'ComponentResultFields', 'type':'lines', 'mode':'w'},
-        {'id':'EventClassWhere', 'type':'string', 'mode':'w'},
+        {'id':'eventClassWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},

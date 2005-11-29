@@ -63,7 +63,7 @@ class SyslogProcessingThread(threading.Thread):
             evt = self.buildEventClassKey(evt)
             try:
                 app = self.master.getConnection()
-                evtdict = self.master.getEventClasses(app)
+                evtdict = self.master.getEvents(app)
                 evtrec = evtdict.lookup(evt)
                 if evtrec:
                     evt = evtrec.applyValues(evt)
@@ -161,7 +161,7 @@ class SyslogProcessingThread(threading.Thread):
         syslog events we use the summary of the event to perform a full text
         or'ed search.
         """
-        if hasattr(evt, 'eventClassKey'):
+        if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
             return evt
         elif hasattr(evt, 'ntevid'):
             evt.eventClassKey = "%s_%s" % (evt.component,evt.ntevid)
