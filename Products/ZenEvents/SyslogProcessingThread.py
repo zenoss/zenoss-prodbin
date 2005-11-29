@@ -1,3 +1,4 @@
+import os
 import re
 import threading
 import pprint
@@ -19,7 +20,7 @@ r"%(?P<eventClass>\S+): (?P<summary>.*)",
 r"(?P<component>\S+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
 # unix syslog with pid
-r"(?P<component>\S+)\[(?P<eventKey>\d+)\]: (?P<summary>.*)",
+r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
 
 ) 
 
@@ -52,7 +53,7 @@ class SyslogProcessingThread(threading.Thread):
             evt.ipAddress = self.ipaddress
             evt.device = self.hostname
             slog.debug("hostname=%s, ip=%s", self.hostname, self.ipaddress)
-            evt.originalMessage = self.msg
+            if self.master.options.logorig: evt.originalMessage = self.msg
             slog.debug(self.msg)
 
             evt, msg = self.parsePRI(evt, self.msg) 
@@ -63,21 +64,22 @@ class SyslogProcessingThread(threading.Thread):
             evt = self.buildEventClassKey(evt)
             try:
                 app = self.master.getConnection()
-                evtdict = self.master.getEvents(app)
-                evtrec = evtdict.lookup(evt)
-                if evtrec:
-                    evt = evtrec.applyValues(evt)
-                    device = None
-                    if evtdict.applyDeviceContext:
-                        device = self.master.getDmd().findDevice(evt.device)
-                        evt = self.applyDeviceContext(device, evt)
-                    if getattr(evtdict, "userFunction", False):
-                        zem = self.master.getZem(app)
-                        evt = evtrec.userFunction(device, evt, zem)
+                events = self.getDmdRoot(app, "Events")
+                evtclass = events.lookup(evt)
+                if evtclass:
+                    slog.debug("EventClassInst=%s", evtclass.id)
+                    evt = evtclass.applyExtraction(evt)
+                    evt = evtclass.applyValues(evt)
+                devices = self.getDmdRoot(app,"Devices")
+                device = devices.findDevice(evt.device)
+                if device:
+                    slog.debug("Found device=%s", evt.device)
+                    evt = self.applyDeviceContext(device, evt)
+                if getattr(evtclass, "scUserFunction", False):
+                    slog.debug("Found scUserFunction")
+                    evt = evtclass.scUserFunction(device, evt)
             finally:
                 app._p_jar.close()
-            if not getattr(evt, 'eventClass', False):
-                evt.eventClass = "Syslog"
             self.master.sendEvent(evt)
         except:
             slog.exception("event processing failure: %s", self.hostname)
@@ -172,41 +174,28 @@ class SyslogProcessingThread(threading.Thread):
         else:
             evt.dedupfields = ("device", "component", "eventClass", 
                                "eventKey", "severity", "summary")
+        if hasattr(evt, 'eventClassKey'): 
+            slog.debug("eventClassKey=%s", evt.eventClassKey)
+        else:
+            slog.debug("no eventClassKey assigned")
         return evt
 
 
-    def applyEventClassValues(self, evt, evtdict):
-        """Apply event dict severity and class to event if they exists. 
-        This stage needs to be more generic applying any valid event attributes
-        in the event dictionary record.
-        """
-        if evtdict.severity:
-            evt.severity = severity
-        if evtdict.eventClass:
-            evt.eventClass = evtdict.eventClass
-        return evt
-
-
-    def applyEventClassExtraction(self, evt, evtdict):
-        """
-        Apply the event dict regex to extract additional values from the event.
-        """
-        if not evtdict.regex: return
-        m = re.search(evtdict.regex, evt.summary)
-        if m: evt.updateFromDict(m.groupdict())
-        return evt
-
-
-    def applyDeviceContext(self, device, evt, evtdict):
+    def applyDeviceContext(self, device, evt):
         """
         Apply event attributes from device context.  List of attribute names is
-        looked for in zProperty 'zEventAttributes'. These attributes are 
-        looked up using the key 'zEvent'+attr name (to prevent name clashes). 
+        looked for in zProperty 'zEventProperties'. These attributes are 
+        looked up using the key 'zEvent_'+attr name (to prevent name clashes). 
         Any non-None attribute values are applied to the event.
         """
-        attnames = getattr(device, "zEventAttributes", ())
+        evt.prodState = device.productionState
+        evt.Location = device.getLocationName()
+        evt.DeviceClass  = device.getDeviceClassName()
+        evt.DeviceGroups = "|"+"|".join(device.getDeviceGroupNames())
+        evt.Systems = "|"+"|".join(device.getSystemNames())
+        attnames = getattr(device, "zEventProperties", ())
         for attr in attnames:
-            attkey = "zEvent" + attr
+            attkey = "zEvent_" + attr
             value = getattr(device, attkey, None)
             if value != None:
                 setattr(evt, attr, value)
@@ -222,3 +211,12 @@ class SyslogProcessingThread(threading.Thread):
         """
         # FIXME import the function name and call it.
         pass
+
+
+    def getDmdRoot(self, app, name):
+        """Return our ZenEventManager based on zempath option.
+        """
+        rootpath = os.path.join(self.master.options.dmdpath, name)
+        return app.unrestrictedTraverse(rootpath)
+
+

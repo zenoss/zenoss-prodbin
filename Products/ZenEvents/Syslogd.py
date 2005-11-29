@@ -1,7 +1,9 @@
-import sys, string, time, socket, re, os
+import sys
+import time
+import socket 
+import os
 import logging
 logging.basicConfig()
-
 
 from SocketServer import UDPServer
 
@@ -21,21 +23,20 @@ class Syslogd(UDPServer, ZeoPoolBase):
         ZeoPoolBase.__init__(self)
         self.minpriority = self.options.minpriority
         self._hostmap = {}       # client address/name mapping
-        self.log.info("syslog start")
-        self.statusEvt = Event(device=socket.getfqdn(), 
-                                eventClass="/Status/ZenSyslog", 
-                                summary="syslog collector started",
-                                severity=0, component="syslog")
-        self.heartbeat = Event(device=socket.getfqdn(), component="zensyslog")
         app = self.getConnection()
-        zem = self.getZem(app)
+        zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
+        zem = app.unrestrictedTraverse(zempath)
         self.senderThread = MySqlSendEventThread(zem)
         app._p_jar.close()
         del app, zem
         if not self.options.debug:
             self._evqueue = self.senderThread.getqueue()
             self.senderThread.start()
-        self.sendEvent(self.statusEvt)
+        self.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass="/Application/Start", 
+                        summary="syslog collector started",
+                        severity=0, component="syslog"))
+        self.log.info("started")
         
 
     def sendEvent(self, evt):
@@ -43,18 +44,6 @@ class Syslogd(UDPServer, ZeoPoolBase):
             self.senderThread.sendEvent(evt)
         else:
             self._evqueue.put(evt)
-
-
-    def getZem(self, app):
-        """Return our ZenEventManager based on zempath option.
-        """
-        return app.unrestrictedTraverse(self.options.zempath)
-
-
-    def getEvents(self, app):
-        """Return our ZenEventManager based on zempath option.
-        """
-        return app.unrestrictedTraverse(self.options.eventspath)
 
 
     def process_request(self, request, client_address):
@@ -87,24 +76,26 @@ class Syslogd(UDPServer, ZeoPoolBase):
 
 
     def sigTerm(self, signum, frame):
-        self.running = 0
         if os.path.exists(self.pidfile):
             self.log.info("delete pidfile %s", self.pidfile)
             os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
-        self.statusEvt.summary = "syslog collector stopped"
-        self.sendEvent(self.statusEvt)
         self.senderThread.stop()
+        self.senderThread.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass="/Application/Stop", 
+                        summary="zensyslog collector stopped",
+                        severity=2, component="syslog"))
+        self.running = 0
 
 
     def buildOptions(self):
         ZeoPoolBase.buildOptions(self)
-        self.parser.add_option('--zempath',
-            dest='zempath', default="/zport/dmd/ZenEventManager",
-            help="zope path to our ZenEventManager /zport/dmd/ZenEventManager")
-        self.parser.add_option('--eventstpath',
-            dest='eventspath', default="/zport/dmd/Events",
-            help="zope path to our Events /zport/dmd/Events")
+        self.parser.add_option('--dmdpath',
+            dest='dmdpath', default="/zport/dmd",
+            help="zope path to our dmd /zport/dmd")
+        self.parser.add_option('--logorig',
+            dest='logorig', action="store_true", 
+            help="log the original message")
         self.parser.add_option('--debug',
             dest='debug', action="store_true", 
             help="debug mode no threads")

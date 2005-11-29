@@ -12,10 +12,10 @@
             tal:content="string:${message} ${here/getNowString}" />
     </tr>
     <tr>
-      <td class="tableheader">Class Name</td>
+      <td class="tableheader">Event Class Key</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="className" size="54"
-            tal:attributes="value here/className" />
+        <input class="tablevalues" type="text" name="eventClassKey:string"
+             size="54" tal:attributes="value here/eventClassKey" />
       </td>
     </tr>
     <tr>
@@ -24,7 +24,19 @@
     <tr>
       <td class="tablevalues" colspan="2">
         <textarea class="tablevalues" rows=3 cols=65
+            tal:attributes="style here/testRegexStyle"
             name="regex:text" tal:content="here/regex">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
+    <tr>
+      <td class="tableheader" colspan="2">Example</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            name="example:text" tal:content="here/example">
         </textarea>
       </td>
     </tr>

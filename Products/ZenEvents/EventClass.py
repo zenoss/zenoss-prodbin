@@ -11,9 +11,11 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
+from EventClassInst import EventClassInst, EventClassPropertyMixin
+
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ManagedEntity import ManagedEntity
-from EventClassInst import EventClassInst
+
 
 def manage_addEventClass(context, id="Events", REQUEST=None):
     """make a event class"""
@@ -30,21 +32,20 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
 addEventClass = DTMLFile('dtml/addEventClass',globals())
 
 
-class EventClass(Organizer, ManagedEntity):
+class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     """
     EventClass organizer
     """
 
     isInTree = True
 
-    dmdRootName = "Events"
-
-    meta_type = event_key = "eventClass"
+    event_key = "eventClass"
 
     default_catalog = "eventClassSearch"
 
     zenRelationsBaseModule = "Products.ZenEvents"
 
+    dmdRootName = "Events"
 
     _relations = (
         ("instances", ToManyCont(ToOne,"EventClassInst","eventClass")),
@@ -63,8 +64,8 @@ class EventClass(Organizer, ManagedEntity):
             'immediate_view' : 'eventClassStatus',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
                 , 'action'        : 'eventClassStatus'
                 , 'permissions'   : (
                   Permissions.view, )
@@ -83,7 +84,7 @@ class EventClass(Organizer, ManagedEntity):
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
-                , 'action'        : 'viewDeviceClassConfig'
+                , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'viewHistory'
@@ -107,15 +108,24 @@ class EventClass(Organizer, ManagedEntity):
     
     def lookup(self, evt):
         if not getattr(evt, "eventClassKey", False): return None
-        evtrecs = self.find(evt.eventClassKey)
+        evtcls = self.find(evt.eventClassKey)
         recdict = {}
-        if len(evtrecs) == 1:
-            return evtrec
-        for evtrec in evtrecs:
-            m = evtrec.match(evt.summary)
+        for evtcl in evtcls:
+            m = evtcl.match(evt.summary)
             if m: break
-        return evtrec
+        else:
+            evtcl = None
+        return evtcl
 
+
+    def getInstances(self):
+        """Return all EventClassInstances from this node down.
+        """
+        insts = self.instances()
+        for subclass in self.children():
+            insts.extend(subclass.getInstances())
+        return insts
+        
 
     def createInstance(self, id, REQUEST=None):
         """Add an EventClassInst to this EventClass.
@@ -162,8 +172,7 @@ class EventClass(Organizer, ManagedEntity):
     def buildZProperties(self):
         edict = self.getDmdRoot("Events")
         if getattr(aq_base(edict), "zEventProperties", False): return
-        edict._setProperty("zEventProperties", ["severity"], 
-                            type="lines")
+        edict._setProperty("zEventProperties", [], type="lines")
 
 
     def createCatalog(self):

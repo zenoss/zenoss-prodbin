@@ -1,3 +1,4 @@
+import time
 import types
 import threading
 from Queue import Queue, Empty
@@ -183,14 +184,17 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
 
     def run(self):
         log.info("starting")
-        self.connect()
-        while self.running or not self._evqueue.empty():
+        db = self.connect()
+        while not self._evqueue.empty() or self.running:
             try:
-                evt = self._evqueue.get(True, 2)        
-                self.sendEvent(evt) 
-            except Empty: pass
+                evt = self._evqueue.get()        
+                self.sendEvent(evt, db) 
+            except Empty: time.sleep(1)
             except OperationalError:
-                self.reconnect()
+                db =self.reconnect()
+            except Exception, e: 
+                log.warning(e) 
+        db.close()
         log.info("stopped")
                 
     
@@ -205,8 +209,8 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 db = self.connect()
                 curs = db.cursor()
                 curs.execute("select count(*) from status")
-                db.close()
-                break
+                curs.close()
+                return db
             except MySqlError, e:
                 slog.warn(e)
                 time.sleep(2)

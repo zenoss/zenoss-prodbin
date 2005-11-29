@@ -41,7 +41,8 @@ class CmdBase:
         else:
             logging.basicConfig()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(self.options.logseverity)
+        rlog = logging.getLogger()
+        rlog.setLevel(self.options.logseverity)
 
 
     def setLoggingStream(self, stream):

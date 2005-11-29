@@ -89,7 +89,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     defaultIdentifier = ('device', 'component', 'eventClass', 'severity')
 
-    requiredEventFields = ('device', 'summary', 'eventClass', 'severity')
+    requiredEventFields = ('device', 'summary', 'severity')
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
     

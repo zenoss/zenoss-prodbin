@@ -21,14 +21,22 @@
       <th class="tabletitle" align="left" colspan="2">EventClassInst</th>
     </tr>
     <tr>
-      <td class="tableheader">ClassName</td>
-      <td class="tablevalues" tal:content="here/className">name</td>
+      <td class="tableheader">Event Class Key</td>
+      <td class="tablevalues" tal:content="here/eventClassKey">name</td>
     </tr>
     <tr>
       <td class="tableheader" colspan="2">Regex</td>
     </tr>
     <tr>
-      <td class="tablevalues" colspan="2" tal:content="here/regex">regex</td>
+      <td class="tablevalues" colspan="2" tal:content="here/regex"
+        tal:attributes="style here/testRegexStyle">
+      regex</td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Example</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2" tal:content="here/example">examp</td>
     </tr>
     <tr>
       <td class="tableheader" colspan="2">Explanation</td>

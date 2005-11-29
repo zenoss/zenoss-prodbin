@@ -41,10 +41,11 @@ class ZeoPoolBase(ZenDaemon):
         """
         try:
             self.poollock.acquire()
-            connection=db.open()
+            connection=self.db.open()
             root=connection.root()
             app=root['Application']
             self._getContext(app)
+            app._p_jar.sync()
             return app
         finally:
             self.poollock.release()
