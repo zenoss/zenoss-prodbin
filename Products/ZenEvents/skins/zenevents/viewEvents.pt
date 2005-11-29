@@ -23,6 +23,7 @@
     evcolspan python:len(resultFields)+1;"
     >
     <!--tal:on-error="structure here/eventsError"-->
+    <tal:block metal:define-macro="listbody">
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
     <input type='hidden' name='zenScreenName'
@@ -73,6 +74,7 @@
                 "here/zenTableNavigation/macros/navbodynofilter" />
         </td>
     </tr>
+    </tal:block>
 </table>
 </form>    
 <span tal:replace="structure here/standard_html_footer"/>

@@ -31,11 +31,11 @@ function datePickerClosed(targetInput) {
     orderby here/ZenEventHistory/defaultOrderby;
     resultFields request/ev_resultfields | here/getResultFields;
     tableName string:viewhistoryevents;
-    deftsort python: here.ZenTableManager.getTableState(
-                        tableName,sortedHeader='');
-    startdate python: here.ZenTableManager.setReqTableState(
+    ztm     here/ZenTableManager;
+    deftsort python:ztm.getTableState(tableName,sortedHeader='');
+    startdate python:ztm.setReqTableState(
                     tableName,'startDate', default=here.yesterdayDate());
-    enddate python: here.ZenTableManager.setReqTableState(
+    enddate python:ztm.setReqTableState(
                     tableName,'endDate', default=here.todayDate());
     ">
 <span metal:define-macro="events">
@@ -61,61 +61,13 @@ function datePickerClosed(targetInput) {
 <br>
 <table class="zentable" cellpadding="3" cellspacing="1" 
     tal:define="
-    sevlevel python: here.ZenTableManager.setReqTableState(
+    sevlevel python:ztm.setReqTableState(
                     tableName,'severity', default=0, reset=True);
     objects python:here.getEventHistoryList(severity=sevlevel);
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    batch python:ztm.getBatch(tableName,objects);
     evcolspan python:len(resultFields)+1;"
     >
-    <tr>
-    <td class="tabletitle" colspan=3 tal:attributes="colspan evcolspan">
-        History Events:
-        &nbsp; &nbsp;
-        <input type='hidden' name='tableName' tal:attributes="value tableName">
-        Filter
-        <input class="tableheader" type="text" name="filter" 
-            size=25 onkeypress="submitViaEnter(event)"
-            tal:attributes="value python:here.ZenTableManager.getTableState(
-                                    tableName,'filter')">
-        &nbsp; &nbsp;
-        Severity Filter
-        <select class="tableheader" name="severity:int">
-            <option tal:repeat="sev here/ZenEventHistory/getSeverities"
-                tal:content="python:sev[0]"
-                tal:attributes="value python:sev[1]; 
-                                selected python:sev[1]==sevlevel" />
-        </select>
-        </td>
-    </tr>
-    <tr>
-        <th tal:repeat="headername resultFields"
-            tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,headername,headername,'cmp')">Name
-        </th>
-        <th class=tableheader> </th>
-    </tr>
-    <tr tal:repeat="event batch"
-        tal:attributes="class event/getCssClass">
-        <span tal:repeat="index python: range(event.getfieldcount())">
-        <td tal:content="python: event.getfield(index)">
-            event data 
-        </td>
-        </span>
-        <td>
-            <a href="_"
-                tal:attributes="href python:
-                'javascript:popupwindow(\''+event.getEventDetailHref()
-                +'\',\'ncoeventdetail'+str(event.EventUuid)+'\',450,550)'">
-                * 
-            </a>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" tal:attributes="colspan evcolspan">
-            <span metal:use-macro=
-                "here/zenTableNavigation/macros/navbodynofilter" />
-        </td>
-    </tr>
+    <tal:block metal:use-macro="here/viewEvents/macros/listbody"/>
 </table>
 </span>
 </form>

@@ -15,8 +15,7 @@ def manage_addMySqlEventManager(context, id=None, history=False, REQUEST=None):
     context._setObject(id, evtmgr)
     evtmgr = context._getOb(id)
     if history: 
-        evtmgr.status = "history"
-        evtmgr.defaultOrderby="%s desc" % evtmgr.lastTimeField
+        evtmgr.statusTable = "history"
     evtmgr.installIntoPortal()
     if REQUEST:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')

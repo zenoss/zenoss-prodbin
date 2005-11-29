@@ -80,8 +80,6 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     maintenanceCycle = 10
     maintenanceProcedures = ("close_events", "clean_old_events")
 
-    defaultOrderby = "severity desc, lastTime desc" 
-
     defaultResultFields = ("device", "component", "eventClass", "summary", 
                            "firstTime", "lastTime", "count" )
 
@@ -182,6 +180,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         self.database = database
         self.port = port
         self.defaultWhere = defaultWhere
+
+        self.defaultOrderby="%s desc" % self.lastTimeField
 
         self.severityCount = 0
         self._schema = {}
