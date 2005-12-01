@@ -1,8 +1,8 @@
-<span tal:replace="structure here/standard_html_header"/>
+<html metal:use-macro="here/templates/macros/master">
+<tal:block metal:fill-slot="contentPane">
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<span metal:use-macro="here/top/macros/header" />
 <br>
 <table class="zentable"  cellpadding="3" cellspacing="1"
     metal:define-macro="status">
@@ -118,4 +118,5 @@
 </form>
 <br tal:condition="here/devices/countObjects">
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
-<span tal:replace="structure here/standard_html_footer"/>
+</tal:block>
+</html>

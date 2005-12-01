@@ -1,0 +1,76 @@
+<html metal:define-macro="master">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title tal:content="string:ZenMon: ${here/getId}"/>
+    <link rel="stylesheet" type="text/css" 
+        href="/zport/portal_skins/default_stylesheet" />
+    <link rel="stylesheet" type="text/css"
+        href="/zport/portal_skins/zenevents.css" />
+    <script type="text/javascript" src="/zport/portal_skins/zenmodelfuncs.js">
+    </script>
+    <span metal:define-slot="scripts" tal:omit-tag=""></span>
+  </head>
+<body background="#FFFFFF" metal:define-macro="body">
+<div id="leftPane" metal:define-slot="leftPane">
+   <!-- icon -->
+   <div class="leftItem">
+       <a href="/zport/dmd">
+           <img border="0" src="logo.gif" align="bottom">
+       </a>
+   </div>
+   <br>
+   <hr>   
+   <!-- home -->
+   <div class="leftItem">
+       <a href="/zport/dmd">Dashboard </a>
+   </div>
+
+   <hr>
+           
+    <!-- paths -->
+    <div class="leftGroup">
+    Browse By...
+    </div>      
+    <div class="leftItem">
+    <a href="/zport/dmd/Devices">Devices</a>
+    </div>
+    <div class="leftItem">               
+    <a href="/zport/dmd/Groups">Groups</a>
+    </div>           
+    <div class="leftItem">               
+    <a href="/zport/dmd/Locations">Locations</a>
+    </div>             
+    <div class="leftItem">
+    <a href="/zport/dmd/Systems">Systems</a>
+    </div>
+           
+   <hr>  
+</div>  
+<div id="rigtPane" metal:define-slot="rightPane">
+    <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    <span tal:define="global ztabs python:here.zentinelTabs(template.id);">
+    <div id="middleNavTabs">
+       <table class="zentable" cellpadding="3" cellspacing="1">
+           <tr>
+               <td class="tabletitle" align="center" tal:repeat="tab ztabs"
+                   tal:attributes="
+                       class python:tab.get('selected', None) and 
+                               'tabletitleselected' or 'tabletitle'">
+                   <a 
+                       class="tabletitle"
+                       tal:attributes="href python:
+                           '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
+                       class python:tab.get('selected',None) and 
+                               'tabletitleselected' or 'tabletitle'"
+                       tal:content="tab/name">
+                       TabName
+                   </a>
+               </td>
+           </tr>
+       </table>
+     </div>
+   </span>
+   <div id="contentPane" metal:define-slot="contentPane"/>
+</div>
+</body>
+</html>
