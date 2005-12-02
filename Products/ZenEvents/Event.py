@@ -33,7 +33,6 @@ class Event(object):
     firstTime,
     lastTime,
     count,
-    acknowledged,
     prodState,
     manager,
     agent,
@@ -49,6 +48,9 @@ class Event(object):
         # double presicion values for these two fields.
         #self.firstTime = time.time()
         #self.lastTime = time.time()
+        self._clearClasses = []
+        self._action = "status"
+        self.eventKey = ''
         self.manager = socket.getfqdn()
         if kwargs: self.updateFromDict(kwargs)
 
@@ -69,6 +71,14 @@ class Event(object):
         """
         for key, value in data.items():
             setattr(self, key, value)
+
+
+    def clearClasses(self):
+        """Return a list of classes that this event clears.
+        """
+        clearcls = self._clearClasses
+        if hasattr(self, 'eventClass'): clearcls.append(self.eventClass)
+        return clearcls
 
 
     def initTime(self, timestamp):

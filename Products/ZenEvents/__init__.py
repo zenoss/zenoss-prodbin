@@ -14,7 +14,8 @@ __version__ = "$Revision: 1.8 $"[11:-2]
 
 from Products.CMFCore.DirectoryView import registerDirectory
 
-from MySqlEventManager import MySqlEventManager, manage_addMySqlEventManager
+from MySqlEventManager import MySqlEventManager, addMySqlEventManager, \
+    manage_addMySqlEventManager
 from EventClass import EventClass, addEventClass, \
     manage_addEventClass
 from EventClassInst import EventClassInst, addEventClassInst, \
@@ -31,7 +32,7 @@ zeneventmaintenance = None
 def initialize(registrar):
     registrar.registerClass(
         MySqlEventManager,
-        constructors = (manage_addMySqlEventManager,)
+        constructors = (addMySqlEventManager, manage_addMySqlEventManager,)
         )
     registrar.registerClass(
         EventClass,

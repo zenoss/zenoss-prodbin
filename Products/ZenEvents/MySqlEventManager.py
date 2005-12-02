@@ -1,6 +1,8 @@
 import types
-from AccessControl import ClassSecurityInfo
+
 from Globals import InitializeClass
+from Globals import DTMLFile
+from AccessControl import ClassSecurityInfo
 
 from EventManagerBase import EventManagerBase
 from MySqlSendEvent import MySqlSendEventMixin
@@ -21,6 +23,8 @@ def manage_addMySqlEventManager(context, id=None, history=False, REQUEST=None):
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 
+addMySqlEventManager = DTMLFile('dtml/addMySqlEventManager',globals())
+
 
 class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
@@ -38,7 +42,6 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         select = "select count(*) from %s where " % self.statusTable
         select += where
         if where: select += " and "
-        select += "%s = %%s" % self.severityField
         #print select
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
@@ -46,7 +49,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         curs = db.cursor()
         sevsum = []
         for name, value in self.getSeverities():
-            curs.execute(select, (value,))
+            sevwhere = " %s = %s" % (self.severityField, value)
+            curs.execute(select+sevwhere)
             sevsum.append((self.getEventCssClass(value), curs.fetchone()[0]))
         db.close()
         self.addToCache(select, sevsum)

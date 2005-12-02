@@ -14,6 +14,8 @@ from Event import Event
 from SyslogProcessingThread import SyslogProcessingThread
 from MySqlSendEvent import MySqlSendEventThread
 
+from ZenEventClasses import AppStart, AppStop
+
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
 class Syslogd(UDPServer, ZeoPoolBase):
@@ -33,9 +35,9 @@ class Syslogd(UDPServer, ZeoPoolBase):
             self._evqueue = self.senderThread.getqueue()
             self.senderThread.start()
         self.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass="/Application/Start", 
-                        summary="syslog collector started",
-                        severity=0, component="syslog"))
+                        eventClass=AppStart, 
+                        summary="zensyslog collector started",
+                        severity=0, component="zensyslog"))
         self.log.info("started")
         
 
@@ -82,9 +84,9 @@ class Syslogd(UDPServer, ZeoPoolBase):
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
         self.senderThread.stop()
         self.senderThread.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass="/Application/Stop", 
+                        eventClass=AppStop,
                         summary="zensyslog collector stopped",
-                        severity=2, component="syslog"))
+                        severity=2, component="zensyslog"))
         self.running = 0
 
 

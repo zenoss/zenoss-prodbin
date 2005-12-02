@@ -39,22 +39,22 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
     EventClassInst.
     """
 
-    meta_type = "EventClassInst"
-
-    event_key = "eventClass"
+    event_key = meta_type = "EventClassInst"
 
     default_catalog = "eventClassSearch"
 
     zenRelationsBaseModule = "Products.ZenEvents"
 
-    
+    actions = ("status", "history", "heartbeat", "drop")
+
     _properties = (
         {'id':'eventClassKey', 'type':'string', 'mode':'w'},
+        {'id':'sequence', 'type':'int', 'mode':'w'},
+        {'id':'rule', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'example', 'type':'string', 'mode':'w'},
         {'id':'explanation', 'type':'text', 'mode':'w'},
         {'id':'resolution', 'type':'text', 'mode':'w'},
-        #{'id':'applyDeviceContext', 'type':'boolean', 'mode':'w'},
         )
 
 
@@ -83,7 +83,12 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'eventClassInstEdit'
-                , 'permissions'   : (Permissions.view, )
+                , 'permissions'   : ("Manage DMD", )
+                },
+                { 'id'            : 'sequence'
+                , 'name'          : 'Sequence'
+                , 'action'        : 'eventClassInstSequence'
+                , 'permissions'   : (Permissions.view,)
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
@@ -114,18 +119,21 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
     def __init__(self, id):
         ZenModelRM.__init__(self, id)
         self.eventClassKey = id
+        self.sequence = None
+        self.rule = ""
         self.regex = ""    
         self.example = ""
         self.explanation = ""
         self.resolution = ""
-        #self.applyDeviceContext = False
 
 
     def getStatus(self, **kwargs):
         """Return the status number for this device of class statClass.
         """
+        statkey = self.getEventClass
         return self.getEventManager().getStatusME(self, 
-                                statusclass=self.getEventClass(), **kwargs)
+                                statusclass=self.getEventClass(), 
+                                **kwargs)
 
 
     def getEventClass(self):
@@ -138,9 +146,9 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
         """
         Apply the event dict regex to extract additional values from the event.
         """
-        if not self.regex: return
-        m = re.search(self.regex, evt.summary)
-        if m: evt.updateFromDict(m.groupdict())
+        if self.regex:
+            m = re.search(self.regex, evt.summary)
+            if m: evt.updateFromDict(m.groupdict())
         return evt
 
 
@@ -152,6 +160,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
         Any non-None property values are applied to the event.
         """
         evt.eventClass = self.getEventClass()
+        evt._clearClasses = getattr(self, "zEventClearClasses", [])
+        evt._action = getattr(self, "zEventAction", "status")
         propnames = getattr(self, "zEventProperties", ())
         for prop in propnames:
             propkey = "zEvent_" + prop
@@ -161,21 +171,57 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
         return evt
 
 
-    def match(self, summary):
+    def ruleOrRegex(self, limit=None):
+        """Return the rule if it exists else return the regex.
+        limit limits the number of characters returned.
+        """
+        value = self.rule and self.rule or self.regex
+        if limit: value = value[:limit]
+        return value
+
+
+    def match(self, evt):
         """Match an event summary against our regex.
         """
-        try:
-            return re.search(self.regex, summary)
-        except sre_constants.error: pass
-        return False
+        value = False
+        if self.rule:
+            try:
+                value = eval(self.rule, {'evt':evt})
+            except Exception, e:
+                logging.warn("EventClassInst: %s rule failure: %s",
+                            self.getDmdKey(), e)
+        else:
+            try:
+                value = re.search(self.regex, evt.summary, re.I)
+            except sre_constants.error: pass
+        return value
 
     
     def testRegexStyle(self):
         """Test our regex using the example event string.
         """
-        if self.example and not self.match(self.example):
+        if self.example:
+            try:
+                value = re.search(self.regex, self.example, re.I)
+            except sre_constants.error:
+                return "color:#FF0000;"
+
+
+    def testRuleStyle(self):
+        """Test our rule by compiling it.
+        """
+        try:
+            if self.rule:
+                compile(self.rule, "<string>", "eval")
+        except:
             return "color:#FF0000;"
 
+
+    def sameKey(self):
+        """Return a list of all mappings with the same eventClassKey.
+        """
+        return self.eventClass().find(self.eventClassKey)
+        
 
     security.declareProtected('Manage DMD', 'rename')
     def rename(self, newId, REQUEST=None):
@@ -225,15 +271,32 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
             cat.uncatalog_object(self.id+self.regex)
 
 
+    security.declareProtected('Manage DMD', 'manage_resequence')
+    def manage_resequence(self, seqmap, REQUEST=None):
+        """Reorder the sequence of eventClassMappings with the same key.
+        """
+        # first pass set new sequence
+        for i, map in enumerate(self.sameKey()):
+            map.sequence = seqmap[i]
+        # second pass take out any holes
+        for i, map in enumerate(self.sameKey()):
+            map.sequence = i
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('Manage DMD', 'manage_editEventClassInst')
     def manage_editEventClassInst(self, eventClassKey='',
-                                regex='', example='', explanation='', 
-                                resolution='', REQUEST=None):
+                                regex='', rule='', example='', 
+                                explanation='', resolution='', REQUEST=None):
         """Edit a EventClassInst from a web page.
         """
         self.unindex_object()
+        if self.eventClassKey != eventClassKey:
+            self.sequence = self.eventClass().nextSequenceNumber(eventClassKey)
         self.eventClassKey = eventClassKey
         self.regex = regex
+        self.rule = rule
         self.example = example
         self.explanation = explanation
         self.resolution = resolution

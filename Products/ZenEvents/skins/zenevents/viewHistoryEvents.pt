@@ -1,11 +1,10 @@
 <span tal:replace="structure here/events_html_header"/>
 <span metal:use-macro="here/top/macros/header" />
 <span metal:define-macro="body">
-<script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/zenmodelfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 <script type="text/javascript">
 function datePickerClosed(targetInput) {
     if (targetInput.name == "startDate") {

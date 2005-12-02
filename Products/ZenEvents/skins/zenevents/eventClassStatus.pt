@@ -110,17 +110,21 @@
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
     <tr>
-      <th class="tabletitle" align="left" colspan="3">EventClassInstances</th>
+      <th class="tabletitle" align="left" colspan="4">EventClassInstances</th>
     </tr>
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'primarySortKey','Name')">
-            Name 
+                    tableName,'primarySortKey','Id')">
+            Id 
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'eventClassKey','EventClassKey')">
-            Name 
+            EventClassKey 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'ruleOrRegex','Evaluation')">
+            Evaluation 
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getStatus','Events')">
@@ -135,19 +139,19 @@
             <a tal:attributes="href evinst/getPrimaryUrlPath"
             tal:content="evinst/id">Name</a>
         </td>
-        <td class="tablevalues"
-            tal:content="evinst/eventClassKey"/>
+        <td class="tablevalues" tal:content="evinst/eventClassKey"/>
+        <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
         <td class="tablevalues" tal:content="python:evinst.getStatus()"
             align="center">0</td>
     </tr>
     <tr>
-        <td colspan="3" class="tableheader">
+        <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
     </span>
     <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="3">
+    <td class="tableheader" colspan="4">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
             name="createInstance:method" value=" Add " /> 

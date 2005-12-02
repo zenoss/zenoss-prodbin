@@ -39,13 +39,14 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     isInTree = True
 
-    event_key = "eventClass"
+    meta_type = "ZenModelRM" #FIXME - this is wrong just temp perserving data
+    event_key = "EventClass"
+
+    dmdRootName = "Events"
 
     default_catalog = "eventClassSearch"
 
     zenRelationsBaseModule = "Products.ZenEvents"
-
-    dmdRootName = "Events"
 
     _relations = (
         ("instances", ToManyCont(ToOne,"EventClassInst","eventClass")),
@@ -103,15 +104,19 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     def find(self, query):
         cat = getattr(self, self.default_catalog)
         brains = cat({'eventClassKey': query})
-        return [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
+        insts = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
+        insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
+        return insts
 
     
     def lookup(self, evt):
         if not getattr(evt, "eventClassKey", False): return None
         evtcls = self.find(evt.eventClassKey)
+        if not evtcls: 
+            evtcls = self.find("defaultmapping")
         recdict = {}
         for evtcl in evtcls:
-            m = evtcl.match(evt.summary)
+            m = evtcl.match(evt)
             if m: break
         else:
             evtcl = None
@@ -125,12 +130,23 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         for subclass in self.children():
             insts.extend(subclass.getInstances())
         return insts
-        
+   
+
+    def nextSequenceNumber(self, key):
+        """Get next sequence number for instance.
+        """
+        idx = 0
+        insts = self.find(key)
+        if len(insts) > 0:
+            idx = insts[-1].sequence + 1
+        return idx
+
 
     def createInstance(self, id, REQUEST=None):
         """Add an EventClassInst to this EventClass.
         """
         ecr = EventClassInst(id)
+        ecr.sequence = self.nextSequenceNumber(ecr.eventClassKey)
         self.instances._setObject(id, ecr)
         if REQUEST: return self()
         else: return id 
@@ -173,6 +189,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         edict = self.getDmdRoot("Events")
         if getattr(aq_base(edict), "zEventProperties", False): return
         edict._setProperty("zEventProperties", [], type="lines")
+        edict._setProperty("zEventClearClasses", [], type="lines")
+        edict._setProperty("zEventAction", "status")
 
 
     def createCatalog(self):

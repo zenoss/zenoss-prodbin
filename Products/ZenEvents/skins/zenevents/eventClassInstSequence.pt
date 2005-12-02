@@ -1,0 +1,66 @@
+<span tal:replace="structure here/standard_html_header"/>
+<script metal:use-macro="here/miscmacros/macros/toggle"></script>
+<span metal:use-macro="here/top/macros/header" />
+<br>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="objects here/sameKey;
+        tableName string:eventinstsequence;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                    sortedHeader='sequence');">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr><th class="tabletitle" align="left" colspan="4"
+        tal:content="string:Order of Processing for Key: ${here/eventClassKey}">
+        </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Sequence')">
+            Snmp
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Id')">
+            Id 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getEventClass','EventClass')">
+            EventClass 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'ruleOrRegex','Evaluation')">
+            Evaluation 
+        </th>
+    </tr>
+    <tr tal:repeat="evinst batch">
+        <td class="tablevalues" width="5%">
+            <input tal:condition="here/isManager" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value evinst/sequence"/>
+            <span tal:condition="not:here/isManager" 
+                tal:replace="here/sequence"/>
+        </td>
+        <td class="tablevalues">
+            <a tal:attributes="href evinst/getPrimaryUrlPath"
+            tal:content="evinst/id">Name</a>
+        </td>
+        <td class="tablevalues" tal:define="evclass evinst/eventClass">
+            <a tal:attributes="href evclass/getPrimaryUrlPath"
+            tal:content="evinst/getOrganizerName">Name</a>
+        </td>
+        <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="4">
+        <input type="submit" name="manage_resequence:method" value=" Save "/>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
+</table>
+</form>
+<span tal:replace="structure here/standard_html_footer"/>

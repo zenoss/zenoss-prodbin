@@ -37,7 +37,7 @@ class ZEvent(Event):
         """return the css class name to be used for this event.
         """
         value = self.severity < 0 and "unknown" or self.severity
-        acked = self.acknowledged and "acked" or "noack"
+        acked = self.eventState > 0 and "acked" or "noack"
         return "zenevents_%s_%s" % (value, acked)
 
 

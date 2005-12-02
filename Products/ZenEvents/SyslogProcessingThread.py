@@ -22,6 +22,9 @@ r"(?P<component>\S+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 # unix syslog with pid
 r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
 
+# unix syslog without pid
+r"(?P<component>\S+): (?P<summary>.*)",
+
 ) 
 
 # compile regex parsers on load
@@ -70,6 +73,9 @@ class SyslogProcessingThread(threading.Thread):
                     slog.debug("EventClassInst=%s", evtclass.id)
                     evt = evtclass.applyExtraction(evt)
                     evt = evtclass.applyValues(evt)
+                if evt._action == "drop": 
+                    slog.debug("dropping event")
+                    return
                 devices = self.getDmdRoot(app,"Devices")
                 device = devices.findDevice(evt.device)
                 if device:

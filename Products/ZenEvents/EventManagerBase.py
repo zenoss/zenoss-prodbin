@@ -26,6 +26,7 @@ import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenModel.Organizer import Organizer
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
@@ -65,16 +66,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "component = '%s'"
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
-    eventClassWhere = "eventClass like '%s%%%%'"
-    DeviceClassWhere = "DeviceClass like '%s%%%%'"
-    LocationWhere = "Location like '%s%%%%'"
-    SystemWhere = "Systems like '%%%%|%s%%%%'"
-    DeviceGroupWhere = "DeviceGroups like '%%%%|%s%%%%'"
-
-    eventPopRunning = True
-    eventPopCycle = 11
-    eventPopSelect = \
-        "select device, evid from status where prodState=0"
+    EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
+    EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
+                                me.getEventClass(), me.eventClassKey)""" 
+    DeviceClassWhere = "\"DeviceClass like '%s%%'\" % me.getDmdKey()"
+    LocationWhere = "\"Location like '%s%%'\" % me.getDmdKey()"
+    SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
+    DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
     maintenanceRunning = True
     maintenanceCycle = 10
@@ -83,7 +81,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     defaultResultFields = ("device", "component", "eventClass", "summary", 
                            "firstTime", "lastTime", "count" )
 
-    defaultFields = ('acknowledged', 'severity', 'evid')
+    defaultFields = ('eventState', 'severity', 'evid')
 
     defaultIdentifier = ('device', 'component', 'eventClass', 'severity')
 
@@ -121,13 +119,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceResultFields', 'type':'lines', 'mode':'w'},
         {'id':'ComponentResultFields', 'type':'lines', 'mode':'w'},
-        {'id':'eventClassWhere', 'type':'string', 'mode':'w'},
+        {'id':'EventClassWhere', 'type':'string', 'mode':'w'},
+        {'id':'EventClassInstWhere', 'type':'string', 'mode':'w'},
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
-        {'id':'eventPopRunning', 'type':'boolean', 'mode':'w'},
-        {'id':'eventPopCycle', 'type':'int', 'mode':'w'},
-        {'id':'eventPopSelect', 'type':'string', 'mode':'w'},
         {'id':'maintenanceRunning', 'type':'boolean', 'mode':'w'},
         {'id':'maintenanceCycle', 'type':'int', 'mode':'w'},
         {'id':'maintenanceProcedures', 'type':'lines', 'mode':'w'},
@@ -335,9 +331,33 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         elif me.event_key == "Component":
             return self.getComponentStatus(me.getParentDeviceName(), 
                                       me.getId(), statusclass, **kwargs)
-        return self.getOrganizerStatus(me, statusclass=statusclass, **kwargs) 
+        elif isinstance(me, Organizer):
+            return self.getOrganizerStatus(me, statusclass=statusclass, 
+                                            **kwargs) 
+        else:
+            return self.getGenericStatus(me)
 
 
+    def getGenericStatus(self, me):
+        """Return status based on a where clause defined for the me event_type.
+        No fancy caching done this might be a little slow if there are a lot
+        of events.  Where clause is evaled 
+        """
+        where = self.lookupManagedEntityWhere(me)
+        select = "select count(*) from %s where %s" % (self.statusTable, where)
+        statusCount = self.checkCache(select)
+        if not statusCount:
+            db = self.connect()
+            curs = db.cursor()
+            #print select
+            curs.execute(select)
+            statusCount = curs.fetchone()[0]
+            curs.close()
+            db.close()
+            self.addToCache(select,statusCount)
+        return statusCount 
+    
+    
     def getOrganizerStatus(self,org, statusclass=None, severity=None, where=""):
         """see IEventStatus
         """
@@ -427,15 +447,15 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device+component, 0)
 
 
-    def lookupManagedEntityWhere(self, managedEntity):
+    def lookupManagedEntityWhere(self, me):
         """Lookup and build where clause for managed entity.
         """
-        key = managedEntity.event_key + "Where"
+        key = me.event_key + "Where"
         wheretmpl = getattr(aq_base(self), key, False)
         if not wheretmpl: 
             raise ValueError("no where fround for event_key %s" % 
-                            managedEntity.event_key)
-        return wheretmpl % managedEntity.getDmdKey()
+                            me.event_key)
+        return eval(wheretmpl,{'me':me})
 
 
     def lookupManagedEntityField(self, event_key):

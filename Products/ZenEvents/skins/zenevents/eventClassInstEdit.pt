@@ -19,6 +19,22 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader">Sequence</td>
+      <td class="tablevalues" tal:content="here/sequence">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" colspan="2">Rule</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            tal:attributes="style here/testRuleStyle"
+            name="rule:text" tal:content="here/rule">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader" colspan="2">Regex</td>
     </tr>
     <tr>
@@ -29,7 +45,6 @@
         </textarea>
       </td>
     </tr>
-    <tr>
     <tr>
       <td class="tableheader" colspan="2">Example</td>
     </tr>

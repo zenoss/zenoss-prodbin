@@ -24,6 +24,8 @@ class MySqlSendEventMixin:
             nevt = Event()
             nevt.updateFromDict(event)
             event = nevt
+        #FIXME - ungly hack to make sure severity is an int
+        event.severity = int(event.severity)
 
         for field in self.requiredEventFields:
             if not hasattr(event, field):
@@ -44,15 +46,21 @@ class MySqlSendEventMixin:
             if db == None:  
                 db = self.connect()
                 close = True
-            
             statusdata, detaildata = self.eventDataMaps(event)
-            insert = self.buildStatusInsert(statusdata)
-            log.debug(insert)
             curs = db.cursor()
+            if event.severity == 0:
+                event._action = "history"
+                clearcls = event.clearClasses()
+                if clearcls:
+                    delete = self.buildClearDelete(event, clearcls)
+                    log.debug(delete)
+                    curs.execute(delete)
+            insert = self.buildStatusInsert(statusdata, event._action)
+            log.debug(insert)
             rescount = curs.execute(insert)
             if detaildata and rescount == 1:
-                curs.execute("select evid from status where dedupid = '%s'"% 
-                                    self.escape(event.dedupid))
+                curs.execute("select evid from %s where dedupid = '%s'"% (
+                                event._action, self.escape(event.dedupid)))
                 evid = curs.fetchone()[0]
                 insert = self.buildDetailInsert(evid, detaildata)
                 log.debug(insert)
@@ -64,23 +72,26 @@ class MySqlSendEventMixin:
             log.exception(e)
             
 
-    def buildStatusInsert(self, statusdata):
+    def buildStatusInsert(self, statusdata, table):
         """
         Build an insert statement for the status table that looks like this:
         insert into status set device='box', count=1, ...
             on duplicate key update count=count+1, lastTime=Null;
         """
-        insert = self.buildInsert(statusdata, self.statusTable)
+        insert = self.buildInsert(statusdata, table)
         fields = []
         if not statusdata.has_key(self.firstTimeField):
             fields.append("%s=null" % self.firstTimeField)
         if not statusdata.has_key(self.lastTimeField):
             fields.append("%s=null" % self.lastTimeField)
+        if table == "history":
+            fields.append("deletedTime=null")
         fields.append("evid=uuid()")
         insert += ","+",".join(fields)
-        insert += " on duplicate key update "
-        insert += "%s=%s+1,%s=null" % (self.countField, self.countField, 
-                                        self.lastTimeField)
+        if table == self.statusTable:
+            insert += " on duplicate key update "
+            insert += "%s=%s+1,%s=null" % (self.countField, self.countField, 
+                                            self.lastTimeField)
         return insert
 
 
@@ -109,6 +120,23 @@ class MySqlSendEventMixin:
         return insert
 
 
+    def buildClearDelete(self, evt, clearcls):
+        """Build a delete statement that will clear related events.
+        """
+        delete = "delete from %s where " % self.statusTable
+        w = []
+        w.append("%s='%s'" % (self.deviceField, evt.device))
+        w.append("%s='%s'" % (self.componentField, evt.component))
+        w.append("eventKey='%s'" % evt.eventKey)
+        delete += " and ".join(w)
+        w = []
+        for cls in clearcls:
+            w.append("%s='%s'" % (self.eventClassField, cls)) 
+        if w:
+            delete += " and " + " or ".join(w)
+        return delete
+
+    
     def eventDataMaps(self, event):
         """Return tuple (statusdata, detaildata) for this event.
         """
@@ -149,6 +177,9 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
         "requiredEventFields",
         "defaultIdentifier",
         "statusTable",
+        "deviceField",
+        "componentField",
+        "eventClassField",
         "firstTimeField",
         "lastTimeField",
         "countField",
@@ -193,7 +224,7 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
             except OperationalError:
                 db =self.reconnect()
             except Exception, e: 
-                log.warning(e) 
+                log.exception(e) 
         db.close()
         log.info("stopped")
                 
