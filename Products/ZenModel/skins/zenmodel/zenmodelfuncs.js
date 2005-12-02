@@ -33,3 +33,26 @@ function popupwindow(url, title, width, height) {
         + ",resizable=yes,scrollbars=yes";
     mywindow = window.open(url, title, windowprops);
 }
+
+isSelected = false;
+
+function toggleSelect(form) {
+    if (isSelected == false) {
+        for (i = 0; i < form.length; i++) {
+            if (form.elements[i].name == "negateFilter") { continue }
+            form.elements[i].checked = true ;
+        }
+        isSelected = true;
+        form.SelectButton.value = "Deselect All";
+        return isSelected;
+    }
+    else {
+        for (i = 0; i < form.length; i++) {
+            if (form.elements[i].name == "negateFilter") { continue }
+            form.elements[i].checked = false ;
+        }
+        isSelected = false;
+        form.SelectButton.value = "Select All";
+        return isSelected;       
+    }
+}

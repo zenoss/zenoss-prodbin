@@ -4,9 +4,11 @@
 <dtml-with stylesheet_properties>
 body {
     background-color: &dtml-bg_color;;
+    background-color: #FFFFFF;
     color: &dtml-base_font_color;;
     font-family:  &dtml-primary_font_family;;
     font-size:  &dtml-base_font_size;;
+	
 }
 
 form {
@@ -23,6 +25,92 @@ table.zentable {
     font-weight: normal; 
 }
 
+<dtml-comment>Stuff for Page Layout Templates</dtml-comment>
+#frame
+{
+	margin: 20px 20px 20px 20px;
+	/*
+	margin: 0 auto;
+	width: 800px;
+	height: 300px;
+	*/
+	position: relative;
+	border: 2px solid black;
+	
+	
+}
+#header{
+	background-color: #000000;
+	color: white;
+	padding: 10px;
+}
+#footer
+{
+	clear: both;
+	background-color: black;
+	padding: 10px;
+	
+	/*
+	bottom: 400;
+	position: absolute;
+	*/
+}
+#leftPane {
+	float: left;
+	
+	left: 0;
+	width: 190px;
+	padding-left: 10px;
+	padding-top: 1em;
+	height: 500px;
+	/*
+	position: absolute;
+	border-right: 1px solid black;
+	*/
+	
+}
+#rightPane
+{
+	float: left;
+	left: 210px;
+	position: absolute;
+	margin: 0px;
+	border: 2px solid green;
+	height: 70%;
+	height: 510px;
+	/*
+	width: 70%;
+	
+	*/
+}
+#breadCrumbPane
+{
+	padding: 1em;
+	float: left;
+	border: 2px solid black;
+	width: 92%;
+}
+#tabsPane
+{
+	padding: 1em;
+    clear: both;
+    /*
+	float: left;
+    */
+	border: 2px solid red;
+	width: 92%;
+}
+#contentPane
+{
+	padding: 1em;
+	float: left;
+	border: 2px solid orange;
+	width: 92%;
+	height: 60%;
+}
+
+
+<dtml-comment>Anchors, etc..</dtml-comment>
 a:link {
     color: &dtml-link_color;;
 }

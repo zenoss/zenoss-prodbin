@@ -1,15 +1,73 @@
-<html>
-  <head>
-    <meta name="generator" content="HTML Tidy, see www.w3.org">
-    <title>
-      Zentinel Monitoring System
-    </title>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  </head>
-    <frameset framespacing="0" cols="169,*" border="4" rows="*" frameborder=
-    "yes">
-      <frame marginheight="0" src="/zport/dmd/dmdLeft" scrolling="automatic" 
-          marginwidth="0" name="leftFrame">
-      <frame marginheight="0" src="/zport/dmd/dmdHome" marginwidth="0" name="rightFrame">
-    </frameset>
+<html metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+	<table class="zentable" cellpadding="3" cellspacing="1">
+		<tr>
+		  <th class="tabletitlel" colspan="5">Systems</th>
+		</tr>
+		<tr>
+			<th class="tableheader">Name</th>
+			<th class="tableheader">Devices</th>
+			<th class="tableheader">Events</th>
+			<th class="tableheader">Ping</th>
+			<th class="tableheader">Snmp</th>
+		</tr>
+		<tr tal:repeat="system python:here.getDmdRoot('Systems').children()">
+			<td class="tablevalues">
+				<a tal:attributes="href system/getPrimaryUrlPath"
+					tal:content="system/getId">System</a>
+			</td>
+			<td class="tablevalues" align="center" 
+				tal:content="system/countDevices"/>
+			<td class="tablevalues" align="left">
+			<table class="zentable" border=0 cellpadding=0 cellspacing=1
+				metal:define-macro="eventrainbow"
+				tal:on-error="structure string:
+					<span class='errorvalues'>Events unavailable</span>">
+				<tr>
+					<td align=center width=16%
+					tal:repeat="evt system/getEventSummary"
+					tal:attributes="class python:evt[0]">
+						<span tal:replace="python:evt[1]">evtcnt</span>
+					</td>
+			  </tr>
+			</table>
+			</td>
+			<td align="center"
+				tal:define="pstatus python:system.getStatus('PingStatus')"
+				tal:attributes="class python:system.getStatusCssClass(pstatus)"
+				tal:content="pstatus">0
+			</td>
+			<td align="center"
+				tal:define="sstatus python:system.getStatus('SnmpStatus')"
+				tal:attributes="class python:system.getStatusCssClass(sstatus)"
+				tal:content="sstatus">0
+			</td>
+		</tr>
+	</table>
+    
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+	<table border="0" cellpadding="3" width="100%" cellspacing="1">
+		<tr>
+		  <th class="tabletitlel" colspan="5">Devices</th>
+		</tr>
+		<tr>
+			<th class="tableheader">Class</th>
+			<th class="tableheader">Sub Classes</th>
+			<th class="tableheader">Device Count</th>
+		</tr>
+		<tr tal:repeat="dev python:here.getDmdRoot('Devices').children()">
+			<td class="tablevalues">
+				<a tal:attributes="href dev/getPrimaryUrlPath"
+					tal:content="dev/getId">System</a>
+			</td>
+			<td class="tablevalues" align="center" tal:content="dev/countChildren"/>
+			<td class="tablevalues" align="center" tal:content="dev/countDevices"/>
+		</tr>
+	</table>
+
+</tal:block>
 </html>

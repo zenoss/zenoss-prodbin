@@ -1,122 +1,129 @@
-<html metal:use-macro="here/templates/macros/master">
+<html metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="contentPane">
-<script metal:use-macro="here/miscmacros/macros/toggle"></script>
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<br>
-<table class="zentable"  cellpadding="3" cellspacing="1"
-    metal:define-macro="status">
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">Status</th>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Events</td>
-      <td class="tablevalues" align="left">
-        <table metal:use-macro="here/deviceMacros/macros/eventrainbow" />
-      </td>
-      <th class="tableheader" align="left">Sub Count</th>
-      <td class="tablevalues" tal:content="here/countChildren">100</td>
-      <th class="tableheader" align="left">Device Count</th>
-      <td class="tablevalues" tal:content="here/countDevices">100</td>
-    </tr>
-</table>
-<br />
-<form method="post" tal:attributes="action here/absolute_url_path">
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/children;
-        tableName string:children;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
-    <tr>
-      <th class=tabletitle align=left colspan="6"
-        tal:content="string:Sub-${here/dmdRootName}">
-        SubLocations
-      </th>
-    </tr>
-    <span tal:condition="objects" tal:omit-tag="">
-    <tr>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'primarySortKey','Name')">
-            Name 
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'countChildren','Subs')">
-            Subs
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'countDevices','Devices')">
-            Devices
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'omniEventCount','Events')">
-            Snmp
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'omniPingStatus','Ping')">
-            Ping
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'omniSnmpStatus','Snmp')">
-            Snmp
-        </th>
-    </tr>
-    <tr tal:repeat="devorg batch">
-        <td class="tablevalues" align="left" width="50%">
-            <input tal:condition="here/isManager" 
-                type="checkbox" name="organizerPaths:list" 
-                tal:attributes="value devorg/getId"/>
-            <a href="_" 
-            tal:attributes="href devorg/getPrimaryUrlPath"
-            tal:content="devorg/id">Name</a>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+    <!-- Status Table -->
+    <table class="zentable"  cellpadding="3" cellspacing="1"
+        metal:define-macro="status">
+        <tr>
+          <th class="tabletitle" align="left" colspan="6">Status</th>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Events</td>
+          <td class="tablevalues" align="left">
+            <table metal:use-macro="here/deviceMacros/macros/eventrainbow" />
+          </td>
+          <th class="tableheader" align="left">Sub Count</th>
+          <td class="tablevalues" tal:content="here/countChildren">100</td>
+          <th class="tableheader" align="left">Device Count</th>
+          <td class="tablevalues" tal:content="here/countDevices">100</td>
+        </tr>
+    </table>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+    <!-- Sub-Devices Table -->
+    <form method="post" tal:attributes="action here/absolute_url_path">
+    <table class="zentable" cellpadding="3" cellspacing="1"
+            tal:define="objects here/children;
+            tableName string:children;
+            batch python:here.ZenTableManager.getBatch(tableName,objects);">
+        <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <input type="hidden" name="zenScreenName" 
+                tal:attributes="value template/id"/>
+        <tr>
+          <th class=tabletitle align=left colspan="6"
+            tal:content="string:Sub-${here/dmdRootName}">
+            SubLocations
+          </th>
+        </tr>
+        <span tal:condition="objects" tal:omit-tag="">
+        <tr>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'primarySortKey','Name')">
+                Name 
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'countChildren','Subs')">
+                Subs
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'countDevices','Devices')">
+                Devices
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'omniEventCount','Events')">
+                Snmp
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'omniPingStatus','Ping')">
+                Ping
+            </th>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'omniSnmpStatus','Snmp')">
+                Snmp
+            </th>
+        </tr>
+        <tr tal:repeat="devorg batch">
+            <td class="tablevalues" align="left" width="50%">
+                <input tal:condition="here/isManager" 
+                    type="checkbox" name="organizerPaths:list" 
+                    tal:attributes="value devorg/getId"/>
+                <a href="_" 
+                tal:attributes="href devorg/getPrimaryUrlPath"
+                tal:content="devorg/id">Name</a>
+            </td>
+            <td class="tablevalues" align=center 
+                tal:content="devorg/countChildren"/>
+            <td class="tablevalues" align=center tal:content="devorg/countDevices"/>
+            <td class="tablevalues" tal:content="python:devorg.getStatus()"
+                align="center">0</td>
+            <td tal:define="status python:devorg.getStatus('PingStatus')"
+                tal:attributes="class python:here.getStatusCssClass(status)"
+                tal:content="status" align="center">0</td>
+            <td tal:define="status python:devorg.getStatus('SnmpStatus')"
+                tal:attributes="class python:here.getStatusCssClass(status)"
+                tal:content="status" align="center">0</td>
+        </tr>
+        <tr>
+            <td colspan="6" class="tableheader">
+                <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+            </td>
+        </tr>
+        </span>
+        <tr tal:condition="here/isManager">
+        <td class="tableheader" colspan="6">
+        <span metal:define-macro="editor" tal:omit-tag="">
+            <input class="tableheader" type="text" name="newPath"/>
+            <input class="tableheader" type="submit" 
+                name="manage_addOrganizer:method" value=" Add " /> 
+            |
+            <input class="tableheader" type="submit" name="moveOrganizer:method"
+                    value="Move To" />
+            <select class="tableheader" name="moveTarget"
+            tal:define="targets here/childMoveTargets">
+                <option value=""></option>
+                <option tal:repeat="target targets" 
+                    tal:content="target">/Server/Linux</option>
+            </select> 
+            |
+            <input class="tableheader" type="submit" 
+                name="manage_deleteOrganizers:method" value=" Delete " />
+            |
+            <input class="tableheader" type="submit"
+                    name="SelectButton" value="Select All" 
+                    onClick="toggleSelect(this.form);return false"/>
+        </span>
         </td>
-        <td class="tablevalues" align=center 
-            tal:content="devorg/countChildren"/>
-        <td class="tablevalues" align=center tal:content="devorg/countDevices"/>
-        <td class="tablevalues" tal:content="python:devorg.getStatus()"
-            align="center">0</td>
-        <td tal:define="status python:devorg.getStatus('PingStatus')"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="status" align="center">0</td>
-        <td tal:define="status python:devorg.getStatus('SnmpStatus')"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="status" align="center">0</td>
-    </tr>
-    <tr>
-        <td colspan="6" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
-        </td>
-    </tr>
-    </span>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="6">
-    <span metal:define-macro="editor" tal:omit-tag="">
-        <input class="tableheader" type="text" name="newPath"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addOrganizer:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" name="moveOrganizer:method"
-                value="Move To" />
-        <select class="tableheader" name="moveTarget"
-        tal:define="targets here/childMoveTargets">
-            <option value=""></option>
-            <option tal:repeat="target targets" 
-                tal:content="target">/Server/Linux</option>
-        </select> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteOrganizers:method" value=" Delete " />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-    </span>
-    </td>
-    </tr>
-</table>
-</form>
-<br tal:condition="here/devices/countObjects">
-<table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+        </tr>
+    </table>
+    </form>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+    <br tal:condition="here/devices/countObjects">
+    <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+
 </tal:block>
 </html>

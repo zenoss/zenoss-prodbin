@@ -1,76 +1,118 @@
-<html metal:define-macro="master">
-  <head>
+<!-- ======================================================
+    Page1 - page template that includes breadCrumbs and tabs
+ ====================================================== -->
+<html metal:define-macro="page1">
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body>
+	   <div id="frame">
+			<div id="header"></div>
+            <div metal:use-macro="here/templates/macros/leftPane"/>
+	        <div id="rightPane">
+                <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+                <div metal:use-macro="here/templates/macros/tabsPane"/>
+                <div id="contentPane">
+                    <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+                    </tal:block>
+                </div>
+            </div>
+			<div id="footer"></div>
+       </div>
+    </body>
+</html>
+
+<!-- ======================================================
+    Page2 - page template that just has a content area
+ ====================================================== -->
+<html metal:define-macro="page2">
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body>
+	   <div id="frame">
+			<div id="header"></div>
+            <div metal:use-macro="here/templates/macros/leftPane"/>
+	        <div id="rightPane">
+                <div id="contentPane">
+                    <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+                    </tal:block>
+                </div>
+            </div>
+			<div id="footer"></div>
+       </div>
+    </body>
+</html>
+
+<!-- ======================================================
+    Supporting macros
+ ====================================================== -->
+<!-- head1 -->
+<head metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:ZenMon: ${here/getId}"/>
-    <link rel="stylesheet" type="text/css" 
-        href="/zport/portal_skins/default_stylesheet" />
-    <link rel="stylesheet" type="text/css"
-        href="/zport/portal_skins/zenevents.css" />
-    <script type="text/javascript" src="/zport/portal_skins/zenmodelfuncs.js">
-    </script>
-    <span metal:define-slot="scripts" tal:omit-tag=""></span>
-  </head>
-<body background="#FFFFFF" metal:define-macro="body">
-<div id="leftPane" metal:define-slot="leftPane">
-   <!-- icon -->
-   <div class="leftItem">
-       <a href="/zport/dmd">
-           <img border="0" src="logo.gif" align="bottom">
-       </a>
-   </div>
-   <br>
-   <hr>   
-   <!-- home -->
-   <div class="leftItem">
-       <a href="/zport/dmd">Dashboard </a>
-   </div>
 
-   <hr>
-           
-    <!-- paths -->
-    <div class="leftGroup">
-    Browse By...
-    </div>      
-    <div class="leftItem">
-    <a href="/zport/dmd/Devices">Devices</a>
+    <style type="text/css">
+        @import url("/zport/portal_skins/default_stylesheet");
+        @import url("/zport/portal_skins/zenevents.css");
+    </style>
+
+    <!--
+    <style type="text/css" tal:content="here/default_stylesheet">
+    </style>
+    <style type="text/css" tal:content="here/zenevents.css">
+    </style>
+        -->
+    
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodelfuncs.js"></script>
+
+    <script metal:use-macro="here/miscmacros/macros/toggle"></script>
+    
+    <span metal:define-slot="scripts" tal:omit-tag=""></span>
+</head>
+
+<!-- leftPane -->
+<div id="leftPane" metal:define-macro="leftPane">
+    <div class="leftItem"> 
+        <a href="/zport/dmd"><img border="0" src="logo.gif"></a>
     </div>
-    <div class="leftItem">               
-    <a href="/zport/dmd/Groups">Groups</a>
-    </div>           
-    <div class="leftItem">               
-    <a href="/zport/dmd/Locations">Locations</a>
-    </div>             
-    <div class="leftItem">
-    <a href="/zport/dmd/Systems">Systems</a>
-    </div>
-           
-   <hr>  
-</div>  
-<div id="rigtPane" metal:define-slot="rightPane">
-    <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
-    <span tal:define="global ztabs python:here.zentinelTabs(template.id);">
-    <div id="middleNavTabs">
-       <table class="zentable" cellpadding="3" cellspacing="1">
-           <tr>
-               <td class="tabletitle" align="center" tal:repeat="tab ztabs"
-                   tal:attributes="
-                       class python:tab.get('selected', None) and 
-                               'tabletitleselected' or 'tabletitle'">
-                   <a 
-                       class="tabletitle"
-                       tal:attributes="href python:
-                           '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
-                       class python:tab.get('selected',None) and 
-                               'tabletitleselected' or 'tabletitle'"
-                       tal:content="tab/name">
-                       TabName
-                   </a>
-               </td>
-           </tr>
-       </table>
-     </div>
-   </span>
-   <div id="contentPane" metal:define-slot="contentPane"/>
+    <hr>   
+    <div class="leftItem"><a href="/zport/dmd">Dashboard </a></div>
+    <hr>
+    <div class="leftGroup"> Browse By... </div>      
+    <div class="leftItem"><a href="/zport/dmd/Devices">Devices</a></div>
+    <div class="leftItem"><a href="/zport/dmd/Groups">Groups</a></div>           
+    <div class="leftItem"><a href="/zport/dmd/Locations">Locations</a></div>             
+    <div class="leftItem"><a href="/zport/dmd/Systems">Systems</a></div>
 </div>
-</body>
-</html>
+
+<!-- BreadCrumbsPane -->
+<div id="breadCrumbPane" metal:define-macro="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+</div>
+
+<!-- tabsPane -->
+<div id="tabsPane" metal:define-macro="tabsPane">
+   <span tal:define="global ztabs python:here.zentinelTabs(template.id);">
+   <table class="zentable" cellpadding="3" cellspacing="1">
+       <tr>
+           <td class="tabletitle" align="center" tal:repeat="tab ztabs"
+               tal:attributes="
+                   class python:tab.get('selected', None) and 'tabletitleselected' or 'tabletitle'">
+               <a 
+                   class="tabletitle"
+                   tal:attributes="href python:
+                       '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
+                   class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
+                   tal:content="tab/name">
+                   TabName
+               </a>
+           </td>
+       </tr>
+   </table>
+   </span>
+</div>
+
+<!-- contentSeparator -->
+<tal:block metal:define-macro="contentSeparator">
+    <br/>
+</tal:block>
