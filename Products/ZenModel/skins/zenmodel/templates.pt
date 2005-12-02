@@ -72,17 +72,53 @@
 
 <!-- leftPane -->
 <div id="leftPane" metal:define-macro="leftPane">
-    <div class="leftItem"> 
-        <a href="/zport/dmd"><img border="0" src="logo.gif"></a>
-    </div>
-    <hr>   
-    <div class="leftItem"><a href="/zport/dmd">Dashboard </a></div>
-    <hr>
-    <div class="leftGroup"> Browse By... </div>      
-    <div class="leftItem"><a href="/zport/dmd/Devices">Devices</a></div>
-    <div class="leftItem"><a href="/zport/dmd/Groups">Groups</a></div>           
-    <div class="leftItem"><a href="/zport/dmd/Locations">Locations</a></div>             
-    <div class="leftItem"><a href="/zport/dmd/Systems">Systems</a></div>
+    <!-- TODO: complete the thought here... -->
+
+    <div style="padding-left: 8px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid black;
+            ">
+        <a href="/zport/dmd">
+            <img border="0" src="logo.gif" align="center">
+        </a>
+   </div>
+
+    <ul style="padding-top: 15px">
+        <li style="padding-left: 0px;"><a href="/zport/dmd">Dashboard</a></li>
+    </ul>
+
+
+    <p>Browse</p>
+    <ul>
+        <li><a href="/zport/dmd/Devices">Devices</a></li>
+        <li><a href="/zport/dmd/Events">Events</a></li>
+        <li><a href="/zport/dmd/Locations">Locations</a></li>
+        <li><a href="/zport/dmd/Systems">Systems</a></li>
+        <li><a href="/zport/dmd/Networks">Networks</a></li>
+        <li><a href="/zport/dmd/Companies">Vendors</a></li>
+        <li><a href="/zport/dmd/Groups">Custom Views</a></li>
+    </ul>
+
+    <p>Device Search</p>
+    <ul style="padding-left: 10px">
+        <form action="/zport/dmd/deviceSearchResults" METHOD="POST">
+             <input type="text" name="query" size="19">
+        </form>
+    </ul>
+
+    <p>Management</p>
+    <ul>
+        <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
+        <li><a href="/zport/dmd/Reports">Reports</a></li>
+        <li><a href="/zport/dmd/acl_users/manageUserFolder">Users</a></li>
+        <li><a href="/zport/dmd/ZenClassifier">Classifications</a></li>
+    </ul>
+
+    <p>Help</p>
+    <ul>
+        <li><a href="/zport/dmd/helpLink">ZenMon</a></li>
+    </ul>
+
 </div>
 
 <!-- BreadCrumbsPane -->
