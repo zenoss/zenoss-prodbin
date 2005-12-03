@@ -1,7 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
-<script metal:use-macro="here/miscmacros/macros/toggle" />
-<span metal:use-macro="here/top/macros/header" />
-<br>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <table border="0" cellpadding="3" width="100%" align="center" bgcolor=
 "#ffffff" cellspacing="1">
     <tr>
@@ -30,8 +29,7 @@
       </th>
       <td class="tablevalues" colspan="1"
         tal:content="python: here.countIpAddresses()">
-            IPs
-      </td>
+            IPs </td>
       <th class="tableheader" align="left">
         Description
       </th>
@@ -40,7 +38,9 @@
       </td>
     </tr>
 </table>
-<br>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <form method="post" tal:attributes="action here/absolute_url_path">
 <table border="0" cellpadding="3" width="100%"
     align="center" bgcolor="#ffffff" cellspacing="1"
@@ -96,7 +96,9 @@
     </td>
   </tr>
 </table>
-<br>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <table border="0" cellpadding="3" width="100%"
     align="center" bgcolor="#ffffff" cellspacing="1"
     tal:define="objects here/ipaddresses/objectValuesAll;
@@ -166,4 +168,6 @@
   </tr>
 </table>
 </form>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

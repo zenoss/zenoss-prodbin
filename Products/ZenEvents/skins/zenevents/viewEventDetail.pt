@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <tal:block
     tal:define="tableName string:eventdetail;
     evid request/evid;
@@ -21,4 +23,6 @@
     </tr>
 </table>
 </tal:block>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

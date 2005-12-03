@@ -5,6 +5,8 @@
         tal:content="python: crumbinfo[1]">link</a>
 </span>
 
+<!-- Not sure what this is??? (BK) -->
+<!--
 <tr><th class=tabletitle align=left 
         tal:attributes="colspan colspan | python:5"
         metal:define-macro="reportBreadCrumbs">
@@ -15,6 +17,8 @@
             tal:content="python: crumbinfo[1]">link</a>
     </span>
 </th></tr>
+-->
+<!-- -->
 
 <form metal:define-macro="navtool" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL"

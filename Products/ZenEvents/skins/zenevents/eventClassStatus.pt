@@ -1,9 +1,9 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<span metal:use-macro="here/top/macros/header" />
-<br>
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="6">Status</th>
@@ -19,7 +19,9 @@
       <td class="tablevalues" tal:content="here/countInstances">100</td>
     </tr>
 </table>
-<br />
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <form method="post" tal:attributes="action here/absolute_url_path">
 <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="objects here/children;
@@ -100,7 +102,9 @@
     </tr>
 </table>
 </form>
-<br/>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <form method="post" tal:attributes="action here/absolute_url_path">
 <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="objects here/instances;
@@ -175,4 +179,6 @@
     </tr>
 </table>
 </form>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

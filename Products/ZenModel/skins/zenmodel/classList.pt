@@ -1,14 +1,17 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:comment replace="nothing">
+<!-- ========================================================
+    used for listing various classes
+ ======================================================== -->
+</tal:comment>
+
+<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
 <table border="0" cellpadding="3" width="100%" align="center"
     bgcolor="#ffffff" cellspacing="1"
     tal:define="objects python:here.objectSubValues();
     tableName string:classlist;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">
-        <span metal:use-macro="here/miscmacros/macros/breadCrumbs"/>
-      </th>
-    </tr>
     <tr tal:condition="batch">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp',
@@ -62,4 +65,6 @@
         </td>
     </tr>
 </table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

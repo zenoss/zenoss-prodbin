@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header" />
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <form action="/zport/dmd/Devices" method="post">
     <table border="0" cellpadding="3" width="100%" 
         align="left" bgcolor="#ffffff" cellspacing="1">
@@ -47,4 +49,6 @@
     </table>
 </form>
 
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

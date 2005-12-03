@@ -1,7 +1,5 @@
-<html metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="contentPane">
-
-    <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 	<table class="zentable" cellpadding="3" cellspacing="1">
 		<tr>
@@ -70,4 +68,4 @@
 	</table>
 
 </tal:block>
-</html>
+</tal:block>

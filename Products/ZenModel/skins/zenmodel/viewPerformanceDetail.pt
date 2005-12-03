@@ -1,6 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
-<span metal:use-macro="here/top/macros/header" />
-<br/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <table metal:define-macro="objectperf" 
     border=0 cellpadding=3 width=100% 
     align="center" bgcolor="#ffffff" cellspacing=1
@@ -34,5 +34,6 @@
         </tr>
     </span>
 </table>
-<span metal:use-macro="here/top/macros/buttons" />
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header" />
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <form tal:attributes="action here/absolute_url" action="_" method="post">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -54,4 +56,6 @@
     </table>
 </form>
 
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

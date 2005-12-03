@@ -1,5 +1,6 @@
-<span tal:replace="structure here/events_html_header"/>
-<span metal:use-macro="here/top/macros/header" />
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <span metal:define-macro="body">
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/zenmodelfuncs.js"></script>
@@ -23,7 +24,9 @@ function datePickerClosed(targetInput) {
     return true;
 };
 </script>
-<br>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <form method="post" tal:attributes="action request/URL"
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
@@ -57,7 +60,9 @@ function datePickerClosed(targetInput) {
     </td>
     </tr>
 </table>
-<br>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1" 
     tal:define="
     sevlevel python:ztm.setReqTableState(
@@ -71,4 +76,6 @@ function datePickerClosed(targetInput) {
 </span>
 </form>
 </span>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

@@ -1,7 +1,12 @@
-<html metal:use-macro="here/templates/macros/page1">
-<tal:block metal:fill-slot="contentPane">
+<tal:comment replace="nothing">
+<!-- ========================================================
+    This page is used as the default view for Devices
+    and Device collections (e.g. Locations, Groups, etc).
+ ======================================================== -->
+</tal:comment>
 
-    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
 
     <!-- Status Table -->
     <table class="zentable"  cellpadding="3" cellspacing="1"
@@ -122,8 +127,11 @@
 
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
+    <!--
     <br tal:condition="here/devices/countObjects">
+    -->
+
     <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
 
 </tal:block>
-</html>
+</tal:block>

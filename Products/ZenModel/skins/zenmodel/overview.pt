@@ -1,6 +1,10 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
 
 
 
 
-<span tal:replace="structure here/standard_html_footer"/>
+
+
+</tal:block>
+</tal:block>

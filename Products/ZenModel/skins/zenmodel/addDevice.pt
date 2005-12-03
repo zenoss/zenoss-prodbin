@@ -1,282 +1,297 @@
-<span tal:replace="structure here/standard_html_header" />
-<script metal:use-macro="here/miscmacros/macros/getProducts"></script>
-<form tal:define="myurl string:/zport/dmd/DeviceLoader" 
-    action="/zport/dmd/DeviceLoader" method="post">
-    <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
-<table border="0" cellpadding="3" width="100%" 
-    align="left" bgcolor="#ffffff" cellspacing="1"
-    tal:define="device python: here.meta_type != 'DeviceLoader' 
-                                    and here or None"
-    >
-    <tr><th class=tabletitle colspan=4 align="center">
-            <a class=tabletitle
-                tal:attributes="
-                    href string:${here/absolute_url_path}/${template/id}">
-                    Device Loader
-            </a>
-        </th>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Device Name</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" size="25" name="deviceName"
-                tal:attributes="value device/getDeviceName | 
-                                    request/deviceName | nothing"/>
-        </td>
-        <td class="tableheader" align="left">Device Class Path</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="devicePath"
-            tal:define="
-            dcs python:here.getDmdRoot('Devices').getOrganizerNames(True);
-            curdc device/getDeviceClassPath | request/devicePath | nothing"
-            >
-                <option tal:repeat="dc dcs" tal:content="dc" 
-                    tal:attributes="value dc; selected python:dc==curdc">
-                    /Server/Linux</option>
-            </select>
-        </td>
-    </tr>
-    <span metal:define-macro="body" tal:omit-tag="">
-    <tr><th class=tabletitle colspan=4 align="left">Attributes</th></tr>
-    <tr>
-        <td class="tableheader" align="left">Snmp Community</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="snmpCommunity"
-                tal:attributes="value request/snmpCommunity | 
-                        devices/zSnmpCommunity | string:"/>
-        </td>
-        <td class="tableheader" align="left">Snmp Port</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="snmpPort:int" 
-                tal:attributes="value request/snmpPort | 
-                        devices/zSnmpPort | python:161"/>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Tag Number</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" name="tag" size="25" 
-                tal:attributes="value device/tag | request/tag | nothing"/>
-                                    
-        </td>
-        <td class="tableheader" align="left">Serial Number</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                name="serialNumber" size="25" 
-                tal:attributes="value device/serialNumber | 
-                        request/serialNumber | nothing"/>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Rack Slot</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="rackSlot:int"
-                tal:attributes="value device/rackSlot | 
-                        request/rackSlot | python:0"/>
-        </td>
-        <td class="tableheader" align="left">Production State</td>
-        <td class="tablevalues" align="left">
-            <select class="tablevalues" name="productionState:int"
-            tal:define="
-            pstates here/getProdStateConversions;
-            curstate device/productionState | 
-                    request/productionState | python:1000"
-            >
-                <option tal:repeat="pstate pstates" 
-                    tal:attributes="value python:pstate[1]; 
-                        selected python:curstate == pstate[1]"
-                    tal:content="python:pstate[0]">localhost</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Comments</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <textarea class="tablevalues" rows=3 cols=60
-                name="comments:text"
-                tal:content="device/comments | request/comments | nothing">
-            </textarea>
-        </td>
-    </tr>
-    <tr><th class=tabletitle colspan=4 align="left">Relations</th></tr>
-    <tr>
-        <td class="tableheader" align="left">Manufacturer</td>
-        <td class="tablevalues" align="left" >
-            <select class="tablevalues" name="manufacturer"
-            tal:define="
-            comps python:here.getDmdRoot('Companies').getCompanyNames();
-            curman request/manufacturer | device/getManufacturerName |  nothing"
-            tal:attributes="onchange string:getProducts(this)"
-            >
-                <option tal:repeat="comp comps" 
-                    tal:attributes="value comp;selected python:comp==curman"
-                    tal:content="comp">Apple</option>
-            </select>
-        </td>
-        <td class="tableheader" align="left">New Manufacturer</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="newManufacturerName" />
-            <input class="tableheader" type="submit" 
-                name="addManufacturer:method" value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Model</td>
-        <td class="tablevalues" align="left" >
-            <select class="tablevalues" id="model" name="model"
-            tal:define="
-            cname request/manufacturer | device/getManufacturerName |  string:;
-            prods python:here.getDmdRoot('Companies').getProductNames(cname);
-            curprod device/getModelName | request/model | nothing"
-            >
-                <option tal:repeat="prod prods" 
-                    tal:attributes="value prod;selected python:prod==curprod"
-                    tal:content="prod">PowerBook</option>
-            </select>
-        </td>
-        <td class="tableheader" align="left">New Model</td>
-        <td class="tablevalues" align="left">
-            <input class="tablevalues" type="text" 
-                size="25" name="newModelName" />
-            <input class="tableheader" type="submit" 
-                name="setModel:method" value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Location Path</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="locationPath"
-            tal:define="
-            locs python:here.getDmdRoot('Locations').getOrganizerNames(True);
-            curloc request/locationPath | device/getLocationName | nothing"
-            >
-                <option tal:repeat="loc locs" 
-                    tal:attributes="value loc;selected python:loc==curloc"
-                    tal:content="loc">/Location/Path</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">New Location</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <input class="tablevalues" type="text" 
-                size="40" name="newLocationPath" />
-            <input class="tableheader" type="submit" name="addLocation:method"
-              value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Systems</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="systemPaths:list" multiple
-            tal:define="
-            syss python:here.getDmdRoot('Systems').getOrganizerNames(True);
-            cursyss device/getSystemNames | request/systemPaths | nothing"
-            >
-                <option tal:repeat="sys syss" 
-                    tal:attributes="value sys; 
-                    selected python:cursyss and sys in cursyss"
-                    tal:content="sys">localhost</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">New System</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <input class="tablevalues" type="text" 
-                size="40" name="newSystemPath" />
-            <input class="tableheader" type="submit" name="addSystem:method"
-              value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Groups</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="groupPaths:list" multiple
-            tal:define="
-            dgs python:here.getDmdRoot('Groups').getOrganizerNames(True);
-            curdgs device/getDeviceGroupNames | request/groupPaths | nothing"
-            >
-                <option tal:repeat="dg dgs" 
-                    tal:attributes="value dg;
-                    selected python:curdgs and dg in curdgs"
-                    tal:content="dg">group</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">New DeviceGroup</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <input class="tablevalues" type="text" 
-                size="40" name="newDeviceGroupPath" />
-            <input class="tableheader" type="submit" 
-                name="addDeviceGroup:method" value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Status Monitors</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="statusMonitors:list" multiple
-            tal:define="
-            mons python:here.getDmdRoot('Monitors').getStatusMonitorNames();
-            curmons device/getStatusMonitorNames | 
-                    request/statusMonitors | string:localhost"
-            >
-                <option tal:repeat="mon mons" 
-                    tal:attributes="value mon;
-                        selected python:curmons and mon in curmons"
-                    tal:content="mon">localhost</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">New StatusMonitor</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <input class="tablevalues" type="text" 
-                size="40" name="newStatusMonitor" />
-            <input class="tableheader" type="submit" 
-                name="addStatusMonitor:method" value="Add" />
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">Cricket Monitor</td>
-        <td class="tablevalues" align="left" colspan=3>
-            <select class="tablevalues" name="cricketMonitor"
-            tal:define="
-            crks python:here.getDmdRoot('Monitors').getCricketMonitorNames();
-            curcrk here/getCricketServerName | request/cricketMonitor |
-                string:localhost"
-            >
-                <option tal:repeat="crk crks" 
-                    tal:attributes="value crk; 
-                        selected python:curcrk and crk in curcrk"
-                    tal:content="crk">localhost</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">New CricketMonitor</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <input class="tablevalues" type="text" 
-                size="40" name="newCricketMonitor" />
-            <input class="tableheader" type="submit" 
-                name="setCricketMonitor:method" value="Add" />
-        </td>
-    </tr>
-    </span>
-    <tr>
-        <td class=tableheader align="left" >
-        </td>
-        <td align="left"  class="tableheader" colspan=3>
-            <input class="tableheader" type="submit" 
-                name="loadDevice:method" value=" Add Device "/>
-        </td>
-    </tr>
-</table>
-</form>
-<span tal:replace="structure here/standard_html_footer"/>
+<tal:comment replace="nothing">
+<!-- ========================================================
+    This page is used to add a Device
+ ======================================================== -->
+</tal:comment>
+
+<tal:block metal:use-macro="here/templates/macros/page1">
+
+<tal:block metal:fill-slot="head-local">
+    <script metal:use-macro="here/miscmacros/macros/getProducts">
+    </script>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+
+    <form tal:define="myurl string:/zport/dmd/DeviceLoader" 
+        action="/zport/dmd/DeviceLoader" method="post">
+        <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id" /> 
+    <table border="0" cellpadding="3" width="100%" 
+        align="left" bgcolor="#ffffff" cellspacing="1"
+        tal:define="device python: here.meta_type != 'DeviceLoader' 
+                                        and here or None"
+        >
+        <tr><th class=tabletitle colspan=4 align="center">
+                <a class=tabletitle
+                    tal:attributes="
+                        href string:${here/absolute_url_path}/${template/id}">
+                        Device Loader
+                </a>
+            </th>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Device Name</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" size="25" name="deviceName"
+                    tal:attributes="value device/getDeviceName | 
+                                        request/deviceName | nothing"/>
+            </td>
+            <td class="tableheader" align="left">Device Class Path</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="devicePath"
+                tal:define="
+                dcs python:here.getDmdRoot('Devices').getOrganizerNames(True);
+                curdc device/getDeviceClassPath | request/devicePath | nothing"
+                >
+                    <option tal:repeat="dc dcs" tal:content="dc" 
+                        tal:attributes="value dc; selected python:dc==curdc">
+                        /Server/Linux</option>
+                </select>
+            </td>
+        </tr>
+        <span metal:define-macro="body" tal:omit-tag="">
+        <tr><th class=tabletitle colspan=4 align="left">Attributes</th></tr>
+        <tr>
+            <td class="tableheader" align="left">Snmp Community</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    size="25" name="snmpCommunity"
+                    tal:attributes="value request/snmpCommunity | 
+                            devices/zSnmpCommunity | string:"/>
+            </td>
+            <td class="tableheader" align="left">Snmp Port</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    size="25" name="snmpPort:int" 
+                    tal:attributes="value request/snmpPort | 
+                            devices/zSnmpPort | python:161"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Tag Number</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" name="tag" size="25" 
+                    tal:attributes="value device/tag | request/tag | nothing"/>
+                                        
+            </td>
+            <td class="tableheader" align="left">Serial Number</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    name="serialNumber" size="25" 
+                    tal:attributes="value device/serialNumber | 
+                            request/serialNumber | nothing"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Rack Slot</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    size="25" name="rackSlot:int"
+                    tal:attributes="value device/rackSlot | 
+                            request/rackSlot | python:0"/>
+            </td>
+            <td class="tableheader" align="left">Production State</td>
+            <td class="tablevalues" align="left">
+                <select class="tablevalues" name="productionState:int"
+                tal:define="
+                pstates here/getProdStateConversions;
+                curstate device/productionState | 
+                        request/productionState | python:1000"
+                >
+                    <option tal:repeat="pstate pstates" 
+                        tal:attributes="value python:pstate[1]; 
+                            selected python:curstate == pstate[1]"
+                        tal:content="python:pstate[0]">localhost</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Comments</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <textarea class="tablevalues" rows=3 cols=60
+                    name="comments:text"
+                    tal:content="device/comments | request/comments | nothing">
+                </textarea>
+            </td>
+        </tr>
+        <tr><th class=tabletitle colspan=4 align="left">Relations</th></tr>
+        <tr>
+            <td class="tableheader" align="left">Manufacturer</td>
+            <td class="tablevalues" align="left" >
+                <select class="tablevalues" name="manufacturer"
+                tal:define="
+                comps python:here.getDmdRoot('Companies').getCompanyNames();
+                curman request/manufacturer | device/getManufacturerName |  nothing"
+                tal:attributes="onchange string:getProducts(this)"
+                >
+                    <option tal:repeat="comp comps" 
+                        tal:attributes="value comp;selected python:comp==curman"
+                        tal:content="comp">Apple</option>
+                </select>
+            </td>
+            <td class="tableheader" align="left">New Manufacturer</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    size="25" name="newManufacturerName" />
+                <input class="tableheader" type="submit" 
+                    name="addManufacturer:method" value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Model</td>
+            <td class="tablevalues" align="left" >
+                <select class="tablevalues" id="model" name="model"
+                tal:define="
+                cname request/manufacturer | device/getManufacturerName |  string:;
+                prods python:here.getDmdRoot('Companies').getProductNames(cname);
+                curprod device/getModelName | request/model | nothing"
+                >
+                    <option tal:repeat="prod prods" 
+                        tal:attributes="value prod;selected python:prod==curprod"
+                        tal:content="prod">PowerBook</option>
+                </select>
+            </td>
+            <td class="tableheader" align="left">New Model</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+                    size="25" name="newModelName" />
+                <input class="tableheader" type="submit" 
+                    name="setModel:method" value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Location Path</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="locationPath"
+                tal:define="
+                locs python:here.getDmdRoot('Locations').getOrganizerNames(True);
+                curloc request/locationPath | device/getLocationName | nothing"
+                >
+                    <option tal:repeat="loc locs" 
+                        tal:attributes="value loc;selected python:loc==curloc"
+                        tal:content="loc">/Location/Path</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">New Location</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newLocationPath" />
+                <input class="tableheader" type="submit" name="addLocation:method"
+                  value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Systems</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="systemPaths:list" multiple
+                tal:define="
+                syss python:here.getDmdRoot('Systems').getOrganizerNames(True);
+                cursyss device/getSystemNames | request/systemPaths | nothing"
+                >
+                    <option tal:repeat="sys syss" 
+                        tal:attributes="value sys; 
+                        selected python:cursyss and sys in cursyss"
+                        tal:content="sys">localhost</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">New System</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newSystemPath" />
+                <input class="tableheader" type="submit" name="addSystem:method"
+                  value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Groups</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="groupPaths:list" multiple
+                tal:define="
+                dgs python:here.getDmdRoot('Groups').getOrganizerNames(True);
+                curdgs device/getDeviceGroupNames | request/groupPaths | nothing"
+                >
+                    <option tal:repeat="dg dgs" 
+                        tal:attributes="value dg;
+                        selected python:curdgs and dg in curdgs"
+                        tal:content="dg">group</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">New DeviceGroup</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newDeviceGroupPath" />
+                <input class="tableheader" type="submit" 
+                    name="addDeviceGroup:method" value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Status Monitors</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="statusMonitors:list" multiple
+                tal:define="
+                mons python:here.getDmdRoot('Monitors').getStatusMonitorNames();
+                curmons device/getStatusMonitorNames | 
+                        request/statusMonitors | string:localhost"
+                >
+                    <option tal:repeat="mon mons" 
+                        tal:attributes="value mon;
+                            selected python:curmons and mon in curmons"
+                        tal:content="mon">localhost</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">New StatusMonitor</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newStatusMonitor" />
+                <input class="tableheader" type="submit" 
+                    name="addStatusMonitor:method" value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Cricket Monitor</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="cricketMonitor"
+                tal:define="
+                crks python:here.getDmdRoot('Monitors').getCricketMonitorNames();
+                curcrk here/getCricketServerName | request/cricketMonitor |
+                    string:localhost"
+                >
+                    <option tal:repeat="crk crks" 
+                        tal:attributes="value crk; 
+                            selected python:curcrk and crk in curcrk"
+                        tal:content="crk">localhost</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">New CricketMonitor</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="40" name="newCricketMonitor" />
+                <input class="tableheader" type="submit" 
+                    name="setCricketMonitor:method" value="Add" />
+            </td>
+        </tr>
+        </span>
+        <tr>
+            <td class=tableheader align="left" >
+            </td>
+            <td align="left"  class="tableheader" colspan=3>
+                <input class="tableheader" type="submit" 
+                    name="loadDevice:method" value=" Add Device "/>
+            </td>
+        </tr>
+    </table>
+    </form>
+
+</tal:block>
+</tal:block>

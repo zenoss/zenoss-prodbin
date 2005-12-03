@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <span tal:define="
     objects python:here.getDmdRoot('Networks').objectValues(spec='IpNetwork');
     tableName string:networkclasslist;
@@ -9,4 +11,6 @@
     metal:use-macro="here/deviceOrganizerStatus/macros/devicegrouplist">
 </table>
 </span>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

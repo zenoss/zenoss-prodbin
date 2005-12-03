@@ -1,6 +1,13 @@
-<dtml-var standard_html_header>
-<dtml-var top>
-<br>
+<!-- this file needs to be converted to zpt... it is currently broken (BK) -->
+
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<dtml-comment>
+    <dtml-var /zport/dmd/templates/macros/page2>
+    <dtml-var top>
+</dtml-comment>
+
 <table border=0 colspan=1 cellpadding=3 width="100%">
     <tr>
         <th class="tabletitle" colspan="4">
@@ -66,4 +73,11 @@
         </dtml-if>
     </dtml-let>
 </table>
-<dtml-var standard_html_footer>
+
+<dtml-comment>
+    <dtml-var standard_html_footer>
+</dtml-comment>
+
+</tal:block>
+</tal:block>
+

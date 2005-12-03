@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <span metal:define-macro="header"
     tal:define="global ztabs python:here.zentinelTabs(template.id);
                 global numbcols python:len(ztabs)">
@@ -36,4 +38,6 @@
         </tr>
     </table>
 </span>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

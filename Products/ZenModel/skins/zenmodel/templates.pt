@@ -1,5 +1,9 @@
 <!-- ======================================================
-    Page1 - page template that includes breadCrumbs and tabs
+    This page is used as the page-level templates
+    and associated macros
+ ====================================================== -->
+<!-- ======================================================
+    Page1 - page template that just has a content area
  ====================================================== -->
 <html metal:define-macro="page1">
     <head metal:use-macro="here/templates/macros/head1"/>
@@ -8,13 +12,13 @@
 			<div id="header"></div>
             <div metal:use-macro="here/templates/macros/leftPane"/>
 	        <div id="rightPane">
-                <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
-                <div metal:use-macro="here/templates/macros/tabsPane"/>
-                <div id="contentPane">
-                    <tal:block metal:define-slot="contentPane">
-                        CONTENT GOES HERE
-                    </tal:block>
-                </div>
+                <tal:block metal:define-slot="rightPane">
+                    <div id="contentPane">
+                        <tal:block metal:define-slot="contentPane">
+                            CONTENT GOES HERE
+                        </tal:block>
+                    </div>
+                </tal:block>
             </div>
 			<div id="footer"></div>
        </div>
@@ -22,30 +26,58 @@
 </html>
 
 <!-- ======================================================
-    Page2 - page template that just has a content area
+    Page2 - page template that adds breadCrumbs and tabs
+          - extends the page1 template
  ====================================================== -->
-<html metal:define-macro="page2">
-    <head metal:use-macro="here/templates/macros/head1"/>
-	<body>
-	   <div id="frame">
-			<div id="header"></div>
-            <div metal:use-macro="here/templates/macros/leftPane"/>
-	        <div id="rightPane">
-                <div id="contentPane">
-                    <tal:block metal:define-slot="contentPane">
+<tal:block metal:define-macro="page2">
+    <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="rightPane">
+            <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+            <div metal:use-macro="here/templates/macros/tabsPane"/>
+            <div id="contentPane">
+                <tal:block metal:define-slot="contentPane">
                         CONTENT GOES HERE
-                    </tal:block>
-                </div>
+               </tal:block>
             </div>
-			<div id="footer"></div>
-       </div>
-    </body>
-</html>
+        </tal:block>
+    </html>
+</tal:block>
 
 <!-- ======================================================
-    Supporting macros
+    Page3 - page template that with BreadCrumbs and no tabs
  ====================================================== -->
-<!-- head1 -->
+<tal:block metal:define-macro="page3">
+    <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="rightPane">
+            <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+            <div id="contentPane">
+                <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+               </tal:block>
+            </div>
+        </tal:block>
+    </html>
+</tal:block>
+
+<!-- ======================================================
+    Page4 - page template that with tabs and no BreadCrumbs
+ ====================================================== -->
+<tal:block metal:define-macro="page4">
+    <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="rightPane">
+            <div metal:use-macro="here/templates/macros/tabsPane"/>
+            <div id="contentPane">
+                <tal:block metal:define-slot="contentPane">
+                        CONTENT GOES HERE
+               </tal:block>
+            </div>
+        </tal:block>
+    </html>
+</tal:block>
+
+<!-- ======================================================
+    head1 - standard header
+ ====================================================== -->
 <head metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:ZenMon: ${here/getId}"/>
@@ -67,14 +99,17 @@
 
     <script metal:use-macro="here/miscmacros/macros/toggle"></script>
     
-    <span metal:define-slot="scripts" tal:omit-tag=""></span>
+    <tal:block metal:define-slot="head-local"/>
+
 </head>
 
-<!-- leftPane -->
+<!-- ======================================================
+    leftPane - standard left side and nav
+ ====================================================== -->
 <div id="leftPane" metal:define-macro="leftPane">
     <!-- TODO: complete the thought here... -->
 
-    <div style="padding-left: 8px;
+    <div style="padding-left: 1px;
                 padding-bottom: 8px;
                 border-bottom: 1px solid black;
             ">
@@ -83,26 +118,38 @@
         </a>
    </div>
 
+    <!--
     <ul style="padding-top: 15px">
         <li style="padding-left: 0px;"><a href="/zport/dmd">Dashboard</a></li>
     </ul>
+    -->
 
-
-    <p>Browse</p>
+    <p>Main Views</p>
     <ul>
+        <li><a href="/zport/dmd">Dashboard</a></li>
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
+    </ul>
+
+    <p>Browse By</p>
+    <ul>
+        <li><a href="/zport/dmd/Groups">Groups</a></li>
         <li><a href="/zport/dmd/Locations">Locations</a></li>
         <li><a href="/zport/dmd/Systems">Systems</a></li>
         <li><a href="/zport/dmd/Networks">Networks</a></li>
         <li><a href="/zport/dmd/Companies">Vendors</a></li>
-        <li><a href="/zport/dmd/Groups">Custom Views</a></li>
+        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
+        <li><a href="/zport/dmd/Products/Hardware">Hardware</a></li>
+        <li><a href="/zport/dmd/Products/Software">Software</a></li>
     </ul>
 
     <p>Device Search</p>
-    <ul style="padding-left: 10px">
+    <ul style="padding-left: 0px">
         <form action="/zport/dmd/deviceSearchResults" METHOD="POST">
-             <input type="text" name="query" size="19">
+            <table border="0"><tr>
+                <td><input type="text" name="query" size="7"/></td>
+                <td><input type="submit" name="submit" value="go"/></td>
+            </tr></table>
         </form>
     </ul>
 

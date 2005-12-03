@@ -1,6 +1,7 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
-<span metal:use-macro="here/top/macros/header" />
 <br>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
@@ -79,4 +80,6 @@
 </table>
 <br>
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

@@ -1,6 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
-<span metal:use-macro="here/top/macros/header" />
-<br>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="4">Status</th>
@@ -15,7 +15,9 @@
         100</td>
     </tr>
 </table>
-<br>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="6">EventClassInst</th>
@@ -71,4 +73,6 @@
     </tr>
     -->
 </table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

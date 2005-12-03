@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page4">
+<tal:block metal:fill-slot="contentPane">
+
 <form action="manage_users" metho="post">
 <table>
     <tr><th class="tabletitle">User Folder</th></tr>
@@ -20,4 +22,6 @@
     </td></tr>
     -->
 </table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

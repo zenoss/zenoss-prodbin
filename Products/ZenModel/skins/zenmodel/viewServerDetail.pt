@@ -1,17 +1,22 @@
-<span tal:replace="structure here/standard_html_header"/>
-  <span metal:use-macro="here/top/macros/header" />
-  <br>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
   <table metal:use-macro="here/deviceMacros/macros/deviceOverviewBrief"></table>
-  <br>
+
+  <span metal:use-macro="here/templates/macros/contentSeparator"/>
   <table metal:use-macro="here/deviceMacros/macros/interfaceList"></table>
-  <br>
+
+  <span metal:use-macro="here/templates/macros/contentSeparator"/>
   <table metal:use-macro="here/deviceMacros/macros/ipserviceList"></table>
-  <br>
+
+  <span metal:use-macro="here/templates/macros/contentSeparator"/>
   <table metal:use-macro="here/deviceMacros/macros/fileSysList"></table>
-  <br>
+
+  <span metal:use-macro="here/templates/macros/contentSeparator"/>
   <table metal:use-macro="here/deviceMacros/macros/hardDiskList"></table>
-  <br>
+
+  <span metal:use-macro="here/templates/macros/contentSeparator"/>
   <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
-  <br>
-  <span metal:use-macro="here/top/macros/buttons" />
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

@@ -1,15 +1,19 @@
-<span tal:replace="structure here/standard_html_header"/>
-  <span metal:use-macro="here/top/macros/header" />
-  <br>
-  <table metal:use-macro="here/deviceMacros/macros/deviceOverview"></table>
-  <br>
-  <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
-  <br>
-  <table metal:use-macro="here/deviceMacros/macros/interfaceList"></table>
-  <br>
-  <table metal:use-macro="here/deviceMacros/macros/ipserviceList"></table>
-  <br>
-  <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
-  <br>
-  <span metal:use-macro="here/top/macros/buttons" />
-<span tal:replace="structure here/standard_html_footer"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+    <table metal:use-macro="here/deviceMacros/macros/deviceOverview"></table>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+    <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+    <table metal:use-macro="here/deviceMacros/macros/interfaceList"></table>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+    <table metal:use-macro="here/deviceMacros/macros/ipserviceList"></table>
+
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+    <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
+
+</tal:block>
+</tal:block>

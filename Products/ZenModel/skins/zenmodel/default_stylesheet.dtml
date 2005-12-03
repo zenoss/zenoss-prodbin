@@ -59,10 +59,10 @@ table.zentable {
 	float: left;
 	
 	left: 0;
-	width: 190px;
+	width: 170px;
 	padding-left: 10px;
 	padding-top: 1em;
-	height: 500px;
+	height: 600px;
 	/*
 	position: absolute;
 	border-right: 1px solid black;
@@ -72,13 +72,13 @@ table.zentable {
 #rightPane
 {
 	float: left;
-	left: 210px;
+	left: 190px;
 	position: absolute;
 	margin: 0px;
 	border: 2px solid green;
-	height: 70%;
-	height: 510px;
+	height: 610px;
 	/*
+	height: 70%;
 	width: 70%;
 	
 	*/
@@ -106,14 +106,21 @@ table.zentable {
 	float: left;
 	border: 2px solid orange;
 	width: 92%;
-	height: 60%;
+	height: 470px;
 }
 
+
+#leftPane p {
+ padding-top: 5px; 
+ font-weight: bold;
+}
 
 #leftPane ul {
  list-style: none; 
  margin: 0; 
  padding: 0; 
+ padding-top: -10px; 
+ margin-top: -10px; 
 }
 
 #leftPane ul li {

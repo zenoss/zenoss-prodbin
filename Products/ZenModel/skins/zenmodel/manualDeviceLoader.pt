@@ -1,4 +1,6 @@
-<span tal:replace="structure here/standard_html_header" />
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <form action="DeviceLoader/loadDevice" method="post">
 <table width=100% cellpadding="3" border="0" 
     align="center" cellspacing="1" bgcolor="#ffffff">
@@ -122,4 +124,6 @@ Device Path is the path to the device in the DeviceClass tree (something like /S
     </tr>
 </table>
 </form>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

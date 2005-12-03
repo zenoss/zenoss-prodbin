@@ -1,5 +1,6 @@
-<span tal:replace="structure here/standard_html_header"/>
-<span metal:use-macro="here/top/macros/header" />
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <br/>
 <table metal:use-macro="here/deviceGroupMacros/macros/status"></table>
 <span tal:define="objects here/subclasses/objectValuesAll;
@@ -19,4 +20,6 @@
 </span>
 <br>
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

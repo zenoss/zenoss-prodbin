@@ -1,6 +1,6 @@
-<span tal:replace="structure here/events_html_header"/>
-<span metal:use-macro="here/top/macros/header" />
-<br>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/zenmodelfuncs.js"></script>
 <form method="post" tal:attributes="action request/URL"
@@ -76,4 +76,6 @@
     </tal:block>
 </table>
 </form>    
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>

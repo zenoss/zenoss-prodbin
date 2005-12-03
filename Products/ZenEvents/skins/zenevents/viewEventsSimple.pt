@@ -1,8 +1,8 @@
-<span tal:replace="structure here/standard_html_header"/>
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
 <head><title>Netcool Event Detail</title></head>
 <br>
-
-<script metal:use-macro="here/miscmacros/macros/popupwindow"></script>
 
 <table border="0" cellpadding="3" width="100%" 
     align="center" bgcolor="#ffffff" cellspacing="1"
@@ -49,4 +49,6 @@
         </td>
     </tr>
 </table>
-<span tal:replace="structure here/standard_html_footer"/>
+
+</tal:block>
+</tal:block>
