@@ -1,0 +1,15 @@
+.Menu {
+	border: 1px solid black;
+	position: absolute;
+	border : 1px outset #ccc;
+	background : #f4f4f4;
+	color : #333;
+}
+
+.MenuItem {
+	padding: 2px 1em;
+}
+
+.MenuItem.hover {
+	background: #ccc;
+}

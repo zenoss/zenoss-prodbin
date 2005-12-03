@@ -2,8 +2,11 @@
 <tal:block metal:fill-slot="contentPane">
 
 <span metal:define-macro="body">
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script type="text/javascript">	var djConfig = { isDebug: true }; </script>
+<script type="text/javascript" src="/zport/js/dojo/dojo.js"></script>
 <script type="text/javascript" 
-        src="/zport/portal_skins/zenmodel/zenmodelfuncs.js"></script>
+        src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 <script type="text/javascript">
@@ -30,48 +33,43 @@ function datePickerClosed(targetInput) {
 <form method="post" tal:attributes="action request/URL"
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
-    orderby here/ZenEventHistory/defaultOrderby;
-    resultFields request/ev_resultfields | here/getResultFields;
-    tableName string:viewhistoryevents;
-    ztm     here/ZenTableManager;
-    deftsort python:ztm.getTableState(tableName,sortedHeader='');
-    startdate python:ztm.setReqTableState(
-                    tableName,'startDate', default=here.yesterdayDate());
-    enddate python:ztm.setReqTableState(
-                    tableName,'endDate', default=here.todayDate());
+    orderby request/ev_orderby | here/eventOrderby | string:;
+    resultFields request/ev_resultfields | here/getResultFields |
+                    here/ZenEventHistory/defaultResultFields;
+    evcolspan python:len(resultFields)+1;
+    severity request/severity | python:2;
+    sortedHeader request/sortedHeader | string:;
+    page string:getHistoryEventListPage;
     ">
 <span metal:define-macro="events">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr class=tableheader>
     <td>Start Date: 
     <input class="tableheader" type="text" name="startDate" readonly="true"
-        tal:attributes="value startdate"/>
+        tal:attributes="value here/yesterdayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('startDate');"/>
     </td>
     <td>End Date: 
     <input class="tableheader" type="text" name="endDate" readonly="true"
-        tal:attributes="value enddate"/>
+        tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('endDate');" />
     </td>
     <td>
-    <input class="tableheader" type="submit" name="search" value=" Search " />
+    <input class="tableheader" type="submit" name="search" value=" Search " 
+        onclick="getTablePage(this.form);return false;"/>
     </td>
     </tr>
 </table>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1" 
-    tal:define="
-    sevlevel python:ztm.setReqTableState(
-                    tableName,'severity', default=0, reset=True);
-    objects python:here.getEventHistoryList(severity=sevlevel);
-    batch python:ztm.getBatch(tableName,objects);
-    evcolspan python:len(resultFields)+1;"
-    >
-    <tal:block metal:use-macro="here/viewEvents/macros/listbody"/>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tal:block metal:use-macro="here/viewEvents/macros/header"/>
+    <tbody id="eventsBody">
+        <span metal:use-macro="here/getHistoryEventListPage/macros/page"/>
+    </tbody>
 </table>
 </span>
 </form>

@@ -50,17 +50,24 @@ class Event(object):
         #self.lastTime = time.time()
         self._clearClasses = []
         self._action = "status"
+        self._fields = kwargs.get('fields',[])
         self.eventKey = ''
         self.manager = socket.getfqdn()
         if kwargs: self.updateFromDict(kwargs)
 
     
+    def getEventFields(self):
+        """return an array of event fields tuples (field,value)"""
+        return [(x, getattr(self, x)) for x in self._fields]
+
+
     def updateFromFields(self, fields, data):
         """
         Update event from list of fields and list of data values.  
         They must have the same length.  To be used when pulling data 
         from the backend db.
         """
+        self._fields = fields
         for i in range(len(fields)):
             setattr(self, fields[i], data[i])
 

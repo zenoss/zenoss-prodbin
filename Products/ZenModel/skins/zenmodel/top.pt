@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<span metal:define-macro="header"
+<tal:block metal:define-macro="header"
     tal:define="global ztabs python:here.zentinelTabs(template.id);
                 global numbcols python:len(ztabs)">
     <table border=0 cellpadding=3 cellspacing=0 
@@ -18,8 +18,8 @@
             </td>
         </tr>
     </table>
-    <table border=0 cellpadding=3 cellspacing=1 align="center" 
-        width="100%" bgcolor="#FFFFFF" metal:define-macro="buttons">
+    <table class="zentable" cellpadding=3 cellspacing=1 
+        metal:define-macro="buttons">
         <tr>
             <td class="tabletitle" align="center" tal:repeat="tab ztabs"
                 tal:attributes="
@@ -37,7 +37,6 @@
             </td>
         </tr>
     </table>
-</span>
-
+</tal:block>
 </tal:block>
 </tal:block>

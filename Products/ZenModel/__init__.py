@@ -74,7 +74,6 @@ productNames = (
 # Make the skins available as DirectoryViews.
 registerDirectory('skins', globals())
 registerDirectory('help', globals())
-#registerDirectory('js', globals())
 
 
 confmonModules = []

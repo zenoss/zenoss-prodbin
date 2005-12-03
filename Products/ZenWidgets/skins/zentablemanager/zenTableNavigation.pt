@@ -68,7 +68,7 @@
         start request/start | python:0;
         batchSize request/batchSize | ztm/defaultBatchSize;
         pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
-        lastindex python:pagenav[-1]['index'];
+        lastindex python:len(pagenav) and pagenav[-1]['index'] or 0;
         totalobjs python:len(objects)"
         style="boarder:0; padding-top:2px;margin-bottom:2px;">
     <input type='hidden' name='navbutton' value=''/>

@@ -46,14 +46,8 @@ class EventDetail(ZEvent, ZenModelItem, Implicit):
 
     def __init__(self, manager, fields, data, details=None, logs=None):
         ZEvent.__init__(self, manager, fields, data)
-        self._fields = fields
         self._details = details
         self._logs = logs
-
-    def getEventFields(self):
-        """return an array of event fields tuples (field,value)"""
-        return [(x, getattr(self, x)) for x in self._fields]
-
 
     def getEventDetails(self):
         """return array of detail tuples (field,value)"""

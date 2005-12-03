@@ -9,7 +9,6 @@
     <head metal:use-macro="here/templates/macros/head1"/>
 	<body>
 	   <div id="frame">
-			<div id="header"></div>
             <div metal:use-macro="here/templates/macros/leftPane"/>
 	        <div id="rightPane">
                 <tal:block metal:define-slot="rightPane">
@@ -20,7 +19,6 @@
                     </div>
                 </tal:block>
             </div>
-			<div id="footer"></div>
        </div>
     </body>
 </html>
@@ -144,15 +142,14 @@
     </ul>
 
     <p>Device Search</p>
-    <ul style="padding-left: 0px">
+    <ul>
         <form action="/zport/dmd/deviceSearchResults" METHOD="POST">
-            <table border="0"><tr>
-                <td><input type="text" name="query" size="7"/></td>
-                <td><input type="submit" name="submit" value="go"/></td>
-            </tr></table>
+            <input type="text" name="query" size="10" 
+                tal:attributes="value request/query | string:"/>
         </form>
     </ul>
 
+    <tal:block tal:condition="here/isManager">
     <p>Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
@@ -160,6 +157,7 @@
         <li><a href="/zport/dmd/acl_users/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/ZenClassifier">Classifications</a></li>
     </ul>
+    </tal:block>
 
     <p>Help</p>
     <ul>
@@ -175,8 +173,8 @@
 
 <!-- tabsPane -->
 <div id="tabsPane" metal:define-macro="tabsPane">
-   <span tal:define="global ztabs python:here.zentinelTabs(template.id);">
-   <table class="zentable" cellpadding="3" cellspacing="1">
+   <table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
            <td class="tabletitle" align="center" tal:repeat="tab ztabs"
                tal:attributes="
@@ -192,7 +190,6 @@
            </td>
        </tr>
    </table>
-   </span>
 </div>
 
 <!-- contentSeparator -->

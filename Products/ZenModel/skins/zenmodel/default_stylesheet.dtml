@@ -19,6 +19,7 @@ form {
 
 table.zentable {
     width: 100%;
+    border:0;
     background-color: #ffffff;
     font-family: &dtml-primary_font_family;;
     font-size: &dtml-tablevalues_font_size;; 
@@ -28,85 +29,46 @@ table.zentable {
 <dtml-comment>Stuff for Page Layout Templates</dtml-comment>
 #frame
 {
-	margin: 20px 20px 20px 20px;
-	/*
-	margin: 0 auto;
-	width: 800px;
-	height: 300px;
-	*/
+	margin: 0px;
+    padding: 0px;
 	position: relative;
-	border: 2px solid black;
-	
-	
+	border: 1px solid black;
 }
-#header{
-	background-color: #000000;
-	color: white;
-	padding: 10px;
-}
-#footer
-{
-	clear: both;
-	background-color: black;
-	padding: 10px;
-	
-	/*
-	bottom: 400;
-	position: absolute;
-	*/
-}
+
 #leftPane {
-	float: left;
-	
+    padding-top:5px;
 	left: 0;
 	width: 170px;
-	padding-left: 10px;
-	padding-top: 1em;
-	height: 600px;
-	/*
 	position: absolute;
 	border-right: 1px solid black;
-	*/
-	
 }
+
 #rightPane
 {
-	float: left;
-	left: 190px;
+    padding-top:2px;
+	left: 170px;
 	position: absolute;
 	margin: 0px;
-	border: 2px solid green;
-	height: 610px;
-	/*
-	height: 70%;
-	width: 70%;
-	
-	*/
+	border-left: 1px solid black;
 }
+
 #breadCrumbPane
 {
-	padding: 1em;
-	float: left;
-	border: 2px solid black;
-	width: 92%;
+    margin-left:1px;
+    margin-right:1px;
+    padding:3px;
+    font-family: &dtml-primary_font_family;;
+    font-size: &dtml-tabletitle_font_size;; 
+    font-weight: bold; 
+    color: &dtml-tabletitle_color;;
+    background-color: &dtml-tabletitle_bg_color;;
 }
+
 #tabsPane
 {
-	padding: 1em;
-    clear: both;
-    /*
-	float: left;
-    */
-	border: 2px solid red;
-	width: 92%;
 }
 #contentPane
 {
-	padding: 1em;
-	float: left;
-	border: 2px solid orange;
-	width: 92%;
-	height: 470px;
 }
 
 
