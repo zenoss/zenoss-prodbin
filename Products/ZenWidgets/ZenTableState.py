@@ -106,26 +106,6 @@ class ZenTableState:
             self.resetStart = False
 
 
-    def setTableState(self, attname, value, default=None, reset=False):
-        if not hasattr(self, attname) and default != None:
-            setattr(self, attname, default)
-            if reset and attname not in self.changesThatResetStart:
-                self.changesThatResetStart.append(attname) 
-            if attname not in self.requestAtts:
-                self.requestAtts.append(attname)
-        if value != None and getattr(self,attname, None) != value:
-            setattr(self, attname, value)
-            if attname in self.changesThatResetStart: 
-                self.resetStart = True
-        return getattr(self,attname) 
-
-
-    def addFilterField(self, fieldName):
-        """make sure we only add non-dup filterfields"""
-        if fieldName and fieldName not in self.filterFields:
-            self.filterFields.append(fieldName)
-
-
     def getPageNavigation(self):
         return self.pagenav
 
@@ -165,6 +145,26 @@ class ZenTableState:
                 endAbbr = label[-self.abbrEndLabel:]
             label = "".join((startAbbr, self.abbrSeparator, endAbbr))
         return label
+
+
+    def setTableState(self, attname, value, default=None, reset=False):
+        if not hasattr(self, attname) and default != None:
+            setattr(self, attname, default)
+            if reset and attname not in self.changesThatResetStart:
+                self.changesThatResetStart.append(attname) 
+            if attname not in self.requestAtts:
+                self.requestAtts.append(attname)
+        if value != None and getattr(self,attname, None) != value:
+            setattr(self, attname, value)
+            if attname in self.changesThatResetStart: 
+                self.resetStart = True
+        return getattr(self,attname) 
+
+
+    def addFilterField(self, fieldName):
+        """make sure we only add non-dup filterfields"""
+        if fieldName and fieldName not in self.filterFields:
+            self.filterFields.append(fieldName)
 
 
 InitializeClass(ZenTableState)

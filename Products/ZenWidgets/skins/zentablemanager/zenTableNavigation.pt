@@ -60,42 +60,57 @@
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
         tal:attributes="value tableName" />
-    <div metal:define-macro="navbodynofilter" 
-        tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
-        tal:condition="python: ts.totalobjs > ts.batchSize"
-        style="boarder:0; padding-top:2px;margin-bottom:2px;">
     <input type='hidden' name='zenScreenName'
         tal:attributes="value template/id" />
+    <div metal:define-macro="navbodynofilter" 
+        tal:define="
+        ztm here/ZenTableManager;
+        start request/start | python:0;
+        batchSize request/batchSize | ztm/defaultBatchSize;
+        pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
+        lastindex python:pagenav[-1]['index'];
+        totalobjs python:len(objects)"
+        style="boarder:0; padding-top:2px;margin-bottom:2px;">
+    <input type='hidden' name='navbutton' value=''/>
+    <input type='hidden' name='start' tal:attributes="value start"/>
+    <input type='hidden' name='resetStart' value="0"/>
+    <input type='hidden' name='lastindex:int' tal:attributes="value lastindex"/>
     <div style="padding-left: 10px; float: left; text-align:left;">
-        <span tal:replace="python:ts.start+1" />
+        <span tal:replace="python:start+1" />
         of
-        <span tal:replace="ts/totalobjs" />
+        <span tal:replace="totalobjs" />
     &nbsp;&nbsp;
     <input class="navcontrol" type="submit"
         alt="first" name="first" value="|<"
-        tal:attributes="disabled python:ts.start==0" />
+        tal:attributes="disabled python:start==0"
+        onclick="getPageNavButton(this.name, this.form);return false;"/>
     <input class="navcontrol" type="submit"
         alt="prev" name="prev" value="<"
-        tal:attributes="disabled python:ts.start==0" />
-    <select class="tableheader" name="start:int" valign="top"
-        tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
-        onchange="this.form.submit()">
-        <option tal:repeat="page ts/getPageNavigation" 
-            tal:content="page/label" 
-            tal:attributes="value page/index;
-                            selected python: page['index'] == ts.start" />
+        tal:attributes="disabled python:start==0"
+        onclick="getPageNavButton(this.name, this.form);return false;"/>
+    <select class="tableheader" name="nextstart:int" valign="top"
+        tal:attributes="disabled python:totalobjs<=batchSize"
+        onchange="getTablePage(this.form)">
+        <option tal:repeat="page pagenav" tal:content="page/label" 
+                tal:attributes="value page/index;
+                                selected python: page['index'] == start" />
     </select>
     <input class="navcontrol" type="submit"
         alt="next" name="next" value=">"
-        tal:attributes="disabled not:batch/next" />
+        tal:attributes="disabled not:batch/next"
+        onclick="getPageNavButton(this.name, this.form);return false;"/>
     <input class="navcontrol" type="submit" 
         alt="last" name="last" value=">|"
-        tal:attributes="disabled not:batch/next" />
+        tal:attributes="disabled not:batch/next"
+        onclick="getPageNavButton(this.name, this.form);return false;"/>
+    &nbsp;&nbsp;
+    <span id="loadingStatus" style="font-weight:bold;">
+    </span>
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
-        onkeypress="submitViaEnter(event)"
-        tal:attributes="value ts/batchSize">
+        onkeypress="getPageViaEnter(event)"
+        tal:attributes="value batchSize">
     <input class="navcontrol" type="submit" value="ok" />
     </div>
     </div>

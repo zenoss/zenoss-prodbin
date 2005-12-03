@@ -26,6 +26,7 @@ __revision__ = "$Revision: 1.4 $"[11:-2]
 import re
 import ZTUtils
 from Globals import InitializeClass
+from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
@@ -55,8 +56,12 @@ class ZenTableManager(SimpleItem, PropertyManager):
     portal_type = meta_type = 'ZenTableManager'
 
     _properties = (
-                    {'id':'defaultBatchSize', 'type':'int','mode':'w'}, 
-                   ) 
+        {'id':'defaultBatchSize', 'type':'int','mode':'w'}, 
+        {'id':'abbrStartLabel', 'type':'int','mode':'w'}, 
+        {'id':'abbrEndLabel', 'type':'int','mode':'w'}, 
+        {'id':'abbrPadding', 'type':'int','mode':'w'}, 
+        {'id':'abbrSeparator', 'type':'string','mode':'w'}, 
+    ) 
 
     manage_options = (
                         PropertyManager.manage_options +
@@ -67,6 +72,12 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def __init__(self, id):
         self.id = id
         self.defaultBatchSize = 40
+        self.abbrStartLabel = 15
+        self.abbrEndLabel = 5
+        self.abbrPadding = 5
+        self.abbrSeparator = ".."
+        self.abbrThresh = self.abbrStartLabel + \
+                        self.abbrEndLabel + self.abbrPadding
 
 
     def setupTableState(self, tableName, **keys):
@@ -120,8 +131,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def getBatch(self, tableName, objects, **keys):
         """fileter, sort and batch objects and pass return set"""
         tableState = self.setupTableState(tableName, **keys) 
-        if tableState.filter:
-            objects = self.filterObjects(objects, tableState)
+        if tableState.filter and objects:
+            objects = self.filterObjects(objects, tableState.filter)
         if tableState.sortedHeader:
             objects = self.sortObjects(objects, tableState)
         tableState.totalobjs = len(objects)
@@ -132,6 +143,62 @@ class ZenTableManager(SimpleItem, PropertyManager):
         return objects   
             
    
+    def getBatchForm(self, objects, request):
+        """fileter, sort and batch objects and pass return set"""
+        batchSize = request.get('batchSize',self.defaultBatchSize)
+        start = int(request.get('start',0))
+        resetStart = int(request.get('resetStart',0))
+        lastindex = request.get('lastindex',0)
+        navbutton = request.get('navbutton',None)
+        if navbutton == "first" or resetStart:
+            start = 0
+        elif navbutton == "last":
+            start=lastindex
+        elif navbutton == "next":
+            start = start + batchSize
+            if start > lastindex: start = lastindex
+        elif navbutton == "prev":
+            start = start - batchSize
+        elif request.has_key("nextstart"): 
+            start = request.nextstart
+        if 0 < start > len(objects): start = 0
+        request.start = start
+        if batchSize > 0:
+            objects = ZTUtils.Batch(objects, batchSize,
+                        start=request.start, orphan=0)
+        return objects   
+       
+
+    def filterObjects(self, objects, regex, filterFields):
+        """filter objects base on a regex in regex and list of fields
+        in filterFields."""
+        if not regex: return objects
+        search = re.compile(regex,re.I).search
+        filteredObjects = []
+        for obj in objects:
+            target = []
+            for field in filterFields:
+                value = getattr(obj, field, None)
+                if callable(value):
+                    value = value()
+                target.append(str(value))
+            targetstring = " ".join(target)
+            if search(targetstring): filteredObjects.append(obj)
+        return filteredObjects  
+
+
+    def sortObjects(self, objects, request):
+        """Sort objects.
+        """
+        if (getattr(aq_base(request), 'sortedHeader', False) 
+            and getattr(aq_base(request),"sortedSence", False)):
+            sortedHeader = request.sortedHeader
+            sortedSence = request.sortedSence
+            sortRule = getattr(aq_base(request), "sortRule", "cmp")
+            objects = sort(objects, ((sortedHeader, sortRule, sortedSence),))
+        return objects
+  
+
     def getTableHeader(self, tableName, fieldName, fieldTitle,
                 sortRule='cmp', style='tableheader',attributes=""):
         """generate a <th></th> tag that allows column sorting"""
@@ -173,38 +240,6 @@ class ZenTableManager(SimpleItem, PropertyManager):
         return style
 
 
-    def filterObjects(self, objects, tableState):
-        """filter objects base on a regex in filter and list of fields
-        in filterFields.  If negateFilter is selected the regex is negated"""
-        if tableState.filterFields:
-            filterFields = tableState.filterFields
-        else:
-            filterFields = ('getId',)
-        negateFilter = tableState.negateFilter
-        filter = re.compile(tableState.filter).search
-        filteredObjects = []
-        for obj in objects:
-            target = []
-            for field in filterFields:
-                value = getattr(obj, field, None)
-                if callable(value):
-                    value = value()
-                target.append(str(value))
-            targetstring = " ".join(target)
-            fvalue =  filter(targetstring)
-            if (fvalue and not negateFilter) or (not fvalue and negateFilter):
-                filteredObjects.append(obj)
-        return filteredObjects  
-
-
-    def sortObjects(self, objects, tableState):
-        """sort objects based on current sortedHeader, rule and sence"""
-        sortOn = (( tableState.sortedHeader, 
-                    tableState.sortRule, 
-                    tableState.sortedSence),)
-        return sort(objects, sortOn)
-
-
     def getTableStates(self):
         session = self.REQUEST.SESSION
         if not session.has_key('zentablestates'):
@@ -214,6 +249,31 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def tableStatesHasTable(self, tableName):
         return self.getTableStates().has_key(tableName)
+
+
+    def getNavData(self, objects, batchSize, sortedHeader):
+        pagenav = []
+        for index in range(0, len(objects), batchSize):
+            if sortedHeader:
+                label = self._buildTextLabel(objects[index], sortedHeader)
+            else:
+                label = str(1+index/batchSize)
+            pagenav.append({ 'label': label, 'index': index })
+        return pagenav
+
+
+    def _buildTextLabel(self, item, sortedHeader):
+        startAbbr = ""
+        endAbbr = ""
+        attr = getattr(item, sortedHeader, "")
+        if callable(attr): attr = attr()
+        label = str(attr)
+        if len(label) > self.abbrThresh:
+            startAbbr = label[:self.abbrStartLabel]
+            if self.abbrEndLabel > 0:
+                endAbbr = label[-self.abbrEndLabel:]
+            label = "".join((startAbbr, self.abbrSeparator, endAbbr))
+        return label
 
 
     def initTableManagerSkins(self):
