@@ -6,13 +6,15 @@
 <script type="text/javascript" src="/zport/js/dojo/dojo.js"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
-<form name="control" method="post" tal:attributes="action request/URL"
+<form name="control" method="post" 
+    tal:attributes="action here/absolute_url_path"
     tal:define="
+    zem python:here.ZenEventManager;
     whereclause request/ev_whereclause | here/eventWhere | string:;
     orderby request/ev_orderby | here/eventOrderby | string:;
     resultFields request/ev_resultfields | here/getResultFields | 
-                    here/ZenEventManager/defaultResultFields;
-    evcolspan python:len(resultFields)+1;
+                    zem/defaultResultFields;
+    evcolspan python:len(resultFields)+2;
     severity request/severity | python:2;
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
@@ -34,7 +36,7 @@
             &nbsp; &nbsp;
             Filter
             <input class="tableheader" type="text" name="filter" 
-                size=25 onkeypress="getPageViaEnter(event)"
+                size="30" onkeypress="getPageViaEnter(event)"
                 tal:attributes="value request/filter | string:">
             &nbsp; &nbsp;
             Severity Filter
@@ -55,6 +57,8 @@
         </td>
     </tr>
     <tr>
+        <td class="tableheader" tal:condition="here/isManager">
+        </td>
         <th class="tableheader" align="left" 
             tal:repeat="headername resultFields">
             <input type="button" class="navcontrol"
@@ -67,8 +71,28 @@
     <tbody id="eventsBody">
         <span metal:use-macro="here/getEventListPage/macros/page"/>
     </tbody>
+    <tal:block metal:define-macro="editor">
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" tal:attributes="colspan evcolspan">
+        <input class="tableheader" type="submit" 
+            name="manage_deleteEvents:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit" value="Set State:" 
+                name="manage_setEventStates:method"/>
+        <select class="tableheader" name="eventState"
+        tal:define="states zem/getEventStates">
+            <option value=""></option>
+            <option tal:repeat="state states" tal:content="python:state[0]"
+                tal:attributes="value python:state[1]">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+    </tal:block>
 </table>
 </form>    
-
 </tal:block>
 </tal:block>

@@ -1,13 +1,13 @@
 <tal:block metal:define-macro="page"
-    tal:define="zem python:here.ZenEventHistory;
+    tal:define="
         startdate request/startdate | here/yesterdayDate;
         enddate request/enddate | here/todayDate;
         severity request/severity | python:2;
-        objects python:zem.getEventList(severity=severity,startdate=startdate,
-                                        enddate=enddate);
+        objects python:here.getEventHistoryList(severity=severity,
+                                        startdate=startdate,enddate=enddate);
         sortedHeader request/sortedHeader | string:;
         resultFields request/ev_resultfields | here/getResultFields | 
-                        zem/defaultResultFields;
+                        here/ZenEventHistory/defaultResultFields;
         filter request/filter | string:;
         evcolspan python:len(resultFields)+1;
         ztm here/ZenTableManager;

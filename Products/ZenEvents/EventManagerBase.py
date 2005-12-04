@@ -46,6 +46,27 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     #FQDNID = hash(socket.getfqdn())
 
+    eventStateConversions = (
+                ('New',0),
+                ('Resolved',1),
+                ('Quarantined',2),
+                ('Suppressed',3),
+                ('Acknowledged',4),
+                ('Closed',5),
+                ('Testing',6),
+                ('Bogus',7),
+                )
+
+    severityConversions = (
+                ('Critical',6),
+                ('Error',5),
+                ('Warning',4),
+                ('Notice',3),
+                ('Info',2),
+                ('Debug',1),
+                ('Clear',0),
+                )
+    
     statusTable = "status"
     detailTable = "detail"
     logTable = "log"
@@ -60,7 +81,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     DeviceGroupField = "DeviceGroups"
     SystemField = "Systems"
 
-    DeviceWhere = "device = '%s'"
+    DeviceWhere = "\"device = '%s'\" % me.getDmdKey()"
     DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
                             "lastTime", "count" )
     ComponentWhere = "component = '%s'"
@@ -539,7 +560,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """
         return self._fieldlist
 
-    
+
+    def getEventStates(self):
+        """Return a list of possible event states.
+        """
+        return self.eventStateConversions
+
+
     security.declareProtected('View','getSeverities')
     def getSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 
@@ -616,6 +643,31 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         if schema: self._schema = schema 
         self._fieldlist = fieldlist
         curs.close()
+
+
+    security.declareProtected('Manage Events','manage_deleteEvents')
+    def manage_deleteEvents(self, evids=(), REQUEST=None):
+        if evids: 
+            delete = "delete from status where evid in ("
+            delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(delete);
+            db.close()
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage Events','manage_setEventStates')
+    def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
+        if eventState and evids: 
+            delete = "update status set eventState=%s " % eventState
+            delete += "where evid in (" 
+            delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(delete);
+            db.close()
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage EventManager','manage_refreshConversions')

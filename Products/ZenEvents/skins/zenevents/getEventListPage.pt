@@ -1,20 +1,26 @@
 <tal:block metal:define-macro="page"
-    tal:define="zem python:here.ZenEventManager;
+    tal:define="
         severity request/severity | python:2;
-        objects python:zem.getEventList(severity=severity);
+        objects python:here.getEventList(severity=severity);
         sortedHeader request/sortedHeader | string:;
         resultFields request/ev_resultfields | here/getResultFields | 
-                        zem/defaultResultFields;
+                        here/ZenEventManager/defaultResultFields;
         filter request/filter | string:;
-        evcolspan python:len(resultFields)+1;
+        evcolspan python:len(resultFields)+2;
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
         objects python:ztm.sortObjects(objects,request);
         batch python:ztm.getBatchForm(objects,request);">
     <tr tal:repeat="event batch" 
     tal:attributes="class event/getCssClass">
+    <td tal:condition="here/isManager">
+        <input type="checkbox" name="evids:list" 
+            tal:attributes="value event/evid"/>
+    </td>
     <tal:block tal:repeat="data python:event.getDataList(resultFields)">
-    <td tal:content="data">event data</td>
+    <td>
+        <tal:block tal:content="data"/>
+    </td>
     </tal:block>
     <td>
         <a tal:attributes="href python:

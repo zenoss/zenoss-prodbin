@@ -56,4 +56,18 @@ class ManagedEntity(object):
         """
         return self.getEventManager().getStatusCssClass(status) 
 
+    
+    #security.declareProtected('Manage Events','manage_deleteEvents')
+    def manage_deleteEvents(self, evids=(), REQUEST=None):
+        """Delete events form this managed entity.
+        """
+        self.getEventManager().manage_deleteEvents(evids)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
+
+    #security.declareProtected('Manage Events','manage_setEventStates')
+    def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
+        """Set event state form this managed entity.
+        """
+        self.getEventManager().manage_setEventStates(eventState, evids)
+        if REQUEST: return self.callZenScreen(REQUEST)
