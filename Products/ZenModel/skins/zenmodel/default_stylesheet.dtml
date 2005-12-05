@@ -310,7 +310,7 @@ a.tabletitle {
     font-weight: bold; 
     color: #FFFFFF;
     background-color: #5A6F8F;
-	background-image: url(tab_corner.gif);
+	/*background-image: url(tab_corner.gif);*/
 	background-position: right top;
 	background-repeat: no-repeat;
 	display: block;
@@ -360,7 +360,7 @@ background-image: url(subtitle_bkgrd.gif);
     font-weight: bold; 
     color: #000;
     background-color: #fff;
-	background-image: url(tab_corner.gif);
+	/*background-image: url(tab_corner.gif);*/
 	background-position: right top;
 	background-repeat: no-repeat;
 	display: block;

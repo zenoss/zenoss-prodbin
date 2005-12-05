@@ -131,6 +131,8 @@
     
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
+    <script type="text/javascript" 
+        src="/zport/js/MochiKit.js"></script>
 
     <tal:block metal:define-slot="head-local"/>
 
@@ -141,24 +143,24 @@
  ====================================================== -->
 <div id="topPane" metal:define-macro="topPane">
 
-    <table border="0" cellpadding="0" cellspacing="0" ><tr>
+    <table border="0" width="100%" cellpadding="0" cellspacing="0" ><tr>
 
-        <td>
-            <a href="/zport/dmd"><img border="0" src="logo.gif"></a>
+        <td width="210px">
+            <a href="/zport/dmd/Dashboard"><img border="0" src="logo.gif"></a>
         </td>
 
-        <td  valign="middle" align="right" width="35%">
+        <td  valign="middle" align="left">
             <form action="/zport/dmd/deviceSearchResults" method="POST">
                 <input type="text" name="query" size="20"
                     tal:attributes="value request/query | string:"/>
                 <input type="submit" name="submit" value="Search Devices"/>
             </form> 
        </td>
-       <td  valign="middle" align="right" width="55%">
+       <td  valign="middle" align="right" >
         <p>
-           <a href="#">demo@foo.com</a>
+           <span tal:content="request/AUTHENTICATED_USER"/>
            | <a href="#">Settings</a>
-           | <a href="#">Log Out</a>
+           | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
            | <a href="#">Help</a>
          </p>
        </td>
@@ -172,7 +174,7 @@
 
     <p>Main Views</p>
     <ul>
-        <li><a class="selected" href="/zport/dmd">Dashboard</a></li>
+        <li><a class="selected" href="/zport/dmd/Dashboard">Dashboard</a></li>
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
         <li><a href="/zport/dmd/Systems">Systems</a></li>

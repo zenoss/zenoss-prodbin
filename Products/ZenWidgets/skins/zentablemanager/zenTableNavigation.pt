@@ -9,7 +9,7 @@
     <div metal:define-macro="navbody" 
         tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
         tal:condition="python: ts.totalobjs > 6 or ts.filter"
-        style="boarder:0; padding-top:2px;margin-bottom:2px;">
+        style="border:0; padding-top:2px;margin-bottom:2px;">
     <div style="padding-left: 10px; float: left; text-align:left;">
         <span tal:replace="python:ts.start+1" />
         of
@@ -70,7 +70,7 @@
         pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
         lastindex python:len(pagenav) and pagenav[-1]['index'] or 0;
         totalobjs python:len(objects)"
-        style="boarder:0; padding-top:2px;margin-bottom:2px;">
+        style="border:0; padding-top:2px;margin-bottom:2px;">
     <input type='hidden' name='navbutton' value=''/>
     <input type='hidden' name='start' tal:attributes="value start"/>
     <input type='hidden' name='resetStart' value="0"/>

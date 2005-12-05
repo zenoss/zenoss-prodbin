@@ -5,20 +5,25 @@
 //------------------------------------------------
 
 function zenPageInit(){
-
     // set the state of the leftPane
     // - this is a bit of a hack
     // - it does not change the state of an existing unless it finds
-
     var as = document.getElementById("leftPane").getElementsByTagName("A");
-        
     for(var i=0; i< as.length; i++){
-        if( as[i].pathname == location.pathname){
+        if( location.pathname.indexOf(as[i].pathname) != -1){
             as[i].className = 'selected';
-            lastLeft = as[i];
+            //lastLeft = as[i];
         }
         else {
             as[i].className = 'unselected';
+        }
+    }
+    var tt = document.getElementById("tabsPane")
+    if(tt) {
+        tabs = tt.getElementsByTagName("a");
+        for(var i=0; i<tabs.length; i++) {
+            log("rounding element=",tabs[i]);
+            roundElement(tabs[i],{corners:"tl tr"});
         }
     }
 }
