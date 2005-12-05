@@ -1,3 +1,0 @@
-<head metal:define-macro=ncoEventHeader>
-<title tal:content="string: Event: ${eventUuid}"/>
-</head>

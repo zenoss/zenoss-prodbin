@@ -1,7 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
-<tal:block metal:fill-slot="contentPane">
-
-<tal:block
+<html
     tal:define="tableName string:eventdetail;
     evid request/evid;
     sesskey python:tableName+evid;
@@ -10,7 +7,27 @@
     fields event/getEventFields;
     "
     >
-<table metal:use-macro="here/ncoEventTop/macros/ncoEventTop"/>
+<head metal:use-macro="here/templates/macros/head1"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="eventTop">
+    <tr>
+        <td class="tabletitle" colspan=3 
+            tal:content="string:Event: ${evid}">
+        </td>
+    </tr>
+    <tr>
+        <td class="tabletitle" colspan="1" align="center"
+            tal:repeat="tab python:event.zentinelTabs(template.id)">
+            <a href="_"
+            class="tabletitle"
+            tal:attributes="href 
+                python:tab['action']+'?evid=%s'%evid"
+            tal:content="tab/name">
+            TabName
+            </a>
+        </td>
+    </tr>
+</table>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>
@@ -21,7 +38,4 @@
         <td class="tablevalues" tal:content="python:field[1]">value</td>
     </tr>
 </table>
-</tal:block>
-
-</tal:block>
-</tal:block>
+</html>
