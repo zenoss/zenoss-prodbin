@@ -25,6 +25,7 @@ class ZEvent(Event):
     def __init__(self, manager, fields, data):
         Event.__init__(self)
         self.updateFromFields(fields, data)
+        self._zem = manager.getId()
         self._baseurl = manager.absolute_url_path()
  
 
@@ -40,5 +41,9 @@ class ZEvent(Event):
         acked = self.eventState > 0 and "acked" or "noack"
         return "zenevents_%s_%s" % (value, acked)
 
+    def zem(self):
+        """return the id of our manager.
+        """
+        return self._zem
 
 InitializeClass(ZEvent)

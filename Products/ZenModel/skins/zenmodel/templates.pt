@@ -132,8 +132,6 @@
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
 
-    <script metal:use-macro="here/miscmacros/macros/toggle"></script>
-    
     <tal:block metal:define-slot="head-local"/>
 
 </head>

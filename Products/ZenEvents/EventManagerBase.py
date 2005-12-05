@@ -645,6 +645,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         curs.close()
 
 
+    def eventControls(self):
+        """Are there event controls on this event list.
+        """
+        if self.isManager() and self.statusTable == "status":
+            return 1
+        return 0
+
+
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         if evids: 

@@ -127,3 +127,11 @@ startRefresh = function(button, form) {
         getTablePage(form);
     }
 };
+
+//display an event detail in its own native window
+eventWindow = function(manager, evid, width, height) {
+    url = "/zport/dmd/"+manager+"/viewEventFields?evid=" + evid
+    windowprops = "width=500,height=650,resizable=yes,scrollbars=yes";
+    evwindow = window.open(url, evid, windowprops);
+    evwindow.focus();
+}

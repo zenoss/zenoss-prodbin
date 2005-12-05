@@ -1,6 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
 <span metal:define-macro="body">
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
@@ -11,18 +10,18 @@
 </script>
 <script type="text/javascript">
 function datePickerClosed(targetInput) {
-    if (targetInput.name == "startDate") {
-        startDate = targetInput.value;
-        endDateInput = targetInput.form.endDate;
+    if (targetInput.name == "startdate") {
+        startdate = targetInput.value;
+        enddateInput = targetInput.form.enddate;
     } else {
-        startDate = targetInput.form.startDate.value;
-        endDateInput = targetInput;
+        startdate = targetInput.form.startdate.value;
+        enddateInput = targetInput;
     } 
-    var sdate = getFieldDate(startDate);
-    var edate = getFieldDate(endDateInput.value);
+    var sdate = getFieldDate(startdate);
+    var edate = getFieldDate(enddateInput.value);
     if (sdate.getTime() + 86400000 >= edate.getTime()) {
         edate = new Date(sdate.getTime() + 86400000);
-        endDateInput.value = getDateString(edate);
+        enddateInput.value = getDateString(edate);
     }
     return true;
 };
@@ -34,8 +33,9 @@ function datePickerClosed(targetInput) {
     orderby request/ev_orderby | here/eventOrderby | string:;
     resultFields request/ev_resultfields | here/getResultFields |
                     here/ZenEventHistory/defaultResultFields;
+    evcontrol here/ZenEventHistory/eventControls;
     evcolspan python:len(resultFields)+1;
-    severity request/severity | python:2;
+    severity request/severity | python:0;
     sortedHeader request/sortedHeader | string:;
     page string:getHistoryEventListPage;
     ">
@@ -43,16 +43,16 @@ function datePickerClosed(targetInput) {
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr class=tableheader>
     <td>Start Date: 
-    <input class="tableheader" type="text" name="startDate" readonly="true"
+    <input class="tableheader" type="text" name="startdate" readonly="true"
         tal:attributes="value here/yesterdayDate"/>
     <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('startDate');"/>
+        onclick="displayDatePicker('startdate');"/>
     </td>
     <td>End Date: 
-    <input class="tableheader" type="text" name="endDate" readonly="true"
+    <input class="tableheader" type="text" name="enddate" readonly="true"
         tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('endDate');" />
+        onclick="displayDatePicker('enddate');" />
     </td>
     <td>
     <input class="tableheader" type="submit" name="search" value=" Search " 
@@ -72,6 +72,5 @@ function datePickerClosed(targetInput) {
 </span>
 </form>
 </span>
-
 </tal:block>
 </tal:block>

@@ -14,7 +14,8 @@
     orderby request/ev_orderby | here/eventOrderby | string:;
     resultFields request/ev_resultfields | here/getResultFields | 
                     zem/defaultResultFields;
-    evcolspan python:len(resultFields)+2;
+    evcontrol here/ZenEventManager/eventControls;
+    evcolspan python:len(resultFields)+1+evcontrol;
     severity request/severity | python:2;
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
@@ -31,15 +32,13 @@
     <input type='hidden' name='zenScreenName'
         tal:attributes="value template/id" />
     <tr>
-        <td class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
-            Events:
-            &nbsp; &nbsp;
+        <th class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
             Filter
             <input class="tableheader" type="text" name="filter" 
                 size="30" onkeypress="getPageViaEnter(event)"
                 tal:attributes="value request/filter | string:">
             &nbsp; &nbsp;
-            Severity Filter
+            Severity
             <select class="tableheader" name="severity:int"
                     onchange="getTablePage(this.form)">
                 <option tal:repeat="sev here/ZenEventManager/getSeverities"
@@ -54,10 +53,10 @@
             <input class="tableheader" type="text" name="refreshRate" 
                 size='2' value='10'>
                 
-        </td>
+        </th>
     </tr>
     <tr>
-        <td class="tableheader" tal:condition="here/isManager">
+        <td class="tableheader" tal:condition="evcontrol">
         </td>
         <th class="tableheader" align="left" 
             tal:repeat="headername resultFields">
@@ -65,7 +64,6 @@
                 tal:attributes="name headername; value headername"
                 onclick="setSortedHeader(this.name, this.form);">
         </th>
-        <th class=tableheader> </th>
     </tr>
     </tal:block>
     <tbody id="eventsBody">

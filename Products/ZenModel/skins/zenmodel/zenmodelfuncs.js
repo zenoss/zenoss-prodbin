@@ -51,13 +51,6 @@ function blockSubmitViaEnter(evt) {
     return true;
 }
 
-//<script metal:define-macro="popupwindow" language="JavaScript">
-function popupwindow(url, title, width, height) {
-    windowprops = "width=" + width + ",height=" + height 
-        + ",resizable=yes,scrollbars=yes";
-    mywindow = window.open(url, title, windowprops);
-}
-
 isSelected = false;
 
 function toggleSelect(form) {

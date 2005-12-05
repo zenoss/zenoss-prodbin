@@ -55,8 +55,8 @@ table.zentable {
 
 #frame
 {
-	margin: 20px 20px 20px 20px;
 	/*
+	margin: 20px 20px 20px 20px;
 	margin: 0 auto;
 	width: 800px;
 	*/
@@ -84,7 +84,7 @@ color: #fff;
 	background: black;
 	color: white;
 	text-align: right;
-	height: 54px;
+	height: 35px;
 	clear: both;	
 	padding: 0px 20px 0px 0px;
     margin: 0;
@@ -110,9 +110,8 @@ color: #fff;
 }
 #leftPane {
 	float: left;
-	
 	left: 0;
-	width: 170px;
+	width: 110px;
 	padding-left: 10px;
 	padding-top: 5px;
 	height: 600px;
@@ -128,9 +127,9 @@ color: #fff;
 #rightPane
 {
 	/*float: left;
-	left: 172px;
+	left: 122px;
 	position: absolute;*/
-	margin: 0px 0px 0px 174px;
+	margin: 0px 0px 0px 114px;
 	padding: 0px 10px 10px 10px;
 	border: 0px solid purple;
 	background: #B1BCD2;
@@ -192,7 +191,7 @@ color: #fff;
  /*background-image: url(subtitle_bkgrd.gif);
  background-repeat: repeat-X;
  */
- width: 149px;
+ width: 90%;
  border-right: 0px solid #5B6F8F;
  border-bottom: 1px solid #B1BCD2;
 }
@@ -201,7 +200,7 @@ color: #fff;
  list-style: none; 
  margin: 0px 0px 10px 0px; 
  padding: 0px; 
- width: 149px;
+ width: 90%;
  font-size: 12px;
  line-height: 16px;
  border-top: 1px solid #eee;
@@ -214,7 +213,7 @@ color: #fff;
 
 #leftPane ul li {
  display: block;
- width: 165px;
+ width: 104px;
  /*background: #B1BCD2;*/
  border-bottom: 0px solid #eee;
  margin: 0px;

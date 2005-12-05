@@ -6,28 +6,22 @@
         resultFields request/ev_resultfields | here/getResultFields | 
                         here/ZenEventManager/defaultResultFields;
         filter request/filter | string:;
-        evcolspan python:len(resultFields)+2;
+        evcolspan python:len(resultFields);
+        evcolspan python:here.isManager() and evcolspan + 1 or evcolspan;
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
         objects python:ztm.sortObjects(objects,request);
         batch python:ztm.getBatchForm(objects,request);">
-    <tr tal:repeat="event batch" 
-    tal:attributes="class event/getCssClass">
+    <tr tal:repeat="event batch" tal:attributes="class event/getCssClass">
     <td tal:condition="here/isManager">
         <input type="checkbox" name="evids:list" 
             tal:attributes="value event/evid"/>
     </td>
-    <tal:block tal:repeat="data python:event.getDataList(resultFields)">
-    <td>
-        <tal:block tal:content="data"/>
-    </td>
-    </tal:block>
-    <td>
-        <a tal:attributes="href python:
-            'javascript:popupwindow(\''+event.getEventDetailHref()
-            +'\',\'ncoeventdetail'+str(event.evid)+'\',450,550)'">
-            *
-        </a>
+    <td tal:repeat="data python:event.getDataList(resultFields)"
+        tal:attributes="onclick 
+            string:javascript:eventWindow('${event/zem}','${event/evid}')"
+        tal:content="structure data">
+        event data
     </td>
 </tr>
 <tr>
