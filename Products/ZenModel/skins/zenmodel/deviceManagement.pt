@@ -10,8 +10,7 @@
 <form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
 <input type="hidden" name="zenScreenName" 
     tal:attributes="value template/id" /> 
-<table border=0 cellpadding=3 width=100% align=center 
-    bgcolor=#ffffff cellspacing=1>
+<table class="zentable" border=0 cellpadding=3 cellspacing=1>
   <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
     <tr>
         <td class="tableheader" align="left">Device Class Path</td>

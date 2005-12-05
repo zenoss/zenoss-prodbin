@@ -7,8 +7,8 @@
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
-<table border="0" cellpadding="3" width="100%" 
-    align="left" bgcolor="#ffffff" cellspacing="1"
+
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="device python: here.meta_type != 'DeviceLoader' 
                                     and here or None"
     >
