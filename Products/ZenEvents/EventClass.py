@@ -39,7 +39,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     isInTree = True
 
-    meta_type = "ZenModelRM" #FIXME - this is wrong just temp perserving data
+    meta_type = "EventClass" #FIXME - this is wrong just temp perserving data
     event_key = "EventClass"
 
     dmdRootName = "Events"
