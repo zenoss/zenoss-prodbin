@@ -28,8 +28,6 @@ function datePickerClosed(targetInput) {
 };
 </script>
 
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
 <form method="post" tal:attributes="action here/absolute_url_path"
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
