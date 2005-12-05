@@ -84,10 +84,10 @@
             <td class="tablevalues" align=center tal:content="devorg/countDevices"/>
             <td class="tablevalues" tal:content="python:devorg.getStatus()"
                 align="center">0</td>
-            <td tal:define="status python:devorg.getStatus('PingStatus')"
+            <td tal:define="status python:devorg.getStatus('/Status/Ping')"
                 tal:attributes="class python:here.getStatusCssClass(status)"
                 tal:content="status" align="center">0</td>
-            <td tal:define="status python:devorg.getStatus('SnmpStatus')"
+            <td tal:define="status python:devorg.getStatus('/Status/Snmp')"
                 tal:attributes="class python:here.getStatusCssClass(status)"
                 tal:content="status" align="center">0</td>
         </tr>

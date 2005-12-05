@@ -30,7 +30,7 @@ from StatusMonitor import StatusMonitor
 
 class SnmpMonitor(StatusMonitor):
     
-    ncoClass = "SnmpStatus"
+    ncoClass = "/Status/Snmp"
     ncoAgent = "SnmpMonitor"
     ncoAlertGroup = "SnmpTest"
 

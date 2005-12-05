@@ -36,7 +36,7 @@ from StatusMonitor import StatusMonitor
 
 class PingMonitor(StatusMonitor):
 
-    ncoClass = "PingStatus"
+    ncoClass = "/Status/Ping"
     ncoAgent = "PingMonitor"
     ncoAlertGroup = "Ping"
 

@@ -5,7 +5,7 @@
     </tr>
     <tr>
       <td class=tableheader align=left>Ping</td>
-      <td tal:define="status python:here.getStatus('PingStatus')"
+      <td tal:define="status python:here.getStatus('/Status/Ping')"
         tal:attributes="class python: here.getStatusCssClass(status)"
         tal:content="status">
         0</td>
@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <td class=tableheader align=left>SNMP</td>
-      <td tal:define="status python:here.getStatus('SnmpStatus')"
+      <td tal:define="status python:here.getStatus('/Status/Snmp')"
         tal:attributes="class python: here.getStatusCssClass(status)"
         tal:content="status">
         0</td>
@@ -705,7 +705,7 @@
 </table>
 
 <tal:block metal:define-macro="pingStatus" 
-    tal:define="status python:device.getStatus('PingStatus')">
+    tal:define="status python:device.getStatus('/Status/Ping')">
     <td tal:attributes="class python:device.getStatusCssClass(status)"
         tal:content="status" align="center">
         ping status
@@ -713,7 +713,7 @@
 </tal:block>
 
 <tal:block metal:define-macro="snmpStatus" 
-    tal:define="status python:device.getStatus('SnmpStatus')">
+    tal:define="status python:device.getStatus('/Status/Snmp')">
     <td tal:attributes="class python:device.getStatusCssClass(status)"
         tal:content="status" align="center">
         snmp status
