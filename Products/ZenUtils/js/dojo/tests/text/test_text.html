@@ -1,0 +1,51 @@
+<html>
+	<head>
+		<title>Text Test</title>
+		<style type="text/css">
+			#Mover {
+				position : absolute;
+				background : #ccc;
+				left : 200px;
+				top : 200px;
+			}
+		</style>
+		<script language="JavaScript" type="text/javascript">
+			// Dojo configuration
+			djConfig = { 
+				isDebug: true
+			};
+		</script>
+		<script language="JavaScript" type="text/javascript" 
+			src="../../dojo.js"></script>
+		<script language="JavaScript" type="text/javascript">
+			dojo.require("dojo.text.*");
+
+			function init(){
+				var ws = " This has some white space at the ends! Oh no!    ";
+				dj_debug("trim('" + ws + "') => '" + dojo.text.trim(ws) + "'");
+				var p = "This %{string} has %{parameters} %{toReplace}";
+				dj_debug("paramString('" + p + "') => '" + dojo.text.paramString(p,
+							{ string: "area", parameters: "foo"}) + "'");
+				dj_debug("paramString('" + p + "', true) => '" + dojo.text.paramString(p,
+							{ string: "area", parameters: "foo"}, true) + "'");
+				dj_debug("isBlank('   ') => " + dojo.text.isBlank('   '));
+				dj_debug("isBlank('            x') => " + dojo.text.isBlank('            x'));
+				dj_debug("isBlank('x             ') => " + dojo.text.isBlank('x             '));
+				dj_debug("isBlank('') => " + dojo.text.isBlank(''));
+				dj_debug("isBlank(null) => " + dojo.text.isBlank(null));
+				dj_debug("isBlank(new Array()) => " + dojo.text.isBlank(new Array()));
+				dj_debug("capitalize('this is a bunch of words') => '" + dojo.text.capitalize('this is a bunch of words') + "'");
+				dj_debug("capitalize('word') => '" + dojo.text.capitalize('word') + "'");
+				dj_debug("capitalize('   ') => '" + dojo.text.capitalize('   ') + "'");
+				dj_debug("capitalize('') => '" + dojo.text.capitalize('') + "'");
+				dj_debug("capitalize(null) => '" + dojo.text.capitalize(null) + "'");
+				dj_debug("capitalize(new Array()) => '" + dojo.text.capitalize(new Array()) + "'");
+			}
+
+			dojo.hostenv.modulesLoadedListeners.push(init);
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
+

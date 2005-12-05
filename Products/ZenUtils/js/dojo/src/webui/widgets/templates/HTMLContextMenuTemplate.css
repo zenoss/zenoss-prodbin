@@ -1,0 +1,37 @@
+.dojoContextMenu {
+	border:1px solid #000000;
+	list-style-type:none;
+	margin:0;
+	padding:0;
+	background-color:#d5d5d5;
+	width:10em;
+	position:absolute;
+	left:2em;
+	top:2em;
+	display:none;
+}
+
+.dojoContextMenuItem {
+	list-style-type:none;
+	margin:0.2em;
+	padding:0;
+}
+
+li:hover.dojoContextMenuItem {
+	background-color:#f5f5f5;
+	cursor:pointer;cursor:hand;
+}
+
+.dojoContextMenuSeparator {
+	list-style-type:none;
+	margin:0;
+	padding:1px 0;
+	border-bottom:1px solid #000000;
+	line-height:1px;
+	height:1px;
+}
+
+li:hover.dojoContextMenuSeparator {
+	background-color:#e5e5e5;
+	cursor:default;
+}

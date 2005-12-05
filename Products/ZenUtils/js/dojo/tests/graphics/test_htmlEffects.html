@@ -1,0 +1,115 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<title>HTML Effects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+#fadeElm {
+	padding : 10px;
+	width : 70%;
+	background : #666;
+	color : #eee;
+}
+
+#slider {
+	position : absolute;
+	padding : 5px;
+	background : #ccc;
+	left : 500px;
+	top : 300px;
+}
+
+#flash {
+}
+
+#wiper {
+	position : absolute;
+	left : 300px;
+	top : 400px;
+	width : 200px;
+	background : #ccc;
+}
+
+#explode {
+	position : absolute;
+	left : 300px;
+	top : 200px;
+	background : #ddd;
+	width : 400px;
+	height : 300px;
+	text-align : center;
+	display : none;
+}
+</style>
+<script language="JavaScript" type="text/javascript">
+	// Dojo configuration
+	djConfig = { 
+		isDebug: true
+	};
+</script>
+<script language="JavaScript" type="text/javascript" 
+	src="../../dojo.js"></script>
+<script language="JavaScript" type="text/javascript">
+dojo.require("dojo.xml.*");
+dojo.require("dojo.graphics.*");
+
+var fadeElem, flash, unflash, wiper;
+onload = function() {
+	flash = document.getElementById("flash");
+	dojo.graphics.htmlEffects.colorFadeIn(flash, [230, 230, 180], 1500, 1500);
+
+	unflash = document.getElementById("unflash");
+	dojo.graphics.htmlEffects.colorFadeOut(unflash, [255, 200, 180], 1500, 1500);
+
+	wiper = document.getElementById("wiper");
+	dojo.graphics.htmlEffects.wipeIn(wiper, 1000);
+}
+
+function testExplode(start) {
+	var end = document.getElementById("explode");
+	dojo.graphics.htmlEffects.explode(start, end, 250);
+}
+
+function testImplode(start) {
+	var end = document.getElementById("explode");
+	dojo.graphics.htmlEffects.implode(end, start, 250);
+}
+</script>
+</head>
+<body>
+	<a href="javascript:void(dojo.graphics.htmlEffects.fadeOut(document.getElementById('fadeElm'), 500))">Fade out</a>
+	|
+	<a href="javascript:void(dojo.graphics.htmlEffects.fadeIn(document.getElementById('fadeElm'), 500))">Fade in</a>
+	|
+	<a href="javascript:void(dojo.xml.htmlUtil.setOpacity(document.getElementById('fadeElm'), 0.5))">Set opacity = 50%</a>
+
+	<div id="fadeElm">Element to fade</div>
+
+	<a href="javascript:void(dojo.graphics.htmlEffects.slideTo(document.getElementById('slider'), [200, 200], 500))">Slide to: 200, 200</a>
+	|
+	<a href="javascript:void(dojo.graphics.htmlEffects.slideBy(document.getElementById('slider'), [200, 200], 500))">Slide by: 200, 200</a>
+	|
+	<a href="javascript:void(dojo.graphics.htmlEffects.slide(document.getElementById('slider'), [200, 200], [500, 500], 500))">Slide from 200, 200 to 500, 500</a>
+	<div id="slider">I slide</div>
+
+	<div id="flash">I fade to my BG!</div>
+	<div id="unflash">I fade from my BG!</div>
+
+	<div id="wiper">
+		<a href="javascript:void(dojo.graphics.htmlEffects.wipeOut(document.getElementById('wiper'), 1000))">Wipe out</a> wipe wipe. It is so fun to...
+		Wipe wipe wipe. It is so fun to...
+		Wipe wipe wipe. It is so fun to...
+		Wipe wipe wipe. It is so fun to...
+	</div>
+
+	<div>Non-wipe...</div>
+
+	<div id="explode">EXPLODE!!!</div>
+	<a href="javascript:;" onclick="testExplode(this)">Explode!</a>
+	<a href="javascript:;" onclick="testImplode(this)">Implode!</a>
+</body>
+</html>
+

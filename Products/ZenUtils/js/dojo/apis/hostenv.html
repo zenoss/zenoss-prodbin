@@ -1,0 +1,36 @@
+<h2 id="dojo.hostenv">dojo.hostenv</h2><h3>Methods</h3><pre>setModulePrefix (module, prefix)
+getModulePrefix (module)
+getName ()
+getVersion ()
+getText (uri, async_cb, fail_ok)
+getLibraryScriptUri ()
+getBaseScriptUri ()
+setBaseScriptUri (uri)
+loadPath (relpath, module, cb)
+loadUri (uri, cb)
+getDepsForEval (contents)
+loadUriAndCheck (uri, module, cb)
+loaded ()
+modulesLoaded ()
+moduleLoaded (modulename)
+loadModule (modulename, exact_only, omit_module_check)
+startPackage (packname)
+findModule (modulename, must_exist)
+getXmlhttpObject ()
+println (s)
+makeWidgets ()
+writeIncludes ()
+conditionalLoadModule (modMap)
+require (modulename, exact_only, omit_module_check)
+provide (packname)
+</pre><h3>Properties</h3><pre>String pkgFileName
+Array addedToLoadingCount
+Array removedFromLoadingCount
+Number inFlightCount
+Array getTextStack
+Array loadUriStack
+Array loadedUris
+Boolean modulesLoadedFired
+Array modulesLoadedListeners
+Array searchIds
+</pre>

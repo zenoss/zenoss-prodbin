@@ -1,0 +1,47 @@
+<h2 id="dojo.graphics">dojo.graphics</h2><h3>Properties</h3><pre>Object <a href="#dojo.graphics.color">color</a>
+Object <a href="#dojo.graphics.htmlEffects">htmlEffects</a>
+</pre><h2 id="dojo.graphics.color">dojo.graphics.color</h2><h3>Methods</h3><pre>blend (a, b, weight)
+blendHex (a, b, weight)
+extractRGB (color)
+hex2rgb (hex)
+rgb2hex (r, g, b)
+</pre><h2 id="dojo.graphics.htmlEffects">dojo.graphics.htmlEffects</h2><h3>Methods</h3><pre>fadeOut (node, duration, callback)
+fadeIn (node, duration, callback)
+fadeHide (node, duration, callback)
+fadeShow (node, duration, callback)
+fade (node, duration, startOpac, endOpac, callback)
+slideTo (node, endCoords, duration, callback)
+slideBy (node, coords, duration, callback)
+slide (node, startCoords, endCoords, duration, callback)
+colorFadeIn (node, startRGB, duration, delay, callback)
+highlight (node, startRGB, duration, delay, callback)
+colorFadeFrom (node, startRGB, duration, delay, callback)
+colorFadeOut (node, endRGB, duration, delay, callback)
+unhighlight (node, endRGB, duration, delay, callback)
+colorFadeTo (node, endRGB, duration, delay, callback)
+colorFade (node, startRGB, endRGB, duration, callback, dontPlay)
+wipeIn (node, duration, callback, dontPlay)
+wipeOut (node, duration, callback, dontPlay)
+explode (startNode, endNode, duration, callback)
+explodeFromBox (startCoords, endNode, duration, callback)
+implode (startNode, endNode, duration, callback)
+implodeToBox (startNode, endCoords, duration, callback)
+Exploder (triggerNode, boxNode)
+</pre><h2 id="dojo.graphics.htmlEffects.Exploder Object">dojo.graphics.htmlEffects.Exploder Object</h2><h3>Methods</h3><pre>timeShow ()
+show ()
+timeHide ()
+hide ()
+</pre><h3>Properties</h3><pre>Number waitToHide
+Number timeToShow
+Number waitToShow
+Number timeToHide
+Boolean autoShow
+Boolean autoHide
+Boolean showing
+undefined onBeforeExplode
+undefined onAfterExplode
+undefined onBeforeImplode
+undefined onAfterImplode
+undefined onExploding
+undefined onImploding
+</pre>

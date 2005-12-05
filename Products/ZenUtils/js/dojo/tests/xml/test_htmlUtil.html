@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:dojo="http://www.dojotoolkit.org/2004/dojoml" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en" lang="en">
+	<head>
+		<title>Dojo: Test of htmlUtil.js</title>
+		<!--[if lt IE 5.5]>
+		<script language="JavaScript" type="text/javascript" src="http://burstproject.org/burst/fix_ecma.js"></script>
+		<![endif]-->
+		<script type="text/javascript">
+			// Dojo configuration
+			djConfig = { 
+				isDebug: true
+			};
+		</script>
+		<script type="text/javascript" src="../../dojo.js"></script>
+		<script type="text/javascript">
+			dojo.require("dojo.xml.htmlUtil");
+			onload = function(e) {
+				// FIXME: does this end up in some sort of dojo.util namespace?
+				var gbc = dojo.xml.htmlUtil.getElementsByClass;
+
+				dj_debug("Class ContainsAll (default option) 'bar baz' (set borderStyle=dotted)");
+				var nodes = gbc("bar baz");
+				for(var i = 0; node = nodes[i]; i++) {
+					with(node.style) {
+						borderStyle = "dotted";
+					}
+				}
+
+				dj_debug("Class ContainsAny 'foo' (set width=250px)");
+				var node, nodes = gbc("foo", null, null, dojo.xml.htmlUtil.classMatchType.ContainsAll);
+				for(var i = 0; node = nodes[i]; i++) {
+					with(node.style) {
+						width = "250px";
+					}
+				}
+
+				dj_debug("Class IsOnly 'bar baz' (set background=gray)");
+				var nodes = gbc("bar baz", null, null, dojo.xml.htmlUtil.classMatchType.IsOnly);
+				for(var i = 0; node = nodes[i]; i++) {
+					with(node.style) {
+						background = "#ccc";
+					}
+				}
+
+				dj_debug("Class IsOnly 'baz' (set textAlign=center)");
+				var nodes = gbc("baz", null, null, dojo.xml.htmlUtil.classMatchType.IsOnly);
+				for(var i = 0; node = nodes[i]; i++) {
+					with(node.style) {
+						textAlign =  "center";
+					}
+				}
+			}
+		</script>
+		<style type="text/css">
+			.foo { color : blue; } 
+			.bar { font-style : italic; }
+			.baz { font-weight : bold; }
+			div#test div { margin : 2px; padding : 2px; border : 2px solid; }
+		</style>
+	</head>
+	<body>
+		<div id="test">
+			<h2>Should have some matches:</h2>
+			<div class="foo bar baz">foo bar baz</div>
+			<div class="foo baz">foo baz</div>
+			<div class="foo bar">foo bar</div>
+			<div class="bar baz">bar baz</div>
+			<div class="baz">baz</div>
+			<div class="baz foo bar">baz foo bar</div>
+			<h2>Should have no matches:</h2>
+			<div class="bar baz foo">bar baz foo</div>
+			<div class="foobarbaz">foobarbaz</div>
+			<div class="fool barb bazb">fool barb bazb</div>
+		</div>
+	</body>
+</html>
