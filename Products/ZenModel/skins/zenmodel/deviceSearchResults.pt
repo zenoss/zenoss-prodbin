@@ -1,12 +1,14 @@
-<tal:block metal:use-macro="here/templates/macros/page4">
+<tal:block metal:use-macro="here/templates/macros/page1">
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a href="#">Device Search Results</a>
+</tal:block>
+
 <tal:block metal:fill-slot="contentPane">
 
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 <form method="post" tal:attributes="action request/URL">
-<table 
-    border=0 cellpadding=3 cellspacing=1 width="100%"
-    align="center" bgcolor="#ffffff" 
+<table class="zentable" 
+    cellpadding=3 cellspacing=1
     tal:define="
         tableName string:devicesearchresults;
         query python: here.ZenTableManager.setReqTableState(
@@ -21,4 +23,5 @@
 </form>
 
 </tal:block>
+
 </tal:block>

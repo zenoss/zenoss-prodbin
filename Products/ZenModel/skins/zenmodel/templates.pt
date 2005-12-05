@@ -3,15 +3,53 @@
     and associated macros
  ====================================================== -->
 <!-- ======================================================
+    Page0 - page template that just has a content area
+ ====================================================== -->
+<html metal:define-macro="page0">
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body onLoad="javascript:zenPageInit();">
+	   <div id="frame">
+            <div metal:use-macro="here/templates/macros/topPane"/>
+            <div metal:use-macro="here/templates/macros/leftPane"/>
+	        <div id="rightPane">
+                <tal:block metal:define-slot="rightPane">
+                    <div id="breadCrumbPane">
+                        <tal:block metal:define-slot="breadCrumbPane">
+                            /DEFAULT
+                        </tal:block>
+                    </div>
+                    <div id="tabsPane">
+                        <tal:block metal:define-slot="tabsPane">
+                            NO TABS
+                        </tal:block>
+                    </div>
+                    <div id="contentPane">
+                        <tal:block metal:define-slot="contentPane">
+                            CONTENT GOES HERE
+                        </tal:block>
+                    </div>
+                </tal:block>
+            </div>
+       </div>
+    </body>
+</html>
+
+<!-- ======================================================
     Page1 - page template that just has a content area
  ====================================================== -->
 <html metal:define-macro="page1">
     <head metal:use-macro="here/templates/macros/head1"/>
-	<body>
+	<body onLoad="javascript:zenPageInit();">
 	   <div id="frame">
+            <div metal:use-macro="here/templates/macros/topPane"/>
             <div metal:use-macro="here/templates/macros/leftPane"/>
 	        <div id="rightPane">
                 <tal:block metal:define-slot="rightPane">
+                    <div id="breadCrumbPane">
+                        <tal:block metal:define-slot="breadCrumbPane">
+                            /Default
+                        </tal:block>
+                    </div>
                     <div id="contentPane">
                         <tal:block metal:define-slot="contentPane">
                             CONTENT GOES HERE
@@ -25,7 +63,6 @@
 
 <!-- ======================================================
     Page2 - page template that adds breadCrumbs and tabs
-          - extends the page1 template
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
@@ -102,52 +139,57 @@
 </head>
 
 <!-- ======================================================
+    topPane - standard top area with logo, etc...
+ ====================================================== -->
+<div id="topPane" metal:define-macro="topPane">
+
+    <table border="0" cellpadding="0" cellspacing="0" ><tr>
+
+        <td>
+            <a href="/zport/dmd"><img border="0" src="logo.gif"></a>
+        </td>
+
+        <td  valign="middle" align="right" width="35%">
+            <form action="/zport/dmd/deviceSearchResults" method="POST">
+                <input type="text" name="query" size="20"
+                    tal:attributes="value request/query | string:"/>
+                <input type="submit" name="submit" value="Search Devices"/>
+            </form> 
+       </td>
+       <td  valign="middle" align="right" width="55%">
+        <p>
+           <a href="#">demo@foo.com</a>
+           | <a href="#">Settings</a>
+           | <a href="#">Log Out</a>
+           | <a href="#">Help</a>
+         </p>
+       </td>
+    </tr></table>
+</div>
+
+<!-- ======================================================
     leftPane - standard left side and nav
  ====================================================== -->
 <div id="leftPane" metal:define-macro="leftPane">
-    <!-- TODO: complete the thought here... -->
-
-    <div style="padding-left: 1px;
-                padding-bottom: 8px;
-                border-bottom: 1px solid black;
-            ">
-        <a href="/zport/dmd">
-            <img border="0" src="logo.gif" align="center">
-        </a>
-   </div>
-
-    <!--
-    <ul style="padding-top: 15px">
-        <li style="padding-left: 0px;"><a href="/zport/dmd">Dashboard</a></li>
-    </ul>
-    -->
 
     <p>Main Views</p>
     <ul>
-        <li><a href="/zport/dmd">Dashboard</a></li>
+        <li><a class="selected" href="/zport/dmd">Dashboard</a></li>
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
+        <li><a href="/zport/dmd/Systems">Systems</a></li>
+        <li><a href="/zport/dmd/Networks">Networks</a></li>
     </ul>
 
     <p>Browse By</p>
     <ul>
         <li><a href="/zport/dmd/Groups">Groups</a></li>
         <li><a href="/zport/dmd/Locations">Locations</a></li>
-        <li><a href="/zport/dmd/Systems">Systems</a></li>
-        <li><a href="/zport/dmd/Networks">Networks</a></li>
         <li><a href="/zport/dmd/Companies">Vendors</a></li>
-        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/Products/Hardware">Hardware</a></li>
         <li><a href="/zport/dmd/Products/Software">Software</a></li>
     </ul>
 
-    <p>Device Search</p>
-    <ul>
-        <form action="/zport/dmd/deviceSearchResults" METHOD="POST">
-            <input type="text" name="query" size="10" 
-                tal:attributes="value request/query | string:"/>
-        </form>
-    </ul>
 
     <tal:block tal:condition="here/isManager">
     <p>Management</p>
@@ -155,30 +197,33 @@
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
         <li><a href="/zport/dmd/Reports">Reports</a></li>
         <li><a href="/zport/dmd/acl_users/manageUserFolder">Users</a></li>
-        <li><a href="/zport/dmd/ZenClassifier">Classifications</a></li>
+        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
+        <li><a href="/zport/dmd/ZenClassifier">Classifiers</a></li>
     </ul>
     </tal:block>
 
-    <p>Help</p>
-    <ul>
-        <li><a href="/zport/dmd/helpLink">ZenMon</a></li>
-    </ul>
 
 </div>
 
-<!-- BreadCrumbsPane -->
+<!-- ======================================================
+    BreadCrumbsPane
+ ====================================================== -->
 <div id="breadCrumbPane" metal:define-macro="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
 </div>
 
-<!-- tabsPane -->
+<!-- ======================================================
+     tabsPane
+ ====================================================== -->
 <div id="tabsPane" metal:define-macro="tabsPane">
-   <table class="zentable" cellpadding="3" cellspacing="1"
+   <table id="tabtable" cellpadding="0" cellspacing="0"
         tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
-           <td class="tabletitle" align="center" tal:repeat="tab ztabs"
+           <td align="center" tal:repeat="tab ztabs">
+               <!--
                tal:attributes="
                    class python:tab.get('selected', None) and 'tabletitleselected' or 'tabletitle'">
+                   -->
                <a 
                    class="tabletitle"
                    tal:attributes="href python:
@@ -192,7 +237,9 @@
    </table>
 </div>
 
-<!-- contentSeparator -->
+<!-- ======================================================
+     contentSeparator
+ ====================================================== -->
 <tal:block metal:define-macro="contentSeparator">
     <br/>
 </tal:block>

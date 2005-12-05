@@ -1,8 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
-"#ffffff" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="4">
        Network
@@ -42,8 +41,7 @@
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="objects here/children;
     tableName string:networkoverviewsubnets;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">

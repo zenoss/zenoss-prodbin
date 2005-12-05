@@ -1,6 +1,12 @@
-<tal:block metal:use-macro="here/templates/macros/page4">
-<tal:block metal:fill-slot="contentPane">
+<tal:block metal:use-macro="here/templates/macros/page1">
 
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes=
+            "href string:${here/absolute_url_path}/${template/id}">Users
+    </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
 <form action="manage_users" metho="post">
 <table>
     <tr><th class="tabletitle">User Folder</th></tr>

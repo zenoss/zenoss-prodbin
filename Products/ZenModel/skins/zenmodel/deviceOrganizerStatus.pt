@@ -12,7 +12,7 @@
     <table class="zentable"  cellpadding="3" cellspacing="1"
         metal:define-macro="status">
         <tr>
-          <th class="tabletitle" align="left" colspan="6">Status</th>
+          <th class="tabletitle" align="left" colspan="6">Summary</th>
         </tr>
         <tr>
           <td class="tableheader" align="left">Events</td>

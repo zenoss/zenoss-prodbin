@@ -1,12 +1,9 @@
 <span metal:define-macro="breadCrumbs"
     tal:repeat="crumbinfo here/breadCrumbs" tal:omit-tag="">
-    /<a class="tabletitle" 
-        href="_" tal:attributes="href python:crumbinfo[0]"
+    /<a href="_" tal:attributes="href python:crumbinfo[0]"
         tal:content="python: crumbinfo[1]">link</a>
 </span>
 
-<!-- Not sure what this is??? (BK) -->
-<!--
 <tr><th class=tabletitle align=left 
         tal:attributes="colspan colspan | python:5"
         metal:define-macro="reportBreadCrumbs">
@@ -17,8 +14,6 @@
             tal:content="python: crumbinfo[1]">link</a>
     </span>
 </th></tr>
--->
-<!-- -->
 
 <form metal:define-macro="navtool" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL"

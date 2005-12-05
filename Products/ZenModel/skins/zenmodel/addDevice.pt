@@ -11,25 +11,22 @@
     </script>
 </tal:block>
 
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+        href string:${here/absolute_url_path}/${template/id}">Add Device
+    </a>
+</tal:block>
+
 <tal:block metal:fill-slot="contentPane">
 
     <form tal:define="myurl string:/zport/dmd/DeviceLoader" 
         action="/zport/dmd/DeviceLoader" method="post">
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id" /> 
-    <table border="0" cellpadding="3" width="100%" 
-        align="left" bgcolor="#ffffff" cellspacing="1"
+
+    <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="device python: here.meta_type != 'DeviceLoader' 
-                                        and here or None"
-        >
-        <tr><th class=tabletitle colspan=4 align="center">
-                <a class=tabletitle
-                    tal:attributes="
-                        href string:${here/absolute_url_path}/${template/id}">
-                        Device Loader
-                </a>
-            </th>
-        </tr>
+                                        and here or None" >
         <tr>
             <td class="tableheader" align="left">Device Name</td>
             <td class="tablevalues" align="left">
@@ -292,6 +289,5 @@
         </tr>
     </table>
     </form>
-
 </tal:block>
 </tal:block>

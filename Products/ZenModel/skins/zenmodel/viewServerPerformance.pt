@@ -1,12 +1,10 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<br/>
 <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf"/>
 <br/>
 <table metal:define-macro="serverfilesystemperf" 
-    border=0 cellpadding=3 width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing=1
+    class="zentable" border=0 cellpadding=3 cellspacing=1
     tal:define="tableName string:serverfilesystemperf;
     objects python:here.getRelatedCricketObjs('filesystems');
     batch python:here.ZenTableManager.getBatch(tableName,objects);"

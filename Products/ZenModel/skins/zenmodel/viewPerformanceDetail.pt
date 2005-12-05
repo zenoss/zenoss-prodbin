@@ -2,8 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <table metal:define-macro="objectperf" 
-    border=0 cellpadding=3 width=100% 
-    align="center" bgcolor="#ffffff" cellspacing=1
+    class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);
     url python:here.absolute_url()+'/'+template.getId()"

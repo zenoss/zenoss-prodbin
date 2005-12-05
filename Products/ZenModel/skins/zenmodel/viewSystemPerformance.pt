@@ -1,8 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table border=0 cellpadding=3 width=100%
-    align="center" bgcolor="#ffffff" cellspacing=1
+<table class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);"
     >

@@ -1,4 +1,28 @@
 //<script metal:define-macro="submitAction" language="JavaScript">
+
+//----------------------------------------------
+// initialize page
+//------------------------------------------------
+
+function zenPageInit(){
+
+    // set the state of the leftPane
+    // - this is a bit of a hack
+    // - it does not change the state of an existing unless it finds
+
+    var as = document.getElementById("leftPane").getElementsByTagName("A");
+        
+    for(var i=0; i< as.length; i++){
+        if( as[i].pathname == location.pathname){
+            as[i].className = 'selected';
+            lastLeft = as[i];
+        }
+        else {
+            as[i].className = 'unselected';
+        }
+    }
+}
+
 function submitAction(myform, url) {
     myform.action=url
     myform.submit()

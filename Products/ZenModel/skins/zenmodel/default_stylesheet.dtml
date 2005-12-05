@@ -2,12 +2,13 @@
 <dtml-call "RESPONSE.setHeader('Content-Type','text/css')">
 </dtml-unless>
 <dtml-with stylesheet_properties>
+
 body {
-    background-color: &dtml-bg_color;;
     background-color: #FFFFFF;
-    color: &dtml-base_font_color;;
-    font-family:  &dtml-primary_font_family;;
-    font-size:  &dtml-base_font_size;;
+    background-color: #FFFFFF;
+    color: #000000;
+    font-family:  Verdana, Arial, Helvetica, sans-serif;
+    font-size:  8pt;
 	
 }
 
@@ -17,122 +18,277 @@ form {
     margin:0;
 }
 
+#tabtable {
+    width: 92%;
+	height: 25px;
+    background-color: #B1BCD2;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px; 
+    font-weight: normal; 
+	margin: 0px;
+	padding: 0px;
+	border: 0px solid red;
+}
+
+#tabtable td{
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	vertical-align: top;
+}
+
 table.zentable {
     width: 100%;
-    border:0;
-    background-color: #ffffff;
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tablevalues_font_size;; 
+    background-color: #DEE3EC;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px; 
     font-weight: normal; 
+	margin: 0px;
+	padding: 0px;
+	border-top: 1px solid #B1BCD2;
+	border-left: 1px solid #B1BCD2;
+	border-bottom: 1px solid #3C5274;
+	border-right: 1px solid #3C5274;
 }
 
-<dtml-comment>Stuff for Page Layout Templates</dtml-comment>
+
+
 #frame
 {
-	margin: 0px;
-    padding: 0px;
+	margin: 20px 20px 20px 20px;
+	/*
+	margin: 0 auto;
+	width: 800px;
+	*/
+	height: 670px;
 	position: relative;
-	border: 1px solid black;
+	border: 0px solid black;
+	border-bottom: 0px solid black;
+	border-top: 0px solid black;
+	
+}
+#header{
+	background-color: #000000;
+	color: white;
+	padding: 5px;
+	height: 20px;
+	text-align: right;
 }
 
+#header a {
+color: #fff;
+
+}
+
+#topPane{
+	background: black;
+	color: white;
+	text-align: right;
+	height: 54px;
+	clear: both;	
+	padding: 0px 20px 0px 0px;
+    margin: 0;
+}
+#topPane p{
+    color: white;
+    font-size: .8em;
+}
+#topPane a{
+    color: white;
+}
+
+#footer
+{
+	clear: both;
+	background-color: black;
+	padding: 0px;
+	
+	/*
+	bottom: 400;
+	position: absolute;
+	*/
+}
 #leftPane {
-    padding-top:5px;
+	float: left;
+	
 	left: 0;
 	width: 170px;
+	padding-left: 10px;
+	padding-top: 5px;
+	height: 600px;
+    padding-right: 5px;	
+	border-right: 0px solid #AAAAAA;
+	border-top: 0px solid purple;
+	/*
 	position: absolute;
 	border-right: 1px solid black;
+	*/
+	
 }
-
 #rightPane
 {
-    padding-top:2px;
-	left: 170px;
-	position: absolute;
-	margin: 0px;
-	border-left: 1px solid black;
-}
+	/*float: left;
+	left: 172px;
+	position: absolute;*/
+	margin: 0px 0px 0px 174px;
+	padding: 0px 10px 10px 10px;
+	border: 0px solid purple;
+	background: #B1BCD2;
 
+}
 #breadCrumbPane
 {
-    margin-left:1px;
-    margin-right:1px;
-    padding:3px;
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tabletitle_font_size;; 
-    font-weight: bold; 
-    color: &dtml-tabletitle_color;;
-    background-color: &dtml-tabletitle_bg_color;;
+	padding: 3px 3px 10px 10px;
+	/*border: 1px solid #B1BCD2;
+	background:  #F8E7AD;*/
+	border-top: 0px solid #000;
+	border-left: 0px solid orange;
+	width: 92%;
+	margin: 0px 0px 3px 0px;
+
+	font-size: 19px;
+	color: black;
+	font-weight: bold;
+}
+
+#breadCrumbPane a
+{
+	font-size: 19px;
+	color: black;
+	background: inherit;
+	font-weight: bold;
 }
 
 #tabsPane
 {
+	margin: 0px;
+	padding: 0px;
+	padding-left: 10px;
+   
+	border: 0px solid red;
+	width: 92%;
+	background: #B1BCD2;
 }
 #contentPane
 {
+	padding: 10px 10px 10px 10px;
+    margin: 0px 10px 10px 10px;
+	border: 0px solid green;
+	background: #fff;
+	/*background: #DEE3EC;*/
+    min-height: 500px;
 }
 
 
 #leftPane p {
- padding-top: 5px; 
+ padding: 0px 0px 0px 3px;
+ margin: 0px; 
+ font-size: 14px;
+ line-height: 18px;
  font-weight: bold;
+ color: #B1BCD2;
+ background: #fff;
+ 
+ /*background-image: url(subtitle_bkgrd.gif);
+ background-repeat: repeat-X;
+ */
+ width: 149px;
+ border-right: 0px solid #5B6F8F;
+ border-bottom: 1px solid #B1BCD2;
 }
 
 #leftPane ul {
  list-style: none; 
- margin: 0; 
- padding: 0; 
- padding-top: -10px; 
- margin-top: -10px; 
+ margin: 0px 0px 10px 0px; 
+ padding: 0px; 
+ width: 149px;
+ font-size: 12px;
+ line-height: 16px;
+ border-top: 1px solid #eee;
+ 
+ border-right: 0px solid #5B6F8F;
+
+ border-bottom: 0px solid #5B6F8F;
+ border-left: 0px solid #B1BCD2;
 }
 
 #leftPane ul li {
- margin: 0; 
- padding-left: 5px; 
+ display: block;
+ width: 165px;
+ /*background: #B1BCD2;*/
+ border-bottom: 0px solid #eee;
+ margin: 0px;
+ padding: 0px;
+ overflow: hidden;
 }
 
-/*
-#leftPane ul li a:link {
- display: block; 
- padding: 2px 2px 2px 0.5em; 
- border-left: 10px solid #369; 
- border-right: 1px solid #69c;
- border-bottom: 1px solid #369;
- background-color: #036; 
- color: #fff; 
- text-decoration: none; 
- width: 100%; 
-}
-*/
 
-#leftPane ul li a:hover {
-/*
- border-left: 10px solid #036;
- border-right: 1px solid #69c;
-*/
- border-bottom: 1px solid black;
- background-color: black;
- color: white;
+#leftPane ul li a {
+text-decoration: none;
+display: block;
+width: 155px;
+padding: 4px 0px 3px 10px;
+margin: 0px;
+overflow: hidden;
 }
 	
 
-<dtml-comment>Anchors, etc..</dtml-comment>
+#leftPane ul li a:hover {
+background-color: #5B6F8F;
+color: white;
+overflow: hidden;
+background-image: url(arrows.gif);
+background-position: right;
+background-repeat: no-repeat;
+}
+
+#leftPane ul li a.selected {
+text-decoration: none;
+display: block;
+width: 182px;
+padding: 4px 10px 3px 10px;
+margin: 0px;
+background-position: right;
+background-repeat: no-repeat;
+color: black;
+background-color: orange;
+background: #B1BCD2;
+font-weight: bold;
+/*
+border-bottom: 2px solid #F8E7AD;
+border-top: 2px solid #F8E7AD;
+*/
+}
+
+#leftPane ul li a.selected:hover {
+text-decoration: none;
+display: block;
+width: 160px;
+padding: 4px 0px 3px 10px;
+margin: 0px;
+color: #000;
+font-weight: bold;
+}
+	
+
+
 a:link {
-    color: &dtml-link_color;;
+    color: #000040;
 }
 
 a:visited {
-    color: &dtml-vlink_color;;
+    color: #000040;
 }
 
 a:active {
-    color: &dtml-alink_color;
+    color: #777777
 }
 
 a:hover {
-    color:  &dtml-hover_color;;
+    color:  #000000;
 }
 
-<dtml-comment>top frame and top row of tables use this style</dtml-comment>
+
 
 .navcontrol {
     margin-bottom:0;
@@ -146,121 +302,148 @@ a:hover {
     font-size: 14pt;
     font-weight: bold; 
     color: #ff0000;
-    background-color: &dtml-tableheader_bg_color;;
+    background-color: #CCCCCC;
 }
 
-.tabletitle {  
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tabletitle_font_size;; 
+a.tabletitle {  
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px; 
     font-weight: bold; 
-    color: &dtml-tabletitle_color;;
-    background-color: &dtml-tabletitle_bg_color;;
+    color: #FFFFFF;
+    background-color: #5A6F8F;
+	background-image: url(tab_corner.gif);
+	background-position: right top;
+	background-repeat: no-repeat;
+	display: block;
+	border: 1px solid #B1BCD2;
+	border-bottom: 1px solid #000;
+	height: 22px;
+	text-decoration: none;
+	padding: 2px 0px 0px 0px;
+	margin: 0px;
 }
 
-.tabletitlel {  
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tabletitle_font_size;; 
-    font-weight: bold; 
-    color: &dtml-tabletitle_color;;
-    background-color: &dtml-tabletitle_bg_color;;
-    text-align: left;
-}
-
-a.tabletitle:link {  
-    color: &dtml-tabletitle_color;;
-}
 a.tabletitle:visited {  
-    color: &dtml-tabletitle_color;;
+    color: #FFFFFF;
 }
 a.tabletitle:active {  
-    color: &dtml-alink_color;;
+    color: #fff;
 }
 a.tabletitle:hover {  
-    color: &dtml-hover_color;;
+    color: #fff;
+	
+	background-color: #3C5274;
 }
-<dtml-comment>selected tabletitles use this style</dtml-comment>
-.tabletitleselected { 
-    font-family: &dtml-primary_font_family;; 
-    font-size: &dtml-tabletitle_font_size;;
+
+
+th.tabletitle {
+background: #B1BCD2;
+background-image: url(subtitle_bkgrd.gif);
+ background-repeat: repeat-X;
+ color: white;
+ text-align: left;
+
+}
+
+/*
+.tabletitlel {  
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px; 
     font-weight: bold; 
-    color: &dtml-tabletitleselected_color;;
-    background-color: &dtml-tabletitleselected_bg_color;;
+    color: #FFFFFF;
+    background-color: #5A6F8F;
+    text-align: left;
+}
+*/
+.tabletitleselected { 
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 14px;
+    font-weight: bold; 
+    color: #000;
+    background-color: #fff;
+	background-image: url(tab_corner.gif);
+	background-position: right top;
+	background-repeat: no-repeat;
+	display: block;
+	border-right: 2px solid #B1BCD2;
+	height: 25px;
+	padding: 2px 0px 0px 0px;
 }
 a.tabletitleselected:link {  
-    color: &dtml-tabletitleselected_color;;
+    color: #000;
     text-decoration: none;;
 }
 a.tabletitleselected:visited {  
-    color: &dtml-tabletitleselected_color;;
+    color: #000;
     text-decoration: none;;
 }
 a.tabletitleselected:active {  
-    color: &dtml-alink_color;;
+    color: #000;
     text-decoration: none;;
 }
 a.tabletitleselected:hover {  
-    color: &dtml-hover_color;;
+    color: #999;
     text-decoration: none;;
 }
 
 
-<dtml-comment>field lables use this style</dtml-comment>
+
 .tableheader { 
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tableheader_font_size;;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px;
     font-weight: normal; 
-    color: &dtml-tableheader_color;;
-    background-color: &dtml-tableheader_bg_color;;
+    color: #000000;
+    background-color: #fff;
 }
 
-<dtml-comment>selected tableheaders use this style</dtml-comment>
+
 .tableheaderselected { 
-    font-family: &dtml-primary_font_family;; 
-    font-size: &dtml-tableheader_font_size;;
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 12px;
     font-weight: normal; 
-    color: &dtml-tableheaderselected_color;;
-    background-color: &dtml-tableheaderselected_bg_color;;
+    color: #FFFFFF;
+    background-color: #999999;
 }
 
 .statusbar { 
-    font-family: &dtml-primary_font_family;; 
-    font-size: &dtml-statusbar_font_size;;
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 4pt;
     font-weight: normal; 
-    color: &dtml-tableheader_color;;
-    background-color: &dtml-tabletitleselected_bg_color;;
+    color: #000000;
+    background-color: #CCCCCC;
 }
 
-<dtml-comment>field values use this style</dtml-comment>
+
 .tablevalues {  
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tablevalues_font_size;; 
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px; 
     font-weight: normal; 
-    color: &dtml-tablevalues_color;; 
-    background-color: &dtml-tablevalues_bg_color;;
+    color: #000040; 
+    background-color: #EEE;
 }
 
 a.tablevalues:link {  
-    color: &dtml-tablevalues_color;;
+    color: #000040;
 }
 a.tablevalues:visited {  
-    color: &dtml-tablevalues_color;;
+    color: #000040;
 }
 a.tablevalues:hover {  
-    color: &dtml-hover_color;;
+    color: #000000;
 }
 a.tablevalues:active {  
-    color: &dtml-alink_color;;
+    color: #777777;
 }
 
 .errorvalues {
     font-weight: bold;
     color: #ff0000;
-    background-color: &dtml-tablevalues_bg_color;;
+    background-color: #EEEEEF;
 }
 
 .statusvalues {  
-    font-family: &dtml-primary_font_family;;
-    font-size: &dtml-tablevalues_font_size;; 
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px; 
     font-weight: normal;
 }
 
@@ -271,9 +454,9 @@ a.tablevalues:active {
 	font-family: Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 12px;
 	text-align: center;
-    color: &dtml-tablevalues_color;; 
-    background-color: &dtml-tablevalues_bg_color;;
-	border: 1px solid &dtml-tabletitle_bg_color;;
+    color: #000040; 
+    background-color: #EEEEEF;
+	border: 1px solid #5A6F8F;
 	}
 
 .dpTR {
@@ -293,8 +476,8 @@ a.tablevalues:active {
 	}
 
 .dpDayHighlightTD {
-	background-color: &dtml-tableheader_bg_color;;
-	border: 1px solid &dtml-tabletitle_bg_color;;
+	background-color: #CCCCCC;
+	border: 1px solid #5A6F8F;
 	cursor: pointer;
 	}
 
@@ -308,8 +491,8 @@ a.tablevalues:active {
 	}
 
 .dpDayTD {
-	background-color: &dtml-tableheader_bg_color;;
-	border: 1px solid &dtml-tabletitle_bg_color;;
+	background-color: #CCCCCC;
+	border: 1px solid #5A6F8F;
 	color: white;
 	}
 
@@ -319,23 +502,23 @@ a.tablevalues:active {
 	}
 
 .dpDayHighlight {
-	color:  &dtml-tabletitle_bg_color;;
+	color:  #5A6F8F;
 	font-weight: bold;
 	}
 
 .dpButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 10px;
-    color: &dtml-tableheader_color;;
-	background: &dtml-tableheader_bg_color;;
+    color: #000000;
+	background: #CCCCCC;
 	padding: 0px;
 	}
 
 .dpTodayButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 10px;
-    color: &dtml-tableheader_color;;
-	background: &dtml-tableheader_bg_color;;
+    color: #000000;
+	background: #CCCCCC;
 	}
 
 </dtml-with>

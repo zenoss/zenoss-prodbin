@@ -1,9 +1,16 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+            href string:${here/absolute_url_path}/${template/id}">Dashboard
+   </a>
+</tal:block>
+
 <tal:block metal:fill-slot="contentPane">
 
 	<table class="zentable" cellpadding="3" cellspacing="1">
 		<tr>
-		  <th class="tabletitlel" colspan="5">Systems</th>
+		  <th class="tabletitle" colspan="5">Systems</th>
 		</tr>
 		<tr>
 			<th class="tableheader">Name</th>
@@ -48,9 +55,9 @@
     
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-	<table border="0" cellpadding="3" width="100%" cellspacing="1">
+	<table class="zentable" cellpadding="3" cellspacing="1">
 		<tr>
-		  <th class="tabletitlel" colspan="5">Devices</th>
+		  <th class="tabletitle" colspan="5">Devices</th>
 		</tr>
 		<tr>
 			<th class="tableheader">Class</th>
