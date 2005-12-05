@@ -69,12 +69,12 @@ class DataRoot(ZenModelRM, OrderedFolder):
             'icon'           : 'DataRoot_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addStatusMonitorconf',
-            'immediate_view' : 'dmdIndex',
+            'immediate_view' : 'Dashboard',
             'actions'        :
             ( 
-                { 'id'            : 'dmdIndex'
-                , 'name'          : 'Index'
-                , 'action'        : 'dmdIndex'
+                { 'id'            : 'dashboard'
+                , 'name'          : 'Dashboard'
+                , 'action'        : 'Dashboard'
                 , 'permissions'   : (
                   permissions.view, )
                 },
