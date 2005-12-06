@@ -73,7 +73,7 @@ class CricketReport(SimpleItem, ZenModelBase):
             for CricketData in crCricketDatas:
                 gopts.extend(CricketData.getOpts(scount,dsidx))
                 scount += 1
-            pprint.pprint(gopts)
+            #pprint.pprint(gopts)
             cricketdata = cricketconf.cricketCustomSummary(gopts, drange)
             for i in range(0,len(crCricketDatas)):
                 j = i * 2
