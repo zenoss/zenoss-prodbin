@@ -10,7 +10,7 @@ $Id: CricketReport.py,v 1.1.1.1 2004/10/14 20:55:29 edahl Exp $"""
 
 __version__ = "$Revision: 1.1.1.1 $"[11:-2]
 
-import re
+import pprint
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -57,7 +57,7 @@ class CricketReport(SimpleItem, ZenModelBase):
         return data
 
 
-    def callCricket(self, CricketDatas, drange):
+    def callCricket(self, CricketDatas, dsidx, drange):
         """group rhdatas by common cricket servers
         build the total rrd command and send out to cricket server
         then fill rhdatas will proper return values"""
@@ -73,12 +73,16 @@ class CricketReport(SimpleItem, ZenModelBase):
             for CricketData in crCricketDatas:
                 gopts.extend(CricketData.getOpts(scount,dsidx))
                 scount += 1
+            pprint.pprint(gopts)
             cricketdata = cricketconf.cricketCustomSummary(gopts, drange)
             for i in range(0,len(crCricketDatas)):
                 j = i * 2
                 CricketData = crCricketDatas[i]
-                CricketData.dataavg = cricketdata[j]
-                CricketData.datamax = cricketdata[j+1]
+                try:
+                    CricketData.dataavg = float(cricketdata[j])
+                    CricketData.datamax = float(cricketdata[j+1])
+                except TypeError: pass
+        CricketDatas = filter(lambda x: x.dataavg,CricketDatas)
         return CricketDatas
             
 
@@ -108,10 +112,10 @@ class CricketData:
     def getOpts(self, scount, dsidx):
         gopts = []
         src = 'v%d' % scount
-        gopts.append("DEF:%s=%s.rrd:%s:AVERAGE" % (src,dsidx,self.cricketpath))
+        gopts.append("DEF:%s=%s.rrd:%s:AVERAGE" % (src,self.cricketpath,dsidx))
         #PRINT statements
-        gopts.append("PRINT:%s:AVERAGE:%%.2lf%%S" % src)
-        gopts.append("PRINT:%s:MAX:%%.2lf%%S" % src)
+        gopts.append("PRINT:%s:AVERAGE:%%.2lf" % src)
+        gopts.append("PRINT:%s:MAX:%%.2lf" % src)
         return gopts
     
 
