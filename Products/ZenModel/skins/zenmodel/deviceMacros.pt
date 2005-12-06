@@ -1,4 +1,4 @@
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro=deviceStatusInfo>
     <tr>
       <th class=tabletitle align=left colspan=4>Status</th>
@@ -11,7 +11,7 @@
         0</td>
       <td class=tableheader align=left>Events</td>
       <td class=tablevalues align=left>
-        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+        <table class="zentable" border=0 cellpadding=0 cellspacing=0
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>">
@@ -51,7 +51,7 @@
     </tr>
 </table>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="deviceOverviewBrief">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -78,7 +78,7 @@
     </tr>
 </table>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="deviceOverview">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -181,7 +181,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="routerOverview">
     <tr>
       <th class=tabletitle align=left colspan=4>
@@ -311,7 +311,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="deviceLinks">
     <tr>
       <th class="tabletitle" align="left" colspan="4">
@@ -403,7 +403,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
     objects here/ipservices/objectValuesAll;
@@ -455,7 +455,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="interfaceList"
     tal:define="tableName string:interfacelist;
     objects here/interfaces/objectValuesAll;
@@ -541,7 +541,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
     objects here/filesystems/objectValuesAll;
@@ -606,7 +606,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="0" border="0"
     metal:define-macro="hardDiskList"
     tal:define="tableName string:hardDiskList;
     objects here/harddisks/objectValuesAll;
@@ -641,7 +641,7 @@
 </table>
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1" border="0"
     metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
     objects here/routes/objectValuesAll;

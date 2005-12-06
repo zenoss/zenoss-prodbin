@@ -1,27 +1,89 @@
-base_font_color:string=#000000
+## base content
+base_bg_color:string=white
+base_font_color:string=black
 base_font_size:string=8pt
-bg_color:string=#FFFFFF
+base_font_family:string=Verdana, Arial, Helvetica, sans-serif
+
 highlight_color:string=#AAAAAA
 highlight_font_color:string=#000000
 link_color:string=#000040
 vlink_color:string=#000040
 alink_color:string=#777777
 hover_color:string=#000000
-primary_font_family:string=Verdana, Arial, Helvetica, sans-serif
-secondary_font_family:string=Arial, Verdana, Helvetica, sans-serif
-tabletitle_font_size:string=14px
-tabletitle_color:string=#FFFFFF
-tabletitle_bg_color:string=#5A6F8F
-tabletitleselected_color:string=#333333
+hover_color_light:string=#EEEEEE
+hover_color_dark:string=#AAAAAA
+
+## top pane
+toppane_bg_color:string=black
+toppane_font_color:string=white
+toppane_height:string=35px
+toppane_font_size:string=.8em
+
+## left pane
+leftpane_top_padding:string=35px
+leftpane_width:string=110px
+leftpane_bg_color:string=white
+leftpane_link_font_color:string=black
+leftpane_link_font_size:string=1em
+leftpane_menu_font_color:string=#5a6f8f
+leftpane_menu_font_size:string=1em
+leftpane_selected_font_color:string=black
+leftpane_selected_bg_color:string=#b1bcd2
+leftpane_hover_font_color:string=white
+leftpane_hover_bg_color:string=#5a6f8f
+
+## right pane
+rightpane_left_padding:string=115px
+rightpane_border_width:string=15px
+rightpane_border_color:string=#b1bcd2
+
+## crumb pane
+crumb_font_color:string=#5a6f8f
+crumb_font_color:string=black
+crumb_font_size:string=1.1em
+crumb_padding:string=10px
+
+## tabs table
+tabletitle_font_size:string=12px
+tabletitle_font_color:string=white
+tabletitle_bg_color:string=#5a6f8f
+tabletitleselected_font_color:string=#333333
 tabletitleselected_bg_color:string=#CCCCCC
+tabletitleselected_bg_color:string=orange
+
+## content pane
+contentpane_bg_color:string=#cccccc
+contentpane_bg_color:string=orange
+contentpane_padding:string=15px
+
+## zentable
+zentable_border_top:string=#b1bcd2
+zentable_border_left:string=#b1bcd2
+zentable_border_bottom:string=#3c5274
+zentable_border_right:string=#3c5274
+
+
+## tableheader
 tableheader_font_size:string=12px
-tableheader_color:string=#000000
+tableheader_font_color:string=#000000
 tableheader_bg_color:string=#CCCCCC
-tableheaderselected_color:string=#FFFFFF
+tableheaderselected_font_color:string=#FFFFFF
 tableheaderselected_bg_color:string=#999999
+
+## tablevalues
 tablevalues_font_size:string=12px
-tablevalues_color:string=#000040
-tablevalues_bg_color:string=#EEEEEF
+tablevalues_font_color:string=#000040
+tablevalues_bg_color:string=#EEE
 statusbar_font_size:string=4pt
-select_stylesheet_id:string=default_stylesheet
+
+## color holders
+zdarkblue:string=#5a6f8f
+zdarkerblue:string=#3C527
+zlightblue:string=#b1bcd2
+zlighterblue:string=#dee3ec
+zdarkgrey:string=#ffffff
+zlightgrey:string=#cccccc
+zlightergrey:string=#eeeeef
+
 title:string=Default Zentinel Portal Style
+select_stylesheet_id:string=default_stylesheet

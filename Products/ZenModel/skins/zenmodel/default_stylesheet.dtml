@@ -1,15 +1,153 @@
-<dtml-unless do_inline_css>
-<dtml-call "RESPONSE.setHeader('Content-Type','text/css')">
-</dtml-unless>
+<dtml-comment>
+    Dont think we need this any more...
+    <dtml-unless do_inline_css>
+    <dtml-call "RESPONSE.setHeader('Content-Type','text/css')">
+    </dtml-unless>
+</dtml-comment>
+
 <dtml-with stylesheet_properties>
 
 body {
-    background-color: #FFFFFF;
-    background-color: #FFFFFF;
-    color: #000000;
-    font-family:  Verdana, Arial, Helvetica, sans-serif;
-    font-size:  8pt;
+    background-color: &dtml-base_bg_color;;
+    color: &dtml-base_font_color;;
+    font-family:  &dtml-base_font_family;;
+    font-size:  &dtml-base_font_size;;
+}
+
+#topPane{
+	background: &dtml-toppane_bg_color;;
+	color: &dtml-toppane_font_color;;
+	height: &dtml-toppane_height;;
+	text-align: right;
+	clear: both;	
+	padding: 0px 20px 0px 0px;
+    margin: 0;
+}
+#topPane p{
+	color: &dtml-toppane_font_color;;
+    font-size: &dtml-toppane_font_size;;
+}
+#topPane a{
+	color: &dtml-toppane_font_color;;
+}
+#leftPane {
+	float: left;
+	left: 0;
+	width: &dtml-leftpane_width;;
+    padding: &dtml-leftpane_top_padding; 5px 0px 10px;
+	min-height: 500px;
+}
+#leftPane p {
+    background: &dtml-base_bg_color;;
+    font-size: &dtml-leftpane_menu_font_size;;
+    padding: 0px 0px 0px 3px;
+    margin: 0px 0px 0px 0px;
+    font-weight: bold;
+    border-bottom: 1px solid &dtml-leftpane_menu_font_color;;
+    width: 90%;
+    color: &dtml-leftpane_menu_font_color;;
+}
+
+#leftPane ul {
+    list-style: none; 
+    margin: 0px 0px 10px 0px; 
+    padding: 0px; 
+    font-size: &dtml-leftpane_link_font_size;;
+}
+
+#leftPane ul li {
+    display: block;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+#leftPane ul li a {
+    text-decoration: none;
+    display: block;
+    padding: 2px 0px 2px 8px;
+    margin: 0px;
+    overflow: hidden;
+}
 	
+#leftPane ul li a:hover {
+    color: &dtml-leftpane_hover_font_color;;
+    background: &dtml-leftpane_hover_bg_color;;
+    overflow: hidden;
+    background-image: url(arrows.gif);
+    background-position: right;
+    background-repeat: no-repeat;
+}
+
+#leftPane ul li a.selected {
+    color: &dtml-leftpane_selected_font_color;;
+    background: &dtml-leftpane_selected_bg_color;;
+    text-decoration: none;
+    display: block;
+    padding: 4px 10px 3px 10px;
+    margin: 0px;
+    background-position: right;
+    background-repeat: no-repeat;
+    font-weight: bold;
+}
+
+#leftPane ul li a.selected:hover {
+    color: &dtml-leftpane_hover_font_color;;
+    background: &dtml-leftpane_hover_bg_color;;
+    overflow: hidden;
+    background-image: url(arrows.gif);
+    background-position: right;
+    background-repeat: no-repeat;
+}
+#rightPane
+{
+	margin: 0px 0px 0px &dtml-rightpane_left_padding;;
+	padding-left: &dtml-rightpane_border_width;;
+	padding-right: &dtml-rightpane_border_width;;
+	padding-bottom: &dtml-rightpane_border_width;;
+    background: &dtml-rightpane_border_color;;
+}
+#breadCrumbPane
+{
+	color: &dtml-crumb_font_color;;
+	font-size: &dtml-crumb_font_size;;
+	padding-top: &dtml-crumb_padding;;
+	padding-bottom: &dtml-crumb_padding;;
+	margin: 0px;
+	font-weight: bold;
+}
+
+#breadCrumbPane a
+{
+	color: inherit;
+	font-size: inherit;
+	background: inherit;
+	font-weight: inherit;
+}
+
+#tabsPane
+{
+}
+
+#contentPane
+{
+	padding: &dtml-contentpane_padding;;
+	background: &dtml-contentpane_bg_color;;
+    min-height: 500px;
+}
+a:link {
+    color: &dtml-link_color;;
+}
+
+a:visited {
+    color: &dtml-vlink_color;;
+}
+
+a:active {
+    color: &dtml-alink_color;
+}
+
+a:hover {
+    color:  &dtml-hover_color;;
 }
 
 form {
@@ -18,19 +156,16 @@ form {
     margin:0;
 }
 
-#tabtable {
+table.tabtable {
+    font-family: &dtml-base_font_family;;
+    font-weight: normal; 
     width: 92%;
 	height: 25px;
-    background-color: #B1BCD2;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
-    font-weight: normal; 
 	margin: 0px;
 	padding: 0px;
-	border: 0px solid red;
 }
 
-#tabtable td{
+table.tabtable td{
 	margin: 0px;
 	padding: 0px;
 	border: 0px;
@@ -38,257 +173,17 @@ form {
 }
 
 table.zentable {
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-base_font_size;; 
     width: 100%;
-    background-color: #DEE3EC;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
     font-weight: normal; 
 	margin: 0px;
 	padding: 0px;
-	border-top: 1px solid #B1BCD2;
-	border-left: 1px solid #B1BCD2;
-	border-bottom: 1px solid #3C5274;
-	border-right: 1px solid #3C5274;
+	border-top: 1px solid &dtml-zentable_border_top;;
+	border-left: 1px solid &dtml-zentable_border_top;;
+	border-bottom: 1px solid &dtml-zentable_border_top;;
+	border-right: 1px solid &dtml-zentable_border_top;;
 }
-
-
-
-#frame
-{
-	/*
-	margin: 20px 20px 20px 20px;
-	margin: 0 auto;
-	width: 800px;
-	*/
-	height: 670px;
-	position: relative;
-	border: 0px solid black;
-	border-bottom: 0px solid black;
-	border-top: 0px solid black;
-	
-}
-#header{
-	background-color: #000000;
-	color: white;
-	padding: 5px;
-	height: 20px;
-	text-align: right;
-}
-
-#header a {
-color: #fff;
-
-}
-
-#topPane{
-	background: black;
-	color: white;
-	text-align: right;
-	height: 35px;
-	clear: both;	
-	padding: 0px 20px 0px 0px;
-    margin: 0;
-}
-#topPane p{
-    color: white;
-    font-size: .8em;
-}
-#topPane a{
-    color: white;
-}
-
-#footer
-{
-	clear: both;
-	background-color: black;
-	padding: 0px;
-	
-	/*
-	bottom: 400;
-	position: absolute;
-	*/
-}
-#leftPane {
-	float: left;
-	left: 0;
-	width: 110px;
-	padding-left: 10px;
-	padding-top: 5px;
-	height: 600px;
-    padding-right: 5px;	
-	border-right: 0px solid #AAAAAA;
-	border-top: 0px solid purple;
-	/*
-	position: absolute;
-	border-right: 1px solid black;
-	*/
-	
-}
-#rightPane
-{
-	/*float: left;
-	left: 122px;
-	position: absolute;*/
-	margin: 0px 0px 0px 114px;
-	padding: 0px 10px 10px 10px;
-	border: 0px solid purple;
-	background: #B1BCD2;
-
-}
-#breadCrumbPane
-{
-	padding: 3px 3px 10px 10px;
-	/*border: 1px solid #B1BCD2;
-	background:  #F8E7AD;*/
-	border-top: 0px solid #000;
-	border-left: 0px solid orange;
-	width: 92%;
-	margin: 0px 0px 3px 0px;
-
-	font-size: 19px;
-	color: black;
-	font-weight: bold;
-}
-
-#breadCrumbPane a
-{
-	font-size: 19px;
-	color: black;
-	background: inherit;
-	font-weight: bold;
-}
-
-#tabsPane
-{
-	margin: 0px;
-	padding: 0px;
-	padding-left: 10px;
-   
-	border: 0px solid red;
-	width: 92%;
-	background: #B1BCD2;
-}
-#contentPane
-{
-	padding: 10px 10px 10px 10px;
-    margin: 0px 10px 10px 10px;
-	border: 0px solid green;
-	background: #fff;
-	/*background: #DEE3EC;*/
-    min-height: 500px;
-}
-
-
-#leftPane p {
- padding: 0px 0px 0px 3px;
- margin: 0px; 
- font-size: 14px;
- line-height: 18px;
- font-weight: bold;
- color: #B1BCD2;
- background: #fff;
- 
- /*background-image: url(subtitle_bkgrd.gif);
- background-repeat: repeat-X;
- */
- width: 90%;
- border-right: 0px solid #5B6F8F;
- border-bottom: 1px solid #B1BCD2;
-}
-
-#leftPane ul {
- list-style: none; 
- margin: 0px 0px 10px 0px; 
- padding: 0px; 
- width: 90%;
- font-size: 12px;
- line-height: 16px;
- border-top: 1px solid #eee;
- 
- border-right: 0px solid #5B6F8F;
-
- border-bottom: 0px solid #5B6F8F;
- border-left: 0px solid #B1BCD2;
-}
-
-#leftPane ul li {
- display: block;
- width: 104px;
- /*background: #B1BCD2;*/
- border-bottom: 0px solid #eee;
- margin: 0px;
- padding: 0px;
- overflow: hidden;
-}
-
-
-#leftPane ul li a {
-text-decoration: none;
-display: block;
-width: 155px;
-padding: 4px 0px 3px 10px;
-margin: 0px;
-overflow: hidden;
-}
-	
-
-#leftPane ul li a:hover {
-background-color: #5B6F8F;
-color: white;
-overflow: hidden;
-background-image: url(arrows.gif);
-background-position: right;
-background-repeat: no-repeat;
-}
-
-#leftPane ul li a.selected {
-text-decoration: none;
-display: block;
-width: 182px;
-padding: 4px 10px 3px 10px;
-margin: 0px;
-background-position: right;
-background-repeat: no-repeat;
-color: black;
-background-color: orange;
-background: #B1BCD2;
-font-weight: bold;
-/*
-border-bottom: 2px solid #F8E7AD;
-border-top: 2px solid #F8E7AD;
-*/
-}
-
-#leftPane ul li a.selected:hover {
-text-decoration: none;
-display: block;
-width: 160px;
-padding: 4px 0px 3px 10px;
-margin: 0px;
-color: #000;
-font-weight: bold;
-}
-	
-
-
-a:link {
-    color: #000040;
-}
-
-a:visited {
-    color: #000040;
-}
-
-a:active {
-    color: #777777
-}
-
-a:hover {
-    color:  #000000;
-}
-
-
-
 .navcontrol {
     margin-bottom:0;
     border:0;
@@ -305,144 +200,128 @@ a:hover {
 }
 
 a.tabletitle {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 14px; 
+    font-size: &dtml-tabletitle_font_size;; 
+    color: &dtml-tabletitle_font_color;;
     font-weight: bold; 
-    color: #FFFFFF;
-    background-color: #5A6F8F;
+    background-color: &dtml-tabletitle_bg_color;;
+
 	/*background-image: url(tab_corner.gif);*/
 	background-position: right top;
 	background-repeat: no-repeat;
 	display: block;
-	border: 1px solid #B1BCD2;
-	border-bottom: 1px solid #000;
-	height: 22px;
+	border-bottom: 1px solid black;
+	border-right: 2px solid &dtml-rightpane_border_color;;
 	text-decoration: none;
 	padding: 2px 0px 0px 0px;
 	margin: 0px;
+    height:23px;
 }
-
+a.tabletitle:link {  
+    color: &dtml-tabletitle_font_color;;
+}
 a.tabletitle:visited {  
-    color: #FFFFFF;
+    color: &dtml-tabletitle_font_color;;
 }
 a.tabletitle:active {  
-    color: #fff;
+    color: &dtml-alink_color;;
 }
 a.tabletitle:hover {  
-    color: #fff;
-	
-	background-color: #3C5274;
+    color: &dtml-hover_color;;
+    color: &dtml-hover_color_dark;;
 }
-
 
 th.tabletitle {
-background: #B1BCD2;
-background-image: url(subtitle_bkgrd.gif);
- background-repeat: repeat-X;
- color: white;
- text-align: left;
-
-}
-
-/*
-.tabletitlel {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 14px; 
-    font-weight: bold; 
-    color: #FFFFFF;
-    background-color: #5A6F8F;
+    font-size: &dtml-tabletitle_font_size;; 
+    color: &dtml-tabletitle_font_color;;
+    background-color: &dtml-tabletitle_bg_color;;
+    background-image: url(subtitle_bkgrd.gif);
+    background-repeat: repeat-X;
     text-align: left;
 }
-*/
 .tabletitleselected { 
-    font-family: Verdana, Arial, Helvetica, sans-serif; 
-    font-size: 14px;
+    color: &dtml-tabletitleselected_font_color;;
+    background-color: &dtml-tabletitleselected_bg_color;;
+    font-size: &dtml-tabletitle_font_size;; 
     font-weight: bold; 
-    color: #000;
-    background-color: #fff;
-	/*background-image: url(tab_corner.gif);*/
 	background-position: right top;
 	background-repeat: no-repeat;
 	display: block;
-	border-right: 2px solid #B1BCD2;
-	height: 25px;
+	border-right: 2px solid &dtml-rightpane_border_color;;
 	padding: 2px 0px 0px 0px;
+    height:25px;
 }
+
 a.tabletitleselected:link {  
-    color: #000;
-    text-decoration: none;;
+    color: &dtml-tabletitleselected_font_color;;
+    text-decoration: none;
 }
 a.tabletitleselected:visited {  
-    color: #000;
-    text-decoration: none;;
+    color: &dtml-tabletitleselected_font_color;;
+    text-decoration: none;
 }
 a.tabletitleselected:active {  
-    color: #000;
-    text-decoration: none;;
+    color: &dtml-tabletitleselected_font_color;;
+    text-decoration: none;
 }
 a.tabletitleselected:hover {  
-    color: #999;
-    text-decoration: none;;
+    color: &dtml-hover_color_light;;
 }
-
-
 
 .tableheader { 
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px;
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-tableheader_font_size;;
+    color: &dtml-tableheader_font_color;;
+    background-color: &dtml-tableheader_bg_color;;
     font-weight: normal; 
-    color: #000000;
-    background-color: #fff;
 }
-
-
 .tableheaderselected { 
-    font-family: Verdana, Arial, Helvetica, sans-serif; 
-    font-size: 12px;
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-tableheader_font_size;;
+    color: &dtml-tableheaderselected_font_color;;
+    background-color: &dtml-tableheaderselected_bg_color;;
     font-weight: normal; 
-    color: #FFFFFF;
-    background-color: #999999;
 }
-
 .statusbar { 
-    font-family: Verdana, Arial, Helvetica, sans-serif; 
-    font-size: 4pt;
+    font-family: &dtml-base_font_family;; 
+    font-size: &dtml-statusbar_font_size;;
     font-weight: normal; 
-    color: #000000;
-    background-color: #CCCCCC;
+    color: &dtml-tableheader_font_color;;
+    background-color: &dtml-tabletitleselected_bg_color;;
 }
-
-
 .tablevalues {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
+    color: &dtml-tablevalues_font_color;; 
     font-weight: normal; 
-    color: #000040; 
-    background-color: #EEE;
+    background-color: &dtml-tablevalues_bg_color;;
 }
-
+td.tablevalues {  
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
+    color: &dtml-tablevalues_font_color;; 
+    font-weight: normal; 
+    background-color: &dtml-tablevalues_bg_color;;
+}
 a.tablevalues:link {  
-    color: #000040;
+    color: &dtml-tablevalues_font_color;;
 }
 a.tablevalues:visited {  
-    color: #000040;
+    color: &dtml-tablevalues_font_color;;
 }
 a.tablevalues:hover {  
-    color: #000000;
+    color: &dtml-hover_color;;
 }
 a.tablevalues:active {  
-    color: #777777;
+    color: &dtml-alink_color;;
 }
-
 .errorvalues {
     font-weight: bold;
     color: #ff0000;
-    background-color: #EEEEEF;
+    background-color: &dtml-tablevalues_bg_color;;
 }
-
 .statusvalues {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
+    font-family: &dtml-base_font_family;;
+    font-size: &dtml-tablevalues_font_size;; 
     font-weight: normal;
 }
 
@@ -453,9 +332,9 @@ a.tablevalues:active {
 	font-family: Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 12px;
 	text-align: center;
-    color: #000040; 
-    background-color: #EEEEEF;
-	border: 1px solid #5A6F8F;
+    color: &dtml-tablevalues_font_color;; 
+    background-color: &dtml-tablevalues_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
 	}
 
 .dpTR {
@@ -475,8 +354,8 @@ a.tablevalues:active {
 	}
 
 .dpDayHighlightTD {
-	background-color: #CCCCCC;
-	border: 1px solid #5A6F8F;
+	background-color: &dtml-tableheader_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
 	cursor: pointer;
 	}
 
@@ -490,8 +369,8 @@ a.tablevalues:active {
 	}
 
 .dpDayTD {
-	background-color: #CCCCCC;
-	border: 1px solid #5A6F8F;
+	background-color: &dtml-tableheader_bg_color;;
+	border: 1px solid &dtml-tabletitle_bg_color;;
 	color: white;
 	}
 
@@ -501,23 +380,22 @@ a.tablevalues:active {
 	}
 
 .dpDayHighlight {
-	color:  #5A6F8F;
+	color:  &dtml-tabletitle_bg_color;;
 	font-weight: bold;
 	}
 
 .dpButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 10px;
-    color: #000000;
-	background: #CCCCCC;
+    color: &dtml-tableheader_font_color;;
+	background: &dtml-tableheader_bg_color;;
 	padding: 0px;
 	}
 
 .dpTodayButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size: 10px;
-    color: #000000;
-	background: #CCCCCC;
+    color: &dtml-tableheader_font_color;;
+	background: &dtml-tableheader_bg_color;;
 	}
-
 </dtml-with>

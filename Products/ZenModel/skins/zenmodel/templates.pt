@@ -2,40 +2,10 @@
     This page is used as the page-level templates
     and associated macros
  ====================================================== -->
-<!-- ======================================================
-    Page0 - page template that just has a content area
- ====================================================== -->
-<html metal:define-macro="page0">
-    <head metal:use-macro="here/templates/macros/head1"/>
-	<body onLoad="javascript:zenPageInit();">
-	   <div id="frame">
-            <div metal:use-macro="here/templates/macros/topPane"/>
-            <div metal:use-macro="here/templates/macros/leftPane"/>
-	        <div id="rightPane">
-                <tal:block metal:define-slot="rightPane">
-                    <div id="breadCrumbPane">
-                        <tal:block metal:define-slot="breadCrumbPane">
-                            /DEFAULT
-                        </tal:block>
-                    </div>
-                    <div id="tabsPane">
-                        <tal:block metal:define-slot="tabsPane">
-                            NO TABS
-                        </tal:block>
-                    </div>
-                    <div id="contentPane">
-                        <tal:block metal:define-slot="contentPane">
-                            CONTENT GOES HERE
-                        </tal:block>
-                    </div>
-                </tal:block>
-            </div>
-       </div>
-    </body>
-</html>
 
 <!-- ======================================================
-    Page1 - page template that just has a content area
+    Page1 - page template that has slots for 
+            breadCrumb and content 
  ====================================================== -->
 <html metal:define-macro="page1">
     <head metal:use-macro="here/templates/macros/head1"/>
@@ -62,7 +32,8 @@
 </html>
 
 <!-- ======================================================
-    Page2 - page template that adds breadCrumbs and tabs
+    Page2 - page template that adds standard
+        breadCrumb and nav tabs automatically
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
@@ -79,28 +50,12 @@
 </tal:block>
 
 <!-- ======================================================
-    Page3 - page template that with BreadCrumbs and no tabs
+    Page3 - page template with std BreadCrumbs and no tabs
  ====================================================== -->
 <tal:block metal:define-macro="page3">
     <html metal:use-macro="here/templates/macros/page1" >
         <tal:block metal:fill-slot="rightPane">
             <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
-            <div id="contentPane">
-                <tal:block metal:define-slot="contentPane">
-                        CONTENT GOES HERE
-               </tal:block>
-            </div>
-        </tal:block>
-    </html>
-</tal:block>
-
-<!-- ======================================================
-    Page4 - page template that with tabs and no BreadCrumbs
- ====================================================== -->
-<tal:block metal:define-macro="page4">
-    <html metal:use-macro="here/templates/macros/page1" >
-        <tal:block metal:fill-slot="rightPane">
-            <div metal:use-macro="here/templates/macros/tabsPane"/>
             <div id="contentPane">
                 <tal:block metal:define-slot="contentPane">
                         CONTENT GOES HERE
@@ -117,16 +72,26 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:ZenMon: ${here/getId}"/>
 
-    <style type="text/css">
-        @import url("/zport/portal_skins/default_stylesheet");
-        @import url("/zport/portal_skins/zenevents.css");
+    <style type="text/css" tal:content="here/default_stylesheet">
+        @import url("here/default_stylesheet");
+        @import url("here/zenevents.css");
     </style>
 
-    <!--
+        <!--
     <style type="text/css" tal:content="here/default_stylesheet">
+    <style type="text/css" >
+        <span tal:content="here/default_stylesheet" tal:omit-tag="">JUNK</span>
     </style>
+        @import url("/zport/portal_skins/default_stylesheet");
+        @import url("/zport/portal_skins/zenevents.css");
+
     <style type="text/css" tal:content="here/zenevents.css">
     </style>
+
+    <link rel="stylesheet" type="text/css" 
+        href="/zport/portal_skins/default_stylesheet" />
+    <link rel="stylesheet" type="text/css"
+        href="/zport/portal_skins/zenevents.css" />
         -->
     
     <script type="text/javascript" 
@@ -216,7 +181,7 @@
      tabsPane
  ====================================================== -->
 <div id="tabsPane" metal:define-macro="tabsPane">
-   <table id="tabtable" cellpadding="0" cellspacing="0"
+   <table class="tabtable" cellpadding="0" cellspacing="0"
         tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
            <td align="center" tal:repeat="tab ztabs">
