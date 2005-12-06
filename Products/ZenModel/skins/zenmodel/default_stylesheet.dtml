@@ -35,7 +35,7 @@ body {
 	left: 0;
 	width: &dtml-leftpane_width;;
     padding: &dtml-leftpane_top_padding; 5px 0px 10px;
-	min-height: 500px;
+	min-height: 350px;
 }
 #leftPane p {
     background: &dtml-base_bg_color;;
@@ -131,7 +131,7 @@ body {
 {
 	padding: &dtml-contentpane_padding;;
 	background: &dtml-contentpane_bg_color;;
-    min-height: 500px;
+    min-height: 350px;
 }
 a:link {
     color: &dtml-link_color;;

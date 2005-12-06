@@ -99,9 +99,9 @@
 
         <td  valign="middle" align="left">
             <form action="/zport/dmd/deviceSearchResults" method="POST">
-                <input type="text" name="query" size="20"
+                <input type="text" name="query" size="15"
                     tal:attributes="value request/query | string:"/>
-                <input type="submit" name="submit" value="Search Devices"/>
+                <input type="submit" name="submit" value="Search"/>
             </form> 
        </td>
        <td  valign="middle" align="right" >
@@ -122,7 +122,7 @@
 
     <p>Main Views</p>
     <ul>
-        <li><a class="selected" href="/zport/dmd/Dashboard">Dashboard</a></li>
+        <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
         <li><a href="/zport/dmd/Systems">Systems</a></li>
