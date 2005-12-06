@@ -171,9 +171,12 @@ class CricketConf(Monitor, StatusColor):
     def cricketCustomSummary(self, gopts, drange):
         "fill out full path for custom gopts and call to server"
         gotps = self._fullCricketPath(gopts)
-        url = basicAuthUrl(self.cricketuser, self.cricketpass,
-                            self.cricketurl)
-        server = xmlrpclib.Server(url)
+        if self.cricketurl.startswith("http"):
+            url = basicAuthUrl(self.cricketuser, self.cricketpass,
+                                self.cricketurl)
+            server = xmlrpclib.Server(url)
+        else:
+            server = self.unrestrictedTraverse(self.cricketurl)
         return server.summary(gopts, drange)
         
 
