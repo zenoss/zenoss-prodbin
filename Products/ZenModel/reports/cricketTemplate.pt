@@ -1,0 +1,58 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    tableName string:headendreport;
+    ztm here/ZenTableManager;
+    url python:here.absolute_url()+'/'+template.getId();
+    drange python: ztm.setReqTableState(tableName,'drange',129600);
+    objects python:here.CricketReport.collectData('/Devices/Server', drange);
+    batch python:ztm.getBatch(tableName,objects,sortedHeader='cpumax',
+                                                sortedSence='desc');
+    ">
+    <tr class=tabletitle>
+        <th class=tabletitle align=left colspan=9>
+            Report Range:
+            <span tal:replace="structure python:here.scUrlPopup(
+                tableName, 'perfdrange', 'drange:int', 
+                here.performanceDateRanges, url)"/>
+        </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                    tableName,'devicename','Device')">
+            Device
+        </th>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                    tableName,'devicemodel','Model')">
+            Model
+        </th>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                    tableName,'cpuaverage','CPU Average')">
+            CPU Average
+        </th>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                    tableName,'cpumax','CPU Max')">
+            CPU Max
+        </th>
+    </tr>
+    <tr tal:repeat="cpudata batch">
+        <td class=tablevalues>
+            <a class=tablevalues href=_ tal:attributes="
+                href python:cpudata.deviceurl+'/viewPerformanceDetail'"
+                tal:content="cpudata/devicename">name</a>
+        <td class=tablevalues tal:content="cpudata/devicemodel">model</td>
+        <td class=tablevalues tal:content="cpudata/cpuaverage">average</td>
+        <td class=tablevalues tal:content="cpudata/cpumax">max</td>
+    </tr>
+    <tr>
+        <td colspan=9 class="tableheader" align='center'>
+            <form metal:use-macro="here/miscmacros/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

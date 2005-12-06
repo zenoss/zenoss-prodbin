@@ -21,7 +21,7 @@ toppane_font_size:string=.8em
 
 ## left pane
 leftpane_top_padding:string=35px
-leftpane_width:string=110px
+leftpane_width:string=105px
 leftpane_bg_color:string=white
 leftpane_link_font_color:string=black
 leftpane_link_font_size:string=1em
@@ -48,12 +48,10 @@ tabletitle_font_size:string=12px
 tabletitle_font_color:string=white
 tabletitle_bg_color:string=#5a6f8f
 tabletitleselected_font_color:string=#333333
-tabletitleselected_bg_color:string=#CCCCCC
-tabletitleselected_bg_color:string=orange
+tabletitleselected_bg_color:string=#E0E0E0
 
 ## content pane
-contentpane_bg_color:string=#cccccc
-contentpane_bg_color:string=orange
+contentpane_bg_color:string=#E0E0E0
 contentpane_padding:string=15px
 
 ## zentable

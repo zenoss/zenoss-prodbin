@@ -9,8 +9,7 @@
         metal:define-macro="reportBreadCrumbs">
     <span metal:define-macro="reportBreadCrumbsList"
         tal:repeat="crumbinfo template/breadCrumbs" tal:omit-tag="">
-        /<a class="tabletitle" 
-            href="_" tal:attributes="href python:crumbinfo[0]"
+        /<a href="_" tal:attributes="href python:crumbinfo[0]"
             tal:content="python: crumbinfo[1]">link</a>
     </span>
 </th></tr>

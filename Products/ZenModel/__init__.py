@@ -35,6 +35,7 @@ productNames = (
     "ZentinelPortal",
     "Classification",
     "ArpEntry",
+    "CricketReport",
     "DataRoot",
     "Device",
     "DeviceClass",

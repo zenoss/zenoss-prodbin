@@ -73,7 +73,7 @@ body {
     color: &dtml-leftpane_hover_font_color;;
     background: &dtml-leftpane_hover_bg_color;;
     overflow: hidden;
-    background-image: url(arrows.gif);
+    /*background-image: url(arrows.gif);*/
     background-position: right;
     background-repeat: no-repeat;
 }
@@ -94,7 +94,6 @@ body {
     color: &dtml-leftpane_hover_font_color;;
     background: &dtml-leftpane_hover_bg_color;;
     overflow: hidden;
-    background-image: url(arrows.gif);
     background-position: right;
     background-repeat: no-repeat;
 }
@@ -179,6 +178,7 @@ table.zentable {
     font-weight: normal; 
 	margin: 0px;
 	padding: 0px;
+    background-color: #FFFFFF;
 	border-top: 1px solid &dtml-zentable_border_top;;
 	border-left: 1px solid &dtml-zentable_border_top;;
 	border-bottom: 1px solid &dtml-zentable_border_top;;
@@ -264,7 +264,7 @@ a.tabletitleselected:active {
     text-decoration: none;
 }
 a.tabletitleselected:hover {  
-    color: &dtml-hover_color_light;;
+    color: &dtml-hover_color;;
 }
 
 .tableheader { 
