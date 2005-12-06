@@ -344,17 +344,17 @@ class PingMonitor(StatusMonitor):
         server = xmlrpclib.Server(url)
         event = {}
         node = pingJob.hostname.split(':')[0] #take out interface
-        event['Node'] = node
-        event['Summary'] = pingJob.message
-        event['Class'] = self.ncoClass
-        event['Agent'] = self.ncoAgent
-        event['Severity'] = pingJob.severity
+        event['device'] = node
+        event['summary'] = pingJob.message
+        event['class'] = self.ncoClass
+        event['agent'] = self.ncoAgent
+        event['severity'] = pingJob.severity
         #event['Type'] = pingJob.type
-        event['AlertGroup'] = self.ncoAlertGroup
-        event['IpAddress'] = pingJob.address
-        event['Manager'] = os.uname()[1]
-        event['OwnerUID'] = 65534
-        event['OwnerGID'] = 0
+        event['eventGroup'] = self.ncoAlertGroup
+        event['ipAddress'] = pingJob.address
+        event['manager'] = os.uname()[1]
+        event['ownerUID'] = 65534
+        event['ownerGID'] = 0
         try:
             server.sendEvent(event)
         except SystemExit: raise

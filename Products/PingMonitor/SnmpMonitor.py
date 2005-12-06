@@ -293,17 +293,17 @@ class SnmpMonitor(StatusMonitor):
     def queueNcoEvent(self, statusTest):
         """place an event in the queue to be sent to the NcoProduct Server"""
         event = {}
-        event['Node'] = statusTest.hostname
-        event['Summary'] = statusTest.message
-        event['Class'] = self.ncoClass
-        event['Agent'] = self.ncoAgent
-        event['Severity'] = statusTest.severity
+        event['device'] = statusTest.hostname
+        event['summary'] = statusTest.message
+        event['class'] = self.ncoClass
+        event['agent'] = self.ncoAgent
+        event['severity'] = statusTest.severity
         #event['Type'] = statusTest.type
-        event['AlertGroup'] = self.ncoAlertGroup
-        event['IpAddress'] = statusTest.address
-        event['Manager'] = os.uname()[1]
-        event['OwnerUID'] = 65534
-        event['OwnerGID'] = 0
+        event['eventGroup'] = self.ncoAlertGroup
+        event['ipAddress'] = statusTest.address
+        event['manager'] = os.uname()[1]
+        event['ownerUID'] = 65534
+        event['ownerGID'] = 0
         self.ncoeventqueue.append(event)
 
 
