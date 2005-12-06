@@ -1,13 +1,17 @@
-<span tal:replace="structure here/standard_html_header" />
-<table border="0" cellpadding="3" width="100%"
-    cellspacing="1" align="center"
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
-    objects  python:here.getOrganizer('Devices').getSubDevices(
-                                        lambda x: x.getPingStatusNumber()!=0);
+    objects  python:here.getDmdRoot('Devices').getSubDevices(
+                                lambda x: x.getStatus('/Status/Ping')!=0);
     tableName string: pingstatusreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                    sortedHeader='getPingStatusHeader', sortedSence='desc');
     ">
-    <tr metal:use-macro="here/miscmacros/macros/reportBreadCrumbs" />
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
+    <tal:block metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 </table>
-<span tal:replace="structure here/standard_html_header" />
+</tal:block>
+</tal:block>

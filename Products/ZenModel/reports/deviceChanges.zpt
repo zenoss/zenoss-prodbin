@@ -1,13 +1,82 @@
-<span tal:replace="structure here/standard_html_header" />
-<table border="0" cellpadding="3" width="100%"
-    cellspacing="1" align="center"
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
-    objects  python:here.getOrganizer('Devices').getSubDevices(
-                   lambda x: x.bobobase_modification_time()+1>DateTime());
+    objects  python:here.getDmdRoot('Devices').getSubDevices(
+                   lambda x: x.getLastChange()+1>DateTime());
     tableName string: pingstatusreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                sortedHeader='getLastChange',sortedSence='desc');
     ">
-    <tr metal:use-macro="here/miscmacros/macros/reportBreadCrumbs" />
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr>
+        <th 
+            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDeviceClassPath','Class')">Class
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpLastCollection','Collection','cmp')">
+                Collection
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getLastChange','Change','cmp')">Change
+        </th>
+	</tr>
+	<tr tal:repeat="device batch">
+		<td class="tablevalues" align="left">
+            <input tal:condition="here/editableDeviceList" 
+                type="checkbox" name="deviceNames:list" 
+                tal:attributes="value device/getRelationshipManagerId"/>
+            <a class="tablevalues" href="_" 
+                tal:attributes="href device/getDeviceUrl"
+                tal:content="device/id">device
+            </a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getDeviceClassPath">
+            type
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getSnmpLastCollectionString">
+            prodstate
+        </td >
+		<td class="tablevalues" align="left"
+            tal:content="device/getLastChangeString">
+            prodstate
+        </td >
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
+    <tr tal:condition="here/editableDeviceList">
+        <td class="tableheader" align="left" colspan="5">
+            <input class="tableheader" type="submit" name="moveDevices:method"
+                    value="Move To" />
+            <select class="tableheader" name="moveTarget"
+            tal:define="targets here/deviceMoveTargets">
+                <option value=""></option>
+                <option tal:repeat="target targets" 
+                    tal:content="target">/Server/Linux</option>
+            </select>
+            |
+            <input class="tableheader" type="submit" 
+                name="removeDevices:method" value="Delete" />
+            |
+            <input class="tableheader" type="submit"
+                    name="SelectButton" value="Select All" 
+                    onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
 </table>
-<span tal:replace="structure here/standard_html_header" />
+</tal:block>
+</tal:block>

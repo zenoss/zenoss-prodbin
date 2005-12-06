@@ -8,8 +8,8 @@
     url python:here.absolute_url()+'/'+template.getId()"
     >
     <tr>
-        <th class=tabletitle align=left> 
-            <a class=tabletitle href="_" 
+        <th class="tabletitle" align=left> 
+            <a href="_" 
                 tal:content="here/viewName" 
                 tal:attributes="href url">
                 name</a>
