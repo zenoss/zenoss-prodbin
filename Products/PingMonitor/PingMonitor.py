@@ -346,7 +346,7 @@ class PingMonitor(StatusMonitor):
         node = pingJob.hostname.split(':')[0] #take out interface
         event['device'] = node
         event['summary'] = pingJob.message
-        event['class'] = self.ncoClass
+        event['eventClass'] = self.ncoClass
         event['agent'] = self.ncoAgent
         event['severity'] = pingJob.severity
         #event['Type'] = pingJob.type

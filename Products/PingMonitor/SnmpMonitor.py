@@ -295,7 +295,7 @@ class SnmpMonitor(StatusMonitor):
         event = {}
         event['device'] = statusTest.hostname
         event['summary'] = statusTest.message
-        event['class'] = self.ncoClass
+        event['eventClass'] = self.ncoClass
         event['agent'] = self.ncoAgent
         event['severity'] = statusTest.severity
         #event['Type'] = statusTest.type
