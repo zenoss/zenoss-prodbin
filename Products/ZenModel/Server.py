@@ -104,7 +104,7 @@ class Server(CricketServer, Device):
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
-                , 'action'        : 'viewDeviceClassConfig'
+                , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'viewHistory'

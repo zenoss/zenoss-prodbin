@@ -4,7 +4,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="props here/zenPropertyIds">
     <tr>
-      <th class="tabletitlel" colspan="4">
+      <th class="tabletitle" colspan="4">
       Device Class Configuration
       </th>
     </tr>
@@ -36,7 +36,7 @@
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1">
-<tr class="tabletitlel"><th>Add/Update Device Property</th></tr>
+<tr><th class="tabletitle">Add/Update Device Property</th></tr>
 <tr>
     <td>
         <select name="propname">
@@ -52,11 +52,12 @@
 </tr>
 </table>
 </form>
+
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1">
-<tr class="tabletitlel"><th>Delete Device Property</th></tr>
+<tr><th class="tabletitle">Delete Device Property</th></tr>
 <tr>
     <td>
         <select name="propname">
