@@ -38,7 +38,7 @@ class CricketReport(SimpleItem, ZenModelBase):
 
     meta_type = 'CricketReport'
 
-    def collectData(self, devicepath, drange):
+    def collectData(self, devicepath, dsidx, drange):
         """Return data for the CricketReport for all devices under devicepath.
         """
         dc = self.getDmdRoot("Devices").getOrganizer(devicepath)
@@ -53,7 +53,7 @@ class CricketReport(SimpleItem, ZenModelBase):
                             device.getModelName(),
                             device.getPrimaryUrlPath(),
                             crpath, crconf))
-        data = self.callCricket(CricketDatas, drange) 
+        data = self.callCricket(CricketDatas, dsidx, drange) 
         return data
 
 
@@ -71,14 +71,14 @@ class CricketReport(SimpleItem, ZenModelBase):
         for cricketconf, crCricketDatas in cricketconfs.items():
             gopts = []
             for CricketData in crCricketDatas:
-                gopts.extend(CricketData.getOpts(scount))
+                gopts.extend(CricketData.getOpts(scount,dsidx))
                 scount += 1
             cricketdata = cricketconf.cricketCustomSummary(gopts, drange)
             for i in range(0,len(crCricketDatas)):
                 j = i * 2
                 CricketData = crCricketDatas[i]
-                CricketData.dataavg = float(cricketdata[j])
-                CricketData.datamax = float(cricketdata[j+1])
+                CricketData.dataavg = cricketdata[j]
+                CricketData.datamax = cricketdata[j+1]
         return CricketDatas
             
 
@@ -105,10 +105,10 @@ class CricketData:
         self.datamax = datamax
 
 
-    def getOpts(self, scount):
+    def getOpts(self, scount, dsidx):
         gopts = []
         src = 'v%d' % scount
-        gopts.append("DEF:%s=%s.rrd:ds2:AVERAGE" % (src,self.cricketpath))
+        gopts.append("DEF:%s=%s.rrd:%s:AVERAGE" % (src,dsidx,self.cricketpath))
         #PRINT statements
         gopts.append("PRINT:%s:AVERAGE:%%.2lf%%S" % src)
         gopts.append("PRINT:%s:MAX:%%.2lf%%S" % src)
