@@ -203,6 +203,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
         if self.example:
             try:
                 value = re.search(self.regex, self.example, re.I)
+                if not value: return "color:#FF0000;"
             except sre_constants.error:
                 return "color:#FF0000;"
 
