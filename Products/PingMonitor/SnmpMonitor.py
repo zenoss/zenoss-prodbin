@@ -302,8 +302,6 @@ class SnmpMonitor(StatusMonitor):
         event['eventGroup'] = self.ncoAlertGroup
         event['ipAddress'] = statusTest.address
         event['manager'] = os.uname()[1]
-        event['ownerUID'] = 65534
-        event['ownerGID'] = 0
         self.ncoeventqueue.append(event)
 
 

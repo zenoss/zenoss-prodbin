@@ -353,8 +353,6 @@ class PingMonitor(StatusMonitor):
         event['eventGroup'] = self.ncoAlertGroup
         event['ipAddress'] = pingJob.address
         event['manager'] = os.uname()[1]
-        event['ownerUID'] = 65534
-        event['ownerGID'] = 0
         try:
             server.sendEvent(event)
         except SystemExit: raise
