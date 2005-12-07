@@ -101,8 +101,6 @@ class EventPopulator(ZenZopeThread):
             events = self.getNewEvents(db)
             for event in events:
                 node, eventUuid = event
-                node = manager.cleanstring(node)
-                eventUuid = manager.cleanstring(eventUuid)
                 dev = self.finddev(node)
                 if dev:
                     poplog.debug("device %s found" % node)

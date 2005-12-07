@@ -95,6 +95,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
+    eventPopCycle = 10
+    eventPopRunning = True
+    eventPopSelect = "select device, evid from status where prodState=0"
+
     maintenanceRunning = True
     maintenanceCycle = 10
     maintenanceProcedures = ("close_events", "clean_old_events")
@@ -145,6 +149,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
+        {'id':'eventPopRunning', 'type':'boolean', 'mode':'w'},
+        {'id':'eventPopCycle', 'type':'int', 'mode':'w'},
+        {'id':'eventPopSelect', 'type':'string', 'mode':'w'},
         {'id':'maintenanceRunning', 'type':'boolean', 'mode':'w'},
         {'id':'maintenanceCycle', 'type':'int', 'mode':'w'},
         {'id':'maintenanceProcedures', 'type':'lines', 'mode':'w'},
