@@ -28,8 +28,8 @@ BEGIN
     DELETE FROM status where 
         DATE_ADD(StateChange, INTERVAL 4 HOUR) < NOW();   
     DELETE h,j,d FROM history h
-        LEFT JOIN journal j ON h.uuid = j.uuid 
-        LEFT JOIN details d ON h.uuid = d.uuid
+        LEFT JOIN log j ON h.uuid = j.uuid 
+        LEFT JOIN detail d ON h.uuid = d.uuid
         WHERE DATE_ADD(StateChange, INTERVAL 3 MONTH) < NOW();
 END;//
 DELIMITER ;
