@@ -294,6 +294,7 @@ class SnmpMonitor(StatusMonitor):
         """place an event in the queue to be sent to the NcoProduct Server"""
         event = {}
         event['device'] = statusTest.hostname
+        event['component'] = "snmp"
         event['summary'] = statusTest.message
         event['eventClass'] = self.ncoClass
         event['agent'] = self.ncoAgent
