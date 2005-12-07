@@ -298,18 +298,18 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
             return self.ipaddresses()[0].network()
 
 
-    def getNetworkLink(self, target=None):
+    def getNetworkLink(self):
         """get the network link for the first ip on this interface"""
         if len(self.ipaddresses()):
             addr = self.ipaddresses.objectValuesAll()[0]
             if addr:
                 if hasattr(aq_base(addr), 'network'):
-                    return addr.network.getPrimaryLink(target)
+                    return addr.network.getPrimaryLink()
         else:
             return ""
    
 
-    def getNetworkLinks(self, target=None):
+    def getNetworkLinks(self):
         """retun a list of network links for each ip in this interface"""
         if not hasattr(self,'_ipAddresses'):
             self._ipAddresses = []
@@ -318,7 +318,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
             links = []
             for addr in addrs: 
                 if hasattr(aq_base(addr), 'network'):
-                    links.append(addr.network.getPrimaryLink(target))
+                    links.append(addr.network.getPrimaryLink())
                 else:
                     links.append("")
             return "<br/>".join(links)
@@ -342,12 +342,6 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         """support DeviceResultInt mixin class"""
         return self.device()
 
-    
-    def _getPingStatusObj(self):
-        """get the first IpAddress on this interface for PingStatusInt"""
-        if self.ipaddresses.countObjects():
-            return self.ipaddresses()[0]._getPingStatusObj()
-    
     
     def manage_afterAdd(self, item, container):
         """setup relationshipmanager add object to index and build relations """

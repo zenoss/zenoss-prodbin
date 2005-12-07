@@ -5,10 +5,11 @@
     </tr>
     <tr>
       <td class=tableheader align=left>Ping</td>
-      <td tal:define="status python:here.getStatus('/Status/Ping')"
-        tal:attributes="class python: here.getStatusCssClass(status)"
-        tal:content="status">
-        0</td>
+    <td tal:define="status here/getPingStatus"
+        tal:attributes="class python:here.getStatusCssClass(status)"
+        tal:content="python:here.convertStatus(status)">
+        ping status
+    </td>
       <td class=tableheader align=left>Events</td>
       <td class=tablevalues align=left>
         <table class="zentable" border=0 cellpadding=0 cellspacing=1
@@ -27,9 +28,9 @@
     </tr>
     <tr>
       <td class=tableheader align=left>SNMP</td>
-      <td tal:define="status python:here.getStatus('/Status/Snmp')"
+      <td tal:define="status here/getSnmpStatus"
         tal:attributes="class python: here.getStatusCssClass(status)"
-        tal:content="status">
+        tal:content="python:here.convertStatus(status)">
         0</td>
         <th class="tableheader" align="left">Last Change</th>
         <td class="tablevalues" tal:content="here/getLastChangeString"/>
@@ -139,12 +140,13 @@
     <tr>
       <td class="tableheader">Manufacturer</td>
       <td class="tablevalues">
-      <span tal:replace="structure python: here.getManufacturerLink('rightFrame')">manufacturer
+      <span tal:replace="structure python: here.getManufacturerLink()">
+        manufacturer
       </span>
       </td>
       <td class="tableheader">Model</td>
       <td class="tablevalues">
-      <span tal:replace="structure python: here.model.getPrimaryLink('rightFrame')">
+      <span tal:replace="structure python: here.model.getPrimaryLink()">
       model
       </span>
       </td>
@@ -226,13 +228,13 @@
       <td class=tableheader>Manufacturer</td>
       <td class=tablevalues
         tal:content="structure python: 
-        here.getManufacturerLink('rightFrame')">
+        here.getManufacturerLink()">
         manufacturer
       </td>
       <td class=tableheader>Model</td>
       <td class=tablevalues
         tal:content="structure python: 
-        here.model.getPrimaryLink('rightFrame')">
+        here.model.getPrimaryLink()">
       model
       </td>
     </tr>
@@ -395,7 +397,7 @@
       </th>
       <td class="tablevalues" colspan="3">
         <span tal:replace="structure python: 
-            here.cricket.getPrimaryLink('rightFrame')">
+            here.cricket.getPrimaryLink()">
           cricket server
         </span>
       </td>
@@ -683,7 +685,7 @@
         description
       </td>
       <td class="tablevalues">
-      <span tal:replace="route/getNextHopIp">nexthopip</span>
+      <span tal:replace="structure route/getNextHopIpLink">nexthopip</span>
       (<span tal:replace="structure route/getNextHopDeviceLink">device</span>)
       </td>
       <td class="tablevalues"
@@ -704,18 +706,13 @@
     </tr>
 </table>
 
-<tal:block metal:define-macro="pingStatus" 
-    tal:define="status python:device.getStatus('/Status/Ping')">
-    <td tal:attributes="class python:device.getStatusCssClass(status)"
-        tal:content="status" align="center">
-        ping status
-    </td>
-</tal:block>
-
-<tal:block metal:define-macro="snmpStatus" 
-    tal:define="status python:device.getStatus('/Status/Snmp')">
-    <td tal:attributes="class python:device.getStatusCssClass(status)"
-        tal:content="status" align="center">
-        snmp status
-    </td>
-</tal:block>
+<td metal:define-macro="pingStatus" tal:define="status device/getPingStatus"
+    tal:attributes="class python:device.getStatusCssClass(status)"
+    tal:content="python:here.convertStatus(status)" align="center">
+    ping status
+</td>
+<td metal:define-macro="snmpStatus"  tal:define="status device/getSnmpStatus"
+    tal:attributes="class python:device.getStatusCssClass(status)"
+    tal:content="python:here.convertStatus(status)" align="center">
+    Snmp Status
+</td>

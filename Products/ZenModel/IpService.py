@@ -108,12 +108,7 @@ class IpService(Service, DeviceResultInt):
     def getDevice(self):
         return self.server()
 
-    # FIXME - not sure what I was thinking here
-    # clearly status for a service isn't ICMP
-    #def _getPingStatusObj(self):
-    #    return self.server()._pingStatus
-
-
+    
     def getKeyword(self):
         sc = self.ipserviceclass()
         if sc: return sc.getKeyword()

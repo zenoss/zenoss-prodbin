@@ -44,7 +44,7 @@ class ManagedEntity(object):
         return self.convertStatus(
                 self.getEventManager().getStatusME(self, statclass, **kwargs))
                                                         
-
+    
     def getEventSummary(self, acked=None):
         """Return an event summary list for this managed entity.
         """

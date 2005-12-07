@@ -16,6 +16,7 @@ __version__ = "$Revision: 1.42 $"[11:-2]
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt
+from ManagedEntity import ManagedEntity
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -54,9 +55,9 @@ def findIpAddress(context, ip):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt):
+class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt, ManagedEntity):
     """IpAddress object"""
-    portal_type = meta_type = 'IpAddress'
+    event_key = portal_type = meta_type = 'IpAddress'
 
     default_catalog = 'ipSearch'
 
@@ -204,15 +205,6 @@ class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt):
             self._pingStatus = ZenStatus(-1)
 
 
-    def _getPingStatusObj(self):
-        """get the ping status object for this IpAddress
-        if there is no _pingStatus attribute use the device status"""
-        if self._pingStatus == None:
-            d = self.getDevice()
-            if d: return d._getPingStatusObj()
-        return self._pingStatus        
-
-   
     def manage_afterAdd(self, item, container):
         """setup relationshipmanager add object to index and build relations """
         if item == self: 

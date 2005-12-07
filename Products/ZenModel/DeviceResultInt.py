@@ -44,8 +44,7 @@ class DeviceResultInt:
         '''Get the primary link for the device'''
         d = self.getDevice()
         if d:
-            return ("<a href='"+d.getPrimaryUrlPath()+"' target='rightFrame'>"+
-                    d.id+"</a>")
+            return "<a href='%s'>%s</a>" % (d.getPrimaryUrlPath(), d.getId())
         return ""
 
 
@@ -68,7 +67,7 @@ class DeviceResultInt:
         return -1 
 
 
-    security.declareProtected('View', 'getDeviceSnmpStatus')
+    security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         """get the snmp status of the box if there is one"""
         d = self.getDevice()
@@ -77,7 +76,7 @@ class DeviceResultInt:
         return "No Status"
 
 
-    security.declareProtected('View', 'getDeviceSnmpStatusNumber')
+    security.declareProtected('View', 'getSnmpStatusNumber')
     def getSnmpStatusNumber(self):
         """get the snmp status of the box if there is one"""
         d = self.getDevice()
@@ -144,12 +143,4 @@ class DeviceResultInt:
         return ""
    
     
-    def _getPingStatusObj(self):
-        """get ping status object for PingStatusInt"""
-        d = self.getDevice()
-        if d:
-            return d._getPingStatusObj()
-
-
-
 InitializeClass(DeviceResultInt)

@@ -19,6 +19,7 @@ import logging
 # base classes for device
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
+from PingStatusInt import PingStatusInt
 from ManagedEntity import ManagedEntity
 from CricketDevice import CricketDevice
 from CricketView import CricketView
@@ -34,6 +35,7 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
+from Products.ZenEvents.ZenEventClasses import SnmpStatus
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 
 from ZenStatus import ZenStatus
@@ -93,7 +95,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(ZenModelRM, ManagedEntity, DeviceResultInt, 
+class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt, 
              CricketView, CricketDevice):
     """
     Device is a key class within zenmon.  It represents the combination of
@@ -294,9 +296,9 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
 
 
     security.declareProtected('View', 'getManufacturerLink')
-    def getManufacturerLink(self, target="rightFrame"):
+    def getManufacturerLink(self):
         if self.model():
-            return self.model().manufacturer.getPrimaryLink(target)
+            return self.model().manufacturer.getPrimaryLink()
         return None
 
 
@@ -639,15 +641,11 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
         return self
 
 
-    def getSnmpStatusNumber(self):
-        '''get a device's raw snmp status number'''
-        return self.getStatus('SnmpStatus')
-
-
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         '''get a device's snmp status and perform conversion'''
-        return self.getStatusString('SnmpStatus')
+        return self.getStatus(SnmpStatus)
+    getSnmpStatusNumber = getSnmpStatus
 
 
     def pastSnmpMaxFailures(self):
@@ -667,7 +665,6 @@ class Device(ZenModelRM, ManagedEntity, DeviceResultInt,
     def _getDeviceClassPath(self):
         """Return the device class path in the form /Server/Linux"""
         return self.deviceClass().getOrganizerName()
-
     getDeviceClassName = _getDeviceClassPath
 
 

@@ -1,9 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
-<br>
-<table border=0 cellpadding=3 width=100%
-    align=center bgcolor=#ffffff cellspacing=1>
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class=tabletitle align=left colspan=4>
             IP Address
@@ -47,8 +44,7 @@
     </tr>
 </table>
 <br />
-<table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="objects here/clientroutes/objectValuesAll;
     tableName string:dependentipdevices;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
@@ -85,15 +81,15 @@
             tal:content="route/getInterfaceName">
             intname
         </td>
-        <td class="statusvalues" align="left" bgcolor="_"
-            tal:attributes="bgcolor route/getPingStatusColor"
-            tal:content="route/getPingStatus">
-            Not Tested
+        <td tal:define="status route/getPingStatus"
+            tal:attributes="class python:route.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)" align="center">
+            ping status
         </td>
-        <td class="statusvalues" align="left" bgcolor="_"
-            tal:attributes="bgcolor route/getSnmpStatusColor"
-            tal:content="route/getSnmpStatus">
-            Not Tested
+        <td tal:define="status route/getSnmpStatus"
+            tal:attributes="class python:route.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)" align="center">
+            Snmp Status
         </td>
     </tr>
     <tr>

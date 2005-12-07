@@ -81,9 +81,7 @@
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
     <script type="text/javascript" 
         src="/zport/js/MochiKit.js"></script>
-
     <tal:block metal:define-slot="head-local"/>
-
 </head>
 
 <!-- ======================================================
@@ -123,10 +121,11 @@
     <p>Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
-        <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
         <li><a href="/zport/dmd/Systems">Systems</a></li>
+        <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Networks">Networks</a></li>
+        <li><a href="/zport/dmd/Reports">Reports</a></li>
     </ul>
 
     <p>Browse By</p>
@@ -143,7 +142,6 @@
     <p>Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
-        <li><a href="/zport/dmd/Reports">Reports</a></li>
         <li><a href="/zport/dmd/acl_users/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/ZenClassifier">Classifiers</a></li>
@@ -168,18 +166,11 @@
         tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
            <td align="center" tal:repeat="tab ztabs">
-               <!--
-               tal:attributes="
-                   class python:tab.get('selected', None) and 'tabletitleselected' or 'tabletitle'">
-                   -->
-               <a 
-                   class="tabletitle"
-                   tal:attributes="href python:
-                       '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
+           <a class="tabletitle" tal:content="tab/name"
+               tal:attributes="href python:
+                   '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
                    class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
-                   tal:content="tab/name">
-                   TabName
-               </a>
+            >TabName</a>
            </td>
        </tr>
    </table>

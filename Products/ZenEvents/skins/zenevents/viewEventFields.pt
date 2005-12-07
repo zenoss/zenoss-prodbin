@@ -1,4 +1,4 @@
-<html
+<html 
     tal:define="tableName string:eventdetail;
     evid request/evid;
     sesskey python:tableName+evid;
@@ -7,9 +7,21 @@
     fields event/getEventFields;
     "
     >
-<head metal:use-macro="here/templates/macros/head1"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="eventTop">
+<tal:block metal:define-macro="eventTop">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title tal:content="string:Event: ${event/evid}"/>
+    <link rel="stylesheet" type="text/css" 
+        href="/zport/portal_skins/default_stylesheet" />
+    <link rel="stylesheet" type="text/css"
+        href="/zport/portal_skins/zenevents.css" />
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodelfuncs.js"></script>
+    <script type="text/javascript" 
+        src="/zport/js/MochiKit.js"></script>
+</head>
+<div id="tabsPane">
+<table class="zentable" cellspacing="1">
     <tr>
         <td class="tabletitle" colspan=3 
             tal:content="string:Event: ${evid}">
@@ -18,16 +30,27 @@
     <tr>
         <td class="tabletitle" colspan="1" align="center"
             tal:repeat="tab python:event.zentinelTabs(template.id)">
-            <a href="_"
-            class="tabletitle"
-            tal:attributes="href 
-                python:tab['action']+'?evid=%s'%evid"
+            <a class="tabletitle"
+            tal:attributes="href python:tab['action']+'?evid=%s'%evid;
+               class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
             tal:content="tab/name">
             TabName
             </a>
         </td>
     </tr>
 </table>
+</div>
+<script>
+var tt = document.getElementById("tabsPane")
+if(tt) {
+    tabs = tt.getElementsByTagName("a");
+    for(var i=0; i<tabs.length; i++) {
+        log("rounding element=",tabs[i]);
+        roundElement(tabs[i],{corners:"tl tr"});
+    }
+}
+</script>
+</tal:block>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>

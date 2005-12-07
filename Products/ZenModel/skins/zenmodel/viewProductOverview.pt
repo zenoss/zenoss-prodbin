@@ -1,8 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table border="0" cellpadding="3" width="100%" align="center" bgcolor=
-"#ffffff" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1">
   <tbody>
     <tr>
       <th class="tabletitle" align="left" colspan="4">
@@ -20,7 +19,8 @@
       Manufacturer
       </td>
       <td class="tablevalues" colspan="1" align="left">
-      <span tal:replace="structure python:here.getManufacturerLink('rightFrame')">manufacturer</span>
+      <span tal:replace="structure python:here.getManufacturerLink()">
+        manufacturer</span>
       </td>
     </tr>
     <tr>

@@ -5,11 +5,9 @@
     params python:'&evid=%s' % evid;
     event python:here.getEventDetail(evid);
     objects event/getEventDetails;
-    "
-    >     
+    ">
     <!--tal:on-error="python:'Unable to load detail for event: %s' % evid"-->
-<head metal:use-macro="here/templates/macros/head1"/>
-<table metal:use-macro="here/viewEventFields/macros/eventTop"/>
+<tal:block metal:use-macro="here/viewEventFields/macros/eventTop"/>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>

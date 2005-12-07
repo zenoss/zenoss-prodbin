@@ -85,10 +85,10 @@ class Product(ZenModelRM):
         self.description = description
 
     security.declareProtected('View', 'getManufacturerLink')
-    def getManufacturerLink(self, target=None):
+    def getManufacturerLink(self):
         m = self.manufacturer()
         if m:
-            return m.getPrimaryLink(target)
+            return m.getPrimaryLink()
         return None
 
 InitializeClass(Product)

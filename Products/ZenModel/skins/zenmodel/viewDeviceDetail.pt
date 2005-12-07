@@ -1,7 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
-  <br>
   <table metal:use-macro="here/deviceMacros/macros/deviceOverviewBrief"></table>
   <br>
   <table metal:use-macro="here/deviceMacros/macros/interfaceList"></table>
@@ -9,7 +7,5 @@
   <table metal:use-macro="here/deviceMacros/macros/ipserviceList"></table>
   <br>
   <table metal:use-macro="here/deviceMacros/macros/routeTableList"></table>
-  <br>
-
 </tal:block>
 </tal:block>

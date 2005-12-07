@@ -97,8 +97,7 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table border="0" cellpadding="3" width="100%"
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="objects here/ipaddresses/objectValuesAll;
     tableName string:networkoverviewipaddresses;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
@@ -148,15 +147,15 @@
         tal:content="ip/getInterfaceName">
         intname
     </td>
-    <td class="statusvalues" align="left" bgcolor="_"
-        tal:attributes="bgcolor ip/getPingStatusColor"
-        tal:content="ip/getPingStatus">
-        Not Tested
+    <td tal:define="status ip/getPingStatus"
+        tal:attributes="class python:ip.getStatusCssClass(status)"
+        tal:content="python:here.convertStatus(status)" align="center">
+        ping status
     </td>
-    <td class="statusvalues" align="left" bgcolor="_"
-        tal:attributes="bgcolor ip/getSnmpStatusColor"
-        tal:content="ip/getSnmpStatus">
-        Not Tested
+    <td tal:define="status ip/getSnmpStatus"
+        tal:attributes="class python:ip.getStatusCssClass(status)"
+        tal:content="python:here.convertStatus(status)" align="center">
+        Snmp Status
     </td>
     </tr>
   <tr>

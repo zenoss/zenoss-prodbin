@@ -1,11 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<head><title>Netcool Event Detail</title></head>
-<br>
-
-<table border="0" cellpadding="3" width="100%" 
-    align="center" bgcolor="#ffffff" cellspacing="1"
+<table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="tableName string:viewevents;
     whereclause request/ev_whereclause | python:None;
     orderby request/ev_orderby | python:None;
@@ -13,11 +9,6 @@
     objects python:here.getEvents(where=whereclause, 
                             orderby=orderby, resultFields=resultFields);
     evcolspan python:len(resultFields)+1;">
-    <!-- <tr>
-        <td class="tabletitle" colspan=3 tal:attributes="colspan evcolspan">
-        Live Events
-        </td>
-    </tr> -->
     <tr>
         <td class="tabletitle" align=center colspan=4 
             tal:attributes="colspan evcolspan">

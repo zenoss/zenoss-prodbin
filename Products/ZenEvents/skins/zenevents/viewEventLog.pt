@@ -5,10 +5,8 @@
     params python:'&evid=%s' % evid;
     event python:here.getEventDetail(evid);
     objects event/getEventLogs;
-    "
-    >    
-<head metal:use-macro="here/templates/macros/head1"/>
-<table metal:use-macro="here/viewEventFields/macros/eventTop"/>
+    ">
+<tal:block metal:use-macro="here/viewEventFields/macros/eventTop"/>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Date</th>

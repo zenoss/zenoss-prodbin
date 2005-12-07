@@ -96,7 +96,15 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
         if not retval: retval = "None"
         return retval
             
-    
+
+    def getNextHopIpLink(self):
+        ip = self.getNextHopIp()
+        if not ip: return ""
+        href = self.Networks.ipHref(ip)
+        if not href: return ip
+        return "<a href='%s'>%s</a>" % (href, ip)
+
+        
     security.declareProtected('View', 'getNextHopIp')
     def getNextHopIp(self):
         """get the proper nexthopip based on if it is stored locally or not"""

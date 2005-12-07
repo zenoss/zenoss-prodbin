@@ -27,6 +27,8 @@ from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from IpAddress import manage_addIpAddress
 from DeviceOrganizer import DeviceOrganizer
 
+from Products.ZenModel.Exceptions import * 
+
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
     d = IpNetwork(id, netmask=netmask)
@@ -200,6 +202,25 @@ class IpNetwork(DeviceOrganizer):
     def getSubDevices(self, filter=None):
         """get all the devices under and instance of a DeviceGroup"""
         return DeviceOrganizer.getSubDevices(self, filter, "ipaddresses")
+
+
+    def findIp(self, ip):
+        """Find an ipAddress.
+        """
+        searchCatalog = self.getDmdRoot("Networks").ipSearch
+        ret = searchCatalog({'id':ip})
+        if len(ret) > 1: 
+            raise IpAddressConflict, "IP address conflict for IP: %s" % ip
+        if ret:
+            return self.unrestrictedTraverse(ret[0].getPrimaryId)
+
+
+    def ipHref(self,ip):
+        """Return the url of an ip address.
+        """
+        ip = self.findIp(ip)
+        if ip: return ip.getPrimaryUrlPath()
+        return ""
 
 
     def createCatalog(self):

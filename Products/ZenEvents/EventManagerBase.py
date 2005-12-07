@@ -247,7 +247,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 select.append("order by")
                 select.append(orderby)
             if rows:
-                select.append("limit %d, %d" % offset, rows)
+                select.append("limit %d, %d" % (offset, rows))
             select.append(';')
             select = " ".join(select)
             #print select

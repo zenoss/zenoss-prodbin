@@ -54,7 +54,7 @@
                 
         </th>
     </tr>
-    <tr>
+    <tr metal:define-macro="eventsHeader">
         <td class="tableheader" tal:condition="evcontrol">
         </td>
         <th class="tableheader" align="left" 

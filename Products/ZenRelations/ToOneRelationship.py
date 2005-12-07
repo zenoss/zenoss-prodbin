@@ -142,14 +142,12 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
     
     #FIXME - please make me go away, I'm so ugly!
     security.declareProtected('View', 'getPrimaryLink')
-    def getPrimaryLink(self, target='rightFrame'):
+    def getPrimaryLink(self):
         """get the link tag of a related object"""
-        link = None
+        link = ""
         if self.obj:
-            link = "<a href='"+ self.obj.getPrimaryUrlPath()+"'"
-            if target:
-                link += " target='"+ target+ "'"
-            link += " >"+ self.obj.id+ "</a>"
+            link = "<a href='%s'>%s</a>" % (self.obj.getPrimaryUrlPath(),
+                                            self.obj.id)
         return link
 
 

@@ -2,7 +2,6 @@
 <tal:block metal:fill-slot="contentPane">
 
 <script metal:use-macro="here/miscmacros/macros/toggle"></script>
-<br>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="4">

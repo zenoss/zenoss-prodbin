@@ -1,11 +1,19 @@
-<span tal:replace="structure here/standard_html_header"/>
-  <span metal:use-macro="here/top/macros/header" />
-  <br>
-  <table class="zentable" cellpadding="3" cellspacing="1">
-    <tr><th class="tabletitle" colspan="4">Collection Log</th></tr>
-    <tr>
-        <th class="tableheader">Time</th>
-        <th class="tableheader">Level</th>
-        <th class="tableheader">Module</th>
-        <th class="tableheader">Message</th>
-    </tr>
+<html> 
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body>
+    <div id="frame">
+    <div metal:use-macro="here/templates/macros/topPane"/>
+    <div metal:use-macro="here/templates/macros/leftPane"/>
+    <div id="rightPane"/>
+    <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+    <div metal:use-macro="here/templates/macros/tabsPane"/>
+    <script type="text/javascript">zenPageInit()</script>
+    <div id="contentPane">
+    <table class="zentable" cellpadding="3" cellspacing="1">
+        <tr><th class="tabletitle" colspan="4">Collection Log</th></tr>
+        <tr>
+            <th class="tableheader">Time</th>
+            <th class="tableheader">Level</th>
+            <th class="tableheader">Module</th>
+            <th class="tableheader">Message</th>
+        </tr>
