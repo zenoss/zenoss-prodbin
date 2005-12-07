@@ -2,7 +2,7 @@
     tal:define="
         startdate request/startdate | here/yesterdayDate;
         enddate request/enddate | here/todayDate;
-        severity request/severity | python:2;
+        severity request/severity | python:0;
         objects python:here.getEventHistoryList(severity=severity,
                                         startdate=startdate,enddate=enddate);
         sortedHeader request/sortedHeader | string:;
