@@ -120,6 +120,26 @@ class EventPopulator(ZenZopeThread):
         except:
             poplog.exception("problem processing events")
 
+    def loopBody(self):
+        try:
+            self.opendb()
+            manager = self.manager()
+            wasrunning = self.running
+            self.getConfig(manager)
+            if self.running and not wasrunning:
+                poplog.info("started")
+            if manager.eventPopRunning:
+                poplog.debug("starting event processing loop")
+                self.processEvents(manager)
+                runTime = time.time()-startLoop
+                poplog.debug("ending event processing loop")
+                poplog.debug("processing loop time = %0.2f seconds",runTime)
+            else:
+                if not self.running and wasrunning:
+                    poplog.warn("stopped")
+        finally:
+            self.closedb()
+
 
     def run(self):
         """Main loop of populator daemon.
@@ -129,25 +149,10 @@ class EventPopulator(ZenZopeThread):
             startLoop = time.time()
             runTime = 0
             try:
-                self.opendb()
-                manager = self.manager()
-                wasrunning = self.running
-                self.getConfig(manager)
-                if self.running and not wasrunning:
-                    poplog.info("started")
-                if manager.eventPopRunning:
-                    poplog.debug("starting event processing loop")
-                    self.processEvents(manager)
-                    runTime = time.time()-startLoop
-                    poplog.debug("ending event processing loop")
-                    poplog.debug("processing loop time = %0.2f seconds",runTime)
-                else:
-                    if not self.running and wasrunning:
-                        poplog.warn("stopped")
+                self.loopBody()
             except ZenEventError, e:
                 poplog.critical(e)
             except:
                 poplog.exception("problem in main loop")
-            self.closedb()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)

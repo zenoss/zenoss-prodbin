@@ -68,6 +68,27 @@ class MaintenanceThread(ZenZopeThread):
             mlog.exception("problem processing procedures")
 
 
+    def loopBody(self):
+        try:
+            self.opendb()
+            manager = self.manager()
+            wasrunning = self.running
+            self.getConfig(manager)
+            if self.running and not wasrunning:
+                mlog.info("started")
+            if manager.maintenanceRunning:
+                mlog.debug("starting maintenance loop")
+                self.processProcs(manager)
+                runTime = time.time()-startLoop
+                mlog.debug("ending maintenance loop")
+                mlog.debug("maintenance loop time = %0.2f seconds",runTime)
+            else:
+                if not self.running and wasrunning:
+                    mlog.warn("stopped")
+        finally:
+            self.closedb()
+
+
     def run(self):
         """Main loop of populator daemon.
         """
@@ -76,26 +97,11 @@ class MaintenanceThread(ZenZopeThread):
             startLoop = time.time()
             runTime = 0
             try:
-                self.opendb()
-                manager = self.manager()
-                wasrunning = self.running
-                self.getConfig(manager)
-                if self.running and not wasrunning:
-                    mlog.info("started")
-                if manager.maintenanceRunning:
-                    mlog.debug("starting maintenance loop")
-                    self.processProcs(manager)
-                    runTime = time.time()-startLoop
-                    mlog.debug("ending maintenance loop")
-                    mlog.debug("maintenance loop time = %0.2f seconds",runTime)
-                else:
-                    if not self.running and wasrunning:
-                        mlog.warn("stopped")
+                self.loopBody()
             except ZenEventError, e:
                 mlog.critical(e)
             except:
                 mlog.exception("problem in main loop")
-            self.closedb()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
 
