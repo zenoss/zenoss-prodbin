@@ -37,7 +37,7 @@ class EventPopulator(ZenZopeThread):
         self.cycletime = manager.eventPopCycle
         self.running = manager.eventPopRunning
         self.newevtsel = manager.eventPopSelect
-        self.prodfield = manager.ProdStateField
+        self.prodfield = manager.prodStateField
         self.statusTable = manager.statusTable
         self.locfield = manager.lookupManagedEntityField("Location")
         self.dcfield = manager.lookupManagedEntityField("DeviceClass")
