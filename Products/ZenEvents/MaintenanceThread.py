@@ -79,9 +79,7 @@ class MaintenanceThread(ZenZopeThread):
             if manager.maintenanceRunning:
                 mlog.debug("starting maintenance loop")
                 self.processProcs(manager)
-                runTime = time.time()-startLoop
                 mlog.debug("ending maintenance loop")
-                mlog.debug("maintenance loop time = %0.2f seconds",runTime)
             else:
                 if not self.running and wasrunning:
                     mlog.warn("stopped")
@@ -102,6 +100,8 @@ class MaintenanceThread(ZenZopeThread):
                 mlog.critical(e)
             except:
                 mlog.exception("problem in main loop")
+            runTime = time.time()-startLoop
+            mlog.debug("maintenance loop time = %0.2f seconds",runTime)
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
 

@@ -129,9 +129,7 @@ class EventPopulator(ZenZopeThread):
             if manager.eventPopRunning:
                 poplog.debug("starting event processing loop")
                 self.processEvents(manager)
-                runTime = time.time()-startLoop
                 poplog.debug("ending event processing loop")
-                poplog.debug("processing loop time = %0.2f seconds",runTime)
             else:
                 if not self.running and wasrunning:
                     poplog.warn("stopped")
@@ -152,5 +150,7 @@ class EventPopulator(ZenZopeThread):
                 poplog.critical(e)
             except:
                 poplog.exception("problem in main loop")
+            runTime = time.time()-startLoop
+            poplog.debug("processing loop time = %0.2f seconds",runTime)
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
