@@ -55,9 +55,12 @@ class Organizer(ZenModelRM):
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
 
     
-    def children(self):
+    def children(self, sort=False):
         """Return children of our organizer who have same type as parent."""
-        return self.objectValues(spec=self.meta_type)
+        kids = self.objectValues(spec=self.meta_type)
+        if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
+                                           y.primarySortKey()))
+        return kids
 
 
     def childIds(self):

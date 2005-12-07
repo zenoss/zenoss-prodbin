@@ -15,12 +15,14 @@
         objects python:ztm.sortObjects(objects,request);
         batch python:ztm.getBatchForm(objects,request);">
     <tr tal:repeat="event batch" tal:attributes="class event/getCssClass">
-    <td tal:repeat="data python:event.getDataList(resultFields)"
-        tal:attributes="onclick 
-            string:javascript:eventWindow('${event/zem}','${event/evid}')"
+    <tal:block tal:define="evclick 
+        string:javascript:eventWindow('${event/zem}','${event/evid}')">
+    <td tal:repeat="data python:event.getDataListWithLinks(resultFields)"
+        tal:attributes="onclick python:repeat['data'].end and evclick or ''"
         tal:content="structure data">
         event data
     </td>
+    </tal:block>
 </tr>
 <tr>
     <td class="tableheader" tal:attributes="colspan evcolspan">

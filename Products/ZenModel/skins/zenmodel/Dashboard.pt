@@ -39,12 +39,14 @@
         </tr>
         <tr tal:repeat="event batch" 
             tal:attributes="class event/getCssClass">
-        <td tal:repeat="data python:event.getDataList(resultFields)"
-            tal:attributes="onclick 
-                string:javascript:eventWindow('${event/zem}','${event/evid}')"
+        <tal:block tal:define="evclick 
+            string:javascript:eventWindow('${event/zem}','${event/evid}')">
+        <td tal:repeat="data python:event.getDataListWithLinks(resultFields)"
+            tal:attributes="onclick python:repeat['data'].end and evclick or ''"
             tal:content="structure data">
             event data
         </td>
+        </tal:block>
         </tr>
         </tal:block>
     </table>
@@ -63,7 +65,7 @@
 			<th class="tableheader">Ping</th>
 			<th class="tableheader">Snmp</th>
 		</tr>
-		<tr tal:repeat="system python:here.getDmdRoot('Systems').children()">
+		<tr tal:repeat="system python:here.getDmdRoot('Systems').children(True)">
 			<td class="tablevalues">
 				<a tal:attributes="href system/getPrimaryUrlPath"
 					tal:content="system/getId">System</a>
@@ -113,7 +115,7 @@
 			<th class="tableheader">Ping</th>
 			<th class="tableheader">Snmp</th>
 		</tr>
-		<tr tal:repeat="dev python:here.getDmdRoot('Devices').children()">
+		<tr tal:repeat="dev python:here.getDmdRoot('Devices').children(True)">
 			<td class="tablevalues">
 				<a tal:attributes="href dev/getPrimaryUrlPath"
 					tal:content="dev/getId">System</a>
