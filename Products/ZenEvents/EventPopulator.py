@@ -71,7 +71,7 @@ class EventPopulator(ZenZopeThread):
         return data
 
 
-    def updateEvent(self, db, eventUuid, systems=None, 
+    def updateEvent(self, db, evid, systems=None, 
                     location=None,productionState=-10,  
                     deviceClass=None, deviceGroups=None):
         """Update event info in unprocessed events.
@@ -86,7 +86,7 @@ class EventPopulator(ZenZopeThread):
             fields.append(" %s = '%s'" % (self.grpfield, deviceGroups))
         fields.append(" %s = %s" % (self.prodfield, productionState))
         update += ",".join(fields)
-        update += " where EventUuid = '%s';" % eventUuid
+        update += " where evid = '%s';" % evid
         #print update
         curs = db.cursor()
         curs.execute(update)
@@ -100,7 +100,7 @@ class EventPopulator(ZenZopeThread):
             db = manager.connect()
             events = self.getNewEvents(db)
             for event in events:
-                node, eventUuid = event
+                node, evid = event
                 dev = self.finddev(node)
                 if dev:
                     poplog.debug("device %s found" % node)
@@ -109,10 +109,10 @@ class EventPopulator(ZenZopeThread):
                     devclass  = dev.getDeviceClassName()
                     devgroups = "|"+"|".join(dev.getDeviceGroupNames())
                     devsyss = "|"+"|".join(dev.getSystemNames())
-                    self.updateEvent(db, eventUuid, devsyss,
+                    self.updateEvent(db, evid, devsyss,
                                     location, prodstate, devclass, devgroups)
                 else:
-                    self.updateEvent(db, eventUuid)
+                    self.updateEvent(db, evid)
                     poplog.warn("device %s not found" % node)
             db.close()
         except:
