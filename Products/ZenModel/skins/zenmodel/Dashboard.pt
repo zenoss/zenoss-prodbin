@@ -21,7 +21,7 @@
         resultFields python:('device','summary','firstTime','lastTime','count');
         evcontrol python:0;
         evcolspan python:len(resultFields);
-        batch python:zem.getEventList(severity=1,rows=5);
+        batch python:zem.getEventList(severity=3,rows=5);
         ">
 		<tr>
 		  <th class="tabletitle" tal:attributes="colspan evcolspan">Events</th>
