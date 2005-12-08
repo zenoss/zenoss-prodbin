@@ -86,6 +86,9 @@ class SyslogProcessingThread(threading.Thread):
                     evt = evtclass.scUserFunction(device, evt)
             finally:
                 app._p_jar.close()
+            if not getattr(evt, 'eventKey', False):
+                evt.dedupfields = ("device", "component", "eventClass", 
+                                   "eventKey", "severity", "summary")
             self.master.sendEvent(evt)
         except:
             slog.exception("event processing failure: %s", self.hostname)
@@ -175,11 +178,6 @@ class SyslogProcessingThread(threading.Thread):
             evt.eventClassKey = "%s_%s" % (evt.component,evt.ntevid)
         elif hasattr(evt, 'component'):
             evt.eventClassKey = evt.component
-            evt.dedupfields = ("device", "component", "eventClass", 
-                               "eventKey", "severity", "summary")
-        else:
-            evt.dedupfields = ("device", "component", "eventClass", 
-                               "eventKey", "severity", "summary")
         if hasattr(evt, 'eventClassKey'): 
             slog.debug("eventClassKey=%s", evt.eventClassKey)
         else:

@@ -110,8 +110,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     
     def lookup(self, evt):
-        if not getattr(evt, "eventClassKey", False): return None
-        evtcls = self.find(evt.eventClassKey)
+        if hasattr(evt, "eventClassKey"):
+            evtcls = self.find(evt.eventClassKey)
         if not evtcls: 
             evtcls = self.find("defaultmapping")
         recdict = {}
