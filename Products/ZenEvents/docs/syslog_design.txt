@@ -2,6 +2,13 @@
 Syslog event collection design document
 =======================================================================
 
+TODO:
+
+- dedupfields should be in mapping
+- clears should write the events they clear (and detail should show this)
+
+
+
 Syslog collector receives syslog events from managed entities and performs
 normalization mapping before entering them into the backend event database.
 
