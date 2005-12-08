@@ -1,4 +1,5 @@
 import os
+import copy
 import re
 import sre_constants
 
@@ -160,7 +161,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
         Any non-None property values are applied to the event.
         """
         evt.eventClass = self.getEventClass()
-        evt._clearClasses = getattr(self, "zEventClearClasses", [])
+        evt._clearClasses = copy.copy(getattr(self, "zEventClearClasses", []))
         evt._action = getattr(self, "zEventAction", "status")
         propnames = getattr(self, "zEventProperties", ())
         for prop in propnames:
