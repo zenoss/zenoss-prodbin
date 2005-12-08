@@ -644,7 +644,11 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         '''get a device's snmp status and perform conversion'''
-        return self.getStatus(SnmpStatus)
+        if getattr(self, 'zSnmpMonitorIgnore', False):
+            status = -1
+        else:
+            status = self.getStatus(SnmpStatus)
+        return status
     getSnmpStatusNumber = getSnmpStatus
 
 

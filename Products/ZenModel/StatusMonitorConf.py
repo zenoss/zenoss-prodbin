@@ -265,7 +265,8 @@ class StatusMonitorConf(Monitor, StatusColor):
         for dev in self.devices.objectValuesAll():
             try:
                 dev = dev.primaryAq()
-                url = dev.absolute_url() # bug in here new devices have bad req
+                if getattr(dev, "zSnmpMonitorIgnore", False): continue
+                url = dev.absolute_url()
                 if (dev.productionState >= self.prodStateThreshold
                     and dev.zSnmpCommunity):
                    devices.append(( 

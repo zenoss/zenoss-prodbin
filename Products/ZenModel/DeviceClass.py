@@ -347,6 +347,9 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")
 
+        # Snmp monitor properites
+        devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
+
         # DataCollector properties
         devs._setProperty("zCommandUsername", "")
         devs._setProperty("zCommandPassword", "")
