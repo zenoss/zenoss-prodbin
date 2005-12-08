@@ -59,8 +59,9 @@ class MySqlSendEventMixin:
             log.debug(insert)
             rescount = curs.execute(insert)
             if detaildata and rescount == 1:
-                curs.execute("select evid from %s where dedupid = '%s'"% (
-                                event._action, self.escape(event.dedupid)))
+                curs.execute("select evid from %s where dedupid = '%s "
+                             "order by lastTime desc limit 1'"% (
+                             event._action, self.escape(event.dedupid)))
                 evid = curs.fetchone()[0]
                 insert = self.buildDetailInsert(evid, detaildata)
                 log.debug(insert)
