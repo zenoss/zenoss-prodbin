@@ -234,6 +234,63 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     
     ##########################################################################
     #
+    # Functions for exporting RelationshipManager to XML
+    #
+    ##########################################################################
+
+    def exportXml(self, ofile, root=False):
+        """Return an xml based representation of a RelationshipManager
+        <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
+            module='Products.Confmon.IpInterface' class='IpInterface'>
+            <property id='name'>jim</property>
+            <toone></toone>
+            <tomany></tomany>
+            <tomanycont></tomanycont>
+        </object>
+        """
+        modname = self.__class__.__module__
+        classname = self.__class__.__name__
+        id = root and self.getPrimaryId() or self.id
+        stag = "<object id='%s' module='%s' class='%s'>\n" % (
+                    id , modname, classname)
+        ofile.write(stag)
+        self.exportXmlProperties(ofile)
+        self.exportXmlRelationships(ofile)
+        exportHook = getattr(aq_base(self), 'exportXmlHook', None)
+        if exportHook and callable(exportHook): exportHook(ofile)
+        ofile.write("</object>\n")
+
+
+    def exportXmlProperties(self,ofile):
+        """Return an xml representation of a RelationshipManagers properties
+        <property id='name' type='type' mode='w' select_variable='selectvar'>
+            value 
+        </property>
+        value will be converted to is correct python type on import
+        """
+        for prop in self._properties:
+            if not prop.has_key('id'): continue
+            id = prop['id']
+            type = prop['type']
+            value = getattr(aq_base(self), id, None) # use aq_base?
+            if not value and type not in ("int","float","boolean"): continue
+            stag = []
+            stag.append('<property')
+            stag.extend(["%s='%s'" % (k,v) for k,v in prop.items()]) 
+            stag.append('>')
+            ofile.write(' '.join(stag)+"\n")
+            ofile.write(str(value)+"\n")
+            ofile.write("</property>\n")
+
+
+    def exportXmlRelationships(self, ofile):
+        """Return an xml representation of Relationships"""
+        for rel in self.getRelationships():
+            rel.exportXml(ofile)
+        
+    
+    ##########################################################################
+    #
     # Methods called from UI code.
     #
     ##########################################################################

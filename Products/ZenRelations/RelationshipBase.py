@@ -23,8 +23,9 @@ from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *
 from Products.ZenRelations.utils import importClass
+from PrimaryPathObjectManager import PrimaryPathManager
 
-class RelationshipBase(object):
+class RelationshipBase(PrimaryPathManager):
     """
     Abstract base class for all relationship classes.
     """

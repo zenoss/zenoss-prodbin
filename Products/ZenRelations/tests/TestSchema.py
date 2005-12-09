@@ -21,6 +21,7 @@ class DataRoot(TestBaseClass):
 class Device(TestBaseClass, PropertyManager):
     _properties = (
         {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
+        {'id':'communities', 'type':'lines', 'mode':'w'},
         )
     _relations = (
         ("location", ToOne(ToMany, "TestSchema.Location", "devices")),
@@ -28,6 +29,7 @@ class Device(TestBaseClass, PropertyManager):
         ("interfaces", ToManyCont(ToOne, "TestSchema.IpInterface", "device")),
         )
     pingStatus = 0 
+    communities = ()
 
 
 class Server(Device):

@@ -1,0 +1,7 @@
+=======================================================================
+TODO:
+=======================================================================
+
+- export/import of event mappings and classes
+- dedupfields should be in mapping
+- clears should write the events they clear (and detail should show this)

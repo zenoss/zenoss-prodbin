@@ -93,6 +93,17 @@ def lookupClass(productName, classname=None):
         return getattr(mod,classname)
 
 
+def importClass(modulePath, classname):
+    """Import a class from the module given.
+    """
+    try:
+        mod = __import__(modulePath, globals(), locals(), classname)
+        return getattr(mod, classname)
+    except (ImportError, AttributeError):
+        raise ImportError("failed importing class %s from module %s" %
+                            classname, modulePath)
+
+
 def cleanstring(value):
     """take the trailing \x00 off the end of a string"""
     if type(value) == types.StringType and value[-1] == struct.pack('x'):

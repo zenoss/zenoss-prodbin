@@ -88,6 +88,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     security = ClassSecurityInfo()
 
+
     prodStateConversions = [
                 'Production:1000',
                 'Pre-Production:500',
@@ -130,6 +131,13 @@ class DataRoot(ZenModelRM, OrderedFolder):
         ZenModelRM.__init__(self, id, title)
 
 
+    def getDmdRoots(self):
+        return filter(lambda o: o.isInTree, self.objectValues())
+
+
+    def exportXmlHook(self,ofile):
+        map(lambda x: x.exportXml(ofile), self.getDmdRoots())
+            
     
     security.declareProtected('View', 'getProdStateConversions')
     def getProdStateConversions(self):

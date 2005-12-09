@@ -48,7 +48,43 @@ class ZenPropertyManager(PropertyManager):
         self._wrapperCheck(value)
         if self.getPropertyType(id) == 'keyedselection':
             value = int(value)
-        setattr(self,id,value)
+        if not getattr(self,'_v_propdict',False):
+            self._v_propdict = self.propdict()
+        if self._v_propdict.has_key('setter'):
+            setter = getattr(aq_base(obj), settername, None)
+            if not setter:
+                raise ValueError("setter %s for property %s doesn't exist"
+                                    % (settername, name))
+            if not callable(setter):
+                raise TypeError("setter %s for property %s not callable"
+                                    % (settername, name))
+            setter(value)
+        else:
+            setattr(self,id,value)
+
+
+    def _setProperty(self, id, value, type='string', setter=None):
+        """for selection and multiple selection properties
+        the value argument indicates the select variable
+        of the property
+        """
+        self._wrapperCheck(value)
+        if not self.valid_property_id(id):
+            raise BadRequest, 'Invalid or duplicate property id'
+        if type in ('selection', 'multiple selection'):
+            if not hasattr(self, value):
+                raise BadRequest, 'No select variable %s' % value
+            self._properties=self._properties + (
+                {'id':id, 'type':type, 'select_variable':value},)
+            if type=='selection':
+                self._setPropValue(id, '')
+            else:
+                self._setPropValue(id, [])
+        else:
+            pschema = {'id':id,'type':type}
+            if setter: pschema['setter'] = setter
+            self._properties=self._properties+(pschema,)
+            self._setPropValue(id, value)
 
 
     def manage_editProperties(self, REQUEST):

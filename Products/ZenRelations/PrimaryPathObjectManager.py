@@ -18,26 +18,8 @@ from OFS.SimpleItem import Item
 
 from Acquisition import aq_base
 
-class PrimaryPathObjectManager(ObjectManager, RelCopyContainer, Item):
-    """
-    ZenRelations adds relationships to Zope's normal containment style data
-    system.  Relationships give us a networked data model as opposed to a
-    simple hierarchy.  It is difficult to path through a network of objects
-    so PrimaryPathObjectManager gives us a consistant hierarchical mechanism 
-    for pathing to an object.  This allows our network database to pretend to
-    Zope that it is really just hierarchical.  It also lets us set our
-    acquisition chain to equal our primary path.  This lets us do acquistion
-    within the networked database.
+class PrimaryPathManager(object):
 
-    The primary path of an object is maintained through the attribute
-    __primary_parent__.  This is set every time an object is added to the 
-    database using _setObject.
-    """
-    
-    manage_options = ObjectManager.manage_options + Item.manage_options
-        
-    
-    
     def getPrimaryPath(self, fromNode=None):
         """
         Return the primary path of this object by following __primary_parent__
@@ -85,6 +67,28 @@ class PrimaryPathObjectManager(ObjectManager, RelCopyContainer, Item):
         return self.__primary_parent__.primaryAq()
 
 
+
+class PrimaryPathObjectManager(PrimaryPathManager, ObjectManager, 
+                                RelCopyContainer, Item):
+    """
+    ZenRelations adds relationships to Zope's normal containment style data
+    system.  Relationships give us a networked data model as opposed to a
+    simple hierarchy.  It is difficult to path through a network of objects
+    so PrimaryPathObjectManager gives us a consistant hierarchical mechanism 
+    for pathing to an object.  This allows our network database to pretend to
+    Zope that it is really just hierarchical.  It also lets us set our
+    acquisition chain to equal our primary path.  This lets us do acquistion
+    within the networked database.
+
+    The primary path of an object is maintained through the attribute
+    __primary_parent__.  This is set every time an object is added to the 
+    database using _setObject.
+    """
+    
+    manage_options = ObjectManager.manage_options + Item.manage_options
+        
+    
+    
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
         obj.__primary_parent__ = aq_base(self) 
@@ -96,5 +100,3 @@ class PrimaryPathObjectManager(ObjectManager, RelCopyContainer, Item):
         obj = self._getOb(id)
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
-
-

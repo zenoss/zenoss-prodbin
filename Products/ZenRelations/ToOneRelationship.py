@@ -27,7 +27,6 @@ from Acquisition import aq_base, aq_parent
 
 from Products.ZenRelations.Exceptions import InvalidContainer
 
-
 def manage_addToOneRelationship(context, id, REQUEST = None):
     """ToOneRelationship Factory"""
     r =  ToOneRelationship(id)
@@ -151,4 +150,15 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         return link
 
 
+    def exportXml(self,ofile):
+        """return an xml representation of a ToOneRelationship
+        <toone id='cricket'>
+            /Monitors/Cricket/crk0.srv.hcvlny.cv.net
+        </toone>"""
+        from RelSchema import ToManyCont
+        if not self.obj or self.remoteType()==ToManyCont: return
+        ofile.write("<toone id='%s' objid='%s'/>\n" % (
+                    self.id, self.obj.getPrimaryId()))
+    
+    
 InitializeClass(ToOneRelationship)

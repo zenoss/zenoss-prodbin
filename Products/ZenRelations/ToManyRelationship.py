@@ -194,6 +194,19 @@ class ToManyRelationship(ToManyRelationshipBase):
         return rel    
 
 
+    def exportXml(self,ofile):
+        """Return an xml representation of a ToManyRelationship
+        <tomany id='interfaces'>
+            <link>/Systems/OOL/Mail</link>
+        </tomany>
+        """
+        if self.countObjects() == 0: return
+        ofile.write("<tomany id='%s'>\n" % self.id)
+        for id in self.objectIdsAll():
+            ofile.write("<link objid='%s'/>\n" % id)
+        ofile.write("</tomany>\n")
+
+    
     def all_meta_types(self, interfaces=None):
         """Return empty list not allowed to add objects to a ToManyRelation"""
         return []

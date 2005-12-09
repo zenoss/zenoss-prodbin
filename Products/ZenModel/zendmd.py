@@ -12,8 +12,16 @@ sync = dmd._p_jar.sync
 commit = transaction.commit
 abort = transaction.abort
 
-def rebuildidx():
-    for dev in dmd.Devices.getSubDevicesGen():
-        dev.unindex_object()
-        dev.index_object()
+def zhelp():
+    cmds = filter(lambda x: not x.startswith("_"), globals())
+    cmds.sort()
+    for cmd in cmds[2:]: print cmd
+        
+
+def reindex():
+    sync()
+    dmd.Devices.reIndexDevices(True)
     commit()
+
+print "Welcome to zenmon dmd command shell!"
+print "use zhelp() to list commnads"

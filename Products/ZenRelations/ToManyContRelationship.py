@@ -202,4 +202,20 @@ class ToManyContRelationship(ToManyRelationshipBase):
         return rel    
 
 
+    def exportXml(self, ofile):
+        """Return an xml representation of a ToManyContRelationship
+        <tomanycont id='interfaces'>
+            <object id='hme0' 
+                module='Products.Confmon.IpInterface' class='IpInterface'>
+                <property></property> etc....
+            </object>
+        </tomanycont>
+        """
+        if self.countObjects() == 0: return
+        ofile.write("<tomanycont id='%s'>\n" % self.id)
+        for obj in self.objectValues():
+            obj.exportXml(ofile)
+        ofile.write("</tomanycont>\n")
+
+
 InitializeClass(ToManyContRelationship)

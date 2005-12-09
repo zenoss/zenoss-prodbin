@@ -13,9 +13,8 @@ $Id: ImportRM.py,v 1.3 2003/10/03 16:16:01 edahl Exp $"""
 __version__ = "$Revision: 1.3 $"[11:-2]
 
 import sys
-
-import Zope
-Zope.startup()
+import os
+import transaction
 
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
@@ -25,7 +24,7 @@ from Acquisition import aq_base
 from DateTime import DateTime
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import lookupClass
+from Products.ZenUtils.Utils import importClass
 
 from Products.ZenRelations.Exceptions import *
 
@@ -33,19 +32,130 @@ class ImportRM(ZCmdBase, ContentHandler):
 
     def __init__(self):
         ZCmdBase.__init__(self)
-        
-        self.links = {}
-        self.blocklinks = {}
-        self.curobjstack = []
-        self.curstatestack = []
-        self.curattrsstack = []
+        self.objstack = [self.app,]
+        self.links = []
         self.objectnumber = 0
-        self.firstprop = 1
-
         if not self.options.infile:
             self.infile = sys.stdin
         else:
             self.infile = open(self.options.infile, 'r')
+
+
+    def context(self):
+        return self.objstack[-1]
+
+
+    def cleanattrs(self, attrs):
+        myattrs = {}
+        for key, val in attrs.items():
+            myattrs[key] = str(val)
+        return myattrs
+
+        
+    def startElement(self, name, attrs):
+        attrs = self.cleanattrs(attrs)
+        self.state = name
+        self.log.debug("tag %s, context %s", name, self.context().id)
+        if name == 'object':
+            self.objstack.append(self.createObject(attrs))
+        elif name == 'tomanycont' or name == 'tomany':
+            self.objstack.append(self.context()._getOb(attrs['id']))
+        elif name == 'toone':
+            relname = attrs.get('id')
+            self.log.debug("toone %s, on object %s", relname, self.context().id)
+            rel = getattr(aq_base(self.context()),relname) 
+            objid = attrs.get('objid')
+            self.addLink(rel, objid)
+        elif name == 'link':
+            self.addLink(self.context(), attrs['objid'])
+        elif name == 'property':
+            self.curattrs = attrs
+
+
+    def endElement(self, name):
+        if name in ('object', 'tomany', 'tomanycont'):
+            self.objstack.pop()
+        elif name == 'objects':
+            self.log.info("Processing links")
+            self.processLinks()
+            if not self.options.noCommit:
+                self.commit()
+            self.log.info("Loaded %d objects into database" % self.objectnumber)
+       
+
+    def characters(self, chars):    
+        chars = str(chars.strip())
+        if not chars: return
+        if self.state == 'property':
+            self.setProperty(self.context(), self.curattrs, chars)
+
+
+    def createObject(self, attrs):
+        """create an object and set it into its container"""
+        id = attrs.get('id')
+        obj = None
+        try:
+            if callable(self.context().id):
+                obj = self.app.unrestrictedTraverse(id)
+            else:
+                obj = self.context()._getOb(id)
+        except (KeyError, AttributeError): pass
+        if not obj:
+            klass = importClass(attrs.get('module'), attrs.get('class'))
+            if id.find("/") > -1:
+                contextpath, id = os.path.split(id)
+                self.objstack.append(
+                    self.context().unrestrictedTraverse(contextpath))
+            obj = klass(id)
+            self.context()._setObject(obj.id, obj) 
+            obj = self.context()._getOb(obj.id)
+            transaction.savepoint()
+            self.objectnumber += 1
+            self.log.debug("Added object %s to database" % obj.getPrimaryId())
+        else:
+            self.log.warn("Object %s already exists skipping" % id)
+        return obj
+
+
+    def setProperty(self, obj, attrs, value):
+        """Set the value of a property on an object.
+        """
+        name = attrs.get('id')
+        proptype = attrs.get('type')
+        setter = attrs.get("setter",None)
+        self.log.debug("setting object %s att %s type %s value %s" 
+                            % (obj.id, name, proptype, value))
+        if proptype == "date":
+            value = DateTime(value)
+        elif proptype != "string":
+            value = eval(value)
+        if not obj.hasProperty(name):
+            obj._setProperty(name, value, type=proptype, setter=setter)
+        else:
+            obj._updateProperty(name,value)
+
+
+    def addLink(self, rel, objid):
+        """build list of links to form after all objects have been created
+        make sure that we don't add other side of a bidirectional relation"""
+        self.links.append((rel.getPrimaryId(), objid))
+
+
+    def processLinks(self):
+        """walk through all the links that we saved and link them up"""
+        for relid, objid in self.links:
+            try:
+                self.log.debug("Linking relation %s to object %s",
+                                relid,objid)
+                rel = self.app.unrestrictedTraverse(relid)
+                obj = self.app.unrestrictedTraverse(objid)
+                if not rel.hasobject(obj):
+                    rel.addRelation(obj)
+            except:
+                self.log.critical(
+                    "Failed linking relation %s to object %s",relid,objid)
+                raise
+                                
 
 
     def buildOptions(self):
@@ -79,190 +189,10 @@ class ImportRM(ZCmdBase, ContentHandler):
   
 
     def commit(self):
-        trans = get_transaction()
+        trans = transaction.get()
         trans.note('Import from file %s using %s' 
-                        % (self.options.infile, 
-                            self.__class__.__name__))
+                    % (self.options.infile, self.__class__.__name__))
         trans.commit()
-
-
-    def startElement(self, name, attrs):
-        self.curstatestack.append(name)
-        self.curattrsstack.append(attrs)
-        if name == 'object':
-            obj = self.createObject(attrs)
-            self.curobjstack.append(obj)
-
-
-    def endElement(self, name):
-        if name == 'object': 
-            self.curobjstack.pop()
-            self.objectnumber += 1
-            if (not self.options.noCommit 
-                and not self.objectnumber % self.options.commitCount):
-                self.commit()
-                self.app._p_jar.sync()
-        elif name == 'property':
-            self.firstprop = 1
-        elif name == 'objects':
-            self.log.info("Processing links")
-            self.processLinks()
-            if not self.options.noCommit:
-                self.commit()
-            self.log.info("Loaded %d objects into database" % self.objectnumber)
-        if len(self.curstatestack):
-            self.curstatestack.pop()
-            self.curattrsstack.pop()
-       
-
-    def characters(self, chars):    
-        if not len(self.curobjstack): return
-        obj = self.curobjstack[-1]
-        chars = str(chars.strip())
-        if not chars: return
-        parentattrs = {}
-        if len(self.curattrsstack) > 1:
-            parentattrs = self.curattrsstack[-2]
-        attrs = self.curattrsstack[-1]
-        state = self.curstatestack[-1]
-        if state == 'link':
-            relname = str(parentattrs.get('id'))
-            self.addLink(obj, relname, chars)
-        elif state == 'toone':
-            relname = str(attrs.get('id')) 
-            self.addLink(obj, relname, chars)
-        elif state == 'value':
-            self.setProperty(obj, parentattrs, chars)
-
-
-    def createObject(self, attrs):
-        """create an object and set it into its container"""
-        modname = str(attrs.get('module'))
-        classname = str(attrs.get('class'))
-        fullid = str(attrs.get('id'))
-        obj = self.getDmdObj(fullid)
-        if obj:
-            self.log.warn("Object %s already exists skipping" % fullid)
-            return obj
-        klass = lookupClass(modname, classname)
-        id = fullid.split('/')[-1]
-        obj = klass(id)
-        contname = '/'.join(fullid.split('/')[:-1])
-        container = self.getDmdObj(contname)
-        if not container: 
-            raise ObjectNotFound, "Object %s not found" % contname
-        container._setObject(obj.id, obj) 
-        obj = container._getOb(obj.id)
-        self.log.debug("Added object %s to database" % 
-                            obj.getPrimaryId())
-        if container.meta_type == "To Many Relationship":
-            pobject = self.curobjstack[-1] 
-            self.removeLink(pobject, container.id, 
-                        obj.getPrimaryId())
-        return obj
-
-
-    def setProperty(self, obj, attrs, value):
-        """set the value of a property
-        if property doesn't exist add it to _properties"""
-
-        name = str(attrs.get('id'))
-        proptype = str(attrs.get('type'))
-
-        self.log.debug("setting object %s att %s type %s value %s" 
-                            % (obj.id, name, proptype, value))
-
-        if not hasattr(aq_base(obj), name):
-            self.log.debug("updated _properties for attribute %s" % name)
-            obj._properties = obj._properties + (self.makePropSchema(attrs),)
-
-        if (proptype == 'int'
-            or proptype == 'boolean'):
-            value = int(value)
-        elif proptype == 'long':
-            value = long(value)
-        elif proptype == 'float':
-            value = float(value)
-        elif proptype == 'date':
-            value = DateTime(value)
-        elif proptype == 'lines':
-            if self.firstprop:
-                curvalue = []
-            else:
-                curvalue = list(getattr(obj, name, []))
-            curvalue.append(value)
-            value = curvalue
-            obj._p_changed = 1
-        else:
-            value = str(value)
-
-        if attrs.has_key('setter'):
-            settername = str(attrs.get('setter'))
-            setter = getattr(obj, settername, None)
-            if not setter:
-                self.log.warning("setter %s for property %s doesn't exist"
-                                    % (settername, name))
-                return
-            if not callable(setter):
-                self.log.warning("setter %s for property %s not callable"
-                                    % (settername, name))
-                return
-            setter(value)
-        else:
-            setattr(obj, name, value) 
-        self.firstprop = 0 
-
-
-    def makePropSchema(self, attrs):
-        """convert Attributes object to dictionary"""
-        schema = {}
-        for key in attrs.keys():
-            schema[str(key)] = str(attrs[key])
-        return schema
-        
-    
-    def addLink(self, obj, relname, link):
-        """build list of links to form after all objects have been created
-        make sure that we don't add other side of a bidirectional relation"""
-        key = obj.relationKey(relname, link)
-        if not self.links.has_key(key):
-            self.links[key] = relname
-
-
-    def removeLink(self, obj, relname, link):
-        key = obj.relationKey(relname, link)
-        self.blocklinks[key] = relname
-
-    
-    def processLinks(self):
-        """walk through all the links that we saved and link them up"""
-        for key, relname in self.links.items():
-            if self.blocklinks.has_key(key): continue
-            id1, r1, id2, r2 = key.split('|')
-            self.log.debug("Linking object %s relation %s to object %s"
-                            % (id1, id2, r1))
-            obj1 = self.getDmdObj(id1)
-            if not obj1:
-                self.log.warn(
-                    'While linking object %s relation %s' % (id1, r1) +
-                    ' to object %s relation %s' % (id2, r2) +
-                    ' object %s was not found' % id1)
-                continue
-            obj2 = self.getDmdObj(id2)
-            if not obj2:
-                self.log.warn(
-                    'While linking object %s relation %s' % (id1, r1) +
-                    ' to object %s relation %s' % (id2, r2) +
-                    ' object %s was not found' % id2)
-                continue
-            try:
-                obj1.addRelation(r1, obj2)
-            except RelationshipExistsError:
-                pass
-            except:
-                self.log.exception(
-                    "Linking object %s relation %s to object %s failed"
-                            % (id1, id2, relname))
 
 
 if __name__ == '__main__':

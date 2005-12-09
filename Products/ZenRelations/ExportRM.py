@@ -14,12 +14,10 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 
 import sys
 
-import Zope
-Zope.startup()
+import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-
-from RelationshipManager import RelationshipManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 class ExportRM(ZCmdBase):
 
@@ -42,14 +40,14 @@ class ExportRM(ZCmdBase):
     def export(self, root=None):
         if not root: 
             root = self.dataroot
-            self.outfile.write("<objects>\n")
         if isinstance(root, RelationshipManager):
-            self.outfile.write(root.exportXml()+"\n")
-        for obj in root.objectValues():
-            if isinstance(obj, RelationshipManager):
-                self.export(obj)
-        if root == self.dataroot:
+            self.outfile.write("""<?xml version="1.0"?>\n""")
+            self.outfile.write("<objects>\n")
+            root.exportXml(self.outfile,True)
             self.outfile.write("</objects>\n")
+        else:
+            print "ERROR: export root object not a RelationshipManager"
+            
 
 
 if __name__ == '__main__':
