@@ -6,7 +6,6 @@ TODO:
 
 - dedupfields should be in mapping
 - clears should write the events they clear (and detail should show this)
-- final test of commit list
 
 
 Syslog collector receives syslog events from managed entities and performs
