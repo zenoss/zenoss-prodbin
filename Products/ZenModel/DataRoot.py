@@ -56,8 +56,6 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 {'id':'prodStateConversions','type':'lines','mode':'w'},
                 {'id':'statusConversions','type':'lines','mode':'w'},
                 {'id':'interfaceStateConversions','type':'lines','mode':'w'},
-                {'id':'previousYearRange', 'type': 'int', 'mode':'w'},
-                {'id':'futureYearRange', 'type': 'int', 'mode':'w'},
                 )
 
     # Screen action bindings (and tab definitions)
@@ -100,7 +98,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     statusConversions = [
                 'Up:0',
-                'Unknown:-1',
+                'None:-1',
                 'No DNS:-2',
                 ]
 
@@ -124,12 +122,6 @@ class DataRoot(ZenModelRM, OrderedFolder):
         ]
 
 
-    # number of previous year in date popup
-    previousYearRange = 2
-   
-    # number of future years in date popup
-    futureYearRange = 2
-   
     # when calculating the primary path this will be its root
     zPrimaryBasePath = ("", "zport")
 

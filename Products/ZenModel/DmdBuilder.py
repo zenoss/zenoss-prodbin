@@ -51,6 +51,7 @@ from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
+from Products.CMFCore.DirectoryView import manage_addDirectoryView
 
 classifications = {
     'Devices':      DeviceClass,
@@ -184,6 +185,7 @@ class DmdBuilder:
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
+        manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
         manage_addMySqlEventManager(self.dmd)
         manage_addMySqlEventManager(self.dmd,history=True)

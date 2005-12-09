@@ -11,6 +11,7 @@ $Id: DeviceClass.py,v 1.76 2004/04/22 19:09:53 edahl Exp $"""
 __version__ = "$Revision: 1.76 $"[11:-2]
 
 import types
+import transaction
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -71,7 +72,7 @@ class DeviceClass(DeviceOrganizer):
     baseModulePath = "Products.ZenModel"  
 
     class_default_catalog = 'deviceSearch'
-
+    
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
         )
@@ -237,12 +238,23 @@ class DeviceClass(DeviceOrganizer):
         return self._convertResultsToObj(results)
 
 
+    security.declareProtected('View', 'searchInterfaces')
+    def searchInterfaces(self, query):
+        """search interfaces index and return interface objects"""
+        if not query: return []
+        zcatalog = getattr(self, 'interfaceSearch', None)
+        if not zcatalog: return []
+        results = zcatalog(query)
+        return self._convertResultsToObj(results)
+
+
     def _convertResultsToObj(self, results):
         devices = []
         for brain in results:
             devobj = self.unrestrictedTraverse(brain.getPrimaryId)
             devices.append(devobj)
         return devices
+
 
     security.declareProtected('View', 'getDeviceFromSearchResult')
     def getDeviceFromSearchResult(self, brain):
@@ -279,14 +291,14 @@ class DeviceClass(DeviceOrganizer):
         zcat.addColumn('getPrimaryId')
     
         # Make catalog for IpInterfaces
-        interfaceSearch = "interfaceSearch"
-        manage_addZCatalog(self, interfaceSearch, interfaceSearch)
-        zcat = self._getOb(interfaceSearch)
+        manage_addZCatalog(self, "interfaceSearch", "interfaceSearch")
+        zcat = self._getOb("interfaceSearch")
         makeConfmonLexicon(zcat)
+        zcat.addIndex('getDeviceName', 'FieldIndex')
+        zcat.addIndex('macaddress', 'ZCTextIndex', 
+                        extra=makeIndexExtraParams('macaddress'))
         zcat.addIndex('description', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('description'))
-        zcat.addIndex('deviceName', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('getDeviceName'))
         zcat.addIndex('interfaceName', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('getInterfaceName'))
         zcat.addColumn('getPrimaryId')
@@ -303,11 +315,16 @@ class DeviceClass(DeviceOrganizer):
         manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
 
 
-    def recatalogDevices(self):
+    def reIndexDevices(self, interfaces=False):
         """Go through all devices in this tree and reindex them."""
         for dev in self.getSubDevicesGen():
             dev.unindex_object()
             dev.index_object()
+            if interfaces:
+                for int in dev.interfaces():
+                    int.unindex_object()
+                    int.index_object()
+                transaction.savepoint()
 
 
     def buildDeviceTreeProperties(self):

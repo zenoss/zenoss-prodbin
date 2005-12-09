@@ -249,6 +249,7 @@ class SnmpCollector(ZCmdBase):
         try: changed = obj._p_changed
         except: changed = False
         if getattr(aq_base(obj), "index_object", False) and changed:
+            slog.debug("indexing object %s", obj.id)
             obj.index_object() 
         if not changed: obj._p_deactivate()
         return changed
@@ -276,6 +277,7 @@ class SnmpCollector(ZCmdBase):
                 ("No relation %s found on device %s" 
                  % (snmpmap.relationshipName, device.id))
         remoteObj = rel._getOb(remoteObj.id)
+        transaction.savepoint()
         self._updateObject(remoteObj, datamap)
         slog.info("   Added object %s to relationship %s" 
             % (remoteObj.id, snmpmap.relationshipName))
