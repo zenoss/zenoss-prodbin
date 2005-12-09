@@ -22,6 +22,11 @@ class ZCmdBase(ZenDaemon):
         ZenDaemon.__init__(self, noopts)
         self.dataroot = None
         self.app = app
+        from ZEO import ClientStorage
+        from ZODB import DB
+        addr = (self.options.host, self.options.port)
+        storage=ClientStorage.ClientStorage(addr)
+        self.db=DB(storage)
         self.getDataRoot(app)
 
 
@@ -41,12 +46,7 @@ class ZCmdBase(ZenDaemon):
 
     def opendb(self):
         if self.app: return 
-        from ZEO import ClientStorage
-        from ZODB import DB
-        addr = (self.options.host, self.options.port)
-        storage=ClientStorage.ClientStorage(addr)
-        db=DB(storage)
-        self.connection=db.open()
+        self.connection=self.db.open()
         root=self.connection.root()
         self.app=root['Application']
         self.getContext()

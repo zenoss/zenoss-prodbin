@@ -351,9 +351,12 @@ class SnmpCollector(ZCmdBase):
             startLoop = time.time()
             runTime = 0
             try:
-                self.getDataRoot()
                 slog.debug("starting collector loop")
-                self.collectDevices(self.options.path)
+                try:
+                    self.getDataRoot()
+                    self.collectDevices(self.options.path)
+                finally:
+                    self.closedb()
                 runTime = time.time()-startLoop
                 slog.debug("ending collector loop")
                 slog.info("loop time = %0.2f seconds",runTime)
@@ -361,7 +364,6 @@ class SnmpCollector(ZCmdBase):
                 slog.critical(e)
             except:
                 slog.exception("problem in main loop")
-            self.closedb()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
 

@@ -39,7 +39,7 @@ class ZEvent(Event):
                 value = "<a href='/zport/dmd/deviceSearchResults?query=%s'>"\
                         "%s</a>" % (value, value)
             elif field == 'eventClass':
-                value = "<a href='/zport/dmd/Events/%s'>%s</a>" % (value,value)
+                value = "<a href='/zport/dmd/Events%s'>%s</a>" % (value,value)
             data.append(value)    
         return data
 
