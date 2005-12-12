@@ -8,4 +8,4 @@ TODO:
 =======================================================================
 Done
 =======================================================================
-! export/import of event mappings and classes
+- export/import of event mappings and classes
