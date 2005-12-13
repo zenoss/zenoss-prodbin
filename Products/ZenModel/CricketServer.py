@@ -37,14 +37,15 @@ class CricketServer:
 
     def cricketFilesystems(self):
         """build the cricket configuration for filesystem monitoring"""
-        objpaq = self.primaryAq()
-        targetpath = objpaq.cricketTargetPath() + '/filesystems'
+        targetpath = self.cricketTargetPath() + '/filesystems'
+        targettypes = {}
         targets = []
-        cricketFilesystemType = getattr(objpaq, "zCricketFilesystemType", 
+        cricketFilesystemType = getattr(self, "zCricketFilesystemType", 
                                                 "Filesystem")
         try:
-            lookupTargetType(objpaq, cricketFilesystemType)
-            for fs in objpaq.filesystems.objectValuesAll():
+            ttype = lookupTargetType(self, cricketFilesystemType)
+            targettypes[ttype.getName()] = ttype.dsnames
+            for fs in self.filesystems.objectValuesAll():
                 targetdata = {}
                 targetdata['target'] = fs.id
                 targetdata['target-type'] = cricketFilesystemType
@@ -58,18 +59,19 @@ class CricketServer:
             LOG("CricketBuilder", WARNING, 
                 "RRDTargetType %s for filesystem not found" 
                 % cricketFilesystemType)
-        return (targetpath, targets)
+        return (targetpath, targettypes, targets)
 
 
     def cricketDisks(self):
-        objpaq = self.primaryAq()
-        targetpath = objpaq.cricketTargetPath() + '/disks'
+        targetpath = self.cricketTargetPath() + '/disks'
+        targettypes = {}
         targets = []
-        cricketDiskType = getattr(objpaq, "zCricketHardDiskType", 
+        cricketDiskType = getattr(self, "zCricketHardDiskType", 
                                                 "HardDisk")
         try:
-            lookupTargetType(objpaq, cricketDiskType)
-            for disk in objpaq.harddisks():
+            ttype = lookupTargetType(self, cricketDiskType)
+            targettypes[ttype.getName()] = ttype.dsnames
+            for disk in self.harddisks():
                 targetdata = {}
                 targetdata['target'] = disk.id
                 targetdata['target-type'] = cricketDiskType
@@ -81,4 +83,4 @@ class CricketServer:
         except RRDObjectNotFound:
             LOG("CricketBuilder", WARNING, 
                 "RRDTargetType %s for harddisk not found" % cricketDiskType)
-        return (targetpath, targets)
+        return (targetpath, targettypes, targets)
