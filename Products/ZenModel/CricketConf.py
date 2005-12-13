@@ -222,10 +222,10 @@ class CricketConf(Monitor, StatusColor):
         """
         rrdconfig = self.getDmdRoot("Devices").rrdconfig
         for ds in rrdconfig.objectValues(spec="RRDDataSource"):
-            if ds.oid.endswith("0"):
-                inst = ''
-            else:
+            if ds.isrow:
                 inst = ".%inst%"
+            else:
+                inst = ''
             dses.append(oidtmpl % (ds.getName(), ds.oid))
             dses.append(dstmpl %(ds.getName(), ds.rrdtype, ds.getName(), inst))
         return "\n".join(dses)     

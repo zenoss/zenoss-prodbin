@@ -87,7 +87,7 @@ class CricketBuilder(ZenDaemon):
 
     def buildDevice(self, devurl):        
         try:
-            self.log.info("building device %s", devurl.split("/")[-1])
+            self.log.info("building device %s", devurl)
             devurl = basicAuthUrl(self.options.zopeusername, 
                                   self.options.zopepassword, devurl)
             device = xmlrpclib.Server(devurl)

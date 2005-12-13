@@ -22,7 +22,8 @@ from OFS.Image import manage_addFile
 
 from zLOG import LOG, INFO, DEBUG
 
-from pyrrdtool import rrd_graph, rrd_test_error, rrd_get_error
+#from pyrrdtool import rrd_graph, rrd_test_error, rrd_get_error
+import rrdtool
 
 from Products.ZenUtils.PObjectCache import PObjectCache
 from Products.ZenUtils.PObjectCache import CacheObj
@@ -75,11 +76,12 @@ class RenderServer(RRDToolItem):
                 os.makedirs(self.tmpdir)
             filename = "%s/graph-%s" % (self.tmpdir,id)
             gopts.insert(0, filename)
-            rrd_graph(gopts)
-            if rrd_test_error():
-                LOG('RenderServer', INFO, rrd_get_error())     
-                LOG('RenderServer', INFO, ' '.join(gopts))
-                raise RRDToolError, rrd_get_error()
+            try:
+                rrdtool.graph(gopts)
+            except _rrdtool.error, e:    
+                log.warn(e)
+                log.warn(" ".join(gopts))
+                raise RRDToolError(e)
             return self._loadfile(filename)
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)
@@ -95,11 +97,12 @@ class RenderServer(RRDToolItem):
         gopts.insert(0, '--end=%d' % end)
         gopts.insert(0, '--start=%d' % start)
         gopts.insert(0, '/dev/null') #no graph generated
-        values = rrd_graph(gopts)[1]
-        if rrd_test_error():
-            LOG('RenderServer', INFO, rrd_get_error())     
-            LOG('RenderServer', INFO, ' '.join(gopts))
-            raise RRDToolError, rrd_get_error()
+        try:
+            values = rrdtool.graph(gopts)
+        except _rrdtool.error, e:    
+            log.warn(e)
+            log.warn(" ".join(gopts))
+            raise RRDToolError(e)
         return values
         
     

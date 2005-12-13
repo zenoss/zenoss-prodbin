@@ -42,6 +42,8 @@ def loadargs(obj, args):
                     value = long(arg)
                 elif obj._properties[i]['type'] == 'float':
                     value = float(arg)
+                elif obj._properties[i]['type'] == 'boolean':
+                    value = eval(arg)
                 else:
                     value = arg
                 if value: setattr(obj,att,value)

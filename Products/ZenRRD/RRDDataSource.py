@@ -49,6 +49,7 @@ class RRDDataSource(RRDToolItem, PropertyManager):
                  {'id':'oid', 'type':'string', 'mode':'w'},
                  {'id':'rrdtype', 'type':'selection',
                     'select_variable' : 'rrdtypes', 'mode':'w'},
+                 {'id':'isrow', 'type':'boolean', 'mode':'w'},
                  {'id':'rrdmax', 'type':'string', 'mode':'w'},
                  {'id':'rpn', 'type':'string', 'mode':'w'},
                  {'id':'limit', 'type':'long', 'mode':'w'},
@@ -63,6 +64,7 @@ class RRDDataSource(RRDToolItem, PropertyManager):
         self.id = utils.prefixid(self.meta_type, id)
         self.oid = ''
         self.rrdtype = 'COUNTER'
+        self.isrow = True
         self.rrdmax = -1
         self.rpn = None
         self.color = None
@@ -74,6 +76,8 @@ class RRDDataSource(RRDToolItem, PropertyManager):
     def textload(self, args):
         """called by RRDLoader to populate a RRDDataSource"""
         utils.loadargs(self, args) 
+        if self.oid.split('.')[-1] == "0":
+            self.isrow = False
 
         
     def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
