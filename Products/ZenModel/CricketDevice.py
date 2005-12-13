@@ -24,6 +24,18 @@ from Exceptions import ZenModelError
 class RelationNotFound(ZenModelError): pass
 
 class CricketDevice:
+    """
+    CricketDevice generates cricket configurations from the ZenRRD setup.
+    CricketBuilder calls cricketGenerate to perform this function.
+    cricketGenerate returns the following data structure:
+    [['targetpath', {'targettype1':['ds1','ds2',...],'targetype2':['ds3'...]},
+        [
+        {'target':'targetnmae','inst':1,'monitor-thresholds':'crkthreshold'},
+        ...
+        ]
+     ['targetpath',[moretargetdicts...]]
+    ] 
+    """
 
     def cricketGenerate(self):
         """generate the cricket config data structure for this device"""
@@ -35,12 +47,11 @@ class CricketDevice:
 
 
     def addTargetData(self, cricketData, targetinfo):
-        objpaq = self.primaryAq()
         if not targetinfo: return
-        targetpath, targets = targetinfo
+        targetpath, targettypes, targets = targetinfo
         targets = list(targets)
-        targets.insert(0,objpaq.cricketTargetDefault())
-        cricketData.append((targetpath, targets))
+        targets.insert(0,self.cricketTargetDefault())
+        cricketData.append((targetpath, targettypes, targets))
 
 
     def setCricketThresholds(self, context, targets):
@@ -75,19 +86,22 @@ class CricketDevice:
     def cricketDevice(self):
         """build the targets for the device itself
         use cricketTargetPath to """
-        objpaq = self.primaryAq()
-        targets = self.callscript(objpaq, 'scCricketDevice')
-        targetpath = objpaq.cricketTargetPath()
+        targetpath = self.cricketTargetPath()
+        targettypes = {}
+        targets = self.callscript(self, 'scCricketDevice')
         if not targets:
             targetdata = {}
-            targetdata['target'] = objpaq.id
-            crtype = objpaq.cricketDeviceType()
+            targetdata['target'] = self.id
+            crtype = self.cricketDeviceType()
             if not crtype: return
             targetdata['target-type'] = crtype
             targets = (targetdata,)
-        targets = self.setCricketThresholds(objpaq, targets)
+        for target in targets:
+            ttype = lookupTargetType(self, target['target-type'])
+            targettypes[ttype.getName()] = ttype.dsnames
+        targets = self.setCricketThresholds(self, targets)
         self.setCricketTargetMap(targetpath, targets) 
-        return (targetpath, targets)
+        return (targetpath, targettypes, targets)
  
 
     def cricketDeviceType(self):
@@ -96,12 +110,11 @@ class CricketDevice:
         calculate the type if that is not found
         it looks for zCricketDeviceType attribute
         default value is 'Device'"""
-        objpaq = self.primaryAq()
-        deviceType = self.callscript(objpaq, 'scCricketDeviceType')
+        deviceType = self.callscript(self, 'scCricketDeviceType')
         if not deviceType:
-            deviceType = getattr(objpaq, 'zCricketDeviceType', "Device")
+            deviceType = getattr(self, 'zCricketDeviceType', "Device")
         try:
-            lookupTargetType(objpaq, deviceType)
+            lookupTargetType(self, deviceType)
         except RRDObjectNotFound:
             logging.warn(
                 "RRDTargetType %s for device not found", deviceType)
@@ -110,14 +123,16 @@ class CricketDevice:
 
     def cricketInterfaces(self):
         """build the targets for device interfaces"""
-        objpaq = self.primaryAq()
-        targetpath = objpaq.cricketTargetPath() + '/interfaces'
+        targetpath = self.cricketTargetPath() + '/interfaces'
+        targettypes = {}
         targets = []
-        for interface in objpaq.interfaces.objectValuesAll():
+        for interface in self.interfaces.objectValuesAll():
             if not interface.adminStatus == 1: continue
             self.interfaceMultiTargets(interface, targetpath)
-            inttype = objpaq.cricketInterfaceType(interface)
+            inttype = self.cricketInterfaceType(interface)
             if not inttype: continue
+            ttype = lookupTargetType(self, inttype)
+            targettypes[ttype.getName()] = ttype.dsnames
             targetdata = {}
             targetdata['target'] = interface.id
             targetdata['target-type'] = inttype
@@ -127,7 +142,7 @@ class CricketDevice:
             self.setCricketThreshold(interface, targetdata)
             interface.setCricketTargetMap(targetpath, targetdata)
             targets.append(targetdata)
-        return (targetpath, targets)
+        return (targetpath, targettypes, targets)
  
 
     def interfaceMultiTargets(self, interface, targetpath):
@@ -164,11 +179,9 @@ class CricketDevice:
 
         defaultIgnoreTypes = ('Other', 'softwareLoopback', 'CATV MAC Layer')
 
-        objpaq = self.primaryAq()
-
-        type = self.callscript(objpaq, 'scCricketInterfaceType', interface)
+        type = self.callscript(self, 'scCricketInterfaceType', interface)
         if type: return type
-        intarray = getattr(objpaq, 'zCricketInterfaceMap', None)
+        intarray = getattr(self, 'zCricketInterfaceMap', None)
         if intarray:
             intmap = {}
             for im in intarray:
@@ -182,13 +195,13 @@ class CricketDevice:
             and interface.speed >= 100000000):
             cricketType = 'FastInterface'
 
-        ignoreTypes = getattr(objpaq, 'zCricketInterfaceIgnoreTypes', None)
+        ignoreTypes = getattr(self, 'zCricketInterfaceIgnoreTypes', None)
         if not ignoreTypes: ignoreTypes = defaultIgnoreTypes
         intType = interface.type
         if intType in ignoreTypes: 
             return None
 
-        dontSendIntNames = getattr(objpaq, 'zCricketInterfaceIgnoreNames', None)
+        dontSendIntNames = getattr(self, 'zCricketInterfaceIgnoreNames', None)
         if dontSendIntNames and re.search(dontSendIntNames,interface.name):
             return None
 
@@ -205,10 +218,9 @@ class CricketDevice:
         """get the cricket target path
         if there is a script called scCricketTargetPath use it
         if not use the DeviceClass path of the box"""
-        objpaq = self.primaryAq()
-        tp = self.callscript(objpaq, 'scCricketTargetPath')
+        tp = self.callscript(self, 'scCricketTargetPath')
         if tp: return tp
-        return objpaq.getDeviceClassPath() + '/' + self.id
+        return self.getDeviceClassPath() + '/' + self.id
     
 
     def callscript(self, obj, name, *args, **kargs):

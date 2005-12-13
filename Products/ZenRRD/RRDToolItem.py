@@ -19,7 +19,14 @@ from Globals import Persistent
 from AccessControl.Role import RoleManager
 from OFS.SimpleItem import Item
 
+import utils
+
 class RRDToolItem(Implicit, Persistent, RoleManager, Item):
     """base class for RRDTool persistent classes"""
 
     manage_options = (Item.manage_options + RoleManager.manage_options)
+
+    def getName(self):
+        """Return the name of this item (take off the type from the id).
+        """
+        return utils.rootid(self.meta_type + '-', self.id)

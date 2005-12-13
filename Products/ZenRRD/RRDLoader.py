@@ -49,7 +49,8 @@ class RRDLoader(BasicLoader):
             print "ERROR: can't find configroot %s" % \
                         self.options.configroot
             sys.exit(1)
-        if not getattr(context, "rrdconfig", False):
+        self.configroot = getattr(context, "rrdconfig", None)
+        if not self.configroot:
             manage_addFolder(context, 'rrdconfig')
             transaction.savepoint()
             self.configroot = context._getOb('rrdconfig')

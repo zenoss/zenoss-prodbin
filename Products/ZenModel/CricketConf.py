@@ -208,7 +208,28 @@ class CricketConf(Monitor, StatusColor):
                 dev.getLastChange() > dev.getLastCricketGenerate())):
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
-           
+       
+
+    security.declareProtected('View','cricketDataSources')
+    def cricketDataSources(self):
+        """Return a string that has all the definitions for the cricket dses.
+        """
+        dses = []
+        oidtmpl = "OID %s %s"
+        dstmpl = """datasource %s
+        rrd-ds-type = %s
+        ds-source = snmp://%%snmp%%/%s%s
+        """
+        rrdconfig = self.getDmdRoot("Devices").rrdconfig
+        for ds in rrdconfig.objectValues(spec="RRDDataSource"):
+            if ds.oid.endswith("0"):
+                inst = ''
+            else:
+                inst = ".%inst%"
+            dses.append(oidtmpl % (ds.getName(), ds.oid))
+            dses.append(dstmpl %(ds.getName(), ds.rrdtype, ds.getName(), inst))
+        return "\n".join(dses)     
+
 
     security.declareProtected('Manage DMD', 'manage_editCricketConf')
     def manage_editCricketConf(self, 

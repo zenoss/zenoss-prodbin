@@ -40,11 +40,16 @@ class RRDDataSource(RRDToolItem, PropertyManager):
 
     meta_type = 'RRDDataSource'
   
+    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
     linetypes = ('', 'AREA', 'LINE')
     
     manage_options = PropertyManager.manage_options + \
                      RRDToolItem.manage_options
     _properties = (
+                 {'id':'oid', 'type':'string', 'mode':'w'},
+                 {'id':'rrdtype', 'type':'selection',
+                    'select_variable' : 'rrdtypes', 'mode':'w'},
+                 {'id':'rrdmax', 'type':'string', 'mode':'w'},
                  {'id':'rpn', 'type':'string', 'mode':'w'},
                  {'id':'limit', 'type':'long', 'mode':'w'},
                  {'id':'linetype', 'type':'selection', 
@@ -54,14 +59,16 @@ class RRDDataSource(RRDToolItem, PropertyManager):
                 )
 
 
-    def __init__(self, id, color='', linetype='', 
-                rpn='', limit=-1, format="%0.2lf%s"):
+    def __init__(self, id):
         self.id = utils.prefixid(self.meta_type, id)
-        self.color = color
-        self.linetype = linetype
-        self.rpn = rpn
-        self.limit = limit
-        self.format = format
+        self.oid = ''
+        self.rrdtype = 'COUNTER'
+        self.rrdmax = -1
+        self.rpn = None
+        self.color = None
+        self.linetype = 'LINE'
+        self.limit = -1
+        self.format = '%0.2lf%s'
 
 
     def textload(self, args):
@@ -160,6 +167,3 @@ class RRDDataSource(RRDToolItem, PropertyManager):
         if not hasattr(self, '_v_index'):
             self._v_index = -1
         return self._v_index
-
-    def getName(self):
-        return utils.rootid(self.meta_type + '-', self.id)
