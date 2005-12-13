@@ -219,7 +219,7 @@ class RRDView(RRDToolItem, PropertyManager):
                 if dsname in self._dsnames:
                     threshs.append(thresh)
                     break
-        if threshs: self._v_gopts.append("COMMENT:Data Thresholds:\j")
+        if threshs: self._v_gopts.append("COMMENT:Data Thresholds\j")
         for thresh in threshs:
             if thresh.meta_type == 'RRDThreshold':
                 minvalue = thresh.getGraphMinval(context)

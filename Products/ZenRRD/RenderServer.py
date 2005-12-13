@@ -14,15 +14,13 @@ __version__ = "$Revision: 1.14 $"[11:-2]
 
 import os
 import time
+import logging
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
 from OFS.Image import manage_addFile
 
-from zLOG import LOG, INFO, DEBUG
-
-#from pyrrdtool import rrd_graph, rrd_test_error, rrd_get_error
 import rrdtool
 
 from Products.ZenUtils.PObjectCache import PObjectCache
@@ -31,6 +29,9 @@ from Products.ZenUtils.PObjectCache import CacheObj
 from RRDToolItem import RRDToolItem
 
 import utils
+
+log = logging.getLogger("RenderServer")
+
 
 def manage_addRenderServer(context, id, REQUEST = None):
     """make a RenderServer"""
@@ -77,11 +78,11 @@ class RenderServer(RRDToolItem):
             filename = "%s/graph-%s" % (self.tmpdir,id)
             gopts.insert(0, filename)
             try:
-                rrdtool.graph(gopts)
-            except _rrdtool.error, e:    
-                log.warn(e)
+                rrdtool.graph(*gopts)
+            except:    
+                log.exception("failed generating graph")
                 log.warn(" ".join(gopts))
-                raise RRDToolError(e)
+                raise
             return self._loadfile(filename)
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)
@@ -98,11 +99,11 @@ class RenderServer(RRDToolItem):
         gopts.insert(0, '--start=%d' % start)
         gopts.insert(0, '/dev/null') #no graph generated
         try:
-            values = rrdtool.graph(gopts)
-        except _rrdtool.error, e:    
-            log.warn(e)
+            values = rrdtool.graph(*gopts)
+        except:
+            log.exception("failed generating summary")
             log.warn(" ".join(gopts))
-            raise RRDToolError(e)
+            raise
         return values
         
     
