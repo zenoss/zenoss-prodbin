@@ -13,7 +13,8 @@
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
         objects python:ztm.sortObjects(objects,request);
-        batch python:ztm.getBatchForm(objects,request);">
+        batch python:ztm.getBatchForm(objects,request);"
+        tal:on-error="structure here/eventsError">
     <tr tal:repeat="event batch" tal:attributes="class event/getCssClass">
     <tal:block tal:define="evclick 
         string:javascript:eventWindow('${event/zem}','${event/evid}')">

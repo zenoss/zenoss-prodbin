@@ -1,3 +1,4 @@
+from _mysql_exceptions import MySQLError
 
 class ManagedEntity(object):
 
@@ -34,15 +35,17 @@ class ManagedEntity(object):
     def getStatus(self, statusclass=None, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        return self.getEventManager().getStatusME(self, 
+        try:
+            return self.getEventManager().getStatusME(self, 
                                         statusclass=statusclass, **kwargs)
+        except MySQLError: 
+            return -1
 
 
     def getStatusString(self, statclass, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        return self.convertStatus(
-                self.getEventManager().getStatusME(self, statclass, **kwargs))
+        return self.convertStatus(self.getStatus(statclass, **kwargs))
                                                         
     
     def getEventSummary(self, acked=None):

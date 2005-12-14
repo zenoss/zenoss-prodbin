@@ -21,8 +21,9 @@
         resultFields python:('device','summary','firstTime','lastTime','count');
         evcontrol python:0;
         evcolspan python:len(resultFields);
-        batch python:zem.getEventList(severity=3,rows=5);
-        ">
+        batch python:zem.getEventList(severity=3,rows=5);"
+        tal:on-error="structure here/eventsError"
+        >
 		<tr>
 		  <th class="tabletitle" tal:attributes="colspan evcolspan">Events</th>
 		</tr>
@@ -50,7 +51,6 @@
         </tr>
         </tal:block>
     </table>
-    
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 	<table class="zentable" cellpadding="3" cellspacing="1">
@@ -89,15 +89,15 @@
 			<td class="tablevalues" align="center" width="10%" 
 				tal:content="system/countDevices"/>
 			<td align="center" width="10%"  
-				tal:define="pstatus python:system.getStatus('/Status/Ping')"
-				tal:attributes="class python:system.getStatusCssClass(pstatus)"
-				tal:content="pstatus">0
-			</td>
+                tal:define="pstatus python:system.getStatus('/Status/Ping')"
+                tal:attributes="class python:system.getStatusCssClass(pstatus)"
+                tal:content="python:here.convertStatus(pstatus)">0
+            </td>
 			<td align="center" width="10%" 
-				tal:define="sstatus python:system.getStatus('/Status/Snmp')"
-				tal:attributes="class python:system.getStatusCssClass(sstatus)"
-				tal:content="sstatus">0
-			</td>
+                tal:define="sstatus python:system.getStatus('/Status/Snmp')"
+                tal:attributes="class python:system.getStatusCssClass(sstatus)"
+                tal:content="python:here.convertStatus(sstatus)">0
+            </td>
 		</tr>
 	</table>
     
@@ -140,12 +140,12 @@
 			<td align="center" width="10%"
 				tal:define="pstatus python:dev.getStatus('/Status/Ping')"
 				tal:attributes="class python:dev.getStatusCssClass(pstatus)"
-				tal:content="pstatus">0
+				tal:content="python:here.convertStatus(pstatus)">0
 			</td>
 			<td align="center" width="10%"
 				tal:define="sstatus python:dev.getStatus('/Status/Snmp')"
 				tal:attributes="class python:dev.getStatusCssClass(sstatus)"
-				tal:content="sstatus">0
+				tal:content="python:here.convertStatus(sstatus)">0
 			</td>
 		</tr>
 	</table>

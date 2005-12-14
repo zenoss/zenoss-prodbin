@@ -11,7 +11,8 @@
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
         objects python:ztm.sortObjects(objects,request);
-        batch python:ztm.getBatchForm(objects,request);">
+        batch python:ztm.getBatchForm(objects,request);"
+        tal:on-error="structure here/eventsError">
     <tal:block metal:define-macro="eventRow">
     <tr tal:repeat="event batch" 
         tal:attributes="class event/getCssClass">

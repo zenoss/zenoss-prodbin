@@ -19,7 +19,6 @@
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
     ">
-    <!--tal:on-error="structure here/eventsError"-->
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="eventTable">
     <tal:block metal:define-macro="header">
