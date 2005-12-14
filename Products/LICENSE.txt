@@ -1,0 +1,5 @@
+This software is provided on an as-is basis to USinternetworking, Inc. by Zentinel, Inc. for the exclusive purpose of evaluation and non-production use.
+ 
+The software can be distributed as desired within the company and among its employees; however, it cannot be distributed  to third parties outside the company.  The source code may be viewed and modified as desired.  The same terms apply to any derivative works of the software.
+ 
+This license shall terminate on January 31, 2006.

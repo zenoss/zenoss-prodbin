@@ -1,0 +1,16 @@
+All files in the directories:
+
+DataCollector   
+NcoProduct      
+PingMonitor     
+SiteScopeParser 
+SnmpCollector   
+ZenEvents       
+ZenModel        
+ZenRelations
+ZenRRD          
+ZenUtils
+ZenWidgets
+
+Are Copyright (c) 2002 Zentinel, Inc. All rights reserved.
+Unless otherwise stated.
