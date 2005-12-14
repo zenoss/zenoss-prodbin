@@ -50,8 +50,8 @@ class RRDDataSource(RRDToolItem, PropertyManager):
                  {'id':'rrdtype', 'type':'selection',
                     'select_variable' : 'rrdtypes', 'mode':'w'},
                  {'id':'isrow', 'type':'boolean', 'mode':'w'},
-                 {'id':'rrdmax', 'type':'string', 'mode':'w'},
                  {'id':'rpn', 'type':'string', 'mode':'w'},
+                 {'id':'rrdmax', 'type':'string', 'mode':'w'},
                  {'id':'limit', 'type':'long', 'mode':'w'},
                  {'id':'linetype', 'type':'selection', 
                     'select_variable' : 'linetypes', 'mode':'w'},
@@ -65,8 +65,8 @@ class RRDDataSource(RRDToolItem, PropertyManager):
         self.oid = ''
         self.rrdtype = 'COUNTER'
         self.isrow = True
-        self.rrdmax = -1
         self.rpn = None
+        self.rrdmax = -1
         self.color = None
         self.linetype = 'LINE'
         self.limit = -1
