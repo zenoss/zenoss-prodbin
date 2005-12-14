@@ -46,7 +46,7 @@ def loadargs(obj, args):
                     value = eval(arg)
                 else:
                     value = arg
-                if value: setattr(obj,att,value)
+                if value is not None: setattr(obj,att,value)
         except:
             print "att = %s value = %s" % (att, arg)
             raise

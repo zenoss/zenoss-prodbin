@@ -67,7 +67,7 @@ class RRDDataSource(RRDToolItem, PropertyManager):
         self.isrow = True
         self.rpn = None
         self.rrdmax = -1
-        self.color = None
+        self.color = ""
         self.linetype = 'LINE'
         self.limit = -1
         self.format = '%0.2lf%s'
