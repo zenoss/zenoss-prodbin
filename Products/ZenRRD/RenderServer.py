@@ -99,7 +99,7 @@ class RenderServer(RRDToolItem):
         gopts.insert(0, '--start=%d' % start)
         gopts.insert(0, '/dev/null') #no graph generated
         try:
-            values = rrdtool.graph(*gopts)
+            values = rrdtool.graph(*gopts)[2]
         except:
             log.exception("failed generating summary")
             log.warn(" ".join(gopts))
