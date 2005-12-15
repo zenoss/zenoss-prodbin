@@ -22,14 +22,12 @@ ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations PingMonit
 
 SYS=`uname`
 PS="ps -eo pid"
-EXREG="-r"
 
 if [ $SYS = "Darwin" ]; then
     PS="ps -axo pid"
-    EXREG="-E"
 fi
 
-ARGS=`echo "$*" | sed ${EXREG} 's/(run|start)//'`
+ARGS=`echo "$*" | sed 's/run//' | sed 's/start//'`
 
 
 start() {
