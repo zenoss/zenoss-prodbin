@@ -70,6 +70,7 @@ class CricketConf(Monitor, StatusColor):
         {'id':'cricketurl','type':'string','mode':'w'},
         {'id':'cricketuser','type':'string','mode':'w'},
         {'id':'cricketpass','type':'string','mode':'w'},
+        {'id':'prodStateThreshold','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Device","cricket")),
@@ -115,6 +116,7 @@ class CricketConf(Monitor, StatusColor):
         self.cricketurl = ''
         self.cricketuser = ''
         self.cricketpass = ''
+        self.prodStateThreshold = 1000
 
 
     security.declareProtected('View','getDevices')
@@ -204,7 +206,9 @@ class CricketConf(Monitor, StatusColor):
         """Return a list of urls that point to our managed devices"""
         devlist = []
         for dev in self.devices():
-            if (force or (not dev.pastSnmpMaxFailures() and 
+            if (not dev.pastSnmpMaxFailures() 
+                and dev.productionState >= self.prodStateThreshold 
+                and (force or
                 dev.getLastChange() > dev.getLastCricketGenerate())):
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
@@ -234,7 +238,8 @@ class CricketConf(Monitor, StatusColor):
     security.declareProtected('Manage DMD', 'manage_editCricketConf')
     def manage_editCricketConf(self, 
                 cricketroot = '', cricketurl = '',
-                cricketuser = '', cricketpass = '', REQUEST=None):
+                cricketuser = '', cricketpass = '', 
+                prodStateThreshold=1000, REQUEST=None):
         """
         Edit a CricketConfig from a web page.
         """
@@ -242,6 +247,7 @@ class CricketConf(Monitor, StatusColor):
         self.cricketurl = cricketurl
         self.cricketuser = cricketuser
         self.cricketpass = cricketpass
+        self.prodStateThreshold = prodStateThreshold
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
             return self.callZenScreen(REQUEST)

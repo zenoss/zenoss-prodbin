@@ -134,7 +134,7 @@ class RRDThreshold(RRDToolItem, PropertyManager):
         eval the function in valuefunc context is the object
         against which the threshold will be evaluated in cricket"""
         if valuefunc:
-            value = eval(valuefunc, globals(), locals())
+            value = eval(valuefunc)
         return value 
 
 

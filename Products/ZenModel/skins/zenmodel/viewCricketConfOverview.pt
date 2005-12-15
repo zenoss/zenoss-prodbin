@@ -20,6 +20,13 @@
       <td class="tablevalues" align='left'
         tal:content="here/cricketuser" />
     </tr>
+    <tr>
+      <td class=tableheader align=left>Production State Threshold</td>
+      <td class=tablevalues colspan="3"
+        tal:content="python:here.convertProdState(here.prodStateThreshold)">
+        device state
+      </td>
+    </tr>
 </table>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
