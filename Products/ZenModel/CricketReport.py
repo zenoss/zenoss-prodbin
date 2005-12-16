@@ -47,7 +47,7 @@ class CricketReport(SimpleItem, ZenModelBase):
         for device in devices:
             crconf = device.cricket()
             if not crconf: continue
-            crpath = device.getCricketTargetPath()
+            crpath = device.cricketTargetPath()
             if not crpath: continue
             CricketDatas.append(CricketData(device.getId(), 
                             device.getModelName(),

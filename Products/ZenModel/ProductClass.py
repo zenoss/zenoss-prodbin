@@ -13,67 +13,86 @@ $Id: ProductClass.py,v 1.10 2004/03/26 23:58:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.10 $"[11:-2]
 
+import re
+
 from Globals import InitializeClass
-from OFS.Folder import Folder
-from Globals import DTMLFile
 
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from ZenModelRM import ZenModelRM
 
-from Classification import Classification
+from Products.ZenRelations.RelSchema import *
 
-def manage_addProductClass(context, id, title = None, REQUEST = None):
-    """make a device class"""
-    dc = ProductClass(id, title)
-    context._setObject(id, dc)
+class ProductClass(ZenModelRM):
 
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
-addProductClass = DTMLFile('dtml/addProductClass',globals())
-
-class ProductClass(Classification, Folder):
     meta_type = "ProductClass"
-    manage_main = Folder.manage_main
-    manage_options = Folder.manage_options
+
+    #itclass = ""
+    name = ""
+
+    default_catalog = "productSearch"
+
+    _properties = (
+        #{'id':'itclass', 'type':'string', 'mode':'w'},
+        {'id':'name', 'type':'string', 'mode':'w'},
+        {'id':'partNumber', 'type':'string', 'mode':'w'},
+        {'id':'description', 'type':'string', 'mode':'w'},
+    )
+
+    _relations = (
+        ("instances", ToMany(ToOne, "MEProduct", "productClass")),
+        ("manufacturer", ToOne(ToManyCont,"Manufacturer","products")),
+    )
 
 
-    def getModelProduct(self, manufacturer, model):
-        """get or create a hardware object and like it to its manufacturer"""
-        from Products.ZenModel.ProductClass import manage_addProductClass
-        from Products.ZenModel.Hardware import manage_addHardware
-        from Products.ZenModel.Company import manage_addCompany
-        
-        companyObj = self.getDmdRoot("Companies").getCompany(manufacturer)
-        hardwareOrg = self.getDmdRoot("Products").Hardware
-        if not hasattr(hardwareOrg, manufacturer):
-            manage_addProductClass(hardwareOrg, manufacturer)
-        manufObj = hardwareOrg._getOb(manufacturer)
-        if not hasattr(manufObj, model):
-            manage_addHardware(manufObj, model)
-        modelObj = manufObj._getOb(model)
-        if not companyObj.products.hasobject(modelObj):
-            companyObj.addRelation("products", modelObj)
-        return modelObj 
+    def __init__(self, id, title="", productKey="", 
+                partNumber="", description=""):
+        if not productKey: productKey = id
+        id = self.prepId.sub('_', id)
+        ZenModelRM.__init__(self, id, title)
+        self.productKey = productKey
+        self.partNumber = partNumber
+        self.description = description
+
+    
+    def manage_afterAdd(self, item, container):
+        """
+        Device only propagates afterAdd if it is the added object.
+        """
+        if item == self: 
+            self.index_object()
+            ZenModelRM.manage_afterAdd(self, item, container)
 
 
-    def getSoftwareProduct(self, manufacturer, name, version=""):
-        """get or create a software object and like it to its manufacturer"""
-        from Products.ZenModel.ProductClass import manage_addProductClass
-        from Products.ZenModel.Software import manage_addSoftware
-        from Products.ZenModel.Company import manage_addCompany
+    def manage_afterClone(self, item):
+        """Not really sure when this is called."""
+        ZenModelRM.manage_afterClone(self, item)
+        self.index_object()
 
-        companyObj = self.getDmdRoot("Companies").getCompany(manufacturer)
-        softwareOrg = self.getDmdRoot("Products").Software
-        if not hasattr(softwareOrg, manufacturer):
-            manage_addProductClass(softwareOrg, manufacturer)
-        manufObj = softwareOrg._getOb(manufacturer)
-        if not hasattr(manufObj, name):
-            manage_addHardware(manufObj, name)
-        softwareObj = manufObj._getOb(name)
-        if version: softwareObj.version = version
-        if not companyObj.products.hasobject(softwareObj):
-            companyObj.addRelation("products", softwareObj)
-        return softwareObj
-        
 
+    def manage_beforeDelete(self, item, container):
+        """
+        Device only propagates beforeDelete if we are being deleted or copied.
+        Moving and renaming don't propagate.
+        """
+        if item == self or getattr(item, "_operation", -1) < 1: 
+            ZenModelRM.manage_beforeDelete(self, item, container)
+            self.unindex_object()
+
+
+    def index_object(self):
+        """A common method to allow Findables to index themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.catalog_object(self, self.productKey)
+            
+                                                
+    def unindex_object(self):
+        """A common method to allow Findables to unindex themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.uncatalog_object(self.productKey)
+
+
+    
 InitializeClass(ProductClass)

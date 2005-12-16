@@ -49,10 +49,9 @@ class IpService(Service, DeviceResultInt):
         {'id':'ipaddress', 'type':'string', 'mode':''},
         {'id':'discoveryAgent', 'type':'string', 'mode':''},
         ) 
-    _relations = (
-        ("server", ToOne(ToManyCont,"Device","ipservices")),
+    _relations = Service._relations + (
+        ("device", ToOne(ToManyCont,"Device","ipservices")),
         ("ipserviceclass", ToOne(ToMany,"IpServiceClass","ipservices")),
-        ("clients", ToMany(ToMany,"Device","clientofservices")),
         )
 
 

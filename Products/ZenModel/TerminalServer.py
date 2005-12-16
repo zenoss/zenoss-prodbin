@@ -22,7 +22,7 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Router import Router
+from Device import Device
 from IpAddress import findIpAddress
 
 def manage_addTerminalServer(context, id, title = None, REQUEST = None):
@@ -38,12 +38,12 @@ def manage_addTerminalServer(context, id, title = None, REQUEST = None):
 addTerminalServer = DTMLFile('dtml/addTerminalServer',globals())
 
 
-class TerminalServer(Router):
+class TerminalServer(Device):
     """TerminalServer object"""
 
     portal_type = meta_type = 'TerminalServer'
 
-    _relations = Router._relations + (
+    _relations = Device._relations + (
         ("devices", ToMany(ToOne, "Device", "termserver")),
         )
 
@@ -51,7 +51,7 @@ class TerminalServer(Router):
         { 
             'id'             : 'TerminalServer',
             'meta_type'      : 'TerminalServer',
-            'description'    : """Base class for all routers""",
+            'description'    : """Base class for all TerminalServers""",
             'icon'           : 'TerminalServer_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addTerminalServer',

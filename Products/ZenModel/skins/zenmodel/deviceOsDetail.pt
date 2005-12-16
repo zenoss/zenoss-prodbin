@@ -1,0 +1,272 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="interfaceList"
+    tal:define="tableName string:interfacelist;
+    objects here/interfaces/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="10">
+        Interfaces
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th class="tableheader" align="center">
+        O
+        </th>
+        <th class="tableheader" align="center">
+        A
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getIpSortKey','IP Address','cmp')">Name
+        </th>
+        <th class="tableheader" align="left">
+          Network
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'macaddress','MAC')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'description','Descr')">Name
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No Interfaces
+        </th>
+    </tr>
+    <tr tal:repeat="intf batch">
+      <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.operStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.adminStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues">
+      <a class=tablevalues tal:content="intf/name" 
+        tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
+      </td>
+      <td class="tablevalues">
+          <span tal:repeat="ip intf/getIpAddressObjs" omit-tag="">
+            <a class=tablevalues 
+                tal:condition="python:hasattr(ip,'getIpAddress')"
+                tal:content="ip/getIpAddress"
+                tal:attributes="href ip/getPrimaryUrlPath">
+                10.2.1.1/24</a>
+            <span tal:condition="python:not hasattr(ip,'getIpAddress')"
+                tal:replace="ip">1.1.1.1/24</span>
+            <br/>
+          </span>
+      </td>
+      <td class="tablevalues"
+        tal:content="structure python:intf.getNetworkLinks()">
+        10.2.1.0
+      </td>
+      <td class="tablevalues" tal:content="intf/macaddress">
+         00:11:AA:BB:CC:DD
+      </td>
+      <td class="tablevalues" tal:content="intf/description">
+        A really nice interface
+      </td>
+    </tr>
+    <tr>
+        <td colspan=7 class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="ipserviceList"
+    tal:define="tableName string:ipservicelist;
+    objects here/ipservices/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='getPort');"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan="10">
+        IP Services
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getKeyword','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getProtocol','Proto')">Proto
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getPort','Port')">Port
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDescription','Description')">
+                            Description
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No IP Services 
+        </th>
+    </tr>
+    <tr tal:repeat="srv batch">
+        <td class="tablevalues">
+            <a class="tablevalues" 
+                href="_" tal:content="srv/getKeyword"
+                tal:attributes="href srv/ipServiceClassUrl">keyword</a>
+        </td>
+        <td class="tablevalues" tal:content="srv/getProtocol">protocol
+        </td>
+        <td class="tablevalues" tal:content="srv/getPort">port
+        </td>
+        <td class="tablevalues" tal:content="srv/getDescription">descr
+        </td>
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="fileSysList"
+    tal:define="tableName string:fileSyslist;
+    objects here/filesystems/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='mount');"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan="12">
+        File Systems
+      </th>
+    </tr>
+    <tr tal:condition="objects">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'mount','Mount')">Mount
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'totalBytes','Total bytes')">Total Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'usedBytes','Used bytes')">Used Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'freeBytes','Free bytes')">Free Bytes
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'capacity','% Util')">% Util
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'storageDevice','Storage Device')">Device
+        </th>
+    </tr>
+    <tr tal:condition="not:objects">
+        <th class="tableheader" align="left">
+            No File Systems
+        </th>
+    </tr>
+    <tr tal:repeat="fsys batch">
+      <td class="tablevalues">
+          <a class=tablevalues tal:content="fsys/mount" 
+            tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/totalBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/usedBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/availBytes">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/capacity">vol
+      </td>
+      <td class="tablevalues"
+        tal:content="fsys/storageDevice">vol
+      </td>
+    </tr>
+    <tr>
+        <td colspan=6 class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="routeTableList"
+    tal:define="tableName string:routeTablelist;
+    objects here/routes/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" align="left" colspan="12">
+        Routes
+      </th>
+    </tr>
+    <tr tal:condition="batch">
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Destination')">
+            Destination
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getNextHopIp','NextHop')">
+            Next
+        </th>
+        <th class="tableheader" align="left">
+            Interface
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'routeproto','Protocol')">
+            Protocol
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'routetype','Type')">
+            Type
+        </th>
+    </tr>
+    <tr tal:condition="not:batch">
+        <th class="tableheader" align="left">
+            No Routes
+        </th>
+    </tr>
+    <tr tal:repeat="route batch">
+      <td class="tablevalues"
+        tal:content="python: route.id+'/'+str(route.routemask)">
+        description
+      </td>
+      <td class="tablevalues">
+      <span tal:replace="structure route/getNextHopIpLink">nexthopip</span>
+      (<span tal:replace="structure route/getNextHopDeviceLink">device</span>)
+      </td>
+      <td class="tablevalues"
+        tal:content="route/interface/getRelatedId">
+        interface
+      </td>
+      <td class="tablevalues"
+        tal:content="route/routeproto">routeproto
+      </td>
+      <td class="tablevalues"
+        tal:content="route/routetype">routetype
+      </td>
+    </tr>
+    <tr>
+        <td colspan=5 class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>
+

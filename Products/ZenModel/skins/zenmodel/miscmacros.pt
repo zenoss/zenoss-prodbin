@@ -64,7 +64,7 @@ var server = null;
 
 try{
     var xmlrpc = importModule("xmlrpc");
-    var server = new xmlrpc.ServerProxy('/zport/dmd/Companies', 
+    var server = new xmlrpc.ServerProxy('/zport/dmd/Manufacturers', 
                     ['getProductNames']);
 }catch(e){
     reportException(e);

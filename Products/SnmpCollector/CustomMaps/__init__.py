@@ -7,6 +7,7 @@
 from InterfaceMap import InterfaceMap
 from SysedgeFileSystemMap import SysedgeFileSystemMap
 from HRFileSystemMap import HRFileSystemMap
+from HRSWInstalledMap import HRSWInstalledMap
 from SysedgeMap import SysedgeMap
 from DeviceMap import DeviceMap
 from RouteMap import RouteMap
@@ -19,6 +20,7 @@ def initCustomMaps(collector):
     collector.addCustomMap(InterfaceMap)
     collector.addCustomMap(SysedgeFileSystemMap)
     collector.addCustomMap(HRFileSystemMap)
+    collector.addCustomMap(HRSWInstalledMap)
     collector.addCustomMap(SysedgeMap)
     collector.addCustomMap(RouteMap)
     collector.addCustomMap(IpServiceMap)

@@ -125,7 +125,7 @@
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Services">Services</a></li>
         <li><a href="/zport/dmd/Networks">Networks</a></li>
-        <li><a href="/zport/dmd/Reports">Reports</a></li>
+        <li><a href="/zport/dmd/Manufacturers">Manufacturers</a></li>
     </ul>
 
     <p>Browse By</p>
@@ -133,9 +133,7 @@
         <li><a href="/zport/dmd/Systems">Systems</a></li>
         <li><a href="/zport/dmd/Groups">Groups</a></li>
         <li><a href="/zport/dmd/Locations">Locations</a></li>
-        <li><a href="/zport/dmd/Companies">Vendors</a></li>
-        <li><a href="/zport/dmd/Products/Hardware">Hardware</a></li>
-        <li><a href="/zport/dmd/Products/Software">Software</a></li>
+        <li><a href="/zport/dmd/Reports">Reports</a></li>
     </ul>
 
 

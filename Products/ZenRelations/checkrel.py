@@ -7,7 +7,7 @@ root.setLevel(logging.CRITICAL)
 import Globals
 
 from utils import importClass, importClasses
-
+from Products.ZenRelations.Exceptions import ZenSchemaError
 
 def checkRelationshipSchema(cls, baseModule):
     """
@@ -20,14 +20,14 @@ def checkRelationshipSchema(cls, baseModule):
         except AttributeError, e:
             logging.critical("RemoteClass '%s' from '%s.%s' not found",
                         rel.remoteClass, cls.__name__, relname)
+            continue
                         
         try:
             rschema = remoteClass.lookupSchema(rel.remoteName)
         except ZenSchemaError, e:
             logging.critical("Inverse def '%s' for '%s.%s' not found on '%s'",
                 rel.remoteName, cls.__name__, relname,rel.remoteClass)
-                
-            return
+            continue
         try:
             localClass = importClass(rschema.remoteClass, baseModule)
         except AttributeError, e:
@@ -46,7 +46,6 @@ def checkRelationshipSchema(cls, baseModule):
                             rschema.__class__.__name__, rel.remoteType.__name__)
 
         
-
 baseModule = None
 if len(sys.argv) > 1:
     baseModule = sys.argv[1]
@@ -55,6 +54,6 @@ classList = importClasses(basemodule=baseModule,
             skipnames=("ZentinelPortal", "ZDeviceLoader"))
 
 for classdef in classList:
-    if hasattr(classdef, "checkRelationshipSchema"):
+    if hasattr(classdef, "lookupSchema"):
         logging.info("checking class %s...", classdef.__name__)
         checkRelationshipSchema(classdef, baseModule)

@@ -1,0 +1,44 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="softwareList"
+    tal:define="tableName string:softwareList;
+    objects here/software/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <tr>
+      <th class="tabletitle" align="left" colspan="5">
+        Installed Software
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'manufacturerName','Manufacturer')">Manufacturer
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'name','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'version','Version')">Version
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'build','Build')">Build
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'installDate','Install Date')">InstallDate
+        </th>
+    </tr>
+    <tr tal:repeat="soft batch">
+      <td class="tablevalues" tal:content="structure soft/getManufacturerLink"/>
+      <td class="tablevalues" tal:content="structure soft/getProductLink"/>
+      <td class="tablevalues" tal:content="soft/version"/>
+      <td class="tablevalues" tal:content="soft/build"/>
+      <td class="tablevalues" tal:content="soft/installDateString"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

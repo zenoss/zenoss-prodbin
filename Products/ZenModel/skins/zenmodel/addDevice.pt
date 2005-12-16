@@ -113,7 +113,7 @@
             <td class="tablevalues" align="left" >
                 <select class="tablevalues" name="manufacturer"
                 tal:define="
-                comps python:here.getDmdRoot('Companies').getCompanyNames();
+                comps python:here.getDmdRoot('Manufacturers').getManufacturerNames();
                 curman request/manufacturer | device/getManufacturerName |  nothing"
                 tal:attributes="onchange string:getProducts(this)"
                 >
@@ -131,25 +131,25 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">Model</td>
+            <td class="tableheader" align="left">Product</td>
             <td class="tablevalues" align="left" >
-                <select class="tablevalues" id="model" name="model"
+                <select class="tablevalues" id="model" name="productName"
                 tal:define="
                 cname request/manufacturer | device/getManufacturerName |  string:;
-                prods python:here.getDmdRoot('Companies').getProductNames(cname);
-                curprod device/getModelName | request/model | nothing"
+                prods python:here.getDmdRoot('Manufacturers').getProductNames(cname);
+                curprod device/getProductName | request/productName | nothing"
                 >
                     <option tal:repeat="prod prods" 
                         tal:attributes="value prod;selected python:prod==curprod"
                         tal:content="prod">PowerBook</option>
                 </select>
             </td>
-            <td class="tableheader" align="left">New Model</td>
+            <td class="tableheader" align="left">New Product</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
-                    size="25" name="newModelName" />
+                    size="25" name="newProductName" />
                 <input class="tableheader" type="submit" 
-                    name="setModel:method" value="Add" />
+                    name="setProduct:method" value="Add" />
             </td>
         </tr>
         <tr>

@@ -17,12 +17,10 @@ import time
 import logging
 
 # base classes for device
-from ZenModelRM import ZenModelRM
-from DeviceResultInt import DeviceResultInt
+from Hardware import Hardware
 from PingStatusInt import PingStatusInt
-from ManagedEntity import ManagedEntity
+from DeviceResultInt import DeviceResultInt
 from CricketDevice import CricketDevice
-from CricketView import CricketView
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -47,7 +45,7 @@ def manage_createDevice(context, deviceName, devicePath="",
             tag="", serialNumber="",
             snmpCommunity="", snmpPort=None,
             rackSlot=0, productionState=1000, comments="",
-            manufacturer="", model="", 
+            manufacturer="", productName="", 
             locationPath="", rack="",
             groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
@@ -68,7 +66,7 @@ def manage_createDevice(context, deviceName, devicePath="",
             devicePath = cEntry.getDeviceClassPath
             manufacturer = manufacturer and manufacturer \
                            or cEntry.getManufacturer
-            model = model and model or cEntry.getProduct
+            productName = productName and productName or cEntry.getProduct
         else:
             raise ZentinelException("Unable to classify device %s", deviceName)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
@@ -77,7 +75,7 @@ def manage_createDevice(context, deviceName, devicePath="",
                 tag, serialNumber,
                 snmpCommunity, snmpPort,
                 rackSlot, productionState, comments,
-                manufacturer, model,
+                manufacturer, productName,
                 locationPath, rack, 
                 groupPaths, systemPaths,
                 statusMonitors, cricketMonitor)
@@ -95,8 +93,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt, 
-             CricketView, CricketDevice):
+class Device(Hardware, PingStatusInt, DeviceResultInt, CricketDevice):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.
@@ -107,6 +104,23 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
     default_catalog = "deviceSearch" #device ZCatalog
 
     relationshipManagerPathRestriction = '/Devices'
+
+    productionState = 1000
+    tag = ""
+    serialNumber = ""
+    snmpAgent = ""
+    snmpDescr = ""
+    snmpOid = ""
+    snmpContact = ""
+    snmpSysName = ""
+    snmpLocation = ""
+    osVersion = ""
+    sshVersion = ""
+    rackSlot = 0
+    comments = ""
+    cpuType = ""
+    totalMemory = 0.0
+    sysedgeLicenseMode = ""
 
     _properties = (
         {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
@@ -122,27 +136,34 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         {'id':'snmpLocation', 'type':'string', 'mode':''},
         {'id':'snmpLastCollection', 'type':'date', 'mode':''},
         {'id':'osVersion', 'type':'string', 'mode':'w'},
+        {'id':'sshVersion', 'type':'int', 'mode':'w'},
+        {'id':'snmpAgent', 'type':'string', 'mode':''},
         {'id':'rackSlot', 'type':'int', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
         {'id':'cpuType', 'type':'string', 'mode':'w'},
         {'id':'totalMemory', 'type':'float', 'mode':'w'},
+        {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
         ) 
 
-    _relations = (
-        ("arptable", ToManyCont(ToOne, "ArpEntry", "device")),
-        ("clientofservices", ToMany(ToMany, "IpService", "clients")),
+
+    _relations = Hardware._relations + (
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
-        ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
+        ("cpus", ToManyCont(ToOne, "CPU", "device")),
+        ("cards", ToManyCont(ToOne, "ExpansionCard", "device")),
+        ("harddisks", ToManyCont(ToOne, "HardDisk", "device")),
         ("interfaces", ToManyCont(ToOne, "IpInterface", "device")),
-        ("ipservices", ToManyCont(ToOne, "IpService", "server")),
-        ("location", ToOne(ToMany, "Location", "devices")),
-        ("model", ToOne(ToMany, "Hardware", "devices")),
-        ("software", ToMany(ToMany, "Software", "copies")),
+        ("routes", ToManyCont(ToOne, "IpRouteEntry", "device")),
+        ("ipservices", ToManyCont(ToOne, "IpService", "device")),
+        ("processes", ToManyCont(ToOne, "OSProcess", "device")),
+        ("filesystems", ToManyCont(ToOne, "FileSystem", "device")),
+        ("software", ToManyCont(ToOne, "Software", "device")),
+        ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
         ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
         ("cricket", ToOne(ToMany, "CricketConf", "devices")),
-        ("routes", ToManyCont(ToOne, "IpRouteEntry", "device")),
+        ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
-        ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
+        ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
+        ("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -163,9 +184,21 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'detail'
-                , 'name'          : 'Detail'
-                , 'action'        : 'viewDeviceDetail'
+                { 'id'            : 'osdetail'
+                , 'name'          : 'OS Detail'
+                , 'action'        : 'deviceOsDetail'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'hwdetail'
+                , 'name'          : 'Hardware'
+                , 'action'        : 'deviceHardwareDetail'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'swdetail'
+                , 'name'          : 'Software'
+                , 'action'        : 'deviceSoftwareDetail'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -215,39 +248,17 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
     security = ClassSecurityInfo()
     
     def __init__(self, id):
-        ZenModelRM.__init__(self, id)
-        self.commandStatus = "Not Tested"
-        self._v_stamp = None
-        self.productionState = 1000
-        self.tag = ""
-        self.serialNumber = ""
-        self.snmpCommunity = ""
-        self.snmpAgent = ""
-        self.snmpDescr = ""
-        self.snmpOid = ""
+        Hardware.__init__(self, id)
+        #self.commandStatus = "Not Tested"
         self._snmpUpTime = ZenStatus(-1)
         self._lastPollSnmpUpTime = ZenStatus(0)
-        self.snmpContact = ""
-        self.snmpSysName = ""
-        self.snmpLocation = ""
-        self.osVersion = ""
-        self.sshVersion = ""
-        self.rackSlot = 0
-        self.comments = ""
-        self.snmpPort = 161
         self._snmpLastCollection = ZenDate('1968/1/8')
         self._lastChange = ZenDate('1968/1/8')
         self._lastCricketGenerate = ZenDate('1968/1/8')
-        self.cpuType = ""
-        self.totalMemory = 0.0
-        self._cricketTargetMap = {}
-        self._cricketTargetPath = ''
 
     
     def __getattr__(self, name):
-        if name == 'datacenter':
-            return self.getDataCenter()
-        elif name == 'snmpUpTime':
+        if name == 'snmpUpTime':
             return self._snmpUpTime.getStatus()
         elif name == 'lastPollSnmpUpTime':
             return self._lastPollSnmpUpTime.getStatus()
@@ -263,7 +274,7 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         if id == 'snmpLastCollection':
             self.setSnmpLastCollection(value)
         else:    
-            setattr(self,id,value)
+            Hardware._setPropValue(self, id, value)
 
 
     security.declareProtected('View', 'getLocationName')
@@ -272,34 +283,6 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         loc = self.location()
         if loc: return loc.getOrganizerName()
         return ""
-
-
-    security.declareProtected('View', 'getModelName')
-    def getModelName(self):
-        model = self.model()
-        if model: return model.getId()
-        return ''
-
-
-    security.declareProtected('View', 'getManufacturer')
-    def getManufacturer(self):
-        if self.model():
-            return self.model().manufacturer()
-  
-
-    security.declareProtected('View', 'getManufacturerName')
-    def getManufacturerName(self):
-        manuf = self.getManufacturer()
-        if manuf: 
-            return manuf.getId()
-        return ''
-
-
-    security.declareProtected('View', 'getManufacturerLink')
-    def getManufacturerLink(self):
-        if self.model():
-            return self.model().manufacturer.getPrimaryLink()
-        return None
 
 
     security.declareProtected('View', 'getSystemNames')
@@ -431,7 +414,7 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
                 tag="", serialNumber="",
                 snmpCommunity="public", snmpPort=161,
                 rackSlot=0, productionState=1000, comments="",
-                manufacturer="", model="", 
+                manufacturer="", productName="", 
                 locationPath="", rack="",
                 groupPaths=[], systemPaths=[],
                 statusMonitors=["localhost"], cricketMonitor="localhost",
@@ -445,10 +428,10 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         self.productionState = productionState
         self.comments = comments
 
-        if manufacturer and model:
-            logging.info("setting manufacturer to %s model to %s"
-                            % (manufacturer, model))
-            self.setModel(manufacturer, model)
+        if manufacturer and productName:
+            logging.info("setting manufacturer to %s productName to %s"
+                            % (manufacturer, productName))
+            self.setProduct(productName, manufacturer)
 
         if locationPath: 
             if rack:
@@ -502,24 +485,11 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
     security.declareProtected('Change Device', 'addManufacturer')
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Companies").getCompany(newManufacturerName)
+        self.getDmdRoot("Manufacturers").getManufacturer(newManufacturerName)
         if REQUEST:
             REQUEST['manufacturer'] = newManufacturerName
             REQUEST['message'] = ("Added Manufacturer %s at time:" 
                                     % newManufacturerName)
-            return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('Change Device', 'setModel')
-    def setModel(self, manufacturer, model, newModelName="", REQUEST=None):
-        """set the model of this device"""
-        if newModelName: model = newModelName
-        modelObj = self.getDmdRoot("Products").getModelProduct(
-                                        manufacturer, model)
-        self.addRelation("model", modelObj)
-        if REQUEST:
-            REQUEST['message'] = ("Set Manufacturer %s and Model %s at time:" 
-                                    % (manufacturer, model))
             return self.callZenScreen(REQUEST)
 
 
@@ -762,12 +732,12 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         """
         if item == self: 
             self.index_object()
-            ZenModelRM.manage_afterAdd(self, item, container)
+            Hardware.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
         """Not really sure when this is called."""
-        ZenModelRM.manage_afterClone(self, item)
+        Hardware.manage_afterClone(self, item)
         self.index_object()
 
 
@@ -777,7 +747,7 @@ class Device(ZenModelRM, ManagedEntity, PingStatusInt, DeviceResultInt,
         Moving and renaming don't propagate.
         """
         if item == self or getattr(item, "_operation", -1) < 1: 
-            ZenModelRM.manage_beforeDelete(self, item, container)
+            Hardware.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
 

@@ -4,11 +4,11 @@
 #
 #################################################################
 
-__doc__="""Company
+__doc__="""Manufacturer
 
-Company is a base class that represents a vendor of Products.
+Manufacturer is a base class that represents a vendor of Products.
 
-$Id: Company.py,v 1.11 2004/03/26 23:58:44 edahl Exp $"""
+$Id: Manufacturer.py,v 1.11 2004/03/26 23:58:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.11 $"[11:-2]
 
@@ -20,20 +20,28 @@ from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
-def manage_addCompany(context, id, REQUEST = None):
-    """make a Company"""
-    d = Company(id)
+def manage_addManufacturer(context, id, REQUEST = None):
+    """make a Manufacturer"""
+    d = Manufacturer(id)
     context._setObject(id, d)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
 
-addCompany = DTMLFile('dtml/addCompany',globals())
+addManufacturer = DTMLFile('dtml/addManufacturer',globals())
 
-class Company(ZenModelRM):
-    """Company object"""
-    portal_type = meta_type = 'Company'
+class Manufacturer(ZenModelRM):
+    """Manufacturer object"""
+    portal_type = meta_type = 'Manufacturer'
+
+    url = ''
+    supportNumber = ''
+    address1 = ''
+    address2 = ''
+    city = ''
+    state = ''
+    zip = ''
 
     _properties = (
         {'id':'url', 'type':'string', 'mode':'w'},
@@ -44,19 +52,20 @@ class Company(ZenModelRM):
         {'id':'state', 'type':'string', 'mode':'w'},
         {'id':'zip', 'type':'string', 'mode':'w'},
         )
+
     _relations = (
-        ("products", ToMany(ToOne,"Product","manufacturer")),
+        ("products", ToManyCont(ToOne,"ProductClass","manufacturer")),
     )
  
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'Company',
-            'meta_type'      : 'Company',
+            'id'             : 'Manufacturer',
+            'meta_type'      : 'Manufacturer',
             'description'    : """Arbitrary device grouping class""",
-            'icon'           : 'Company_icon.gif',
+            'icon'           : 'Manufacturer_icon.gif',
             'product'        : 'ZenModel',
-            'factory'        : 'manage_addCompany',
+            'factory'        : 'manage_addManufacturer',
             'immediate_view' : 'viewManufacturerOverview',
             'actions'        :
             ( 
@@ -77,23 +86,14 @@ class Company(ZenModelRM):
         )
 
 
-    def __init__(self, id,
-        url = '',
-        supportNumber = '',
-        address1 = '',
-        address2 = '',
-        city = '',
-        state = '',
-        zip = ''):
+    def getProductNames(self):
+        """return a list of all products this Manufacturer makes"""
+        prods = [""]
+        prods.extend(map(lambda x: x.getId(),
+                Manufacturer.products.objectValuesAll()))
+        prods.sort()
+        return prods
 
-        ZenModelRM.__init__(self, id)
-        self.url = url
-        self.supportNumber = supportNumber
-        self.name = id
-        self.address1 = address1
-        self.address2 = address2
-        self.city = city
-        self.state = state
-        self.zip = zip
 
-InitializeClass(Company)
+
+InitializeClass(Manufacturer)

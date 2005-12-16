@@ -17,7 +17,7 @@ from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 
-from DeviceComponent import DeviceComponent
+from OSComponent import OSComponent
 
 def manage_addFileSystem(context, id, REQUEST = None):
     """make a filesystem"""
@@ -32,7 +32,7 @@ def manage_addFileSystem(context, id, REQUEST = None):
 addFileSystem = DTMLFile('dtml/addFileSystem',globals())
 
 
-class FileSystem(DeviceComponent):
+class FileSystem(OSComponent):
     """FileSystem object"""
 
     portal_type = meta_type = 'FileSystem'
@@ -52,10 +52,9 @@ class FileSystem(DeviceComponent):
         {'id':'capacity', 'type':'int', 'mode':''},
         {'id':'inodeCapacity', 'type':'int', 'mode':''},
         {'id':'maxNameLen', 'type':'int', 'mode':''},
-        {'id':'snmpindex', 'type':'int', 'mode':''},
         )
-    _relations = DeviceComponent._relations + (
-        ("server", ToOne(ToManyCont, "Server", "filesystems")),
+    _relations = OSComponent._relations + (
+        ("device", ToOne(ToManyCont, "Device", "filesystems")),
         )
     
 
@@ -86,7 +85,7 @@ class FileSystem(DeviceComponent):
 
 
     def __init__(self, id, title = None): 
-        DeviceComponent.__init__(self, id, title)
+        OSComponent.__init__(self, id, title)
         self.mount = ""
         self.storageDevice = ""
         self.type = ""
@@ -99,7 +98,6 @@ class FileSystem(DeviceComponent):
         self.capacity = 0
         self.inodeCapacity = 0
         self.maxNameLen = 0
-        self.snmpindex = 0
 
     def viewName(self): return self.mount
 

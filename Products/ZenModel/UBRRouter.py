@@ -41,7 +41,7 @@ class UBRRouter(Router):
     portal_type = meta_type = 'UBRRouter'
 
     _relations = Router._relations + (
-        ("dhcpservers", ToMany(ToMany, "Server", "dhcpubrclients")),
+        ("dhcpservers", ToMany(ToMany, "Device", "dhcpubrclients")),
         )
 
     

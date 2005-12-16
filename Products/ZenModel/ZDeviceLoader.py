@@ -84,7 +84,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             tag="", serialNumber="",
             snmpCommunity="public", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
-            manufacturer="", model="", 
+            manufacturer="", productName="", 
             locationPath="", rack="",
             groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
@@ -105,7 +105,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 tag, serialNumber,
                 snmpCommunity, snmpPort, 
                 rackSlot, productionState, comments,
-                manufacturer, model, 
+                manufacturer, productName, 
                 locationPath, rack,
                 groupPaths, systemPaths, 
                 statusMonitors, cricketMonitor,
@@ -122,19 +122,19 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Companies").getCompany(newManufacturerName)
+        self.getDmdRoot("Manufacturers").getManufacturer(newManufacturerName)
         if REQUEST:
             REQUEST['manufacturer'] = newManufacturerName
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setModel')
-    def setModel(self, manufacturer, newModelName, REQUEST=None):
-        """set the model of this device"""
-        modelObj = self.getDmdRoot("Products").getModelProduct(
-                                        manufacturer, newModelName)
+    security.declareProtected('Change Device', 'setProduct')
+    def setProduct(self, newProductName, manufacturer, REQUEST=None):
+        """set the productName of this device"""
+        self.getDmdRoot("Manufacturers").getHardwareProduct(
+                                        newProductName, manufacturer)
         if REQUEST:
-            REQUEST['model'] = newModelName
+            REQUEST['productName'] = newProductName
             return self.callZenScreen(REQUEST)
 
 

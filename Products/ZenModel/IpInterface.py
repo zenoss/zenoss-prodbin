@@ -33,7 +33,7 @@ from Products.ZenUtils.IpUtil import *
 
 from DeviceResultInt import DeviceResultInt
 from ConfmonPropManager import ConfmonPropManager
-from DeviceComponent import DeviceComponent
+from OSComponent import OSComponent
 from PingStatusInt import PingStatusInt
 from Products.ZenModel.Exceptions import *
 
@@ -50,7 +50,7 @@ def manage_addIpInterface(context, id, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
+class IpInterface(OSComponent, DeviceResultInt, PingStatusInt):
     """IpInterface object"""
 
     portal_type = meta_type = 'IpInterface'
@@ -74,7 +74,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
         {'id':'adminStatus', 'type':'int', 'mode':'w'},
         {'id':'operStatus', 'type':'int', 'mode':'w'},
         )
-    _relations = DeviceComponent._relations + (
+    _relations = OSComponent._relations + (
         ("device", ToOne(ToManyCont,"Device","interfaces")),
         ("ipaddresses", ToMany(ToOne,"IpAddress","interface")),
         ("iproutes", ToMany(ToOne,"IpRouteEntry","interface")),
@@ -113,7 +113,7 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
     security = ClassSecurityInfo()
 
     def __init__(self, id, title = None):
-        DeviceComponent.__init__(self, id, title)
+        OSComponent.__init__(self, id, title)
         self.ifindex = 0 
         self.name = ''
         self.macaddress = ""
@@ -350,14 +350,14 @@ class IpInterface(DeviceComponent, DeviceResultInt, PingStatusInt):
 
 
     def manage_afterClone(self, item):
-        DeviceComponent.manage_afterClone(self, item)
+        OSComponent.manage_afterClone(self, item)
         self.index_object()
 
 
     def manage_beforeDelete(self, item, container):
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1): 
-            DeviceComponent.manage_beforeDelete(self, item, container)
+            OSComponent.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
 

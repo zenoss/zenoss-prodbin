@@ -19,7 +19,7 @@
       Manufacturer
       </td>
       <td class="tablevalues" colspan="1" align="left">
-      <span tal:replace="structure python:here.getManufacturerLink()">
+      <span tal:replace="structure here/manufacturer/getPrimaryLink">
         manufacturer</span>
       </td>
     </tr>
@@ -42,7 +42,6 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table metal:use-macro="here/deviceListMacro/macros/devList"></table>
 
 </tal:block>
 </tal:block>

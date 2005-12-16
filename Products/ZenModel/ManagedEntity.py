@@ -1,76 +1,40 @@
-from _mysql_exceptions import MySQLError
+#################################################################
+#
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
+#
+#################################################################
 
-class ManagedEntity(object):
+__doc__="""ManagedEntity
 
-   
-    def getEventManager(self):
-        """Return the current event manager for this object.
-        """
-        return self.ZenEventManager
+$Id: DeviceComponent.py,v 1.1 2004/04/06 21:05:03 edahl Exp $"""
 
+from ZenModelRM import ZenModelRM
+from EventView import EventView
+from CricketView import CricketView
 
-    def getEventHistory(self):
-        """Return the current event history for this object.
-        """
-        return self.ZenEventHistory
+from Products.ZenRelations.RelSchema import *
 
+class ManagedEntity(ZenModelRM, EventView, CricketView):
+    """
+    ManagedEntity is an entity in the system that is managed by it.
+    Its basic property is that it can be classified by the ITClass Tree.
+    Also has EventView and CricketView available.
+    """
 
-    def getResultFields(self):
-        return self.getEventManager().lookupManagedEntityResultFields(
-                                                                self.event_key) 
-        
+    # dict of cricket targets -> targettypes
+    _cricketTargetMap = {}
 
-    def getEventList(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        return self.getEventManager().getEventListME(self, **kwargs)
-        
+    # list of cricket multigaphs (see CricketView.py)
+    _mgraphs = []
 
-    def getEventHistoryList(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        return self.getEventHistory().getEventListME(self, **kwargs)
-        
+    # primary snmpindex for this managed entity
+    snmpindex = 0
 
-    def getStatus(self, statusclass=None, **kwargs):
-        """Return the status number for this device of class statClass.
-        """
-        try:
-            return self.getEventManager().getStatusME(self, 
-                                        statusclass=statusclass, **kwargs)
-        except MySQLError: 
-            return -1
+    _properties = (
+                 {'id':'snmpindex', 'type':'int', 'mode':'w'},
+                )    
 
-
-    def getStatusString(self, statclass, **kwargs):
-        """Return the status number for this device of class statClass.
-        """
-        return self.convertStatus(self.getStatus(statclass, **kwargs))
-                                                        
-    
-    def getEventSummary(self, acked=None):
-        """Return an event summary list for this managed entity.
-        """
-        return self.getEventManager().getEventSummaryME(self, acked)
-
-    
-    def getStatusCssClass(self, status):
-        """Return the css class for a status number.
-        """
-        return self.getEventManager().getStatusCssClass(status) 
-
-    
-    #security.declareProtected('Manage Events','manage_deleteEvents')
-    def manage_deleteEvents(self, evids=(), REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        self.getEventManager().manage_deleteEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
-
-
-    #security.declareProtected('Manage Events','manage_setEventStates')
-    def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
-        """Set event state form this managed entity.
-        """
-        self.getEventManager().manage_setEventStates(eventState, evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+    _relations = (
+        ("dependenices", ToMany(ToMany, "ManagedEntity", "dependants")),
+        ("dependants", ToMany(ToMany, "ManagedEntity", "dependenices")),
+    )

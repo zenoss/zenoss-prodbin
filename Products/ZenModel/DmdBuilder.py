@@ -15,7 +15,6 @@ Networks
 ServiceAreas
 Services
 Systems
-Companies
 
 $Id: DmdBuilder.py,v 1.11 2004/04/06 22:33:07 edahl Exp $"""
 
@@ -36,7 +35,7 @@ from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.IpNetwork import IpNetwork
-from Products.ZenModel.ServiceAreaClass import ServiceAreaClass
+from Products.ZenModel.ManufacturerRoot import ManufacturerRoot
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
@@ -60,9 +59,7 @@ classifications = {
     'Systems':      System,
     'Services':     ServiceClass,
     'Networks':     IpNetwork,
-    'Companies':    CompanyClass,
-    'Products':     ProductClass,
-    'ServiceAreas': ServiceAreaClass,
+    'Manufacturers':    ManufacturerRoot,
     'Monitors':     MonitorClass,
     'Reports':      ReportClass,
 }
@@ -77,15 +74,11 @@ class DmdBuilder:
         'Systems', 
         'Services',
         'Networks', 
-        'Companies',
-        'Products', 
+        'Manufacturers',
         'Monitors', 
         'Reports',
         )
    
-    # default product classes
-    prodRoots = ('Hardware','Software')
-
     # default monitor classes
     monRoots = ('StatusMonitors','Cricket')
 
@@ -119,11 +112,6 @@ class DmdBuilder:
     def buildRoots(self):
         self.addroots(self.dmd, self.dmdroots, isInTree=True)
         self.dmd.Devices.buildDeviceTreeProperties()
-
-
-    def buildProducts(self):
-        prods = self.dmd.Products
-        self.addroots(prods, self.prodRoots, "Products")
 
 
     def buildMonitors(self):
@@ -180,7 +168,6 @@ class DmdBuilder:
         self.buildRoots()
         self.buildMonitors()
         self.buildServices()
-        self.buildProducts()
         self.buildDevices()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)

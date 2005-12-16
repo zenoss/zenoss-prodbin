@@ -30,7 +30,7 @@ from Products.CMFCore.utils import getToolByName
 
 import Company, DeviceGroup, Location
 import Product, Hardware, Software
-import Device, Server, Router, UBRRouter, TerminalServer
+import Device, TerminalServer
 import System, Monitor, CricketConf, StatusMonitorConf
 import DataRoot, DeviceClass, Classification
 import IpNetwork, IpServiceClass

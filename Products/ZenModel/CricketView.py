@@ -31,7 +31,7 @@ class CricketView:
         if target: targettype = self.getCricketTypeForTarget(target)
         if not target: target = self.id
         if not targettype: targettype = self.getCricketTargetType()
-        targetpath = self.getCricketTargetPath() + '/' + target.lower()
+        targetpath = self.cricketTargetPath() + '/' + target.lower()
         if targetpath[-4:] != '.rrd': targetpath+='.rrd'
         objpaq = self.primaryAq()
         targettype = self.getCricketTarget(targettype)
@@ -60,19 +60,10 @@ class CricketView:
             return cricketserver.cricketMGraphUrl(objpaq, ntm, view, drange)
                                                 
          
-
-    def getCricketTargetPath(self):
-        return self._cricketTargetPath
-
-
     def setCricketTargetMap(self, targetpath, targets):
         """build the cricket target map for an object
         used when we want to draw graphs for the object"""
         tm = {}
-        if not hasattr(self, '_cricketTargetPath'):
-            self._cricketTargetPath = ''
-        if self._cricketTargetPath != targetpath:
-            self._cricketTargetPath = targetpath
         if type(targets) != types.ListType and type(targets) != types.TupleType:
             targets = (targets,)
         for targetdata in targets:
@@ -80,8 +71,6 @@ class CricketView:
             if name == '--default--': continue
             ttype = targetdata['target-type']
             tm[name] = ttype
-        if not hasattr(self, '_cricketTargetMap'):
-            self._cricketTargetMap = {}
         if tm != self._cricketTargetMap:
             self._cricketTargetMap = tm
             self._p_changed = 1
@@ -90,18 +79,15 @@ class CricketView:
     def clearCricketMGraph(self):
         self._mgraphs = []
 
+
     def addCricketMGraph(self, mgraph):
         """add a RRDMGraph to the mgraph list for this object"""
-        if not hasattr(aq_base(self), '_mgraphs'):
-            self._mgraphs = []
         self._mgraphs.append(mgraph)
 
 
     def getCricketMGraphs(self):
         """returns a list of RRDMGraphs"""
-        if hasattr(aq_base(self), '_mgraphs'):
-            return self._mgraphs
-        else: return []
+        return self._mgraphs
 
 
     def checkCricketData(self):

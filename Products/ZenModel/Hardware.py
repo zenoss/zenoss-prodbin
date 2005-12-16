@@ -14,15 +14,11 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 
 from Globals import DTMLFile
 from Globals import InitializeClass
-
-from AccessControl import Permissions as permissions
-from Acquisition import aq_parent
+from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 
-from Product import Product
-from DeviceManagerBase import DeviceManagerBase
-
+from MEProduct import MEProduct
 
 def manage_addHardware(context, id, title = None, REQUEST = None):
     """make a Hardware"""
@@ -35,53 +31,26 @@ def manage_addHardware(context, id, title = None, REQUEST = None):
 
 addHardware = DTMLFile('dtml/addHardware',globals())
 
-class Hardware(Product, DeviceManagerBase):
+class Hardware(MEProduct):
     """Hardware object"""
     portal_type = meta_type = 'Hardware'
 
-    _relations = Product._relations + (
-        ("devices", ToMany(ToOne,"Device","model")),
-        )
+    security = ClassSecurityInfo()
 
-    factory_type_information = ( 
-        { 
-            'id'             : 'Hardware',
-            'meta_type'      : 'Hardware',
-            'description'    : """Class to manage product information""",
-            'icon'           : 'Hardware_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addHardware',
-            'immediate_view' : 'viewProductOverview',
-            'actions'        :
-            ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewProductOverview'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-          },
-        )
+    security.declareProtected('Change Device', 'setProduct')
+    def setProduct(self, productName,  manufacturer="Unknown", 
+                    newProductName="", REQUEST=None, **kwargs):
+        """Set the product class of this software.
+        """
+        if not manufacturer: manufacturer = "Unknown"
+        if newProductName: productName = newProductName
+        prodobj = self.getDmdRoot("Manufacturers").getHardwareProduct(
+                                        productName, manufacturer, **kwargs)
+        prodobj.instances.addRelation(self)
+        if REQUEST:
+            REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
+                                    % (manufacturer, productName))
+            return self.callZenScreen(REQUEST)
 
-    def __init__(self, id, title = None, value = ''):
-        Product.__init__(self, id, title)
-
-
-    def deviceMoveTargets(self):
-        """see IManageDevice"""
-        return filter(lambda x: x != self.id, aq_parent(self).objectIds()) 
-            
-           
-    def getDeviceMoveTarget(self, moveTargetName):
-        """see IManageDevice"""
-        return aq_parent(self)._getOb(moveTargetName)
-
-
+    
 InitializeClass(Hardware)

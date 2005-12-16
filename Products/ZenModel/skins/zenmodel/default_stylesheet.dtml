@@ -87,7 +87,7 @@ body {
     margin: 0px;
     background-position: right;
     background-repeat: no-repeat;
-    font-weight: bold;
+    /*font-weight: bold;*/
 }
 
 #leftPane ul li a.selected:hover {

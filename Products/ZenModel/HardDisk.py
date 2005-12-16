@@ -13,13 +13,12 @@ $Id: HardDisk.py,v 1.7 2004/04/06 22:33:24 edahl Exp $"""
 
 __version__ = "$Revision: 1.7 $"[11:-2]
 
-from Globals import Persistent
 from Globals import DTMLFile
 from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 
-from DeviceComponent import DeviceComponent
+from HWComponent import HWComponent
 
 def manage_addHardDisk(context, id, title = None, REQUEST = None):
     """make a filesystem"""
@@ -34,21 +33,23 @@ def manage_addHardDisk(context, id, title = None, REQUEST = None):
 addHardDisk = DTMLFile('dtml/addHardDisk',globals())
 
 
-class HardDisk(DeviceComponent):
+class HardDisk(HWComponent):
     """HardDisk object"""
 
     portal_type = meta_type = 'HardDisk'
 
     manage_editHardDiskForm = DTMLFile('dtml/manageEditHardDisk',globals())
     
+    description = ""
+    hostresindex = 0
+
     _properties = (
                  {'id':'description', 'type':'string', 'mode':'w'},
-                 {'id':'snmpindex', 'type':'int', 'mode':'w'},
                  {'id':'hostresindex', 'type':'int', 'mode':'w'},
                 )    
 
-    _relations = DeviceComponent._relations + (
-        ("server", ToOne(ToManyCont, "Server", "harddisks")),
+    _relations = HWComponent._relations + (
+        ("device", ToOne(ToManyCont, "Device", "harddisks")),
         )
 
     
@@ -76,13 +77,6 @@ class HardDisk(DeviceComponent):
             )
           },
         )
-
-
-    def __init__(self, id, title = None): 
-        DeviceComponent.__init__(self, id, title)
-        self.description = ""
-        self.snmpindex = 0
-        self.hostresindex = 0
 
     def viewName(self): return self.description
 

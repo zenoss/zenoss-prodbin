@@ -1,0 +1,59 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="cpuList"
+    tal:define="tableName string:cpuList;
+    objects here/cpus/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <tr>
+      <th class="tabletitle" align="left" colspan="2">
+        CPUs
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'clockspeed','Speed')">sd0
+        </th>
+    </tr>
+    <tr>
+        <td colspan="2" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="hardDiskList"
+    tal:define="tableName string:hardDiskList;
+    objects here/harddisks/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='description');"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan="1">
+        Hard Disks
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'description','Name')">sd0
+        </th>
+    </tr>
+    <tr tal:repeat="disk batch">
+      <td class="tablevalues">
+          <a class=tablevalues tal:content="disk/description" 
+            tal:attributes="href disk/getPrimaryUrlPath">sd0</a>
+      </td>
+    </tr>
+    <tr>
+        <td colspan=1 class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>
+

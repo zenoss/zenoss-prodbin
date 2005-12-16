@@ -4,7 +4,7 @@
 #
 #################################################################
 
-__doc__="""Device Component
+__doc__="""DeviceComponent
 
 All device components inherit from this class
 
@@ -15,22 +15,14 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from ZenModelRM import ZenModelRM
-from ManagedEntity import ManagedEntity
-from CricketView import CricketView
 
-
-class DeviceComponent(ZenModelRM, ManagedEntity, CricketView):
+class DeviceComponent(object):
+    """
+    DeviceComponent is a mix-in class for all components of a device.
+    These include LogicalComponent, Software, and Hardware.
+    """
     
-    portal_type = meta_type = "DeviceComponent"
-
     security = ClassSecurityInfo()
-
-    def __init__(self, id, title=None):
-        ZenModelRM.__init__(self, id)
-        self._cricketTargetMap = {}
-        self._cricketTargetPath = ''
-
 
     def getParentDeviceName(self):
         """return the name of this component's device"""
@@ -54,7 +46,6 @@ class DeviceComponent(ZenModelRM, ManagedEntity, CricketView):
         return self.getEventManager().getComponentStatus(
                 self.getParentDeviceName(), self.id, statclass=statClass)
                                         
-
 
 
 InitializeClass(DeviceComponent)

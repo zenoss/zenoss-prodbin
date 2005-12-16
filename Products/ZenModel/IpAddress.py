@@ -13,10 +13,10 @@ $Id: IpAddress.py,v 1.42 2004/04/15 00:54:14 edahl Exp $"""
 __version__ = "$Revision: 1.42 $"[11:-2]
 
 #base classes for IpAddress
-from ZenModelRM import ZenModelRM
+from ManagedEntity import ManagedEntity
 from DeviceResultInt import DeviceResultInt
 from PingStatusInt import PingStatusInt
-from ManagedEntity import ManagedEntity
+from EventView import EventView
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -55,7 +55,7 @@ def findIpAddress(context, ip):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt, ManagedEntity):
+class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
     """IpAddress object"""
     event_key = portal_type = meta_type = 'IpAddress'
 
@@ -65,7 +65,7 @@ class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt, ManagedEntity):
         {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},
         {'id':'reverseName', 'type':'string', 'mode':'w'},
         )
-    _relations = (
+    _relations = ManagedEntity._relations + (
         ("network", ToOne(ToManyCont,"IpNetwork","ipaddresses")),
         ("interface", ToOne(ToMany,"IpInterface","ipaddresses")),
         ("clientroutes", ToMany(ToOne,"IpRouteEntry","nexthop")),
@@ -95,7 +95,7 @@ class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt, ManagedEntity):
 
     def __init__(self, id, netmask=24):
         checkip(id)
-        ZenModelRM.__init__(self, id)
+        ManagedEntity.__init__(self, id)
         self._pingStatus = None
         self._netmask = maskToBits(netmask)
         self.reverseName = ""
@@ -217,7 +217,7 @@ class IpAddress(ZenModelRM, PingStatusInt, DeviceResultInt, ManagedEntity):
 
     def manage_beforeDelete(self, item, container):
         if item == self or getattr(item, "_operation", -1) < 1: 
-            ZenModelRM.manage_beforeDelete(self, item, container)
+            ManagedEntity.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
 

@@ -42,6 +42,8 @@ class CricketDevice:
         cd = []
         self.addTargetData(cd, self.cricketDevice())
         self.addTargetData(cd, self.cricketInterfaces())
+        self.addTargetData(cd, self.cricketFilesystems())
+        self.addTargetData(cd, self.cricketDisks())
         self.setLastCricketGenerate()
         return cd
 
@@ -145,6 +147,57 @@ class CricketDevice:
         return (targetpath, targettypes, targets)
  
 
+    def cricketFilesystems(self):
+        """build the cricket configuration for filesystem monitoring"""
+        targetpath = self.cricketTargetPath() + '/filesystems'
+        targettypes = {}
+        targets = []
+        cricketFilesystemType = getattr(self, "zCricketFilesystemType", 
+                                                "Filesystem")
+        try:
+            ttype = lookupTargetType(self, cricketFilesystemType)
+            targettypes[ttype.getName()] = ttype.dsnames
+            for fs in self.filesystems.objectValuesAll():
+                targetdata = {}
+                targetdata['target'] = fs.id
+                targetdata['target-type'] = cricketFilesystemType
+                targetdata['display-name'] = fs.mount
+                targetdata['filesystem-mount'] = fs.mount
+                targetdata['inst'] = fs.snmpindex
+                self.setCricketThreshold(fs, targetdata)
+                fs.setCricketTargetMap(targetpath, targetdata)
+                targets.append(targetdata)
+        except RRDObjectNotFound:
+            LOG("CricketBuilder", WARNING, 
+                "RRDTargetType %s for filesystem not found" 
+                % cricketFilesystemType)
+        return (targetpath, targettypes, targets)
+
+
+    def cricketDisks(self):
+        targetpath = self.cricketTargetPath() + '/disks'
+        targettypes = {}
+        targets = []
+        cricketDiskType = getattr(self, "zCricketHardDiskType", 
+                                                "HardDisk")
+        try:
+            ttype = lookupTargetType(self, cricketDiskType)
+            targettypes[ttype.getName()] = ttype.dsnames
+            for disk in self.harddisks():
+                targetdata = {}
+                targetdata['target'] = disk.id
+                targetdata['target-type'] = cricketDiskType
+                targetdata['display-name'] = disk.description
+                targetdata['inst'] = disk.snmpindex
+                self.setCricketThreshold(disk, targetdata)
+                disk.setCricketTargetMap(targetpath, targetdata)
+                targets.append(targetdata)
+        except RRDObjectNotFound:
+            LOG("CricketBuilder", WARNING, 
+                "RRDTargetType %s for harddisk not found" % cricketDiskType)
+        return (targetpath, targettypes, targets)
+
+
     def interfaceMultiTargets(self, interface, targetpath):
         """setup graphs that have multiple targets with 
         different potentially types in one graph"""
@@ -215,11 +268,7 @@ class CricketDevice:
        
 
     def cricketTargetPath(self):
-        """get the cricket target path
-        if there is a script called scCricketTargetPath use it
-        if not use the DeviceClass path of the box"""
-        tp = self.callscript(self, 'scCricketTargetPath')
-        if tp: return tp
+        """get the cricket target path using DeviceClass path of the box"""
         return self.getDeviceClassPath() + '/' + self.id
     
 

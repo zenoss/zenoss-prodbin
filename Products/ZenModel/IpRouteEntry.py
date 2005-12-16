@@ -23,7 +23,7 @@ from Products.ZenRelations.RelSchema import *
 from IpAddress import findIpAddress
 from IpNetwork import addIpAddressToNetworks
 
-from DeviceComponent import DeviceComponent
+from OSComponent import OSComponent
 from DeviceResultInt import DeviceResultInt
 
 def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
@@ -37,7 +37,7 @@ def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
 
 addIpRouteEntry = DTMLFile('dtml/addIpRouteEntry',globals())
 
-class IpRouteEntry(DeviceComponent, DeviceResultInt):
+class IpRouteEntry(OSComponent, DeviceResultInt):
     """IpRouteEntry object"""
     
     meta_type = 'IpRouteEntry'
@@ -55,7 +55,7 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
         {'id':'metric4', 'type':'int', 'mode':''},
         {'id':'metric5', 'type':'int', 'mode':''},
         ) 
-    _relations = DeviceComponent._relations + (
+    _relations = OSComponent._relations + (
         ("device", ToOne(ToManyCont,"Device","routes")),
         ("interface", ToOne(ToMany,"IpInterface","iproutes")),
         ("nexthop", ToOne(ToMany,"IpAddress","clientroutes")),
@@ -66,7 +66,7 @@ class IpRouteEntry(DeviceComponent, DeviceResultInt):
     ipcheck = re.compile(r'^127.|^0.').search
 
     def __init__(self, id, title = None):
-        DeviceComponent.__init__(self, id, title)
+        OSComponent.__init__(self, id, title)
         self._nexthop = ""
         self.routetype = ""
         self.routeproto = ""
