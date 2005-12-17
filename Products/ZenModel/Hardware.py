@@ -44,7 +44,7 @@ class Hardware(MEProduct):
         """
         if not manufacturer: manufacturer = "Unknown"
         if newProductName: productName = newProductName
-        prodobj = self.getDmdRoot("Manufacturers").getHardwareProduct(
+        prodobj = self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         productName, manufacturer, **kwargs)
         prodobj.instances.addRelation(self)
         if REQUEST:

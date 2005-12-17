@@ -24,7 +24,6 @@ from IpAddress import findIpAddress
 from IpNetwork import addIpAddressToNetworks
 
 from OSComponent import OSComponent
-from DeviceResultInt import DeviceResultInt
 
 def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
     """make a IpRouteEntry"""
@@ -37,7 +36,7 @@ def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
 
 addIpRouteEntry = DTMLFile('dtml/addIpRouteEntry',globals())
 
-class IpRouteEntry(OSComponent, DeviceResultInt):
+class IpRouteEntry(OSComponent):
     """IpRouteEntry object"""
     
     meta_type = 'IpRouteEntry'
@@ -141,12 +140,6 @@ class IpRouteEntry(OSComponent, DeviceResultInt):
 
     def getInterface(self):
         return self.interface()
-
-
-    security.declareProtected('View', 'getDevice')
-    def getDevice(self):
-        """get a routes device for DeviceResultInt"""
-        return self.device()
 
 
 InitializeClass(IpRouteEntry)

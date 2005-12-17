@@ -106,7 +106,8 @@ class Organizer(ZenModelRM):
 
     security.declareProtected('Delete objects', 'manage_deleteOrganizers')
     def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
-        """add a device group to the database"""
+        """Delete a list of Organizers from the database using their ids.
+        """
         if not organizerPaths: return self.callZenScreen(REQUEST)
         for organizerName in organizerPaths:
             self.manage_deleteOrganizer(organizerName)

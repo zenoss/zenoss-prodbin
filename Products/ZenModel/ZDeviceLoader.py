@@ -131,7 +131,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'setProduct')
     def setProduct(self, newProductName, manufacturer, REQUEST=None):
         """set the productName of this device"""
-        self.getDmdRoot("Manufacturers").getHardwareProduct(
+        self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         newProductName, manufacturer)
         if REQUEST:
             REQUEST['productName'] = newProductName

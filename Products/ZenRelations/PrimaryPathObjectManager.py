@@ -18,6 +18,9 @@ from OFS.SimpleItem import Item
 
 from Acquisition import aq_base
 
+from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2
+
+
 class PrimaryPathManager(object):
 
     def getPrimaryPath(self, fromNode=None):
@@ -28,8 +31,8 @@ class PrimaryPathManager(object):
         obj = aq_base(self)
         while True:
             ppath.append(obj.id) 
-            parent = getattr(obj, "__primary_parent__", False)
-            if not parent: break
+            parent = getattr(obj, "__primary_parent__", None)
+            if parent is None: break
             obj = parent
         ppath.reverse()
         basepath = getattr(obj, "zPrimaryBasePath", [])
@@ -68,8 +71,7 @@ class PrimaryPathManager(object):
 
 
 
-class PrimaryPathObjectManager(PrimaryPathManager, ObjectManager, 
-                                RelCopyContainer, Item):
+class PrimaryPathObjectManagerBase(PrimaryPathManager):
     """
     ZenRelations adds relationships to Zope's normal containment style data
     system.  Relationships give us a networked data model as opposed to a
@@ -84,11 +86,6 @@ class PrimaryPathObjectManager(PrimaryPathManager, ObjectManager,
     __primary_parent__.  This is set every time an object is added to the 
     database using _setObject.
     """
-    
-    manage_options = ObjectManager.manage_options + Item.manage_options
-        
-    
-    
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
         obj.__primary_parent__ = aq_base(self) 
@@ -100,3 +97,19 @@ class PrimaryPathObjectManager(PrimaryPathManager, ObjectManager,
         obj = self._getOb(id)
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
+
+
+
+class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager, 
+                                RelCopyContainer, Item):
+    """
+    PrimaryPathObjectManager with basic Zope persistent classes.
+    """
+    manage_options = ObjectManager.manage_options + Item.manage_options
+
+
+
+class PrimaryPathBTreeFolder2(PrimaryPathObjectManagerBase, BTreeFolder2):
+    """
+    BTreeFolder2 PrimaryPathObjectManager.
+    """

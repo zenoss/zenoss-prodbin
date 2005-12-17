@@ -12,6 +12,8 @@ $Id: Manufacturer.py,v 1.11 2004/03/26 23:58:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.11 $"[11:-2]
 
+import types
+
 from Globals import DTMLFile, InitializeClass
 
 from AccessControl import Permissions as permissions
@@ -84,6 +86,64 @@ class Manufacturer(ZenModelRM):
             )
           },
         )
+
+    def count(self):
+        """Return the number of products for this manufacturer.
+        """
+        return self.products.countObjects()
+
+
+    def manage_addHardware(self, prodName=None, REQUEST=None):
+        """Add a hardware product from UI code.
+        """
+        if prodName:
+            from Products.ZenModel.HardwareClass import HardwareClass
+            self._getProduct(prodName, HardwareClass)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    def manage_addSoftware(self, prodName=None, REQUEST=None):
+        """Add a software product from UI code.
+        """
+        if prodName:
+            from Products.ZenModel.SoftwareClass import SoftwareClass
+            self._getProduct(prodName, SoftwareClass)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+   
+    def moveProducts(self, moveTarget=None, ids=None, REQUEST=None):
+        """Move product to different manufacturer.
+        """
+        if not moveTarget or not ids: return self()
+        target = self.getManufacturer(moveTarget)
+        if type(ids) == types.StringType: ids = (ids,)
+        for id in ids:
+            obj = self.products._getOb(id)
+            obj._operation = 1 # moving object state
+            self.products._delObject(id)
+            target.products._setObject(id, obj)
+        #if REQUEST:
+        #    REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    def _getProduct(self, prodName, factory):
+        """Add a product to this manufacturer based on its factory type.
+        """
+        prod = self._getOb(prodName, None)
+        if not prod:
+            prod = factory(prodName)
+            self.products._setObject(prod.id, prod)
+            prod = self.products._getOb(prod.id)
+        return prod 
+
+
+    def manage_deleteProducts(self, ids=None, REQUEST=None):
+        """Delete a list of products from UI.
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids: self.products._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     def getProductNames(self):

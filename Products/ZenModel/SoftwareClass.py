@@ -41,32 +41,32 @@ class SoftwareClass(ProductClass):
         {'id':'build', 'type':'string', 'mode':'w'},
         )
 
-    factory_type_information = ( 
-        { 
-            'id'             : 'SoftwareClass',
-            'meta_type'      : 'SoftwareClass',
-            'description'    : """Class to manage product information""",
-            'icon'           : 'SoftwareClass_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addSoftwareClass',
-            'immediate_view' : 'viewProductOverview',
-            'actions'        :
-            ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewSoftwareClassOverview'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-          },
-        )
+#    factory_type_information = ( 
+#        { 
+#            'id'             : 'SoftwareClass',
+#            'meta_type'      : 'SoftwareClass',
+#            'description'    : """Class to manage product information""",
+#            'icon'           : 'SoftwareClass_icon.gif',
+#            'product'        : 'ZenModel',
+#            'factory'        : 'manage_addSoftwareClass',
+#            'immediate_view' : 'viewProductOverview',
+#            'actions'        :
+#            ( 
+#                { 'id'            : 'overview'
+#                , 'name'          : 'Overview'
+#                , 'action'        : 'viewSoftwareClassOverview'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
+#            )
+#          },
+#        )
     
     def __init__(self, id, title="", version="", build="", 
                 partNumber="", description=""):

@@ -16,6 +16,7 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 import re
 
 from Globals import InitializeClass
+from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
 
@@ -29,12 +30,14 @@ class ProductClass(ZenModelRM):
 
     #itclass = ""
     name = ""
+    productKey = ""
 
     default_catalog = "productSearch"
 
     _properties = (
         #{'id':'itclass', 'type':'string', 'mode':'w'},
         {'id':'name', 'type':'string', 'mode':'w'},
+        {'id':'productKey', 'type':'string', 'mode':'w'},
         {'id':'partNumber', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'string', 'mode':'w'},
     )
@@ -44,6 +47,33 @@ class ProductClass(ZenModelRM):
         ("manufacturer", ToOne(ToManyCont,"Manufacturer","products")),
     )
 
+    factory_type_information = ( 
+        { 
+            'id'             : 'ProductClass',
+            'meta_type'      : 'ProductClass',
+            'description'    : """Class to manage product information""",
+            'icon'           : 'ProductClass.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addProductClass',
+            'immediate_view' : 'viewProductClassOverview',
+            'actions'        :
+            ( 
+                { 'id'            : 'overview'
+                , 'name'          : 'Overview'
+                , 'action'        : 'viewProductClassOverview'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+          },
+        )
+    
 
     def __init__(self, id, title="", productKey="", 
                 partNumber="", description=""):
@@ -53,6 +83,18 @@ class ProductClass(ZenModelRM):
         self.productKey = productKey
         self.partNumber = partNumber
         self.description = description
+
+
+    def type(self):
+        """Return the type name of this product (Hardware, Software).
+        """
+        return self.meta_type[:-5]
+
+
+    def count(self):
+        """Return the number of existing instances for this class.
+        """
+        return self.instances.countObjects()
 
     
     def manage_afterAdd(self, item, container):

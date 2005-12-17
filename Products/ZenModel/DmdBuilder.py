@@ -29,7 +29,6 @@ import Zope2
 from OFS.Image import File
 from Acquisition import aq_base
 
-from Products.ZenModel.CompanyClass import CompanyClass
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceGroup import DeviceGroup

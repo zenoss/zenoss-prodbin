@@ -16,12 +16,14 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 import logging
 
 from Globals import InitializeClass
-from OFS.Folder import Folder
 from Globals import DTMLFile
+from AccessControl import Permissions as permissions
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.ZenRelations.PrimaryPathObjectManager import \
+    PrimaryPathBTreeFolder2
 
-from Classification import Classification
+from ZenModelBase import ZenModelBase
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""
@@ -37,7 +39,7 @@ def manage_addManufacturerRoot(context, REQUEST=None):
 #addManufacturerRoot = DTMLFile('dtml/addManufacturerRoot',globals())
 
 
-class ManufacturerRoot(Classification, Folder):
+class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     """
     The root organizer for manufacturers.  May become a BtreeFolder2 at
     some point (to scale better).  Has interface to manage Manufacturers
@@ -47,20 +49,69 @@ class ManufacturerRoot(Classification, Folder):
     sub_classes = ('Manufacturer',) 
     default_catalog = "productSearch"
 
-    def getManufacturer(self, ManufacturerName):
-        """get or create and return a Manufacturer object"""
+    # Screen action bindings (and tab definitions)
+    factory_type_information = ( 
+        { 
+            'id'             : 'Manufacturer',
+            'meta_type'      : 'Manufacturer',
+            'description'    : """Arbitrary device grouping class""",
+            'icon'           : 'Manufacturer_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addManufacturer',
+            'immediate_view' : 'viewManufacturers',
+            'actions'        :
+            ( 
+                { 'id'            : 'overview'
+                , 'name'          : 'Overview'
+                , 'action'        : 'viewManufacturers'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+            )
+          },
+        )
+
+
+    def manage_addManufacturer(self, manufacturerName, REQUEST=None):
+        """Add a manufacturer from UI code.
+        """
+        self.createManufacturer(manufacturerName)
+        if REQUEST: return self.callZenScreen(REQUEST)
+       
+
+    def manage_deleteManufacturers(self, ids=None, REQUEST=None):
+        """Delete a list of manufacturers from UI.
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids: self._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    def createManufacturer(self, manufacturerName):
+        """Return and create if nessesary manufacturerName.
+        """
         from Products.ZenModel.Manufacturer import manage_addManufacturer
-        if not hasattr(self, ManufacturerName):
-            logging.info("Creating Manufacturer %s" % ManufacturerName)
-            manage_addManufacturer(self, ManufacturerName)
-        return self._getOb(ManufacturerName)
-               
+        if not self.has_key(manufacturerName):
+            logging.info("Creating Manufacturer %s" % manufacturerName)
+            manage_addManufacturer(self, manufacturerName)
+        return self._getOb(manufacturerName)
+
+
+    def getManufacturer(self, manufacturerName):
+        """Return manufacturerName.
+        """
+        return self._getOb(manufacturerName)
+
 
     def getManufacturerNames(self):
         """return list of all companies"""
-        cnames = [""]
-        cnames.extend(self.objectIds(spec=("Manufacturer")))
-        return cnames
+        return self.objectIds(spec=("Manufacturer"))
 
 
     def getProductNames(self, ManufacturerName):
@@ -83,14 +134,14 @@ class ManufacturerRoot(Classification, Folder):
         if len(prods) == 1: return prods[0]
 
     
-    def getHardwareProduct(self,prodName,manufacturer="Unknown",**kwargs):
+    def createHardwareProduct(self,prodName,manufacturer="Unknown",**kwargs):
         """Return and create if nessesary a HardwareClass object.
         """
         from Products.ZenModel.HardwareClass import HardwareClass
         return self._getProduct(prodName, manufacturer, HardwareClass, **kwargs)
 
 
-    def getSoftwareProduct(self, prodName, manufacturer="Unknown", **kwargs):
+    def createSoftwareProduct(self, prodName, manufacturer="Unknown", **kwargs):
         """Return and create if nesseary a SoftwareClass object.
         """
         from Products.ZenModel.SoftwareClass import SoftwareClass
@@ -98,6 +149,7 @@ class ManufacturerRoot(Classification, Folder):
 
 
     def _getProduct(self, prodName, manufacturer, factory, **kwargs):
+        prod = None
         if not manufacturer or manufacturer == "Unknown":
             prod = self.findProduct(prodName) 
         if prod: return prod

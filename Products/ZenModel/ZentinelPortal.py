@@ -1,13 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2001 Zope Corporation and Contributors. All Rights Reserved.
-# 
-# This software is subject to the provisions of the Zope Public License,
-# Version 2.0 (ZPL).  A copy of the ZPL should accompany this distribution.
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE
+#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 # 
 ##############################################################################
 """ Portal class
@@ -27,13 +20,6 @@ from Products.Sessions.SessionDataManager import constructSessionDataManager
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
-
-import Company, DeviceGroup, Location
-import Product, Hardware, Software
-import Device, TerminalServer
-import System, Monitor, CricketConf, StatusMonitorConf
-import DataRoot, DeviceClass, Classification
-import IpNetwork, IpServiceClass
 
 from Products.ZenModel.DmdBuilder import DmdBuilder
 

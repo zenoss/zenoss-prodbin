@@ -36,31 +36,31 @@ class HardwareClass(ProductClass):
     """HardwareClass object"""
     portal_type = meta_type = 'HardwareClass'
 
-    factory_type_information = ( 
-        { 
-            'id'             : 'HardwareClass',
-            'meta_type'      : 'HardwareClass',
-            'description'    : """Class to manage product information""",
-            'icon'           : 'HardwareClass_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addHardwareClass',
-            'immediate_view' : 'viewProductOverview',
-            'actions'        :
-            ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewHardwareClassOverview'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-          },
-        )
+#    factory_type_information = ( 
+#        { 
+#            'id'             : 'HardwareClass',
+#            'meta_type'      : 'HardwareClass',
+#            'description'    : """Class to manage product information""",
+#            'icon'           : 'HardwareClass_icon.gif',
+#            'product'        : 'ZenModel',
+#            'factory'        : 'manage_addHardwareClass',
+#            'immediate_view' : 'viewProductOverview',
+#            'actions'        :
+#            ( 
+#                { 'id'            : 'overview'
+#                , 'name'          : 'Overview'
+#                , 'action'        : 'viewHardwareClassOverview'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
+#            )
+#          },
+#        )
     
 InitializeClass(HardwareClass)

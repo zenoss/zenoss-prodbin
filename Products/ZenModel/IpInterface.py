@@ -31,7 +31,6 @@ from IpAddress import IpAddress, findIpAddress
 from IpNetwork import addIpAddressToNetworks 
 from Products.ZenUtils.IpUtil import *
 
-from DeviceResultInt import DeviceResultInt
 from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
 from PingStatusInt import PingStatusInt
@@ -50,7 +49,7 @@ def manage_addIpInterface(context, id, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(OSComponent, DeviceResultInt, PingStatusInt):
+class IpInterface(OSComponent, PingStatusInt):
     """IpInterface object"""
 
     portal_type = meta_type = 'IpInterface'
@@ -338,11 +337,6 @@ class IpInterface(OSComponent, DeviceResultInt, PingStatusInt):
         return self.macaddress
 
 
-    def getDevice(self):
-        """support DeviceResultInt mixin class"""
-        return self.device()
-
-    
     def manage_afterAdd(self, item, container):
         """setup relationshipmanager add object to index and build relations """
         if item == self or item == self.device(): 

@@ -19,7 +19,6 @@ import logging
 # base classes for device
 from Hardware import Hardware
 from PingStatusInt import PingStatusInt
-from DeviceResultInt import DeviceResultInt
 from CricketDevice import CricketDevice
 
 from AccessControl import ClassSecurityInfo
@@ -93,7 +92,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(Hardware, PingStatusInt, DeviceResultInt, CricketDevice):
+class Device(Hardware, PingStatusInt, CricketDevice):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.

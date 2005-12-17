@@ -103,7 +103,7 @@ class Software(MEProduct):
         """
         if not manufacturer: manufacturer = "Unknown"
         if newProductName: productName = newProductName
-        prodobj = self.getDmdRoot("Manufacturers").getSoftwareProduct(
+        prodobj = self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                     productName, manufacturer, **kwargs)
         prodobj.instances.addRelation(self)
         if REQUEST:
@@ -115,7 +115,7 @@ class Software(MEProduct):
     def setProductKey(self, prodKey):
         """Set the product class of this software by its productKey.
         """
-        prodobj = self.getDmdRoot("Manufacturers").getSoftwareProduct(prodKey)
+        prodobj=self.getDmdRoot("Manufacturers").createSoftwareProduct(prodKey)
         prodobj.instances.addRelation(self)
 
 

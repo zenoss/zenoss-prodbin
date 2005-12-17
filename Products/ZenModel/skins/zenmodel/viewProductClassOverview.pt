@@ -1,0 +1,65 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" colspan="4">Product</th>
+    </tr>
+    <tr>
+      <td class="tableheader">Manufacturer</td>
+      <td class="tablevalues"
+        tal:content="structure here/manufacturer/getPrimaryLink"/>
+      <td class="tableheader">Name</td>
+      <td class="tablevalues" tal:content="here/id">Zenmon</td>
+    </tr>
+    <tr>
+      <th class="tableheader">Type</th>
+      <td class="tablevalues" tal:content="here/type">234</td>
+      <th class="tableheader">Product Key</th>
+      <td class="tablevalues" tal:content="here/productKey">234</td>
+    </tr>
+    <tr>
+      <th class="tableheader">Count</th>
+      <td class="tablevalues" tal:content="here/count">234</td>
+      <th class="tableheader">Part Number</th>
+      <td class="tablevalues" tal:content="here/partNumber">234</td>
+    </tr>
+    <tr>
+      <th class="tableheader">Description</th>
+      <td class="tablevalues" colspan="3" tal:content="here/description"/>
+    </tr>
+</table>
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="softwareList"
+    tal:define="tableName string:softwareList;
+    objects here/instances/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <tr>
+      <th class="tabletitle" align="left" colspan="2">
+        Product Instances 
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDeviceName','Device')">Device
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getId','Name')">InstallDate
+        </th>
+    </tr>
+    <tr tal:repeat="prod batch">
+      <td class="tablevalues" 
+        tal:content="structure prod/getDeviceLink"/>
+      <td class="tablevalues" tal:content="prod/id"/>
+    </tr>
+    <tr>
+        <td colspan="2" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+
+</tal:block>
+</tal:block>

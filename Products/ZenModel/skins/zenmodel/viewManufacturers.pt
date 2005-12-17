@@ -1,0 +1,62 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+        tableName string:manufacturers;
+        objects python:here.objectValues(spec='Manufacturer');
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">Manufacturers</th>
+    </tr>
+    <tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'primarySortKey','Name')">Name</th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'url','URL')">URL</th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'supportNumber','Phone')">Phone</th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'count','Count')">Count</th>
+    </tr>
+    <tr tal:repeat="manuf batch">
+        <td class="tablevalues">
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value manuf/getId"/>
+            <a tal:attributes="href manuf/getPrimaryUrlPath" 
+                tal:content="manuf/id">Zentinel</a>
+        </td>
+        <td class="tablevalues">
+            <a tal:attributes="href manuf/url" 
+                tal:content="manuf/url">http://www.zentinel.com</a>
+        </td>
+        <td class="tablevalues" tal:content="manuf/supportNumber"/>
+        <td class="tablevalues" align="center" tal:content="manuf/count"/>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="4">
+        <input class="tableheader" type="text" name="manufacturerName"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addManufacturer:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteManufacturers:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -132,7 +132,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
         """fileter, sort and batch objects and pass return set"""
         tableState = self.setupTableState(tableName, **keys) 
         if tableState.filter and objects:
-            objects = self.filterObjects(objects, tableState.filter)
+            objects = self.filterObjects(objects, tableState.filter, 
+                                        tableState.filterFields)
         if tableState.sortedHeader:
             objects = self.sortObjects(objects, tableState)
         tableState.totalobjs = len(objects)

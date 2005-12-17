@@ -85,31 +85,6 @@ class DeviceResultInt:
         return -1
 
     
-    def getSnmpAvail30(self):
-        """return the rolling 30 day availability of this device"""
-        d = self.getDevice()
-        if d:
-            return self._getSnmpAvail30()
-        return -1
-
-    
-    def getSnmpAvail30String(self):
-        """return the rolling 30 day availability of this device"""
-        d = self.getDevice()
-        if d:
-            return self._getSnmpAvail30String()
-        return "Unknown"
-
-    
-    security.declareProtected('View', 'getDeviceSnmpStatusColor')
-    def getSnmpStatusColor(self):
-        """get the snmp status color of the device if there is one"""
-        d = self.getDevice()
-        if d:
-            return d.getSnmpStatusColor()
-        return "#d02090"
-
-
     security.declareProtected('View', 'getIp')
     def getDeviceIp(self):
         """Get the management ip (only) of a device"""

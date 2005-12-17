@@ -273,6 +273,7 @@ a.tabletitleselected:hover {
     color: &dtml-tableheader_font_color;;
     background-color: &dtml-tableheader_bg_color;;
     font-weight: normal; 
+    text-align: left;
 }
 .tableheaderselected { 
     font-family: &dtml-base_font_family;;
@@ -280,6 +281,7 @@ a.tabletitleselected:hover {
     color: &dtml-tableheaderselected_font_color;;
     background-color: &dtml-tableheaderselected_bg_color;;
     font-weight: normal; 
+    text-align: left;
 }
 .statusbar { 
     font-family: &dtml-base_font_family;; 

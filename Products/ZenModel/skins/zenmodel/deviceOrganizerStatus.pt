@@ -45,30 +45,30 @@
         </tr>
         <span tal:condition="objects" tal:omit-tag="">
         <tr>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'primarySortKey','Name')">
-                Name 
-            </th>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'countChildren','Subs')">
-                Subs
-            </th>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'countDevices','Devices')">
-                Devices
-            </th>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'omniEventCount','Events')">
-                Snmp
-            </th>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'omniPingStatus','Ping')">
-                Ping
-            </th>
-            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'omniSnmpStatus','Snmp')">
-                Snmp
-            </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')">
+            Name 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countChildren','Subs')">
+            Subs
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countDevices','Devices')">
+            Devices
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'omniEventCount','Events')">
+            Snmp
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'omniPingStatus','Ping')">
+            Ping
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'omniSnmpStatus','Snmp')">
+            Snmp
+        </th>
         </tr>
         <tr tal:repeat="devorg batch">
             <td class="tablevalues" align="left" width="50%">
@@ -81,7 +81,8 @@
             </td>
             <td class="tablevalues" align=center 
                 tal:content="devorg/countChildren"/>
-            <td class="tablevalues" align=center tal:content="devorg/countDevices"/>
+            <td class="tablevalues" align=center 
+                tal:content="devorg/countDevices"/>
             <td class="tablevalues" tal:content="python:devorg.getStatus()"
                 align="center">0</td>
             <td tal:define="status python:devorg.getStatus('/Status/Ping')"
@@ -93,7 +94,7 @@
         </tr>
         <tr>
             <td colspan="6" class="tableheader">
-                <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+                <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
             </td>
         </tr>
         </span>

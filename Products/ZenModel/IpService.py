@@ -20,7 +20,6 @@ from Products.ZenRelations.RelSchema import *
 
 from Service import Service
 from IpServiceClass import addIpServiceToClass, getIpServiceClassId
-from DeviceResultInt import DeviceResultInt
 #from PingStatusInt import PingStatusInt
 
 def manage_addIpService(context, id, title = None, REQUEST = None):
@@ -34,7 +33,7 @@ def manage_addIpService(context, id, title = None, REQUEST = None):
 
 addIpService = DTMLFile('dtml/addIpService',globals())
 
-class IpService(Service, DeviceResultInt):
+class IpService(Service):
     """
     IpService object
     """
@@ -104,10 +103,6 @@ class IpService(Service, DeviceResultInt):
         #if sc: return sc.protocol
 
 
-    def getDevice(self):
-        return self.server()
-
-    
     def getKeyword(self):
         sc = self.ipserviceclass()
         if sc: return sc.getKeyword()

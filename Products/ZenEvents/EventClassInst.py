@@ -11,7 +11,7 @@ from AccessControl import Permissions
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenModel.ManagedEntity import ManagedEntity
+from Products.ZenModel.EventView import EventView
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -35,7 +35,7 @@ class EventClassPropertyMixin(object):
         return props
 
         
-class EventClassInst(EventClassPropertyMixin, ZenModelRM, ManagedEntity):
+class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
     """
     EventClassInst.
     """
