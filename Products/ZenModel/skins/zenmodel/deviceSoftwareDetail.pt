@@ -3,7 +3,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="softwareList"
     tal:define="tableName string:softwareList;
-    objects here/software/objectValuesAll;
+    objects here/os/software/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <tr>
       <th class="tabletitle" align="left" colspan="5">
