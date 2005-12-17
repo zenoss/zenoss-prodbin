@@ -21,6 +21,10 @@ from CustomRelMap import CustomRelMap
 
 class InterfaceMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.IpInterface"
+    relationshipName = "interfaces"
+    componentName = "os"
+
     intTableOid = '.1.3.6.1.2.1.2.2.1'
     intMap = {'.1': 'ifindex',
              '.2': 'id',
@@ -38,7 +42,6 @@ class InterfaceMap(CustomRelMap):
 
     #dontCollectInterfaceTypes = (1, 18, 76, 77, 81, 134)
     
-    prepId = re.compile(r'[^a-zA-Z0-9-_.]')
    
     ionSpeed = re.compile(r'ION:(?P<speed>\d+)MB')
 
@@ -46,11 +49,9 @@ class InterfaceMap(CustomRelMap):
     srpSideInt = re.compile(r'^(?P<baseint>SRP.+)-side .-SONET')
     srpSideA = re.compile(r'A')
 
-    def __init__(self):
-        CustomRelMap.__init__(self, 'interfaces', 
-                            'Products.ZenModel.IpInterface')
-        self.ciscoIfDescrTable = {}
-        self.ciscoSRPInts = {}
+    ciscoIfDescrTable = {}
+    ciscoSRPInts = {}
+
 
     def condition(self, device, snmpsess, log):
         """does device meet the proper conditions for this collector to run"""

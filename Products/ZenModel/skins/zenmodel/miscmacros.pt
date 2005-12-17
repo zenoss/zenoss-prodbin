@@ -75,9 +75,9 @@ try{
  * Delete the value in the first box and put the result of the XML-RPC
  * call into the second
  */
-function getProducts(compsel){
+function getProducts(compsel, prodid){
     var cname = compsel.options[compsel.selectedIndex].value
-    var prodsel = document.getElementById("model");
+    var prodsel = document.getElementById(prodid);
     resp = server.getProductNames(cname);
     if (resp) {
         prodsel.options.length = 0;

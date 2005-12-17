@@ -164,11 +164,14 @@ class SnmpCollector(ZCmdBase):
                     slog.exception("problem collecting snmp")
                 if not datamap: continue
                 try:
+                    tobj = device
+                    compname = getattr(custmap, "componentName", False)
+                    if compname: tobj = getattr(device, compname)
                     if hasattr(custmap, 'relationshipName'):
-                        if self._updateRelationship(device, datamap, custmap):
+                        if self._updateRelationship(tobj, datamap, custmap):
                             changed = True
                     else:
-                        if self._updateObject(device, datamap):
+                        if self._updateObject(tobj, datamap):
                             changed = True
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
@@ -228,6 +231,7 @@ class SnmpCollector(ZCmdBase):
     def _updateObject(self, obj, datamap):
         """update an object using a datamap"""
         for attname, value in datamap.items():
+            slog.debug('attrname = %s value = %s', attname, value)
             if attname.startswith("_"): continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
@@ -240,11 +244,11 @@ class SnmpCollector(ZCmdBase):
                 if getter and value != getter():
                     setter(value)
                     slog.debug(
-                        "   Calling function '%s' with '%s'on object %s", 
+                        "Calling function '%s' with '%s'on object %s", 
                         attname, value, obj.id)
             elif att != value:
                 setattr(aq_base(obj), attname, value) 
-                slog.debug("   Set attribute %s to %s on object %s",
+                slog.debug("Set attribute %s to %s on object %s",
                                attname, value, obj.id)
         try: changed = obj._p_changed
         except: changed = False

@@ -18,6 +18,8 @@ import re
 
 class CiscoMap(CustomMap):
 
+    componentName = "hw"
+
     ciscoMap = {
              '.1.3.6.1.4.1.9.5.1.2.19.0':'serialNumber',
              }

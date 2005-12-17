@@ -1,3 +1,4 @@
+#################################################################
 #
 #   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
 #
@@ -17,7 +18,7 @@ import time
 import logging
 
 # base classes for device
-from Hardware import Hardware
+from ManagedEntity import ManagedEntity
 from PingStatusInt import PingStatusInt
 from CricketDevice import CricketDevice
 
@@ -33,7 +34,9 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
-from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
+
+from OperatingSystem import OperatingSystem
+from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
 from ZenDate import ZenDate
@@ -42,11 +45,11 @@ from Exceptions import *
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
-            snmpCommunity="", snmpPort=None,
+            snmpCommunity="public", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
-            manufacturer="", productName="", 
-            locationPath="", rack="",
-            groupPaths=[], systemPaths=[],
+            hwManufacturer="", hwProductName="", 
+            osManufacturer="", osProductName="", 
+            locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
             REQUEST = None):
 
@@ -74,10 +77,11 @@ def manage_createDevice(context, deviceName, devicePath="",
                 tag, serialNumber,
                 snmpCommunity, snmpPort,
                 rackSlot, productionState, comments,
-                manufacturer, productName,
-                locationPath, rack, 
-                groupPaths, systemPaths,
+                hwManufacturer, hwProductName, 
+                osManufacturer, osProductName, 
+                locationPath, groupPaths, systemPaths,
                 statusMonitors, cricketMonitor)
+                
     return device
 
 
@@ -92,7 +96,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(Hardware, PingStatusInt, CricketDevice):
+class Device(ManagedEntity, PingStatusInt, CricketDevice):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.
@@ -105,27 +109,19 @@ class Device(Hardware, PingStatusInt, CricketDevice):
     relationshipManagerPathRestriction = '/Devices'
 
     productionState = 1000
-    tag = ""
-    serialNumber = ""
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
     snmpContact = ""
     snmpSysName = ""
     snmpLocation = ""
-    osVersion = ""
-    sshVersion = ""
     rackSlot = 0
     comments = ""
-    cpuType = ""
-    totalMemory = 0.0
     sysedgeLicenseMode = ""
 
-    _properties = (
+    _properties = ManagedEntity._properties + (
         {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
            'select_variable':'getProdStateConversions','setter':'setProdState'},
-        {'id':'tag', 'type':'string', 'mode':'w'},
-        {'id':'serialNumber', 'type':'string', 'mode':'w'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
         {'id':'snmpOid', 'type':'string', 'mode':''},
@@ -134,28 +130,15 @@ class Device(Hardware, PingStatusInt, CricketDevice):
         {'id':'snmpSysName', 'type':'string', 'mode':''},
         {'id':'snmpLocation', 'type':'string', 'mode':''},
         {'id':'snmpLastCollection', 'type':'date', 'mode':''},
-        {'id':'osVersion', 'type':'string', 'mode':'w'},
-        {'id':'sshVersion', 'type':'int', 'mode':'w'},
         {'id':'snmpAgent', 'type':'string', 'mode':''},
         {'id':'rackSlot', 'type':'int', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
-        {'id':'cpuType', 'type':'string', 'mode':'w'},
-        {'id':'totalMemory', 'type':'float', 'mode':'w'},
         {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
         ) 
 
 
-    _relations = Hardware._relations + (
+    _relations = ManagedEntity._relations + (
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
-        ("cpus", ToManyCont(ToOne, "CPU", "device")),
-        ("cards", ToManyCont(ToOne, "ExpansionCard", "device")),
-        ("harddisks", ToManyCont(ToOne, "HardDisk", "device")),
-        ("interfaces", ToManyCont(ToOne, "IpInterface", "device")),
-        ("routes", ToManyCont(ToOne, "IpRouteEntry", "device")),
-        ("ipservices", ToManyCont(ToOne, "IpService", "device")),
-        ("processes", ToManyCont(ToOne, "OSProcess", "device")),
-        ("filesystems", ToManyCont(ToOne, "FileSystem", "device")),
-        ("software", ToManyCont(ToOne, "Software", "device")),
         ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
         ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
         ("cricket", ToOne(ToMany, "CricketConf", "devices")),
@@ -174,12 +157,12 @@ class Device(Hardware, PingStatusInt, CricketDevice):
             'icon'           : 'Device_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDevice',
-            'immediate_view' : 'viewDeviceStatus',
+            'immediate_view' : 'deviceStatus',
             'actions'        :
             ( 
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
-                , 'action'        : 'viewDeviceStatus'
+                , 'action'        : 'deviceStatus'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -247,7 +230,11 @@ class Device(Hardware, PingStatusInt, CricketDevice):
     security = ClassSecurityInfo()
     
     def __init__(self, id):
-        Hardware.__init__(self, id)
+        ManagedEntity.__init__(self, id)
+        os = OperatingSystem()
+        self._setObject(os.id, os)
+        hw = DeviceHW()
+        self._setObject(hw.id, hw)
         #self.commandStatus = "Not Tested"
         self._snmpUpTime = ZenStatus(-1)
         self._lastPollSnmpUpTime = ZenStatus(0)
@@ -273,7 +260,31 @@ class Device(Hardware, PingStatusInt, CricketDevice):
         if id == 'snmpLastCollection':
             self.setSnmpLastCollection(value)
         else:    
-            Hardware._setPropValue(self, id, value)
+            ManagedEntity._setPropValue(self, id, value)
+
+
+    def getHWProductKey(self):
+        """Get our HW product by productKey.
+        """
+        return self.hw.getProductKey()
+
+
+    def getOSProductKey(self):
+        """Get our OS product by productKey.
+        """
+        return self.os.getProductKey()
+
+
+    def setOSProductKey(self, prodKey):
+        """Set our OS product by productKey.
+        """
+        self.os.setProductKey(prodKey)
+
+
+    def setHWProductKey(self, prodKey):
+        """Set our HW product by productKey.
+        """
+        self.hw.setProductKey(prodKey)
 
 
     security.declareProtected('View', 'getLocationName')
@@ -298,7 +309,7 @@ class Device(Hardware, PingStatusInt, CricketDevice):
 
     security.declareProtected('View', 'getOsVersion')
     def getOsVersion(self):
-        return self.osVersion
+        return self.os.version()
 
 
     security.declareProtected('View', 'getStatusMonitorNames')
@@ -353,34 +364,14 @@ class Device(Hardware, PingStatusInt, CricketDevice):
 
     security.declareProtected('View', 'getManageInterface')
     def getManageInterface(self):
-        """
-        Return the management interface of a device looks first
+        """Return the management interface of a device looks first
         for zManageInterfaceNames in aquisition path if not found
         uses default 'Loopback0' and 'Ethernet0' if none of these are found
         returns the first interface if there is any.
         """
-        intnames = getattr(self, 'zManageInterfaceNames')
-        for intname in intnames:
-            if hasattr(self.interfaces, intname):
-                return self.interfaces._getOb(intname)
-        ints = self.interfaces()
-        if len(ints):
-            return ints[0]
+        self.os.getManageInterface()
 
     
-    security.declareProtected('View', 'getDeviceInterfaceIndexDict')
-    def getDeviceInterfaceIndexDict(self):
-        """
-        Build a dictionary of interfaces keyed on ifindex
-        Used by SnmpCollector.CustomMaps.RouteMap to connect routes
-        with interfaces.
-        """
-        dict = {}
-        for i in self.interfaces.objectValuesAll():
-            dict[i.ifindex] = i
-        return dict
-
-
     security.declareProtected('View', 'uptimeStr')
     def uptimeStr(self):
         '''return a textual representation of the snmp uptime'''
@@ -413,9 +404,9 @@ class Device(Hardware, PingStatusInt, CricketDevice):
                 tag="", serialNumber="",
                 snmpCommunity="public", snmpPort=161,
                 rackSlot=0, productionState=1000, comments="",
-                manufacturer="", productName="", 
-                locationPath="", rack="",
-                groupPaths=[], systemPaths=[],
+                hwManufacturer="", hwProductName="", 
+                osManufacturer="", osProductName="", 
+                locationPath="", groupPaths=[], systemPaths=[],
                 statusMonitors=["localhost"], cricketMonitor="localhost",
                 REQUEST=None):
         """edit device relations and attributes"""
@@ -427,19 +418,19 @@ class Device(Hardware, PingStatusInt, CricketDevice):
         self.productionState = productionState
         self.comments = comments
 
-        if manufacturer and productName:
-            logging.info("setting manufacturer to %s productName to %s"
-                            % (manufacturer, productName))
-            self.setProduct(productName, manufacturer)
+        if hwManufacturer and hwProductName:
+            logging.info("setting hardware manufacturer to %s productName to %s"
+                            % (hwManufacturer, hwProductName))
+            self.hw.setProduct(hwProductName, hwManufacturer)
+
+        if osManufacturer and osProductName:
+            logging.info("setting os manufacturer to %s productName to %s"
+                            % (osManufacturer, osProductName))
+            self.os.setProduct(osProductName, osManufacturer)
 
         if locationPath: 
-            if rack:
-                locationPath += "/%s" % rack
-                logging.info("setting rack location to %s" % locationPath)
-                self.setRackLocation(locationPath)
-            else:
-                logging.info("setting location to %s" % locationPath)
-                self.setLocation(locationPath)
+            logging.info("setting location to %s" % locationPath)
+            self.setLocation(locationPath)
 
         if groupPaths: 
             logging.info("setting group %s" % groupPaths)
@@ -484,11 +475,31 @@ class Device(Hardware, PingStatusInt, CricketDevice):
     security.declareProtected('Change Device', 'addManufacturer')
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Manufacturers").getManufacturer(newManufacturerName)
+        self.getDmdRoot("Manufacturers").createManufacturer(newManufacturerName)
         if REQUEST:
             REQUEST['manufacturer'] = newManufacturerName
             REQUEST['message'] = ("Added Manufacturer %s at time:" 
                                     % newManufacturerName)
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Device', 'setHWProduct')
+    def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
+        """set the productName of this device"""
+        self.getDmdRoot("Manufacturers").createHardwareProduct(
+                                        newHWProductName, hwManufacturer)
+        if REQUEST:
+            REQUEST['hwProductName'] = newHWProductName
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Device', 'setOSProduct')
+    def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
+        """set the productName of this device"""
+        self.getDmdRoot("Manufacturers").createSoftwareProduct(
+                                        newOSProductName, osManufacturer)
+        if REQUEST:
+            REQUEST['osProductName'] = newOSProductName
             return self.callZenScreen(REQUEST)
 
 
@@ -731,12 +742,12 @@ class Device(Hardware, PingStatusInt, CricketDevice):
         """
         if item == self: 
             self.index_object()
-            Hardware.manage_afterAdd(self, item, container)
+            ManagedEntity.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
         """Not really sure when this is called."""
-        Hardware.manage_afterClone(self, item)
+        ManagedEntity.manage_afterClone(self, item)
         self.index_object()
 
 
@@ -746,7 +757,7 @@ class Device(Hardware, PingStatusInt, CricketDevice):
         Moving and renaming don't propagate.
         """
         if item == self or getattr(item, "_operation", -1) < 1: 
-            Hardware.manage_beforeDelete(self, item, container)
+            ManagedEntity.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
 
@@ -764,15 +775,4 @@ class Device(Hardware, PingStatusInt, CricketDevice):
             cat.uncatalog_object(self.getId())
 
 
-    security.declareProtected('View', 'summary')
-    def summary(self):
-        """build text summery of object for indexing"""
-        return (self.id + " " + 
-                self.tag + " " +
-                self.serialNumber + " " +
-                self.snmpDescr + " " +
-                self.snmpContact + " " +
-                self.snmpLocation + " " +
-                self.osVersion)
-  
 InitializeClass(Device)

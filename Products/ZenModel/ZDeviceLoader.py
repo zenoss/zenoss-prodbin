@@ -84,9 +84,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             tag="", serialNumber="",
             snmpCommunity="public", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
-            manufacturer="", productName="", 
-            locationPath="", rack="",
-            groupPaths=[], systemPaths=[],
+            hwManufacturer="", hwProductName="", 
+            osManufacturer="", osProductName="", 
+            locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
             REQUEST = None):
         """
@@ -103,15 +103,15 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         try:
             device = manage_createDevice(self, deviceName, devicePath,
                 tag, serialNumber,
-                snmpCommunity, snmpPort, 
+                snmpCommunity, snmpPort,
                 rackSlot, productionState, comments,
-                manufacturer, productName, 
-                locationPath, rack,
-                groupPaths, systemPaths, 
+                hwManufacturer, hwProductName, 
+                osManufacturer, osProductName, 
+                locationPath, groupPaths, systemPaths,
                 statusMonitors, cricketMonitor,
                 REQUEST)
         except:
-            logging.exception('load of device %s failed' % device)
+            logging.exception('load of device %s failed' % deviceName)
         else:
             device.collectConfig(wrap=False, REQUEST=REQUEST)
             logging.info("device %s loaded!" % deviceName)
@@ -122,19 +122,29 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def addManufacturer(self, newManufacturerName, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Manufacturers").getManufacturer(newManufacturerName)
+        self.getDmdRoot("Manufacturers").createManufacturer(newManufacturerName)
         if REQUEST:
             REQUEST['manufacturer'] = newManufacturerName
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setProduct')
-    def setProduct(self, newProductName, manufacturer, REQUEST=None):
+    security.declareProtected('Change Device', 'setHWProduct')
+    def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
         """set the productName of this device"""
         self.getDmdRoot("Manufacturers").createHardwareProduct(
-                                        newProductName, manufacturer)
+                                        newHWProductName, hwManufacturer)
         if REQUEST:
-            REQUEST['productName'] = newProductName
+            REQUEST['hwProductName'] = newHWProductName
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Device', 'setOSProduct')
+    def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
+        """set the productName of this device"""
+        self.getDmdRoot("Manufacturers").createSoftwareProduct(
+                                        newOSProductName, osManufacturer)
+        if REQUEST:
+            REQUEST['osProductName'] = newOSProductName
             return self.callZenScreen(REQUEST)
 
 

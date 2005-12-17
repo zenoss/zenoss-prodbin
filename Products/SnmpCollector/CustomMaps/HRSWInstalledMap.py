@@ -18,6 +18,10 @@ from CustomRelMap import CustomRelMap
 
 class HRSWInstalledMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.Software"
+    relationshipName = "software"
+    componentName = "os"
+
     swTableOid = '.1.3.6.1.2.1.25.6.3.1'
     swMap = {
             '.1': 'snmpindex',
@@ -25,13 +29,6 @@ class HRSWInstalledMap(CustomRelMap):
              #'.4': 'type',
              #'.5': 'setInstallDate',
              }
-
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'software', 
-                                'Products.ZenModel.Software')
-
 
 
     def condition(self, device, snmpsess, log):

@@ -18,6 +18,10 @@ from CustomRelMap import CustomRelMap
 
 class HRFileSystemMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.FileSystem"
+    relationshipName = "filesystems"
+    componentName = "os"
+
     fsTableOid = '.1.3.6.1.2.1.25.2.3.1'
     fsMap = {
             '.1': 'snmpindex',
@@ -27,13 +31,6 @@ class HRFileSystemMap(CustomRelMap):
              '.5': 'totalBlocks',
              '.6': 'usedBlocks',
              }
-
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'filesystems', 
-                                'Products.ZenModel.FileSystem')
-
 
 
     def condition(self, device, snmpsess, log):

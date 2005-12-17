@@ -35,6 +35,14 @@ class Hardware(MEProduct):
     """Hardware object"""
     portal_type = meta_type = 'Hardware'
 
+    tag = ""
+    serialNumber = ""
+
+    _properties = MEProduct._properties + (
+        {'id':'tag', 'type':'string', 'mode':'w'},
+        {'id':'serialNumber', 'type':'string', 'mode':'w'},
+    )
+
     security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'setProduct')
@@ -51,6 +59,14 @@ class Hardware(MEProduct):
             REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
                                     % (manufacturer, productName))
             return self.callZenScreen(REQUEST)
+
+
+    def setProductKey(self, prodKey):
+        """Set the product class of this software by its productKey.
+        """
+        self.productKey = prodKey
+        prodobj=self.getDmdRoot("Manufacturers").createHardwareProduct(prodKey)
+        prodobj.instances.addRelation(self)
 
     
 InitializeClass(Hardware)

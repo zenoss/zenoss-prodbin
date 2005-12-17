@@ -9,12 +9,15 @@ __doc__="""ManagedEntity
 $Id: DeviceComponent.py,v 1.1 2004/04/06 21:05:03 edahl Exp $"""
 
 from ZenModelRM import ZenModelRM
+from DeviceResultInt import DeviceResultInt
 from EventView import EventView
 from CricketView import CricketView
 
+from Acquisition import aq_base
+
 from Products.ZenRelations.RelSchema import *
 
-class ManagedEntity(ZenModelRM, EventView, CricketView):
+class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, CricketView):
     """
     ManagedEntity is an entity in the system that is managed by it.
     Its basic property is that it can be classified by the ITClass Tree.
@@ -38,3 +41,10 @@ class ManagedEntity(ZenModelRM, EventView, CricketView):
         ("dependenices", ToMany(ToMany, "ManagedEntity", "dependants")),
         ("dependants", ToMany(ToMany, "ManagedEntity", "dependenices")),
     )
+    
+    def getDevice(self):
+        """If this ManagedEntity as some relation to Device provide 
+        the DeviceResultInt so that it can be listed with device info.
+        """
+        if getattr(aq_base(self), 'device', False):
+            return self.device()

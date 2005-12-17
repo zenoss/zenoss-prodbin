@@ -20,7 +20,9 @@ def zhelp():
 
 def reindex():
     sync()
-    dmd.Devices.reIndexDevices(True)
+    dmd.Devices.reIndex()
+    #dmd.Events.reIndex()
+    dmd.Manufacturers.reIndex()
     commit()
 
 print "Welcome to zenmon dmd command shell!"

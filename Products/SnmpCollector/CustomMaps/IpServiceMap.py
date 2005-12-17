@@ -18,15 +18,14 @@ from CustomRelMap import CustomRelMap
 
 class IpServiceMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.IpService"
+    relationshipName = "ipservices"
+    componentName = "os"
+
     connTcpStateOid = '.1.3.6.1.2.1.6.13.1.1'
     connUdpOid = '.1.3.6.1.2.1.7.5.1.1'
     
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'ipservices', 'Products.ZenModel.IpService')
-
-
+    
     def condition(self, device, snmpsess, log):
         """does device meet the proper conditions for this collector to run"""
         return 1

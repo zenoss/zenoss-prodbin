@@ -315,7 +315,7 @@ class DeviceClass(DeviceOrganizer):
         manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
 
 
-    def reIndexDevices(self, interfaces=False):
+    def reIndex(self, interfaces=True):
         """Go through all devices in this tree and reindex them."""
         for dev in self.getSubDevicesGen():
             dev.unindex_object()

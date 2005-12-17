@@ -18,18 +18,16 @@ from CustomRelMap import CustomRelMap
 
 class SysedgeDiskMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.HardDisk"
+    relationshipName = "harddisks"
+    componentName = "hw"
+
     hrDeviceDescr = "1.3.6.1.2.1.25.3.2.1.3"
     diskStatsTable = "1.3.6.1.4.1.546.12.1.1"
     diskMap = {
         '.1':'snmpindex',
         '.9':'hostresindex',
         }
-
-    prepId = re.compile(r'[^a-zA-Z0-9-_.]')
-
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'harddisks', 'Products.ZenModel.HardDisk')
 
 
     def condition(self, device, snmpsess, log):

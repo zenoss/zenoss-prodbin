@@ -6,14 +6,12 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
-from Acquisition import aq_base
 
 from ManagedEntity import ManagedEntity
-from DeviceResultInt import DeviceResultInt
 
 from Products.ZenRelations.RelSchema import *
 
-class MEProduct(ManagedEntity, DeviceResultInt):
+class MEProduct(ManagedEntity):
     """
     MEProduct is a ManagedEntity that needs to track is manufacturer.
     For instance software and hardware.
@@ -53,10 +51,13 @@ class MEProduct(ManagedEntity, DeviceResultInt):
             return self.productClass().manufacturer.getPrimaryLink()
         return ""
 
-
-    def getDevice(self):
-        if getattr(aq_base(self), 'device', False):
-            return self.device()
+    
+    def getProductKey(self):
+        """Get the product class of this software.
+        """
+        pclass = self.productClass()
+        if pclass: return pclass.productKey
+        return ""
 
 
 

@@ -18,8 +18,8 @@ class SysedgeMap(CustomMap):
 
     sysedgeMap = {
              '.1.3.6.1.4.1.546.1.1.1.8.0':'snmpAgent',
-             '.1.3.6.1.4.1.546.1.1.1.17.0':'snmpSysedgeMode',
-             '.1.3.6.1.2.1.25.6.3.1.2.1':'osVersion',
+             '.1.3.6.1.4.1.546.1.1.1.17.0':'sysedgeLicenseMode',
+             '.1.3.6.1.2.1.25.6.3.1.2.1':'setOSProductKey',
              }
 
 

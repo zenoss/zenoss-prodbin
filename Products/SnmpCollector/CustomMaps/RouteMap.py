@@ -20,6 +20,10 @@ from CustomRelMap import CustomRelMap
 
 class RouteMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.IpRouteEntry"
+    relationshipName = "routes"
+    componentName = "os"
+
     routeTableOid = '.1.3.6.1.2.1.4.21.1'
     routeMap = {
              '.1': 'id',
@@ -36,13 +40,6 @@ class RouteMap(CustomRelMap):
              #'.12': 'metric5',
              }
 
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'routes', 'Products.ZenModel.IpRouteEntry')
-
-
-
     def condition(self, device, snmpsess, log):
         """does device meet the proper conditions for this collector to run"""
         return 1
@@ -58,7 +55,7 @@ class RouteMap(CustomRelMap):
                                                   self.routeMap, bulk)
         #routetable = snmpsess.snmpTableMap(routetable, self.routeMap)
         networks = device.Networks #aq
-        ifdict = device.getDeviceInterfaceIndexDict()
+        ifdict = device.os.getInterfaceIndexDict()
         localOnly = getattr(device, 'zRouteMapCollectOnlyLocal', 1)
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', 1)
         datamaps = []

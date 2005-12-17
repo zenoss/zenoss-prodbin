@@ -109,21 +109,8 @@
         </tr>
         <tr><th class=tabletitle colspan=4 align="left">Relations</th></tr>
         <tr>
-            <td class="tableheader" align="left">Manufacturer</td>
-            <td class="tablevalues" align="left" >
-                <select class="tablevalues" name="manufacturer"
-                tal:define="
-                comps python:here.getDmdRoot('Manufacturers').getManufacturerNames();
-                curman request/manufacturer | device/getManufacturerName |  nothing"
-                tal:attributes="onchange string:getProducts(this)"
-                >
-                    <option tal:repeat="comp comps" 
-                        tal:attributes="value comp;selected python:comp==curman"
-                        tal:content="comp">Apple</option>
-                </select>
-            </td>
             <td class="tableheader" align="left">New Manufacturer</td>
-            <td class="tablevalues" align="left">
+            <td class="tablevalues" align="left" colspan="3">
                 <input class="tablevalues" type="text" 
                     size="25" name="newManufacturerName" />
                 <input class="tableheader" type="submit" 
@@ -131,25 +118,77 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">Product</td>
-            <td class="tablevalues" align="left" >
-                <select class="tablevalues" id="model" name="productName"
+            <td class="tableheader" align="left">HW Manufacturer</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <select class="tablevalues" name="hwManufacturer"
                 tal:define="
-                cname request/manufacturer | device/getManufacturerName |  string:;
+                comps python:here.getDmdRoot('Manufacturers').getManufacturerNames();
+                curman device/hw/getManufacturerName | request/hwManufacturer | nothing"
+                tal:attributes="onchange string:getProducts(this,'hwprod')"
+                >
+                    <option value=""></option>
+                    <option tal:repeat="comp comps" 
+                        tal:attributes="value comp;selected python:comp==curman"
+                        tal:content="comp">Apple</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">HW Product</td>
+            <td class="tablevalues" align="left">
+                <select class="tablevalues" id="hwprod" name="hwProductName"
+                tal:define="
+                cname device/hw/getManufacturerName | request/hwManufacturer | string:;
                 prods python:here.getDmdRoot('Manufacturers').getProductNames(cname);
-                curprod device/getProductName | request/productName | nothing"
+                curprod device/hw/getProductName | request/hwProductName | nothing"
                 >
                     <option tal:repeat="prod prods" 
                         tal:attributes="value prod;selected python:prod==curprod"
                         tal:content="prod">PowerBook</option>
                 </select>
             </td>
-            <td class="tableheader" align="left">New Product</td>
-            <td class="tablevalues" align="left">
+            <td class="tablevalues" colspan="2">
                 <input class="tablevalues" type="text" 
-                    size="25" name="newProductName" />
+                    size="15" name="newHWProductName" />
                 <input class="tableheader" type="submit" 
-                    name="setProduct:method" value="Add" />
+                    name="setHWProduct:method" value="Add" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">OS Manufacturer</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <select class="tablevalues" name="osManufacturer"
+                tal:define="
+                comps python:here.getDmdRoot('Manufacturers').getManufacturerNames();
+                curman request/osManufacturer | device/os/getManufacturerName |  nothing"
+                tal:attributes="onchange string:getProducts(this,'osprod')"
+                >
+                    <option value=""></option>
+                    <option tal:repeat="comp comps" 
+                        tal:attributes="value comp;selected python:comp==curman"
+                        tal:content="comp">Apple</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">OS Product</td>
+            <td class="tablevalues" align="left">
+                <select class="tablevalues" id="osprod" name="osProductName"
+                tal:define="
+                cname request/osManufacturer | device/os/getManufacturerName | string:;
+                prods python:here.getDmdRoot('Manufacturers').getProductNames(cname);
+                curprod device/os/getProductName | request/osProductName | nothing"
+                >
+                    <option tal:repeat="prod prods" 
+                        tal:attributes="value prod;selected python:prod==curprod"
+                        tal:content="prod">PowerBook</option>
+                </select>
+            </td>
+            <td class="tablevalues" colspan="2">
+                <input class="tablevalues" type="text" 
+                    size="15" name="newOSProductName" />
+                <input class="tableheader" type="submit" 
+                    name="setOSProduct:method" value="Add" />
             </td>
         </tr>
         <tr>

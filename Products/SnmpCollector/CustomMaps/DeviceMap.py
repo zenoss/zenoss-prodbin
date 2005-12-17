@@ -27,6 +27,10 @@ class DeviceMap(CustomMap):
              '.1.3.6.1.2.1.1.6.0' : 'snmpLocation',
              }
 
+    osregex = (
+        re.compile(r'- Software: (.+) \(Build'),    # windows
+        re.compile(r'(\S+) \S+ (\S+)'),             # unix
+    )
 
     def condition(self, device, snmpsess, log):
         """does device meet the proper conditions for this collector to run"""
@@ -44,6 +48,14 @@ class DeviceMap(CustomMap):
         if retdata['snmpOid'].find('.1.3.6.1.4.1.9') == 0:
             match = self.ciscoVersion.search(retdata['snmpDescr'])
             if match: retdata['osVersion'] = match.group('ver')
+
+        descr = retdata['snmpDescr']
+        for regex in self.osregex:
+            m = regex.search(descr)
+            if m: 
+                retdata['setOSProductKey'] = " ".join(m.groups())
+                break
+
         # allow for custom parse of DeviceMap data
         scDeviceMapParse = getattr(device, 'scDeviceMapParse', None)
         if scDeviceMapParse:

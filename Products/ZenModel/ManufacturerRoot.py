@@ -15,6 +15,8 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 
 import logging
 
+import transaction
+
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import Permissions as permissions
@@ -160,6 +162,15 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
             manufobj.products._setObject(prod.id, prod)
             prod = manufobj.products._getOb(prod.id)
         return prod 
+
+
+    def reIndex(self):
+        """Go through all devices in this tree and reindex them."""
+        for i, manuf in enumerate(self.values(spec="Manufacturer")):
+            for prod in manuf.products():
+                prod.unindex_object()
+                prod.index_object()
+            if not i % 1000: transaction.savepoint()
 
 
     def createCatalog(self):

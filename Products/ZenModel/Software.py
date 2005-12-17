@@ -115,16 +115,9 @@ class Software(MEProduct):
     def setProductKey(self, prodKey):
         """Set the product class of this software by its productKey.
         """
+        self.productKey = prodKey
         prodobj=self.getDmdRoot("Manufacturers").createSoftwareProduct(prodKey)
         prodobj.instances.addRelation(self)
-
-
-    def getProductKey(self):
-        """Get the product class of this software.
-        """
-        pclass = self.productClass()
-        if pclass: return pclass.productKey
-        return ""
 
 
     def name(self):

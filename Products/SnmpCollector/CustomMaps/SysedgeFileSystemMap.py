@@ -18,6 +18,10 @@ from CustomRelMap import CustomRelMap
 
 class SysedgeFileSystemMap(CustomRelMap):
 
+    remoteClass = "Products.ZenModel.FileSystem"
+    relationshipName = "filesystems"
+    componentName = "os"
+
     fsTableOid = '.1.3.6.1.4.1.546.1.1.1.7.1'
     fsMap = {
             '.1': 'snmpindex',
@@ -33,12 +37,6 @@ class SysedgeFileSystemMap(CustomRelMap):
              '.14': 'capacity',
              '.15': 'inodeCapacity',
              }
-
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
-    def __init__(self):
-        CustomRelMap.__init__(self, 'filesystems', 'Products.ZenModel.FileSystem')
-
 
 
     def condition(self, device, snmpsess, log):

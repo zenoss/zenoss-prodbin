@@ -13,7 +13,11 @@ $Id: CustomMap.py,v 1.4 2003/03/11 23:30:18 edahl Exp $"""
 
 __version__ = '$Revision: 1.4 $'[11:-2]
 
+import re
+
 class CustomMap:
+
+    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
     def condition(self, device, snmpsess):
         """does device meet the proper conditions for this collector to run"""

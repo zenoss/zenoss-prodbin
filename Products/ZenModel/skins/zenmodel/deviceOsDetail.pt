@@ -3,7 +3,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="interfaceList"
     tal:define="tableName string:interfacelist;
-    objects here/interfaces/objectValuesAll;
+    objects here/os/interfaces/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
       <th class="tabletitle" align="left" colspan="10">
@@ -89,7 +89,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
-    objects here/ipservices/objectValuesAll;
+    objects here/os/ipservices/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort');"
     tal:condition="objects">
@@ -142,7 +142,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
-    objects here/filesystems/objectValuesAll;
+    objects here/os/filesystems/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');"
     tal:condition="objects">
@@ -208,7 +208,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
-    objects here/routes/objectValuesAll;
+    objects here/os/routes/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
       <th class="tabletitle" align="left" colspan="12">

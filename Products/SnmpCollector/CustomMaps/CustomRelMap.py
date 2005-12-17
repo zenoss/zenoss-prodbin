@@ -17,7 +17,6 @@ from CustomMap import CustomMap
 
 class CustomRelMap(CustomMap):
 
-    def __init__(self, relationshipName, remoteClass):
-        """for a relmap must have these two variables"""
-        self.relationshipName = relationshipName
-        self.remoteClass = remoteClass
+    remoteClass = ""
+    relationshipName = ""
+    componentName = ""
