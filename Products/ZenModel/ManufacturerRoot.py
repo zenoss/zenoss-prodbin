@@ -116,13 +116,12 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         return self.objectIds(spec=("Manufacturer"))
 
 
-    def getProductNames(self, ManufacturerName):
+    def getProductNames(self, mname, type=None):
         """return a list of all products this Manufacturer makes"""
         prods = [""]
-        if hasattr(self, ManufacturerName):
-            Manufacturer = self.getManufacturer(ManufacturerName)
-            prods.extend(map(lambda x: x.getId(),
-                Manufacturer.products.objectValuesAll()))
+        if hasattr(self, mname):
+            manuf = self.getManufacturer(mname)
+            prods.extend(manuf.products.objectIds(spec=type))
         prods.sort()
         return prods
 

@@ -31,9 +31,9 @@ class DeviceHW(Hardware):
     )
 
     _relations = Hardware._relations + (
-        ("cpus", ToManyCont(ToOne, "CPU", "device")),
-        ("cards", ToManyCont(ToOne, "ExpansionCard", "device")),
-        ("harddisks", ToManyCont(ToOne, "HardDisk", "device")),
+        ("cpus", ToManyCont(ToOne, "CPU", "hw")),
+        ("cards", ToManyCont(ToOne, "ExpansionCard", "hw")),
+        ("harddisks", ToManyCont(ToOne, "HardDisk", "hw")),
     )
 
     security = ClassSecurityInfo()

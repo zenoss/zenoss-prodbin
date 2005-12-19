@@ -42,9 +42,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, CricketView):
         ("dependants", ToMany(ToMany, "ManagedEntity", "dependenices")),
     )
     
-    def getDevice(self):
-        """If this ManagedEntity as some relation to Device provide 
-        the DeviceResultInt so that it can be listed with device info.
+    def device(self):
+        """Overridden in lower classes if a device relationship exists.
         """
-        if getattr(aq_base(self), 'device', False):
-            return self.device()
+        return None

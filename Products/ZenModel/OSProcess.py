@@ -16,7 +16,7 @@ class OSProcess(OSComponent):
     portal_type = meta_type = 'OSProcess'
 
     _relations = OSComponent._relations + (
-        ("device", ToOne(ToManyCont, "Device", "processes")),
+        ("os", ToOne(ToManyCont, "OperatingSystem", "processes")),
     )
 
     security = ClassSecurityInfo()

@@ -43,7 +43,7 @@ class Software(MEProduct):
     )
 
     _relations = MEProduct._relations + (
-        ("device", ToOne(ToManyCont, "Device", "software")),
+        ("os", ToOne(ToManyCont, "OperatingSystem", "software")),
     )
 
     factory_type_information = ( 
@@ -172,4 +172,10 @@ class Software(MEProduct):
         return self._installDate.getString()
 
 
+    def device(self):
+        """Return our Device for DeviceResultInt.
+        """
+        return self.os().device()
+
+    
 InitializeClass(Software)

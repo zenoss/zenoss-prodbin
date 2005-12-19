@@ -28,6 +28,10 @@ def checkRelationshipSchema(cls, baseModule):
             logging.critical("Inverse def '%s' for '%s.%s' not found on '%s'",
                 rel.remoteName, cls.__name__, relname,rel.remoteClass)
             continue
+        except Exception, e:
+            logging.critical("RemoteClass '%s' for '%s.%s' problem.",
+                rel.remoteName, cls.__name__, relname)
+            logging.critical(e)
         try:
             localClass = importClass(rschema.remoteClass, baseModule)
         except AttributeError, e:

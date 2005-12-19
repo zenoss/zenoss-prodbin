@@ -140,7 +140,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """only return contained objects"""
         if spec:
             if type(spec)==type('s'): spec=[spec]
-            return [obj for obj in self._objects.values() \
+            return [obj.id for obj in self._objects.values() \
                         if obj.meta_type in spec]
         return self._objects.keys()
     objectIdsAll = objectIds

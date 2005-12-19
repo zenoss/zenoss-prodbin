@@ -120,11 +120,17 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.clearLog()
 
 
-    def addManufacturer(self, newManufacturerName, REQUEST=None):
+    def addManufacturer(self, newHWManufacturerName=None, 
+                        newSWManufacturerName=None, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Manufacturers").createManufacturer(newManufacturerName)
+        mname = newHWManufacturerName
+        field = 'hwManufacturer'
+        if not mname: 
+            mname = newSWManufacturerName
+            field = 'osManufacturer'
+        self.getDmdRoot("Manufacturers").createManufacturer(mname)
         if REQUEST:
-            REQUEST['manufacturer'] = newManufacturerName
+            REQUEST[field] = mname
             return self.callZenScreen(REQUEST)
 
 
@@ -148,7 +154,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setLocation')
+    security.declareProtected('Change Device', 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """add a location to the database"""
         self.getDmdRoot("Locations").createOrganizer(newLocationPath)

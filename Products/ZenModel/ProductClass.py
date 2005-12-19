@@ -16,6 +16,7 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 import re
 
 from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
@@ -64,6 +65,11 @@ class ProductClass(ZenModelRM):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editProductClass'
+                , 'permissions'   : ("Manage DMD", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -73,6 +79,8 @@ class ProductClass(ZenModelRM):
             )
           },
         )
+    
+    security = ClassSecurityInfo()
     
 
     def __init__(self, id, title="", productKey="", 
@@ -136,5 +144,20 @@ class ProductClass(ZenModelRM):
             cat.uncatalog_object(self.productKey)
 
 
-    
+    security.declareProtected('Manage DMD', 'manage_editProductClass')
+    def manage_editProductClass(self, productKey="", partNumber="", 
+                                description="", REQUEST=None):
+        """
+        Edit a ProductClass from a web page.
+        """
+        self.unindex_object()
+        self.productKey = productKey
+        self.partNumber = partNumber
+        self.description = description        
+        self.index_object()
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
+   
+
 InitializeClass(ProductClass)

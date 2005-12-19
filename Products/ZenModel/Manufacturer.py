@@ -15,7 +15,7 @@ __version__ = "$Revision: 1.11 $"[11:-2]
 import types
 
 from Globals import DTMLFile, InitializeClass
-
+from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
@@ -74,18 +74,24 @@ class Manufacturer(ZenModelRM):
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewManufacturerOverview'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editManufacturer'
+                , 'permissions'   : ("Manage DMD", )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
             )
           },
         )
+
+    security = ClassSecurityInfo()
+
 
     def count(self):
         """Return the number of products for this manufacturer.
@@ -154,6 +160,25 @@ class Manufacturer(ZenModelRM):
         prods.sort()
         return prods
 
+
+    security.declareProtected('Manage DMD', 'manage_editManufacturer')
+    def manage_editManufacturer(self, id='',
+                url = '', supportNumber = '',
+                address1 = '', address2 = '',
+                city = '', state = '', zip = '', REQUEST=None):
+        """
+        Edit a Manufacturer from a web page.
+        """
+        self.url = url
+        self.supportNumber = supportNumber
+        self.address1 = address1
+        self.address2 = address2
+        self.city = city
+        self.state = state
+        self.zip = zip
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
 
 
 InitializeClass(Manufacturer)

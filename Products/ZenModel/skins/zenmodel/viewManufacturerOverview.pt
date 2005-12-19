@@ -76,7 +76,8 @@
   </tr>
   <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="4">
-      <input class="tableheader" type="text" name="prodName"/>
+      <input class="tableheader" type="text" name="prodName"
+        onkeypress="return submitViaEnter(event);"/>
       <input class="tableheader" type="submit" 
           name="manage_addHardware:method" value="Add Hardware" /> 
       <input class="tableheader" type="submit" 

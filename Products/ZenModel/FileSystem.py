@@ -54,7 +54,7 @@ class FileSystem(OSComponent):
         {'id':'maxNameLen', 'type':'int', 'mode':''},
         )
     _relations = OSComponent._relations + (
-        ("device", ToOne(ToManyCont, "Device", "filesystems")),
+        ("os", ToOne(ToManyCont, "OperatingSystem", "filesystems")),
         )
     
 

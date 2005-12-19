@@ -55,7 +55,7 @@ class IpRouteEntry(OSComponent):
         {'id':'metric5', 'type':'int', 'mode':''},
         ) 
     _relations = OSComponent._relations + (
-        ("device", ToOne(ToManyCont,"Device","routes")),
+        ("os", ToOne(ToManyCont,"OperatingSystem","routes")),
         ("interface", ToOne(ToMany,"IpInterface","iproutes")),
         ("nexthop", ToOne(ToMany,"IpAddress","clientroutes")),
         )

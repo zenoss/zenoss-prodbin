@@ -32,7 +32,7 @@ class CPU(HWComponent):
     )    
     
     _relations = HWComponent._relations + (
-        ("device", ToOne(ToManyCont, "Device", "cpus")),
+        ("hw", ToOne(ToManyCont, "DeviceHW", "cpus")),
         )
 
     

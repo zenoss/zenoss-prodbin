@@ -24,12 +24,12 @@ from Exceptions import *
 class OperatingSystem(Software):
 
     _relations = Software._relations + (
-        ("interfaces", ToManyCont(ToOne, "IpInterface", "device")),
-        ("routes", ToManyCont(ToOne, "IpRouteEntry", "device")),
-        ("ipservices", ToManyCont(ToOne, "IpService", "device")),
-        ("processes", ToManyCont(ToOne, "OSProcess", "device")),
-        ("filesystems", ToManyCont(ToOne, "FileSystem", "device")),
-        ("software", ToManyCont(ToOne, "Software", "device")),
+        ("interfaces", ToManyCont(ToOne, "IpInterface", "os")),
+        ("routes", ToManyCont(ToOne, "IpRouteEntry", "os")),
+        ("ipservices", ToManyCont(ToOne, "IpService", "os")),
+        ("processes", ToManyCont(ToOne, "OSProcess", "os")),
+        ("filesystems", ToManyCont(ToOne, "FileSystem", "os")),
+        ("software", ToManyCont(ToOne, "Software", "os")),
     )
 
     security = ClassSecurityInfo()
@@ -67,6 +67,12 @@ class OperatingSystem(Software):
         for i in self.interfaces.objectValuesAll():
             dict[i.ifindex] = i
         return dict
+
+
+    def device(self):
+        """Return our Device object for DeviceResultInt.
+        """
+        return self.getPrimaryParent()
 
 
 InitializeClass(OperatingSystem)

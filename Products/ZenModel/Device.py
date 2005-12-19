@@ -145,7 +145,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
-        ("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
+        #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -473,14 +473,21 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
 
 
     security.declareProtected('Change Device', 'addManufacturer')
-    def addManufacturer(self, newManufacturerName, REQUEST=None):
+    def addManufacturer(self, newHWManufacturerName=None, 
+                        newSWManufacturerName=None, REQUEST=None):
         """add a manufacturer to the database"""
-        self.getDmdRoot("Manufacturers").createManufacturer(newManufacturerName)
+        mname = newHWManufacturerName
+        field = 'hwManufacturer'
+        if not mname: 
+            mname = newSWManufacturerName
+            field = 'osManufacturer'
+        self.getDmdRoot("Manufacturers").createManufacturer(mname)
         if REQUEST:
-            REQUEST['manufacturer'] = newManufacturerName
-            REQUEST['message'] = ("Added Manufacturer %s at time:" 
-                                    % newManufacturerName)
+            REQUEST[field] = mname
+            REQUEST['message'] = ("Added Manufacturer %s at time:" % mname)
             return self.callZenScreen(REQUEST)
+
+
 
 
     security.declareProtected('Change Device', 'setHWProduct')
@@ -615,8 +622,8 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     # Private getter functions that implement DeviceResultInt
     ####################################################################
 
-    security.declareProtected('View', 'getDevice')
-    def getDevice(self):
+    security.declareProtected('View', 'device')
+    def device(self):
         """support DeviceResultInt mixin class"""
         return self
 

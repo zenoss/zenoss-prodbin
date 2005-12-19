@@ -49,7 +49,7 @@ class IpService(Service):
         {'id':'discoveryAgent', 'type':'string', 'mode':''},
         ) 
     _relations = Service._relations + (
-        ("device", ToOne(ToManyCont,"Device","ipservices")),
+        ("os", ToOne(ToManyCont,"OperatingSystem","ipservices")),
         ("ipserviceclass", ToOne(ToMany,"IpServiceClass","ipservices")),
         )
 

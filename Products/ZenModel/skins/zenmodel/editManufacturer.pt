@@ -1,0 +1,76 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="6"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="id" size="25"
+            tal:attributes="value here/id" />
+        </td>
+        <td class="tableheader">Phone</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="supportNumber" size="15"
+            tal:attributes="value here/supportNumber"/>
+        </td> 
+        <td class="tablevalues" colspan="2"></td>
+    </tr>
+    <tr>
+        <td class="tableheader">URL</td>
+        <td class="tablevalues" colspan="5">
+        <input class="tablevalues" type="text" name="url" size="40"
+            tal:attributes="value here/url" />
+        </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Address 1</td>
+      <td class="tablevalues" colspan="5">
+        <input class="tablevalues" type="text" name="address1" size="40"
+            tal:attributes="value here/address1"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Address 2</td>
+      <td class="tablevalues" colspan="5">
+        <input class="tablevalues" type="text" name="address2" size="40"
+            tal:attributes="value here/address2"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">City</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="city" size="25"
+            tal:attributes="value here/city"/>
+      </td>
+      <td class="tableheader">State</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="state" size="2"
+            tal:attributes="value here/state"/>
+      </td>
+      <td class="tableheader">Zip</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="zip" size="10"
+            tal:attributes="value here/zip"/>
+      </td>
+    </tr>
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td align="left"  class="tableheader" colspan="5">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editManufacturer:method" />
+        </td>
+    </tr>
+</table>
+</form>
+
+</tal:block>
+</tal:block>

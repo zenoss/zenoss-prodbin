@@ -49,7 +49,7 @@ class HardDisk(HWComponent):
                 )    
 
     _relations = HWComponent._relations + (
-        ("device", ToOne(ToManyCont, "Device", "harddisks")),
+        ("hw", ToOne(ToManyCont, "DeviceHW", "harddisks")),
         )
 
     

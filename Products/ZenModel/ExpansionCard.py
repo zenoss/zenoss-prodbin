@@ -28,7 +28,7 @@ class ExpansionCard(HWComponent):
     clockspeed = ""
 
     _relations = HWComponent._relations + (
-        ("device", ToOne(ToManyCont, "Device", "cards")),
+        ("hw", ToOne(ToManyCont, "DeviceHW", "cards")),
         )
 
     

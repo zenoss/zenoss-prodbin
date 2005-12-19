@@ -74,7 +74,7 @@ class IpInterface(OSComponent, PingStatusInt):
         {'id':'operStatus', 'type':'int', 'mode':'w'},
         )
     _relations = OSComponent._relations + (
-        ("device", ToOne(ToManyCont,"Device","interfaces")),
+        ("os", ToOne(ToManyCont,"OperatingSystem","interfaces")),
         ("ipaddresses", ToMany(ToOne,"IpAddress","interface")),
         ("iproutes", ToMany(ToOne,"IpRouteEntry","interface")),
         )
@@ -189,7 +189,7 @@ class IpInterface(OSComponent, PingStatusInt):
         ipobj = findIpAddress(self, ip)
         if ipobj:
             if hasattr(ipobj, 'interface'):
-                dev = ipobj.getDevice()
+                dev = ipobj.device()
                 if dev and dev != self.device():
                     logging.warn(
                         "When adding IP Address %s to %s found it on device %s",

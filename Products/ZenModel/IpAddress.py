@@ -96,7 +96,6 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
     def __init__(self, id, netmask=24):
         checkip(id)
         ManagedEntity.__init__(self, id)
-        self._pingStatus = None
         self._netmask = maskToBits(netmask)
         self.reverseName = ""
 
@@ -121,14 +120,7 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
 
 
     def __getattr__(self, name):
-        if name == 'device':
-            return self.getDevice()
-        elif name == 'deviceName':
-            d = self.getDevice()
-            if d:
-                return d.id
-            return None
-        elif name == 'netmask':
+        if name == 'netmask':
             return self._netmask
         else:
             raise AttributeError, name
@@ -190,19 +182,11 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
         return ""
 
 
-    def getDevice(self):
-        """get the device for this ip for DeviceResultInt"""
-        if self.interface():
-            return self.interface().device()
+    def device(self):
+        """Reuturn the device for this ip for DeviceResultInt"""
+        int = self.interface()
+        if int: return int.device()
         return None
-
-
-    def trackStatus(self, off=0):
-        """manage tracking ping status on this ip address"""
-        if off:
-            self._pingStatus = None
-        else:
-            self._pingStatus = ZenStatus(-1)
 
 
     def manage_afterAdd(self, item, container):

@@ -44,7 +44,8 @@
     </tr>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="4">
-        <input class="tableheader" type="text" name="manufacturerName"/>
+        <input class="tableheader" type="text" name="manufacturerName"
+           onkeypress="return submitViaEnter(event,'manage_addManufacturer');"/>
         <input class="tableheader" type="submit" 
             name="manage_addManufacturer:method" value=" Add " /> 
         |

@@ -33,13 +33,14 @@ function submitAction(myform, url) {
     myform.submit()
 }
 
-function submitViaEnter(evt) {
+function submitViaEnter(evt, submitName) {
     evt = (evt) ? evt : event;
     var target = (evt.target) ? evt.target : evt.srcElement;
     var form = target.form;
     var charCode = (evt.charCode) ? evt.charCode : 
         ((evt.which) ? evt.which : evt.keyCode);
     if (charCode == 13 || charCode == 3) {
+        if (submitName) { form.action += "/" + submitName }
         form.submit();
         return false;
     }
