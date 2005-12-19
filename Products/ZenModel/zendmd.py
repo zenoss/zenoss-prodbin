@@ -23,6 +23,7 @@ def reindex():
     dmd.Devices.reIndex()
     #dmd.Events.reIndex()
     dmd.Manufacturers.reIndex()
+    dmd.Networks.reIndex()
     commit()
 
 print "Welcome to zenmon dmd command shell!"

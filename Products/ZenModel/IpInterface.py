@@ -28,7 +28,6 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import IpAddress, findIpAddress
-from IpNetwork import addIpAddressToNetworks 
 from Products.ZenUtils.IpUtil import *
 
 from ConfmonPropManager import ConfmonPropManager
@@ -197,10 +196,10 @@ class IpInterface(OSComponent, PingStatusInt):
             self.addRelation('ipaddresses', ipobj)
         #never seen this ip make a new one in correct subnet
         else:  
-            ipobj = addIpAddressToNetworks(self, ip, netmask)
+            ipobj = self.getDmdRoot("Networks").createIp(ip, netmask)
             self.addRelation('ipaddresses', ipobj)
-        ipobj = ipobj.primaryAq()
-        ipobj.index_object()
+#        ipobj = ipobj.primaryAq()
+#        ipobj.index_object()
   
 
     def addLocalIpAddress(self, ip, netmask=24):
@@ -267,11 +266,20 @@ class IpInterface(OSComponent, PingStatusInt):
 
 
     def getIpAddress(self):
-        """Return the first ipaddress with its netmask ie: 1.1.1.1/24"""
+        """Return the first ipaddress with its netmask ie: 1.1.1.1/24.
+        """
         if len(self.ipaddresses()):
             return self.ipaddresses()[0].getIpAddress()
         elif len(self._ipAddresses):
             return self._ipAddresses[0]
+
+
+    def getIpAddressObj(self):
+        """Return the first real ipaddress object or None if none are found.
+        """
+        if len(self.ipaddresses()):
+            return self.ipaddresses()[0]
+
 
 
     def getIpAddressObjs(self):

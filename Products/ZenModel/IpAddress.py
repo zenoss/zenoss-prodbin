@@ -63,7 +63,7 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
 
     _properties = (
         {'id':'netmask', 'type':'string', 'mode':'w', 'setter':'setNetmask'},
-        {'id':'reverseName', 'type':'string', 'mode':'w'},
+        {'id':'ptrName', 'type':'string', 'mode':'w'},
         )
     _relations = ManagedEntity._relations + (
         ("network", ToOne(ToManyCont,"IpNetwork","ipaddresses")),
@@ -97,7 +97,7 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
         checkip(id)
         ManagedEntity.__init__(self, id)
         self._netmask = maskToBits(netmask)
-        self.reverseName = ""
+        self.ptrName = ""
 
 
     security.declareProtected('View', 'primarySortKey')

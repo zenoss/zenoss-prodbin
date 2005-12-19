@@ -321,7 +321,7 @@ class DeviceClass(DeviceOrganizer):
             dev.unindex_object()
             dev.index_object()
             if interfaces:
-                for int in dev.interfaces():
+                for int in dev.os.interfaces():
                     int.unindex_object()
                     int.index_object()
                 transaction.savepoint()

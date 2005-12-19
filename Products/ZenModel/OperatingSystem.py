@@ -37,6 +37,8 @@ class OperatingSystem(Software):
     def __init__(self):
         id = "os"
         Software.__init__(self, id)
+        self._delObject("os")   # OperatingSystem is a software 
+                                # but doens't have os relationship
 
 
     security.declareProtected('View', 'getManageInterface')

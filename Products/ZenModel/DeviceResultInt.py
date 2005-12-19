@@ -73,16 +73,9 @@ class DeviceResultInt:
         d = self.device()
         if d:
             return d.getSnmpStatus()
-        return "No Status"
-
-
-    security.declareProtected('View', 'getSnmpStatusNumber')
-    def getSnmpStatusNumber(self):
-        """get the snmp status of the box if there is one"""
-        d = self.device()
-        if d:
-            return d.getSnmpStatusNumber()
         return -1
+    getSnmpStatusNumber = getSnmpStatus
+    security.declareProtected('View', 'getSnmpStatusNumber')
 
     
     security.declareProtected('View', 'getIp')

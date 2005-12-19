@@ -13,10 +13,12 @@ $Id: IpNetwork.py,v 1.22 2004/04/12 16:21:25 edahl Exp $"""
 
 __version__ = "$Revision: 1.22 $"[11:-2]
 
+import transaction
+
 from Globals import DTMLFile
 from Globals import InitializeClass
+from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
-
 from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
@@ -24,15 +26,18 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
-from IpAddress import manage_addIpAddress
+from IpAddress import IpAddress
 from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import * 
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
-    d = IpNetwork(id, netmask=netmask)
-    context._setObject(d.id, d)
+    net = IpNetwork(id, netmask=netmask)
+    context._setObject(net.id, net)
+    net = context._getOb(net.id)
+    net.buildZProperties()
+    net.createCatalog()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
@@ -43,25 +48,6 @@ addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 # when an ip is added the defaul location will be
 # into class A->B->C network tree
 defaultNetworkTree = (8,16,24)
-
-def addIpAddressToNetworks(context, ip, netmask=24):
-    """place the ip in a hierarchy of subnetworks based on the
-    variable defaultNetworkTree (or zDefaulNetworkTree)"""
-    netobj = context.getDmdRoot("Networks")
-    netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
-    for treemask in netTree:
-        if treemask > netmask:
-            break
-        else:
-            netip = getnetstr(ip, treemask)
-            nextnet = netobj.getSubNetwork(netip)
-            if nextnet:
-                netobj = nextnet
-            else:
-                netobj = netobj.addSubNetwork(netip, treemask)
-    ipobj = netobj.addIpAddress(ip,netmask)
-    return ipobj
-
 
 class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""
@@ -75,12 +61,13 @@ class IpNetwork(DeviceOrganizer):
     portal_type = meta_type = 'IpNetwork'
 
     _properties = (
-        {'id':'netmask', 'type':'string', 'mode':'w'},
+        {'id':'netmask', 'type':'int', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
     
     _relations = DeviceOrganizer._relations + (
         ("ipaddresses", ToManyCont(ToOne, "IpAddress", "network")),
+        ("location", ToOne(ToMany, "Location", "networks")),
         )
                    
     # Screen action bindings (and tab definitions)
@@ -100,6 +87,11 @@ class IpNetwork(DeviceOrganizer):
                 , 'action'        : 'viewNetworkOverview'
                 , 'permissions'   : (
                   permissions.view, )
+                },
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
@@ -123,6 +115,24 @@ class IpNetwork(DeviceOrganizer):
         self.description = description
 
 
+    def createIp(self, ip, netmask=24):
+        """place the ip in a hierarchy of subnetworks based on the
+        variable defaultNetworkTree (or zDefaulNetworkTree)"""
+        netobj = self.getDmdRoot("Networks")
+        netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
+        netTree = map(int, netTree)
+        for treemask in netTree:
+            if treemask >= netmask:
+                netip = getnetstr(ip, netmask)
+                netobj = netobj.addSubNetwork(netip, netmask)
+                break
+            else:
+                netip = getnetstr(ip, treemask)
+                netobj = netobj.addSubNetwork(netip, treemask)
+        ipobj = netobj.addIpAddress(ip,netmask)
+        return ipobj
+
+
     def getNetworkName(self):
         """return the full network name of this network"""
         return "%s/%d" % (self.id, self.netmask)
@@ -136,8 +146,11 @@ class IpNetwork(DeviceOrganizer):
 
     security.declareProtected('Change Network', 'addSubNetwork')
     def addSubNetwork(self, ip, netmask=24):
-        """add subnetwork to this network and return it"""
-        manage_addIpNetwork(self,ip,netmask)
+        """Return and add if nessesary subnetwork to this network.
+        """
+        netobj = self.getSubNetwork(ip)
+        if not netobj:
+            manage_addIpNetwork(self,ip,netmask)
         return self.getSubNetwork(ip)
 
 
@@ -150,7 +163,8 @@ class IpNetwork(DeviceOrganizer):
     security.declareProtected('Change Network', 'addIpAddress')
     def addIpAddress(self, ip, netmask=24):
         """add ip to this network and return it"""
-        manage_addIpAddress(self.ipaddresses,ip,netmask)
+        ipobj = IpAddress(ip,netmask)
+        self.ipaddresses._setObject(ip, ipobj)
         return self.getIpAddress(ip)
 
 
@@ -221,6 +235,23 @@ class IpNetwork(DeviceOrganizer):
         ip = self.findIp(ip)
         if ip: return ip.getPrimaryUrlPath()
         return ""
+
+
+    def buildZProperties(self):
+        nets = self.getDmdRoot("Networks")
+        if getattr(aq_base(nets), "zDefaultNetworkTree", False): return
+        nets._setProperty("zDefaultNetworkTree", (16,24,32), type="lines")
+        nets._setProperty("zDefaultRouterNumber", 1, type="int")
+        nets._setProperty("zAutoDiscover", True, type="boolean")
+
+
+    def reIndex(self):
+        """Go through all ips in this tree and reindex them."""
+        for ip in self.ipaddresses(): 
+            ip.index_object()
+        transaction.savepoint()
+        for net in self.children():
+            net.reIndex()
 
 
     def createCatalog(self):

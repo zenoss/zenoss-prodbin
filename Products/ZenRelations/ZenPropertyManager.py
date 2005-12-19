@@ -121,7 +121,7 @@ class ZenPropertyManager(PropertyManager):
         if all: 
             rootnode = self.getZenRootNode()
         else: 
-            if self.id == "Devices": return []
+            if self.id == self.dmdRootName: return []
             rootnode = aq_base(self)
         props = []
         for prop in rootnode.propertyIds():
@@ -149,7 +149,7 @@ class ZenPropertyManager(PropertyManager):
         rootnode = self.getZenRootNode()
         type = rootnode.getPropertyType(id)
         if type == "lines": 
-            value = ", ".join(value)
+            value = ", ".join(map(str, value))
         return value
 
 

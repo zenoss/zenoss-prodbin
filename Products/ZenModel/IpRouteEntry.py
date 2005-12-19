@@ -21,7 +21,6 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import findIpAddress
-from IpNetwork import addIpAddressToNetworks
 
 from OSComponent import OSComponent
 
@@ -99,7 +98,7 @@ class IpRouteEntry(OSComponent):
     def getNextHopIpLink(self):
         ip = self.getNextHopIp()
         if not ip: return ""
-        href = self.Networks.ipHref(ip)
+        href = self.getDmdRoot("Networks").ipHref(ip)
         if not href: return ip
         return "<a href='%s'>%s</a>" % (href, ip)
 
@@ -129,7 +128,12 @@ class IpRouteEntry(OSComponent):
         else:
             ip = findIpAddress(self, nextHopIp)
             if not ip: 
-                ip = addIpAddressToNetworks(self, nextHopIp)
+                netmask = 24
+                int = self.interface()
+                if int: 
+                    intip = int.getIpAddressObj()
+                    if intip: netmask = intip.netmask
+                ip = self.getDmdRoot("Networks").createIp(nextHopIp, netmask)
             self.addRelation('nexthop', ip)
        
     

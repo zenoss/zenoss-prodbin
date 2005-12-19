@@ -48,6 +48,7 @@ class Location(DeviceOrganizer):
     
     _relations = DeviceOrganizer._relations + (
         ("devices", ToMany(ToOne,"Device","location")),
+        ("networks", ToMany(ToOne,"IpNetwork","location")),
         )
 
     security = ClassSecurityInfo()

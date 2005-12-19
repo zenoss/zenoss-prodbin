@@ -1,40 +1,21 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable" cellpadding="3" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:condition="python:here.id != 'Networks'">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">
-       Network
-      </th>
-      </tr>
-      <tr>
-      <th class="tableheader" align="left">
-        Address
-      </th>
-      <td class="tablevalues" colspan="1" bgcolor="#ffffff"
-        tal:content="here/id">id
-      </td>
-      <th class="tableheader" align="left">
-        Netmask
-      </th>
-      <td class="tablevalues" colspan="1"
-        tal:content="here/netmask">
-        netmask
-      </td>
+      <th class="tabletitle" colspan="4">Network</th>
     </tr>
     <tr>
-      <th class="tableheader" align="left">
-        Number of IPs
-      </th>
-      <td class="tablevalues" colspan="1"
-        tal:content="python: here.countIpAddresses()">
-            IPs </td>
-      <th class="tableheader" align="left">
-        Description
-      </th>
-      <td class="tablevalues" colspan="1"
-        tal:content="here/description">desc
-      </td>
+        <td class="tableheader">Address</td>
+        <td class="tablevalues"
+            tal:content="string:${here/id}/${here/netmask}"/>
+        <td class="tableheader">IPs</td>
+        <td class="tablevalues" tal:content="here/countIpAddresses"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" colspan="3" tal:content="here/description"/>
     </tr>
 </table>
 
@@ -70,8 +51,7 @@
     <input tal:condition="here/isManager" 
         type="checkbox" name="organizerPaths:list" 
         tal:attributes="value net/getId"/>
-    <a href="_" 
-        tal:attributes="href net/getPrimaryUrlPath"
+    <a tal:attributes="href net/getPrimaryUrlPath"
         tal:content="net/id">address</a>
     </td>
     <td class="tablevalues" align="center"

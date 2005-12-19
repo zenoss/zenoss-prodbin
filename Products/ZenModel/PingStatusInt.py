@@ -35,4 +35,3 @@ class PingStatusInt:
 
 
 InitializeClass(PingStatusInt)
-

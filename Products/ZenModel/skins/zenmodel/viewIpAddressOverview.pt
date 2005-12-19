@@ -73,8 +73,7 @@
     </th>
     <tr tal:repeat="route batch">
         <td class="tablevalues" align="left">
-            <a href="_" 
-            tal:attributes="href route/getDeviceUrl"
+            <a tal:attributes="href route/getDeviceUrl"
             tal:content="route/getDeviceName">devicenamelink</a>
         </td>
         <td class="tablevalues" align="left"
