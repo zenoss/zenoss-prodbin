@@ -128,7 +128,7 @@ class CricketDevice:
         targetpath = self.cricketTargetPath() + '/interfaces'
         targettypes = {}
         targets = []
-        for interface in self.interfaces.objectValuesAll():
+        for interface in self.os.interfaces.objectValuesAll():
             if not interface.adminStatus == 1: continue
             self.interfaceMultiTargets(interface, targetpath)
             inttype = self.cricketInterfaceType(interface)
@@ -157,7 +157,7 @@ class CricketDevice:
         try:
             ttype = lookupTargetType(self, cricketFilesystemType)
             targettypes[ttype.getName()] = ttype.dsnames
-            for fs in self.filesystems.objectValuesAll():
+            for fs in self.os.filesystems.objectValuesAll():
                 targetdata = {}
                 targetdata['target'] = fs.id
                 targetdata['target-type'] = cricketFilesystemType
@@ -168,9 +168,8 @@ class CricketDevice:
                 fs.setCricketTargetMap(targetpath, targetdata)
                 targets.append(targetdata)
         except RRDObjectNotFound:
-            LOG("CricketBuilder", WARNING, 
-                "RRDTargetType %s for filesystem not found" 
-                % cricketFilesystemType)
+            logging.warn("RRDTargetType %s for filesystem not found",
+                            cricketFilesystemType)
         return (targetpath, targettypes, targets)
 
 
@@ -183,7 +182,7 @@ class CricketDevice:
         try:
             ttype = lookupTargetType(self, cricketDiskType)
             targettypes[ttype.getName()] = ttype.dsnames
-            for disk in self.harddisks():
+            for disk in self.hw.harddisks():
                 targetdata = {}
                 targetdata['target'] = disk.id
                 targetdata['target-type'] = cricketDiskType
@@ -193,8 +192,8 @@ class CricketDevice:
                 disk.setCricketTargetMap(targetpath, targetdata)
                 targets.append(targetdata)
         except RRDObjectNotFound:
-            LOG("CricketBuilder", WARNING, 
-                "RRDTargetType %s for harddisk not found" % cricketDiskType)
+            logging.warn("RRDTargetType %s for harddisk not found", 
+                            cricketDiskType)
         return (targetpath, targettypes, targets)
 
 
@@ -244,7 +243,7 @@ class CricketDevice:
         else:
             intmap = defaultmap
         cricketType = 'StandardInterface'
-        if (self.getManufacturerName() == 'Cisco' 
+        if (self.hw.getManufacturerName() == 'Cisco' 
             and interface.speed >= 100000000):
             cricketType = 'FastInterface'
 

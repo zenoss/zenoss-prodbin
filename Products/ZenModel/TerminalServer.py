@@ -47,66 +47,6 @@ class TerminalServer(Device):
         ("devices", ToMany(ToOne, "Device", "termserver")),
         )
 
-    factory_type_information = ( 
-        { 
-            'id'             : 'TerminalServer',
-            'meta_type'      : 'TerminalServer',
-            'description'    : """Base class for all TerminalServers""",
-            'icon'           : 'TerminalServer_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addTerminalServer',
-            'immediate_view' : 'viewDeviceStatus',
-            'actions'        :
-               ( 
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'viewDeviceStatus'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'detail'
-                , 'name'          : 'Detail'
-                , 'action'        : 'viewTerminalServerDetail'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'performance'
-                , 'name'          : 'Performance'
-                , 'action'        : 'viewDevicePerformance'
-                , 'permissions'   : (
-                  permissions.view, )
-                },                
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editDevice'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'management'
-                , 'name'          : 'Management'
-                , 'action'        : 'deviceManagement'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-         },
-        )
     
     security = ClassSecurityInfo()
 
