@@ -38,7 +38,12 @@ class Software(MEProduct):
     """Software object"""
     portal_type = meta_type = 'Software'
 
+    procRegex = ""
+    monitorProc = False
+
     _properties = (
+        {'id':'procRegex', 'type':'string', 'mode':'w'},
+        {'id':'monitorProc', 'type':'boolean', 'mode':'w'},
         {'id':'installDate', 'type':'date', 'mode':''},
     )
 

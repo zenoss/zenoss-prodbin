@@ -49,12 +49,16 @@ class DeviceMap(CustomMap):
             match = self.ciscoVersion.search(retdata['snmpDescr'])
             if match: retdata['osVersion'] = match.group('ver')
 
-        descr = retdata['snmpDescr']
-        for regex in self.osregex:
-            m = regex.search(descr)
-            if m: 
-                retdata['setOSProductKey'] = " ".join(m.groups())
-                break
+        if getattr(device, "zSnmpHWDiscovery", True):
+            retdata['setHWProductKey'] = retdata['snmpOid']
+
+        if getattr(device, "zSnmpOSDiscovery", True):
+            descr = retdata['snmpDescr']
+            for regex in self.osregex:
+                m = regex.search(descr)
+                if m: 
+                    retdata['setOSProductKey'] = " ".join(m.groups())
+                    break
 
         # allow for custom parse of DeviceMap data
         scDeviceMapParse = getattr(device, 'scDeviceMapParse', None)

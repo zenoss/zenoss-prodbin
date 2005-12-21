@@ -348,6 +348,8 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
         devs._setProperty("zFileSystemMapIgnoreNames", "")
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
+        devs._setProperty("zSnmpHWDiscovery", True, type="boolean")
+        devs._setProperty("zSnmpOSDiscovery", True, type="boolean")
 
         # Cricket properties
         devs._setProperty("zCricketDeviceType", "")

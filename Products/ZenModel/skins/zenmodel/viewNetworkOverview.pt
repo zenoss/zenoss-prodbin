@@ -38,12 +38,12 @@
         Address
     </th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'netmask','Netmask','cmp')">
-        Netmask
-    </th>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'countIpAddresses','Number of IPs','cmp')">
         Number of IPs
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'freeIps','Free IPs','cmp')">
+        Free IPs
     </th>
   </tr>
   <tr tal:repeat="net batch">
@@ -52,15 +52,10 @@
         type="checkbox" name="organizerPaths:list" 
         tal:attributes="value net/getId"/>
     <a tal:attributes="href net/getPrimaryUrlPath"
-        tal:content="net/id">address</a>
+        tal:content="string:${net/id}/${net/netmask}">1.2.3.0/24</a>
     </td>
-    <td class="tablevalues" align="center"
-        tal:content="net/netmask">netmask
-    </td>
-    <td class="tablevalues" align="center"
-        tal:content="python: net.countIpAddresses()">
-        hosts
-    </td>
+    <td class="tablevalues" align="center" tal:content="net/countIpAddresses"/>
+    <td class="tablevalues" align="center" tal:content="net/freeIps"/>
   </tr>
   <tr>
     <td colspan="3" class="tableheader" align='center'>

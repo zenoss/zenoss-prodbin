@@ -13,6 +13,7 @@ $Id: IpNetwork.py,v 1.22 2004/04/12 16:21:25 edahl Exp $"""
 
 __version__ = "$Revision: 1.22 $"[11:-2]
 
+import math
 import transaction
 
 from Globals import DTMLFile
@@ -131,6 +132,12 @@ class IpNetwork(DeviceOrganizer):
                 netobj = netobj.addSubNetwork(netip, treemask)
         ipobj = netobj.addIpAddress(ip,netmask)
         return ipobj
+
+
+    def freeIps(self):
+        """Number of free Ips left in this network.
+        """
+        return int(math.pow(2,32-self.netmask)-(self.countIpAddresses()+2))
 
 
     def getNetworkName(self):
