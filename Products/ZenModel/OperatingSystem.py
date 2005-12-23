@@ -4,6 +4,7 @@
 #
 #################################################################
 
+import logging
 
 from Software import Software
 
@@ -39,6 +40,43 @@ class OperatingSystem(Software):
         Software.__init__(self, id)
         self._delObject("os")   # OperatingSystem is a software 
                                 # but doens't have os relationship
+
+
+    def traceRoute(self, target, ippath=[]):
+        """Trace the route to target using our routing table.
+        """
+        logging.debug("device %s target %s", self.getDeviceName(), target)
+        nextdev = None
+        for route in self.getRouteObjs():
+            ip = route.getNextHopIp()
+            logging.debug("target %s next hop %s", route.getTarget(), ip)
+            if ip == target:
+                ippath.append(ip)
+                return ippath
+            if route.matchTarget(target):
+                nextdev = route.getNextHopDevice()
+                break
+        else:
+            logging.debug("device %s default route", self.getDeviceName())
+            ip = ""
+            default = self.routes._getOb("0.0.0.0_0", None)
+            if default:
+                ip = default.getNextHopIp()
+                nextdev = default.getNextHopDevice()
+        if ip == "0.0.0.0":
+            ippath.append(target)
+            return ippath
+        if nextdev: 
+            ippath.append(ip)
+            return nextdev.traceRoute(target, ippath)
+        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target, 
+                            self.getDeviceName()))
+
+
+    def getRouteObjs(self):
+        """Return our real route objects.
+        """
+        return filter(lambda r: getattr(r, "_targetobj",False), self.routes())
 
 
     security.declareProtected('View', 'getManageInterface')

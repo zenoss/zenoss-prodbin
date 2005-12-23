@@ -13,10 +13,16 @@ $Id: IpUtil.py,v 1.4 2002/12/18 18:50:47 edahl Exp $"""
 __version__ = "$Revision: 1.4 $"[11:-2]
 
 import types
+import re
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
 class IpAddressError(ZentinelException): pass
+
+
+isip = re.compile("^\d+\.\d+\.\d+\.\d+$").search
+"""return match if this is an ip."""
+
 
 def checkip(ip):
     """check that an ip is valid"""

@@ -15,6 +15,7 @@ $Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
 __version__ = "$Revision: 1.121 $"[11:-2]
 
 import time
+import socket
 import logging
 
 # base classes for device
@@ -32,7 +33,7 @@ from App.Dialogs import MessageDialog
 from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
-
+from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
 
 from OperatingSystem import OperatingSystem
@@ -261,6 +262,12 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
             self.setSnmpLastCollection(value)
         else:    
             ManagedEntity._setPropValue(self, id, value)
+
+
+    def traceRoute(self, target, ippath=None):
+        if ippath is None: ippath=[]
+        if not isip(target): target = socket.gethostbyname(target)
+        return self.os.traceRoute(target, ippath)
 
 
     def getHWProductKey(self):

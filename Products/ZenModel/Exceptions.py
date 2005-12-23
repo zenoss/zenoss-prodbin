@@ -17,19 +17,18 @@ class ZenModelError(ZentinelException): pass
 
 class IpAddressConflict(ZenModelError): 
     """Two or more devices have the same ip"""
-    pass
 
 class IpCatalogNotFound(ZenModelError):
     """Can't find the Ip Catalog in the context passed"""
-    pass
 
 class WrongSubnetError(ZenModelError):
     pass
 
 class DeviceExistsError(ZenModelError):
     """a device with this fqdn is already in the dmd"""
-    pass
 
 class PathNotFoundError(ZenModelError):
     """no object found in the dmd at the path given"""
-    pass
+
+class TraceRouteGap(ZenModelError):
+    """Missing data found during traceroute."""

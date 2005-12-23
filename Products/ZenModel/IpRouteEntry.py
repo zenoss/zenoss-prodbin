@@ -96,6 +96,8 @@ class IpRouteEntry(OSComponent):
             
 
     def getNextHopIpLink(self):
+        """Return an <a> link to our next hop ip.
+        """
         ip = self.getNextHopIp()
         if not ip: return ""
         href = self.getDmdRoot("Networks").ipHref(ip)
@@ -105,15 +107,26 @@ class IpRouteEntry(OSComponent):
         
     security.declareProtected('View', 'getNextHopIp')
     def getNextHopIp(self):
-        """get the proper nexthopip based on if it is stored locally or not"""
+        """Return our next hop ip (as string) if stored as object or locally.
+        """
         ip = self._nexthop
         ipobj = self.nexthop()
         if ipobj: ip = ipobj.id
         return ip
-  
+ 
+
+    def getNextHopDevice(self):
+        """Return the device to which this route points.
+        """
+        ipobj = self.nexthop()
+        if ipobj: return ipobj.device()
+        
     
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
+        """Return the interface name for this route as a string.
+        If no interface is found return 'No Interface'.
+        """
         if self.interface():
             return self.interface().name
         return "No Interface"
@@ -135,12 +148,18 @@ class IpRouteEntry(OSComponent):
                     if intip: netmask = intip.netmask
                 ip = self.getDmdRoot("Networks").createIp(nextHopIp, netmask)
             self.addRelation('nexthop', ip)
-       
-   
+      
+
+    def matchTarget(self, ip):
+        """Does this route target match the ip passed.
+        """
+        if self._targetobj: return self._targetobj.hasIp(ip)      
+            
+    
     def setTarget(self, netip):
         """Set this route target netip in the form 10.0.0.0/24.
         """
-        if netip == "0.0.0.0/0": 
+        if self.ipcheck(netip):
             self._target = netip
         else:
             self._targetobj = self.getDmdRoot("Networks").createNet(netip)
