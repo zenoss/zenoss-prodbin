@@ -32,15 +32,18 @@ import logging
 import Globals # make zope imports work
 
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
+from Products.ZenUtils.ZenDaemon import ZenDaemon
 from StatusMonitor import StatusMonitor
 
-class PingMonitor(StatusMonitor):
+
+class PingMonitor(ZenDaemon, StatusMonitor):
 
     ncoClass = "/Status/Ping"
     ncoAgent = "PingMonitor"
     ncoAlertGroup = "Ping"
 
     def __init__(self):
+        ZenDaemon.__init__(self)
         StatusMonitor.__init__(self)
         self.pingconfsrv = self.options.zopeurl
         self.username = self.options.zopeusername
@@ -59,7 +62,6 @@ class PingMonitor(StatusMonitor):
         self.goodDevices = {}
         self.badDevices = {}
         self.sendqueue = []
-        self.procId = os.getpid()
         self.pingth = None
         #self.createPingSocket()
 
@@ -112,12 +114,10 @@ class PingMonitor(StatusMonitor):
                     ip = self.forwardDnsLookup(hostname)
                 if pingStatus >= self.maxFailures:
                     self.log.debug("add %s to bad devices ping list" % hostname)
-                    self.badDevices[ip] = PingJob(ip,hostname,
-						url,pingStatus)
+                    self.badDevices[ip] = PingJob(ip,hostname,url,pingStatus)
                 else:
                     self.log.debug("add %s to main ping list" % hostname)
-                    self.goodDevices[ip] = PingJob(ip, hostname,
-						url, pingStatus)
+                    self.goodDevices[ip] = PingJob(ip,hostname,url,pingStatus)
             except socket.error: 
                 message = "%s is unresolvable in dns" % hostname
                 self.log.warn(message)
@@ -397,27 +397,6 @@ class PingMonitor(StatusMonitor):
         self.parser.add_option('--devicefile',
                 dest='devicefile', default="",
                 help="file with list of devices to ping")
-
-
-class PingJob:
-    '''Class representing a single
-    target to be pinged'''
-
-    def __init__(self, address, hostname, url, pingStatus):
-        self.address = address 
-        self.hostname = hostname
-        self.url = url
-        self.pingStatus = pingStatus
-        self.rtt = 0
-        self.start = 0
-        self.end = 0
-        self.sent = 0
-        self.message = ""
-        self.severity = 3
-        self.type = 1
-
-
-
 
 
 if __name__=='__main__':

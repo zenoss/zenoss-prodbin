@@ -18,12 +18,9 @@ import sys
 import socket
 import time
 
-from Products.ZenUtils.ZenDaemon import ZenDaemon
-
-class StatusMonitor(ZenDaemon):
+class StatusMonitor(object):
     
     def __init__(self):
-        ZenDaemon.__init__(self)
         self.dnstries = 3
         self.forwarddnscache = {}
         self.reversednscache = {}
@@ -44,7 +41,7 @@ class StatusMonitor(ZenDaemon):
     def reverseDnsLookup(self, ip):
         """try the reverse lookup dnstries times if it fails look in cache"""
         try:
-            ip = self._dsnLookup(socket.gethostbyaddr, ip)
+            hostname = self._dnsLookup(socket.gethostbyaddr, ip)
             self.reversednscache[hostname] = ip
             return ip
         except socket.error:

@@ -40,6 +40,19 @@ class IpRouteEntry(OSComponent):
     
     meta_type = 'IpRouteEntry'
     
+    _nexthop = ""
+    _target = ""
+    _targetobj = None
+    routetype = ""
+    routeproto = ""
+    routemask = 0
+    routeage = 0
+    metric1 = 0
+    metric2 = 0
+    metric3 = 0
+    metric4 = 0
+    metric5 = 0
+
     _properties = (
         {'id':'routemask', 'type':'string', 'mode':''},
         {'id':'nexthopip', 'type':'string', 
@@ -63,20 +76,7 @@ class IpRouteEntry(OSComponent):
 
     ipcheck = re.compile(r'^127.|^0.').search
 
-    def __init__(self, id, title = None):
-        OSComponent.__init__(self, id, title)
-        self._nexthop = ""
-        self.routetype = ""
-        self.routeproto = ""
-        self.routemask = 0
-        self.routeage = 0
-        self.metric1 = 0
-        self.metric2 = 0
-        self.metric3 = 0
-        self.metric4 = 0
-        self.metric5 = 0
     
-
     def __getattr__(self, name):
         if name == 'nexthopip':
             return self.getNextHopIp()
@@ -136,7 +136,36 @@ class IpRouteEntry(OSComponent):
                 ip = self.getDmdRoot("Networks").createIp(nextHopIp, netmask)
             self.addRelation('nexthop', ip)
        
-    
+   
+    def setTarget(self, netip):
+        """Set this route target netip in the form 10.0.0.0/24.
+        """
+        if netip == "0.0.0.0/0": 
+            self._target = netip
+        else:
+            self._targetobj = self.getDmdRoot("Networks").createNet(netip)
+
+
+    def getTarget(self):
+        """Return the route target ie 0.0.0.0/0.
+        """
+        if self._targetobj: 
+            return self._targetobj.getNetworkName()
+        else:
+            return self._target
+
+
+    def getTargetLink(self):
+        """Return an <a> link to our target network.
+        """
+        if self._targetobj: 
+            return "<a href='%s'>%s</a>" % (
+                    self._targetobj.getPrimaryUrlPath(), 
+                    self._targetobj.getNetworkName())
+        else:
+            return self._target
+
+
     security.declareProtected('Change Device', 'setInterface')
     def setInterface(self, interface):
         self.addRelation('interface', interface)

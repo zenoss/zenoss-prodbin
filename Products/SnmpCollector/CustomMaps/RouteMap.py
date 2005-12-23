@@ -61,6 +61,8 @@ class RouteMap(CustomRelMap):
         datamaps = []
         for route in routetable.values():
             route['routemask'] = maskToBits(route['routemask'])
+            route['setTarget'] = route['id'] + "/" + str(route['routemask'])
+            route['id'] = route['id'] + "_" + str(route['routemask'])
             if route['routemask'] == 32: continue
             route['routeproto'] = self.mapSnmpVal(route['routeproto'], 
                                                     self.routeProtoMap)

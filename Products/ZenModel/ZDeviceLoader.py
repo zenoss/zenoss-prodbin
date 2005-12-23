@@ -21,8 +21,6 @@ from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
-from Products.SnmpCollector.SnmpCollector import SnmpCollector
-
 from ZenModelItem import ZenModelItem
 from Device import manage_createDevice
 

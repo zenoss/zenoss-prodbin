@@ -74,7 +74,10 @@ class InterfaceMap(CustomRelMap):
         for iprow in iptable.values():
             strindex = str(iprow['ifindex'])
             if not inttable.has_key(strindex):
-                continue
+                if int(iprow['ifindex']) >= len(inttable): #hack for bad 
+                    strindex = str(len(inttable))          #ifindex on wrt54g
+                else: 
+                    continue                                 
             nrow = inttable[strindex]
             if not nrow.has_key('_processed'):
                 nrow = self.processInt(device, snmpsess, nrow)
@@ -87,14 +90,14 @@ class InterfaceMap(CustomRelMap):
             nrow['ifindex'] = iprow['ifindex'] #FIXME ifindex is not set!
             inttable[strindex] = nrow
 
-        for index,int in inttable.items():        
-            if int.has_key('_processed'): 
+        for index,iface in inttable.items():        
+            if iface.has_key('_processed'): 
                 del inttable[index]
-                datamaps.append(int)
+                datamaps.append(iface)
 
-        for int in inttable.values():
-            #nrow = snmpsess.snmpRowMap(int, self.intMap)
-            nrow = self.processInt(device, snmpsess, int)
+        for iface in inttable.values():
+            #nrow = snmpsess.snmpRowMap(iface, self.intMap)
+            nrow = self.processInt(device, snmpsess, iface)
             if nrow: 
                 datamaps.append(nrow)
         return datamaps

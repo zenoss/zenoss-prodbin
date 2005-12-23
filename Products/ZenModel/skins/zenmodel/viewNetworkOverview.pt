@@ -10,12 +10,18 @@
         <td class="tableheader">Address</td>
         <td class="tablevalues"
             tal:content="string:${here/id}/${here/netmask}"/>
-        <td class="tableheader">IPs</td>
-        <td class="tablevalues" tal:content="here/countIpAddresses"/>
+        <td class="tableheader">IPs Used/Free</td>
+        <td class="tablevalues" 
+            tal:content="string:${here/countIpAddresses}/${here/freeIps}"/>
     </tr>
-    <tr>
+    <tr tal:condition="here/location">
+      <td class="tableheader">Location</td>
+      <td class="tablevalues" colspan="3"
+        tal:content="structure here/location/getPrimaryLink"/>
+    </tr>
+    <tr tal:condition="here/description">
         <td class="tableheader">Description</td>
-        <td class="tablevalues" colspan="3" tal:content="here/description"/>
+        <td class="tablevalues" colspan="4" tal:content="here/description"/>
     </tr>
 </table>
 
@@ -27,7 +33,7 @@
     tableName string:networkoverviewsubnets;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
   <tr>
-      <th class="tabletitle" align="left" colspan="3">
+      <th class="tabletitle" align="left" colspan="4">
         Subnetworks
       </th>
   </tr>
@@ -36,6 +42,10 @@
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Address','cmp')">
         Address
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'countChildren','Subnets','cmp')">
+        Subnets
     </th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'countIpAddresses','Number of IPs','cmp')">
@@ -54,17 +64,18 @@
     <a tal:attributes="href net/getPrimaryUrlPath"
         tal:content="string:${net/id}/${net/netmask}">1.2.3.0/24</a>
     </td>
+    <td class="tablevalues" align="center" tal:content="net/countChildren"/>
     <td class="tablevalues" align="center" tal:content="net/countIpAddresses"/>
     <td class="tablevalues" align="center" tal:content="net/freeIps"/>
   </tr>
   <tr>
-    <td colspan="3" class="tableheader" align='center'>
+    <td colspan="4" class="tableheader" align='center'>
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
   </span>
   <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="3">
+    <td class="tableheader" colspan="4">
         <span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
     </td>
   </tr>

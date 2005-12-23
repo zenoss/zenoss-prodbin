@@ -49,7 +49,7 @@ def findSnmpCommunity(context, name, community=None, port=None):
     else: communities = getattr(context, "zSnmpCommunities", ())
     if not port: port = getattr(context, "zSnmpPort", 161)
     session = SnmpSession(name, timeout=3, port=port)
-    oid = '.1.3.6.1.2.1.1.2.0'
+    oid = '.1.3.6.1.2.1.1.5.0'
     retval = None
     for community in communities: #aq
         session.community = community
@@ -81,7 +81,9 @@ class SnmpCollector(ZCmdBase):
             self.collectDevice(device)
 
                     
-    def collectDevice(self, device):
+    def collectDevice(self, device, community=None, port=0):
+        if not community: community = device.zSnmpCommunity
+        if not port: port = device.zSnmpPort
         if type(device) == types.StringType:
             device = self.dmd.Devices.findDevice(self.options.device)
             if not device: 
@@ -93,9 +95,7 @@ class SnmpCollector(ZCmdBase):
             slog.info("skipped collection of %s" % device.getId())
             return
         try:
-            snmpsess = SnmpSession(device.id, 
-                            community = device.zSnmpCommunity,
-                            port = device.zSnmpPort)
+            snmpsess = SnmpSession(device.id, community=community, port=port)
             if self.testSnmpConnection(snmpsess):
                 if device._p_jar: device._p_jar.sync() 
                 if (self._checkForCiscoChange(device, snmpsess)

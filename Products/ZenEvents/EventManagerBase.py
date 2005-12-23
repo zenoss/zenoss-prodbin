@@ -87,9 +87,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     ComponentWhere = "component = '%s'"
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
-    IpAddressWhere = "\"device='%s' and component='%s'\" % (" \
-                        "me.getDeviceName(),me.getId())"
-    
+    IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
     EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
     EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
                                 me.getEventClass(), me.eventClassKey)""" 

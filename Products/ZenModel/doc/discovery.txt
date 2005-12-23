@@ -1,0 +1,19 @@
+===============
+Auto-discovery design doc
+===============
+
+Zenmon auto-discover will use ICMP, DNS, and SNMP to discover an model devices on the network.  It will perform discovery as follows:
+
+--------------
+Discoviery Sequence
+--------------
+
+- find defined Networks
+- map route topology by modeling routers
+- model the default router for defined networks
+- ping all ips
+- reverse lookup on ips
+- snmp get on sysName (discover snmp community)
+- for unique sysNames model devices
+
+

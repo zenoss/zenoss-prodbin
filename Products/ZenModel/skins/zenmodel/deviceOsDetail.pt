@@ -242,24 +242,14 @@
         </th>
     </tr>
     <tr tal:repeat="route batch">
-      <td class="tablevalues"
-        tal:content="python: route.id+'/'+str(route.routemask)">
-        description
-      </td>
+      <td class="tablevalues" tal:content="structure route/getTargetLink"/>
       <td class="tablevalues">
-      <span tal:replace="structure route/getNextHopIpLink">nexthopip</span>
-      (<span tal:replace="structure route/getNextHopDeviceLink">device</span>)
+          <span tal:replace="structure route/getNextHopIpLink"/>
+          (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
-      <td class="tablevalues"
-        tal:content="route/interface/getRelatedId">
-        interface
-      </td>
-      <td class="tablevalues"
-        tal:content="route/routeproto">routeproto
-      </td>
-      <td class="tablevalues"
-        tal:content="route/routetype">routetype
-      </td>
+      <td class="tablevalues" tal:content="route/interface/getRelatedId"/>
+      <td class="tablevalues" tal:content="route/routeproto"/>
+      <td class="tablevalues" tal:content="route/routetype"/>
     </tr>
     <tr>
         <td colspan=5 class="tableheader" align='center'>

@@ -72,7 +72,6 @@ class ZenDaemon(CmdBase):
         sys.exit(0)
 
 
-
     def buildOptions(self):
         CmdBase.buildOptions(self)
         self.parser.add_option('-c', '--cycle',

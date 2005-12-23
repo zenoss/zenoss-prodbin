@@ -287,6 +287,12 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         self.hw.setProductKey(prodKey)
 
 
+    def getNextHopIps(self):
+        """Return the ips that our indirect routs point to.
+        """
+        return map(lambda r: r.getNextHopIp(), self.os.routes())
+
+
     security.declareProtected('View', 'getLocationName')
     def getLocationName(self):
         """return the full location name ie /Location/SubLocation/Rack"""
@@ -698,7 +704,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     ####################################################################
 
     security.declareProtected('Change Device', 'collectConfig')
-    def collectConfig(self, wrap=True, REQUEST=None):
+    def collectConfig(self, wrap=True, community=None, port=161, REQUEST=None):
         """collect the configuration of this device"""
         from Products.SnmpCollector.SnmpCollector import SnmpCollector
         sc = SnmpCollector(noopts=1,app=self.getPhysicalRoot())
@@ -711,7 +717,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
                 response.write(dlh[:idx])
             sc.setWebLoggingStream(response)
         try:
-            sc.collectDevice(self)
+            sc.collectDevice(self, community=community, port=port)
         except:
             logging.exception('exception while collecting snmp for device %s'
                               %  self.getId())

@@ -12,6 +12,9 @@ $Id: IpAddress.py,v 1.42 2004/04/15 00:54:14 edahl Exp $"""
 
 __version__ = "$Revision: 1.42 $"[11:-2]
 
+import socket
+import logging
+
 #base classes for IpAddress
 from ManagedEntity import ManagedEntity
 from DeviceResultInt import DeviceResultInt
@@ -97,7 +100,12 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
         checkip(id)
         ManagedEntity.__init__(self, id)
         self._netmask = maskToBits(netmask)
-        self.ptrName = ""
+        self.ptrName = None
+        try:
+            data = socket.gethostbyaddr(id)
+            if data: self.ptrName = data[0]
+        except socket.error, e:
+            logging.warn(e)
 
 
     security.declareProtected('View', 'primarySortKey')

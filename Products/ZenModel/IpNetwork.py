@@ -24,7 +24,7 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Products.ZenUtils.IpUtil import checkip, maskToBits, numbip, getnetstr
+from Products.ZenUtils.IpUtil import *
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from IpAddress import IpAddress
@@ -36,12 +36,13 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
     net = IpNetwork(id, netmask=netmask)
     context._setObject(net.id, net)
-    net = context._getOb(net.id)
-    net.buildZProperties()
-    net.createCatalog()
+    if id == "Networks":
+        net = context._getOb(net.id)
+        net.buildZProperties()
+        net.createCatalog()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+                                     
 
 
 addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
@@ -116,28 +117,120 @@ class IpNetwork(DeviceOrganizer):
         self.description = description
 
 
-    def createIp(self, ip, netmask=24):
-        """place the ip in a hierarchy of subnetworks based on the
-        variable defaultNetworkTree (or zDefaulNetworkTree)"""
-        netobj = self.getDmdRoot("Networks")
+    def createNet(self, netip, netmask=0):
+        """Return and create if nessesary netip.  netip in form 1.1.1.1/24 or
+        with netmask passed as parameter.
+        Subnetworks created based on the zParameter zDefaulNetworkTree.
+        """
+        if netip.find("/") > -1: 
+            netip, netmask = netip.split("/",1)
+            netmask = int(netmask)
+        if netmask == 0: raise ValueError("netip '%s' without netmask")
+        netobj = self
+        if netobj.id != "Networks": netobj = self.getDmdRoot("Networks")
         netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
         for treemask in netTree:
             if treemask >= netmask:
-                netip = getnetstr(ip, netmask)
                 netobj = netobj.addSubNetwork(netip, netmask)
                 break
             else:
-                netip = getnetstr(ip, treemask)
-                netobj = netobj.addSubNetwork(netip, treemask)
+                supnetip = getnetstr(netip, treemask)
+                netobj = netobj.addSubNetwork(supnetip, treemask)
+        return netobj
+       
+
+    def getNet(self, ip):
+        """Return the net starting form the Networks root for ip.
+        """
+        nets = self
+        if not net.id == "Networks": nets = self.getDmdRoot("Networks")
+        return self._getNet(netip)
+
+
+    def _getNet(self, ip):
+        """Recurse down the network tree to find the net of ip.
+        """
+        for net in self.children():
+            if net.hasIp(ip):
+                if len(net.children()):
+                    return net._getNet(ip)
+                else:
+                    return self
+
+
+    def createIp(self, ip, netmask=24):
+        """Return an ip and create if nessesary in a hierarchy of 
+        subnetworks based on the zParameter zDefaulNetworkTree.
+        """
+        netobj = self.getDmdRoot("Networks")
+        ipobj = self.findIp(ip)
+        if ipobj: return ipobj
+        ipobj = netobj.addIp(ip)
+        if ipobj: return ipobj
+        netip = getnetstr(ip,netmask)
+        netobj = self.createNet(netip, netmask)
         ipobj = netobj.addIpAddress(ip,netmask)
         return ipobj
+
+
+    def addIp(self, ip):
+        """Add an ip to the system.  Its network object must already exist.
+        """
+        for net in self.children():
+            if net.hasIp(ip):
+                if not len(net.children()):
+                    return net.addIpAddress(ip)
+                else:
+                    return net.addIp(ip)
+        return None
 
 
     def freeIps(self):
         """Number of free Ips left in this network.
         """
         return int(math.pow(2,32-self.netmask)-(self.countIpAddresses()+2))
+
+
+    def hasIp(self, ip):
+        """Does network have (contain) this ip.
+        """
+        ipnumb = numbip(self.id)
+        maxip = math.pow(2,32-self.netmask)
+        start = ipnumb
+        end = ipnumb+maxip
+        return start <= numbip(ip) <= end
+
+        
+    def fullIpList(self):
+        """Return a list of all ips in this network.
+        """
+        ipnumb = numbip(self.id)
+        maxip = math.pow(2,32-self.netmask)
+        start = int(ipnumb+1)
+        end = int(ipnumb+maxip-1)
+        return map(strip, range(start,end))
+        
+
+    def deleteUnusedIps(self):
+        """Delete ips that are unused in this network.
+        """
+        for ip in self.ipaddresses():
+            if ip.device(): continue
+            self.ipaddresses.removeRelation(ip)
+
+
+    def defaultRouterIp(self):
+        """Return the ip of the default router for this network.
+        It is based on zDefaultRouterNumber which specifies the sequence
+        number that locates the router in this network.  If:
+        zDefaultRouterNumber==1 for 10.2.1.0/24 -> 10.2.1.1
+        zDefaultRouterNumber==254 for 10.2.1.0/24 -> 10.2.1.254
+        zDefaultRouterNumber==1 for 10.2.2.128/25 -> 10.2.2.129
+        zDefaultRouterNumber==126 for 10.2.2.128/25 -> 10.2.2.254
+        """
+        roffset = getattr(self, "zDefaultRouterNumber", 1)
+        return strip((numbip(self.id) + roffset))
 
 
     def getNetworkName(self):
@@ -167,6 +260,15 @@ class IpNetwork(DeviceOrganizer):
         return self._getOb(ip, None)
 
     
+    def getSubNetworks(self):
+        """Return all network objects below this one.
+        """
+        nets = self.children()
+        for subgroup in self.children():
+            nets.extend(subgroup.getSubNetworks())
+        return nets
+
+
     security.declareProtected('Change Network', 'addIpAddress')
     def addIpAddress(self, ip, netmask=24):
         """add ip to this network and return it"""
@@ -250,6 +352,7 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zDefaultNetworkTree", (16,24,32), type="lines")
         nets._setProperty("zDefaultRouterNumber", 1, type="int")
         nets._setProperty("zAutoDiscover", True, type="boolean")
+        nets._setProperty("zPingFailThresh", 168, type="int")
 
 
     def reIndex(self):

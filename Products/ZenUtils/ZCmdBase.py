@@ -22,11 +22,12 @@ class ZCmdBase(ZenDaemon):
         ZenDaemon.__init__(self, noopts)
         self.dataroot = None
         self.app = app
-        from ZEO import ClientStorage
-        from ZODB import DB
-        addr = (self.options.host, self.options.port)
-        storage=ClientStorage.ClientStorage(addr)
-        self.db=DB(storage)
+        if not app:
+            from ZEO import ClientStorage
+            from ZODB import DB
+            addr = (self.options.host, self.options.port)
+            storage=ClientStorage.ClientStorage(addr)
+            self.db=DB(storage)
         self.getDataRoot(app)
 
 

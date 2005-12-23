@@ -1,7 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<script metal:use-macro="here/miscmacros/macros/getProducts"></script>
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script type="text/javascript" 
+    src="/zport/portal_skins/zenmodel/getProdSelectList.js"></script>
 
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
