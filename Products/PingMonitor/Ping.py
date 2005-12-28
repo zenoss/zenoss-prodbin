@@ -35,6 +35,7 @@ class PingJob:
         self.severity = 5
         self.inprocess = False
         self.pathcheck = 0
+        self.eventState = 0
 
 
     def reset(self):
@@ -42,9 +43,20 @@ class PingJob:
         self.start = 0
         self.sent = 0
         self.message = ""
+        self.severity = 5
         self.inprocess = False
         self.pathcheck = 0
+        self.eventState = 0
 
+
+    def checkpath(self):
+        parent = getattr(self, "parent", False)
+        if parent: return parent.checkpath()
+
+
+    def routerpj(self):
+        parent = getattr(self, "parent", False)
+        if parent: return parent.routerpj()
 
 
 plog = logging.getLogger("Ping")

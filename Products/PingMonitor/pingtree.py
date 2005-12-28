@@ -196,8 +196,8 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
     """
     if memo is None: memo = []
     if devs is None: 
-        ip = socket.gethostbyname(root.id)
-        rootnode = Rnode(ip, root.id, root.getStatus(PingStatus))
+        mint = root.getManageInterface()
+        rootnode = Rnode(mint.getIp(), root.id, root.getStatus(PingStatus))
         devs = [(root,rootnode)]
     nextdevs = []
     for dev, rnode in devs:

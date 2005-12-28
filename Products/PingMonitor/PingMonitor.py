@@ -84,14 +84,20 @@ class PingMonitor(ZCmdBase):
                 value = getattr(smc, att)
                 setattr(self, att, value)
             self.configCycleInterval = self.configCycleInterval*60
-            me = self.dmd.Devices.findDevice(self.hostname)
+            if self.options.name:
+                me = self.dmd.Devices.findDevice(self.options.name)
+            if not me: 
+                self.log.info("device %s not found trying %s", 
+                              self.options.name, self.hostname)
+                me = self.dmd.Devices.findDevice(self.hostname)
             if me: 
-                self.log.info("building pingtree")
+                self.log.info("building pingtree from %s", me.id)
                 self.pingtree = pingtree.buildTree(me)
             else:
                 self.log.critical("PingMonitor '%s' not found,"
                                   "ignoring network topology.",self.hostname)
-                self.pingtree = Rnode(self.hostname)
+                ip = socket.gethostbyname(self.hostname)
+                self.pingtree = pingtree.Rnode(ip, self.hostname, 0)
             devices = smc.getPingDevices()
             self.prepDevices(devices)
             self.configTime = time.time()
@@ -139,6 +145,7 @@ class PingMonitor(ZCmdBase):
             self.sendPing(pj)
         self.pingThread.start()
         while self.reports < self.sent:
+            self.log.debug("reports=%s sent=%s", self.reports, self.sent)
             try: 
                 pj = pjgen.next()
                 self.sendPing(pj)
@@ -153,30 +160,29 @@ class PingMonitor(ZCmdBase):
                     pj.status += 1
                     if pj.status == 1:         
                         self.log.debug("first failure '%s'", pj.hostname)
-                        failname = pj.parent.checkpath()
-                        if failname:
-                            pj.eventState = 3 #suppressed FIXME
-                            pj.message += (", failed at %s" % failname)
-                        else:
                         # if our path back is currently clear add our parent
                         # to the ping list again to see if path is really clear
-                        # and then reping failed device.
-                            parent = pj.parent
-                            if parent: self.sendPing(parent.routerpj())
+                        # and then reping ourself.
+                        if not pj.checkpath():
+                            routerpj = pj.routerpj()
+                            if routerpj: self.sendPing(routerpj)
                             self.sendPing(pj)
                     else:
-                        failname = pj.parent.checkpath()
+                        failname = pj.checkpath()
                         if failname:
                             pj.eventState = 3 #suppressed FIXME
                             pj.message += (", failed at %s" % failname)
                         self.sendEvent(pj)
-                # device was down but is back up
-                elif pj.status > 0:
+                # device was down and message sent but is back up
+                elif pj.status > 1:
                     pj.severity = 0
                     self.sendEvent(pj)
                     pj.status = 0
                     self.log.info(pj.message)
-                self.log.debug(pj.message)
+                # device was down no message sent but is back up
+                elif pj.status == 1:
+                    pj.status = 0
+                #self.log.debug(pj.message)
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("processing pj for '%s'", pj.hostname)
@@ -239,6 +245,9 @@ class PingMonitor(ZCmdBase):
                 default="Monitors/StatusMonitors/localhost",
                 help="path to our monitor config ie: "
                      "/Monitors/StatusMonitors/localhost")
+        self.parser.add_option('--name', dest='name',
+                help="name to use when looking up our record in the dmd"
+                     "defaults to our fqdn as returned by socket.getfqdn")
 
 
 if __name__=='__main__':
