@@ -129,5 +129,11 @@ class RelationshipBase(PrimaryPathManager):
         """Don't let relationships move off their managers"""        
         return 0
    
- 
+
+    def checkRelation(self, repair=False):
+        """Check to make sure that relationship bidirectionality is ok.
+        """
+        return
+
+        
 InitializeClass(RelationshipBase)

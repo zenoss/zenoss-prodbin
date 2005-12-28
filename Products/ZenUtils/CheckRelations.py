@@ -12,15 +12,13 @@ $Id: CheckRelations.py,v 1.2 2004/10/19 22:28:59 edahl Exp $"""
 
 __version__ = "$Revision: 1.2 $"[11:-2]
 
-import gc
 
 import transaction
+
 import Globals
 from Acquisition import aq_parent
 
 from Products.ZenUtils.Utils import getAllConfmonObjects
-from Products.ZenModel.Classification import Classification
-from Products.ZenModel.Instance import Instance
 
 from ZCmdBase import ZCmdBase
 
@@ -33,16 +31,13 @@ class CheckRelations(ZCmdBase):
             ccount += 1
             self.log.debug("checking relations on object %s" 
                                 % object.getPrimaryDmdId())
-            object.checkRelations(repair=repair,log=self.log)
+            object.checkRelations(repair=repair)
             ch = object._p_changed
             if not ch: object._p_deactivate()
-            if ccount >= self.options.commitCount and not self.options.noCommit:
-                trans = transaction.get()
-                trans.note('CheckRelations cleaned relations')
-                trans.commit()
+            if ccount >= self.options.savepoint:
+                transaction.savepoint()
                 ccount = 0
-                gc.collect()
-        if self.options.noCommit:
+        if self.options.nocommit:
             self.log.info("not commiting any changes")
         else:
             trans = transaction.get()
@@ -54,21 +49,15 @@ class CheckRelations(ZCmdBase):
         ZCmdBase.buildOptions(self)
 
         self.parser.add_option('-r', '--repair',
-                    dest='repair',
-                    default=False,
-                    action="store_true",
+                    dest='repair', action="store_true",
                     help='repair all inconsistant relations')
 
-        self.parser.add_option('-x', '--commitCount',
-                    dest='commitCount',
-                    default=20,
-                    type="int",
-                    help='how many lines should be loaded before commit')
+        self.parser.add_option('-x', '--savepoint',
+                    dest='savepoint', default=500, type="int",
+                    help='how many lines should be loaded before savepoint')
 
-        self.parser.add_option('-n', '--noCommit',
-                    dest='noCommit',
-                    action="store_true",
-                    default=0,
+        self.parser.add_option('-n', '--nocommit',
+                    dest='nocommit', action="store_true",
                     help='Do not store changes to the Dmd (for debugging)')
 
 

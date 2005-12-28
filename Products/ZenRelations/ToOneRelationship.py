@@ -15,6 +15,10 @@ __version__ = "$Revision: 1.23 $"[11:-2]
 
 import copy
 
+import logging
+log = logging.getLogger("ZenRelations")
+
+
 # Base classes for ToOneRelationship
 from RelationshipBase import RelationshipBase
 from OFS.SimpleItem import SimpleItem
@@ -161,4 +165,20 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
                     self.id, self.obj.getPrimaryId()))
     
     
+    def checkRelation(self, repair=False):
+        """Check to make sure that relationship bidirectionality is ok.
+        """
+        try:
+            if self.obj: 
+                log.info("checking relation: %s", self.id)
+                ppath = self.obj.getPrimaryPath()
+                self.unrestrictedTraverse(ppath)
+        except KeyError:
+            log.critical("rel:%s obj:%s no longer exists",
+                            self.id, self.obj.getPrimaryId())
+            if repair: 
+                log.warn("removing rel to:%s", self.obj.getPrimaryId())
+                self.obj = None
+
+
 InitializeClass(ToOneRelationship)

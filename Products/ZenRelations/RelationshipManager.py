@@ -13,8 +13,10 @@ $Id: RelationshipManager.py,v 1.41 2004/04/13 22:02:18 edahl Exp $"""
 
 __version__ = "$Revision: 1.41 $"[11:-2]
 
-import types
 import logging
+log = logging.getLogger("ZenRelations")
+
+import types
 
 # Base classes for RelationshipManager
 from PrimaryPathObjectManager import PrimaryPathObjectManager
@@ -31,7 +33,6 @@ from Exceptions import *
 from utils import importClass
 
 zenmarker = "__ZENMARKER__"
-
 
 def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
     """Relationship factory"""
@@ -226,10 +227,11 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return self.objectIds(spec=RELMETATYPES)
 
 
-    def checkRelations(self, repair=False, log=None):
+    def checkRelations(self, repair=False):
         """Confirm the integrity of all relations on this object"""
+        log.info("checking relations on object %s", self.getPrimaryId())
         for rel in self.getRelationships():
-            rel.checkRelation(repair, log)
+            rel.checkRelation(repair)
                 
     
     ##########################################################################

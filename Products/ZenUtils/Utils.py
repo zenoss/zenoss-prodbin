@@ -147,7 +147,6 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
 
 def getAllConfmonObjects(base):
     """get all ZenModelRM objects in database"""
-    from Products.ZenModel.Instance import Instance
     from Products.ZenModel.ZenModelRM import ZenModelRM
     from Products.ZenRelations.ToManyRelationship \
         import ToManyRelationship
@@ -159,7 +158,7 @@ def getAllConfmonObjects(base):
                 isinstance(obj, ToManyRelationship) or
                 isinstance(obj, ToOneRelationship))
     def filter(obj):
-        return isinstance(obj, Instance) and obj.id != "dmd"
+        return isinstance(obj, ZenModelRM) and obj.id != "dmd"
     return getSubObjectsMemo(base, filter=filter, decend=decend)
 
 def zenpathsplit(pathstring):

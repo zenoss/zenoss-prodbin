@@ -8,6 +8,9 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.48 $"[11:-2]
 
+import logging
+log = logging.getLogger("ZenRelations")
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -16,7 +19,6 @@ from Acquisition import aq_base
 from ToManyRelationshipBase import ToManyRelationshipBase
 
 from Products.ZenRelations.Exceptions import *
-
 
 def manage_addToManyRelationship(context, id, REQUEST=None):
     """factory for ToManyRelationship"""
@@ -210,6 +212,44 @@ class ToManyRelationship(ToManyRelationshipBase):
     def all_meta_types(self, interfaces=None):
         """Return empty list not allowed to add objects to a ToManyRelation"""
         return []
+
+
+    def checkRelation(self, repair=False):
+        """Check to make sure that relationship bidirectionality is ok.
+        """
+        if len(self._objects): log.info("checking relation: %s", self.id)
+        for obj in self._objects:
+            try:
+                ppath = obj.getPrimaryPath()
+                self.unrestrictedTraverse(ppath)
+            except KeyError:
+                log.critical("rel:%s obj:%s no longer exists",
+                                self.id, obj.getPrimaryId())
+                if repair: 
+                    log.warn("removing rel to:%s", obj.getPrimaryId())
+                    self._objects.remove(obj)
+                    self._p_changed = 1
+        keycount = {}
+        for obj in self._objects:
+            key = obj.getPrimaryId()
+            c = keycount.setdefault(key, 0)
+            c += 1
+            keycount[key] = c
+        dupkeys = []
+        for k, v in keycount.items():
+            if v > 1: 
+                log.critical("rel:%s dup found obj:%s count:%s", 
+                             self.id, key, v)
+                dupkeys.append(k)
+        for obj in self._objects:
+            key = obj.getPrimaryId()
+            if repair and key in dupkeys and keycount[key] > 1:
+                log.critical("rel:%s remove dup obj:%s", self.id, key)
+                self._objects.remove(obj)
+                self._p_changed = 1
+                keycount[key] -= 1
+
+
 
 
 InitializeClass(ToManyRelationship)
