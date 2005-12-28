@@ -42,7 +42,7 @@ class OperatingSystem(Software):
                                 # but doens't have os relationship
 
 
-    def traceRoute(self, target, ippath=[]):
+    def traceRoute(self, target, ippath):
         """Trace the route to target using our routing table.
         """
         logging.debug("device %s target %s", self.getDeviceName(), target)
@@ -89,11 +89,10 @@ class OperatingSystem(Software):
         """
         intnames = getattr(self, 'zManageInterfaceNames')
         for intname in intnames:
-            if hasattr(self.interfaces, intname):
-                return self.interfaces._getOb(intname)
+            int = self.interfaces._getOb(intname, None)
+            if int: return int
         ints = self.interfaces()
-        if len(ints):
-            return ints[0]
+        if len(ints): return ints[0]
 
     
     security.declareProtected('View', 'getDeviceInterfaceIndexDict')

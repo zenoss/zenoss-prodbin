@@ -301,8 +301,16 @@ class IpInterface(OSComponent, PingStatusInt):
 
     def getNetwork(self):
         """get the network for the first ip on this interface"""
-        if self.ipaddress():
+        if self.ipaddresses.countObjects(): 
             return self.ipaddresses()[0].network()
+
+
+    def getNetworkName(self):
+        """Return the network name for the first ip on this interface.
+        """
+        net = self.getNetwork()
+        if net: return self.getNetworkName()
+        return ""
 
 
     def getNetworkLink(self):

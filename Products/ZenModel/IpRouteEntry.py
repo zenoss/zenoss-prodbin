@@ -174,6 +174,12 @@ class IpRouteEntry(OSComponent):
             return self._target
 
 
+    def getTargetIp(self):
+        """Return the target network Ip ie: 10.2.1.0
+        """
+        return self.getTarget().split("/")[0]
+
+        
     def getTargetLink(self):
         """Return an <a> link to our target network.
         """
@@ -193,5 +199,10 @@ class IpRouteEntry(OSComponent):
     def getInterface(self):
         return self.interface()
 
+
+    def getInterfaceIp(self):
+        int = self.interface()
+        if int: return int.getIp()
+        return ""
 
 InitializeClass(IpRouteEntry)

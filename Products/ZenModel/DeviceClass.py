@@ -147,6 +147,8 @@ class DeviceClass(DeviceOrganizer):
         walk up the primary aq path looking for a python instance class that
         matches the name of the closest node in the device tree.
         """
+        dev = self.findDevice(id)
+        if dev: return dev
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(id)
         self.devices._setObject(id, dev)

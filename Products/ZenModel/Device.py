@@ -14,6 +14,7 @@ $Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
 
 __version__ = "$Revision: 1.121 $"[11:-2]
 
+import sys
 import time
 import socket
 import logging
@@ -297,7 +298,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     def getNextHopIps(self):
         """Return the ips that our indirect routs point to.
         """
-        return map(lambda r: r.getNextHopIp(), self.os.routes())
+        return [ r.getNextHopIp() for r in self.os.routes() if r.nexthop()]
 
 
     security.declareProtected('View', 'getLocationName')
@@ -382,7 +383,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         uses default 'Loopback0' and 'Ethernet0' if none of these are found
         returns the first interface if there is any.
         """
-        self.os.getManageInterface()
+        return self.os.getManageInterface()
 
     
     security.declareProtected('View', 'uptimeStr')

@@ -16,27 +16,37 @@ import icmp
 import pprint
 
 
+class PermissionError(Exception):
+    """Not permitted to access resource."""
+
+
 class PingJob:
     """
     Class representing a single target to be pinged.
     """
-    def __init__(self, address, hostname="", url="", pingStatus=0):
-        self.address = address 
+    def __init__(self, ipaddr, hostname="", status=0, cycle=60):
+        self.ipaddr = ipaddr 
         self.hostname = hostname
-        self.url = url
-        self.pingStatus = pingStatus
+        self.status = status
         self.rtt = 0
         self.start = 0
-        self.end = 0
         self.sent = 0
         self.message = ""
-        self.severity = 3
-        self.type = 1
+        self.inprocess = False
+        self.pathcheck = 0
+
+
+    def reset(self):
+        self.rrt = 0
+        self.start = 0
+        self.sent = 0
+        self.message = ""
+        self.inprocess = False
+        self.pathcheck = 0
 
 
 
-
-
+plog = logging.getLogger("Ping")
 class Ping(object):    
     """
     Class that provides syncronous icmp ping.
@@ -48,21 +58,31 @@ class Ping(object):
         self.chunkSize = chunkSize
         self.procId = os.getpid()
         self.jobqueue = {}
+        self.pingsocket = None
+        self.morepkts = True
+        self.devcount = 0
         self.createPingSocket()
+        self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
+                    
 
 
     def __del__(self):
-        self.closePingSocket()
+        if self.pingsocket:
+            self.closePingSocket()
 
 
     def createPingSocket(self):
         """make an ICMP socket to use for sending and receiving pings"""
-        family = socket.AF_INET
-        type = socket.SOCK_RAW
-        proto = socket.IPPROTO_ICMP
-        sock = socket.socket(family, type, proto)
-        sock.setblocking(0)
-        self.pingsocket = sock
+        try:
+            family = socket.AF_INET
+            type = socket.SOCK_RAW
+            proto = socket.IPPROTO_ICMP
+            sock = socket.socket(family, type, proto)
+            sock.setblocking(0)
+            self.pingsocket = sock
+        except socket.error, e:
+            if e.args[0] == 1: 
+                raise PermissionError("must be root to send icmp.")
 
 
     def closePingSocket(self):
@@ -72,112 +92,136 @@ class Ping(object):
     
     def sendPackets(self, numbtosend):
         """send numbtosend number of pingJobs and re"""
-        for i in range(numbtosend):
-            if self.sendqueue: 
-                pingJob = self.sendqueue.pop()
+        try:
+            for i in range(numbtosend):
+                pingJob = self.sendqueue.next()
+                self.devcount += 0
                 self.sendPacket(pingJob)
+        except StopIteration: self.morepkts = False
             
 
     def sendPacket(self, pingJob):
         """Take a pingjob and send an ICMP packet for it"""
-        pkt = icmp.Packet()
-        pkt.type = icmp.ICMP_ECHO
-        pkt.id = self.procId
-        pkt.seq = pingJob.sent
-        pkt.data = 'Confmon connectivity test'
-        buf = pkt.assemble()
-        pingJob.start = time.time()
-        logging.debug("send icmp to '%s'", pingJob.address)
         #### sockets with bad addresses fail
         try:
-            self.pingsocket.sendto(buf, (pingJob.address, 0))
+            pkt = icmp.Packet()
+            pkt.type = icmp.ICMP_ECHO
+            pkt.id = self.procId
+            pkt.seq = pingJob.sent
+            pkt.data = self.pktdata 
+            buf = pkt.assemble()
+            pingJob.start = time.time()
+            plog.debug("send icmp to '%s'", pingJob.ipaddr)
+            self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
+            pingJob.sent = pkt.seq + 1
+            self.jobqueue[pingJob.ipaddr] = pingJob
         except SystemExit: raise
         except:
             pingJob.rtt = -1
-            pingJob.message = "%s error sending to socket" % pingJob.address
+            pingJob.message = "%s error sending to socket" % pingJob.ipaddr
             if hasattr(self, "reportPingJob"):
                 self.reportPingJob(pingJob)
-        pingJob.sent = pkt.seq + 1
-        self.jobqueue[pingJob.address] = pingJob
 
 
     def recvPacket(self):
         """receive a packet and decode its header"""
-        data = self.pingsocket.recv(4096)
+        data = self.pingsocket.recv(1024)
         if data:
             ipreply = ip.Packet(data)
             icmppkt = icmp.Packet(ipreply.data)
-            sourceip =  ipreply.src
-            logging.debug("received ip = %s id = %s" % (sourceip,icmppkt.id))
-            if (icmppkt.id == self.procId and 
-                self.jobqueue.has_key(sourceip)):
-                pingJob = self.jobqueue[sourceip]
-                pingJob.rtt = time.time() - pingJob.start
-                pingJob.message = "%s is now reachable" % pingJob.hostname
-                del self.jobqueue[sourceip]
+            sip =  ipreply.src
+            if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
+                icmppkt.id == self.procId and self.jobqueue.has_key(sip)):
+                plog.debug("echo reply pkt %s %s", sip, icmppkt)
+                pj = self.jobqueue[sip]
+                pj.rtt = time.time() - pj.start
+                pj.message = "%s is now reachable" % pj.hostname
+                del self.jobqueue[sip]
                 if hasattr(self, "reportPingJob"):
-                    self.reportPingJob(pingJob)
+                    self.reportPingJob(pj)
+            elif icmppkt.type == icmp.ICMP_UNREACH:
+                plog.debug("host unreachable pkt %s %s", sip, icmppkt)
+                origpkt = ip.Packet(icmppkt.data)
+                origicmp = icmp.Packet(origpkt.data)
+                dip = origpkt.dst
+                if origicmp.data == self.pktdata and self.jobqueue.has_key(dip):
+                    self.removePacket(self.jobqueue[dip])
             else:
-                logging.debug("got unexpected packet from %s" % sourceip)
+                plog.debug("unexpected pkt %s %s", sip, icmppkt)
+
+
+    def removePacket(self, pj):
+        """PingJob has failed remove from jobqueue.
+        """
+        plog.debug("remove pj %s", pj.hostname)
+        pj.rtt = -1
+        pj.message = "%s ip %s is unreachable" % (pj.hostname, pj.ipaddr) 
+        del self.jobqueue[pj.ipaddr]
+        if hasattr(self, "reportPingJob"):
+            self.reportPingJob(pj)
 
 
     def checkTimeouts(self):
         """check to see if pingJobs in jobqueue have timed out"""
         joblist = self.jobqueue.values()
-        for pingJob in joblist:
-            if time.time() - pingJob.start > self.timeout:
-                if pingJob.sent >= self.tries:
-                    pingJob.rtt = -1
-                    pingJob.message = "%s is unreachable" % pingJob.hostname 
-                    del self.jobqueue[pingJob.address]
-                    if hasattr(self, "reportPingJob"):
-                        self.reportPingJob(pingJob)
+        plog.debug("processing timeouts")
+        for pj in joblist:
+            if time.time() - pj.start > self.timeout:
+                if pj.sent >= self.tries:
+                    self.removePacket(pj)
                     self.sendPackets(1)
                 else:
-                    self.sendPacket(pingJob)
+                    self.sendPacket(pj)
 
 
-    def eventLoop(self, devices):
+    def eventLoop(self, sendqueue):
         startLoop = time.time()
-        logging.info("starting ping cycle %s" % (time.asctime()))
-        self.sendqueue = devices.values()
+        plog.info("starting ping cycle %s" % (time.asctime()))
+        if type(sendqueue) == types.ListType:
+            self.sendqueue = iter(sendqueue)
+        else:
+            self.sendqueue = sendqueue
+        self.morepkts = True
+        self.devcount = 0
         self.createPingSocket()
         self.sendPackets(self.chunkSize)
-        while len(self.sendqueue) or len(self.jobqueue):
+        while self.morepkts or len(self.jobqueue):
             while 1:
-                data = select.select([self.pingsocket,], [], [], 0.001)
+                data = select.select([self.pingsocket,], [], [], 0.1)
                 if data[0]:
                     self.recvPacket()
                     self.sendPackets(1)
-                else:
-                    break
+                else: break
             self.checkTimeouts()
         self.closePingSocket()
-        logging.info("ping cycle complete %s" % (time.asctime()))
+        plog.info("ping cycle complete %s" % (time.asctime()))
         runtime = time.time() - startLoop
-        logging.info("pinged %d devices in %3.2f seconds" % 
-                    (len(devices), runtime))
+        plog.info("pinged %d devices in %3.2f seconds" % 
+                    (self.devcount, runtime))
         return runtime
     
 
     def ping(self, ips):
         """Perform async ping of a list of ips returns (goodips, badips).
         """
-        if type(ips) == types.StringType: ips = (ips,)
-        devices = {}
-        for ip in ips: devices[ip] = PingJob(ip)
-        self.eventLoop(devices)
+        if type(ips) == types.StringType: ips = [ips,]
+        pjobs = map(lambda ip: PingJob(ip), ips)
+        self.eventLoop(pjobs)
         goodips = []
         badips = []
-        for pj in devices.values():
-            if pj.rtt >= 0: goodips.append(pj.address)
-            else: badips.append(pj.address)
+        for pj in pjobs:
+            if pj.rtt >= 0: goodips.append(pj.ipaddr)
+            else: badips.append(pj.ipaddr)
         return (goodips, badips)
             
 
-    
 if __name__ == "__main__":
     ping = Ping()
+    logging.basicConfig()
+    log = logging.getLogger()
+    log.setLevel(10)
     if len(sys.argv) > 1: targets = sys.argv[1:]
     else: targets = ("127.0.0.1",)
-    pprint.pprint(ping.ping(targets))
+    good, bad = ping.ping(targets)
+    if good: print "Good ips: %s" % " ".join(good)
+    if bad: print "Bad ips: %s" % " ".join(bad)

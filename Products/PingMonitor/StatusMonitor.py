@@ -18,12 +18,13 @@ import sys
 import socket
 import time
 
-class StatusMonitor(object):
+class DnsResolver(object):
     
     def __init__(self):
         self.dnstries = 3
         self.forwarddnscache = {}
         self.reversednscache = {}
+
 
     def forwardDnsLookup(self, hostname):
         """try the forward lookup dnstries times if it fails look in cache"""

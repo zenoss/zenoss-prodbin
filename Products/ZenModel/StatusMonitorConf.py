@@ -126,8 +126,6 @@ class StatusMonitorConf(Monitor, StatusColor):
         self.maxFailures = maxFailures
         self.cycleFailWarn = cycleFailWarn
         self.cycleFailCritical = cycleFailCritical
-        self.pingHeartbeat = ZenDate("1968/1/8")
-        self.snmpHeartbeat = ZenDate("1968/1/8")
         self.prodStateThreshold = 1000
 
 
@@ -205,16 +203,13 @@ class StatusMonitorConf(Monitor, StatusColor):
     def getPingDevices(self):
         '''get the devices associated with this
          monitor configuration'''
-        self.setPingHeartbeat()
         devices = []
         for dev in self.devices.objectValuesAll():
             try:
                 if dev.productionState >= self.prodStateThreshold:
                     dev = dev.primaryAq()
-                    devices.append(( 
-                        dev.id, None, dev.absolute_url(),
-                        dev.getStatus("/Status/Ping")))
-                    devices += self.getExtraPingInterfaces(dev)
+                    devices.append(dev)
+                    #devices += self.getExtraPingInterfaces(dev)
             except:
                 msg = "exception getting device %s\n" % dev.getId()
                 logging.exception(msg)

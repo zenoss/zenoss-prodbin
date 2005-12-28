@@ -250,7 +250,8 @@ class IpNetwork(DeviceOrganizer):
         """
         netobj = self.getSubNetwork(ip)
         if not netobj:
-            manage_addIpNetwork(self,ip,netmask)
+            net = IpNetwork(ip, netmask)
+            self._setObject(ip, net)
         return self.getSubNetwork(ip)
 
 

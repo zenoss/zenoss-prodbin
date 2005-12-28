@@ -176,13 +176,14 @@ class Discover(ZCmdBase, StatusMonitor):
 
     def run(self):
         myname = socket.getfqdn()
+        myip = socket.gethostbyname(myname)
         me = self.dmd.Devices.findDevice(myname)
         if not me:
             me = self.discoverDevice(myname, devicepath="/") 
         if not me:
             print "failed snmp discover of self '%s', exiting" % myname
             sys.exit(1)
-        self.discoverRouters(me)
+        self.discoverRouters(me, [myip])
         if self.options.routersonly:
             self.log.info("only routers discovered, skiping ping sweep.")
         else:
@@ -209,5 +210,10 @@ class Discover(ZCmdBase, StatusMonitor):
 
 
 if __name__ == "__main__":
-    d = Discover()
-    d.run()
+    try:
+        d = Discover()
+        d.run()
+    except (SystemExit, KeyboardInterrupt):
+        raise
+    except Exception, e:
+        print "Error: " + str(e)
