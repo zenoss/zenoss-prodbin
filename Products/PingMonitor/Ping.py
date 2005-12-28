@@ -32,6 +32,7 @@ class PingJob:
         self.start = 0
         self.sent = 0
         self.message = ""
+        self.severity = 5
         self.inprocess = False
         self.pathcheck = 0
 
@@ -63,7 +64,6 @@ class Ping(object):
         self.devcount = 0
         self.createPingSocket()
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
-                    
 
 
     def __del__(self):
@@ -90,12 +90,13 @@ class Ping(object):
         self.pingsocket.close()
 
     
-    def sendPackets(self, numbtosend):
+    def sendPackets(self):
         """send numbtosend number of pingJobs and re"""
         try:
+            numbtosend = self.chunkSize - len(self.jobqueue) 
             for i in range(numbtosend):
                 pingJob = self.sendqueue.next()
-                self.devcount += 0
+                self.devcount += 1
                 self.sendPacket(pingJob)
         except StopIteration: self.morepkts = False
             
@@ -133,29 +134,36 @@ class Ping(object):
             if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
                 icmppkt.id == self.procId and self.jobqueue.has_key(sip)):
                 plog.debug("echo reply pkt %s %s", sip, icmppkt)
-                pj = self.jobqueue[sip]
-                pj.rtt = time.time() - pj.start
-                pj.message = "%s is now reachable" % pj.hostname
-                del self.jobqueue[sip]
-                if hasattr(self, "reportPingJob"):
-                    self.reportPingJob(pj)
+                self.pingJobSucceed(self.jobqueue[sip])
             elif icmppkt.type == icmp.ICMP_UNREACH:
                 plog.debug("host unreachable pkt %s %s", sip, icmppkt)
                 origpkt = ip.Packet(icmppkt.data)
                 origicmp = icmp.Packet(origpkt.data)
                 dip = origpkt.dst
                 if origicmp.data == self.pktdata and self.jobqueue.has_key(dip):
-                    self.removePacket(self.jobqueue[dip])
+                    self.pingJobFail(self.jobqueue[dip])
             else:
                 plog.debug("unexpected pkt %s %s", sip, icmppkt)
 
 
-    def removePacket(self, pj):
+
+    def pingJobSucceed(self, pj):
+        """PingJob completed successfully.
+        """
+        plog.debug("pj succeed for %s", pj.ipaddr)
+        pj.rtt = time.time() - pj.start
+        pj.message = "%s ip %s is up" % (pj.hostname, pj.ipaddr)
+        del self.jobqueue[pj.ipaddr]
+        if hasattr(self, "reportPingJob"):
+            self.reportPingJob(pj)
+
+
+    def pingJobFail(self, pj):
         """PingJob has failed remove from jobqueue.
         """
-        plog.debug("remove pj %s", pj.hostname)
+        plog.debug("pj fail for %s", pj.ipaddr)
         pj.rtt = -1
-        pj.message = "%s ip %s is unreachable" % (pj.hostname, pj.ipaddr) 
+        pj.message = "%s ip %s is down" % (pj.hostname, pj.ipaddr) 
         del self.jobqueue[pj.ipaddr]
         if hasattr(self, "reportPingJob"):
             self.reportPingJob(pj)
@@ -164,12 +172,12 @@ class Ping(object):
     def checkTimeouts(self):
         """check to see if pingJobs in jobqueue have timed out"""
         joblist = self.jobqueue.values()
-        plog.debug("processing timeouts")
+        #plog.debug("processing timeouts")
         for pj in joblist:
             if time.time() - pj.start > self.timeout:
                 if pj.sent >= self.tries:
-                    self.removePacket(pj)
-                    self.sendPackets(1)
+                    plog.debug("pj timeout for %s", pj.ipaddr)
+                    self.pingJobFail(pj)
                 else:
                     self.sendPacket(pj)
 
@@ -184,15 +192,18 @@ class Ping(object):
         self.morepkts = True
         self.devcount = 0
         self.createPingSocket()
-        self.sendPackets(self.chunkSize)
+        self.sendPackets()
         while self.morepkts or len(self.jobqueue):
+            plog.debug("morepkts=%s jobqueue=%s",self.morepkts,
+                        len(self.jobqueue))
             while 1:
                 data = select.select([self.pingsocket,], [], [], 0.1)
                 if data[0]:
                     self.recvPacket()
-                    self.sendPackets(1)
+                    self.sendPackets()
                 else: break
             self.checkTimeouts()
+            self.sendPackets()
         self.closePingSocket()
         plog.info("ping cycle complete %s" % (time.asctime()))
         runtime = time.time() - startLoop

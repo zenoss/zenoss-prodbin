@@ -16,7 +16,6 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event
-from Products.PingMonitor.StatusMonitor import StatusMonitor
 from Products.PingMonitor.Ping import Ping
 from Products.SnmpCollector.SnmpSession import SnmpSession, ZenSnmpError
 
@@ -24,11 +23,10 @@ class NoSnmp(ZentinelException):
     """Can't open an snmp connection to the device."""
 
 
-class Discover(ZCmdBase, StatusMonitor):
+class Discover(ZCmdBase):
  
     def __init__(self):
         ZCmdBase.__init__(self)
-        StatusMonitor.__init__(self)
 
 
     def discoverRouters(self, rootdev, seenips=[]):
@@ -136,6 +134,8 @@ class Discover(ZCmdBase, StatusMonitor):
                     devname = ip
             self.log.info("device name '%s' for ip '%s'", devname, ip)
             dev = self.devroot(devicepath).createInstance(devname)
+            dev.manage_editDevice(statusMonitors=["localhost"], 
+                                  cricketMonitor="localhost")
             dev.collectConfig(community=community, port=port)
             transaction.commit()
             return dev.primaryAq()
@@ -199,7 +199,7 @@ class Discover(ZCmdBase, StatusMonitor):
         self.parser.add_option('--routers', dest='routersonly',
                     action="store_true",
                     help="only discover routers")
-        self.parser.add_option('--tries', dest='tries', default=2, type="int",
+        self.parser.add_option('--tries', dest='tries', default=1, type="int",
                     help="how many ping tries")
         self.parser.add_option('--timeout', dest='timeout', 
                     default=2, type="float",

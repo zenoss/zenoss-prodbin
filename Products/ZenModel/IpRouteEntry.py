@@ -70,11 +70,12 @@ class IpRouteEntry(OSComponent):
         ("os", ToOne(ToManyCont,"OperatingSystem","routes")),
         ("interface", ToOne(ToMany,"IpInterface","iproutes")),
         ("nexthop", ToOne(ToMany,"IpAddress","clientroutes")),
+        ("target", ToOne(ToMany,"IpNetwork","clientroutes")),
         )
 
     security = ClassSecurityInfo()
 
-    ipcheck = re.compile(r'^127.|^0.').search
+    ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.').search
 
     
     def __getattr__(self, name):
@@ -153,7 +154,7 @@ class IpRouteEntry(OSComponent):
     def matchTarget(self, ip):
         """Does this route target match the ip passed.
         """
-        if self._targetobj: return self._targetobj.hasIp(ip)      
+        if self.target(): return self.target().hasIp(ip)      
             
     
     def setTarget(self, netip):
@@ -162,14 +163,15 @@ class IpRouteEntry(OSComponent):
         if self.ipcheck(netip):
             self._target = netip
         else:
-            self._targetobj = self.getDmdRoot("Networks").createNet(netip)
+            net = self.getDmdRoot("Networks").createNet(netip)
+            self.target.addRelation(net)
 
 
     def getTarget(self):
         """Return the route target ie 0.0.0.0/0.
         """
-        if self._targetobj: 
-            return self._targetobj.getNetworkName()
+        if self.target(): 
+            return self.target().getNetworkName()
         else:
             return self._target
 
@@ -183,10 +185,8 @@ class IpRouteEntry(OSComponent):
     def getTargetLink(self):
         """Return an <a> link to our target network.
         """
-        if self._targetobj: 
-            return "<a href='%s'>%s</a>" % (
-                    self._targetobj.getPrimaryUrlPath(), 
-                    self._targetobj.getNetworkName())
+        if self.target(): 
+            return self.target.getPrimaryLink()
         else:
             return self._target
 

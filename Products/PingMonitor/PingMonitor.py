@@ -33,15 +33,14 @@ import Queue
 import Globals # make zope imports work
 
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventThread
+from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Ping import PingThread
+from PingThread import PingThread
 import pingtree
-#from StatusMonitor import StatusMonitor
 
 
-#class PingMonitor(ZCmdBase, StatusMonitor):
 class PingMonitor(ZCmdBase):
 
     agent = "PingMonitor"
@@ -60,7 +59,6 @@ class PingMonitor(ZCmdBase):
 
     def __init__(self):
         ZCmdBase.__init__(self)
-        #StatusMonitor.__init__(self)
         self.hostname = socket.getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
@@ -70,9 +68,9 @@ class PingMonitor(ZCmdBase):
         self.sendqueue = Queue.Queue()
         self.reportqueue = Queue.Queue()
 
-        self.senderThread = MySqlSendEventThread(self.dmd.ZenEventManager)
-        self._evqueue = self.senderThread.getqueue()
-        self.senderThread.start()
+        self.eventThread = MySqlSendEventThread(self.dmd.ZenEventManager)
+        self._evqueue = self.eventThread.getqueue()
+        self.eventThread.start()
         self.log.info("started")
 
 
@@ -88,6 +86,7 @@ class PingMonitor(ZCmdBase):
             self.configCycleInterval = self.configCycleInterval*60
             me = self.dmd.Devices.findDevice(self.hostname)
             if me: 
+                self.log.info("building pingtree")
                 self.pingtree = pingtree.buildTree(me)
             else:
                 self.log.critical("PingMonitor '%s' not found,"
@@ -121,51 +120,56 @@ class PingMonitor(ZCmdBase):
 
 
     def receiveReport(self):
-        self.reports += 1
-        pj = self.reportqueue.get(True)
-        self.log.debug("receive for '%s'", pj.hostname)
-        pj.inprocess = False
-        return pj
+        try:
+            pj = self.reportqueue.get(True,1)
+            self.reports += 1
+            self.log.debug("receive report for '%s'", pj.hostname)
+            pj.inprocess = False
+            return pj
+        except Queue.Empty: pass
 
 
     def cycleLoop(self):
         self.pingThread = PingThread(self.sendqueue, self.reportqueue,
                                     self.tries, self.timeOut, self.chunk)
-        self.pingThread.start()
         self.sent = self.reports = 0
-
         pjgen = self.pingtree.pjgen()
         for i, pj in enumerate(pjgen):
             if i > self.chunk: break
             self.sendPing(pj)
-
+        self.pingThread.start()
         while self.reports < self.sent:
             try: 
                 pj = pjgen.next()
                 self.sendPing(pj)
             except StopIteration: pass
             pj = self.receiveReport()
+            if not pj: continue
             try:
                 self.log.debug("processing pj for %s" % pj.hostname)
 
                 # ping attempt failed
                 if pj.rtt == -1:
                     pj.status += 1
-                    if pj.state == 1:         
-                        self.log.info("first failure '%s' skipping event")
-                        return
-                    pj.message = "device %s ip %s unreachable" % (
-                                  pj.hostname, pj.ipaddr)
-                    failname = pj.parent.checkpath()
-                    if failname:
-                        pj.eventState = evstates.SUPPRESSED
-                        pj.message += (", failed at %s" % failname)
-                    else:
+                    if pj.status == 1:         
+                        self.log.debug("first failure '%s'", pj.hostname)
+                        failname = pj.parent.checkpath()
+                        if failname:
+                            pj.eventState = 3 #suppressed FIXME
+                            pj.message += (", failed at %s" % failname)
+                        else:
                         # if our path back is currently clear add our parent
                         # to the ping list again to see if path is really clear
-                        parent = self.pj.parent
-                        if parent: self.sendPing(parent.pj)
-                    self.sendEvent(pj)
+                        # and then reping failed device.
+                            parent = pj.parent
+                            if parent: self.sendPing(parent.routerpj())
+                            self.sendPing(pj)
+                    else:
+                        failname = pj.parent.checkpath()
+                        if failname:
+                            pj.eventState = 3 #suppressed FIXME
+                            pj.message += (", failed at %s" % failname)
+                        self.sendEvent(pj)
                 # device was down but is back up
                 elif pj.status > 0:
                     pj.severity = 0
@@ -184,17 +188,22 @@ class PingMonitor(ZCmdBase):
         if self.options.cycle:
             while 1:
                 try:
+                    start = time.time()
                     self.loadConfig()
-                    #self.setPingHeartbeat()
-                    runtime = self.cycleLoop()
+                    #self.sendHeartbeat()
+                    self.cycleLoop()
+                    runtime = time.time() - start
                     if runtime < self.cycleInterval:
                         time.sleep(self.cycleInterval - runtime)
-                except SystemExit: raise
+                except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("unknown exception in main loop")
         else:
             self.loadConfig()
             self.cycleLoop()
+        self.eventThread.running = False
+        self.pingThread.join(2)
+        self.eventThread.join(2)
 
 
     def sendHeartbeat(self):

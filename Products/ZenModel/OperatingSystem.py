@@ -91,8 +91,9 @@ class OperatingSystem(Software):
         for intname in intnames:
             int = self.interfaces._getOb(intname, None)
             if int: return int
-        ints = self.interfaces()
-        if len(ints): return ints[0]
+        for int in self.interfaces():
+            if int.ipaddresses.countObjects():
+                return int
 
     
     security.declareProtected('View', 'getDeviceInterfaceIndexDict')

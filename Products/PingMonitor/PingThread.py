@@ -1,5 +1,6 @@
 import logging
 import threading
+import Queue
 
 from Ping import Ping, PingJob
 
@@ -19,10 +20,11 @@ class PingThread(threading.Thread, Ping):
         self.reportqueue = reportqueue
 
 
-    def sendPackets(self, numbtosend):
+    def sendPackets(self):
         """Send any packets that are in our queue up to numbtosend.
         """
         try:
+            numbtosend = self.chunkSize - len(self.jobqueue)
             for i in range(numbtosend):
                 pingJob = self.sendqueue.get(False)
                 self.devcount += 1

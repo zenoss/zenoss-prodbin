@@ -1,7 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<script metal:use-macro="here/miscmacros/macros/toggle"></script>
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
       <th class="tabletitle" align="left" colspan="4">
@@ -38,16 +37,6 @@
       <td class="tableheader" align="left">Snmp Tries</td>
       <td class="tablevalues" align="left"
         tal:content="here/snmpTries">tries
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Cycle Fail Warning</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/cycleFailWarn">snmptimeout
-      </td>
-      <td class="tableheader" align="left">Cycle Fail Critical</td>
-      <td class="tablevalues" align="left"
-          tal:content="here/cycleFailCritical">tries
       </td>
     </tr>
     <tr>

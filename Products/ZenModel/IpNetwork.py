@@ -69,6 +69,7 @@ class IpNetwork(DeviceOrganizer):
     
     _relations = DeviceOrganizer._relations + (
         ("ipaddresses", ToManyCont(ToOne, "IpAddress", "network")),
+        ("clientroutes", ToMany(ToOne,"IpRouteEntry","target")),
         ("location", ToOne(ToMany, "Location", "networks")),
         )
                    
@@ -351,9 +352,9 @@ class IpNetwork(DeviceOrganizer):
         nets = self.getDmdRoot("Networks")
         if getattr(aq_base(nets), "zDefaultNetworkTree", False): return
         nets._setProperty("zDefaultNetworkTree", (16,24,32), type="lines")
-        nets._setProperty("zDefaultRouterNumber", 1, type="int")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
+                          
 
 
     def reIndex(self):

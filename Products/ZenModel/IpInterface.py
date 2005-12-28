@@ -155,17 +155,8 @@ class IpInterface(OSComponent, PingStatusInt):
  
 
     def __getattr__(self, name):
-        if name == 'ip':
-            return self.getIpAddress()
         if name == 'ips':
             return self.getIpAddresses()
-        elif name == 'network':
-            return self.getNetwork()
-        elif name == 'networkName':
-            n = self.getNetwork()
-            if n:
-                return n.id
-            return None
         else:
             raise AttributeError, name
 
@@ -268,7 +259,7 @@ class IpInterface(OSComponent, PingStatusInt):
     def getIpAddress(self):
         """Return the first ipaddress with its netmask ie: 1.1.1.1/24.
         """
-        if len(self.ipaddresses()):
+        if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].getIpAddress()
         elif len(self._ipAddresses):
             return self._ipAddresses[0]
@@ -309,7 +300,7 @@ class IpInterface(OSComponent, PingStatusInt):
         """Return the network name for the first ip on this interface.
         """
         net = self.getNetwork()
-        if net: return self.getNetworkName()
+        if net: return net.getNetworkName()
         return ""
 
 

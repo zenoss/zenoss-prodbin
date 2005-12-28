@@ -35,18 +35,6 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Cycle Fail Warning</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="cycleFailWarn:int" 
-            tal:attributes="value here/cycleFailWarn" />
-      </td>
-      <td class="tableheader" align="left">Cycle Fail Critical</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="cycleFailCritical:int" 
-            tal:attributes="value here/cycleFailCritical" />
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Cycle Interval (secs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="cycleInterval:int" 

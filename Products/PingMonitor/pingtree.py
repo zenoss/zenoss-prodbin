@@ -36,9 +36,16 @@ class Rnode(object):
     def checkpath(self):
         """Walk back up the path to the ping server looking for failed routers.
         """
+        node = self
         while node.parent and node.pj.status == 0:
             node = node.parent
-        if node.parent: return node.pj.devname
+        if node.parent: return node.pj.hostname
+
+
+    def routerpj(self):
+        """Return the pingJob of our parent router.
+        """
+        return self.pj
 
 
     def hasDev(self, devname):
@@ -102,15 +109,15 @@ class Rnode(object):
         self.pj.reset()
         yield self.pj
         if self.pj.status != 0: return 
-        for net in self.nets:
-            for pj in net.pjgen():
-                yield pj
         for rnode in self.children:
             for pj in rnode.pjgen():
                 yield pj
-        
+        for net in iter(self.nets):
+            for pj in net.pjgen():
+                yield pj
+
     
-    def pprint(self, nodes=None):
+    def pprint_old(self, nodes=None):
         global allnodes
         if nodes is None: 
             nodes = [self,]
@@ -125,7 +132,18 @@ class Rnode(object):
             print node
             nnodes.extend(node.children)
         print
-        if nnodes: self.pprint(nnodes)
+        if nnodes: self.pprint_old(nnodes)
+
+    
+    def pprint(self, root=None):
+        if root is None: root = self
+        yield root
+        last = root
+        for node in self.pprint(root):
+            for child in iter(node.children):
+                yield child
+                last = child
+            if last == node: return    
 
     
     def __str__(self):
@@ -147,6 +165,12 @@ class Net(object):
         """Walk back up the path to the ping server.
         """
         return self.parent.checkpath()
+
+
+    def routerpj(self):
+        """Return the pingJob of our parent router.
+        """
+        return self.parent.pj
 
 
     def pjgen(self):
