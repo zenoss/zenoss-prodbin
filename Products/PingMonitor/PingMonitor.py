@@ -77,13 +77,14 @@ class PingMonitor(ZCmdBase):
     def loadConfig(self):
         "get the config data from file or server"
         if time.time()-self.configTime > self.configCycleInterval:
-            self.opendb()
+            self.getDataRoot()
             self.syncdb()
             smc = self.dmd.unrestrictedTraverse(self.configpath)
             for att in self.copyattrs:
                 value = getattr(smc, att)
                 setattr(self, att, value)
             self.configCycleInterval = self.configCycleInterval*60
+            me = None
             if self.options.name:
                 me = self.dmd.Devices.findDevice(self.options.name)
             if not me: 
