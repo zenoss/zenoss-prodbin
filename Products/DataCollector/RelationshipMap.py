@@ -16,10 +16,13 @@ __version__ = '$Revision: 1.2 $'[11:-2]
 from UserList import UserList
 
 class RelationshipMap(UserList):
+    
 
-    def __init__(self, relationshipName):
+    def __init__(self, relationshipName, componentName=""):
         UserList.__init__(self)
         self.relationshipName = relationshipName
+        # will this map to device/os/hw.
+        self.componentName = componentName
 
     def getName(self):
         return self.__class__.__name__

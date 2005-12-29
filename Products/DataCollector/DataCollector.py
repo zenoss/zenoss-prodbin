@@ -144,14 +144,18 @@ class DataCollector(ZCmdBase):
         self.log.debug("client for %s finished collecting" 
                         % collectorClient.hostname)
         for command, results in collectorClient.getResults():
-            device = collectorClient.device
-            if not self.commandParsers.has_key(command): continue
-            parser = self.commandParsers[command]
-            datamap = parser.parse(device, results, self.log)
-            #self.applyDataMap(collectorClient.device, datamap)
-            if not self.deviceMaps.has_key(device):
-                self.deviceMaps[device] = []
-            self.deviceMaps[device].append(datamap)
+            try:
+                device = collectorClient.device
+                if not self.commandParsers.has_key(command): continue
+                parser = self.commandParsers[command]
+                datamap = parser.parse(device, results, self.log)
+                #self.applyDataMap(collectorClient.device, datamap)
+                if not self.deviceMaps.has_key(device):
+                    self.deviceMaps[device] = []
+                self.deviceMaps[device].append(datamap)
+            except(SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("parsing command:%s", command)
         del self.clients[collectorClient]
         if not self.clients and not self.devices: 
             reactor.stop()
@@ -163,10 +167,13 @@ class DataCollector(ZCmdBase):
         try:
             device._p_jar.sync()
             from Products.DataCollector.ObjectMap import ObjectMap
+            compname = getattr(datamap, "componentName", False)
             if isinstance(datamap, ObjectMap):
                 self.updateObject(device, datamap)
             else:
-                self.updateRelationship(device, datamap)
+                tobj = device
+                if compname: tobj = getattr(device, compname)
+                self.updateRelationship(tobj, datamap)
             trans = transaction.get()
             trans.note("Automated data collection by DataCollector.py")
             trans.commit()
@@ -223,7 +230,7 @@ class DataCollector(ZCmdBase):
                 except:
                     self.log.exception("ERROR: setting attribute %s"
                                             % attname)
-                self.log.debug("   Set attribute %s to %s on object %s" 
+                self.log.debug("Set attribute %s to %s on object %s" 
                                 % (attname, value, obj.id))
             else:
                 self.log.warn('attribute %s not found on object %s' 
@@ -260,7 +267,7 @@ class DataCollector(ZCmdBase):
                             relationshipName, device.id)
         remoteObj = rel._getOb(remoteObj.id)
         self.updateObject(remoteObj, objectmap)
-        self.log.debug("   Added object %s to relationship %s" 
+        self.log.debug("Added object %s to relationship %s" 
                         % (remoteObj.id, relationshipName))
    
 
@@ -277,11 +284,11 @@ class DataCollector(ZCmdBase):
                 type='int',
                 default=defaultParallel,
                 help="number of devices to collect from in parallel")
-        self.parser.add_option('-i', '--ignore',
+        self.parser.add_option('--ignore',
                 dest='ignoreParsers',
                 default=[],
                 help="Comma separated list of collection maps to ignore")
-        self.parser.add_option('-c', '--collect',
+        self.parser.add_option('--collect',
                 dest='collectParsers',
                 default=[],
                 help="Comma separated list of collection maps to use")

@@ -56,8 +56,8 @@ class RouteMap(CustomRelMap):
         #routetable = snmpsess.snmpTableMap(routetable, self.routeMap)
         networks = device.Networks #aq
         ifdict = device.os.getInterfaceIndexDict()
-        localOnly = getattr(device, 'zRouteMapCollectOnlyLocal', 1)
-        indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', 1)
+        localOnly = getattr(device, 'zRouteMapCollectOnlyLocal', False)
+        indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)
         datamaps = []
         for route in routetable.values():
             route['routemask'] = maskToBits(route['routemask'])

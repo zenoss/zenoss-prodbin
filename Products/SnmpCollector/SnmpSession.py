@@ -128,7 +128,7 @@ class SnmpSession:
             tmp =  str(hex(tmp))[2:]
             if len(tmp) == 1: tmp = '0' + tmp
             mac.append(tmp)
-        return ":".join(mac)
+        return ":".join(mac).upper()
 
 
     def asip(self, val):

@@ -12,6 +12,8 @@ $Id: CommandParser.py,v 1.1 2003/09/25 16:21:52 edahl Exp $"""
 
 __version__ = '$Revision: 1.1 $'[11:-2]
 
+import re
+
 from Products.DataCollector.ObjectMap import ObjectMap
 from Products.DataCollector.RelationshipMap import RelationshipMap
 
@@ -19,13 +21,15 @@ class CommandParser:
 
     #Subclasses must fill this in with appropriate command
     command = ''
+   
+    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
 
     def newObjectMap(self, className=None):
         return ObjectMap(className)
 
-    def newRelationshipMap(self, relationshipName):
-        return RelationshipMap(relationshipName)
+    def newRelationshipMap(self, relationshipName, componentName=""):
+        return RelationshipMap(relationshipName, componentName)
         
     def condition(self, device, snmpsess):
         """does device meet the proper conditions for this collector to run"""

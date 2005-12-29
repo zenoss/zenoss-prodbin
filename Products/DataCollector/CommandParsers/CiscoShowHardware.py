@@ -23,7 +23,7 @@ class CiscoShowHardware(CommandParser):
     command = 'show hardware'
 
     def condition(self, device, log):
-        return device.getManufacturerName() == "Cisco"
+        return device.hw.getManufacturerName() == "Cisco"
 
 
     def parse(self, device, results, log):
