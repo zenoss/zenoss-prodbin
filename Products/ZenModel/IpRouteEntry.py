@@ -75,7 +75,7 @@ class IpRouteEntry(OSComponent):
 
     security = ClassSecurityInfo()
 
-    ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.').search
+    ipcheck = re.compile(r'^127\.|^0\.0\.|^169\.254\.|^224\.').search
 
     
     def __getattr__(self, name):

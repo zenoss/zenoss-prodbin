@@ -129,6 +129,8 @@ class IpNetwork(DeviceOrganizer):
         if netmask == 0: raise ValueError("netip '%s' without netmask")
         netobj = self
         if netobj.id != "Networks": netobj = self.getDmdRoot("Networks")
+        netobj = self.getDmdRoot("Networks")._getOb(netip,netobj)
+        if netobj: return netobj
         netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
         for treemask in netTree:
