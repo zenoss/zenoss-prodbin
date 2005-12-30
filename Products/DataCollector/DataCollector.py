@@ -20,16 +20,20 @@ $Id: DataCollector.py,v 1.8 2003/12/18 23:07:44 edahl Exp $"""
 __version__ = "$Revision: 1.8 $"[11:-2]
 
 import sys
-import transaction
+import os
+import time
+import types
+import Queue
 
 from twisted.internet import reactor
 
 import Globals
+import transaction
 
-from Acquisition import aq_base
+from Products.ZenUtils.ZeoPoolBase import ZeoPoolBase
+from Products.ZenUtils.Utils import importClass
 
-from Products.ZenUtils.Utils import getObjByPath
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
 
 import CollectorClient
 import SshClient
@@ -40,257 +44,190 @@ defaultProtocol = "ssh"
 defaultPort = 22
 defaultParallel = 10
 
-class DataCollector(ZCmdBase):
+class DataCollector(ZeoPoolBase):
     
     def __init__(self, noopts=0,app=None):
-        ZCmdBase.__init__(self,noopts,app)
+        ZeoPoolBase.__init__(self,noopts)
+        if not noopts: self.processOptions()
+
+        self.cycletime = self.options.cycletime*60
+
+        self.app = self.dmd = None
         self.clients = {}
-        if not noopts:
-            self.processOptions()            
-        self.commandParsers = {} 
+        self.commandPlugins = {} 
+        self.snmpPlugins = []
         self.deviceMaps = {}
-        import CommandParsers
-        CommandParsers.initCommandParsers(self)
+        self.devicegen = None
+
+        self.loadPlugins()
+
+        if app or self.options.debug:
+            self.log.debug("in debug mode starting apply in main thread.")
+            self.applyData = ApplyDataMap()
+        else:
+            self.applyData = ApplyDataMapThread(self.getConnection())
+            self.applyData.start()
  
 
 
-    def addCommandParser(self, commandParser):
-        """add an instance of a commandParser"""
-        cp = commandParser()
-        self.commandParsers[cp.command] = cp
+    def loadPlugins(self):
+        """Load plugins from the plugin directory.
+        """
+        pdir = os.path.join(os.path.dirname(__file__), "plugins")
+        sys.path.append(pdir)
+        self.log.info("loading collector plugins from:%s", pdir)
+        for path, dirname, filenames in os.walk(pdir):
+            def filef(n): return not n.startswith("_") and n.endswith(".py")
+            for filename in filter(filef, filenames):
+                try:
+                    modpath = os.path.join(path,filename[:-3]).replace("/",".")
+                    self.log.info("loading:%s", modpath)
+                    const = importClass(modpath)
+                    plugin = const()
+                    if plugin.transport == "command":
+                        self.commandPlugins[plugin.command] = plugin
+                    elif plugin.transport == "snmp":
+                        self.snmpPlugin.append(plugin)
+                    else:
+                        self.log.warn("skipped:%s unknown transport:%s", 
+                                       plugin.name(), plugin.transport)
+                except ImportError, e:
+                    self.log.warn(e)
 
 
-    def collectCommands(self, devices=None):
-        if devices: self.devices = devices
-        parallel = self.options.parallel
-        clients = 0
-        while parallel and self.devices:
-            client = self.collectDevice(self.devices.pop())
-            if client: 
-                clients += 1
-                parallel -= 1
-        if clients: 
-            reactor.run()
-            for device, maps in self.deviceMaps.items():
-                for map in maps:
-                    self.applyDataMap(device, map)
-        else:
-            self.log.warn("no valid clients found")
+    def collectDevices(self, deviceroot):
+        """Main processing loop collecting command data from devices.
+        """
+        if type(deviceroot) == types.StringType:
+            deviceroot = self.dmd.Devices.getOrganizer(deviceroot)
+        self.devicegen = deviceroot.getSubDevicesGen()
+        for i, device in enumerate(self.devicegen):
+            if i >= self.options.parallel: break
+            client = self.collectDevice(device)
+        if i > 0: 
+            self.log.debug("reactor start multi-device")
+            reactor.run(False)
+        else: self.log.warn("no valid clients found")
+            
         
 
     def collectDevice(self, device):
-        try:
-            hostname = device.getId()
-            client = None
-            commands = self.getCommands(device)
-            if not commands:
-                self.log.warn("no commands found for %s" % hostname)
-                return 
-            protocol = getattr(device, 
-                        'zCommandProtocol', defaultProtocol)
-            commandPort = getattr(device, 'zCommandPort', defaultPort)
-            if protocol == "ssh": 
-                client = SshClient.SshClient(hostname, commandPort, 
-                                    options=self.options,
-                                    commands=commands, device=device, 
-                                    datacollector=self, log=self.log)
-                self.clients[client] = 1
-            elif protocol == 'telnet':
-                if commandPort == 22: commandPort = 23 #set default telnet
-                client = TelnetClient.TelnetClient(hostname, commandPort,
-                                    options=self.options,
-                                    commands=commands, device=device, 
-                                    datacollector=self, log=self.log)
-            else:
-                self.log.warn("unknown protocol %s for device %s" 
-                                           % (protocol, hostname))
-            if client: self.clients[client] = 1
-            return client
-        except NoServerFound, msg:
-            self.log.warn(msg)
-        except DataCollectorError:
-            self.log.exception("error setting up collector client")
+        """Initiate collection from a single device.
+        """
+        if type(device) == types.StringType:
+            device = self.dmd.Devices.findDevice(self.options.device)
+            if not device: 
+                raise DataCollectorError(
+                        "device %s not found" % self.options.device)
+
+        hostname = device.getId()
+        client = None
+        commands = self.getCommands(device)
+        if not commands:
+            self.log.warn("no commands found for %s" % hostname)
+            return 
+        protocol = getattr(device, 
+                    'zCommandProtocol', defaultProtocol)
+        commandPort = getattr(device, 'zCommandPort', defaultPort)
+        if protocol == "ssh": 
+            client = SshClient.SshClient(hostname, commandPort, 
+                                options=self.options,
+                                commands=commands, device=device, 
+                                datacollector=self, log=self.log)
+        elif protocol == 'telnet':
+            if commandPort == 22: commandPort = 23 #set default telnet
+            client = TelnetClient.TelnetClient(hostname, commandPort,
+                                options=self.options,
+                                commands=commands, device=device, 
+                                datacollector=self, log=self.log)
+        else:
+            self.log.warn("unknown protocol %s for device %s" 
+                                       % (protocol, hostname))
+        if client: self.clients[client] = 1
+        if self.options.device: 
+            self.log.debug("reactor start single-device")
+            reactor.run(False)
+        return client
 
 
     def getCommands(self, device):
-        """go through the parsers for a device and get their commands"""
-        aqIgnoreParsers = getattr(device, 'zCommandIgnoreParsers', [])
-        aqCollectParsers = getattr(device, 'zCommandCollectParsers', [])
-        parsers = []
-        for parser in self.commandParsers.values():
-            parsername = parser.__class__.__name__
-            if (not parser.condition(device, self.log) or 
-                parsername in self.options.ignoreParsers or
-                parsername in aqIgnoreParsers):
-                self.log.debug("skip %s on device %s" % (parsername, device.id))
-                continue
-            elif (parsername in self.options.collectParsers or
-                    parsername in aqCollectParsers):
+        """Build a list of active plugins for a device.  
+        Returns a list of commands to be run.
+        """
+        aqIgnorePlugins = getattr(device, 'zCommandIgnorePlugins', [])
+        aqCollectPlugins = getattr(device, 'zCommandCollectPlugins', [])
+        plugins = []
+        for plugin in self.commandPlugins.values():
+            pname = plugin.name()
+            if not plugin.condition(device, self.log):
+                self.log.debug("condition failed %s on device %s", 
+                                pname, device.id)
+            elif (pname in self.options.ignorePlugins or
+                pname in aqIgnorePlugins):
+                self.log.debug("ignore %s on device %s" % (pname, device.id))
+            elif (pname in self.options.collectPlugins or
+                    pname in aqCollectPlugins):
                 self.log.debug("collect %s on device %s" 
-                                    % (parsername, device.id))
-                parsers.append(parser)
-            elif not (self.options.collectParsers or aqCollectParsers):
+                                    % (pname, device.id))
+                plugins.append(plugin)
+            elif not (self.options.collectPlugins or aqCollectPlugins):
                 self.log.debug("collect %s on device %s" 
-                                    % (parsername, device.id))
-                parsers.append(parser)
-        commands = map(lambda x: x.command, parsers)
-        self.log.debug("got commands: %s for %s" % 
-            ("' '".join(commands), device.getId()))
+                                    % (pname, device.id))
+                plugins.append(plugin)
+        commands = map(lambda x: x.command, plugins)
+        self.log.debug("%s cmds: '%s'", device.getId(), "', '".join(commands))
         return commands
              
     
     def clientFinished(self, collectorClient):
-        """handle the return values from a client and see if we need to stop"""
-        self.log.debug("client for %s finished collecting" 
-                        % collectorClient.hostname)
-        for command, results in collectorClient.getResults():
-            try:
-                device = collectorClient.device
-                if not self.commandParsers.has_key(command): continue
-                parser = self.commandParsers[command]
-                datamap = parser.parse(device, results, self.log)
-                #self.applyDataMap(collectorClient.device, datamap)
-                if not self.deviceMaps.has_key(device):
-                    self.deviceMaps[device] = []
-                self.deviceMaps[device].append(datamap)
-            except(SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("parsing command:%s", command)
-        del self.clients[collectorClient]
-        if not self.clients and not self.devices: 
-            reactor.stop()
-        elif self.devices:
-            self.collectDevice(self.devices.pop())
-
-
-    def applyDataMap(self, device, datamap):
+        """Process the return values from a device. 
+        """
         try:
-            device._p_jar.sync()
-            from Products.DataCollector.ObjectMap import ObjectMap
-            compname = getattr(datamap, "componentName", False)
-            if isinstance(datamap, ObjectMap):
-                self.updateObject(device, datamap)
-            else:
-                tobj = device
-                if compname: tobj = getattr(device, compname)
-                self.updateRelationship(tobj, datamap)
-            trans = transaction.get()
-            trans.note("Automated data collection by DataCollector.py")
-            trans.commit()
-        except(SystemExit, KeyboardInterrupt): raise
-        except:
-            transaction.abort()
-            self.log.exception("ERROR: appling datamap %s to device %s"
-                                    % (datamap.getName(), device.getId()))
-            
-    
-        
-    def updateRelationship(self, device, relmap):
-        """populate the relationship with collected data"""
-        rname = relmap.relationshipName
-        rel = getattr(device, rname, None)
-        if rel:
-            relids = rel.objectIdsAll()
-            for objectmap in relmap:
-                from Products.DataCollector.ObjectMap import ObjectMap
-                from Products.ZenModel.ZenModelRM import ZenModelRM
-                if isinstance(objectmap, ObjectMap) and objectmap.has_key('id'):
-                    if objectmap['id'] in relids:
-                        self.updateObject(
-                            rel._getOb(objectmap['id']), objectmap)
-                        relids.remove(objectmap['id'])
-                    else:
-                        self.createRelObject(device, objectmap, rname)
-                elif isinstance(objectmap, ZenModelRM):
-                    self.log.debug("linking object %s to device %s relation %s"
-                                        % (objectmap.id, device.id, rname))
-                    device.addRelation(rname, objectmap)
-                else:
-                    self.log.warn("ignoring objectmap no id found")
-            for id in relids:
-                rel._delObject(id)
-        else:
-            self.log.warn("No relationship %s found on %s" % 
-                                (relmap.relationshipName, device.id))
-
-
-    def updateObject(self, obj, objectmap):
-        """update an object using a objectmap"""
-        for attname, value in objectmap.items():
-            if attname[0] == '_': continue
-            if hasattr(aq_base(obj), attname):
+            nodevices = False
+            self.log.debug("client for %s finished collecting",
+                            collectorClient.hostname)
+            datamaps = []
+            for command, results in collectorClient.getResults():
                 try:
-                    att = getattr(obj, attname)
-                    if callable(att):
-                        att(value)
-                    else:
-                        if att != value:
-                                setattr(aq_base(obj), attname, value) 
+                    device = collectorClient.device
+                    if not self.commandPlugins.has_key(command): continue
+                    plugin = self.commandPlugins[command]
+                    datamaps.append(plugin.process(device, results, self.log))
                 except(SystemExit, KeyboardInterrupt): raise
                 except:
-                    self.log.exception("ERROR: setting attribute %s"
-                                            % attname)
-                self.log.debug("Set attribute %s to %s on object %s" 
-                                % (attname, value, obj.id))
-            else:
-                self.log.warn('attribute %s not found on object %s' 
-                                % (attname, obj.id))
-        obj.index_object() #FIXME do we really need this?
-        
-
-    def createRelObject(self, device, objectmap, relationshipName):
-        """create an object on a relationship using its objectmap and snmpmap"""
-        id = objectmap['id']
-        if objectmap.className.find('.') > 0:
-            fpath = objectmap.className.split('.')
-        else:
-            raise ObjectCreationError, \
-                "className %s must specify the module and class" % ( 
-                                            objectmap.className,)
-        constructor = (self._lookupClass(objectmap.className)
-                    or getObjByPath(self.app.Control_Panel.Products, fpath))
-        if not constructor:
-            raise ObjectCreationError, \
-                "Can not find factory function for %s" % objectmap.className
-        remoteObj = constructor(id)
-        if not remoteObj: 
-            raise ObjectCreationError, \
-                "failed to create object %s in relation %s" % (
-                                    id,relationshipName)
-                    
-        rel = device._getOb(relationshipName, None) 
-        if rel:
-            rel._setObject(remoteObj.id, remoteObj)
-        else:
-            raise ObjectCreationError, \
-                "No relation %s found on device %s" % (
-                            relationshipName, device.id)
-        remoteObj = rel._getOb(remoteObj.id)
-        self.updateObject(remoteObj, objectmap)
-        self.log.debug("Added object %s to relationship %s" 
-                        % (remoteObj.id, relationshipName))
-   
-
-    def _lookupClass(self, productName):
-        """look in sys.modules for our class"""
-        from Products.ZenUtils.Utils import lookupClass
-        return lookupClass(productName)
+                    self.log.exception("parsing command:%s", command)
+            self.applyData.applyDataMaps(device, datamaps)
+            try:
+                if not self.devicegen: raise StopIteration
+                device = self.devicegen.next()
+                self.collectDevice(device)
+            except StopIteration:
+                nodevices = True
+        finally:
+            del self.clients[collectorClient]
+            self.log.debug("clients=%s nodevices=%s",
+                            len(self.clients),nodevices)
+            if not self.clients and nodevices: 
+                self.log.debug("reactor stop")
+                reactor.stop()
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
-        self.parser.add_option('--parallel',
-                dest='parallel',
-                type='int',
-                default=defaultParallel,
+        ZeoPoolBase.buildOptions(self)
+        self.parser.add_option('--debug',
+                dest='debug', action="store_true",
+                help="don't fork threads for processing")
+        self.parser.add_option('--parallel', dest='parallel', 
+                type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
+        self.parser.add_option('--cycletime',
+                dest='cycletime',default=60,type='int',
+                help="run collection every x minutes")
         self.parser.add_option('--ignore',
-                dest='ignoreParsers',
-                default=[],
+                dest='ignorePlugins',default="",
                 help="Comma separated list of collection maps to ignore")
         self.parser.add_option('--collect',
-                dest='collectParsers',
-                default=[],
+                dest='collectPlugins',default="",
                 help="Comma separated list of collection maps to use")
         self.parser.add_option('-p', '--path',
                 dest='path',
@@ -308,38 +245,73 @@ class DataCollector(ZCmdBase):
 
     
     def processOptions(self):
-        devices = []
-        if (not self.options.path and 
-            not self.options.device):
-            self.parser.print_help()
-            sys.exit(1)
+        if not self.options.path and not self.options.device:
+            raise SystemExit("no device or path specified must have one!")
+        if self.options.ignorePlugins and self.options.collectPlugins:
+            raise SystemExit("--ignore and --collect are mutually exclusive")
+        if self.options.ignorePlugins:
+            self.options.ignorePlugins = self.options.ignorePlugins.split(',')
+        if self.options.collectPlugins:
+            self.options.collectPlugins = self.options.collectPlugins.split(',')
+
+
+    def opendmd(self):
+        if not self.dmd:
+            self.app = self.getConnection()
+            self.dmd = self.app.zport.dmd
+
+
+    def closedmd(self):
+        if self.dmd:
+            self.dmd = None
+            self.app = None
+            self.closeAll()
+
+
+    def mainLoop(self):
+        while 1:
+            startLoop = time.time()
+            runTime = 0
+            try:
+                try:
+                    self.log.info("starting collector loop")
+                    self.app._p_jar.sync()
+                    self.collectDevices(self.options.path)
+                    self.log.info("ending collector loop")
+                finally:
+                    transaction.abort()
+                runTime = time.time()-startLoop
+                self.log.info("loop time = %0.2f seconds",runTime)
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("problem in main loop")
+            if runTime < self.cycletime:
+                time.sleep(self.cycletime - runTime)
+
+
+    def sigTerm(self, signum, frame):
+        self.log.info("stopping...")
+        self.applyData.done = True
+        #wait for apply thread to close
+        if hasattr(self.applyData, 'join'):
+            self.applyData.join(10)  
+        self.closedmd()
+        ZeoPoolBase.sigTerm(self, signum, frame)
+
+
+
+    def main(self):
+        self.opendmd()
         if self.options.device:
-            device = self.findDevice(self.options.device)
-            if not device:
-                print "unable to locate device %s" % self.options.device
-                sys.exit(2)
-            devices.append(device)
-        if self.options.path:
-            devices = self.dataroot.getDmdRoot("Devices")
-            droot = devices.getOrganizer(self.options.path)
-            if not droot:
-                print "unable to locate device class %s" % self.options.path
-                sys.exit(2)
-            devices = droot.getSubDevices()
-        if self.options.ignoreParsers and self.options.collectParsers:
-            print "--ignore and --collect are mutually exclusive"
-            sys.exit(1)
-        if self.options.ignoreParsers:
-            self.options.ignoreParsers = self.options.ignoreParsers.split(',')
-        if self.options.collectParsers:
-            self.options.collectParsers = self.options.collectParsers.split(',')
-        self.devices = devices
+            self.collectDevice(self.options.device)
+        elif not self.options.cycle:
+            self.collectDevices(self.options.path)
+        else:
+            self.mainLoop()
+        transaction.abort()
+                    
 
-
-def main():
-    dc = DataCollector()
-    dc.collectCommands()
-    
 
 if __name__ == '__main__':
-    main()
+    dc = DataCollector()
+    dc.main()

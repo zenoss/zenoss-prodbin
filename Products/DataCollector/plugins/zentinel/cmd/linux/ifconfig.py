@@ -6,11 +6,11 @@
 
 import re
 
-from CommandPlugin import CommandPlugin
+from CollectorPlugin import CommandPlugin
 
-class Linux_ifconfig(CommandPlugin):
+class ifconfig(CommandPlugin):
     """
-    Linux_ifconfig maps a linux ifconfig command to the interfaces relation.
+    ifconfig maps a linux ifconfig command to the interfaces relation.
     """
     maptype = "InterfaceMap" 
     command = 'ifconfig'
@@ -47,7 +47,7 @@ class Linux_ifconfig(CommandPlugin):
                     name, itype = m.groups()[3:]
                 iface.type = itype.strip()
                 iface.name = name
-                iface.id = self.prepId.sub('_', name)
+                iface.id = self.prepId(name)
                 continue
             m = self.v4addr(line)
             if m:

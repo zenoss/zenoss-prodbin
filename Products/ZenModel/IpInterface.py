@@ -162,7 +162,9 @@ class IpInterface(OSComponent, PingStatusInt):
 
   
     def _prepIp(self, ip, netmask=24):
-        """break ips in the format 1.1.1.1/24 into ip and netmask"""
+        """Split ips in the format 1.1.1.1/24 into ip and netmask.
+        Default netmask is 24.
+        """
         iparray = ip.split("/")
         if len(iparray) > 1:
             ip = iparray[0]
@@ -172,9 +174,9 @@ class IpInterface(OSComponent, PingStatusInt):
   
 
     def addIpAddress(self, ip, netmask=24):
-        """add an ip to the ipaddresses relationship"""
-        (ip, netmask) = self._prepIp(ip, netmask)
-
+        """Add an ip to the ipaddresses relationship on this interface.
+        """
+        ip, netmask = self._prepIp(ip, netmask)
         #see if ip exists already and link it to interface
         ipobj = findIpAddress(self, ip)
         if ipobj:
@@ -189,12 +191,11 @@ class IpInterface(OSComponent, PingStatusInt):
         else:  
             ipobj = self.getDmdRoot("Networks").createIp(ip, netmask)
             self.addRelation('ipaddresses', ipobj)
-#        ipobj = ipobj.primaryAq()
-#        ipobj.index_object()
   
 
     def addLocalIpAddress(self, ip, netmask=24):
-        """store some ips locally (like loopback)"""
+        """Add a locally stored ip. Ips like 127./8 are maintained locally.
+        """
         (ip, netmask) = self._prepIp(ip, netmask)
         ip = ip + '/' + str(netmask)
         if not hasattr(self,'_ipAddresses'):
@@ -204,7 +205,9 @@ class IpInterface(OSComponent, PingStatusInt):
 
 
     def setIpAddresses(self, ips):
-        """set the relationship with ipaddress must have aq to call this"""
+        """Set a list of ipaddresses in the form 1.1.1.1/24 on to this 
+        interface. If networks for the ips don't exist they will be created.
+        """
         if type(ips) == type(''): ips = [ips,]
         if not ips:
             self.removeRelation('ipaddresses')
@@ -237,12 +240,15 @@ class IpInterface(OSComponent, PingStatusInt):
    
 
     def removeIpAddress(self, ip):
+        """Remove an ipaddress from this interface.
+        """
         ipobj = getattr(self.ipaddresses, ip, None)
         self.removeRelation('ipaddresses', ipobj)
 
     
     def getIp(self):
-        """return only the ip ie: 1.1.1.1"""
+        """Return the first ip for this interface in the form: 1.1.1.1.
+        """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].getIp()
         elif len(self._ipAddresses):
@@ -250,6 +256,8 @@ class IpInterface(OSComponent, PingStatusInt):
         
    
     def getIpSortKey(self):
+        """Return the ipaddress as a 32bit integter for sorting purposes.
+        """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].primarySortKey()
         elif len(self._ipAddresses):
@@ -272,7 +280,6 @@ class IpInterface(OSComponent, PingStatusInt):
             return self.ipaddresses()[0]
 
 
-
     def getIpAddressObjs(self):
         """Return a list of the ip objects on this interface."""
         retval=[]
@@ -286,12 +293,14 @@ class IpInterface(OSComponent, PingStatusInt):
 
 
     def getIpAddresses(self):
-        """Return list of ip addresses as strings in the form 1.1.1.1/24."""
+        """Return list of ip addresses as strings in the form 1.1.1.1/24.
+        """
         return map(str, self.getIpAddressObjs())
 
 
     def getNetwork(self):
-        """get the network for the first ip on this interface"""
+        """Return the network for the first ip on this interface.
+        """
         if self.ipaddresses.countObjects(): 
             return self.ipaddresses()[0].network()
 
@@ -305,7 +314,8 @@ class IpInterface(OSComponent, PingStatusInt):
 
 
     def getNetworkLink(self):
-        """get the network link for the first ip on this interface"""
+        """Return the network link for the first ip on this interface.
+        """
         if len(self.ipaddresses()):
             addr = self.ipaddresses.objectValuesAll()[0]
             if addr:
@@ -316,7 +326,8 @@ class IpInterface(OSComponent, PingStatusInt):
    
 
     def getNetworkLinks(self):
-        """retun a list of network links for each ip in this interface"""
+        """Return a list of network links for each ip in this interface.
+        """
         if not hasattr(self,'_ipAddresses'):
             self._ipAddresses = []
         addrs = self.ipaddresses() + self._ipAddresses
@@ -334,28 +345,35 @@ class IpInterface(OSComponent, PingStatusInt):
 
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
-        """return the name of this interface"""
+        """Return the name of this interface.
+        """
         return self.name
 
 
     security.declareProtected('View', 'getInterfaceMacaddress')
     def getInterfaceMacaddress(self):
-        """return the mac address of this interface"""
+        """Return the mac address of this interface.
+        """
         return self.macaddress
 
 
     def manage_afterAdd(self, item, container):
-        """setup relationshipmanager add object to index and build relations """
+        """Index this interface after it is added to an interfaces relation.
+        """
         if item == self or item == self.device(): 
             self.index_object()
 
 
     def manage_afterClone(self, item):
+        """Index this interface after it is cloned.
+        """
         OSComponent.manage_afterClone(self, item)
         self.index_object()
 
 
     def manage_beforeDelete(self, item, container):
+        """Unindex this interface after it is deleted.
+        """
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1): 
             OSComponent.manage_beforeDelete(self, item, container)
@@ -363,7 +381,8 @@ class IpInterface(OSComponent, PingStatusInt):
 
 
     def index_object(self):
-        """interfaces use hostname + interface name as uid"""
+        """Index. Interfaces use hostname + interface name as uid.
+        """
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
             self.uid = self.device().getId() + "." + self.getId()
@@ -371,7 +390,8 @@ class IpInterface(OSComponent, PingStatusInt):
             
                                                 
     def unindex_object(self):
-        """interfaces use hostname + interface name as uid"""
+        """Unindex. Interfaces use hostname + interface name as uid.
+        """
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
             cat.uncatalog_object(self.uid)

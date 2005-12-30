@@ -150,35 +150,6 @@ class SnmpCollector(ZCmdBase):
         self._customMaps.append(col)
 
 
-    def _collectCustomMaps(self, device, snmpsess):
-        """run through custom snmp collectors"""
-        changed = False
-        for custmap in self._customMaps:
-            if self._passCustMap(device, custmap): continue
-            if custmap.condition(device, snmpsess, slog):
-                datamap = None
-                try:
-                    datamap = custmap.collect(device, snmpsess, slog)
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
-                    slog.exception("problem collecting snmp")
-                if not datamap: continue
-                try:
-                    tobj = device
-                    compname = getattr(custmap, "componentName", False)
-                    if compname: tobj = getattr(device, compname)
-                    if hasattr(custmap, 'relationshipName'):
-                        if self._updateRelationship(tobj, datamap, custmap):
-                            changed = True
-                    else:
-                        if self._updateObject(tobj, datamap):
-                            changed = True
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
-                    slog.exception("ERROR: implementing datamap %s",datamap)
-        return changed               
-
-
     def _passCustMap(self, device, custmap):
         """check to see if we should use this map"""
         device = device.primaryAq()
@@ -200,92 +171,6 @@ class SnmpCollector(ZCmdBase):
             return 1
 
 
-    def _updateRelationship(self, device, datamaps, snmpmap):
-        """populate the relationship with collected data"""
-        changed = False
-        rel = getattr(device, snmpmap.relationshipName, None)
-        if not rel:
-            slog.warn("No relationship %s found on %s" % 
-                                (snmpmap.relationshipName, device.id))
-            return changed 
-        relids = rel.objectIdsAll()
-        for datamap in datamaps:
-            if not datamap.has_key('id'):
-                slog.warn("ignoring datamap no id found")
-                continue
-            if datamap['id'] in relids:
-                if self._updateObject(rel._getOb(datamap['id']), datamap):
-                    changed = True
-                relids.remove(datamap['id'])
-            else:
-                self._createRelObject(device, snmpmap, datamap)
-                changed = True
-        for id in relids:
-            rel._delObject(id)
-            changed = True
-            slog.info("Removing object %s from relation %s on obj %s",
-                            id, rel.id, device.id)
-        return changed
-
-
-    def _updateObject(self, obj, datamap):
-        """update an object using a datamap"""
-        for attname, value in datamap.items():
-            slog.debug('attrname = %s value = %s', attname, value)
-            if attname.startswith("_"): continue
-            att = getattr(aq_base(obj), attname, zenmarker)
-            if att == zenmarker:
-                slog.warn('attribute %s not found on object %s', 
-                              attname, obj.id)
-                continue
-            if callable(att): 
-                setter = getattr(obj, attname)
-                getter = getattr(obj, attname.replace("set","get"), "")
-                if getter and value != getter():
-                    setter(value)
-                    slog.debug(
-                        "Calling function '%s' with '%s'on object %s", 
-                        attname, value, obj.id)
-            elif att != value:
-                setattr(aq_base(obj), attname, value) 
-                slog.debug("Set attribute %s to %s on object %s",
-                               attname, value, obj.id)
-        try: changed = obj._p_changed
-        except: changed = False
-        if getattr(aq_base(obj), "index_object", False) and changed:
-            slog.debug("indexing object %s", obj.id)
-            obj.index_object() 
-        if not changed: obj._p_deactivate()
-        return changed
-        
-
-    def _createRelObject(self, device, snmpmap, datamap):
-        """create an object on a relationship using its datamap and snmpmap"""
-        if snmpmap.remoteClass.find('.') > 0:
-            fpath = snmpmap.remoteClass.split('.')
-        else:
-            raise "ObjectCreationError", \
-                ("remoteClass %s must specify the module and class" 
-                                            % snmpmap.remoteClass)
-
-        constructor = importClass(snmpmap.remoteClass)
-        remoteObj = constructor(datamap['id'])
-        if not remoteObj: 
-            raise "ObjectCreationError", ("failed to create object for %s" 
-                            % datamap['id'])
-        rel = device._getOb(snmpmap.relationshipName, None) 
-        if rel:
-            rel._setObject(remoteObj.id, remoteObj)
-        else:
-            raise "ObjectCreationError", \
-                ("No relation %s found on device %s" 
-                 % (snmpmap.relationshipName, device.id))
-        remoteObj = rel._getOb(remoteObj.id)
-        transaction.savepoint()
-        self._updateObject(remoteObj, datamap)
-        slog.info("   Added object %s to relationship %s" 
-            % (remoteObj.id, snmpmap.relationshipName))
-   
 
     def findSnmpCommunity(self, name, device, port=161):
         """look for snmp community based on list we get through aq"""

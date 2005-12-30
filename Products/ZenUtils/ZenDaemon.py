@@ -69,7 +69,7 @@ class ZenDaemon(CmdBase):
             self.log.info("delete pidfile %s", self.pidfile)
             os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
-        sys.exit(0)
+        raise SystemExit
 
 
     def buildOptions(self):

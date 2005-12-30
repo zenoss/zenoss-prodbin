@@ -28,8 +28,8 @@ class ZeoPoolBase(ZenDaemon):
     """
 
 
-    def __init__(self):
-        ZenDaemon.__init__(self)
+    def __init__(self, noopts=0, app=None):
+        ZenDaemon.__init__(self, noopts)
         addr = (self.options.host, self.options.port)
         storage=ClientStorage.ClientStorage(addr)
         self.db=DB(storage)

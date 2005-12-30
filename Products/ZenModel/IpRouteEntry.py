@@ -24,6 +24,9 @@ from IpAddress import findIpAddress
 
 from OSComponent import OSComponent
 
+import logging
+log = logging.getLogger("IpRouteEntry")
+
 def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
     """make a IpRouteEntry"""
     d = IpRouteEntry(id, title)
@@ -190,19 +193,36 @@ class IpRouteEntry(OSComponent):
         else:
             return self._target
 
+    
+    security.declareProtected('Change Device', 'setInterfaceByIndex')
+    def setInterfaceIndex(self, ifindex):
+        os = self.os()
+        int = self.getInterfaceByIndex(ifindex)
+        if int: self.interface.addRelation(int)
+        else: log.warn("interface index:%s not found", ifindex)
 
-    security.declareProtected('Change Device', 'setInterface')
-    def setInterface(self, interface):
-        self.addRelation('interface', interface)
+
+    def getInterfaceIndex(self):
+        int = self.interface()
+        if int: return int.ifindex
 
 
-    def getInterface(self):
-        return self.interface()
+    security.declareProtected('Change Device', 'setInterfaceName')
+    def setInterfaceName(self, intname):
+        os = self.os()
+        int = self.os.interfaces._getOb(intname,None)
+        if int: self.interface.addRelation(int)
+        else: log.warn("interface '%s' not found", intname)
+
+
+    def getInterfaceName(self):
+        return self.interface.getRelatedId()
 
 
     def getInterfaceIp(self):
         int = self.interface()
         if int: return int.getIp()
         return ""
+
 
 InitializeClass(IpRouteEntry)

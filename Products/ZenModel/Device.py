@@ -468,28 +468,36 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
 
     security.declareProtected('Change Device', 'setProdState')
     def setProdState(self, state):
+        """Set a device's production state as an integer.
+        """
         self.productionState = int(state)
 
 
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):
+        """Set the changed datetime for this device. value default is now.
+        """
         self._lastChange.setDate(value)
 
 
     security.declareProtected('Change Device', 'setLastCricketGenerate')
     def setLastCricketGenerate(self, value=None):
+        """Set the last time cricket generation occurred. value default is now.
+        """
         self._lastCricketGenerate.setDate(value)
 
 
     security.declareProtected('Change Device', 'setSnmpLastCollection')
     def setSnmpLastCollection(self, value=None):
+        """Set the last time snmp collection occurred. value default is now.
+        """
         self._snmpLastCollection.setDate(value)
 
 
     security.declareProtected('Change Device', 'addManufacturer')
     def addManufacturer(self, newHWManufacturerName=None, 
                         newSWManufacturerName=None, REQUEST=None):
-        """add a manufacturer to the database"""
+        """Add a manufacturer to the database"""
         mname = newHWManufacturerName
         field = 'hwManufacturer'
         if not mname: 

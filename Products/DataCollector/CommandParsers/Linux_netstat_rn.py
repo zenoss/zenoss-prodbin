@@ -39,7 +39,7 @@ class Linux_netstat_rn(CommandParser):
         for line in rlines:
             aline = line.split()
             if len(aline) != 8 or not isip(aline[0]): continue
-            route = self.newObjectMap("ZenModel.IpRouteEntry")
+            route = self.newObjectMap("Products.ZenModel.IpRouteEntry")
 
             route['routemask'] = maskToBits(aline[NETMASK])
             if route['routemask'] == 32: continue
@@ -54,13 +54,9 @@ class Linux_netstat_rn(CommandParser):
             route['id'] = aline[TARGET]
             route['setTarget'] = route['id'] + "/" + str(route['routemask'])
             route['id'] = route['id'] + "_" + str(route['routemask'])
-
-            ifname = aline[INTERFACE]
-            iface = getattr(device.os.interfaces, ifname, None)
-            if iface: route['setInterface'] = iface
-
+            route['setInterfaceName'] = aline[INTERFACE]
+            route['setNextHopIp'] = aline[GATEWAY]
             rm.append(route)
-            log.debug('Adding route %s' % route['setTarget'])
         return rm
 
     def description(self):

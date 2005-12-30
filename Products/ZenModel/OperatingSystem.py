@@ -96,17 +96,16 @@ class OperatingSystem(Software):
                 return int
 
     
-    security.declareProtected('View', 'getDeviceInterfaceIndexDict')
-    def getInterfaceIndexDict(self):
+    security.declareProtected('View', 'getDeviceInterfaceByIndex')
+    def getInterfaceByIndex(self, ifindex):
+        """Return an interface based on its snmp index.
         """
-        Build a dictionary of interfaces keyed on ifindex
-        Used by SnmpCollector.CustomMaps.RouteMap to connect routes
-        with interfaces.
-        """
-        dict = {}
-        for i in self.interfaces.objectValuesAll():
-            dict[i.ifindex] = i
-        return dict
+        idxmap = getattr(aq_base(self), "_v_idxmap", {})
+        if not idxmap:
+            for i in self.interfaces.objectValuesAll():
+                idxmap[i.ifindex] = i
+            self._v_idxmap = idxmap
+        return idxmap.get(ifindex, None)
 
 
     def device(self):

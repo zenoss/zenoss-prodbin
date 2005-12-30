@@ -183,7 +183,7 @@ class IpNetwork(DeviceOrganizer):
         for net in self.children():
             if net.hasIp(ip):
                 if not len(net.children()):
-                    return net.addIpAddress(ip)
+                    return net.addIpAddress(ip, net.netmask)
                 else:
                     return net.addIp(ip)
         return None
