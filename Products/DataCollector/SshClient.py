@@ -22,7 +22,6 @@ from twisted.conch.ssh import common, keys, channel
 from twisted.internet import defer, reactor
 
 from Exceptions import *
-from ObjectMap import ObjectMap
 
 import CollectorClient
 

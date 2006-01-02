@@ -22,6 +22,11 @@ class ObjectMap(object):
     _blockattrs = ('compname', 'modname', 'classname' )
     _attrs = []
 
+
+    def __init__(self, data={}):
+        self.updateFromDict(data)
+
+
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"): 
             self._attrs.append(name)
@@ -33,3 +38,10 @@ class ObjectMap(object):
         """
         return [ (n, v) for n, v in self.__dict__.items() \
                 if n not in self._blockattrs and n in self._attrs ]
+
+
+    def updateFromDict(self, data):
+        """Update this ObjectMap from a dictionary's values.
+        """
+        for key, value in data.items():
+            setattr(self, key, value)

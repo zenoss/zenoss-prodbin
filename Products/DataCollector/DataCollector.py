@@ -34,14 +34,10 @@ from Products.ZenUtils.ZeoPoolBase import ZeoPoolBase
 from Products.ZenUtils.Utils import importClass
 
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
-
-import CollectorClient
-import SshClient
 import TelnetClient
+
 from Exceptions import *
 
-defaultProtocol = "ssh"
-defaultPort = 22
 defaultParallel = 10
 
 class DataCollector(ZeoPoolBase):
@@ -51,11 +47,10 @@ class DataCollector(ZeoPoolBase):
         if not noopts: self.processOptions()
 
         self.cycletime = self.options.cycletime*60
-
+        self.collage = self.options.collage / 1440.0
         self.app = self.dmd = None
         self.clients = {}
-        self.commandPlugins = {} 
-        self.snmpPlugins = []
+        self.collectorPlugins = {} 
         self.deviceMaps = {}
         self.devicegen = None
 
@@ -63,9 +58,9 @@ class DataCollector(ZeoPoolBase):
 
         if app or self.options.debug:
             self.log.debug("in debug mode starting apply in main thread.")
-            self.applyData = ApplyDataMap()
+            self.applyData = ApplyDataMap(self)
         else:
-            self.applyData = ApplyDataMapThread(self.getConnection())
+            self.applyData = ApplyDataMapThread(self, self.getConnection())
             self.applyData.start()
  
 
@@ -73,10 +68,12 @@ class DataCollector(ZeoPoolBase):
     def loadPlugins(self):
         """Load plugins from the plugin directory.
         """
-        pdir = os.path.join(os.path.dirname(__file__), "plugins")
-        sys.path.append(pdir)
-        self.log.info("loading collector plugins from:%s", pdir)
-        for path, dirname, filenames in os.walk(pdir):
+        pdir = os.path.dirname(__file__)
+        curdir = os.getcwd()
+        os.chdir(pdir)
+        sys.path.append("plugins")
+        self.log.info("loading collector plugins from:%s/plugins", pdir)
+        for path, dirname, filenames in os.walk("plugins"):
             def filef(n): return not n.startswith("_") and n.endswith(".py")
             for filename in filter(filef, filenames):
                 try:
@@ -85,79 +82,24 @@ class DataCollector(ZeoPoolBase):
                     const = importClass(modpath)
                     plugin = const()
                     if plugin.transport == "command":
-                        self.commandPlugins[plugin.command] = plugin
+                        self.collectorPlugins[plugin.command] = plugin
                     elif plugin.transport == "snmp":
-                        self.snmpPlugin.append(plugin)
+                        self.collectorPlugins[plugin.name()] = plugin
                     else:
                         self.log.warn("skipped:%s unknown transport:%s", 
                                        plugin.name(), plugin.transport)
                 except ImportError, e:
                     self.log.warn(e)
+        os.chdir(curdir)
 
-
-    def collectDevices(self, deviceroot):
-        """Main processing loop collecting command data from devices.
-        """
-        if type(deviceroot) == types.StringType:
-            deviceroot = self.dmd.Devices.getOrganizer(deviceroot)
-        self.devicegen = deviceroot.getSubDevicesGen()
-        for i, device in enumerate(self.devicegen):
-            if i >= self.options.parallel: break
-            client = self.collectDevice(device)
-        if i > 0: 
-            self.log.debug("reactor start multi-device")
-            reactor.run(False)
-        else: self.log.warn("no valid clients found")
-            
-        
-
-    def collectDevice(self, device):
-        """Initiate collection from a single device.
-        """
-        if type(device) == types.StringType:
-            device = self.dmd.Devices.findDevice(self.options.device)
-            if not device: 
-                raise DataCollectorError(
-                        "device %s not found" % self.options.device)
-
-        hostname = device.getId()
-        client = None
-        commands = self.getCommands(device)
-        if not commands:
-            self.log.warn("no commands found for %s" % hostname)
-            return 
-        protocol = getattr(device, 
-                    'zCommandProtocol', defaultProtocol)
-        commandPort = getattr(device, 'zCommandPort', defaultPort)
-        if protocol == "ssh": 
-            client = SshClient.SshClient(hostname, commandPort, 
-                                options=self.options,
-                                commands=commands, device=device, 
-                                datacollector=self, log=self.log)
-        elif protocol == 'telnet':
-            if commandPort == 22: commandPort = 23 #set default telnet
-            client = TelnetClient.TelnetClient(hostname, commandPort,
-                                options=self.options,
-                                commands=commands, device=device, 
-                                datacollector=self, log=self.log)
-        else:
-            self.log.warn("unknown protocol %s for device %s" 
-                                       % (protocol, hostname))
-        if client: self.clients[client] = 1
-        if self.options.device: 
-            self.log.debug("reactor start single-device")
-            reactor.run(False)
-        return client
-
-
-    def getCommands(self, device):
+    
+    def selectPlugins(self, device):
         """Build a list of active plugins for a device.  
-        Returns a list of commands to be run.
         """
         aqIgnorePlugins = getattr(device, 'zCommandIgnorePlugins', [])
         aqCollectPlugins = getattr(device, 'zCommandCollectPlugins', [])
         plugins = []
-        for plugin in self.commandPlugins.values():
+        for plugin in self.collectorPlugins.values():
             pname = plugin.name()
             if not plugin.condition(device, self.log):
                 self.log.debug("condition failed %s on device %s", 
@@ -174,29 +116,50 @@ class DataCollector(ZeoPoolBase):
                 self.log.debug("collect %s on device %s" 
                                     % (pname, device.id))
                 plugins.append(plugin)
-        commands = map(lambda x: x.command, plugins)
-        self.log.debug("%s cmds: '%s'", device.getId(), "', '".join(commands))
-        return commands
+        return plugins
              
     
+    def collectDevices(self, deviceroot):
+        """Main processing loop collecting command data from devices.
+        """
+        if type(deviceroot) == types.StringType:
+            deviceroot = self.dmd.Devices.getOrganizer(deviceroot)
+        self.devicegen = deviceroot.getSubDevicesGen()
+        for i, device in enumerate(self.devicegen):
+            if i >= self.options.parallel: break
+            client = self.collectDevice(device)
+        if i > 0: 
+            self.log.debug("reactor start multi-device")
+            reactor.run(False)
+        else: self.log.warn("no valid clients found")
+            
+  
+    def resolveDevice(self, device):
+        """If device is a string look it up in the dmd.
+        """
+        if type(device) == types.StringType:
+            dname = self.options.device
+            device = self.dmd.Devices.findDevice(dname)
+            if not device: 
+                raise DataCollectorError("device %s not found" % dname)
+        return device
+
+
+    def collectDevice(self, device):
+        """Collect data from a single device. Not implemented here.
+        """
+        raise NotImplementedError
+
+
     def clientFinished(self, collectorClient):
-        """Process the return values from a device. 
+        """Callback that processes the return values from a device. 
         """
         try:
             nodevices = False
             self.log.debug("client for %s finished collecting",
                             collectorClient.hostname)
-            datamaps = []
-            for command, results in collectorClient.getResults():
-                try:
-                    device = collectorClient.device
-                    if not self.commandPlugins.has_key(command): continue
-                    plugin = self.commandPlugins[command]
-                    datamaps.append(plugin.process(device, results, self.log))
-                except(SystemExit, KeyboardInterrupt): raise
-                except:
-                    self.log.exception("parsing command:%s", command)
-            self.applyData.applyDataMaps(device, datamaps)
+            device = collectorClient.device
+            self.applyData.processClient(device, collectorClient)
             try:
                 if not self.devicegen: raise StopIteration
                 device = self.devicegen.next()
@@ -229,19 +192,24 @@ class DataCollector(ZeoPoolBase):
         self.parser.add_option('--collect',
                 dest='collectPlugins',default="",
                 help="Comma separated list of collection maps to use")
-        self.parser.add_option('-p', '--path',
-                dest='path',
+        self.parser.add_option('-p', '--path', dest='path',
                 help="start path for collection ie /NetworkDevices")
-        self.parser.add_option('-d', '--device',
-                dest='device',
+        self.parser.add_option('-d', '--device', dest='device',
                 help="fully qualified device name ie www.confmon.com")
-        self.parser.add_option('-a', '--collectAge',
-                dest='collectAge',
-                default=0,
-                type='int',
+        self.parser.add_option('-a', '--collage',
+                dest='collage', default=0, type='int',
                 help="don't collect from devices whos collect date " +
                         "is with in this many minutes")
+        self.parser.add_option('--writetries',
+                dest='writetries',default=2,type='int',
+                help="number of times to try to write if a "
+                     "readconflict is found")
+        self.parser.add_option("-F", "--force",
+                    dest="force", action='store_true',
+                    help="force collection of config data " 
+                         "(even without change to the device)")
         TelnetClient.buildOptions(self.parser, self.usage)
+    
 
     
     def processOptions(self):
@@ -291,13 +259,13 @@ class DataCollector(ZeoPoolBase):
 
     def sigTerm(self, signum, frame):
         self.log.info("stopping...")
+        reactor.stop()
         self.applyData.done = True
         #wait for apply thread to close
         if hasattr(self.applyData, 'join'):
             self.applyData.join(10)  
         self.closedmd()
         ZeoPoolBase.sigTerm(self, signum, frame)
-
 
 
     def main(self):

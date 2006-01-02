@@ -75,6 +75,7 @@ class CollectorClient(protocol.ClientFactory):
                         'zCommandLoginTimeout', defaultLoginTimeout)
             self.commandTimeout = getattr(device, 
                         'zCommandCommandTimeout', defaultCommandTimeout)
+            self.port = getattr(device, 'zCommandPort', self.port)
             self.searchPath = getattr(device, 
                         'zCommandSearchPath', defaultSearchPath)
             self.existanceTest = getattr(device, 

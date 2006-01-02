@@ -23,14 +23,22 @@ zenmarker = "__ZENMARKER__"
 
 class ApplyDataMap(object):
 
+    def __init__(self, datacollector):
+        self.datacollector = datacollector
 
-    def applyDataMaps(self, device, datamaps):
+
+    def processClient(self, device, collectorClient):
         """Apply datamps to device.
         """
         try:
             device._p_jar.sync()
             devchanged = False
-            for datamap in datamaps:
+            for pname, results in collectorClient.getResults():
+                if not self.datacollector.collectorPlugins.has_key(pname): 
+                    continue
+                plugin = self.datacollector.collectorPlugins[pname]
+                results = plugin.preprocess(results, log)
+                datamap = plugin.process(device, results, log)
                 changed = self._applyDataMap(device, datamap)
                 if changed: devchanged=True
             if devchanged:
@@ -39,6 +47,8 @@ class ApplyDataMap(object):
                 trans.setUser("datacoll")
                 trans.note("data applied from automated collection")
                 trans.commit()
+            else:
+                log.debug("no change skipping commit")
         except (SystemExit, KeyboardInterrupt): raise
         except:
             transaction.abort()
@@ -48,17 +58,15 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
-        from Products.DataCollector.ObjectMap import ObjectMap
         tobj = device
         if datamap.compname: 
             tobj = getattr(device, datamap.compname)
-        if isinstance(datamap, ObjectMap):
-            changed = self._updateObject(tobj, datamap)
-        else:
+        if getattr(datamap, "relname"):
             changed = self._updateRelationship(tobj, datamap)
+        else:
+            changed = self._updateObject(tobj, datamap)
         return changed
             
-    
         
     def _updateRelationship(self, device, relmap):
         """Add/Update/Remote objects to the target relationship.
@@ -164,6 +172,7 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
 
     def __init__(self, app):
         threading.Thread.__init__(self)
+        ApplyDataMap.__init__(self)
         self.setName("ApplyDataMapThread")
         self.setDaemon(1)
         self.app = app
