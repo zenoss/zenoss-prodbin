@@ -30,13 +30,18 @@ class ApplyDataMap(object):
     def processClient(self, device, collectorClient):
         """Apply datamps to device.
         """
+        log.debug("processing data for device %s", device.id)
         try:
-            device._p_jar.sync()
+            if not self.datacollector.single: 
+                device._p_jar.sync()
             devchanged = False
             for pname, results in collectorClient.getResults():
-                if not self.datacollector.collectorPlugins.has_key(pname): 
+                log.debug("processing plugin %s on device %s", pname, device.id)
+                if not results: 
+                    log.warn("plugin %s no results returned", pname)
                     continue
-                plugin = self.datacollector.collectorPlugins[pname]
+                plugin = self.datacollector.collectorPlugins.get(pname, None) 
+                if not plugin: continue
                 results = plugin.preprocess(results, log)
                 datamap = plugin.process(device, results, log)
                 changed = self._applyDataMap(device, datamap)
@@ -61,7 +66,7 @@ class ApplyDataMap(object):
         tobj = device
         if datamap.compname: 
             tobj = getattr(device, datamap.compname)
-        if getattr(datamap, "relname"):
+        if getattr(datamap, "relname", False):
             changed = self._updateRelationship(tobj, datamap)
         else:
             changed = self._updateObject(tobj, datamap)
@@ -157,7 +162,8 @@ class ApplyDataMap(object):
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         self._updateObject(remoteObj, objmap)
-        log.debug("added object %s to relationship %s", remoteObj.id, relname)
+        log.debug("added object %s to relationship %s", 
+                        remoteObj.id, relname)
 
     
 
@@ -170,9 +176,9 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
     the start of each transaction and there is one transaction per device.
     """
 
-    def __init__(self, app):
+    def __init__(self, datacollector, app):
         threading.Thread.__init__(self)
-        ApplyDataMap.__init__(self)
+        ApplyDataMap.__init__(self, datacollector)
         self.setName("ApplyDataMapThread")
         self.setDaemon(1)
         self.app = app
@@ -181,25 +187,24 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
         self.done = False
 
 
-    def applyDataMaps(self, device, datamaps):
-        """Add a device and its datamaps to the threads inputqueue.
+    def processClient(self, device, collectorClient):
+        """Apply datamps to device.
         """
         devpath = device.getPrimaryPath()
-        self.inputqueue.put((devpath, datamaps))
+        self.inputqueue.put((devpath, collectorClient))
 
 
     def run(self):
-        """Process datamaps as they are passed in from a data collector.
+        """Process collectorClients as they are passed in from a data collector.
         """
         while not self.done or not self.inputqueue.empty():
             try:
-                devpath, datamaps = self.inputqueue.get(True,1)
-                log.debug("applying datamaps to %s", "/".join(devpath))
+                devpath, collectorClient = self.inputqueue.get(True,1)
+                log.debug("processing device %s", "/".join(devpath))
                 device = self.app.unrestrictedTraverse(devpath)
-                ApplyDataMap.applyDataMaps(self, device, datamaps)
+                ApplyDataMap.processClient(self, device, collectorClient)
             except Queue.Empty: pass 
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 transaction.abort()
-                log.exception("applying datamaps to device %s",
-                                    device.getId())
+                log.exception("processin device %s",device.getId())

@@ -100,7 +100,7 @@ def importClass(modulePath, classname=""):
         if not classname: classname = modulePath.split(".")[-1]
         mod = __import__(modulePath, globals(), locals(), classname)
         return getattr(mod, classname)
-    except (ImportError, AttributeError):
+    except AttributeError:
         raise ImportError("failed importing class %s from module %s" % (
                             classname, modulePath))
 

@@ -55,7 +55,7 @@ class InterfaceMap(SnmpPlugin):
     def process(self, device, results, log):
         """collect snmp information from this device"""
         getdata, tabledata = results
-        log.info('Collecting interfaces for device %s' % device.id)
+        log.info('processing interfaces for device %s' % device.id)
         rm = self.relMap()
         iptable = tabledata.get("iptable")
         iftable = tabledata.get("iftable")

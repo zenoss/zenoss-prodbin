@@ -162,10 +162,11 @@ class GetMap(object):
         return self.oidmap.keys()
 
 
-    def mapdata(results):
+    def mapdata(self, results):
         data = {}
         for oid, value in results.items():
             data[self.oidmap[oid]] = value
+        return data
 
             
     

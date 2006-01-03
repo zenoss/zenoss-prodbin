@@ -337,12 +337,12 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zPythonClass", "")
 
         # Snmp collection properties
-        devs._setProperty("zSnmpCommunities", ["public", "private"], 
-                            type="lines")
+        devs._setProperty("zTransportPreference", "snmp")
+        devs._setProperty("zSnmpCommunities",["public", "private"],type="lines")
         devs._setProperty("zSnmpCommunity", "public")
         devs._setProperty("zSnmpPort", 161, type="int")
-        devs._setProperty("zSnmpCollectorIgnoreMaps", [], type="lines")
-        devs._setProperty("zSnmpCollectorCollectMaps", [], type="lines")
+        devs._setProperty("zSnmpCollectorIgnoreMaps", "")
+        devs._setProperty("zSnmpCollectorCollectMaps", "")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
         devs._setProperty("zRouteMapCollectOnlyIndirect", True, type="boolean")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")

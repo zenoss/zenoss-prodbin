@@ -24,38 +24,47 @@ import os
 import time
 import types
 import Queue
-
-from twisted.internet import reactor
+import re
 
 import Globals
 import transaction
+from twisted.internet import reactor
+from pysnmp.error import PySnmpError
 
-from Products.ZenUtils.ZeoPoolBase import ZeoPoolBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
+from Products.SnmpCollector.SnmpSession import SnmpSession, ZenSnmpError
 
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
+import SshClient
 import TelnetClient
+import SnmpClient
 
 from Exceptions import *
 
 defaultParallel = 10
+defaultProtocol = "ssh"
+defaultPort = 22
 
-class DataCollector(ZeoPoolBase):
+
+pluginskip = ("CollectorPlugin.py", "DataMaps.py")
+def plfilter(f):
+    return f.endswith(".py") and not (f.startswith("_") or f in pluginskip)
+
+class DataCollector(ZCmdBase):
     
-    def __init__(self, noopts=0,app=None):
-        ZeoPoolBase.__init__(self,noopts)
+    def __init__(self, noopts=0,app=None,single=False):
+        ZCmdBase.__init__(self,noopts,app)
         if not noopts: self.processOptions()
-
+        
+        self.single = single
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
-        self.app = self.dmd = None
-        self.clients = {}
+        self.clients = 0
         self.collectorPlugins = {} 
         self.deviceMaps = {}
         self.devicegen = None
-
         self.loadPlugins()
-
         if app or self.options.debug:
             self.log.debug("in debug mode starting apply in main thread.")
             self.applyData = ApplyDataMap(self)
@@ -68,14 +77,13 @@ class DataCollector(ZeoPoolBase):
     def loadPlugins(self):
         """Load plugins from the plugin directory.
         """
-        pdir = os.path.dirname(__file__)
-        curdir = os.getcwd()
-        os.chdir(pdir)
-        sys.path.append("plugins")
-        self.log.info("loading collector plugins from:%s/plugins", pdir)
-        for path, dirname, filenames in os.walk("plugins"):
-            def filef(n): return not n.startswith("_") and n.endswith(".py")
-            for filename in filter(filef, filenames):
+        pdir = os.path.join(os.path.dirname(__file__),"plugins")
+        sys.path.append(pdir)
+        lpdir = len(pdir)+1
+        self.log.info("loading collector plugins from:%s", pdir)
+        for path, dirname, filenames in os.walk(pdir):
+            path = path[lpdir:]
+            for filename in filter(plfilter, filenames):
                 try:
                     modpath = os.path.join(path,filename[:-3]).replace("/",".")
                     self.log.info("loading:%s", modpath)
@@ -90,34 +98,39 @@ class DataCollector(ZeoPoolBase):
                                        plugin.name(), plugin.transport)
                 except ImportError, e:
                     self.log.warn(e)
-        os.chdir(curdir)
 
     
-    def selectPlugins(self, device):
+    def selectPlugins(self, device, transport):
         """Build a list of active plugins for a device.  
         """
-        aqIgnorePlugins = getattr(device, 'zCommandIgnorePlugins', [])
-        aqCollectPlugins = getattr(device, 'zCommandCollectPlugins', [])
-        plugins = []
+        tpref = getattr(device,'zTransportPreference', 'snmp')
+        aqignore = getattr(device, 'zCommandIgnorePlugins', "")
+        aqcollect = getattr(device, 'zCommandCollectPlugins', "")
+        plugins = {}
         for plugin in self.collectorPlugins.values():
             pname = plugin.name()
             if not plugin.condition(device, self.log):
                 self.log.debug("condition failed %s on device %s", 
                                 pname, device.id)
-            elif (pname in self.options.ignorePlugins or
-                pname in aqIgnorePlugins):
+            elif ((self.options.ignorePlugins 
+                and re.search(self.options.ignorePlugins, pname))
+                or (aqignore and re.search(aqignore, pname))):
                 self.log.debug("ignore %s on device %s" % (pname, device.id))
-            elif (pname in self.options.collectPlugins or
-                    pname in aqCollectPlugins):
+            elif ((self.options.collectPlugins
+                and re.search(self.options.collectPlugins, pname))
+                or (aqcollect and re.search(aqcollect, pname))):
                 self.log.debug("collect %s on device %s" 
                                     % (pname, device.id))
-                plugins.append(plugin)
-            elif not (self.options.collectPlugins or aqCollectPlugins):
+                plugins[plugin.maptype] = plugin
+            elif not (self.options.collectPlugins or aqcollect):
                 self.log.debug("collect %s on device %s" 
                                     % (pname, device.id))
-                plugins.append(plugin)
-        return plugins
+                if (not plugins.has_key(plugin.maptype) 
+                    or plugins[plugin.maptype].transport != tpref):
+                    plugins[plugin.maptype] = plugin
+        return [ p for p in plugins.values() if p.transport == transport ]
              
+   
     
     def collectDevices(self, deviceroot):
         """Main processing loop collecting command data from devices.
@@ -138,17 +151,111 @@ class DataCollector(ZeoPoolBase):
         """If device is a string look it up in the dmd.
         """
         if type(device) == types.StringType:
-            dname = self.options.device
-            device = self.dmd.Devices.findDevice(dname)
+            device = self.dmd.Devices.findDevice(device)
             if not device: 
                 raise DataCollectorError("device %s not found" % dname)
         return device
 
 
-    def collectDevice(self, device):
-        """Collect data from a single device. Not implemented here.
+    def collectDevice(self, device, community=None, port=None, username=None):
+        """Collect data from a single device.
         """
-        raise NotImplementedError
+        device = self.resolveDevice(device)
+        cmdclient = self.cmdCollect(device)
+        snmpclient = self.snmpCollect(device)
+        if cmdclient: 
+            cmdclient.run()
+            self.clients += 1
+        if snmpclient: 
+            snmpclient.run()
+            self.clients += 1
+        if self.single:
+            self.log.debug("reactor start single-device")
+            reactor.run(False)
+
+
+    def cmdCollect(self, device):
+        client = None
+        hostname = device.id
+        plugins = self.selectPlugins(device,"command")
+        commands = map(lambda x: x.command, plugins)
+        if not commands:
+            self.log.warn("no cmd plugins found for %s" % hostname)
+            return 
+        protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
+        commandPort = getattr(device, 'zCommandPort', defaultPort)
+        if protocol == "ssh": 
+            client = SshClient.SshClient(hostname, commandPort, 
+                                options=self.options,
+                                commands=commands, device=device, 
+                                datacollector=self, log=self.log)
+            self.log.info('ssh collection device %s' % hostname)
+        elif protocol == 'telnet':
+            if commandPort == 22: commandPort = 23 #set default telnet
+            client = TelnetClient.TelnetClient(hostname, commandPort,
+                                options=self.options,
+                                commands=commands, device=device, 
+                                datacollector=self, log=self.log)
+            self.log.info('telnet collection device %s' % hostname)
+        else:
+            self.log.warn("unknown protocol %s for device %s",protocol,hostname)
+        if not client: 
+            self.log.warn("cmd client creation failed")
+        else:
+            self.log.info("plugins: %s", 
+                ",".join(map(lambda p: p.name(), plugins)))
+        return client
+
+    
+    def snmpCollect(self, device, community=None, port=0, snmpver="v1"):
+        client = None
+        plugins = []
+        hostname = device.id
+        plugins = self.selectPlugins(device,"snmp")
+        if not plugins:
+            self.log.warn("no snmp plugins found for %s" % hostname)
+            return 
+        if (self.checkCollection(device) or 
+            self.checkCiscoChange(device, community, port)):
+            self.log.info('snmp collection device %s' % hostname)
+            self.log.info("plugins: %s", 
+                ",".join(map(lambda p: p.name(), plugins)))
+            client = SnmpClient.SnmpClient(device.id, port, community, 
+                                        snmpver, self.options, device, self, 
+                                        self.log, plugins)
+        if not client or not plugins: 
+            self.log.warn("snmp client creation failed")
+            return
+        return client
+
+
+    def checkCollection(self, device):
+        age = device.getSnmpLastCollection()+self.collage
+        if device.getSnmpStatusNumber() > 0 and age >= DateTime():
+            self.log.info("skipped collection of %s" % device.getId())
+            return False
+        return True
+
+
+    def checkCiscoChange(self, device, community, port):
+        """Check to see if a cisco box has changed.
+        """
+        if self.options.force: return True
+        snmpsess = SnmpSession(device.id, community=community, port=port)
+        if not device.snmpOid.startswith(".1.3.6.1.4.1.9"): return True
+        lastpolluptime = device.getLastPollSnmpUpTime()
+        self.log.debug("lastpolluptime = %s", lastpolluptime)
+        try:
+            lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
+            self.log.debug("lastchange = %s", lastchange)
+            if lastchange == lastpolluptime: 
+                self.log.info(
+                    "skipping cisco device %s no change detected", device.id)
+                return False
+            else:
+                device.setLastPollSnmpUpTime(lastchange)
+        except (ZenSnmpError, PySnmpError): pass
+        return True
 
 
     def clientFinished(self, collectorClient):
@@ -167,16 +274,15 @@ class DataCollector(ZeoPoolBase):
             except StopIteration:
                 nodevices = True
         finally:
-            del self.clients[collectorClient]
-            self.log.debug("clients=%s nodevices=%s",
-                            len(self.clients),nodevices)
-            if not self.clients and nodevices: 
+            self.clients -= 1
+            self.log.debug("clients=%s nodevices=%s",self.clients,nodevices)
+            if self.clients <= 0 and nodevices: 
                 self.log.debug("reactor stop")
                 reactor.stop()
 
 
     def buildOptions(self):
-        ZeoPoolBase.buildOptions(self)
+        ZCmdBase.buildOptions(self)
         self.parser.add_option('--debug',
                 dest='debug', action="store_true",
                 help="don't fork threads for processing")
@@ -217,23 +323,6 @@ class DataCollector(ZeoPoolBase):
             raise SystemExit("no device or path specified must have one!")
         if self.options.ignorePlugins and self.options.collectPlugins:
             raise SystemExit("--ignore and --collect are mutually exclusive")
-        if self.options.ignorePlugins:
-            self.options.ignorePlugins = self.options.ignorePlugins.split(',')
-        if self.options.collectPlugins:
-            self.options.collectPlugins = self.options.collectPlugins.split(',')
-
-
-    def opendmd(self):
-        if not self.dmd:
-            self.app = self.getConnection()
-            self.dmd = self.app.zport.dmd
-
-
-    def closedmd(self):
-        if self.dmd:
-            self.dmd = None
-            self.app = None
-            self.closeAll()
 
 
     def mainLoop(self):
@@ -258,27 +347,30 @@ class DataCollector(ZeoPoolBase):
 
 
     def sigTerm(self, signum, frame):
+        self.stop()
+        ZCmdBase.sigTerm(self, signum, frame)
+
+
+    def stop(self):
         self.log.info("stopping...")
         reactor.stop()
         self.applyData.done = True
         #wait for apply thread to close
         if hasattr(self.applyData, 'join'):
             self.applyData.join(10)  
-        self.closedmd()
-        ZeoPoolBase.sigTerm(self, signum, frame)
+        self.closedb()
 
 
     def main(self):
-        self.opendmd()
         if self.options.device:
+            self.single = True
             self.collectDevice(self.options.device)
         elif not self.options.cycle:
             self.collectDevices(self.options.path)
         else:
             self.mainLoop()
-        transaction.abort()
+        self.stop()
                     
-
 
 if __name__ == '__main__':
     dc = DataCollector()

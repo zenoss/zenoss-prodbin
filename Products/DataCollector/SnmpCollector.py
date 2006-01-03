@@ -50,22 +50,29 @@ class SnmpCollector(DataCollector):
         if not community: community = device.zSnmpCommunity
         if not port: port = device.zSnmpPort
         client = None
+        plugins = []
         try:
             if (self.checkCollection(device) or 
                 self.checkCiscoChange(device, community, port)):
                 slog.info('Collecting device %s' % device.id)
-                plugins = self.selectPlugins(device)
+                plugins = self.selectPlugins(device,"snmp")
                 client = SnmpClient(device.id, port, community, 
                             snmpver, self.options, device, self, 
                             self.log, plugins)
         except (SystemExit, KeyboardInterrupt): raise
         except:
             slog.exception('Error collecting data from %s', device.id)
-        if client: self.clients[client] = 1
-        if self.options.device: 
+        if not client or not plugins: 
+            slog.warn("client failed to initialize or no plugins found")
+            return
+#        if self.options.debug:
+        self.clients[client] = 1
+        client.run()
+        if self.single:
             self.log.debug("reactor start single-device")
             reactor.run(False)
-        return client
+#        else:
+#            self.collthread.runClient(client)
 
 
 

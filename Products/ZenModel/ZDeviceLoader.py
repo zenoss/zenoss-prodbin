@@ -80,7 +80,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def loadDevice(self, deviceName, devicePath="", 
             tag="", serialNumber="",
-            snmpCommunity="public", snmpPort=161,
+            snmpCommunity="", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 

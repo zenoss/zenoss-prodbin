@@ -33,6 +33,7 @@ from App.Dialogs import MessageDialog
 
 from AccessControl import Permissions as permissions
 
+from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
@@ -47,7 +48,7 @@ from Exceptions import *
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
-            snmpCommunity="public", snmpPort=161,
+            snmpCommunity="", snmpPort=161,
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
@@ -59,22 +60,11 @@ def manage_createDevice(context, deviceName, devicePath="",
 
     if context.getDmdRoot("Devices").findDevice(deviceName):
         raise DeviceExistsError, "Device %s already exists" % deviceName
-    if not devicePath:
-        devicePath = "/Devices/Unknown"
-        loginInfo = {}
-        loginInfo['snmpCommunity'] = snmpCommunity
-        loginInfo['snmpPort'] = snmpPort
-        cEntry = context.getDmdRoot("Devices").ZenClassifier.classifyDevice(
-                                    deviceName, loginInfo)
-        if cEntry:
-            devicePath = cEntry.getDeviceClassPath
-            manufacturer = manufacturer and manufacturer \
-                           or cEntry.getManufacturer
-            productName = productName and productName or cEntry.getProduct
-        else:
-            raise ZentinelException("Unable to classify device %s", deviceName)
+    if not devicePath: devicePath = "/Discovered"
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
+    if not snmpCommunity:
+        snmpCommunity = findSnmpCommunity(deviceClass, deviceName)
     device.manage_editDevice(
                 tag, serialNumber,
                 snmpCommunity, snmpPort,
@@ -376,6 +366,15 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         return self._snmpLastCollection.getString()
 
 
+    security.declareProtected('View', 'getManageIp')
+    def getManageIp(self):
+        """Return the management ip for this device. See getManageInterface.
+        """
+        int = self.os.getManageInterface()
+        if int: return int.getIp()
+        return ""
+
+    
     security.declareProtected('View', 'getManageInterface')
     def getManageInterface(self):
         """Return the management interface of a device looks first
@@ -416,7 +415,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     security.declareProtected('Change Device', 'manage_editDevice')
     def manage_editDevice(self, 
                 tag="", serialNumber="",
-                snmpCommunity="public", snmpPort=161,
+                snmpCommunity="", snmpPort=161,
                 rackSlot=0, productionState=1000, comments="",
                 hwManufacturer="", hwProductName="", 
                 osManufacturer="", osProductName="", 
@@ -426,8 +425,10 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         """edit device relations and attributes"""
         self.tag = tag
         self.serialNumber = serialNumber
-        self.snmpCommunity = snmpCommunity
-        self.snmpPort = snmpPort
+        if self.zSnmpCommunity != snmpCommunity:
+            self.setZenProperty("zSnmpCommunity", snmpCommunity)
+        if self.zSnmpPort != snmpPort:
+            self.setZenProperty("zSnmpPort", snmpPort)
         self.rackSlot = rackSlot
         self.productionState = productionState
         self.comments = comments
@@ -722,8 +723,8 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     security.declareProtected('Change Device', 'collectConfig')
     def collectConfig(self, wrap=True, community=None, port=161, REQUEST=None):
         """collect the configuration of this device"""
-        from Products.SnmpCollector.SnmpCollector import SnmpCollector
-        sc = SnmpCollector(noopts=1,app=self.getPhysicalRoot())
+        from Products.DataCollector.DataCollector import DataCollector
+        sc = DataCollector(noopts=1,app=self.getPhysicalRoot(),single=True)
         sc.options.force = True
         if REQUEST:
             response = REQUEST.RESPONSE
@@ -733,13 +734,13 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
                 response.write(dlh[:idx])
             sc.setWebLoggingStream(response)
         try:
-            sc.collectDevice(self, community=community, port=port)
+            sc.collectDevice(self)
         except:
-            logging.exception('exception while collecting snmp for device %s'
-                              %  self.getId())
+            logging.exception('exception collecting data for device %s',self.id)
+                              
         else:
-            logging.info('collected snmp information for device %s'
-                            % self.getId())
+            logging.info('collected snmp information for device %s',self.id)
+                            
         if REQUEST:
             if wrap: response.write(self.deviceLoggingFooter())
             sc.clearWebLoggingStream()

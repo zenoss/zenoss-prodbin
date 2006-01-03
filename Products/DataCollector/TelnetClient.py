@@ -42,8 +42,8 @@ defaultCommandTimeout = 20
 defaultLoginRegex = 'ogin:.$'
 defaultPasswordRegex = 'assword:'
 defaultEnableRegex = 'assword:'
-defaultEnable = 0
-defaultTermLength = 0
+defaultEnable = False
+defaultTermLength = False
 
 
 responceMap = ("WILL", "WONT", "DO", "DONT")
@@ -311,14 +311,19 @@ class TelnetClient(CollectorClient.CollectorClient):
 
         self.modeRegex['Login'] = self.loginRegex
         self.modeRegex['Password'] = self.passwordRegex
+
+
+    def run(self):
+        """Start telnet collection.
+        """
+        if self.termlen:
+            self.commands.insert(0, "terminal length 0")
         if check(self.hostname):
             reactor.connectTCP(self.hostname, self.port, self)
         else:
             raise NoServerFound, \
                 "Telnet server not found on %s port %s" % (
                                 self.hostname, self.port)
-        if self.termlen:
-            self.commands.insert(0, "terminal length 0")
 
 
 

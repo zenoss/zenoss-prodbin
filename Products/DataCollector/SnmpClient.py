@@ -38,10 +38,7 @@ class SnmpClient(object):
         tries = getattr(device,'zSnmpTries', defaultTries)
         timeout = getattr(device,'zSnmpTimeout', defaultTimeout)
 
-        if device:
-            ipaddr = device.getManageIp()
-        else:
-            ipaddr = socket.gethostbyname(hostname)
+        ipaddr = socket.gethostbyname(hostname)
         if log:
             self.log = log
         else:
@@ -49,14 +46,14 @@ class SnmpClient(object):
         srcport = snmpprotocol.port()
         self.proxy = agentproxy.AgentProxy(ipaddr, port, community, snmpver,
                                            protocol=srcport.protocol)
-        self.log.info("device %s proxy %s", self.hostname, self.proxy)
-        #reactor.callWhenRunning(self._sendQueries)
-        self._sendQueries()
 
 
-    def _sendQueries(self):
+    def run(self):
+        """Start snmp collection.
+        """
         for plugin in self.plugins:
             pname = plugin.name()
+            self._tabledata[pname] = {}
             self.log.debug("sending queries for plugin %s", pname)
             if plugin.snmpGetMap:
                 d = self.proxy.get(plugin.snmpGetMap.getoids())
@@ -80,8 +77,7 @@ class SnmpClient(object):
     def _snmpGetTableCallback(self, results, pluginName, tmap):
         self.log.debug("received plugin:%s table:%s", pluginName, tmap.name)
         self.queries -=1
-        pdata = self._tabledata.setdefault(pluginName, {})
-        pdata[tmap] = results
+        self._tabledata[pluginName][tmap] = results
         self.clientFinished()
 
 
@@ -114,9 +110,10 @@ class SnmpClient(object):
         data = []
         for plugin in self.plugins:
             pname = plugin.name()
-            data.append((pname, (self._getdata.get(pname,{}),
-                                 self._tabledata.get(pname,{}))
-                       ))
+            getdata = self._getdata.get(pname,{})
+            tabledata = self._tabledata.get(pname,{})
+            if getdata or tabledata:
+                data.append((pname, (getdata, tabledata)))
         return data 
 
 

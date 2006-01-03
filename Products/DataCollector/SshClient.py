@@ -150,12 +150,18 @@ class SshClient(CollectorClient.CollectorClient):
                            commands, options, device, datacollector, log)
         self.protocol = SshClientTransport
         self.connection = None
+
+
+    def run(self):
+        """Start ssh collection.
+        """
         if check(self.hostname):
             reactor.connectTCP(self.hostname, self.port, self)
         else:
             raise NoServerFound, \
                 "Ssh server not found on %s port %s" % (
                                 self.hostname, self.port)
+
 
     def addCommand(self, commands):
         """add command to queue and open a command channel for a command"""
