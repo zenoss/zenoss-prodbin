@@ -62,7 +62,7 @@ class InterfaceMap(SnmpPlugin):
         omtable = {}
         for iprow in iptable.values():
             strindex = str(iprow['ifindex'])
-            if not iftable.has_key(strindex):
+            if not omtable.has_key(strindex) and not iftable.has_key(strindex):
                 if int(iprow['ifindex']) >= len(iftable): #hack for bad 
                     strindex = str(len(iftable))          #ifindex on wrt54g
                 else: 

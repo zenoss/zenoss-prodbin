@@ -40,7 +40,7 @@
     <tr>
       <td class="tableheader">Uptime</td>
       <td class="tablevalues" tal:content="here/uptimeStr">1day</td>
-      <td class="tableheader">SNMP Collection</td>
+      <td class="tableheader">Last Collection</td>
       <td class=tablevalues tal:content="here/getSnmpLastCollectionString"></td>
     </tr>
     <tr>

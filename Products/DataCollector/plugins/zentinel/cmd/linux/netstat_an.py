@@ -10,7 +10,7 @@ class netstat_an(CommandPlugin):
     """
     Collect running ip services using netstat -an on a linux box.
     """
-    maptype = "IpServicesMap" 
+    maptype = "IpServiceMap" 
     command = 'netstat -an | grep 0.0.0.0:*'
     compname = "os"
     relname = "ipservices"
@@ -47,9 +47,9 @@ class netstat_an(CommandPlugin):
                 om.ipaddresses.append(addr)
             else:
                 om = self.objectMap()
-                om.id = "-".join((proto, port))
-                om.ipaddresses = [addr,]
                 om.setPort = int(port)
+                om.id = '%s-%05d' % (proto,om.setPort)
+                om.ipaddresses = [addr,]
                 om.setProtocol = proto
                 om.discoveryAgent = self.name()
                 ports[(proto, port)] = om

@@ -64,17 +64,11 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         self.factory = factory
 
     def getPassword(self):
-        if not self.factory.password:
-            log.debug("ssh asking for password")
-            if not self.factory.loginTries:
-                if __name__ == "__main__": reactor.stop() #FIXME
-                raise LoginFailed, "login to %s with username %s failed" % (
-                                self.factory.hostname, self.factory.username)
-            else:
-                self.factory.loginTries -= 1
-            return defer.succeed(getpass.getpass(
-                "%s@%s's password: " % (self.user, self.factory.hostname)))
+        if not self.factory.password or self.factory.loginTries <= 0:
+            self.factory.clientFinished()
+            return
         else:
+            self.factory.loginTries -= 1
             return defer.succeed(self.factory.password)
 
     def getPublicKey(self):

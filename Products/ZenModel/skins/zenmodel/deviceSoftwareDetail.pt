@@ -32,7 +32,7 @@
       <td class="tablevalues" tal:content="structure soft/getProductLink"/>
       <td class="tablevalues" tal:content="soft/version"/>
       <td class="tablevalues" tal:content="soft/build"/>
-      <td class="tablevalues" tal:content="soft/installDateString"/>
+      <td class="tablevalues" tal:content="soft/getInstallDate"/>
     </tr>
     <tr>
         <td colspan="5" class="tableheader" align='center'>

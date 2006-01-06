@@ -78,6 +78,9 @@ class DataCollector(ZCmdBase):
     def loadPlugins(self):
         """Load plugins from the plugin directory.
         """
+        for key in filter(lambda x: x.startswith("plugins"), sys.modules):
+            self.log.debug("clearing plugin %s", key)
+            del sys.modules[key]
         pdir = os.path.join(os.path.dirname(__file__),"plugins")
         sys.path.append(pdir)
         lpdir = len(pdir)+1

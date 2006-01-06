@@ -1,5 +1,18 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" colspan="4">
+        Memory
+      </th>
+    </tr>
+    <tr>
+        <td class="tableheader">Memory</td>
+        <td class="tablevalues" tal:content="here/hw/totalMemory"/>
+        <td class="tableheader">Swap</td>
+        <td class="tablevalues" tal:content="here/os/totalSwap"/>
+    </tr>
+</table>
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="cpuList"
     tal:define="tableName string:cpuList;
