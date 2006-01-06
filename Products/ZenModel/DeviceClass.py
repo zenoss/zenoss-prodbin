@@ -340,7 +340,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zSnmpCommunities",["public", "private"],type="lines")
         devs._setProperty("zSnmpCommunity", "public")
         devs._setProperty("zSnmpPort", 161, type="int")
-        devs._setProperty("zSnmpVer", "v2")
+        devs._setProperty("zSnmpVer", "v1")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
         devs._setProperty("zRouteMapCollectOnlyIndirect", True, type="boolean")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")
@@ -371,8 +371,8 @@ class DeviceClass(DeviceOrganizer):
 
         # DataCollector properties
         devs._setProperty("zTransportPreference", "snmp")
-        devs._setProperty("zCollectorIgnoreMaps", "")
-        devs._setProperty("zCollectorCollectMaps", "")
+        devs._setProperty("zCollectorIgnorePlugins", "")
+        devs._setProperty("zCollectorCollectPlugins", "")
         devs._setProperty("zCommandUsername", "")
         devs._setProperty("zCommandPassword", "")
         devs._setProperty("zCommandProtocol", "ssh")
@@ -382,7 +382,6 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
         devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceTest", "test -f %s")
-
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
         devs._setProperty("zTelnetSuccessRegexList", 

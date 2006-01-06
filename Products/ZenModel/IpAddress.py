@@ -14,6 +14,7 @@ __version__ = "$Revision: 1.42 $"[11:-2]
 
 import socket
 import logging
+log = logging.getLogger("zen.IpAddress")
 
 #base classes for IpAddress
 from ManagedEntity import ManagedEntity
@@ -105,7 +106,7 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
             data = socket.gethostbyaddr(id)
             if data: self.ptrName = data[0]
         except socket.error, e:
-            logging.warn(e)
+            log.warn("%s: %s", id, e)
 
 
     security.declareProtected('View', 'primarySortKey')

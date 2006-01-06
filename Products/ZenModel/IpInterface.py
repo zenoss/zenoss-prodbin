@@ -16,6 +16,7 @@ __version__ = "$Revision: 1.59 $"[11:-2]
 import re
 import copy
 import logging
+log = logging.getLogger("zen.IpInterface")
 
 from Globals import Persistent
 from Globals import DTMLFile
@@ -183,7 +184,7 @@ class IpInterface(OSComponent, PingStatusInt):
             if hasattr(ipobj, 'interface'):
                 dev = ipobj.device()
                 if dev and dev != self.device():
-                    logging.warn(
+                    log.warn(
                         "When adding IP Address %s to %s found it on device %s",
                             ip, self.getId(), dev.getId())
             self.addRelation('ipaddresses', ipobj)

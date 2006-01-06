@@ -83,20 +83,20 @@ class DmdBuilder:
 
 
     deviceClasses = (
-        "/Unknown",
-        "/NetworkDevice/Router/UBRRouter",
-        "/NetworkDevice/Router/TerminalServer",
-        "/NetworkDevice/Router/Firewall",
-        "/NetworkDevice/Router/RSM",
-        "/NetworkDevice/Switch",
-        "/NetworkDevice/Switch/ContentSwitch",
-        "/NetworkDevice/CableModem",
+        "/Discovered",
+        "/Network/Router",
+        "/Network/Router/Firewall",
+        "/Network/Router/RSM",
+        "/Network/Router/TerminalServer",
+        "/Network/Switch",
+        "/Network/Switch/ContentSwitch",
+        "/Network/CableModem",
         "/Server/Linux",
         "/Server/Windows",
         "/Server/Solaris",
         "/Server/Darwin",
-        "/Printer/LaserPrinter",
-        "/Printer/InkJetPrinter",
+        "/Printer/Laser",
+        "/Printer/InkJet",
         )
 
 

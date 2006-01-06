@@ -19,6 +19,7 @@ import transaction
 
 from Globals import InitializeClass
 from Globals import DTMLFile
+from Acquisition import aq_base
 from AccessControl import Permissions as permissions
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
@@ -181,5 +182,28 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         zcat.addIndex('productKey', 'FieldIndex')
         zcat.addColumn('getPrimaryId')
 
+
+    def exportXml(self, ofile, root=False):
+        """Return an xml based representation of a RelationshipManager
+        <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
+            module='Products.Confmon.IpInterface' class='IpInterface'>
+            <property id='name'>jim</property>
+            <toone></toone>
+            <tomany></tomany>
+            <tomanycont></tomanycont>
+        </object>
+        """
+        modname = self.__class__.__module__
+        classname = self.__class__.__name__
+        id = root and self.getPrimaryId() or self.id
+        stag = "<object id='%s' module='%s' class='%s'>\n" % (
+                    id , modname, classname)
+        ofile.write(stag)
+        for obj in self.objectValues():
+            if getattr(aq_base(obj), 'exportXml', False): 
+                obj.exportXml(ofile)
+        ofile.write("</object>\n")
+
+        
 
 InitializeClass(ManufacturerRoot)

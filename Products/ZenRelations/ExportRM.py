@@ -40,13 +40,13 @@ class ExportRM(ZCmdBase):
     def export(self, root=None):
         if not root: 
             root = self.dataroot
-        if isinstance(root, RelationshipManager):
+        if hasattr(root, "exportXml"):
             self.outfile.write("""<?xml version="1.0"?>\n""")
             self.outfile.write("<objects>\n")
             root.exportXml(self.outfile,True)
             self.outfile.write("</objects>\n")
         else:
-            print "ERROR: export root object not a RelationshipManager"
+            print "ERROR: root object not a exportable (exportXml not found)"
             
 
 

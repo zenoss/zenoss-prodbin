@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.21 $"[11:-2]
 
 import re
 import logging
+log = logging.getLogger("zen.CricketDevice")
 
 from Products.ZenRRD.utils import RRDObjectNotFound
 from Products.ZenRRD.RRDTargetType import lookupTargetType
@@ -118,7 +119,7 @@ class CricketDevice:
         try:
             lookupTargetType(self, deviceType)
         except RRDObjectNotFound:
-            logging.warn(
+            log.warn(
                 "RRDTargetType %s for device not found", deviceType)
         return deviceType
 
@@ -168,7 +169,7 @@ class CricketDevice:
                 fs.setCricketTargetMap(targetpath, targetdata)
                 targets.append(targetdata)
         except RRDObjectNotFound:
-            logging.warn("RRDTargetType %s for filesystem not found",
+            log.warn("RRDTargetType %s for filesystem not found",
                             cricketFilesystemType)
         return (targetpath, targettypes, targets)
 
@@ -192,7 +193,7 @@ class CricketDevice:
                 disk.setCricketTargetMap(targetpath, targetdata)
                 targets.append(targetdata)
         except RRDObjectNotFound:
-            logging.warn("RRDTargetType %s for harddisk not found", 
+            log.warn("RRDTargetType %s for harddisk not found", 
                             cricketDiskType)
         return (targetpath, targettypes, targets)
 
