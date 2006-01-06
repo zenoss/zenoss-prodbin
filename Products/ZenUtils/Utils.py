@@ -14,10 +14,45 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 
 import types
 import struct
+import logging
 
 from Acquisition import aq_base
 
 from Products.ZenUtils.Exceptions import ZenPathError
+
+class HtmlFormatter(logging.Formatter):
+
+    def __init__(self):
+        logging.Formatter.__init__(self, 
+        """<tr class="tablevalues">
+        <td>%(asctime)s</td><td>%(levelname)s</td>
+        <td>%(name)s</td><td>%(message)s</td>
+        </tr>
+        """,
+        "%Y-%m-%d %H:%M:%S")
+
+    def formatException(self, exc_info):
+        exc = logging.Formatter.formatException(self,exc_info)
+        return """<tr class="tablevalues"><td colspan="4">%s</td></tr>""" % exc
+
+
+def setWebLoggingStream(stream):
+    """Setup logging to log to a browser using a request object."""
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(HtmlFormatter())
+    rlog = logging.getLogger()
+    rlog.addHandler(handler)
+    rlog.setLevel(logging.ERROR)
+    zlog = logging.getLogger("zen")
+    zlog.setLevel(logging.INFO)
+    return handler
+
+
+def clearWebLoggingStream(handler):
+    """Clear our web logger."""
+    rlog = logging.getLogger()
+    rlog.removeHandler(handler)
+
 
 def travAndColl(obj, toonerel, collect, collectname):
     """walk a series of to one rels collecting collectname into collect"""
@@ -149,13 +184,17 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
 def getAllConfmonObjects(base):
     """get all ZenModelRM objects in database"""
     from Products.ZenModel.ZenModelRM import ZenModelRM
+    from Products.ZenModel.ZenModelBase import ZenModelBase
+    from Products.ZenRelations.ToManyContRelationship \
+        import ToManyContRelationship
     from Products.ZenRelations.ToManyRelationship \
         import ToManyRelationship
     from Products.ZenRelations.ToOneRelationship \
         import ToOneRelationship
     def decend(obj):
         return (
-                isinstance(obj, ZenModelRM) or 
+                isinstance(obj, ZenModelBase) or 
+                isinstance(obj, ToManyContRelationship) or
                 isinstance(obj, ToManyRelationship) or
                 isinstance(obj, ToOneRelationship))
     def filter(obj):

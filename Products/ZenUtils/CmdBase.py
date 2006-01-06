@@ -60,29 +60,6 @@ class CmdBase:
         self.log = logging.getLogger("zen."+self.__class__.__name__)
         
 
-    def setWebLoggingStream(self, stream):
-        """Setup logging to log to a browser using a request object."""
-        from logging import StreamHandler, Formatter
-        self.handler = StreamHandler(stream)
-        fmt = Formatter("""<tr class="tablevalues">
-        <td>%(asctime)s</td><td>%(levelname)s</td>
-        <td>%(name)s</td><td>%(message)s</td></tr>
-        ""","%Y-%m-%d %H:%M:%S")
-        self.handler.setFormatter(fmt)
-        rlog = logging.getLogger()
-        rlog.addHandler(self.handler)
-        rlog.setLevel(logging.ERROR)
-        zlog = logging.getLogger("zen")
-        zlog.setLevel(self.options.logseverity)
-        self.log = logging.getLogger("zen."+self.__class__.__name__)
-
-
-    def clearWebLoggingStream(self):
-        """Clear our web logger."""
-        if self.handler and self.log:
-            self.log.removeHandler(self.handler)
-
-
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
 

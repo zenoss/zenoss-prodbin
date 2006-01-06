@@ -85,9 +85,9 @@ class DataCollector(ZCmdBase):
         for path, dirname, filenames in os.walk(pdir):
             path = path[lpdir:]
             for filename in filter(plfilter, filenames):
+                modpath = os.path.join(path,filename[:-3]).replace("/",".")
+                self.log.debug("loading:%s", modpath)
                 try:
-                    modpath = os.path.join(path,filename[:-3]).replace("/",".")
-                    self.log.info("loading:%s", modpath)
                     const = importClass(modpath)
                     plugin = const()
                     if plugin.transport == "command":
@@ -98,7 +98,7 @@ class DataCollector(ZCmdBase):
                         self.log.warn("skipped:%s unknown transport:%s", 
                                        plugin.name(), plugin.transport)
                 except ImportError, e:
-                    self.log.warn(e)
+                    self.log.exception("problem loading plugin:%s",modpath)
 
     
     def selectPlugins(self, device, transport):

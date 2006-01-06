@@ -13,14 +13,16 @@ $Id: ZDeviceLoader.py,v 1.19 2004/04/22 02:14:12 edahl Exp $"""
 
 __version__ = "$Revision: 1.19 $"[11:-2]
 
-import logging
 import StringIO
+import logging
+log = logging.getLogger("zen.DeviceLoader")
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
+from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from ZenModelItem import ZenModelItem
 from Device import manage_createDevice
 
@@ -78,9 +80,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         self.addDevice()
 
 
-    def loadDevice(self, deviceName, devicePath="", 
+    def loadDevice(self, deviceName, devicePath="/Discovered", 
             tag="", serialNumber="",
-            snmpCommunity="", snmpPort=161,
+            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
@@ -98,10 +100,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
             response.write(dlh[:idx])
+            handler = setWebLoggingStream(response)
         try:
             device = manage_createDevice(self, deviceName, devicePath,
                 tag, serialNumber,
-                snmpCommunity, snmpPort,
+                zSnmpCommunity, zSnmpPort, zSnmpVer,
                 rackSlot, productionState, comments,
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
@@ -109,13 +112,13 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 statusMonitors, cricketMonitor,
                 REQUEST)
         except:
-            logging.exception('load of device %s failed' % deviceName)
+            log.exception('load of device %s failed' % deviceName)
         else:
-            device.collectConfig(wrap=False, REQUEST=REQUEST)
-            logging.info("device %s loaded!" % deviceName)
+            device.collectConfig(setlog=False, REQUEST=REQUEST)
+            log.info("device %s loaded!" % deviceName)
         if REQUEST:
             self.loaderFooter(device, response)
-            self.clearLog()
+            clearWebLoggingStream(handler)
 
 
     def addManufacturer(self, newHWManufacturerName=None, 

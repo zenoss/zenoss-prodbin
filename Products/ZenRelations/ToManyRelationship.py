@@ -9,7 +9,7 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 __version__ = "$Revision: 1.48 $"[11:-2]
 
 import logging
-log = logging.getLogger("ZenRelations")
+log = logging.getLogger("zen.Relations")
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -223,8 +223,8 @@ class ToManyRelationship(ToManyRelationshipBase):
                 ppath = obj.getPrimaryPath()
                 self.unrestrictedTraverse(ppath)
             except KeyError:
-                log.critical("rel:%s obj:%s no longer exists",
-                                self.id, obj.getPrimaryId())
+                log.critical("obj:%s rel:%s obj:%s no longer exists",
+                        self.getPrimaryId(), self.id, obj.getPrimaryId())
                 if repair: 
                     log.warn("removing rel to:%s", obj.getPrimaryId())
                     self._objects.remove(obj)
@@ -238,8 +238,8 @@ class ToManyRelationship(ToManyRelationshipBase):
         dupkeys = []
         for k, v in keycount.items():
             if v > 1: 
-                log.critical("rel:%s dup found obj:%s count:%s", 
-                             self.id, key, v)
+                log.critical("obj:%s rel:%s dup found obj:%s count:%s", 
+                             self.getPrimaryId(), self.id, key, v)
                 dupkeys.append(k)
         for obj in self._objects:
             key = obj.getPrimaryId()

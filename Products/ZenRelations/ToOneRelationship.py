@@ -16,7 +16,7 @@ __version__ = "$Revision: 1.23 $"[11:-2]
 import copy
 
 import logging
-log = logging.getLogger("ZenRelations")
+log = logging.getLogger("zen.Relations")
 
 
 # Base classes for ToOneRelationship
@@ -174,8 +174,8 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
                 ppath = self.obj.getPrimaryPath()
                 self.unrestrictedTraverse(ppath)
         except KeyError:
-            log.critical("rel:%s obj:%s no longer exists",
-                            self.id, self.obj.getPrimaryId())
+            log.critical("obj:%s rel:%s robj:%s no longer exists",
+                    self.getPrimaryId(), self.id, self.obj.getPrimaryId())
             if repair: 
                 log.warn("removing rel to:%s", self.obj.getPrimaryId())
                 self.obj = None

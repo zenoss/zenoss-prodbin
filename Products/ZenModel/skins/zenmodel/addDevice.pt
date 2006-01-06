@@ -49,16 +49,16 @@
             <td class="tableheader" align="left">Snmp Community</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
-                    size="25" name="snmpCommunity"
-                    tal:attributes="value request/snmpCommunity | 
-                            devices/zSnmpCommunity | string:"/>
+                    size="25" name="zSnmpCommunity"
+                    tal:attributes="value request/zSnmpCommunity | 
+                            device/zSnmpCommunity | string:"/>
             </td>
             <td class="tableheader" align="left">Snmp Port</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
-                    size="25" name="snmpPort:int" 
-                    tal:attributes="value request/snmpPort | 
-                            devices/zSnmpPort | python:161"/>
+                    size="25" name="zSnmpPort:int" 
+                    tal:attributes="value request/zSnmpPort | 
+                            device/zSnmpPort | python:161"/>
             </td>
         </tr>
         <tr>

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, shutil
 import logging
 logging.basicConfig()
 root = logging.getLogger()
@@ -129,7 +129,10 @@ class HtmlGenerator(object):
 baseModule = None
 if len(sys.argv) > 1:
     baseModule = sys.argv[1]
+docdir = os.path.join(os.environ['ZENHOME'],"zendocs/schema")
 classList = importClasses(basemodule=baseModule, 
             skipnames=("ZentinelPortal", "ZDeviceLoader"))
-htmlGen = HtmlGenerator(baseModule, classList)
+htmlGen = HtmlGenerator(baseModule, classList, docdir)
 htmlGen.generate()
+cssfile = os.path.join(os.path.dirname(__file__),"schemadoc.css")
+shutil.copy2(cssfile, docdir)

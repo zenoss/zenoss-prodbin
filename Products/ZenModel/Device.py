@@ -18,6 +18,9 @@ import sys
 import time
 import socket
 import logging
+log = logging.getLogger("zen.Device")
+
+from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -63,8 +66,8 @@ def manage_createDevice(context, deviceName, devicePath="",
     if not devicePath: devicePath = "/Discovered"
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
-    if not snmpCommunity:
-        snmpCommunity = findSnmpCommunity(deviceClass, deviceName)
+    if not zSnmpCommunity:
+        zSnmpCommunity = findSnmpCommunity(deviceClass, deviceName)
     device.manage_editDevice(
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
@@ -443,31 +446,31 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         self.comments = comments
 
         if hwManufacturer and hwProductName:
-            logging.info("setting hardware manufacturer to %s productName to %s"
+            log.info("setting hardware manufacturer to %s productName to %s"
                             % (hwManufacturer, hwProductName))
             self.hw.setProduct(hwProductName, hwManufacturer)
 
         if osManufacturer and osProductName:
-            logging.info("setting os manufacturer to %s productName to %s"
+            log.info("setting os manufacturer to %s productName to %s"
                             % (osManufacturer, osProductName))
             self.os.setProduct(osProductName, osManufacturer)
 
         if locationPath: 
-            logging.info("setting location to %s" % locationPath)
+            log.info("setting location to %s" % locationPath)
             self.setLocation(locationPath)
 
         if groupPaths: 
-            logging.info("setting group %s" % groupPaths)
+            log.info("setting group %s" % groupPaths)
             self.setGroups(groupPaths)
 
         if systemPaths: 
-            logging.info("setting system %s" % systemPaths)
+            log.info("setting system %s" % systemPaths)
             self.setSystems(systemPaths)
 
-        logging.info("setting status monitor to %s" % statusMonitors)
+        log.info("setting status monitor to %s" % statusMonitors)
         self.setStatusMonitors(statusMonitors)
 
-        logging.info("setting cricket monitor to %s" % cricketMonitor)
+        log.info("setting cricket monitor to %s" % cricketMonitor)
         self.setCricketMonitor(cricketMonitor)
        
         self.setLastChange()
@@ -730,30 +733,28 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     ####################################################################
 
     security.declareProtected('Change Device', 'collectConfig')
-    def collectConfig(self, wrap=True, community=None, port=161, REQUEST=None):
+    def collectConfig(self, setlog=True, REQUEST=None):
         """collect the configuration of this device"""
-        from Products.DataCollector.DataCollector import DataCollector
-        sc = DataCollector(noopts=1,app=self.getPhysicalRoot(),single=True)
-        sc.options.force = True
-        if REQUEST:
+        if REQUEST and setlog:
             response = REQUEST.RESPONSE
-            if wrap:
-                dlh = self.deviceLoggingHeader()
-                idx = dlh.rindex("</table>")
-                response.write(dlh[:idx])
-            sc.setWebLoggingStream(response)
-            #sc.log.setLevel(10)
+            dlh = self.deviceLoggingHeader()
+            idx = dlh.rindex("</table>")
+            response.write(dlh[:idx])
+            handler = setWebLoggingStream(response)
         try:
+            from Products.DataCollector.DataCollector import DataCollector
+            sc = DataCollector(noopts=1,app=self.getPhysicalRoot(),single=True)
+            sc.options.force = True
             sc.collectDevice(self)
         except:
-            logging.exception('exception collecting data for device %s',self.id)
+            log.exception('exception collecting data for device %s',self.id)
             sc.stop()
         else:
-            logging.info('collected snmp information for device %s',self.id)
+            log.info('collected snmp information for device %s',self.id)
                             
-        if REQUEST:
-            if wrap: response.write(self.deviceLoggingFooter())
-            sc.clearWebLoggingStream()
+        if REQUEST and setlog:
+            response.write(self.deviceLoggingFooter())
+            clearWebLoggingStream(handler)
 
 
 

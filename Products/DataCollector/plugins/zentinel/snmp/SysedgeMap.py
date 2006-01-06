@@ -12,9 +12,9 @@ $Id: SysedgeMap.py,v 1.6 2003/01/15 21:51:54 edahl Exp $"""
 
 __version__ = '$Revision: 1.6 $'[11:-2]
 
-from CustomMap import CustomMap
+from CollectorPlugin import SnmpPlugin, GetMap
 
-class SysedgeMap(CustomMap):
+class SysedgeMap(SnmpPlugin):
 
     sysedgeMap = {
              '.1.3.6.1.4.1.546.1.1.1.8.0':'snmpAgent',
@@ -23,14 +23,9 @@ class SysedgeMap(CustomMap):
              }
 
 
-    def condition(self, device, snmpsess, log):
+    def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
-        data = None
-        try:
-            data = snmpsess.get('.1.3.6.1.4.1.546.1.1.1.17.0')
-        except:pass
-        return data
-        #return device.snmpOid == '.1.3.6.1.4.1.546'
+        return False
 
 
     def collect(self, device, snmpsess, log):

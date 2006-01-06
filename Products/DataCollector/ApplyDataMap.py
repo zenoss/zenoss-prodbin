@@ -52,12 +52,11 @@ class ApplyDataMap(object):
                     if changed: devchanged=True
             if devchanged:
                 device.setLastChange()
-                trans = transaction.get()
-                trans.setUser("datacoll")
-                trans.note("data applied from automated collection")
-                trans.commit()
-            else:
-                log.info("no change skipping commit")
+            device.setSnmpLastCollection()
+            trans = transaction.get()
+            trans.setUser("datacoll")
+            trans.note("data applied from automated collection")
+            trans.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except:
             transaction.abort()

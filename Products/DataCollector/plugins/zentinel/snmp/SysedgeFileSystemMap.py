@@ -14,9 +14,9 @@ __version__ = '$Revision: 1.11 $'[11:-2]
 
 import re
 
-from CustomRelMap import CustomRelMap
+from CollectorPlugin import SnmpPlugin
 
-class SysedgeFileSystemMap(CustomRelMap):
+class SysedgeFileSystemMap(SnmpPlugin):
 
     remoteClass = "Products.ZenModel.FileSystem"
     relationshipName = "filesystems"
@@ -39,16 +39,13 @@ class SysedgeFileSystemMap(CustomRelMap):
              }
 
 
-    def condition(self, device, snmpsess, log):
+    def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
-        data = None
-        try:
-            data = snmpsess.get('.1.3.6.1.4.1.546.1.1.1.17.0')
-        except:pass
-        return data
+        return False
 
 
-    def collect(self, device, snmpsess, log):
+
+    def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('Collecting Sysedge filesystem for device %s' % device.id)
         fstable = snmpsess.collectSnmpTableMap(self.fsTableOid, self.fsMap)

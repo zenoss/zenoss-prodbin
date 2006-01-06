@@ -137,8 +137,8 @@ class Organizer(ZenModelRM):
     
     def createOrganizer(self, path):
         """Create and return and an Organizer from its path."""
-        return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), path,
-                            self.__class__)
+        return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), 
+                                           path,self.__class__)
 
 
     def getOrganizer(self, path):

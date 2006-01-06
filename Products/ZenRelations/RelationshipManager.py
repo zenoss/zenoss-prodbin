@@ -14,7 +14,7 @@ $Id: RelationshipManager.py,v 1.41 2004/04/13 22:02:18 edahl Exp $"""
 __version__ = "$Revision: 1.41 $"[11:-2]
 
 import logging
-log = logging.getLogger("ZenRelations")
+log = logging.getLogger("zen.Relations")
 
 import types
 

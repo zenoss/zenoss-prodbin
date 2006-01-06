@@ -42,5 +42,12 @@ class DeviceHW(Hardware):
         id = "hw"
         Hardware.__init__(self, id)
 
+    
+    def device(self):
+        """Return our Device object for DeviceResultInt.
+        """
+        return self.getPrimaryParent()
+
+
 
 InitializeClass(DeviceHW)
