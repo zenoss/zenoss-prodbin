@@ -17,7 +17,7 @@ from Products.ZenUtils.Utils import importClass
 from Exceptions import *
 
 import logging
-log = logging.getLogger("ApplyDataMap")
+log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
 
@@ -32,8 +32,8 @@ class ApplyDataMap(object):
         """
         log.debug("processing data for device %s", device.id)
         try:
-            if not self.datacollector.single: 
-                device._p_jar.sync()
+            #if not self.datacollector.single: 
+            #    device._p_jar.sync()
             devchanged = False
             for pname, results in collectorClient.getResults():
                 log.debug("processing plugin %s on device %s", pname, device.id)
@@ -43,9 +43,13 @@ class ApplyDataMap(object):
                 plugin = self.datacollector.collectorPlugins.get(pname, None) 
                 if not plugin: continue
                 results = plugin.preprocess(results, log)
-                datamap = plugin.process(device, results, log)
-                changed = self._applyDataMap(device, datamap)
-                if changed: devchanged=True
+                datamaps = plugin.process(device, results, log)
+                #allow multiple maps to be returned from one plugin
+                if hasattr(datamaps, 'compname'):
+                    datamaps = [datamaps,]
+                for datamap in datamaps:
+                    changed = self._applyDataMap(device, datamap)
+                    if changed: devchanged=True
             if devchanged:
                 device.setLastChange()
                 trans = transaction.get()
@@ -53,7 +57,7 @@ class ApplyDataMap(object):
                 trans.note("data applied from automated collection")
                 trans.commit()
             else:
-                log.debug("no change skipping commit")
+                log.info("no change skipping commit")
         except (SystemExit, KeyboardInterrupt): raise
         except:
             transaction.abort()
@@ -63,13 +67,16 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
+        changed = False
         tobj = device
         if datamap.compname: 
             tobj = getattr(device, datamap.compname)
-        if getattr(datamap, "relname", False):
+        if hasattr(datamap, "relname"):
             changed = self._updateRelationship(tobj, datamap)
-        else:
+        elif hasattr(datamap, 'modname'):
             changed = self._updateObject(tobj, datamap)
+        else:
+            log.warn("plugin returned unknown map skipping")
         return changed
             
         
@@ -89,13 +96,14 @@ class ApplyDataMap(object):
             if hasattr(objmap, 'modname') and hasattr(objmap, 'id'):
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id) 
-                    changed = self._updateObject(obj, objmap)
+                    objchange = self._updateObject(obj, objmap)
+                    if not changed: changed = objchange
                     relids.remove(objmap.id)
                 else:
                     self._createRelObject(device, objmap, rname)
                     changed = True
             elif isinstance(objmap, ZenModelRM):
-                log.debug("linking object %s to device %s relation %s",
+                log.info("linking object %s to device %s relation %s",
                                     objmap.id, device.id, rname)
                 device.addRelation(rname, objmap)
                 changed = True
@@ -112,7 +120,7 @@ class ApplyDataMap(object):
     def _updateObject(self, obj, objmap):
         """Update an object using a objmap.
         """
-        change = False
+        changed = False
         for attname, value in objmap.items():
             if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
@@ -129,15 +137,16 @@ class ApplyDataMap(object):
                                   "skipping", gettername, obj.id)
                 elif value != getter():
                     setter(value)
-                    log.debug("calling function '%s' with '%s' on "
+                    log.info("calling function '%s' with '%s' on "
                                "object %s", attname, value, obj.id)
                     changed = True            
             elif att != value:
                 setattr(aq_base(obj), attname, value) 
-                log.debug("set attribute '%s' to '%s' on object '%s'",
+                log.info("set attribute '%s' to '%s' on object '%s'",
                            attname, value, obj.id)
-        try: changed = obj._p_changed
-        except: pass
+        if not changed:
+            try: changed = obj._p_changed
+            except: pass
         if getattr(aq_base(obj), "index_object", False) and changed:
             log.debug("indexing object %s", obj.id)
             obj.index_object() 
@@ -161,11 +170,12 @@ class ApplyDataMap(object):
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
+        log.info("adding object %s to relationship %s", remoteObj.id, relname)
         self._updateObject(remoteObj, objmap)
-        log.debug("added object %s to relationship %s", 
-                        remoteObj.id, relname)
+        return True
 
-    
+
+    def stop(self): pass 
 
 
 class ApplyDataMapThread(threading.Thread, ApplyDataMap):
@@ -197,14 +207,24 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
     def run(self):
         """Process collectorClients as they are passed in from a data collector.
         """
+        log.info("starting applyDataMap thread")
         while not self.done or not self.inputqueue.empty():
+            devpath = ()
             try:
                 devpath, collectorClient = self.inputqueue.get(True,1)
-                log.debug("processing device %s", "/".join(devpath))
+                self.app._p_jar.sync()
                 device = self.app.unrestrictedTraverse(devpath)
                 ApplyDataMap.processClient(self, device, collectorClient)
             except Queue.Empty: pass 
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 transaction.abort()
-                log.exception("processin device %s",device.getId())
+                log.exception("processing device %s", "/".join(devpath))
+        log.info("stopping applyDataMap thread")
+
+
+    def stop(self):
+        """Stop the thread once all devices are processed.
+        """
+        self.done = True
+        self.join()

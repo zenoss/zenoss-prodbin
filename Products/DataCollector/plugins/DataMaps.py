@@ -23,8 +23,11 @@ class ObjectMap(object):
     _attrs = []
 
 
-    def __init__(self, data={}):
+    def __init__(self, data={}, compname="", modname="", classname=""):
         self.updateFromDict(data)
+        if compname: self.compname = compname
+        if modname: self.modname = modname
+        if classname: self.classname = classname
 
 
     def __setattr__(self, name, value):

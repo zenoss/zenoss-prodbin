@@ -23,6 +23,7 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 
 import os, sys, getpass
 import logging
+log = logging.getLogger("zen.CmdClient")
 
 from twisted.internet import protocol, reactor
 
@@ -89,12 +90,6 @@ class CollectorClient(protocol.ClientFactory):
             self.searchPath = defaultSearchPath
             self.existanceTest = defaultExistanceTest
 
-        if log:
-            self.log = log
-        else:
-            logging.basicConfig()
-            self.log = logging.getLogger(self.__class__.__name__)
-            if options: self.log.setLevel(options.logseverity)
                     
 
     
@@ -125,7 +120,7 @@ class CollectorClient(protocol.ClientFactory):
 
     def clientFinished(self):
         """tell the datacollector that we are all done"""
-        self.log.info("client finished collection for %s" % self.hostname)
+        log.info("command client finished collection for %s",self.hostname)
         self.cmdindex = 0
         if self.datacollector:
             self.datacollector.clientFinished(self)
@@ -197,4 +192,3 @@ def parseOptions(parser, port):
     options.port = port
     options.commands = args[1:]
     return options
-

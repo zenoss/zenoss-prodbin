@@ -62,11 +62,16 @@ class InterfaceMap(SnmpPlugin):
         omtable = {}
         for iprow in iptable.values():
             strindex = str(iprow['ifindex'])
-            if not iftable.has_key(strindex): continue
+            if not iftable.has_key(strindex):
+                if int(iprow['ifindex']) >= len(iftable): #hack for bad 
+                    strindex = str(len(iftable))          #ifindex on wrt54g
+                else: 
+                    continue                                 
             if not omtable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
                 if not om: continue
                 omtable[strindex] = om
+                del iftable[strindex]
             else: 
                 om = omtable[strindex]
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
@@ -74,7 +79,6 @@ class InterfaceMap(SnmpPlugin):
             om.setIpAddresses.append(ip)
             #om.ifindex = iprow.ifindex #FIXME ifindex is not set!
             rm.append(om)
-            del iftable[strindex]
 
         for iface in iftable.values():
             om = self.processInt(device, iface)
@@ -83,7 +87,6 @@ class InterfaceMap(SnmpPlugin):
 
 
     def processInt(self, device, iface):
-        strindex = str(iface['ifindex'])
         om = self.objectMap(iface)
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.name = om.id

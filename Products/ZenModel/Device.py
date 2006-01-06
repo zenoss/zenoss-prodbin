@@ -48,7 +48,7 @@ from Exceptions import *
 
 def manage_createDevice(context, deviceName, devicePath="", 
             tag="", serialNumber="",
-            snmpCommunity="", snmpPort=161,
+            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
@@ -67,7 +67,7 @@ def manage_createDevice(context, deviceName, devicePath="",
         snmpCommunity = findSnmpCommunity(deviceClass, deviceName)
     device.manage_editDevice(
                 tag, serialNumber,
-                snmpCommunity, snmpPort,
+                zSnmpCommunity, zSnmpPort, zSnmpVer,
                 rackSlot, productionState, comments,
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
@@ -285,10 +285,16 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         self.hw.setProductKey(prodKey)
 
 
-    def getNextHopIps(self):
-        """Return the ips that our indirect routs point to.
+    def followNextHopIps(self):
+        """Return the ips that our indirect routs point to which 
+        aren't currently connected to devices.
         """
-        return [ r.getNextHopIp() for r in self.os.routes() if r.nexthop()]
+        ips = []
+        for r in self.os.routes():
+            ipobj = r.nexthop()
+            if ipobj and not ipobj.device(): 
+                ips.append(ipobj.id)
+        return ips
 
 
     security.declareProtected('View', 'getLocationName')
@@ -415,7 +421,7 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
     security.declareProtected('Change Device', 'manage_editDevice')
     def manage_editDevice(self, 
                 tag="", serialNumber="",
-                snmpCommunity="", snmpPort=161,
+                zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
                 rackSlot=0, productionState=1000, comments="",
                 hwManufacturer="", hwProductName="", 
                 osManufacturer="", osProductName="", 
@@ -425,10 +431,13 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
         """edit device relations and attributes"""
         self.tag = tag
         self.serialNumber = serialNumber
-        if self.zSnmpCommunity != snmpCommunity:
-            self.setZenProperty("zSnmpCommunity", snmpCommunity)
-        if self.zSnmpPort != snmpPort:
-            self.setZenProperty("zSnmpPort", snmpPort)
+        if self.zSnmpCommunity != zSnmpCommunity:
+            self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
+        if self.zSnmpPort != zSnmpPort:
+            self.setZenProperty("zSnmpPort", zSnmpPort)
+        if self.zSnmpVer != zSnmpVer:
+            self.setZenProperty("zSnmpVer", zSnmpVer)
+
         self.rackSlot = rackSlot
         self.productionState = productionState
         self.comments = comments
@@ -733,11 +742,12 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
                 idx = dlh.rindex("</table>")
                 response.write(dlh[:idx])
             sc.setWebLoggingStream(response)
+            #sc.log.setLevel(10)
         try:
             sc.collectDevice(self)
         except:
             logging.exception('exception collecting data for device %s',self.id)
-                              
+            sc.stop()
         else:
             logging.info('collected snmp information for device %s',self.id)
                             

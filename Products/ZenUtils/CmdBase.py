@@ -40,33 +40,41 @@ class CmdBase:
             logging.config.fileConfig(self.options.logconfig)
         else:
             logging.basicConfig()
-        self.log = logging.getLogger(self.__class__.__name__)
         rlog = logging.getLogger()
-        rlog.setLevel(self.options.logseverity)
+        rlog.setLevel(logging.ERROR)
+        self.log = logging.getLogger("zen."+self.__class__.__name__)
+        zlog = logging.getLogger("zen")
+        zlog.setLevel(self.options.logseverity)
 
 
     def setLoggingStream(self, stream):
         from logging import StreamHandler, Formatter
-        self.log = logging.getLogger(self.__class__.__name__)
         hdlr = StreamHandler(stream)
         fmt = Formatter(logging.BASIC_FORMAT)
         hdlr.setFormatter(fmt)
-        self.log.addHandler(hdlr)
-        self.log.setLevel(self.options.logseverity)
-
+        rlog = logging.getLogger()
+        rlog.addHandler(hdlr)
+        rlog.setLevel(logging.ERROR)
+        zlog = logging.getLogger("zen")
+        zlog.setLevel(self.options.logseverity)
+        self.log = logging.getLogger("zen."+self.__class__.__name__)
+        
 
     def setWebLoggingStream(self, stream):
         """Setup logging to log to a browser using a request object."""
         from logging import StreamHandler, Formatter
-        self.log = logging.getLogger(self.__class__.__name__)
         self.handler = StreamHandler(stream)
         fmt = Formatter("""<tr class="tablevalues">
         <td>%(asctime)s</td><td>%(levelname)s</td>
         <td>%(name)s</td><td>%(message)s</td></tr>
         ""","%Y-%m-%d %H:%M:%S")
         self.handler.setFormatter(fmt)
-        self.log.addHandler(self.handler)
-        self.log.setLevel(self.options.logseverity)
+        rlog = logging.getLogger()
+        rlog.addHandler(self.handler)
+        rlog.setLevel(logging.ERROR)
+        zlog = logging.getLogger("zen")
+        zlog.setLevel(self.options.logseverity)
+        self.log = logging.getLogger("zen."+self.__class__.__name__)
 
 
     def clearWebLoggingStream(self):

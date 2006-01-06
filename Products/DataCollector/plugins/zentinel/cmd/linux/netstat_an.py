@@ -34,19 +34,24 @@ class netstat_an(CommandPlugin):
             try:
                 proto = aline[0]
                 addr, port = aline[3].split(":")
-                if int(port) > 1024: continue #FIXME 
                 if addr == "0.0.0.0" or not services.has_key(port):
                     services[port] = (addr, proto)
             except ValueError:
                 log.exception("failed to parse ipservice information")
+        ports = {}
         for port, value in services.items():
             addr, proto = value
             if proto == "raw": continue
-            om = self.objectMap()
-            om.id = "-".join((addr, proto, port))
-            om.ipaddress = addr
-            om.setPort = int(port)
-            om.setProtocol = proto
-            om.discoveryAgent = self.name()
-            rm.append(om)
+            om = ports.get((proto, port), None)
+            if om:
+                om.ipaddresses.append(addr)
+            else:
+                om = self.objectMap()
+                om.id = "-".join((proto, port))
+                om.ipaddresses = [addr,]
+                om.setPort = int(port)
+                om.setProtocol = proto
+                om.discoveryAgent = self.name()
+                ports[(proto, port)] = om
+                rm.append(om)
         return rm

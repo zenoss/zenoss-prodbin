@@ -25,7 +25,7 @@ from IpAddress import findIpAddress
 from OSComponent import OSComponent
 
 import logging
-log = logging.getLogger("IpRouteEntry")
+log = logging.getLogger("zen.IpRouteEntry")
 
 def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
     """make a IpRouteEntry"""
@@ -166,6 +166,8 @@ class IpRouteEntry(OSComponent):
         if self.ipcheck(netip):
             self._target = netip
         else:
+#            import pdb
+#            pdb.set_trace()
             net = self.getDmdRoot("Networks").createNet(netip)
             self.target.addRelation(net)
 
@@ -194,7 +196,7 @@ class IpRouteEntry(OSComponent):
             return self._target
 
     
-    security.declareProtected('Change Device', 'setInterfaceByIndex')
+    security.declareProtected('Change Device', 'setInterfaceIndex')
     def setInterfaceIndex(self, ifindex):
         os = self.os()
         int = self.getInterfaceByIndex(ifindex)

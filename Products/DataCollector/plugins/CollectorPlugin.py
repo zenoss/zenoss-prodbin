@@ -142,13 +142,21 @@ class SnmpPlugin(CollectorPlugin):
     def asip(self, val):
         """Convert a byte string to an ip address string.
         """
-        ip = ""
-        for char in val:
-            tmp = struct.unpack('B', char)[0]
-            ip = ip + str(tmp) + "."
-        return ip[:-1]
-     
+        return ".".join(map(str, struct.unpack('4B', char)))
+    
 
+    def asdate(self,val):
+        """Convert a byte string to the date string 'YYYY/MM/DD HH:MM:SS'
+        """
+        datear = (1968,1,8,10,15,00)
+        try:
+            datear = struct.unpack("h6B", val)
+        except: pass
+        return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
+
+        
+
+        
 class GetMap(object):
     """
     Map oids in a get to their names.

@@ -109,6 +109,9 @@
                             tableName,'getPort','Port')">Port
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'ipaddresses','Ips')">Ips
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getDescription','Description')">
                             Description
         </th>
@@ -124,12 +127,13 @@
                 href="_" tal:content="srv/getKeyword"
                 tal:attributes="href srv/ipServiceClassUrl">keyword</a>
         </td>
-        <td class="tablevalues" tal:content="srv/getProtocol">protocol
+        <td class="tablevalues" tal:content="srv/getProtocol"/>
+        <td class="tablevalues" tal:content="srv/getPort"/>
+        <td class="tablevalues">
+            <span tal:omit-tag="" tal:repeat="ip srv/ipaddresses"
+                tal:content="ip"/>
         </td>
-        <td class="tablevalues" tal:content="srv/getPort">port
-        </td>
-        <td class="tablevalues" tal:content="srv/getDescription">descr
-        </td>
+        <td class="tablevalues" tal:content="srv/getDescription"/>
     </tr>
     <tr>
         <td colspan=5 class="tableheader" align='center'>

@@ -14,6 +14,8 @@ $Id: SshClient.py,v 1.5 2004/04/05 02:05:30 edahl Exp $"""
 __version__ = "$Revision: 1.5 $"[11:-2]
 
 import os, getpass
+import logging
+log = logging.getLogger("zen.SshClient")
 
 import Globals
 
@@ -43,29 +45,27 @@ def check(hostname, timeout=2):
 class SshClientTransport(transport.SSHClientTransport):
 
     def verifyHostKey(self, hostKey, fingerprint):
-        self.log = self.factory.log
         #blowing off host key right now, should store and check
-        self.log.debug('%s host key: %s' % (self.factory.hostname, fingerprint))
+        log.debug('%s host key: %s' % (self.factory.hostname, fingerprint))
         return defer.succeed(1) 
 
     def connectionSecure(self): 
-        sshconn = SshConnection(self.factory, self.log)
+        sshconn = SshConnection(self.factory)
         self.factory.connection = sshconn
         sshauth = SshUserAuth(self.factory.username, 
-                                sshconn, self.factory, self.log)
+                                sshconn, self.factory)
         self.requestService(sshauth)
             
                 
 class SshUserAuth(userauth.SSHUserAuthClient):
-    def __init__(self, user, instance, factory, log=None):
+    def __init__(self, user, instance, factory):
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
         self.factory = factory
-        self.log = log
 
     def getPassword(self):
         if not self.factory.password:
-            self.log.debug("ssh asking for password")
+            log.debug("ssh asking for password")
             if not self.factory.loginTries:
                 if __name__ == "__main__": reactor.stop() #FIXME
                 raise LoginFailed, "login to %s with username %s failed" % (
@@ -78,7 +78,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             return defer.succeed(self.factory.password)
 
     def getPublicKey(self):
-        self.log.debug("getting public key")
+        log.debug("getting public key")
         path = os.path.expanduser('~/.ssh/id_dsa') 
         # this works with rsa too
         # just change the name here and in getPrivateKey
@@ -88,45 +88,43 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         return keys.getPublicKeyString(path+'.pub')
 
     def getPrivateKey(self):
-        self.log.debug("getting private key")
+        log.debug("getting private key")
         path = os.path.expanduser('~/.ssh/id_dsa')
         return defer.succeed(keys.getPrivateKeyObject(path))
 
 
 class SshConnection(connection.SSHConnection):
 
-    def __init__(self, factory, log=None):
+    def __init__(self, factory):
         connection.SSHConnection.__init__(self)
         self.factory = factory
-        self.log = log
 
 
     def serviceStarted(self):
         """run commands that are in the command queue"""
-        self.log.info("connected to device %s" % self.factory.hostname)
+        log.info("connected to device %s" % self.factory.hostname)
         for cmd in self.factory.getCommands():
             self.addCommand(cmd)
 
 
     def addCommand(self, cmd):
         """open a new command channel for each command in queue"""
-        ch = CommandChannel(cmd, conn=self, log=self.log)
+        ch = CommandChannel(cmd, conn=self)
         self.openChannel(ch)
 
 
 class CommandChannel(channel.SSHChannel):
     name = 'session'
 
-    def __init__(self, command, conn=None, log=None):
+    def __init__(self, command, conn=None):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
-        self.log = log
         
     def openFailed(self, reason):
-        self.log.warn('open of %s failed: %s' % (self.command, reason))
+        log.warn('open of %s failed: %s' % (self.command, reason))
 
     def channelOpen(self, ignoredData):
-        self.log.debug('opening command channel for %s' % self.command)
+        log.debug('opening command channel for %s' % self.command)
         self.data = ''
         d = self.conn.sendRequest(self, 'exec', 
             common.NS(self.command), wantReply = 1)
@@ -135,7 +133,7 @@ class CommandChannel(channel.SSHChannel):
         self.data += data
 
     def closed(self):
-        self.log.debug('command %s data: %s' % (self.command, repr(self.data)))
+        log.debug('command %s data: %s' % (self.command, repr(self.data)))
         self.conn.factory.addResult(self.command, self.data)
         self.loseConnection()
         if self.conn.factory.commandsFinished():
@@ -145,9 +143,9 @@ class CommandChannel(channel.SSHChannel):
 class SshClient(CollectorClient.CollectorClient):
 
     def __init__(self, hostname, port=22, commands=[], options=None, 
-                    device=None, datacollector=None, log=None):
+                    device=None, datacollector=None):
         CollectorClient.CollectorClient.__init__(self, hostname, port, 
-                           commands, options, device, datacollector, log)
+                           commands, options, device, datacollector)
         self.protocol = SshClientTransport
         self.connection = None
 

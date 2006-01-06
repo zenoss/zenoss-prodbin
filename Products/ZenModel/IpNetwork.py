@@ -119,7 +119,7 @@ class IpNetwork(DeviceOrganizer):
 
 
     def createNet(self, netip, netmask=0):
-        """Return and create if nessesary netip.  netip in form 1.1.1.1/24 or
+        """Return and create if nessesary netip.  netip in form 1.1.1.0/24 or
         with netmask passed as parameter.
         Subnetworks created based on the zParameter zDefaulNetworkTree.
         """
@@ -127,10 +127,11 @@ class IpNetwork(DeviceOrganizer):
             netip, netmask = netip.split("/",1)
             netmask = int(netmask)
         if netmask == 0: raise ValueError("netip '%s' without netmask")
+        netip = getnetstr(netip,netmask)
         netobj = self
         if netobj.id != "Networks": netobj = self.getDmdRoot("Networks")
-        netobj = self.getDmdRoot("Networks")._getOb(netip,netobj)
-        if netobj: return netobj
+        tnet = self.getDmdRoot("Networks")._getOb(netip, None)
+        if tnet: return tnet
         netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
         for treemask in netTree:
@@ -171,8 +172,7 @@ class IpNetwork(DeviceOrganizer):
         if ipobj: return ipobj
         ipobj = netobj.addIp(ip)
         if ipobj: return ipobj
-        netip = getnetstr(ip,netmask)
-        netobj = self.createNet(netip, netmask)
+        netobj = self.createNet(ip, netmask)
         ipobj = netobj.addIpAddress(ip,netmask)
         return ipobj
 

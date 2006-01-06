@@ -42,24 +42,21 @@ class IpService(Service):
 
     protocols = ('tcp', 'udp')
 
+    ipaddresses = []
+    discoveryAgent = ""
+    _port = 0 
+    _protocol = None
+
     _properties = (
         {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
         {'id':'protocol', 'type':'string', 'mode':'', 'setter': 'setProtocol'},
-        {'id':'ipaddress', 'type':'string', 'mode':''},
+        {'id':'ipaddresses', 'type':'lines', 'mode':''},
         {'id':'discoveryAgent', 'type':'string', 'mode':''},
         ) 
     _relations = Service._relations + (
         ("os", ToOne(ToManyCont,"OperatingSystem","ipservices")),
         ("ipserviceclass", ToOne(ToMany,"IpServiceClass","ipservices")),
         )
-
-
-    def __init__(self, id,ipaddress = ''):
-        Service.__init__(self, id)
-        self.ipaddress = ipaddress
-        self.discoveryAgent = ""
-        self._port = 0 
-        self._protocol = None
 
 
     def __getattr__(self, name):
@@ -89,7 +86,7 @@ class IpService(Service):
         return getIpServiceClassId(self._protocol, self._port)
 
     def primarySortKey(self):
-        return "%s-%s:%05d" % (self._protocol, self.ipaddress, self._port)
+        return "%s-%05d" % (self._protocol, self._port)
         
     def getPort(self):
         return self._port

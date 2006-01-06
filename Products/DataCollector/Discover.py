@@ -13,26 +13,28 @@ import Globals
 import transaction
 
 from Products.ZenUtils.Exceptions import ZentinelException
-from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event
 from Products.PingMonitor.Ping import Ping
-from Products.SnmpCollector.SnmpSession import SnmpSession, ZenSnmpError
+
+from DataCollector import DataCollector
+from SnmpSession import SnmpSession, ZenSnmpError
 
 class NoSnmp(ZentinelException):
     """Can't open an snmp connection to the device."""
 
 
-class Discover(ZCmdBase):
- 
-    def __init__(self):
-        ZCmdBase.__init__(self)
+class Discover(DataCollector):
+
+
+    def __init__(self, noopts=0,app=None,single=True):
+        DataCollector.__init__(self, noopts, app, single)
 
 
     def discoverRouters(self, rootdev, seenips=[]):
         """Discover all default routers based on dmd configuration.
         """
-        for ip in rootdev.getNextHopIps():
+        for ip in rootdev.followNextHopIps():
             if ip in seenips: continue
             self.log.info("device '%s' next hop '%s'", rootdev.id, ip)
             seenips.append(ip)
@@ -96,7 +98,7 @@ class Discover(ZCmdBase):
 
     iptype = re.compile("^\d+\.\d+\.\d+\.\d+$").search
 
-    def discoverDevice(self, ip, devicepath="/Discovered"):
+    def discoverDevice(self, ip, devicepath="/Discovered", sync=False):
         devname = ""
         if not self.iptype(ip):
             devname = ip
@@ -116,29 +118,31 @@ class Discover(ZCmdBase):
                     else:
                         self.log.info("ip '%s' on device '%s' remodel",
                                         ip, dev.id)
-            community, port, snmpname = self.findCommunity(ip)
+            community, port, ver, snmpname = self.findCommunity(ip,devicepath)
             self.log.debug("device community = %s", community)
             self.log.debug("device name = %s", snmpname)
             if not devname:
                 try:
-                    if ipobj.ptrName and socket.gethostbyname(ipobj.ptrName):
-                        devname = ipobj.ptrName
+                    if snmpname and socket.gethostbyname(snmpname):
+                        devname = snmpname
                 except: pass
                 try:
-                    if (not devname and snmpname and 
-                        socket.gethostbyname(snmpname)):
-                        devname = snmpname
+                    if (not devname and ipobj.ptrName 
+                        and socket.gethostbyname(ipobj.ptrName)):
+                        devname = ipobj.ptrName
                 except: pass
                 if not devname:
                     self.log.warn("unable to name device using ip '%s'", ip)
                     devname = ip
             self.log.info("device name '%s' for ip '%s'", devname, ip)
             dev = self.devroot(devicepath).createInstance(devname)
-            dev.manage_editDevice(statusMonitors=["localhost"], 
+            dev.manage_editDevice(zSnmpCommunity=community, 
+                                  zSnmpPort=port, zSnmpVer=ver,
+                                  statusMonitors=["localhost"], 
                                   cricketMonitor="localhost")
-            dev.collectConfig(community=community, port=port)
             transaction.commit()
-            return dev.primaryAq()
+            self.collectDevice(dev)
+            return dev
         except NoSnmp, e:
             self.log.warn(e)
             #FIXME add event showing problem so we don't remodel later
@@ -152,47 +156,66 @@ class Discover(ZCmdBase):
         return self.dmd.Devices.createOrganizer(devicepath)
 
     
-    def findCommunity(self, ip):
+    def findCommunity(self, ip, devicepath):
         """Find the snmp community for an ip address using zSnmpCommunities.
         """
-        devroot = self.devroot("/Discovered")
+        devroot = self.devroot(devicepath)
         communities = getattr(devroot, "zSnmpCommunities", ())
         port = getattr(devroot, "zSnmpPort", 161)
         session = SnmpSession(ip, timeout=2, port=port)
+        sysTableOid = '.1.3.6.1.2.1.1'
         oid = '.1.3.6.1.2.1.1.5.0'
-        retval = None
+        goodcommunity = ""
+        devname = ""
+        snmpver = "v1"
         for community in communities:
             session.community = community
             try:
                 devname = session.get(oid).values()[0]
                 goodcommunity = session.community
+# FIXME - v2 queries don't take multiple head oids which needs to be
+#           reconciled with v1 where we want that as an optimization.
+#           will revisit when I have more time. -EAD
+#                try:
+#                    session.getTable(sysTableOid, bulk=True)
+#                    snmpver="v2"
+#                except (SystemExit, KeyboardInterrupt): raise
+#                except: snmpver="v1" 
                 break
             except (SystemExit, KeyboardInterrupt): raise
             except: pass #keep trying until we run out
         else:
             raise NoSnmp("no snmp found for ip = %s" % ip)
-        return (goodcommunity, port, devname) 
+        return (goodcommunity, port, snmpver, devname) 
 
 
     def run(self):
         myname = socket.getfqdn()
-        myip = socket.gethostbyname(myname)
+        self.log.info("my hostname = %s", myname)
+        try:
+            myip = socket.gethostbyname(myname)
+            self.log.info("my ip = %s", myip)
+        except socket.error, e:
+            self.log.warn("failed lookup of my ip for name %s", myname) 
         me = self.dmd.Devices.findDevice(myname)
-        if not me:
+        if not me or self.options.remodel:
             me = self.discoverDevice(myname, devicepath="/") 
         if not me:
-            print "failed snmp discover of self '%s', exiting" % myname
-            sys.exit(1)
+            raise SystemExit("snmp discover of self '%s' failed" % myname)
+        if not myip: myip = me.getManageIp()
+        if not myip: 
+            raise SystemExit("can't find my ip for name %s" % myname)
         self.discoverRouters(me, [myip])
         if self.options.routersonly:
             self.log.info("only routers discovered, skiping ping sweep.")
         else:
             ips = self.discoverIps()
             self.discoverDevices(ips)
+        self.stop()
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        DataCollector.buildOptions(self)
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true",
                     help="remodel existing objects")

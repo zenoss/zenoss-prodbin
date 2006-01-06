@@ -156,25 +156,33 @@ class Software(MEProduct):
         if pclass: return pclass.getManufacturerName()
         return ""
 
+
     def getManufacturerLink(self):
         pclass = self.productClass()
         if pclass: return pclass.manufacturer.getPrimaryLink()
         return ""
 
+
     def getProductLink(self):
         return self.productClass.getPrimaryLink()
 
 
-    def getInstallDate(self):
+    def getInstallDateObj(self):
+        """Return the install date as a DateTime object.
+        """
         return self._installDate.getDate()
 
 
-    def setInstallDate(self, value):
-        self._installDate.setDate(value) 
-
-
-    def installDateString(self):
+    def getInstallDate(self):
+        """Return the install date in the form 'YYYY/MM/DD HH:MM:SS'
+        """
         return self._installDate.getString()
+
+
+    def setInstallDate(self, value):
+        """Set the install date should be string in form 'YYYY/MM/DD HH:MM:SS'
+        """
+        self._installDate.setDate(value) 
 
 
     def device(self):

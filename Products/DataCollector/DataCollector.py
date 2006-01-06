@@ -33,8 +33,8 @@ from pysnmp.error import PySnmpError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
-from Products.SnmpCollector.SnmpSession import SnmpSession, ZenSnmpError
 
+from SnmpSession import SnmpSession, ZenSnmpError
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
 import SshClient
 import TelnetClient
@@ -53,26 +53,27 @@ def plfilter(f):
 
 class DataCollector(ZCmdBase):
     
-    def __init__(self, noopts=0,app=None,single=False):
+    def __init__(self, noopts=0,app=None,single=False,threaded=True):
         ZCmdBase.__init__(self,noopts,app)
-        if not noopts: self.processOptions()
         
         self.single = single
+        self.threaded = threaded
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = 0
         self.collectorPlugins = {} 
         self.deviceMaps = {}
         self.devicegen = None
+        self.running=False
         self.loadPlugins()
-        if app or self.options.debug:
-            self.log.debug("in debug mode starting apply in main thread.")
-            self.applyData = ApplyDataMap(self)
-        else:
+        if self.threaded and not self.single:
+            self.log.info("starting apply in separate thread.")
             self.applyData = ApplyDataMapThread(self, self.getConnection())
             self.applyData.start()
+        else:
+            self.log.debug("in debug mode starting apply in main thread.")
+            self.applyData = ApplyDataMap(self)
  
-
 
     def loadPlugins(self):
         """Load plugins from the plugin directory.
@@ -104,30 +105,37 @@ class DataCollector(ZCmdBase):
         """Build a list of active plugins for a device.  
         """
         tpref = getattr(device,'zTransportPreference', 'snmp')
-        aqignore = getattr(device, 'zCommandIgnorePlugins', "")
-        aqcollect = getattr(device, 'zCommandCollectPlugins', "")
+        aqignore = getattr(device, 'zCollectorIgnorePlugins', "")
+        aqcollect = getattr(device, 'zCollectorCollectPlugins', "")
         plugins = {}
         for plugin in self.collectorPlugins.values():
             pname = plugin.name()
-            if not plugin.condition(device, self.log):
-                self.log.debug("condition failed %s on device %s", 
-                                pname, device.id)
-            elif ((self.options.ignorePlugins 
-                and re.search(self.options.ignorePlugins, pname))
-                or (aqignore and re.search(aqignore, pname))):
-                self.log.debug("ignore %s on device %s" % (pname, device.id))
-            elif ((self.options.collectPlugins
-                and re.search(self.options.collectPlugins, pname))
-                or (aqcollect and re.search(aqcollect, pname))):
-                self.log.debug("collect %s on device %s" 
-                                    % (pname, device.id))
-                plugins[plugin.maptype] = plugin
-            elif not (self.options.collectPlugins or aqcollect):
-                self.log.debug("collect %s on device %s" 
-                                    % (pname, device.id))
-                if (not plugins.has_key(plugin.maptype) 
-                    or plugins[plugin.maptype].transport != tpref):
-                    plugins[plugin.maptype] = plugin
+            try:
+                if not plugin.condition(device, self.log):
+                    self.log.debug("condition failed %s on %s",pname,device.id)
+                elif ((self.options.ignorePlugins 
+                    and re.search(self.options.ignorePlugins, pname))
+                    or (aqignore and re.search(aqignore, pname))):
+                    self.log.debug("ignore %s on %s",pname, device.id)
+                elif self.options.collectPlugins:
+                    if (re.search(self.options.collectPlugins, pname) and
+                        (not plugins.has_key(plugin.maptype) 
+                        or plugins[plugin.maptype].transport != tpref)):
+                        self.log.debug("--collect %s on %s", pname, device.id)
+                        plugins[plugin.maptype] = plugin
+                elif aqcollect and re.search(aqcollect, pname): 
+                    if (not plugins.has_key(plugin.maptype) 
+                        or plugins[plugin.maptype].transport != tpref):
+                        self.log.debug("zCollect %s on %s", pname, device.id)
+                        plugins[plugin.maptype] = plugin
+                elif not (self.options.collectPlugins or aqcollect):
+                    if (not plugins.has_key(plugin.maptype) 
+                        or plugins[plugin.maptype].transport != tpref):
+                        self.log.debug("collect %s on %s", pname, device.id)
+                        plugins[plugin.maptype] = plugin
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("failed to select plugin %s", pname)
         return [ p for p in plugins.values() if p.transport == transport ]
              
    
@@ -143,6 +151,7 @@ class DataCollector(ZCmdBase):
             client = self.collectDevice(device)
         if i > 0: 
             self.log.debug("reactor start multi-device")
+            #self.reactorLoop()
             reactor.run(False)
         else: self.log.warn("no valid clients found")
             
@@ -151,13 +160,14 @@ class DataCollector(ZCmdBase):
         """If device is a string look it up in the dmd.
         """
         if type(device) == types.StringType:
+            dname = device
             device = self.dmd.Devices.findDevice(device)
             if not device: 
                 raise DataCollectorError("device %s not found" % dname)
         return device
 
 
-    def collectDevice(self, device, community=None, port=None, username=None):
+    def collectDevice(self, device):
         """Collect data from a single device.
         """
         device = self.resolveDevice(device)
@@ -169,12 +179,15 @@ class DataCollector(ZCmdBase):
         if snmpclient: 
             snmpclient.run()
             self.clients += 1
-        if self.single:
+        if self.single and (cmdclient or snmpclient):
             self.log.debug("reactor start single-device")
+            #self.reactorLoop(timeout=120)
             reactor.run(False)
 
 
     def cmdCollect(self, device):
+        """Start command collection client.
+        """
         client = None
         hostname = device.id
         plugins = self.selectPlugins(device,"command")
@@ -188,14 +201,14 @@ class DataCollector(ZCmdBase):
             client = SshClient.SshClient(hostname, commandPort, 
                                 options=self.options,
                                 commands=commands, device=device, 
-                                datacollector=self, log=self.log)
+                                datacollector=self)
             self.log.info('ssh collection device %s' % hostname)
         elif protocol == 'telnet':
             if commandPort == 22: commandPort = 23 #set default telnet
             client = TelnetClient.TelnetClient(hostname, commandPort,
                                 options=self.options,
                                 commands=commands, device=device, 
-                                datacollector=self, log=self.log)
+                                datacollector=self)
             self.log.info('telnet collection device %s' % hostname)
         else:
             self.log.warn("unknown protocol %s for device %s",protocol,hostname)
@@ -203,11 +216,13 @@ class DataCollector(ZCmdBase):
             self.log.warn("cmd client creation failed")
         else:
             self.log.info("plugins: %s", 
-                ",".join(map(lambda p: p.name(), plugins)))
+                ", ".join(map(lambda p: p.name(), plugins)))
         return client
 
     
-    def snmpCollect(self, device, community=None, port=0, snmpver="v1"):
+    def snmpCollect(self, device):
+        """Start snmp collection client.
+        """
         client = None
         plugins = []
         hostname = device.id
@@ -215,14 +230,15 @@ class DataCollector(ZCmdBase):
         if not plugins:
             self.log.warn("no snmp plugins found for %s" % hostname)
             return 
-        if (self.checkCollection(device) or 
-            self.checkCiscoChange(device, community, port)):
+        #if (self.checkCollection(device) or 
+        #    self.checkCiscoChange(device, community, port)):
+        if self.checkCollection(device):
             self.log.info('snmp collection device %s' % hostname)
             self.log.info("plugins: %s", 
-                ",".join(map(lambda p: p.name(), plugins)))
-            client = SnmpClient.SnmpClient(device.id, port, community, 
-                                        snmpver, self.options, device, self, 
-                                        self.log, plugins)
+                ", ".join(map(lambda p: p.name(), plugins)))
+            client = SnmpClient.SnmpClient(device.id, self.options, 
+                                            device, self, plugins)
+                                        
         if not client or not plugins: 
             self.log.warn("snmp client creation failed")
             return
@@ -278,6 +294,7 @@ class DataCollector(ZCmdBase):
             self.log.debug("clients=%s nodevices=%s",self.clients,nodevices)
             if self.clients <= 0 and nodevices: 
                 self.log.debug("reactor stop")
+                #self.running = False
                 reactor.stop()
 
 
@@ -325,6 +342,31 @@ class DataCollector(ZCmdBase):
             raise SystemExit("--ignore and --collect are mutually exclusive")
 
 
+    def reactorLoop(self, timeout=0, seltime=1):
+        """Our own reactor loop so we can control timeout.
+        """
+        start = time.time()
+        self.log.debug("starting reactor loop timeout=%s", timeout)
+        reactor.startRunning(installSignalHandlers=False)
+        self.running=True
+        while self.running:
+            try:
+                if timeout and start + timeout < time.time(): 
+                    self.log.error("reactor loop timeout")
+                    break
+                reactor.runUntilCurrent()
+                t2 = reactor.timeout()
+                t = reactor.running and t2
+                reactor.doIteration(seltime)
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("unexpected error in reactorLoop")
+        #import pdb
+        #pdb.set_trace()
+        reactor.stop()
+        self.log.debug("ended reactor loop runtime=%s", time.time()-start)
+
+    
     def mainLoop(self):
         while 1:
             startLoop = time.time()
@@ -352,12 +394,12 @@ class DataCollector(ZCmdBase):
 
 
     def stop(self):
+        """Stop DataCollector make sure reactor is stopped, join with 
+        applyData thread and close the zeo connection.
+        """
         self.log.info("stopping...")
-        reactor.stop()
-        self.applyData.done = True
-        #wait for apply thread to close
-        if hasattr(self.applyData, 'join'):
-            self.applyData.join(10)  
+        self.running = False
+        self.applyData.stop()
         self.closedb()
 
 
@@ -374,4 +416,5 @@ class DataCollector(ZCmdBase):
 
 if __name__ == '__main__':
     dc = DataCollector()
+    dc.processOptions()
     dc.main()

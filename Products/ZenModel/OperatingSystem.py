@@ -24,6 +24,12 @@ from Exceptions import *
 
 class OperatingSystem(Software):
 
+    totalSwap = 0L
+
+    _properties = Software._properties + (
+        {'id':'totalSwap', 'type':'long', 'mode':'w'},
+    )
+
     _relations = Software._relations + (
         ("interfaces", ToManyCont(ToOne, "IpInterface", "os")),
         ("routes", ToManyCont(ToOne, "IpRouteEntry", "os")),

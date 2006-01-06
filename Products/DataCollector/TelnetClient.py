@@ -33,6 +33,7 @@ from twisted.internet import protocol, reactor
 
 import re
 import logging
+log = logging.getLogger("zen.TelnetClient")
 
 import CollectorClient
 from Exceptions import *
@@ -75,33 +76,32 @@ class TelnetClientProtocol(telnet.Telnet):
     def connectionMade(self):
         self.factory.myprotocol = self #bogus hack
         self.hostname = self.factory.hostname
-        self.log = self.factory.log
-        self.log.info("connected to device %s" % self.hostname)
+        log.info("connected to device %s" % self.hostname)
         self.setTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.startTimeout()        
 
     # the following functions turn off all telnet options
     def iac_DO(self, feature):
-        self.log.debug("received telnet DO feature %s" % ord(feature))
+        log.debug("received telnet DO feature %s" % ord(feature))
         if ord(feature) == 1: 
             self._iac_responce(telnet.WILL, feature)
         else:
             self._iac_responce(telnet.WONT, feature)
 
     def iac_DONT(self, feature):
-        self.log.debug("received telnet DONT feature %s" % ord(feature))
+        log.debug("received telnet DONT feature %s" % ord(feature))
         self._iac_responce(telnet.WONT, feature)
 
     def iac_WILL(self, feature):
-        self.log.debug("received telnet WILL feature %s" % ord(feature))
+        log.debug("received telnet WILL feature %s" % ord(feature))
         self._iac_responce(telnet.DONT, feature)
 
     def iac_WONT(self, feature):
-        self.log.debug("received telnet WONT feature %s" % ord(feature))
+        log.debug("received telnet WONT feature %s" % ord(feature))
         self._iac_responce(telnet.DONT, feature)
 
     def _iac_responce(self, action, feature):
-        self.log.debug("sending telnet action %s feature %s" % 
+        log.debug("sending telnet action %s feature %s" % 
                             (responceMap[ord(action)-251], ord(feature)))
         self.write(telnet.IAC+action+feature)
 
@@ -117,8 +117,8 @@ class TelnetClientProtocol(telnet.Telnet):
         regex = None
         if self.factory.modeRegex.has_key(self.mode):
             regex = self.factory.modeRegex[self.mode] 
-        self.log.debug("mode '%s' regex = %s" % (self.mode, regex))
-        self.log.debug("chunk received = '%s'" % chunk)
+        log.debug("mode '%s' regex = %s" % (self.mode, regex))
+        log.debug("chunk received = '%s'" % chunk)
         if regex and re.search(regex, chunk):
             self.processLine(self.buffer)
             self.buffer = ""
@@ -157,7 +157,7 @@ class TelnetClientProtocol(telnet.Telnet):
         self.transport.loseConnection()
         if self.factory.commandsFinished():
             self.factory.clientFinished()
-        self.log.warn("dropping connection to %s: "
+        log.warn("dropping connection to %s: "
             "state '%s' timeout %.1f seconds regex '%s' buffer '%s'" % 
             (self.factory.hostname, self.mode, self.timeout, 
             self.factory.modeRegex[self.mode], self.buffer))
@@ -167,7 +167,7 @@ class TelnetClientProtocol(telnet.Telnet):
         if self.factory.loginTries == 1:
             self.transport.loseConnection()
             self.factory.clientFinished()
-            self.log.warn("login to device %s failed" % self.hostname)
+            log.warn("login to device %s failed" % self.hostname)
             return "Done"
         else:
             self.factory.loginTries -= 1
@@ -176,21 +176,21 @@ class TelnetClientProtocol(telnet.Telnet):
 
     def telnet_Login(self, data):
         "Called when login prompt is received"
-        self.log.debug("login tries=%s" % self.factory.loginTries)
+        log.debug("login tries=%s" % self.factory.loginTries)
         if not self.factory.loginTries:
             self.transport.loseConnection()
-            self.log.warn("login to %s with username %s failed" % (
+            log.warn("login to %s with username %s failed" % (
                                 self.factory.hostname, self.factory.username))
         else:
             self.factory.loginTries -= 1
-        self.log.debug("sending username %s" % self.factory.username)
+        log.debug("sending username %s" % self.factory.username)
         self.write(self.factory.username + '\n')
         return 'Password'
 
 
     def telnet_Password(self, data):
         "Called when the password prompt is received"
-        self.log.debug("sending password %s" % self.factory.password)
+        log.debug("sending password %s" % self.factory.password)
         self.write(self.factory.password + '\n')
         self.setTimeout(self.factory.promptTimeout)
         return 'FindPrompt'
@@ -210,13 +210,13 @@ class TelnetClientProtocol(telnet.Telnet):
         if self.enabled == 0:
             if data.find(self.commandPrompt) > -1:
                 self.transport.loseConnection()
-                self.log.warn("enable on %s failed" % self.factory.hostname)
+                log.warn("enable on %s failed" % self.factory.hostname)
             else:
                 self.enabled += 1
         self.p1 = data
         if self.p1 == self.p2:
             self.commandPrompt = self.p1
-            self.log.debug("found command prompt '%s'" % self.p1)
+            log.debug("found command prompt '%s'" % self.p1)
             self.factory.modeRegex['Command'] = re.escape(self.p1) + "$"
             self.factory.modeRegex['SendCommand'] = re.escape(self.p1) + "$"
             if self.factory.enable and self.enabled < 1:
@@ -228,7 +228,7 @@ class TelnetClientProtocol(telnet.Telnet):
                 return "SendCommand"
         self.p2 = self.p1
         self.p1 = ""
-        self.log.debug("sending \\n")
+        log.debug("sending \\n")
         self.write("\n")
         return 'FindPrompt' 
 
@@ -237,7 +237,7 @@ class TelnetClientProtocol(telnet.Telnet):
         "Get a command of the command stack and send it"
         if self.scCallLater and self.scCallLater.active(): 
             self.scCallLater.cancel()
-        self.log.debug("sending command '%s'" % self.curCommand())
+        log.debug("sending command '%s'" % self.curCommand())
         self.write(self.curCommand() + '\n')
         self.setTimeout(self.factory.commandTimeout)
         self.mode = 'Command'
@@ -247,8 +247,8 @@ class TelnetClientProtocol(telnet.Telnet):
     def telnet_Command(self, data):
         """process the data from a sent command
         if there are now more commands move to final state"""
-        self.log.debug("command = %s" % self.curCommand())
-        self.log.debug("data=%s" % data)
+        log.debug("command = %s" % self.curCommand())
+        log.debug("data=%s" % data)
         self.factory.addResult(self.curCommand(), data[0:-len(self.p1)])
         if self.factory.commandsFinished():
             self.factory.clientFinished()
@@ -267,10 +267,10 @@ class TelnetClientProtocol(telnet.Telnet):
 class TelnetClient(CollectorClient.CollectorClient):
     
     def __init__(self, hostname, port, commands=[], options=None, 
-                    device=None, datacollector=None, log=None):
+                    device=None, datacollector=None):
         
         CollectorClient.CollectorClient.__init__(self, hostname, port, 
-                            commands, options, device, datacollector, log)
+                            commands, options, device, datacollector)
         self.protocol = TelnetClientProtocol 
         self.modeRegex = { 
                     'FindPrompt' : '.*',
