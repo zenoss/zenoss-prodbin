@@ -13,6 +13,8 @@ $Id: RelationshipManager.py,v 1.41 2004/04/13 22:02:18 edahl Exp $"""
 
 __version__ = "$Revision: 1.41 $"[11:-2]
 
+from xml.sax import saxutils
+
 import logging
 log = logging.getLogger("zen.Relations")
 
@@ -281,7 +283,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             stag.extend(["%s='%s'" % (k,v) for k,v in prop.items()]) 
             stag.append('>')
             ofile.write(' '.join(stag)+"\n")
-            ofile.write(str(value)+"\n")
+            ofile.write(saxutils.escape(str(value))+"\n")
             ofile.write("</property>\n")
 
 

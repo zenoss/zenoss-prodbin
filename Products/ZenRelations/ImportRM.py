@@ -16,7 +16,7 @@ import sys
 import os
 import transaction
 
-from xml.sax import make_parser
+from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
 
 from Acquisition import aq_base
@@ -35,6 +35,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.objstack = [self.app,]
         self.links = []
         self.objectnumber = 0
+        self.charvalue = ""
         if not self.options.infile:
             self.infile = sys.stdin
         else:
@@ -81,13 +82,15 @@ class ImportRM(ZCmdBase, ContentHandler):
             if not self.options.noCommit:
                 self.commit()
             self.log.info("Loaded %d objects into database" % self.objectnumber)
+        elif name == 'property':
+            self.setProperty(self.context(), self.curattrs, self.charvalue)
+            self.charvalue = ""
        
 
     def characters(self, chars):    
         chars = str(chars.strip())
         if not chars: return
-        if self.state == 'property':
-            self.setProperty(self.context(), self.curattrs, chars)
+        self.charvalue += saxutils.unescape(chars)
 
 
     def createObject(self, attrs):
@@ -127,7 +130,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                             % (obj.id, name, proptype, value))
         if proptype == "date":
             value = DateTime(value)
-        elif proptype != "string":
+        elif proptype != "string" and proptype != 'text':
             value = eval(value)
         if not obj.hasProperty(name):
             obj._setProperty(name, value, type=proptype, setter=setter)
