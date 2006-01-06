@@ -28,6 +28,7 @@ import re
 
 import Globals
 import transaction
+import DateTime
 from twisted.internet import reactor
 from pysnmp.error import PySnmpError
 
@@ -250,7 +251,7 @@ class DataCollector(ZCmdBase):
 
     def checkCollection(self, device):
         age = device.getSnmpLastCollection()+self.collage
-        if device.getSnmpStatusNumber() > 0 and age >= DateTime():
+        if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
             self.log.info("skipped collection of %s" % device.getId())
             return False
         return True
