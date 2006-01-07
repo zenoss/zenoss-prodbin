@@ -26,18 +26,16 @@ from random import randrange
 import Globals
 
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
-from Products.ZenUtils.ZenDaemon import ZenDaemon
 from StatusMonitor import StatusMonitor
 
 
-class SnmpMonitor(ZenDaemon, StatusMonitor):
+class SnmpMonitor(StatusMonitor):
     
     ncoClass = "/Status/Snmp"
     ncoAgent = "SnmpMonitor"
     ncoAlertGroup = "SnmpTest"
 
     def __init__(self):
-        ZenDaemon.__init__(self)
         StatusMonitor.__init__(self)
         self.pingconfsrv = self.options.zopeurl
         self.username = self.options.zopeusername

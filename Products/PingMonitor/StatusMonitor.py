@@ -18,9 +18,12 @@ import sys
 import socket
 import time
 
-class StatusMonitor(object):
+from Products.ZenUtils.ZenDaemon import ZenDaemon
+
+class StatusMonitor(ZenDaemon):
     
     def __init__(self):
+        ZenDaemon.__init__(self)
         self.dnstries = 3
         self.forwarddnscache = {}
         self.reversednscache = {}

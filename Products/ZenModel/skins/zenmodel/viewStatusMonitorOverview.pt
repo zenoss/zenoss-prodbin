@@ -8,16 +8,6 @@
       </th>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Last Ping Poll</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/getPingHeartbeatString">mon name
-      </td>
-      <td class="tableheader" align="left">Last SNMP Poll</td>
-      <td class="tablevalues" align="left"
-        tal:content="here/getSnmpHeartbeatString">chnk
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Monitor Name</td>
       <td class="tablevalues" align="left" tal:content="here/id">mon name</td>
       <td class="tableheader" align="left">Chunk Size</td>

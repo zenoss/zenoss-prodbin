@@ -255,7 +255,7 @@ class StatusMonitorConf(Monitor, StatusColor):
     def getSnmpDevices(self):
         '''get the devices associated with this
          monitor configuration'''
-        self.setSnmpHeartbeat()
+        #self.setSnmpHeartbeat()
         devices = []
         for dev in self.devices.objectValuesAll():
             try:

@@ -188,7 +188,7 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
             if repair:
                 log.warn("adding obj:%s to rrel:%s", 
                         self.getPrimaryId(),rname)
-                rrel._add(self)
+                rrel._add(parobj)
 
 
 InitializeClass(ToOneRelationship)
