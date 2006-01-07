@@ -18,7 +18,7 @@ import sys
 import socket
 import time
 
-class DnsResolver(object):
+class StatusMonitor(object):
     
     def __init__(self):
         self.dnstries = 3
