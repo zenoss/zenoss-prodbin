@@ -67,8 +67,9 @@ class RelationshipBase(PrimaryPathManager):
             raise ZenSchemaError("%s restricted to class %s. %s is class %s" %
             (self.id, self.remoteClass.__name__, obj.id, obj.__class.__name__))
         self._add(obj)
-        obj = obj.__of__(self)
-        remoteRel = getattr(aq_base(obj), self.remoteName())
+        #obj = obj.__of__(self)
+        #remoteRel = getattr(aq_base(obj), self.remoteName())
+        remoteRel = getattr(obj, self.remoteName())
         remoteRel._add(self.__primary_parent__)
 
 

@@ -219,15 +219,16 @@ class ToManyRelationship(ToManyRelationshipBase):
         """
         if len(self._objects): log.info("checking relation: %s", self.id)
         rname = self.remoteName()
+        parobj = self.getPrimaryParent()
         for obj in self._objects:
             rrel = getattr(obj, rname)
-            if not rrel.hasobject(self):
+            if not rrel.hasobject(parobj):
                 log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
-                        self.getPrimaryId(), self.id, obj.getPrimaryId(),rname)
+                    parobj.getPrimaryId(), self.id, obj.getPrimaryId(),rname)
                 if repair:
                     log.warn("adding obj:%s to rrel:%s", 
                             self.getPrimaryId(),rname)
-                    rrel._add(self)
+                    rrel._add(parobj)
             try:
                 ppath = obj.getPrimaryPath()
                 self.unrestrictedTraverse(ppath)

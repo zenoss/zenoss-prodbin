@@ -41,8 +41,12 @@ class DeviceTest(unittest.TestCase):
         ipr = IpRouteEntry("1.2.3.4_24")
         dev.os.routes._setObject(ipr.id, ipr)
         ipr = dev.os.routes._getOb(ipr.id) 
+        import pdb
+        pdb.set_trace()
         ipr.setTarget("1.2.3.4/24")
-        self.assert_(ipr.getTarget() == "1.2.3.4/24")
+        self.assert_(ipr.getTarget() == "1.2.3.0/24")
+        net = ipr.target()
+        self.assert_(ipr in net.clientroutes())
         
         
     

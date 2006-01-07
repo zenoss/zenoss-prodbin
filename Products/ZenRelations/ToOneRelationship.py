@@ -181,9 +181,10 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
                 self.obj = None
         rname = self.remoteName()
         rrel = getattr(self.obj, rname)
-        if not rrel.hasobject(self):
+        parobj = self.getPrimaryParent() 
+        if not rrel.hasobject(parobj):
             log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
-                    self.getPrimaryId(),self.id,self.obj.getPrimaryId(),rname)
+                parobj.getPrimaryId(),self.id,self.obj.getPrimaryId(),rname)
             if repair:
                 log.warn("adding obj:%s to rrel:%s", 
                         self.getPrimaryId(),rname)
