@@ -168,17 +168,26 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok.
         """
+        if not self.obj: return
+        log.info("checking relation: %s", self.id)
         try:
-            if self.obj: 
-                log.info("checking relation: %s", self.id)
-                ppath = self.obj.getPrimaryPath()
-                self.unrestrictedTraverse(ppath)
+            ppath = self.obj.getPrimaryPath()
+            self.unrestrictedTraverse(ppath)
         except KeyError:
             log.critical("obj:%s rel:%s robj:%s no longer exists",
                     self.getPrimaryId(), self.id, self.obj.getPrimaryId())
             if repair: 
                 log.warn("removing rel to:%s", self.obj.getPrimaryId())
                 self.obj = None
+        rname = self.remoteName()
+        rrel = getattr(self.obj, rname)
+        if not rrel.hasobject(self):
+            log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
+                    self.getPrimaryId(),self.id,self.obj.getPrimaryId(),rname)
+            if repair:
+                log.warn("adding obj:%s to rrel:%s", 
+                        self.getPrimaryId(),rname)
+                rrel._add(self)
 
 
 InitializeClass(ToOneRelationship)

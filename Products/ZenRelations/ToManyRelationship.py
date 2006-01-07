@@ -218,7 +218,16 @@ class ToManyRelationship(ToManyRelationshipBase):
         """Check to make sure that relationship bidirectionality is ok.
         """
         if len(self._objects): log.info("checking relation: %s", self.id)
+        rname = self.remoteName()
         for obj in self._objects:
+            rrel = getattr(obj, rname)
+            if not rrel.hasobject(self):
+                log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
+                        self.getPrimaryId(), self.id, obj.getPrimaryId(),rname)
+                if repair:
+                    log.warn("adding obj:%s to rrel:%s", 
+                            self.getPrimaryId(),rname)
+                    rrel._add(self)
             try:
                 ppath = obj.getPrimaryPath()
                 self.unrestrictedTraverse(ppath)
@@ -244,10 +253,11 @@ class ToManyRelationship(ToManyRelationshipBase):
         for obj in self._objects:
             key = obj.getPrimaryId()
             if repair and key in dupkeys and keycount[key] > 1:
-                log.critical("rel:%s remove dup obj:%s", self.id, key)
-                self._objects.remove(obj)
-                self._p_changed = 1
-                keycount[key] -= 1
+                while keycount[key] > 0:
+                    log.critical("rel:%s remove dup obj:%s", self.id, key)
+                    self._objects.remove(obj)
+                    self._p_changed = 1
+                    keycount[key] -= 1
 
 
 
