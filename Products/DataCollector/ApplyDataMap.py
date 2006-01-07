@@ -32,8 +32,8 @@ class ApplyDataMap(object):
         """
         log.debug("processing data for device %s", device.id)
         devchanged = False
-        for pname, results in collectorClient.getResults():
-            try:
+        try:
+            for pname, results in collectorClient.getResults():
                 log.debug("processing plugin %s on device %s", pname, device.id)
                 if not results: 
                     log.warn("plugin %s no results returned", pname)
@@ -48,19 +48,20 @@ class ApplyDataMap(object):
                 for datamap in datamaps:
                     changed = self._applyDataMap(device, datamap)
                     if changed: devchanged=True
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                log.exception("plugin %s device %s", pname, device.getId())
-        if devchanged:
-            device.setLastChange()
-            log.info("changes applied")
-        else:
-            log.info("no change detected")
-        device.setSnmpLastCollection()
-        trans = transaction.get()
-        trans.setUser("datacoll")
-        trans.note("data applied from automated collection")
-        trans.commit()
+            if devchanged:
+                device.setLastChange()
+                log.info("changes applied")
+            else:
+                log.info("no change detected")
+            device.setSnmpLastCollection()
+            trans = transaction.get()
+            trans.setUser("datacoll")
+            trans.note("data applied from automated collection")
+            trans.commit()
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            transaction.abort()
+            log.exception("plugin %s device %s", pname, device.getId())
 
 
     def _applyDataMap(self, device, datamap):

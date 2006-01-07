@@ -342,7 +342,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zSnmpPort", 161, type="int")
         devs._setProperty("zSnmpVer", "v1")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
-        devs._setProperty("zRouteMapCollectOnlyIndirect", True, type="boolean")
+        devs._setProperty("zRouteMapCollectOnlyIndirect", False, type="boolean")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")
         devs._setProperty("zInterfaceMapIgnoreNames", "")
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
