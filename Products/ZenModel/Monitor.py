@@ -33,5 +33,10 @@ class Monitor(ZenModelRM, DeviceManagerBase):
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
         return mroot._getOb(moveTargetName)
 
+    
+    def getOrganizerName(self):
+        """Return the DMD path of an Organizer without its dmdSubRel names."""
+        return self.id
+
 
 InitializeClass(Monitor)
