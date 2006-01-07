@@ -15,7 +15,7 @@ global allnodes, netsmap, devicemap
 allnodes = []
 netsmap = {}
 
-plog = logging.getLogger("pingtree")
+plog = logging.getLogger("zen.PingMonitor")
 
 class Rnode(object):
     """Rnode is a router node in the tree map.

@@ -87,9 +87,9 @@ class PingMonitor(ZCmdBase):
             me = None
             if self.options.name:
                 me = self.dmd.Devices.findDevice(self.options.name)
-            if not me: 
                 self.log.info("device %s not found trying %s", 
                               self.options.name, self.hostname)
+            else:
                 me = self.dmd.Devices.findDevice(self.hostname)
             if me: 
                 self.log.info("building pingtree from %s", me.id)
