@@ -133,7 +133,7 @@ class CricketDevice:
             if not interface.adminStatus == 1: continue
             self.interfaceMultiTargets(interface, targetpath)
             inttype = self.cricketInterfaceType(interface)
-            if not inttype: continue
+            if not inttype or interface.ifindex < 1: continue
             ttype = lookupTargetType(self, inttype)
             targettypes[ttype.getName()] = ttype.dsnames
             targetdata = {}
