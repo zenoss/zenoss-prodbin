@@ -142,7 +142,7 @@ class SnmpPlugin(CollectorPlugin):
     def asip(self, val):
         """Convert a byte string to an ip address string.
         """
-        return ".".join(map(str, struct.unpack('4B', char)))
+        return ".".join(map(str, struct.unpack('!4B', char)))
     
 
     def asdate(self,val):
@@ -150,7 +150,7 @@ class SnmpPlugin(CollectorPlugin):
         """
         datear = (1968,1,8,10,15,00)
         try:
-            datear = struct.unpack("h6B", val)
+            datear = struct.unpack("!h6B", val)
         except: pass
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
