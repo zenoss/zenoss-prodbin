@@ -78,6 +78,14 @@ class SyslogProcessingThread(threading.Thread):
                     return
                 devices = self.getDmdRoot(app,"Devices")
                 device = devices.findDevice(evt.device)
+                if not device:
+                    slog.debug("looking up ip %s",self.ipaddress)
+                    nets = self.getDmdRoot(app,"Networks")
+                    ipobj = nets.findIp(self.ipaddress)
+                    if ipobj and ipobj.device():
+                        device = ipobj.device()
+                        evt.device = device.id
+                        slog.debug("ip %s -> %s", ipobj.id, device.id)
                 if device:
                     slog.debug("Found device=%s", evt.device)
                     evt = self.applyDeviceContext(device, evt)

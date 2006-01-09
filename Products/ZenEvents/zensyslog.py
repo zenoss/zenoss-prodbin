@@ -53,7 +53,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         ipaddress = client_address[0]
         hostname = self.resolvaddr(ipaddress)
         msg = request[0]
-        spt = SyslogProcessingThread(self,request[0],ipaddress,hostname)
+        spt = SyslogProcessingThread(self,request[0],ipaddress, hostname)
         if not self.options.debug: 
             spt.start() 
    

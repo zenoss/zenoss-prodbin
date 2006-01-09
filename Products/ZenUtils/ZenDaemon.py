@@ -16,7 +16,6 @@ import sys
 import os
 import logging
 import signal
-from logging.handlers import RotatingFileHandler
 
 from CmdBase import CmdBase
 
@@ -50,7 +49,7 @@ class ZenDaemon(CmdBase):
             else:
                 logdir = os.path.join(os.environ['ZENHOME'], "log")
             logfile = os.path.join(logdir, mname.lower()+".log")
-            h = RotatingFileHandler(logfile, "a", 1024*100, 4)
+            h = logging.FileHandler(logfile)
             h.setFormatter(logging.Formatter(
                 "%(asctime)s %(levelname)s %(name)s: %(message)s",
                 "%Y-%m-%d %H:%M:%S"))
