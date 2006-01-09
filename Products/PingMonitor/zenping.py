@@ -194,21 +194,21 @@ class ZenPing(ZCmdBase):
         # for the first run, quit on failure
         if self.options.cycle:
             while 1:
+                start = time.time()
                 try:
-                    start = time.time()
                     self.loadConfig()
                     self.log.info("starting ping cycle %s" % (time.asctime()))
                     #self.sendHeartbeat()
                     self.cycleLoop()
                     self.log.info("end ping cycle %s" % (time.asctime()))
                     self.log.info("sent %d pings in %3.2f seconds" % 
-                                (self.sent, (time.time() - startLoop)))
-                    runtime = time.time() - start
-                    if runtime < self.cycleInterval:
-                        time.sleep(self.cycleInterval - runtime)
+                                (self.sent, (time.time() - start)))
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("unknown exception in main loop")
+                runtime = time.time() - start
+                if runtime < self.cycleInterval:
+                    time.sleep(self.cycleInterval - runtime)
         else:
             self.loadConfig()
             self.cycleLoop()

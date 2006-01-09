@@ -73,7 +73,7 @@ class ZCmdBase(ZenDaemon):
 
     def closedb(self):
         self.connection.close()
-        self.db.close()
+        #self.db.close()
         self.app = None
         self.dataroot = None
         self.dmd = None
