@@ -18,7 +18,7 @@ from Products.ZenUtils.ZenZopeThread import ZenZopeThread
 
 from Exceptions import ZenEventError
 
-mlog = logging.getLogger("MaintenanceThread")
+mlog = logging.getLogger("zen.MaintenanceThread")
 
 class MaintenanceThread(ZenZopeThread):
 

@@ -23,7 +23,7 @@ from Products.ZenUtils.ZenZopeThread import ZenZopeThread
 
 from Exceptions import ZenEventError
 
-poplog = logging.getLogger("EventPopulator")
+poplog = logging.getLogger("zen.EventPopulator")
 
 class EventPopulator(ZenZopeThread):
 

@@ -3,7 +3,7 @@ import types
 import threading
 from Queue import Queue, Empty
 import logging
-log = logging.getLogger("SendEvent")
+log = logging.getLogger("zen.Events")
 
 from _mysql_exceptions import ProgrammingError, OperationalError
 

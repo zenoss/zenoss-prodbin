@@ -3,7 +3,7 @@ import re
 import threading
 import pprint
 import logging
-slog = logging.getLogger("Syslogd")
+slog = logging.getLogger("zen.Syslog")
 
 from Event import Event
 from syslog_h import *

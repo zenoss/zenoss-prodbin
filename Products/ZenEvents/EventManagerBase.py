@@ -10,10 +10,11 @@ $Id: NcoManager.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
-import logging
 import types
 import random
 random.seed()
+import logging
+log = logging.getLogger("zen.Events")
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -274,7 +275,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 self.cleanCache()
             return retdata
         except:
-            logging.exception("Failure querying events")
+            log.exception("Failure querying events")
             raise
 
 
@@ -287,7 +288,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             where = self.lookupManagedEntityWhere(me)
             return self.getEventSummary(where, acked)
         except:
-            logging.exception("event summary for %s failed" % me.getDmdKey())
+            log.exception("event summary for %s failed" % me.getDmdKey())
             raise
 
 
@@ -446,7 +447,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 self.addToCache(select,statusCache)
                 db.close()
             except:
-                logging.exception("status failed for device %s", device)
+                log.exception("status failed for device %s", device)
                 return -1
         return statusCache.get(device, 0)
 
