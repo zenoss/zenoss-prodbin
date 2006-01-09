@@ -4,7 +4,6 @@
 
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zensyslog.py
-CFGFILE=$CFGDIR/syslog.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in

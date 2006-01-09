@@ -33,15 +33,23 @@ ARGS=`echo "$*" | sed 's/run//' | sed 's/start//'`
 start() {
     if [ ! -f $PIDFILE ]; then    
         echo $PRGNAME starting...
-        exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-            --cycle --daemon $ARGS
+        if [ ${CFGFILE:-""} = "" ]; then
+            exec $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
+        else
+            exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+                --cycle --daemon $ARGS
+        fi
     else
         echo $PRGNAME is already running
     fi
 }
 
 run() {
-    exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
+    if [ ${CFGFILE:-""} = "" ]; then
+        exec $PYTHON $PRGHOME/$PRGNAME $ARGS
+    else        
+        exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
+    fi
 }
 
 stop() {

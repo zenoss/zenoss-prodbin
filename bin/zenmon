@@ -2,7 +2,7 @@
 
 . $ZENHOME/bin/zenfunctions
 ZOPECMDS="zeoctl zopectl" 
-ZENCMDS="zensnmp zenmodel zencrkbld"
+ZENCMDS="zensnmp zenmodeler zencrkbld"
 ZENCMDSROOT="zenping zensyslog"
 
 FUNC=$1

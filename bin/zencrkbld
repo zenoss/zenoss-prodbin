@@ -4,7 +4,7 @@
 
 PRGHOME=$ZENHOME/Products/ZenRRD
 PRGNAME=zencrkbld.py
-CFGFILE=$CFGDIR/crkbuild.conf
+CFGFILE=$CFGDIR/zencrkbld.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in
