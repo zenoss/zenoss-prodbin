@@ -4,7 +4,7 @@
 
 
 PRGHOME=$ZENHOME/Products/DataCollector
-PRGNAME=zenmodel.py
+PRGNAME=zenmodeler.py
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 
