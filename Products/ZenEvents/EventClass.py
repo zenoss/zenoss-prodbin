@@ -3,7 +3,10 @@ __doc__="""EventClass.py
 $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 import types
+import logging
+log = logging.getLogger("zen.Events")
 
+import transaction
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
@@ -195,6 +198,16 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         edict._setProperty("zEventProperties", [], type="lines")
         edict._setProperty("zEventClearClasses", [], type="lines")
         edict._setProperty("zEventAction", "status")
+
+
+    def reIndex(self):
+        """Go through all ips in this tree and reindex them."""
+        log.debug("reindexing EventClass:%s", self.getOrganizerName())
+        for ip in self.instances(): 
+            ip.index_object()
+        transaction.savepoint()
+        for evtclass in self.children():
+            evtclass.reIndex()
 
 
     def createCatalog(self):
