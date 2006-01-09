@@ -12,11 +12,11 @@ $Id: ZenDaemon.py,v 1.9 2003/08/29 20:33:10 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
-import signal
-import os
 import sys
-import socket
-import time
+import os
+import logging
+import signal
+from logging.handlers import RotatingFileHandler
 
 from CmdBase import CmdBase
 
@@ -33,6 +33,34 @@ class ZenDaemon(CmdBase):
             signal.signal(signal.SIGTERM, self.sigTerm)
             if self.options.daemon and sys.platform != 'win32':
                 self.becomeDaemon() 
+
+
+    def setupLogging(self):
+        rlog = logging.getLogger()
+        rlog.setLevel(logging.ERROR)
+        mname = self.__class__.__name__
+        self.log = logging.getLogger("zen."+ mname)
+        zlog = logging.getLogger("zen")
+        zlog.setLevel(self.options.logseverity)
+        if self.options.daemon:
+            if self.options.logpath:
+                if not os.path.isdir(os.path.dirname(self.options.logpath)):
+                    raise SystemExit("logpath:%s doesn't exist" %
+                                        self.options.logpath)
+            else:
+                logdir = os.path.join(os.environ['ZENHOME'], "log")
+            logfile = os.path.join(logdir, mname.lower()+".log")
+            h = RotatingFileHandler(logfile, "a", 1024*100, 4)
+            h.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                "%Y-%m-%d %H:%M:%S"))
+            rlog.addHandler(h)
+        else:
+            h = logging.StreamHandler()
+            h.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                "%Y-%m-%d %H:%M:%S"))
+        rlog.addHandler(h)
 
 
     def becomeDaemon(self):
@@ -74,6 +102,10 @@ class ZenDaemon(CmdBase):
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
+        self.parser.add_option('-l', '--logpath',
+                    dest='logpath',
+                    help='override default logging path')
+        
         self.parser.add_option('-c', '--cycle',
                     dest='cycle',
                     default=0,

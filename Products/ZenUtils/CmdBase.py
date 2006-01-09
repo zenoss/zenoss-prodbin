@@ -29,17 +29,18 @@ class CmdBase:
         self.usage = "%prog [options]"
         self.noopts = noopts
         self.args = []
-
         self.buildOptions()
         self.parseOptions()
-
+        self.setupLogging()
         if self.options.configfile:
             parseconfig(self.options)
 
-        if os.path.exists(self.options.logconfig):
-            logging.config.fileConfig(self.options.logconfig)
-        else:
-            logging.basicConfig()
+
+    def setupLogging(self):
+        """Setup logging to send to stdout. zen.* logged at --logseverity
+        root at ERROR.
+        """
+        logging.basicConfig()
         rlog = logging.getLogger()
         rlog.setLevel(logging.ERROR)
         self.log = logging.getLogger("zen."+self.__class__.__name__)
@@ -65,11 +66,6 @@ class CmdBase:
 
         self.parser = OptionParser(usage=self.usage, 
                                    version="%prog " + __version__)
-        
-        self.parser.add_option('-l', '--logconfig',
-                    dest='logconfig',
-                    default='LoggingConfig.ini',
-                    help='Logging configuration file')
         
         self.parser.add_option('-v', '--logseverity',
                     dest='logseverity',
