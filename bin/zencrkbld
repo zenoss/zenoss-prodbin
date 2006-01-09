@@ -3,8 +3,7 @@
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/ZenRRD
-PRGNAME=CricketBuilder.py
-LOGFILE=$CFGDIR/crkbuildlog.ini
+PRGNAME=zencrkbld.py
 CFGFILE=$CFGDIR/crkbuild.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 

@@ -34,7 +34,7 @@ start() {
     if [ ! -f $PIDFILE ]; then    
         echo $PRGNAME starting...
         exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-            --cycle --logconfig $LOGFILE --daemon $ARGS
+            --cycle --daemon $ARGS
     else
         echo $PRGNAME is already running
     fi

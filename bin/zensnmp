@@ -3,10 +3,9 @@
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/PingMonitor
-PRGNAME=SnmpMonitor.py
+PRGNAME=zensnmp.py
 
-LOGFILE=$CFGDIR/snmpmonlog.ini
-CFGFILE=$CFGDIR/pingmon.conf
+CFGFILE=$CFGDIR/zenping.conf
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 

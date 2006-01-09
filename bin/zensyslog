@@ -3,8 +3,7 @@
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/ZenEvents
-PRGNAME=Syslogd.py
-LOGFILE=$CFGDIR/sysloglog.ini
+PRGNAME=zensyslog.py
 CFGFILE=$CFGDIR/syslog.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 

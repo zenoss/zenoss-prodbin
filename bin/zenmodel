@@ -3,17 +3,15 @@
 . $ZENHOME/bin/zenfunctions
 
 
-PRGHOME=$ZENHOME/Products/SnmpCollector
-PRGNAME=SnmpCollector.py
-
-LOGFILE=$CFGDIR/snmpcollectorlog.ini
+PRGHOME=$ZENHOME/Products/DataCollector
+PRGNAME=zenmodel.py
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {
     if [ ! -f $PIDFILE ]; then    
         echo $PRGNAME starting...
-        exec $PYTHON $PRGHOME/$PRGNAME --cycle --logconfig $LOGFILE --daemon 
+        exec $PYTHON $PRGHOME/$PRGNAME --cycle --cycletime=120 --daemon 
     else
         echo $PRGNAME is already running
     fi
