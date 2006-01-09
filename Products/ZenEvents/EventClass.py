@@ -118,15 +118,20 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         #    evtcls = self.getDmdRoot("Events").getOrganizer(evt.eventClass)
         evtcls = None
         if hasattr(evt, "eventClassKey"):
+            log.debug("lookup eventClassKey:%s", evt.eventClassKey)
             evtcls = self.find(evt.eventClassKey)
         if not evtcls: 
+            log.debug("lookup eventClassKey:defaultmapping")
             evtcls = self.find("defaultmapping")
         recdict = {}
         for evtcl in evtcls:
             m = evtcl.match(evt)
-            if m: break
+            if m: 
+                log.debug("EventClass:%s matched", evtcl.getOrganizerName())
+                break
         else:
             evtcl = None
+            log.debug("No EventClass matched")
         return evtcl
 
 

@@ -2,6 +2,8 @@ import os
 import copy
 import re
 import sre_constants
+import logging
+log = logging.getLogger("zen.Events")
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -185,14 +187,17 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         """Match an event summary against our regex.
         """
         value = False
+        log.debug("match on:%s", self.getPrimaryDmdId())
         if self.rule:
             try:
+                log.debug("eval rule:%s", self.rule)
                 value = eval(self.rule, {'evt':evt})
             except Exception, e:
                 logging.warn("EventClassInst: %s rule failure: %s",
                             self.getDmdKey(), e)
         else:
             try:
+                log.debug("regex='%s' summary='%s'", self.regex, evt.summary)
                 value = re.search(self.regex, evt.summary, re.I)
             except sre_constants.error: pass
         return value

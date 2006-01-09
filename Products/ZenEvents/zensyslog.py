@@ -23,6 +23,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         UDPServer.__init__(self, (addr, port), None)
         ZeoPoolBase.__init__(self)
         self.minpriority = self.options.minpriority
+        self.processThreads = {}
         self._hostmap = {}       # client address/name mapping
         app = self.getConnection()
         zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
@@ -53,9 +54,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         hostname = self.resolvaddr(ipaddress)
         msg = request[0]
         spt = SyslogProcessingThread(self,request[0],ipaddress,hostname)
-        if not self.options.debug: spt.start() 
+        if not self.options.debug: 
+            spt.start() 
    
-    
+   
+        
     def resolvaddr(self, clientip):
         # build the client address/name mapping
         host = self._hostmap.get(clientip, False)
@@ -71,22 +74,24 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def serve(self):
         "Run the service until it is stopped with the stop() method."
-        self.running = 1
+        self.running = True
         while self.running:
             self.handle_request()
 
 
     def sigTerm(self, signum, frame):
-        if os.path.exists(self.pidfile):
-            self.log.info("delete pidfile %s", self.pidfile)
-            os.remove(self.pidfile)
-        self.log.info('Daemon %s shutting down' % self.__class__.__name__)
+        self.stop()
+        ZeoPoolBase.sigTerm(self, signum, frame)
+
+
+    def stop(self):
+        self.log.info("stopping...")
         self.senderThread.stop()
         self.senderThread.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop,
                         summary="zensyslog collector stopped",
                         severity=2, component="zensyslog"))
-        self.running = 0
+        self.running = False
 
 
     def buildOptions(self):
