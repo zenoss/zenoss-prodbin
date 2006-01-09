@@ -3,7 +3,6 @@ import time
 import socket 
 import os
 import logging
-logging.basicConfig()
 
 from SocketServer import UDPServer
 
@@ -18,7 +17,7 @@ from ZenEventClasses import AppStart, AppStop
 
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
-class Syslogd(UDPServer, ZeoPoolBase):
+class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def __init__(self, addr='', port=SYSLOG_PORT):
         UDPServer.__init__(self, (addr, port), None)
@@ -109,4 +108,4 @@ class Syslogd(UDPServer, ZeoPoolBase):
                 
 
 if __name__ == '__main__':
-    Syslogd().serve()
+    ZenSyslog().serve()

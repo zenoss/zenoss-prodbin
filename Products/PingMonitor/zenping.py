@@ -6,7 +6,7 @@
 #
 #################################################################
 
-__doc__=''' PingMonitor
+__doc__=''' ZenPing
 
 creates a queue of hosts to be pinged (jobs),
 and pings them until they respond, or the
@@ -15,7 +15,7 @@ sending out all these pings, we loop in a
 receive function processing everything we get
 back
 
-$Id: PingMonitor.py,v 1.70 2004/04/22 20:54:23 edahl Exp $'''
+$Id: ZenPing.py,v 1.70 2004/04/22 20:54:23 edahl Exp $'''
 
 __version__ = "$Revision: 1.70 $"[11:-2]
 
@@ -41,9 +41,9 @@ from PingThread import PingThread
 import pingtree
 
 
-class PingMonitor(ZCmdBase):
+class ZenPing(ZCmdBase):
 
-    agent = "PingMonitor"
+    agent = "ZenPing"
     eventGroup = "Ping"
 
     pathcheckthresh = 10
@@ -95,7 +95,7 @@ class PingMonitor(ZCmdBase):
                 self.log.info("building pingtree from %s", me.id)
                 self.pingtree = pingtree.buildTree(me)
             else:
-                self.log.critical("PingMonitor '%s' not found,"
+                self.log.critical("ZenPing '%s' not found,"
                                   "ignoring network topology.",self.hostname)
                 ip = socket.gethostbyname(self.hostname)
                 self.pingtree = pingtree.Rnode(ip, self.hostname, 0)
@@ -254,5 +254,5 @@ class PingMonitor(ZCmdBase):
 if __name__=='__main__':
     if sys.platform == 'win32':
         time.time = time.clock
-    pm = PingMonitor()
+    pm = ZenPing()
     pm.mainLoop()

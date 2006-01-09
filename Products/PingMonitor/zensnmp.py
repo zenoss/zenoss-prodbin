@@ -4,11 +4,11 @@
 #
 #################################################################
 
-__doc__=''' SnmpMonitor
+__doc__=''' ZenSnmp
 
 Check the availability of the SNMP agent on a list of devices
 
-$Id: SnmpMonitor.py,v 1.42 2004/04/21 15:50:58 edahl Exp $'''
+$Id: ZenSnmp.py,v 1.42 2004/04/21 15:50:58 edahl Exp $'''
 
 __version__ = "$Revision: 1.42 $"[11:-2]
 
@@ -29,10 +29,10 @@ from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from StatusMonitor import StatusMonitor
 
 
-class SnmpMonitor(StatusMonitor):
+class ZenSnmp(StatusMonitor):
     
     ncoClass = "/Status/Snmp"
-    ncoAgent = "SnmpMonitor"
+    ncoAgent = "ZenSnmp"
     ncoAlertGroup = "SnmpTest"
 
     def __init__(self):
@@ -362,5 +362,5 @@ if __name__=='__main__':
     # fix platform dependance on time.time
     if sys.platform == 'win32':
         time.time = time.clock
-    pm = SnmpMonitor()
+    pm = ZenSnmp()
     pm.mainLoop()

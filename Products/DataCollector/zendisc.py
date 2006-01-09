@@ -24,7 +24,7 @@ class NoSnmp(ZentinelException):
     """Can't open an snmp connection to the device."""
 
 
-class Discover(ZenModeler):
+class ZenDisc(ZenModeler):
 
 
     def __init__(self, noopts=0,app=None,single=True):
