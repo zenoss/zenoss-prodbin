@@ -91,7 +91,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(ManagedEntity, PingStatusInt, CricketDevice):
+class Device(PingStatusInt, CricketDevice, ManagedEntity):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.
