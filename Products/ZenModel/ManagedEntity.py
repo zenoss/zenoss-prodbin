@@ -27,6 +27,9 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, CricketView):
     # dict of cricket targets -> targettypes
     _cricketTargetMap = {}
 
+    # path to this object in cricket
+    _cricketTargetPath = ""
+
     # list of cricket multigaphs (see CricketView.py)
     _mgraphs = []
 

@@ -47,5 +47,4 @@ class DeviceComponent(object):
                 self.getParentDeviceName(), self.id, statclass=statClass)
                                         
 
-
 InitializeClass(DeviceComponent)

@@ -742,8 +742,8 @@ class Device(ManagedEntity, PingStatusInt, CricketDevice):
             response.write(dlh[:idx])
             handler = setWebLoggingStream(response)
         try:
-            from Products.DataCollector.DataCollector import DataCollector
-            sc = DataCollector(noopts=1,app=self.getPhysicalRoot(),single=True)
+            from Products.DataCollector.zenmodeler import ZenModeler
+            sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
             sc.collectDevice(self)
         except:

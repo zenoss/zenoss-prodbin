@@ -74,7 +74,15 @@ class CricketView:
         if tm != self._cricketTargetMap:
             self._cricketTargetMap = tm
             self._p_changed = 1
+        if self._cricketTargetPath != targetpath:
+            self._cricketTargetPath = targetpath
         
+
+    def cricketTargetPath(self):
+        """Return the cricket target path set for this object.
+        """
+        return self._cricketTargetPath
+    
 
     def clearCricketMGraph(self):
         self._mgraphs = []
