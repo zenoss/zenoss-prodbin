@@ -166,8 +166,6 @@ class IpRouteEntry(OSComponent):
         if self.ipcheck(netip):
             self._target = netip
         else:
-#            import pdb
-#            pdb.set_trace()
             net = self.getDmdRoot("Networks").createNet(netip)
             self.target.addRelation(net)
 

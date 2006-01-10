@@ -365,8 +365,6 @@ class ZenModeler(ZCmdBase):
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected error in reactorLoop")
-        #import pdb
-        #pdb.set_trace()
         reactor.stop()
         self.log.debug("ended reactor loop runtime=%s", time.time()-start)
 

@@ -11,11 +11,16 @@ import logging
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Ping import PingJob
 
-global allnodes, netsmap, devicemap
-allnodes = []
-netsmap = {}
 
-plog = logging.getLogger("zen.PingMonitor")
+def initglobals(devname):
+    global gAllnodes, gNetsmap, gDevicemap
+    gAllnodes = []
+    gNetsmap = {}
+    gDevicemap = {devname:1}
+
+
+
+log = logging.getLogger("zen.PingMonitor")
 
 class Rnode(object):
     """Rnode is a router node in the tree map.
@@ -28,9 +33,8 @@ class Rnode(object):
         self.children = []
         self.nets = []
         if not parent: 
-            global devicemap
+            initglobals(devname)
             self.addNet("default","default")
-            devicemap = {devname:1}
 
 
     def checkpath(self):
@@ -49,55 +53,55 @@ class Rnode(object):
 
 
     def hasDev(self, devname):
-        global devicemap
-        return devicemap.has_key(devname)
+        global gDevicemap
+        return gDevicemap.has_key(devname)
 
 
     def hasNet(self, netname):
-        global netsmap
-        return netsmap.has_key(netname)
+        global gNetsmap
+        return gNetsmap.has_key(netname)
 
 
     def addRouter(self, ip, devname, status):
-        global devicemap
-        if devicemap.has_key(devname): return devicemap[devname]
-        devicemap[devname] = 1
+        global gDevicemap
+        if gDevicemap.has_key(devname): return gDevicemap[devname]
+        gDevicemap[devname] = 1
         child = Rnode(ip, devname, status, self)
         self.children.append(child)
         return child
 
 
     def addNet(self, netip, enterip):
-        global netsmap
-        if self.hasNet(netip): return netsmap[netip]
+        global gNetsmap
+        if self.hasNet(netip): return gNetsmap[netip]
         net = Net(netip, enterip, self)
         self.nets.append(net)
-        netsmap[netip] = net
+        gNetsmap[netip] = net
         return net
 
 
     def getNet(self, netname):
         """Return the net node for net name
         """
-        global netsmap
-        net = netsmap.get(netname,None)
-        if not net: net = netsmap['default']
+        global gNetsmap
+        net = gNetsmap.get(netname,None)
+        if not net: net = gNetsmap['default']
         return net
 
 
     def addDevice(self, device, cycle):
         """Add a device to the ping tree.
         """
-        global devicemap
+        global gDevicemap
         if self.hasDev(device.id): 
-            plog.debug("device '%s' already exists.", device.id)
+            log.debug("device '%s' already exists.", device.id)
             return
-        devicemap[device.id] = 1
+        gDevicemap[device.id] = 1
         mint = device.getManageInterface()
         netname = mint.getNetworkName()
         net = self.getNet(netname)
         if net.ip == 'default':
-            plog.warn("device '%s' network '%s' not in topology", 
+            log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
         pj = PingJob(mint.getIp(), device.id, 
                     device.getStatus(PingStatus), cycle)
@@ -117,25 +121,25 @@ class Rnode(object):
                 yield pj
 
     
-    def pprint_old(self, nodes=None):
-        global allnodes
+    def pprint(self, nodes=None):
+        global gAllnodes
         if nodes is None: 
             nodes = [self,]
-            for n in allnodes:
+            for n in gAllnodes:
                 n._seen=False
-            allnodes = []
+            gAllnodes = []
         nnodes = []
         for node in nodes:
             if getattr(node, "_seen", False): continue
             node._seen = True
-            allnodes.append(node)
+            gAllnodes.append(node)
             print node
             nnodes.extend(node.children)
         print
-        if nnodes: self.pprint_old(nnodes)
+        if nnodes: self.pprint(nnodes)
 
     
-    def pprint(self, root=None):
+    def pprint_gen(self, root=None):
         if root is None: root = self
         yield root
         last = root
@@ -202,7 +206,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
     nextdevs = []
     for dev, rnode in devs:
         if dev.id in memo: return
-        logging.debug("mapping device '%s'", dev.id)
+        log.debug("mapping device '%s'", dev.id)
         memo.append(dev.id)
         for route in dev.os.routes():
             if route.getNextHopIp() == "0.0.0.0":
@@ -210,14 +214,14 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
                     netid = route.getTarget()
                     if rootnode.hasNet(netid): continue
                     net = rnode.addNet(netid,route.getInterfaceIp())
-                    logging.debug("add net: %s to rnode: %s", net, rnode)
+                    log.debug("add net: %s to rnode: %s", net, rnode)
             else:
                 ndev = route.getNextHopDevice()
                 if ndev: 
                     if rootnode.hasDev(ndev.id): continue
                     nrnode = rnode.addRouter(route.getNextHopIp(),ndev.id,
                                                 ndev.getStatus(PingStatus))
-                    logging.debug("create rnode: %s", nrnode)
+                    log.debug("create rnode: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
     if nextdevs: buildTree(root, rootnode, nextdevs, memo)
     return rootnode
@@ -235,7 +239,7 @@ def netDistMap(root, nmap=None, distance=0, devs=None, memo=None):
     nextdevs = []
     for dev in devs:
         if dev.id in memo: return
-        logging.debug("mapping device '%s' distance '%s'", dev.id, distance)
+        log.debug("mapping device '%s' distance '%s'", dev.id, distance)
         memo.append(dev.id)
         for route in dev.os.routes():
             if route.getNextHopIp() == "0.0.0.0":
@@ -243,7 +247,7 @@ def netDistMap(root, nmap=None, distance=0, devs=None, memo=None):
                     netip = route.getTargetIp()
                     curdist = nmap.get(netip,sys.maxint)
                     if curdist > distance:
-                        logging.debug("netip '%s' distance '%d'", 
+                        log.debug("netip '%s' distance '%d'", 
                                         netip, distance)
                         nmap[netip] = distance
             else:

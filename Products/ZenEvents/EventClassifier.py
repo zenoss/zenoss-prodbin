@@ -21,7 +21,6 @@ represents the position of the word in the summary string.  The value
 is a dictionary with the words as keys and a tuple of classids as values.
 """
 
-import pdb
 import copy
 from os import path
 from sets import Set
