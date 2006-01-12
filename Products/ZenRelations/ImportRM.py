@@ -103,7 +103,7 @@ class ImportRM(ZCmdBase, ContentHandler):
             else:
                 obj = self.context()._getOb(id)
         except (KeyError, AttributeError): pass
-        if not obj:
+        if obj is None:
             klass = importClass(attrs.get('module'), attrs.get('class'))
             if id.find("/") > -1:
                 contextpath, id = os.path.split(id)

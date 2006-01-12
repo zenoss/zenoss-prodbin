@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<objects>
+<object id='/zport/dmd/Networks' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property type='int' id='netmask' mode='w' >
+0
+</property>
+<property type='lines' id='zDefaultNetworkTree' >
+['24', '32']
+</property>
+<property type='boolean' id='zAutoDiscover' >
+True
+</property>
+<object id='68.33.51.0' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property type='int' id='netmask' mode='w' >
+24
+</property>
+<property type='boolean' id='zAutoDiscover' >
+False
+</property>
+</object>
+<object id='10.4.0.0' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property type='int' id='netmask' mode='w' >
+24
+</property>
+<property type='boolean' id='zAutoDiscover' >
+False
+</property>
+</object>
+<object id='10.0.0.4' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property type='int' id='netmask' mode='w' >
+30
+</property>
+</object>
+<object id='10.0.0.0' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property type='int' id='netmask' mode='w' >
+30
+</property>
+</object>
+</object>
+</objects>

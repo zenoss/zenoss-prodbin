@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<objects>
+<object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Discovered' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type='string' id='zCollectorCollectPlugins' >
+NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
+</property>
+</object>
+<object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type='string' id='zCollectorCollectPlugins' >
+NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
+</property>
+<object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='RSM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='TerminalServer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+</object>
+<object id='Switch' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='ContentSwitch' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+</object>
+<object id='CableModem' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+</object>
+<object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='Solaris' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='Darwin' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+</object>
+<object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Laser' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='InkJet' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+</object>
+</object>
+</objects>

@@ -1,0 +1,652 @@
+<?xml version="1.0"?>
+<objects>
+<object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='lines' id='zEventProperties' >
+['severity']
+</property>
+<property type='string' id='zEventAction' >
+status
+</property>
+<object id='Application' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='lines' id='zEventProperties' >
+['severity']
+</property>
+<property type='None' id='zEvent_severity' >
+0
+</property>
+<property type='lines' id='zEventClearClasses' >
+['/Application/Stop']
+</property>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+defaultmapping
+</property>
+<property type='int' id='sequence' mode='w' >
+3
+</property>
+<property type='string' id='regex' mode='w' >
+start.*succeeded
+</property>
+<property type='string' id='example' mode='w' >
+httpd startup succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Start'/>
+</object>
+<object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+ntsyslog_0
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+Service started.
+</property>
+<property type='string' id='example' mode='w' >
+Service started.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Start'/>
+</object>
+</tomanycont>
+</object>
+<object id='Stop' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+defaultmapping
+</property>
+<property type='int' id='sequence' mode='w' >
+2
+</property>
+<property type='string' id='regex' mode='w' >
+(shutdown|stop).*succeeded
+</property>
+<property type='string' id='example' mode='w' >
+httpd shutdown succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Stop'/>
+</object>
+<object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+ntsyslog_0
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Service shutdown.
+</property>
+<property type='string' id='example' mode='w' >
+Service shutdown.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Stop'/>
+</object>
+</tomanycont>
+</object>
+<object id='Failed' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Reload' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='postfix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+postfix
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+succeeded
+</property>
+<property type='string' id='example' mode='w' >
+succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Reload'/>
+</object>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+defaultmapping
+</property>
+<property type='int' id='sequence' mode='w' >
+4
+</property>
+<property type='string' id='regex' mode='w' >
+\S+ -HUP succeeded
+</property>
+<property type='string' id='example' mode='w' >
+http -HUP succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Reload'/>
+</object>
+</tomanycont>
+</object>
+<object id='Log' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='string' id='zEventAction' >
+history
+</property>
+<tomanycont id='instances'>
+<object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+postfix/smtpd
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+warning: (?P&lt;eventKey&gt;\S+):
+</property>
+<property type='string' id='example' mode='w' >
+warning: 222.255.121.137: hostname hn08.vnn-srv.net verification failed: Host not found
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Log'/>
+</object>
+<object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+pmta
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Log'/>
+</object>
+<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+CROND
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+\((?P&lt;username&gt;\S+)\) CMD \((?P&lt;command>.*)\)
+</property>
+<property type='string' id='example' mode='w' >
+(root) CMD (run-parts /etc/cron.hourly)
+</property>
+<property type='text' id='explanation' mode='w' >
+(mythtv) CMD (/usr/bin/mythfilldatabase &gt; /dev/null 2&gt;&amp;1)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Log'/>
+</object>
+<object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+procmail
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Descriptor 1 was not open
+</property>
+<property type='string' id='example' mode='w' >
+Descriptor 1 was not open
+</property>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Application/Log'/>
+</object>
+</tomanycont>
+</object>
+</object>
+<object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Security' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Login' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='BadPassword' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+4
+</property>
+<property type='string' id='regex' mode='w' >
+bad password attempt for '(?P&lt;eventKey&gt;\w+)'
+</property>
+<property type='string' id='example' mode='w' >
+bad password attempt for 'root'
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPassword'/>
+</object>
+<object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sshd
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+Failed password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;remotePort&gt;\d+) (?P&lt;protocol&gt;\S+)
+</property>
+<property type='string' id='example' mode='w' >
+Failed password for edahl from 10.2.1.11 port 53529 ssh2
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPassword'/>
+</object>
+</tomanycont>
+</object>
+<object id='Exit' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+0
+</property>
+<property type='lines' id='zEventClearClasses' >
+['/Security/Connection/Open']
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+3
+</property>
+<property type='string' id='regex' mode='w' >
+exit after auth \((?P&lt;eventKey&gt;\w+)\): Exited normally
+</property>
+<property type='string' id='example' mode='w' >
+exit after auth (root): Exited normally
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Exit'/>
+</object>
+</tomanycont>
+</object>
+<object id='Failure' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='lines' id='zEventProperties' >
+['severity']
+</property>
+<property type='None' id='zEvent_severity' >
+4
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+6
+</property>
+<property type='string' id='regex' mode='w' >
+exit before auth \(user '(?P&lt;eventKey&gt;\S+)', (?P&lt;failures&gt;\S+) fails\): Max auth tries reached
+</property>
+<property type='string' id='example' mode='w' >
+exit before auth (user 'root', 3 fails): Max auth tries reached - user root
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Failure'/>
+</object>
+</tomanycont>
+</object>
+<object id='Success' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+0
+</property>
+<property type='lines' id='zEventClearClasses' >
+['/Security/Login/BadPassword', '/Security/Login/Failure']
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+2
+</property>
+<property type='string' id='regex' mode='w' >
+password auth succeeded for '(?P&lt;eventKey&gt;\w+)'
+</property>
+<property type='string' id='example' mode='w' >
+password auth succeeded for 'root'
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
+</object>
+<object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sshd
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Accepted password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;port&gt;\d+) (?P&lt;protocol&gt;\S+)
+</property>
+<property type='string' id='example' mode='w' >
+Accepted password for edahl from 10.2.1.11 port 53480 ssh2
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
+</object>
+<object id='dropbear_pubkey' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+pubkey auth succeeded for '(?P&lt;username&gt;\S+)' with key md5 (?P&lt;key&gt;\S+) from (?P&lt;eventKey&gt;\S+):(?P&lt;remotePort&gt;\S+)
+</property>
+<property type='string' id='example' mode='w' >
+pubkey auth succeeded for 'root' with key md5 41:61:33:cc:73:61:53:ad:0e:6d:62:f5:56:c1:e7:ba from 10.2.1.11:55609
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
+</object>
+</tomanycont>
+</object>
+<object id='NoUser' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+7
+</property>
+<property type='string' id='regex' mode='w' >
+login attempt for nonexistent user from (?P&lt;eventKey&gt;\S+):\d+
+</property>
+<property type='string' id='example' mode='w' >
+login attempt for nonexistent user from 218.206.92.226:41448
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/NoUser'/>
+</object>
+</tomanycont>
+</object>
+</object>
+<object id='Connection' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Open' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='None' id='zEvent_severity' >
+2
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Child connection from (?P&lt;eventKey&gt;\S+):\d+
+</property>
+<property type='string' id='example' mode='w' >
+Child connection from 10.2.1.11:55107
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Open'/>
+</object>
+<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+ultravnc_1
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+(?P&lt;summary&gt;Connection received from (?P&lt;eventKey&gt;\S+))
+</property>
+<property type='string' id='example' mode='w' >
+29/11/2005 16:12 Connection received from 10.2.1.11
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Open'/>
+</object>
+<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sshd(pam_unix)
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+session opened for user (?P&lt;eventKey&gt;\S+) by \(uid=(?P&lt;uid&gt;\d+)\)
+</property>
+<property type='string' id='example' mode='w' >
+session opened for user edahl by (uid=500)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Open'/>
+</object>
+</tomanycont>
+</object>
+<object id='Close' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='lines' id='zEventClearClasses' >
+['/Security/Connection/Open']
+</property>
+<property type='None' id='zEvent_severity' >
+0
+</property>
+<tomanycont id='instances'>
+<object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+dropbear
+</property>
+<property type='int' id='sequence' mode='w' >
+5
+</property>
+<property type='string' id='regex' mode='w' >
+exit before auth \(user '(?P&lt;eventKey&gt;\w+)'.*: Exited normally
+</property>
+<property type='string' id='example' mode='w' >
+exit before auth (user 'root', 1 fails): Exited normally
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Close'/>
+</object>
+<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+ultravnc_3
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+(?P&lt;summary&gt;Client (?P&lt;remoteIp&gt;\S+) disconnected)
+</property>
+<property type='string' id='example' mode='w' >
+29/11/2005 16:16 Client 10.2.1.11 disconnected
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Close'/>
+</object>
+<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sshd(pam_unix)
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+session closed for user (?P&lt;eventKey&gt;\S+)
+</property>
+<property type='string' id='example' mode='w' >
+session closed for user edahl
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Connection/Close'/>
+</object>
+</tomanycont>
+</object>
+</object>
+<object id='Sudo' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='string' id='zEventAction' >
+history
+</property>
+<tomanycont id='instances'>
+<object id='sudo' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sudo
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+(?P&lt;username&gt;\S+) : TTY=(?P&lt;tty&gt;\S+) ; PWD=(?P&lt;pwd&gt;\S+) ; USER=(?P&lt;targetUser&gt;\S+) ; COMMAND=(?P&lt;command>.*)
+</property>
+<property type='string' id='example' mode='w' >
+edahl : TTY=pts/4 ; PWD=/home/edahl ; USER=root ; COMMAND=/bin/su -
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Security/Sudo'/>
+</object>
+</tomanycont>
+</object>
+</object>
+<object id='Ignore' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='string' id='zEventAction' >
+drop
+</property>
+<tomanycont id='instances'>
+<object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+kernel
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='rule' mode='w' >
+evt.priority &gt; 4
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+defaultmapping
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='string' id='regex' mode='w' >
+message repeated \d+ times
+</property>
+<property type='string' id='example' mode='w' >
+message repeated 2 times
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+sendmail
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='rule' mode='w' >
+evt.priority &gt; 5
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='kernel_capture_card' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+kernel
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Setting full NTSC height|Hpsc: 0x00001|ivtv: Got DMA-done
+</property>
+<property type='string' id='example' mode='w' >
+Setting full NTSC height
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='anacron' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+anacron
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Updated timestamp for job
+</property>
+<property type='string' id='example' mode='w' >
+Updated timestamp for job `cron.daily' to 2005-12-13
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='syslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+syslog
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Time update:
+</property>
+<property type='string' id='example' mode='w' >
+Time update: 20051208 18:13:13
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+CROND
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+\(root\) CMD \(run-parts /etc/cron.\S+\)
+</property>
+<property type='string' id='example' mode='w' >
+(root) CMD (run-parts /etc/cron.hourly)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+</tomanycont>
+</object>
+<object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+defaultmapping
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+-- MARK --
+</property>
+<property type='string' id='example' mode='w' >
+-- MARK --
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Heartbeat'/>
+</object>
+</tomanycont>
+</object>
+<object id='Network' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Cisco' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='LINK-2-BADVCALL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type='string' id='eventClassKey' mode='w' >
+LINK-2-BADVCALL
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='string' id='regex' mode='w' >
+Interface (?P&lt;component&gt;\S+), undefined entry point
+</property>
+<property type='string' id='example' mode='w' >
+Interface FastEthernet3/6, undefined entry point
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Network/Cisco'/>
+</object>
+</tomanycont>
+</object>
+</object>
+</object>
+</objects>
