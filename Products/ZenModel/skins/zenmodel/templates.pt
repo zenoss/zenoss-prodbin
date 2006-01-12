@@ -105,9 +105,10 @@
        <td  valign="middle" align="right" >
         <p>
            <span tal:content="request/AUTHENTICATED_USER"/>
-           | <a href="#">Settings</a>
+           | <a tal:attributes="href here/ZenUsers/getUserSettingsUrl">
+                Settings</a>
            | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
-           | <a href="#">Help</a>
+           <!-- | <a href="#">Help</a> -->
          </p>
        </td>
     </tr></table>
@@ -141,9 +142,8 @@
     <p>Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
-        <li><a href="/zport/dmd/acl_users/manageUserFolder">Users</a></li>
+        <li><a href="/zport/ZenUsers/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
-        <li><a href="/zport/dmd/ZenClassifier">Classifiers</a></li>
     </ul>
     </tal:block>
 

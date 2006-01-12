@@ -23,11 +23,12 @@ from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
 
-class ZenModelBase:
+class ZenModelBase(object):
     """
     All ZenModel Persistent classes inherit from this class.  It profides
     some screen management functionality, and general utility methods.
     """
+    sub_meta_types = ()
 
     security = ClassSecurityInfo()
 
@@ -84,33 +85,33 @@ class ZenModelBase:
 
     security.declareProtected('View', 'breadCrumbs')
     def breadCrumbs(self, terminator='dmd'):
-            '''return the breadcrumb links along a primary path'''
-            links = []
-            curDir = self.primaryAq()
-            while curDir.id != terminator:
-                if curDir.meta_type == 'ToManyContRelationship':
-                    curDir = curDir.getPrimaryParent()
-                    continue
-                links.append(
-                    (curDir.getPrimaryUrlPath(),
-                    curDir.id))
-                curDir = curDir.aq_parent
-
-            links.reverse()
-            return links
+        '''return the breadcrumb links along a primary path'''
+        links = []
+        curDir = self.primaryAq()
+        while curDir.id != terminator:
+            if curDir.meta_type == 'ToManyContRelationship':
+                curDir = curDir.getPrimaryParent()
+                continue
+            if not getattr(aq_base(curDir),"getPrimaryUrlPath", False):
+                break
+            links.append(
+                (curDir.getPrimaryUrlPath(),
+                curDir.id))
+            curDir = curDir.aq_parent
+        links.reverse()
+        return links
     
     
-    security.declareProtected('View', 'confmonTabs')
+    security.declareProtected('View', 'zentinelTabs')
     def zentinelTabs(self, templateName):
         '''return a list of hashs that define the screen tabs for this object'''
         tabs = []
-        secman = getSecurityManager()
-        urlbase = self.getPrimaryUrlPath()
+        user = self.ZenUsers.getUser()
         actions = self.factory_type_information[0]['actions']
         for a in actions:
-            perm = a['permissions'][0] #just check first in list
-            if (not a.get('visible', True) or
-                not secman.checkPermission(perm, self)):
+            def permfilter(p): return user.has_permission(p,self)
+            permok = filter(permfilter, a['permissions'])
+            if not a.get('visible', True) or not permok:
                 continue
             a = a.copy()
             if a['action'] == templateName: a['selected'] = True
@@ -182,6 +183,15 @@ class ZenModelBase:
 
 
     
+    def all_meta_types(self, interfaces=None):
+        """Control what types of objects can be created within classification"""
+        mts = []
+        for mt in super(ZenModelBase,self).all_meta_types(interfaces):
+            if mt['name'] in self.sub_meta_types:
+                mts.append(mt)
+        return mts
+   
+
     security.declareProtected('View', 'helpLink')
     def helpLink(self):
         '''return a link to the objects help file'''

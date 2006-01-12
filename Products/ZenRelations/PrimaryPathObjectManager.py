@@ -101,11 +101,13 @@ class PrimaryPathObjectManagerBase(PrimaryPathManager):
 
 
 class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager, 
-                                RelCopyContainer, Item):
+                                RelCopyContainer, RoleManager, Item):
     """
     PrimaryPathObjectManager with basic Zope persistent classes.
     """
-    manage_options = ObjectManager.manage_options + Item.manage_options
+    manage_options = (ObjectManager.manage_options + 
+                      RoleManager.manage_options + 
+                      Item.manage_options)
 
 
 

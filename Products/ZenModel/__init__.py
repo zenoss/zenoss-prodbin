@@ -23,6 +23,8 @@ $Id: __init__.py,v 1.50 2004/04/06 02:19:04 edahl Exp $"""
 __version__ = "$Revision: 1.50 $"[11:-2]
 
 import os
+import logging
+log = logging.getLogger("zen")
 
 from AccessControl import ModuleSecurityInfo
 
@@ -71,6 +73,7 @@ productNames = (
     "StatusMonitorConf",
     "System",
     "TerminalServer",
+    "UserSettings",
     "ZDeviceLoader",
     "ZentinelPortal",
 )
@@ -89,7 +92,6 @@ def loadConfmonModules():
 
 
 def initialize(registrar):
-    from zLOG import LOG, DEBUG
     contentClasses = ()
     contentConstructors = ()
 
@@ -119,6 +121,6 @@ def initialize(registrar):
         kwargs['permission'] = "Add DMD Objects"
         if os.path.exists(os.path.join(__path__[0], iconName)):
             kwargs['icon'] = iconName
-        LOG("ZenModel__init__", DEBUG, "Register Class=%s" % className)
-        LOG("ZenModel__init__", DEBUG, "kwargs=%s" % constructors)
+        log.debug("Register Class=%s",className)
+        log.debug("kwargs=%s", constructors)
         apply(registrar.registerClass, args, kwargs)

@@ -38,7 +38,7 @@ class IEventView:
         Return a where clause that will find events for this object.
         """
 
-    def eventOrderby(self);
+    def eventOrderby(self):
         """
         Return a customized orderby for events.
         """
@@ -53,7 +53,7 @@ class IEventView:
         Return a where clause that will find history events for this object.
         """
 
-    def eventHistoryOrderby(self);
+    def eventHistoryOrderby(self):
         """
         Return a customized orderby for history events.
         """

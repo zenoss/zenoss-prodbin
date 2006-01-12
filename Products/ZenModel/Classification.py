@@ -70,19 +70,6 @@ class Classification(ZenModelRM):
         self._buildSubClasses()
 
 
-    def all_meta_types(self, interfaces=None):
-        """Control what types of objects can be created within classification"""
-        mts = []
-        for mt in RelationshipManager.all_meta_types(self, interfaces):
-            if mt['name'] in self.sub_meta_types:
-                mts.append(mt)
-            elif (mt.has_key('instance') and mt['instance']):
-                for cl in self.sub_classes:
-                    if checkClass(mt['instance'], cl):
-                        mts.append(mt)
-        return mts
-   
-
     def objectSubValues(self, sub_classes=None):
         """get contained objects that are sub classes of sub_classes"""
         retdata = []

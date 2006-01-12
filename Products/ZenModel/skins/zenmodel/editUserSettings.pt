@@ -1,0 +1,69 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Password</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="password"/>
+        <input class="tablevalues" type="password" name="sndpassword"/>
+      </td>
+    </tr>
+    <tr tal:condition="here/isManager">
+      <td class="tableheader" align="left">Roles</td>
+      <td class="tablevalues">
+        <select class="tablevalues" name="roles:list" multiple
+            tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
+            <option tal:repeat="r allroles" tal:content="r"
+                    tal:attributes="value r; selected python:r in curroles"/>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Email</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="email" size="40"
+            tal:attributes="value here/email" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Pager</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pager" size="40"
+            tal:attributes="value here/pager" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Default Page Size</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="defaultPageSize" 
+            tal:attributes="value here/defaultPageSize" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Default Event Page Size</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="defaultEventPageSize" 
+            tal:attributes="value here/defaultEventPageSize" />
+      </td>
+    </tr>
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td align="left"  class="tableheader" colspan=3>
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editUserSettings:method" />
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -6,6 +6,8 @@ class zendmd(ZCmdBase): pass
     
 zendmd = zendmd()
 dmd = zendmd.dmd
+app = dmd.getPhysicalRoot()
+zport = app.zport
 find = dmd.Devices.findDevice
 devices = dmd.Devices
 sync = dmd._p_jar.sync
