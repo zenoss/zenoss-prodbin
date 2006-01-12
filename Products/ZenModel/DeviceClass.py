@@ -219,6 +219,7 @@ class DeviceClass(DeviceOrganizer):
         
         zcatalog = self._getCatalog()
         if not query or not zcatalog: return []
+        if not query.endswith("*"): query+="*"
         ips = None 
         try:
             ips = self.Networks.ipSearch({'id':query})

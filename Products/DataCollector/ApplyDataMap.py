@@ -5,6 +5,7 @@
 #################################################################
 
 import time
+import types
 import threading
 import Queue
 
@@ -43,7 +44,8 @@ class ApplyDataMap(object):
                 results = plugin.preprocess(results, log)
                 datamaps = plugin.process(device, results, log)
                 #allow multiple maps to be returned from one plugin
-                if hasattr(datamaps, 'compname'):
+                if (type(datamaps) != types.ListType 
+                    and type(datamaps) != types.TupleType):
                     datamaps = [datamaps,]
                 for datamap in datamaps:
                     changed = self._applyDataMap(device, datamap)
@@ -69,6 +71,7 @@ class ApplyDataMap(object):
         """
         changed = False
         tobj = device
+        if getattr(datamap, "compname", False)==False: return changed
         if datamap.compname: 
             tobj = getattr(device, datamap.compname)
         if hasattr(datamap, "relname"):

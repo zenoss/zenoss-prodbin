@@ -33,7 +33,7 @@ class NewDeviceMap(SnmpPlugin):
     def condition(self, device, log):
         """Only run if products have not been set.
         """
-        return not device.os.getProductName() or not device.hw.getProductName()
+        return not device.os.getProductName() and not device.hw.getProductName()
 
     
     def process(self, device, results, log):
@@ -41,7 +41,6 @@ class NewDeviceMap(SnmpPlugin):
         log.info('processing system info for device %s' % device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
-
         om.setHWProductKey = om.snmpOid
         descr = om.snmpDescr
         for regex in self.osregex:
@@ -49,3 +48,4 @@ class NewDeviceMap(SnmpPlugin):
             if m: 
                 om.setOSProductKey = " ".join(m.groups())
                 break
+        return om

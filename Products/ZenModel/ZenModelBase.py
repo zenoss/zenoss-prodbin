@@ -106,7 +106,7 @@ class ZenModelBase(object):
     def zentinelTabs(self, templateName):
         '''return a list of hashs that define the screen tabs for this object'''
         tabs = []
-        user = self.ZenUsers.getUser()
+        user = getSecurityManager().getUser()
         actions = self.factory_type_information[0]['actions']
         for a in actions:
             def permfilter(p): return user.has_permission(p,self)
@@ -182,13 +182,11 @@ class ZenModelBase(object):
         return yesterday.strftime("%m/%d/%Y")
 
 
-    
     def all_meta_types(self, interfaces=None):
         """Control what types of objects can be created within classification"""
-        mts = []
-        for mt in super(ZenModelBase,self).all_meta_types(interfaces):
-            if mt['name'] in self.sub_meta_types:
-                mts.append(mt)
+        mts = super(ZenModelBase,self).all_meta_types(interfaces)
+        if self.sub_meta_types:
+            mts = filter(lambda mt: mt['name'] in self.sub_meta_types, mts)
         return mts
    
 
