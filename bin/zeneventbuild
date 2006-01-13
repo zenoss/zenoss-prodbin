@@ -14,9 +14,9 @@ else
     exit 1
 fi
 
-mysql -u root --password=$1 < zenevents.sql
-mysql -u root --password=$1 < zenprocs.sql
+mysql -u $1 --password=$2 < zenevents.sql
+mysql -u $1 --password=$2 < zenprocs.sql
 for f in *.dat
 do
-    mysql -u root --password=$1 < $f
+    mysql -u $1 --password=$2 < $f
 done

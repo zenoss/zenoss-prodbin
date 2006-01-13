@@ -3,8 +3,7 @@
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/DataCollector
-PRGNAME=Discover.py
-#LOGFILE=$CFGDIR/sysloglog.ini
+PRGNAME=zendisc.py
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 run() {
