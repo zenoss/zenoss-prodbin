@@ -51,7 +51,7 @@ class CricketReport(SimpleItem, ZenModelBase):
             crpath = device.cricketTargetPath()
             if not crpath: continue
             CricketDatas.append(CricketData(device.getId(), 
-                            device.getModelName(),
+                            device.hw.getProductName(),
                             device.getPrimaryUrlPath(),
                             crpath, crconf))
         data = self.callCricket(CricketDatas, dsidx, drange) 
