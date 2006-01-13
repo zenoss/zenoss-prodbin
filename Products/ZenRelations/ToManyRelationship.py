@@ -88,6 +88,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         """add an object to one side of this toMany relationship"""
         if obj in self._objects: return
         self._objects.append(aq_base(obj))
+        self._count=len(self._objects)
         self._p_changed = 1
 
 
@@ -102,6 +103,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                     (obj.id, self.id))
         else:
             self._objects = []
+        self._count=len(self._objects)
         self._p_changed = 1
 
 

@@ -32,12 +32,19 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
 
     _operation = -1 # if a Relationship's are only deleted
 
+    _count = 0
 
     def countObjects(self):
         """Return the number of objects in this relationship"""
-        return len(self._objects)
+        return self._count
 
-    
+   
+    def _resetCount(self):
+        """Reset the count of the total objects in this relation.
+        """
+        self._count = len(self._objects)
+
+
     def findObjectsById(self, partid):
         """Return a list of objects by running find on their id"""
         objects = []

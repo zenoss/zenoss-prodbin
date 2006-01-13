@@ -106,6 +106,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
+        self._count=len(self._objects)
         self._p_changed = 1
 
 
@@ -124,6 +125,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             del self._objects[id]
         else:
             self._objects = {}
+        self._count=len(self._objects)
         self._p_changed = 1
 
 
