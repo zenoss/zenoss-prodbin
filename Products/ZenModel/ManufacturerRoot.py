@@ -171,6 +171,9 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
 
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
+        zcat = self._getOb(self.default_catalog)
+        zcat.manage_catalogClear()
+        transaction.savepoint()
         for i, manuf in enumerate(self.values(spec="Manufacturer")):
             for prod in manuf.products():
                 prod.index_object()

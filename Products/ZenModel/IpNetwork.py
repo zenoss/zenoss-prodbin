@@ -58,7 +58,7 @@ class IpNetwork(DeviceOrganizer):
     dmdRootName = "Networks"
 
     # Index name for IP addresses
-    class_default_catalog = 'ipSearch'
+    default_catalog = 'ipSearch'
 
     portal_type = meta_type = 'IpNetwork'
 
@@ -361,19 +361,21 @@ class IpNetwork(DeviceOrganizer):
 
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
-        for ip in self.ipaddresses(): 
-            ip.index_object()
+        zcat = self._getCatalog()
+        zcat.manage_catalogClear()
         transaction.savepoint()
-        for net in self.children():
-            net.reIndex()
+        for net in self.getSubNetworks():
+            for ip in net.ipaddresses(): 
+                ip.index_object()
+            transaction.savepoint()
 
 
     def createCatalog(self):
         """make the catalog for device searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.class_default_catalog, 
-                            self.class_default_catalog)
-        zcat = self._getOb(self.class_default_catalog)
+        manage_addZCatalog(self, self.default_catalog, 
+                            self.default_catalog)
+        zcat = self._getOb(self.default_catalog)
         makeConfmonLexicon(zcat)
         zcat.addIndex('id', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('id'))

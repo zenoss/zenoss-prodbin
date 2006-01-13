@@ -104,8 +104,17 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     security = ClassSecurityInfo()
 
 
+    def getSubEventClasses(self):
+        """Return all EventClass objects below this one.
+        """
+        evts = self.children()
+        for subgroup in self.children():
+            evts.extend(subgroup.getSubEventClasses())
+        return evts
+
+
     def find(self, query):
-        cat = getattr(self, self.default_catalog)
+        cat = self._getCagalog()
         brains = cat({'eventClassKey': query})
         insts = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
         insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
@@ -208,11 +217,13 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
         log.debug("reindexing EventClass:%s", self.getOrganizerName())
-        for ip in self.instances(): 
-            ip.index_object()
+        zcat = self._getCatalog()
+        zcat.manage_catalogClear()
         transaction.savepoint()
-        for evtclass in self.children():
-            evtclass.reIndex()
+        for evtclass in self.getSubEventClasses():
+            for ip in evtclass.instances(): 
+                ip.index_object()
+        transaction.savepoint()
 
 
     def createCatalog(self):

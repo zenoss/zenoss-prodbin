@@ -38,7 +38,7 @@
                 type="text" name="seqmap:list" size="2"
                 tal:attributes="value evinst/sequence"/>
             <span tal:condition="not:here/isManager" 
-                tal:replace="here/sequence"/>
+                tal:replace="evinst/sequence"/>
         </td>
         <td class="tablevalues">
             <a tal:attributes="href evinst/getPrimaryUrlPath"
@@ -50,7 +50,7 @@
         </td>
         <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
     </tr>
-    <tr>
+    <tr tal:condition="here/isManager">
         <td class="tableheader" colspan="4">
         <input type="submit" name="manage_resequence:method" value=" Save "/>
         </td>

@@ -71,7 +71,7 @@ class DeviceClass(DeviceOrganizer):
     #Used to find factory on instance creation
     baseModulePath = "Products.ZenModel"  
 
-    class_default_catalog = 'deviceSearch'
+    default_catalog = 'deviceSearch'
     
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
@@ -283,9 +283,9 @@ class DeviceClass(DeviceOrganizer):
         """make the catalog for device searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
         # Make catalog for Devices
-        manage_addZCatalog(self, self.class_default_catalog, 
-                            self.class_default_catalog)
-        zcat = self._getOb(self.class_default_catalog)
+        manage_addZCatalog(self, self.default_catalog, 
+                            self.default_catalog)
+        zcat = self._getOb(self.default_catalog)
         makeConfmonLexicon(zcat)
         zcat.addIndex('id', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('id'))
@@ -320,12 +320,13 @@ class DeviceClass(DeviceOrganizer):
 
     def reIndex(self, interfaces=True):
         """Go through all devices in this tree and reindex them."""
+        zcat = self._getOb(self.default_catalog)
+        zcat.manage_catalogClear()
+        transaction.savepoint()
         for dev in self.getSubDevicesGen():
-            dev.unindex_object()
             dev.index_object()
             if interfaces:
                 for int in dev.os.interfaces():
-                    int.unindex_object()
                     int.index_object()
                 transaction.savepoint()
 

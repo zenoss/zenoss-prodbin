@@ -168,11 +168,11 @@ class Organizer(ZenModelRM):
     def _getCatalog(self):
         """
         Return the ZCatalog instance for this Organizer. Catelog is found
-        using the attribute class_default_catalog.
+        using the attribute default_catalog.
         """
         catalog = None
-        if hasattr(self, self.class_default_catalog):
-            catalog = getattr(self, self.class_default_catalog)
+        if hasattr(self, self.default_catalog):
+            catalog = getattr(self, self.default_catalog)
         return catalog
 
 
