@@ -40,10 +40,8 @@ from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DataRoot import DataRoot
-from Products.ZenModel.Classifier import manage_addClassifier
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
-from Products.ZenModel.SnmpClassifier import manage_addSnmpClassifier
 from Products.ZenModel.CricketConf import manage_addCricketConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
@@ -82,30 +80,13 @@ class DmdBuilder:
     monRoots = ('StatusMonitors','Cricket')
 
 
-    deviceClasses = (
-        "/Discovered",
-        "/Network/Router",
-        "/Network/Router/Firewall",
-        "/Network/Router/RSM",
-        "/Network/Router/TerminalServer",
-        "/Network/Switch",
-        "/Network/Switch/ContentSwitch",
-        "/Network/CableModem",
-        "/Server/Linux",
-        "/Server/Windows",
-        "/Server/Solaris",
-        "/Server/Darwin",
-        "/Printer/Laser",
-        "/Printer/InkJet",
-        )
-
-
-    def __init__(self, portal, schema="schema.data"):
+    def __init__(self, portal, evtuser, evtpass):
         self.portal = portal
+        self.evtuser = evtuser
+        self.evtpass = evtpass
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
-        self.schema = schema
 
 
     def buildRoots(self):
@@ -129,12 +110,6 @@ class DmdBuilder:
         self.addroots(srvs, srvRoots, "Services")
 
 
-    def buildDevices(self):
-        devices = self.dmd.Devices
-        for devicePath in self.deviceClasses:
-            devices.createOrganizer(devicePath)
-
-
     def addroots(self, base, rlist, classType=None, isInTree=False):
         for rname in rlist:
             ctype = classType or rname
@@ -147,31 +122,17 @@ class DmdBuilder:
                     dr.createCatalog() 
 
 
-    def buildClassifiers(self):
-        if hasattr(self.dmd, 'ZenClassifier'):
-            return
-        manage_addClassifier(self.dmd)
-        cl = self.dmd._getOb('ZenClassifier')
-        snmpclassifiers = (
-            ('sysObjectIdClassifier', '.1.3.6.1.2.1.1.2.0'),
-            ('sysDescrClassifier', '.1.3.6.1.2.1.1.1.0'),
-        )
-        for sclname, oid in snmpclassifiers:
-            manage_addSnmpClassifier(cl, sclname)
-            snmpc = cl._getOb(sclname)
-            snmpc.oid = oid
-
-
     def build(self):
-        self.buildClassifiers()
         self.buildRoots()
         self.buildMonitors()
         self.buildServices()
-        self.buildDevices()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
-        manage_addMySqlEventManager(self.dmd)
-        manage_addMySqlEventManager(self.dmd,history=True)
+        manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser, 
+                                              evtpass=self.evtpass)
+        manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
+                                    evtpass=self.evtpass, history=True)
+                                    

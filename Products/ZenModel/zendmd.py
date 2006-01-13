@@ -23,7 +23,7 @@ def zhelp():
 def reindex():
     sync()
     dmd.Devices.reIndex()
-    #dmd.Events.reIndex()
+    dmd.Events.reIndex()
     dmd.Manufacturers.reIndex()
     dmd.Networks.reIndex()
     commit()

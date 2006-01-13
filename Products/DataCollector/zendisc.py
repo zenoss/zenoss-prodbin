@@ -17,7 +17,7 @@ from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event
 from Products.PingMonitor.Ping import Ping
 
-from zenmodel import ZenModeler
+from zenmodeler import ZenModeler
 from SnmpSession import SnmpSession, ZenSnmpError
 
 class NoSnmp(ZentinelException):
@@ -234,7 +234,7 @@ class ZenDisc(ZenModeler):
 
 if __name__ == "__main__":
     try:
-        d = Discover()
+        d = ZenDisc()
         d.run()
     except (SystemExit, KeyboardInterrupt):
         raise

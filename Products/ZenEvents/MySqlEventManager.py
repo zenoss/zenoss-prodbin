@@ -1,4 +1,6 @@
 import types
+import logging
+log = logging.getLogger("zen.Events")
 
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -8,14 +10,19 @@ from EventManagerBase import EventManagerBase
 from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 
-def manage_addMySqlEventManager(context, id=None, history=False, REQUEST=None):
+def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
+                                history=False, REQUEST=None):
     '''make an MySqlEventManager'''
     if not id: 
         id = "ZenEventManager"
         if history: id = "ZenEventHistory"
-    evtmgr = MySqlEventManager(id) 
+    evtmgr = MySqlEventManager(id,username=evtuser,password=evtpass) 
     context._setObject(id, evtmgr)
     evtmgr = context._getOb(id)
+    try:
+        evtmgr.manage_refreshConversions()
+    except:
+        log.warn("Failed to refresh conversions, db connection failed.")
     if history: 
         evtmgr.statusTable = "history"
     evtmgr.installIntoPortal()

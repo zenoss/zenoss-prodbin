@@ -43,9 +43,9 @@ class CmdBase:
         logging.basicConfig()
         rlog = logging.getLogger()
         rlog.setLevel(logging.ERROR)
-        self.log = logging.getLogger("zen."+self.__class__.__name__)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
+        self.log = logging.getLogger("zen."+self.__class__.__name__)
 
 
     def setLoggingStream(self, stream):

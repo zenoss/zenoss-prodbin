@@ -55,11 +55,7 @@ class ZenDaemon(CmdBase):
                 "%Y-%m-%d %H:%M:%S"))
             rlog.addHandler(h)
         else:
-            h = logging.StreamHandler()
-            h.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                "%Y-%m-%d %H:%M:%S"))
-        rlog.addHandler(h)
+            logging.basicConfig()
 
 
     def becomeDaemon(self):

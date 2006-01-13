@@ -30,11 +30,9 @@ from ZenModelBase import ZenModelBase
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""
-    id = "Manufacturers"
-    m = ManufacturerRoot(id)
-    context._setObject(id, m)
-    m = context._getOb(id)
-    m.createCatalog()
+    m = ManufacturerRoot()
+    context._setObject(m.getId(), m)
+    m = context._getOb(m.dmdRootName)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
@@ -48,6 +46,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     some point (to scale better).  Has interface to manage Manufacturers
     and the products that they create.
     """
+    dmdRootName = "Manufacturers"
     meta_type = "ManufacturerRoot"
     sub_classes = ('Manufacturer',) 
     default_catalog = "productSearch"
@@ -79,6 +78,11 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
             )
           },
         )
+
+
+    def __init__(self):
+        super(ManufacturerRoot, self).__init__(self.dmdRootName)
+        self.createCatalog()
 
 
     def manage_addManufacturer(self, manufacturerName, REQUEST=None):
@@ -130,7 +134,8 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     def findProduct(self, query):
         """Find a product by is productKey.
         """
-        cat = getattr(self, self.default_catalog)
+        cat = getattr(self, self.default_catalog, None)
+        if not cat: return 
         brains = cat({'productKey': query})
         prods = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
         if len(prods) == 1: return prods[0]
@@ -168,7 +173,6 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         """Go through all devices in this tree and reindex them."""
         for i, manuf in enumerate(self.values(spec="Manufacturer")):
             for prod in manuf.products():
-                prod.unindex_object()
                 prod.index_object()
             if not i % 1000: transaction.savepoint()
 

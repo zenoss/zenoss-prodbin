@@ -22,7 +22,6 @@ from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
 
-from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.UserSettings import UserSettingsId, UserSettingsManager
 
 
@@ -147,13 +146,7 @@ class PortalGenerator:
                     path='/temp_folder/session_data')
 
 
-    def setupDmd(self, p, schema):
-        """build the device management database."""
-        dmdBuilder = DmdBuilder(p, schema=schema)
-        dmdBuilder.build()
-
-
-    def setup(self, p, create_userfolder, schema):
+    def setup(self, p, create_userfolder):
         if create_userfolder: self.setupUserFolder(p)
         #self.setupCookieAuth(p)
         self.setupMembersFolder(p)
@@ -163,16 +156,15 @@ class PortalGenerator:
         self.setupPermissions(p)
         self.setupDefaultSkins(p)
         self.setupSessionManager(p)
-        self.setupDmd(p, schema)
 
 
-    def create(self, parent, id, create_userfolder, schema):
+    def create(self, parent, id, create_userfolder):
         id = str(id)
         portal = self.klass(id=id)
         parent._setObject(id, portal)
         # Return the fully wrapped object.
         p = parent.this()._getOb(id)
-        self.setup(p, create_userfolder, schema)
+        self.setup(p, create_userfolder)
         return p
 
 
@@ -191,7 +183,6 @@ manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
 def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal', 
-                         schema="schema.data",
                          description='',
                          create_userfolder=True,
                          email_from_address='postmaster@localhost',
@@ -200,12 +191,10 @@ def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal',
     '''
     Adds a portal instance.
     '''
-    if not os.path.exists(schema):
-        schema = os.path.join(os.path.dirname(__file__), schema)
     gen = PortalGenerator()
     from string import strip
     id = strip(id)
-    p = gen.create(self, id, create_userfolder, schema=schema)
+    p = gen.create(self, id, create_userfolder)
     gen.setupDefaultProperties(p, title, description,
                                email_from_address, email_from_name,
                                validate_email)

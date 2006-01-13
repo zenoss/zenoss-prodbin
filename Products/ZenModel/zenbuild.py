@@ -31,6 +31,8 @@ from Products.ZenUtils.CmdBase import CmdBase
 
 class zenbuild(CmdBase):
     
+    sitename = "zport"
+    
     def __init__(self):
         CmdBase.__init__(self)
         if not os.environ.has_key("ZENHOME"):
@@ -44,28 +46,28 @@ class zenbuild(CmdBase):
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
-        self.parser.add_option('-f', '--filename',
-                dest="schema",
-                default="schema.data",
-                help="Location of the Dmd schema")
-        self.parser.add_option('-s', '--sitename',
-                dest="sitename",
-                default="zport",
-                help="name of portal object")
+        self.parser.add_option('-u','--evtuser', dest="evtuser", default="root",
+                help="username used to connect to the events database")
+        self.parser.add_option('-p','--evtpass', dest="evtpass", default="",
+                help="password used to connect to the events database")
 
 
     def build(self):
-        site = getattr(self.app, self.options.sitename, None)
+        site = getattr(self.app, self.sitename, None)
         if not site:
             from Products.ZenModel.ZentinelPortal import \
                 manage_addZentinelPortal
-            manage_addZentinelPortal(self.app, self.options.sitename, 
-                                    schema=self.options.schema)
-            site = self.app._getOb(self.options.sitename)
+            manage_addZentinelPortal(self.app, self.sitename)
+            site = self.app._getOb(self.sitename)
             trans = transaction.get()
             trans.note("Initial ZentinelPortal load by zenbuild.py")
             trans.commit()
-            print "ZentinelPortal loaded at %s" % self.options.sitename
+            print "ZentinelPortal loaded at %s" % self.sitename
+
+        # build dmd
+        from Products.ZenModel.DmdBuilder import DmdBuilder
+        dmdBuilder = DmdBuilder(site,self.options.evtuser,self.options.evtpass)
+        dmdBuilder.build()
 
         # Load RRD Data
         from Products.ZenRRD.RRDLoader import RRDLoader
