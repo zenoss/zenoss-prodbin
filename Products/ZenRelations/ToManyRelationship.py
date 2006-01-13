@@ -261,6 +261,9 @@ class ToManyRelationship(ToManyRelationshipBase):
                     self._objects.remove(obj)
                     self._p_changed = 1
                     keycount[key] -= 1
+        if repair and len(self._objects) != self._count: 
+            log.warn("resetting count on %s", self.getPrimaryId()) 
+            self._resetCount()
 
 
 

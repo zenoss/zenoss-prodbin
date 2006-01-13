@@ -8,6 +8,9 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.48 $"[11:-2]
 
+import logging
+log = logging.getLogger("zen.Relations")
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -218,6 +221,14 @@ class ToManyContRelationship(ToManyRelationshipBase):
         for obj in self.objectValues():
             obj.exportXml(ofile)
         ofile.write("</tomanycont>\n")
+
+    
+    def checkRelation(self, repair=False):
+        """Check to make sure that relationship bidirectionality is ok.
+        """
+        if repair and len(self._objects) != self._count: 
+            log.warn("resetting count on %s", self.getPrimaryId()) 
+            self._resetCount()
 
 
 InitializeClass(ToManyContRelationship)
