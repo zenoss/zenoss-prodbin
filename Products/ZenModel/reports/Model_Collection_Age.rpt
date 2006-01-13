@@ -8,9 +8,40 @@
     objects  python:here.getDmdRoot('Devices').getSubDevices(
                                        lambda x: x.snmpAgeCheck(48));
     tableName string: modelcollreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                               sortedHeader='getLastChange');
     ">
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDeviceClassPath','Class')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'createdTime','First Seen','cmp')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpLastCollection','Collection','cmp')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getLastChange','Change','cmp')"/>
+	</tr>
+	<tr tal:repeat="device batch">
+		<td class="tablevalues" align="left">
+            <a class="tablevalues" tal:attributes="href device/getDeviceUrl"
+                tal:content="device/id">device</a>
+        </td>
+		<td class="tablevalues" tal:content="device/getDeviceClassPath"/>
+		<td class="tablevalues" tal:content="device/getCreatedTimeString"/>
+		<td class="tablevalues" 
+            tal:content="device/getSnmpLastCollectionString"/>
+		<td class="tablevalues" tal:content="device/getLastChangeString"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
 </table>
 </tal:block>
 </tal:block>
