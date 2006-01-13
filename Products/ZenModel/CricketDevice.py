@@ -89,7 +89,7 @@ class CricketDevice:
     def cricketDevice(self):
         """build the targets for the device itself
         use cricketTargetPath to """
-        targetpath = self.cricketTargetPath()
+        targetpath = self.getDeviceClassPath() + '/' + self.id
         targettypes = {}
         targets = self.callscript(self, 'scCricketDevice')
         if not targets:
@@ -266,11 +266,6 @@ class CricketDevice:
 
         return cricketType
        
-
-    def cricketTargetPath(self):
-        """get the cricket target path using DeviceClass path of the box"""
-        return self.getDeviceClassPath() + '/' + self.id
-    
 
     def callscript(self, obj, name, *args, **kargs):
         script = getattr(obj, name, None)
