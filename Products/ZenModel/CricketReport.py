@@ -11,6 +11,8 @@ $Id: CricketReport.py,v 1.1.1.1 2004/10/14 20:55:29 edahl Exp $"""
 __version__ = "$Revision: 1.1.1.1 $"[11:-2]
 
 import pprint
+import logging
+log = logging.getLogger("zen.Cricket")
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -75,6 +77,7 @@ class CricketReport(SimpleItem, ZenModelBase):
                 gopts.extend(CricketData.getOpts(scount,dsidx))
                 scount += 1
             #pprint.pprint(gopts)
+            try:
             cricketdata = cricketconf.cricketCustomSummary(gopts, drange)
             for i in range(0,len(crCricketDatas)):
                 j = i * 2
@@ -83,6 +86,9 @@ class CricketReport(SimpleItem, ZenModelBase):
                     CricketData.dataavg = float(cricketdata[j])
                     CricketData.datamax = float(cricketdata[j+1])
                 except TypeError: pass
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                log.warn(e)
         CricketDatas = filter(lambda x: x.dataavg,CricketDatas)
         return CricketDatas
             
