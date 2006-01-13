@@ -7,8 +7,8 @@
     tal:define="
     objects  python:here.getDmdRoot('Devices').getSubDevices(
                                 lambda x: x.getStatus('/Status/Snmp')!=0);
-    tableName string: pingstatusreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects
+    tableName string: snmpstatusreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
                     sortedHeader='getSnmpStatusHeader', sortedSence='desc');
     ">
     <tal:block metal:use-macro="here/deviceListMacro/macros/devListBody"/>

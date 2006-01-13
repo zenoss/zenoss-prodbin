@@ -36,6 +36,7 @@ class ReportClass(Classification, Folder):
     manage_main = Folder.manage_main
     manage_options = Folder.manage_options
 
+    sub_meta_types = ("ReportClass", "Report")
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

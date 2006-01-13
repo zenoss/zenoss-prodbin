@@ -43,6 +43,7 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.CricketConf import manage_addCricketConf
+from Products.ZenModel.CricketReport import manage_addCricketReport
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
@@ -128,6 +129,7 @@ class DmdBuilder:
         self.buildServices()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
+        manage_addCricketReport(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")

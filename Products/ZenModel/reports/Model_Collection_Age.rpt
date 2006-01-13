@@ -4,13 +4,12 @@
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
 <table class="zentable" cellpadding="3" cellspacing="1"
-    cellspacing="1" align="center"
     tal:define="
-    objects  python:here.getDmdRoot('Devices').getSubDevices();
-    tableName string: alldevicereport;
+    objects  python:here.getDmdRoot('Devices').getSubDevices(
+                                       lambda x: x.snmpAgeCheck(48));
+    tableName string: modelcollreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     ">
-    <tr metal:use-macro="here/miscmacros/macros/reportBreadCrumbs" />
     <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
 </table>
 </tal:block>

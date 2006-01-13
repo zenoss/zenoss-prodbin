@@ -23,8 +23,9 @@ from OFS.SimpleItem import SimpleItem
 
 from Products.ZenModel.ZenModelBase import ZenModelBase
 
-def manage_addCricketReport(context, id, REQUEST = None):
+def manage_addCricketReport(context, REQUEST = None):
     """make a CricketReport"""
+    id = "CricketReport"
     d = CricketReport(id)
     context._setObject(id, d)
 
@@ -32,7 +33,7 @@ def manage_addCricketReport(context, id, REQUEST = None):
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
 
-addCricketReport = DTMLFile('dtml/addCricketReport',globals())
+#addCricketReport = DTMLFile('dtml/addCricketReport',globals())
 
 class CricketReport(SimpleItem, ZenModelBase):
 
