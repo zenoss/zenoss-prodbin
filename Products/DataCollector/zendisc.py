@@ -27,8 +27,9 @@ class NoSnmp(ZentinelException):
 class ZenDisc(ZenModeler):
 
 
-    def __init__(self, noopts=0,app=None,single=True):
-        ZenModeler.__init__(self, noopts, app, single)
+    def __init__(self,noopts=0,app=None,single=True,
+                threaded=False,keeproot=True):
+        ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
 
 
     def discoverRouters(self, rootdev, seenips=[]):

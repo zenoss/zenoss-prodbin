@@ -57,7 +57,7 @@ class ZenPing(ZCmdBase):
     )
 
     def __init__(self):
-        ZCmdBase.__init__(self)
+        ZCmdBase.__init__(self, keeproot=True)
         self.hostname = socket.getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):

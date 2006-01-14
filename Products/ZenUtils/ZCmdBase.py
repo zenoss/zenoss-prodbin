@@ -20,8 +20,8 @@ class DataRootError(Exception):pass
 class ZCmdBase(ZenDaemon):
 
 
-    def __init__(self, noopts=0, app=None):
-        ZenDaemon.__init__(self, noopts)
+    def __init__(self, noopts=0, app=None, keeproot=False):
+        ZenDaemon.__init__(self, noopts, keeproot)
         self.dataroot = None
         self.app = app
         self.db = None

@@ -54,9 +54,9 @@ def plfilter(f):
 
 class ZenModeler(ZCmdBase):
     
-    def __init__(self, noopts=0,app=None,single=False,threaded=True):
-        ZCmdBase.__init__(self,noopts,app)
-        
+    def __init__(self,noopts=0,app=None,single=False,
+                threaded=True,keeproot=False):
+        ZCmdBase.__init__(self, noopts, app, keeproot)
         self.single = single
         self.threaded = threaded
         self.cycletime = self.options.cycletime*60

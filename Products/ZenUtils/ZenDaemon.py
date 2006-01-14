@@ -14,15 +14,17 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 
 import sys
 import os
-import logging
+import pwd
 import signal
+import logging
 
 from CmdBase import CmdBase
 
 class ZenDaemon(CmdBase):
     
-    def __init__(self, noopts=0):
+    def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
+        self.keeproot=keeproot
         self.zenhome = os.path.join(os.environ['ZENHOME'])
         self.zenvar = os.path.join(self.zenhome, "var")
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
@@ -30,8 +32,7 @@ class ZenDaemon(CmdBase):
         if not noopts:
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
-            if self.options.daemon and sys.platform != 'win32':
-                self.becomeDaemon() 
+            if self.options.daemon:self.becomeDaemon() 
 
 
     def setupLogging(self):
@@ -66,9 +67,17 @@ class ZenDaemon(CmdBase):
             if pid > 0:
                 sys.exit(0)
         except OSError, e:
-            print >>sys.stderr, ("fork #1 failed: %d (%s)" % 
-                    (e.errno, e.strerror))
+            print >>sys.stderr, "ERROR: fork #1 failed: %d (%s)" % (
+                                e.errno, e.strerror)
         os.chdir("/")
+        if not self.keeproot:
+            try:
+                cname = pwd.getpwuid(os.getuid())[0]
+                pwrec = pwd.getpwnam(self.options.uid)
+                os.setuid(pwrec[2])
+            except KeyError:
+                print >>sys.stderr, "WARN: user:%s not found running as:%s"%(
+                                    self.options.uid,cname)
         os.setsid()
         os.umask(0)
         try:
@@ -76,14 +85,14 @@ class ZenDaemon(CmdBase):
             if pid > 0:
                 sys.exit(0)
         except OSError, e:
-            print >>sys.stderr, ("fork #2 failed: %d (%s)" % 
-                    (e.errno, e.strerror))
+            print >>sys.stderr, "ERROR: fork #2 failed: %d (%s)" % (
+                                e.errno, e.strerror)
         if os.path.exists(self.zenvar):
             file = open(self.pidfile, 'w')
             file.write(str(os.getpid()))
             file.close()
         else:
-            print "ERROR: unable to open pid file %s" % pidfile
+            print >>sys.stderr, "ERROR: unable to open pid file %s" % pidfile
             sys.exit(1) 
 
 
@@ -99,17 +108,12 @@ class ZenDaemon(CmdBase):
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
-        self.parser.add_option('-l', '--logpath',
-                    dest='logpath',
+        self.parser.add_option('-l', '--logpath',dest='logpath',
                     help='override default logging path')
-        
-        self.parser.add_option('-c', '--cycle',
-                    dest='cycle',
-                    default=0,
-                    action="store_true",
+        self.parser.add_option('--uid',dest='uid',default="zenmon",
+                    help='user to become when running default:zenmon')
+        self.parser.add_option('-c', '--cycle',dest='cycle',action="store_true",
                     help="Cycle continuously on cycleInterval from zope")
         self.parser.add_option('-D', '--daemon',
-                    dest='daemon',
-                    default=0,
-                    action="store_true",
+                    dest='daemon',action="store_true",
                     help="Become a unix daemon")
