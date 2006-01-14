@@ -196,10 +196,9 @@ class ZenPing(ZCmdBase):
                 start = time.time()
                 try:
                     self.loadConfig()
-                    self.log.info("starting ping cycle %s" % (time.asctime()))
+                    self.log.info("starting ping cycle")
                     #self.sendHeartbeat()
                     self.cycleLoop()
-                    self.log.info("end ping cycle %s" % (time.asctime()))
                     self.log.info("sent %d pings in %3.2f seconds" % 
                                 (self.sent, (time.time() - start)))
                 except (SystemExit, KeyboardInterrupt): raise
