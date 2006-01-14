@@ -171,6 +171,7 @@ class ZenPing(ZCmdBase):
                         if failname:
                             pj.eventState = 3 #suppressed FIXME
                             pj.message += (", failed at %s" % failname)
+                        self.log.warn(pj.message)
                         self.sendEvent(pj)
                 # device was down and message sent but is back up
                 elif pj.status > 1:
