@@ -2,6 +2,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
+SUDO=sudo
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zensyslog.py
 PIDFILE=$VARDIR/$PRGNAME.pid

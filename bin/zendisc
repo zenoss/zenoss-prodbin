@@ -2,6 +2,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
+SUDO=sudo
 PRGHOME=$ZENHOME/Products/DataCollector
 PRGNAME=zendisc.py
 PIDFILE=$VARDIR/$PRGNAME.pid

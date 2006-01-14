@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 . $ZENHOME/bin/zenfunctions
-ZOPECMDS="zeoctl zopectl" 
-ZENCMDS="zensnmp zenmodeler zencrkbld"
-ZENCMDSROOT="zenping zensyslog"
+ZOPECMDS="zeoctl zopectl"
+ZENCMDS="zensnmp zenmodeler zencrkbld zenping zensyslog"
 
 FUNC=$1
 
@@ -15,17 +14,8 @@ issue() {
     done
     for cmd in $ZENCMDS
     do
-        echo -n "Daemon: " 
+        echo -n "Daemon: "
         $ZENHOME/bin/$cmd "$FUNC"
-    done
-    for cmd in $ZENCMDSROOT
-    do
-        echo -n "Daemon: " 
-        if [ $FUNC = "status" ]; then
-            $ZENHOME/bin/$cmd "$FUNC"
-        else 
-            sudo $ZENHOME/bin/$cmd "$FUNC"
-        fi
     done
 }
 
