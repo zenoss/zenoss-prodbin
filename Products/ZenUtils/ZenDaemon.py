@@ -88,6 +88,8 @@ class ZenDaemon(CmdBase):
 
 
     def sigTerm(self, signum, frame):
+        stop = getattr(self, "stop", None)
+        if callable(stop): stop()
         if os.path.exists(self.pidfile):
             self.log.info("delete pidfile %s", self.pidfile)
             os.remove(self.pidfile)

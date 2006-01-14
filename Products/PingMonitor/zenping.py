@@ -27,7 +27,6 @@ import time
 import select
 import sys
 import xmlrpclib
-import logging
 import Queue
 
 import Globals # make zope imports work
@@ -65,11 +64,9 @@ class ZenPing(ZCmdBase):
             self.configpath = self.configpath[1:]
         self.configCycleInterval = 0
         self.configTime = 0
-        self.sendqueue = Queue.Queue()
         self.reportqueue = Queue.Queue()
 
         self.eventThread = MySqlSendEventThread(self.dmd.ZenEventManager)
-        self._evqueue = self.eventThread.getqueue()
         self.eventThread.start()
         self.log.info("started")
 
@@ -123,7 +120,7 @@ class ZenPing(ZCmdBase):
         pj.inprocess = True
         pj.pathcheck += 1
         self.log.debug("queue '%s' ip '%s'", pj.hostname, pj.ipaddr)
-        self.sendqueue.put(pj)
+        self.pingThread.sendPing(pj)
 
 
     def receiveReport(self):
@@ -137,7 +134,8 @@ class ZenPing(ZCmdBase):
 
 
     def cycleLoop(self):
-        self.pingThread = PingThread(self.sendqueue, self.reportqueue,
+        self.reportqueue = Queue.Queue()
+        self.pingThread = PingThread(self.reportqueue,
                                     self.tries, self.timeOut, self.chunk)
         self.sent = self.reports = 0
         pjgen = self.pingtree.pjgen()
@@ -145,7 +143,7 @@ class ZenPing(ZCmdBase):
             if i > self.chunk: break
             self.sendPing(pj)
         self.pingThread.start()
-        while self.reports < self.sent:
+        while self.reports < self.sent or not self.pingThread.isAlive():
             self.log.debug("reports=%s sent=%s", self.reports, self.sent)
             try: 
                 pj = pjgen.next()
@@ -187,7 +185,7 @@ class ZenPing(ZCmdBase):
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("processing pj for '%s'", pj.hostname)
-        self.pingThread.morepkts = False
+        self.pingThread.stop()
 
 
     def mainLoop(self):
@@ -212,9 +210,17 @@ class ZenPing(ZCmdBase):
         else:
             self.loadConfig()
             self.cycleLoop()
-        self.eventThread.running = False
-        self.pingThread.join(2)
-        self.eventThread.join(2)
+        self.stop()
+        self.log.info("stopped")
+
+
+    def stop(self):
+        """Stop zenping and its child threads.
+        """
+        self.log.info("stopping...")
+        if hasattr(self,"pingThread"):
+            self.pingThread.stop()
+        self.eventThread.stop()
 
 
     def sendHeartbeat(self):
@@ -240,7 +246,7 @@ class ZenPing(ZCmdBase):
             manager=self.hostname)
         evstate = getattr(pj, 'eventState', None)
         if evstate is not None: evt.eventState = evstate
-        self._evqueue.put(evt)
+        self.eventThread.sendEvent(evt)
 
 
 

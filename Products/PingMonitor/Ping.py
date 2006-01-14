@@ -8,12 +8,13 @@ import sys
 import os
 import types
 import time
-import logging
 import select
 import socket
 import ip
 import icmp
 import pprint
+import logging
+log = logging.getLogger("zen.Ping")
 
 
 class PermissionError(Exception):
@@ -128,7 +129,7 @@ class Ping(object):
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
             pingJob.sent = pkt.seq + 1
             self.jobqueue[pingJob.ipaddr] = pingJob
-        except SystemExit: raise
+        except (SystemExit, KeyboardInterrupt): raise
         except:
             pingJob.rtt = -1
             pingJob.message = "%s error sending to socket" % pingJob.ipaddr
@@ -138,8 +139,9 @@ class Ping(object):
 
     def recvPacket(self):
         """receive a packet and decode its header"""
-        data = self.pingsocket.recv(1024)
-        if data:
+        try:
+            data = self.pingsocket.recv(1024)
+            if not data: return
             ipreply = ip.Packet(data)
             icmppkt = icmp.Packet(ipreply.data)
             sip =  ipreply.src
@@ -156,6 +158,9 @@ class Ping(object):
                     self.pingJobFail(self.jobqueue[dip])
             else:
                 plog.debug("unexpected pkt %s %s", sip, icmppkt)
+        except (SystemExit, KeyboardInterrupt): raise
+        except Exception, e:
+            log.exception("receiving packet")
 
 
 

@@ -1,22 +1,21 @@
-import logging
 import threading
 import Queue
+import logging
+log = logging.getLogger("PingThread")
 
 from Ping import Ping, PingJob
 
-ptlog = logging.getLogger("PingThread")
 class PingThread(threading.Thread, Ping):
     """
     PingThread takes pingjobs off a Queue and pings them.
     """
     
-    def __init__(self, sendqueue, reportqueue,
-                tries=2, timeout=2, chunkSize=10):
+    def __init__(self, reportqueue,tries=2, timeout=2, chunkSize=10):
         threading.Thread.__init__(self)
         Ping.__init__(self, tries, timeout, chunkSize)
         self.setDaemon(1)
         self.setName("PingThread")
-        self.sendqueue = sendqueue
+        self.sendqueue = Queue.Queue()
         self.reportqueue = reportqueue
 
 
@@ -30,7 +29,14 @@ class PingThread(threading.Thread, Ping):
                 self.devcount += 1
                 self.sendPacket(pingJob)
         except Queue.Empty: pass 
-   
+
+
+    def sendPing(self, pj):
+        """Called from main thread to add new pingjob to send queue.
+        """
+        self.sendqueue.put(pj)
+        
+
 
     def reportPingJob(self, pj):
         """Pass pingJobs back to our master thread when done.
@@ -41,11 +47,17 @@ class PingThread(threading.Thread, Ping):
     def run(self):
         """Start this thread. Exit by setting self.morepkts.
         """
-        ptlog.info("starting")
+        log.info("starting")
         self.eventLoop(self.sendqueue)
-        ptlog.info("stopped")
+        log.info("stopped")
 
+
+    def stop(self):
+        log.info("stopping...")
+        self.morepkts = False
+        self.join(5)
     
+
 if __name__ == "__main__":
     import sys
     import Queue

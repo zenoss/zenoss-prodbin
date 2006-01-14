@@ -390,11 +390,6 @@ class ZenModeler(ZCmdBase):
                 time.sleep(self.cycletime - runTime)
 
 
-    def sigTerm(self, signum, frame):
-        self.stop()
-        ZCmdBase.sigTerm(self, signum, frame)
-
-
     def stop(self):
         """Stop ZenModeler make sure reactor is stopped, join with 
         applyData thread and close the zeo connection.

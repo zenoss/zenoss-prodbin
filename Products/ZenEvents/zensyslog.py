@@ -28,12 +28,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         app = self.getConnection()
         zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
         zem = app.unrestrictedTraverse(zempath)
-        self.senderThread = MySqlSendEventThread(zem)
+        self.eventThread = MySqlSendEventThread(zem)
         app._p_jar.close()
         del app, zem
         if not self.options.debug:
-            self._evqueue = self.senderThread.getqueue()
-            self.senderThread.start()
+            self.eventThread.start()
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zensyslog collector started",
@@ -42,10 +41,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         
 
     def sendEvent(self, evt):
-        if self.options.debug:
-            self.senderThread.sendEvent(evt)
-        else:
-            self._evqueue.put(evt)
+        self.eventThread.sendEvent(evt)
 
 
     def process_request(self, request, client_address):
@@ -77,20 +73,16 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.running = True
         while self.running:
             self.handle_request()
-
-
-    def sigTerm(self, signum, frame):
-        self.stop()
-        ZeoPoolBase.sigTerm(self, signum, frame)
+        self.log.info("stopped")
 
 
     def stop(self):
         self.log.info("stopping...")
-        self.senderThread.stop()
-        self.senderThread.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop,
                         summary="zensyslog collector stopped",
                         severity=2, component="zensyslog"))
+        self.eventThread.stop()
         self.running = False
 
 

@@ -71,7 +71,7 @@ class MySqlSendEventMixin:
             if close: db.close()
             return event
         except ProgrammingError, e:
-            print insert
+            log.error(insert)
             log.exception(e)
             
 
@@ -194,7 +194,10 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
             value = getattr(zem, att)
             setattr(self, att, value)
         self._fieldlist = zem.getFieldList()
-   
+  
+
+    def stop(self): pass
+
 
     def getFieldList(self):
         return self._fieldlist
@@ -212,8 +215,10 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         self._evqueue = Queue()
 
 
-    def getqueue(self):
-        return self._evqueue
+    def sendEvent(self, evt):
+        """Called from main thread to put an event on to the send queue.
+        """
+        return self._evqueue.put(evt)
 
 
     def run(self):
@@ -221,9 +226,9 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         db = self.connect()
         while not self._evqueue.empty() or self.running:
             try:
-                evt = self._evqueue.get()        
-                self.sendEvent(evt, db) 
-            except Empty: time.sleep(1)
+                evt = self._evqueue.get(True,1)        
+                MySqlSendEvent.sendEvent(self, evt, db) 
+            except Empty: pass
             except OperationalError:
                 db =self.reconnect()
             except Exception, e: 
@@ -233,8 +238,11 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 
     
     def stop(self):
-        log.info("stopping")
+        """Called from main thread to stop this thread.
+        """
+        log.info("stopping...")
         self.running = False
+        self.join(3)
 
 
     def reconnect(self):
