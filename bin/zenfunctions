@@ -56,7 +56,7 @@ stop() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
         echo $PRGNAME stopping...
-        `kill $PID` 
+        `${SUDO:-} kill $PID` 
         if [ $? -gt 0 ]; then
             rm -f $PIDFILE
             echo $PRGNAME clearing pid file
