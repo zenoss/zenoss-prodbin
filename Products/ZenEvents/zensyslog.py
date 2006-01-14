@@ -49,7 +49,8 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         ipaddress = client_address[0]
         hostname = self.resolvaddr(ipaddress)
         msg = request[0]
-        spt = SyslogProcessingThread(self,request[0],ipaddress, hostname)
+        spt = SyslogProcessingThread(self,request[0],ipaddress, hostname,
+                                    self.options.parsehost)
         if not self.options.debug: 
             spt.start() 
    
@@ -91,6 +92,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.parser.add_option('--dmdpath',
             dest='dmdpath', default="/zport/dmd",
             help="zope path to our dmd /zport/dmd")
+        self.parser.add_option('--parsehost',
+            dest='parsehost', action="store_true", 
+            help="try to parse the hostname part of a syslog HEADER")
         self.parser.add_option('--logorig',
             dest='logorig', action="store_true", 
             help="log the original message")

@@ -39,13 +39,14 @@ class SyslogProcessingThread(threading.Thread):
     This class does the actual processing of a syslog message.
     """
 
-    def __init__(self, master, msg, ipaddress, hostname): 
+    def __init__(self, master, msg, ipaddress, hostname, parsehost): 
         threading.Thread.__init__(self)
         self.setDaemon(1)
         self.master = master
         self.msg = msg
         self.ipaddress = ipaddress
         self.hostname = hostname
+        self.parsehost = parsehost
 
 
     def run(self):
@@ -150,7 +151,7 @@ class SyslogProcessingThread(threading.Thread):
             evt.originalTime = m.group(1)
             msg = m.group(2).strip()
         msglist = msg.split()
-        if not self.notHostSearch(msglist[0]):
+        if self.parsehost and not self.notHostSearch(msglist[0]):
             evt.hostname = msglist[0]
             slog.debug("parseHEADER hostname=%s", evt.hostname)
             msg = " ".join(msglist[1:])
