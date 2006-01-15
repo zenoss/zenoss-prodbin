@@ -53,7 +53,7 @@ class CricketReport(SimpleItem, ZenModelBase):
             crpath = device.cricketTargetPath()
             if not crpath: continue
             CricketDatas.append(CricketData(device.getId(), 
-                            device.hw.getProductName(),
+                            device.getDeviceClassPath(),
                             device.getPrimaryUrlPath(),
                             crpath, crconf))
         data = self.callCricket(CricketDatas, dsidx, drange) 
@@ -100,11 +100,11 @@ class CricketData:
     security.setDefaultAccess('allow')
 
 
-    def __init__(self, devicename, devicemodel, deviceurl, 
+    def __init__(self, devicename, devicepath, deviceurl, 
                     cricketpath, cricketconf, 
                     dataavg=None, datamax=None):
         self.devicename = devicename
-        self.devicemodel = devicemodel
+        self.devicepath = devicepath
         self.deviceurl = deviceurl
         self.cricketpath = cricketpath + "/" + devicename
         self.cricketconf = cricketconf

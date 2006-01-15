@@ -11,7 +11,7 @@
     drange python: ztm.setReqTableState(tableName,'drange',129600);
     objects python:here.CricketReport.collectData(
                                     '/Devices/Server','ds0',drange);
-    batch python:ztm.getBatch(tableName,objects,sortedHeader='cpumax',
+    batch python:ztm.getBatch(tableName,objects,sortedHeader='datamax',
                                                 sortedSence='desc');
     ">
     <tr class=tabletitle>
@@ -28,8 +28,8 @@
             Device
         </th>
         <th tal:replace="structure python:ztm.getTableHeader(
-                    tableName,'devicemodel','Model')">
-            Model
+                    tableName,'devicepath','DeviceClass')">
+            DeviceClass
         </th>
         <th tal:replace="structure python:ztm.getTableHeader(
                     tableName,'dataavg','Load Average')">
@@ -45,9 +45,9 @@
             <a class="tablevalues" tal:attributes="
                 href python:ldata.deviceurl+'/viewPerformanceDetail'"
                 tal:content="ldata/devicename">name</a>
-        <td class=tablevalues tal:content="ldata/devicemodel">model</td>
-        <td class=tablevalues tal:content="ldata/dataavg">average</td>
-        <td class=tablevalues tal:content="ldata/datamax">max</td>
+        <td class=tablevalues tal:content="ldata/devicepath"/>
+        <td class=tablevalues tal:content="ldata/dataavg"/>
+        <td class=tablevalues tal:content="ldata/datamax"/>
     </tr>
     <tr>
         <td colspan="4" class="tableheader" align='center'>
