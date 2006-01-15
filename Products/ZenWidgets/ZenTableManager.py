@@ -80,6 +80,13 @@ class ZenTableManager(SimpleItem, PropertyManager):
                         self.abbrEndLabel + self.abbrPadding
 
 
+    def getDefaultBatchSize(self):
+        dbs = self.defaultBatchSize
+        user = self.ZenUsers.getUserSettings()
+        if user: dbs = user.defaultPageSize
+        return dbs
+
+
     def setupTableState(self, tableName, **keys):
         """initialize or setup the session variable to track table state"""
         request = self.REQUEST
@@ -95,8 +102,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
         tableStates = self.getTableStates()
         tableState = tableStates.get(tableName, None)
         if not tableState:
-            tableStates[tableName] = ZenTableState(request, tableName, 
-                                            self.defaultBatchSize, **keys)
+            dbs = self.getDefaultBatchSize()
+            tableStates[tableName] = ZenTableState(request,tableName,dbs,**keys)
             tableState = tableStates[tableName]
         if attrname == None:
             return tableStates[tableName]

@@ -67,7 +67,7 @@
         ztm here/ZenTableManager;
         user here/ZenUsers/getUser;
         start request/start | python:0;
-        batchSize request/batchSize|user/defaultBatchSize|ztm/defaultBatchSize;
+        batchSize request/batchSize|ztm/getDefaultBatchSize;
         pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
         lastindex python:len(pagenav) and pagenav[-1]['index'] or 0;
         totalobjs python:len(objects)"
