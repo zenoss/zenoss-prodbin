@@ -17,6 +17,7 @@ import StringIO
 import logging
 log = logging.getLogger("zen.DeviceLoader")
 
+import transaction
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
@@ -111,6 +112,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, cricketMonitor,
                 REQUEST)
+            transaction.commit()
         except:
             log.exception('load of device %s failed' % deviceName)
         else:

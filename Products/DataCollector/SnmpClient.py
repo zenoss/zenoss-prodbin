@@ -30,10 +30,6 @@ class SnmpClient(object):
         self._getdata = {}
         self._tabledata = {}
 
-        if options:
-            defaultTries = options.loginTries
-            defaultTimeout = options.loginTimeout
-
         community = getattr(device, 'zSnmpCommunity', "public")
         port = int(getattr(device, 'zSnmpPort', 161))
         snmpver = getattr(device, 'zSnmpVer', "v1")
