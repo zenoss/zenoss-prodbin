@@ -308,6 +308,15 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         return ""
 
 
+    def getLocationLink(self):
+        """Return an a link to the devices location.
+        """
+        loc = self.location()
+        if loc: return "<a href='%s'>%s</a>" % (loc.getPrimaryUrlPath(),
+                                                loc.getOrganizerName())
+        return ""
+
+
     security.declareProtected('View', 'getSystemNames')
     def getSystemNames(self):
         """get the system names for this device"""

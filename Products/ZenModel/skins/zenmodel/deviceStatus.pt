@@ -91,8 +91,8 @@
     </tr>
     <tr>
       <td class="tableheader">Location</td>
-      <td class="tablevalues"
-        tal:content="structure here/location/getPrimaryLink"/>
+      <td class="tablevalues" 
+        tal:content="structure here/getLocationLink"/>
       <td class="tableheader">Rack Slot</td>
       <td class="tablevalues" tal:content='here/rackSlot' />
     </tr>
