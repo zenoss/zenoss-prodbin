@@ -32,8 +32,8 @@ import Queue
 import Globals # make zope imports work
 
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventThread
-from Products.ZenEvents.Event import Event
-from Products.ZenEvents.ZenEventClasses import PingStatus
+from Products.ZenEvents.Event import Event, EventHeartbeat
+from Products.ZenEvents.ZenEventClasses import PingStatus, Heartbeat
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from PingThread import PingThread
@@ -197,7 +197,7 @@ class ZenPing(ZCmdBase):
                 try:
                     self.loadConfig()
                     self.log.info("starting ping cycle")
-                    #self.sendHeartbeat()
+                    self.sendHeartbeat()
                     self.cycleLoop()
                     self.log.info("sent %d pings in %3.2f seconds" % 
                                 (self.sent, (time.time() - start)))
@@ -210,6 +210,7 @@ class ZenPing(ZCmdBase):
         else:
             self.loadConfig()
             self.cycleLoop()
+            self.sendHeartbeat()
         self.stop()
         self.log.info("stopped")
 
@@ -226,9 +227,9 @@ class ZenPing(ZCmdBase):
     def sendHeartbeat(self):
         """Send a heartbeat event for this monitor.
         """
-        pass
-#        evt = EventHeartbeat(socket.getfqdn(), "zenping")
-#        self._evqueue.put(evt)
+        timeout = self.cycleInterval*3
+        evt = EventHeartbeat(socket.getfqdn(), "zenmon/zenping", timeout)
+        self.eventThread.sendEvent(evt)
 
 
     def sendEvent(self, pj):

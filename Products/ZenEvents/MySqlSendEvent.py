@@ -8,7 +8,7 @@ log = logging.getLogger("zen.Events")
 from _mysql_exceptions import ProgrammingError, OperationalError
 
 from DbAccessBase import DbAccessBase
-from Event import Event
+from Event import Event, EventHeartbeat, buildEventFromDict
 from Exceptions import *
 
 class MySqlSendEventMixin:
@@ -21,16 +21,18 @@ class MySqlSendEventMixin:
         """Send an event to the backend.
         """
         if type(event) == types.DictType:
-            nevt = Event()
-            nevt.updateFromDict(event)
-            event = nevt
-        #FIXME - ungly hack to make sure severity is an int
-        event.severity = int(event.severity)
+            event = buildEventFromDict(event)
 
+        if isinstance(event, EventHeartbeat):
+            return self._sendHeartbeat(event, db)
+            
         for field in self.requiredEventFields:
             if not hasattr(event, field):
                 raise ZenEventError(
                     "Required event field %s not found" % field)
+        
+        #FIXME - ungly hack to make sure severity is an int
+        event.severity = int(event.severity)
         
         if not hasattr(event, 'dedupid'):
             evid = []
@@ -75,6 +77,29 @@ class MySqlSendEventMixin:
             log.exception(e)
             
 
+    def _sendHeartbeat(self, event, db=None):
+        """Build insert to add heartbeat record to heartbeat table.
+        """
+        evdict = {}
+        for field in ("device", "component", "timeout"):
+            evdict[field] = getattr(event, field)
+        insert = self.buildInsert(evdict, "heartbeat")
+        insert += " on duplicate key update lastTime=Null" 
+        insert += ", timeout=%s" % evdict['timeout']
+        try:
+            close = False
+            if db == None:  
+                db = self.connect()
+                close = True
+            curs = db.cursor()
+            log.debug(insert)
+            curs.execute(insert)
+            if close: db.close()
+        except ProgrammingError, e:
+            log.error(insert)
+            log.exception(e)
+
+
     def buildStatusInsert(self, statusdata, table):
         """
         Build an insert statement for the status table that looks like this:
@@ -99,14 +124,17 @@ class MySqlSendEventMixin:
 
 
     def buildDetailInsert(self, evid, detaildict):
+        """Build an insert to add detail values from an event to the details
+        table.
+        """
         insert = "insert into %s (evid, name, value) values " % self.detailTable
         var = [] 
         for field, value in detaildict.items():
             var.append("('%s','%s','%s')" % (evid, field, self.escape(value))) 
         insert += ",".join(var)        
         return insert
-            
-    
+
+
     def buildInsert(self, datadict, table):
         """
         Build a insert statement for that looks like this:

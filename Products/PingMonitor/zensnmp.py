@@ -34,6 +34,8 @@ class ZenSnmp(StatusMonitor):
     ncoClass = "/Status/Snmp"
     ncoAgent = "ZenSnmp"
     ncoAlertGroup = "SnmpTest"
+    heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
+                'component': 'zenmon/zensnmp'}
 
     def __init__(self):
         StatusMonitor.__init__(self)
@@ -76,6 +78,7 @@ class ZenSnmp(StatusMonitor):
             devices = server.getSnmpDevices()
             self.prepDevices(devices)
             self.configTime = time.time()
+            self.heartbeat['timeout'] = self.cycleInterval*3
 
 
     def prepDevices(self, devices):
@@ -308,6 +311,7 @@ class ZenSnmp(StatusMonitor):
 
 
     def sendEvents(self):
+            self.ncoeventqueue.append(self.heartbeat)
             url = basicAuthUrl(self.username, self.password, self.ncoserver)
             server = xmlrpclib.Server(url)
             try:

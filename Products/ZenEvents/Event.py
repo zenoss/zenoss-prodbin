@@ -13,6 +13,26 @@
 import socket
 import DateTime
 
+from ZenEventClasses import Heartbeat, Unknown
+
+from Exceptions import *
+
+def buildEventFromDict(evdict):
+    """Build an event object from a dictionary.
+    """
+    evclass = evdict.get("eventClass", Unknown)
+    if evclass == Heartbeat:
+        for field in ("device", "component", "timeout"):
+            if field not in evdict:
+                raise ZenEventError("Required event field %s not found" % field)
+        evt = EventHeartbeat(evdict['device'], evdict['component'], 
+                             evdict['timeout'])
+    else:
+        evt = Event(**evdict)
+    return evt
+
+
+
 class Event(object):
     """
     Event that lives independant of zope context.  As interface that allows
@@ -100,3 +120,12 @@ class Event(object):
         """return a list of data elements that map to the fields parameter.
         """
         return map(lambda x: getattr(self, x), fields)
+
+
+
+class EventHeartbeat(Event):
+    
+    def __init__(self, device, component, timeout=120):
+        self._fields = ("device", "component", "timeout")
+        super(EventHeartbeat, self).__init__(
+            device=device, component=component,timeout=timeout)
