@@ -311,14 +311,14 @@ class ZenSnmp(StatusMonitor):
 
 
     def sendEvents(self):
-            self.ncoeventqueue.append(self.heartbeat)
-            url = basicAuthUrl(self.username, self.password, self.ncoserver)
-            server = xmlrpclib.Server(url)
-            try:
-                server.sendEvents(self.ncoeventqueue)
-            except Exception, e:
-                self.log.exception("netcool snmp event notification failed")
-            self.ncoeventqueue = []
+        self.ncoeventqueue.append(self.heartbeat)
+        url = basicAuthUrl(self.username, self.password, self.ncoserver)
+        server = xmlrpclib.Server(url)
+        try:
+            server.sendEvents(self.ncoeventqueue)
+        except Exception, e:
+            self.log.exception("netcool snmp event notification failed")
+        self.ncoeventqueue = []
 
 
     def buildOptions(self):
