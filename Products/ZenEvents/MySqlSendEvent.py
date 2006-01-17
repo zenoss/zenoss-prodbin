@@ -144,8 +144,20 @@ class MySqlSendEventMixin:
         """Build insert to add heartbeat record to heartbeat table.
         """
         evdict = {}
-        for field in ("device", "component", "timeout"):
-            evdict[field] = getattr(event, field)
+        if hasattr(event, "device"):
+            evdict['device'] = event.device
+        else:
+            log.warn("heartbeat without device skipping")
+            return
+        if hasattr(event, "timeout"):
+            evdict['timeout'] = event.timeout
+        else:
+            log.warn("heartbeat from %s without timeout skipping", event.device)
+            return
+        if hasattr(event, "component"):
+            evdict['component'] = event.component
+        else:
+            evdict['component'] = ""
         insert = self.buildInsert(evdict, "heartbeat")
         insert += " on duplicate key update lastTime=Null"
         insert += ", timeout=%s" % evdict['timeout']
