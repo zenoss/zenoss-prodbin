@@ -125,6 +125,8 @@ class Event(object):
 
 class EventHeartbeat(Event):
     
+    eventClass = Heartbeat
+    
     def __init__(self, device, component, timeout=120):
         self._fields = ("device", "component", "timeout")
         super(EventHeartbeat, self).__init__(

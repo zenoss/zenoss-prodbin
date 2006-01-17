@@ -67,38 +67,14 @@ class SyslogProcessingThread(threading.Thread):
             evt = self.parseTag(evt, msg) #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             try:
-                app = self.master.getConnection()
-                events = self.getDmdRoot(app, "Events")
-                evtclass = events.lookup(evt)
-                if evtclass:
-                    slog.debug("EventClassInst=%s", evtclass.id)
-                    evt = evtclass.applyExtraction(evt)
-                    evt = evtclass.applyValues(evt)
-                if evt._action == "drop": 
-                    slog.debug("dropping event")
-                    return
-                devices = self.getDmdRoot(app,"Devices")
-                device = devices.findDevice(evt.device)
-                if not device:
-                    slog.debug("looking up ip %s",self.ipaddress)
-                    nets = self.getDmdRoot(app,"Networks")
-                    ipobj = nets.findIp(self.ipaddress)
-                    if ipobj and ipobj.device():
-                        device = ipobj.device()
-                        evt.device = device.id
-                        slog.debug("ip %s -> %s", ipobj.id, device.id)
-                if device:
-                    slog.debug("Found device=%s", evt.device)
-                    evt = self.applyDeviceContext(device, evt)
-                if getattr(evtclass, "scUserFunction", False):
-                    slog.debug("Found scUserFunction")
-                    evt = evtclass.scUserFunction(device, evt)
+                zem = self.master.getZem()
+                zem.sendEvent(evt)
             finally:
-                app._p_jar.close()
-            if not getattr(evt, 'eventKey', False):
-                evt.dedupfields = ("device", "component", "eventClass", 
-                                   "eventKey", "severity", "summary")
-            self.master.sendEvent(evt)
+                zem._p_jar.close()
+# FIXME - need to add summary to dedupkey if not eventKey is set
+#            if not getattr(evt, 'eventKey', False):
+#                evt.dedupfields = ("device", "component", "eventClass", 
+#                                   "eventKey", "severity", "summary")
         except:
             slog.exception("event processing failure: %s", self.hostname)
 
@@ -213,23 +189,5 @@ class SyslogProcessingThread(threading.Thread):
             if value != None:
                 setattr(evt, attr, value)
         return evt
-
-
-    def applyUserFunction(self, func, device, evt, zem):
-        """
-        Apply a custom user function to the event.  Function call signature is:
-        func(device, evt, zem).  Many things can be done here like modifications
-        to the event system, modification to the device config, additional snmp
-        query or command execution on the device.
-        """
-        # FIXME import the function name and call it.
-        pass
-
-
-    def getDmdRoot(self, app, name):
-        """Return our ZenEventManager based on zempath option.
-        """
-        rootpath = os.path.join(self.master.options.dmdpath, name)
-        return app.unrestrictedTraverse(rootpath)
 
 

@@ -9,6 +9,7 @@ from _mysql_exceptions import ProgrammingError, OperationalError
 
 from DbAccessBase import DbAccessBase
 from Event import Event, EventHeartbeat, buildEventFromDict
+from ZenEventClasses import Heartbeat, Unknown
 from Exceptions import *
 
 class MySqlSendEventMixin:
@@ -23,7 +24,8 @@ class MySqlSendEventMixin:
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
-        if isinstance(event, EventHeartbeat):
+        evclass = getattr(event, 'eventClass', Unknown)
+        if evclass == Heartbeat:
             return self._sendHeartbeat(event, db)
             
         for field in self.requiredEventFields:
@@ -34,6 +36,10 @@ class MySqlSendEventMixin:
         #FIXME - ungly hack to make sure severity is an int
         event.severity = int(event.severity)
         
+        if getattr(self, "getDmdRoot", False):
+            event = self.applyEventContext(event)
+        if not event: return
+
         if not hasattr(event, 'dedupid'):
             evid = []
             dedupfields = getattr(event, "dedupfields", self.defaultIdentifier)
@@ -76,6 +82,59 @@ class MySqlSendEventMixin:
             log.error(insert)
             log.exception(e)
             
+
+    def applyEventContext(self, evt):
+        """Apply event and devices contexts to the event.
+        Only valid if this object has zeo connection.
+        """
+        events = self.getDmdRoot("Events")
+        evtclass = events.lookup(evt)
+        if evtclass:
+            log.debug("EventClassInst=%s", evtclass.id)
+            evt = evtclass.applyExtraction(evt)
+            evt = evtclass.applyValues(evt)
+        if evt._action == "drop": 
+            log.debug("dropping event")
+            return None
+        devices = self.getDmdRoot("Devices")
+        device = devices.findDevice(evt.device)
+        if not device and hasattr(evt, 'ipAddress'):
+            log.debug("looking up ip %s",evt.ipAddress)
+            nets = self.getDmdRoot("Networks")
+            ipobj = nets.findIp(evt.ipAddress)
+            if ipobj and ipobj.device():
+                device = ipobj.device()
+                evt.device = device.id
+                log.debug("ip %s -> %s", ipobj.id, device.id)
+        if device:
+            log.debug("Found device=%s", evt.device)
+            evt = self.applyDeviceContext(device, evt)
+        if getattr(evtclass, "scUserFunction", False):
+            log.debug("Found scUserFunction")
+            evt = evtclass.scUserFunction(device, evt)
+        return evt
+
+
+    def applyDeviceContext(self, device, evt):
+        """
+        Apply event attributes from device context.  List of attribute names is
+        looked for in zProperty 'zEventProperties'. These attributes are 
+        looked up using the key 'zEvent_'+attr name (to prevent name clashes). 
+        Any non-None attribute values are applied to the event.
+        """
+        evt.prodState = device.productionState
+        evt.Location = device.getLocationName()
+        evt.DeviceClass  = device.getDeviceClassName()
+        evt.DeviceGroups = "|"+"|".join(device.getDeviceGroupNames())
+        evt.Systems = "|"+"|".join(device.getSystemNames())
+        attnames = getattr(device, "zEventProperties", ())
+        for attr in attnames:
+            attkey = "zEvent_" + attr
+            value = getattr(device, attkey, None)
+            if value != None:
+                setattr(evt, attr, value)
+        return evt
+
 
     def _sendHeartbeat(self, event, db=None):
         """Build insert to add heartbeat record to heartbeat table.
@@ -164,7 +223,7 @@ class MySqlSendEventMixin:
         for cls in clearcls:
             w.append("%s='%s'" % (self.eventClassField, cls)) 
         if w:
-            delete += " and " + " or ".join(w)
+            delete += " and (" + " or ".join(w) + ")"
         return delete
 
     
@@ -282,6 +341,6 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 curs.close()
                 return db
             except MySqlError, e:
-                slog.warn(e)
+                log.warn(e)
                 time.sleep(2)
             log.info("reconnected to database: %s", self.database)

@@ -36,8 +36,9 @@ class ZeoPoolBase(ZenDaemon):
         self.poollock = Lock()
 
 
-    def getConnection(self):
-        """Return a connection from the connection pool.
+    def getConnection(self, path=None):
+        """Return a connection from the connection pool. If path is passed
+        return the object that the path points to.
         """
         try:
             self.poollock.acquire()
@@ -46,7 +47,10 @@ class ZeoPoolBase(ZenDaemon):
             app=root['Application']
             self._getContext(app)
             app._p_jar.sync()
-            return app
+            if path:
+                return app.unrestrictedTraverse(path)
+            else:
+                return app
         finally:
             self.poollock.release()
 
