@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# zenmon        This shell script takes care of starting and stopping zenmon.
+#               
+# chkconfig: 2345 80 30
+# description: ZenMon is a monitoring program written by Zentinel, Inc.
+
 
 . $ZENHOME/bin/zenfunctions
 ZOPECMDS="zeoctl zopectl"
