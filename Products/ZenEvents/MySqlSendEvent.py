@@ -24,8 +24,7 @@ class MySqlSendEventMixin:
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
-        evclass = getattr(event, 'eventClass', Unknown)
-        if evclass == Heartbeat:
+        if getattr(event, 'eventClass', Unknown) == Heartbeat:
             return self._sendHeartbeat(event, db)
             
         for field in self.requiredEventFields:
@@ -39,6 +38,11 @@ class MySqlSendEventMixin:
         if getattr(self, "getDmdRoot", False):
             event = self.applyEventContext(event)
         if not event: return
+       
+        # check again for heartbeat after context processing
+        if getattr(event, 'eventClass', Unknown) == Heartbeat:
+            return self._sendHeartbeat(event, db)
+            
 
         if not hasattr(event, 'dedupid'):
             evid = []
