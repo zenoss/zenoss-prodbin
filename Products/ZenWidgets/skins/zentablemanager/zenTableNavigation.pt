@@ -65,9 +65,8 @@
     <div metal:define-macro="navbodynofilter" 
         tal:define="
         ztm here/ZenTableManager;
-        user here/ZenUsers/getUser;
         start request/start | python:0;
-        batchSize request/batchSize|ztm/getDefaultBatchSize;
+        batchSize request/batchSize | ztm/defaultBatchSize;
         pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
         lastindex python:len(pagenav) and pagenav[-1]['index'] or 0;
         totalobjs python:len(objects)"

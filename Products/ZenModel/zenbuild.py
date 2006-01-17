@@ -74,12 +74,23 @@ class zenbuild(CmdBase):
         rrdloader = RRDLoader(noopts=True, app=self.app) 
         rrdloader.loadDatabase()
         
-
         # Load IpService data
         from Products.ZenModel.IpServiceLoader import IpServiceLoader
         ipsvcloader = IpServiceLoader(noopts=True, app=self.app) 
         ipsvcloader.loadDatabase()
 
+        # Load reports
+        from Products.ZenModel.ReportLoader import ReportLoader
+        rl = ReportLoader(noopts=True, app=self.app) 
+        rl.loadDatabase()
+
+        
+        # Load XML Data
+        from Products.ZenModel.XmlDataLoader import XmlDataLoader
+        dl = XmlDataLoader(noopts=True, app=self.app) 
+        dl.loadDatabase()
+
+        
 
 if __name__ == "__main__":
     zb = zenbuild()

@@ -110,7 +110,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     defaultFields = ('eventState', 'severity', 'evid')
 
-    defaultIdentifier = ('device', 'component', 'eventClass', 'severity')
+    defaultIdentifier = ('device', 'component', 'eventClass', 
+                         'eventKey', 'severity')
 
     requiredEventFields = ('device', 'summary', 'severity')
 
@@ -650,7 +651,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             if self.backend == "omnibus":
                 type = row[1] in (1, 4, 7, 8) #different date types
             elif self.backend == "mysql":
-                type = row[1] in ("datetime", "timestamp")
+                type = row[1] in ("datetime", "timestamp", "double")
             schema[col] = type
         if schema: self._schema = schema 
         self._fieldlist = fieldlist
@@ -718,7 +719,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     security.declareProtected('Manage EventManager','manage_editCache')
-    def manage_editCache(self, timeout=20, clearthresh=20, REQUEST=None):
+    def manage_editCache(self, timeout=5, clearthresh=20, REQUEST=None):
         """Reset cache values"""
         self.timeout = int(timeout)
         self.clearthresh = int(clearthresh)

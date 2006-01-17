@@ -12,7 +12,7 @@ from Products.ZenModel.Report import Report
 
 class ReportLoader(ZCmdBase):
 
-    def load(self):
+    def loadDatabase(self):
         reproot = self.dmd.Reports
         repdir = os.path.join(os.path.dirname(__file__),"reports")
         self.log.info("loading reports from:%s", repdir)
@@ -30,4 +30,4 @@ class ReportLoader(ZCmdBase):
 
 if __name__ == "__main__":
     rl = ReportLoader()
-    rl.load()
+    rl.loadDatabase()

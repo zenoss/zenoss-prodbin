@@ -30,17 +30,6 @@ from Products.ZenRelations.Exceptions import *
 
 class ImportRM(ZCmdBase, ContentHandler):
 
-    def __init__(self):
-        ZCmdBase.__init__(self)
-        self.objstack = [self.app,]
-        self.links = []
-        self.objectnumber = 0
-        self.charvalue = ""
-        if not self.options.infile:
-            self.infile = sys.stdin
-        else:
-            self.infile = open(self.options.infile, 'r')
-
 
     def context(self):
         return self.objstack[-1]
@@ -185,6 +174,14 @@ class ImportRM(ZCmdBase, ContentHandler):
     def loadDatabase(self):
         """top level of this loader makes a parser and 
         passes itself has a content handler"""
+        self.objstack = [self.app,]
+        self.links = []
+        self.objectnumber = 0
+        self.charvalue = ""
+        if not self.options.infile:
+            self.infile = sys.stdin
+        else:
+            self.infile = open(self.options.infile, 'r')
         parser = make_parser()
         parser.setContentHandler(self)
         parser.parse(self.infile)

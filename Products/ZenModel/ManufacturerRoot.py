@@ -80,8 +80,9 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         )
 
 
-    def __init__(self):
-        super(ManufacturerRoot, self).__init__(self.dmdRootName)
+    def __init__(self, id=None):
+        if not id: id = self.dmdRootName
+        super(ManufacturerRoot, self).__init__(id)
         self.createCatalog()
 
 

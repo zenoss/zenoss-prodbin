@@ -48,6 +48,7 @@
             tal:attributes="value here/defaultPageSize" />
       </td>
     </tr>
+    <!--
     <tr>
       <td class="tableheader" align="left">Default Event Page Size</td>
       <td class="tablevalues">
@@ -55,6 +56,7 @@
             tal:attributes="value here/defaultEventPageSize" />
       </td>
     </tr>
+    -->
     <tr>
         <td class=tableheader align="left" >
         </td>
