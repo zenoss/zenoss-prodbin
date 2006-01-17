@@ -246,7 +246,6 @@ class ZenSnmp(StatusMonitor):
         except:
             self.log.exception("failed to send uptimes to zope")
         if self.evtserver: self.sendEvents()
-        self.log.debug('data sent to server') 
         self.processed = []
 
 
@@ -318,6 +317,7 @@ class ZenSnmp(StatusMonitor):
         server = xmlrpclib.Server(url)
         try:
             server.sendEvents(self.eventqueue)
+            self.log.debug('data sent to server') 
         except Exception, e:
             self.log.exception("snmp event notification failed")
         self.eventqueue = []
