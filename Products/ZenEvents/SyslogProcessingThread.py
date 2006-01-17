@@ -33,6 +33,21 @@ for regex in parsers:
     compiledParsers.append(re.compile(regex)) 
 
 
+class SyslogEvent(Event):
+
+    agent="ZenSyslog"
+    eventGroup="Syslog" 
+
+    def getDedupFields(self, default):
+        """Return list of dedupid fields.
+        """
+        default = list(default)
+        if not getattr(self, "eventKey", False):
+            default.append("summary")
+        return default
+
+
+
 
 class SyslogProcessingThread(threading.Thread):
     """
@@ -53,9 +68,7 @@ class SyslogProcessingThread(threading.Thread):
         """Peform event processing after event is recieved.
         """
         try:
-            evt = Event(agent="ZenSyslog",eventGroup="Syslog")
-            evt.ipAddress = self.ipaddress
-            evt.device = self.hostname
+            evt = SyslogEvent(device=self.hostname, ipAddress=self.ipaddress)
             slog.debug("hostname=%s, ip=%s", self.hostname, self.ipaddress)
             if self.master.options.logorig: evt.originalMessage = self.msg
             slog.debug(self.msg)
@@ -71,10 +84,6 @@ class SyslogProcessingThread(threading.Thread):
                 zem.sendEvent(evt)
             finally:
                 zem._p_jar.close()
-# FIXME - need to add summary to dedupkey if not eventKey is set
-#            if not getattr(evt, 'eventKey', False):
-#                evt.dedupfields = ("device", "component", "eventClass", 
-#                                   "eventKey", "severity", "summary")
         except:
             slog.exception("event processing failure: %s", self.hostname)
 

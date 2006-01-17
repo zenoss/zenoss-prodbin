@@ -42,7 +42,7 @@ class MySqlSendEventMixin:
 
         if not hasattr(event, 'dedupid'):
             evid = []
-            dedupfields = getattr(event, "dedupfields", self.defaultIdentifier)
+            dedupfields = event.getDedupFields(self.defaultIdentifier)
             for field in dedupfields:
                 value = getattr(event, field, "")
                 evid.append(str(value))
@@ -143,7 +143,7 @@ class MySqlSendEventMixin:
         for field in ("device", "component", "timeout"):
             evdict[field] = getattr(event, field)
         insert = self.buildInsert(evdict, "heartbeat")
-        insert += " on duplicate key update lastTime=Null" 
+        insert += " on duplicate key update lastTime=Null"
         insert += ", timeout=%s" % evdict['timeout']
         try:
             close = False
@@ -163,22 +163,18 @@ class MySqlSendEventMixin:
         """
         Build an insert statement for the status table that looks like this:
         insert into status set device='box', count=1, ...
-            on duplicate key update count=count+1, lastTime=Null;
+            on duplicate key update count=count+1, lastTime=23424.34;
         """
         insert = self.buildInsert(statusdata, table)
         fields = []
-        if not statusdata.has_key(self.firstTimeField):
-            fields.append("%s=null" % self.firstTimeField)
-        if not statusdata.has_key(self.lastTimeField):
-            fields.append("%s=null" % self.lastTimeField)
         if table == "history":
             fields.append("deletedTime=null")
         fields.append("evid=uuid()")
         insert += ","+",".join(fields)
         if table == self.statusTable:
             insert += " on duplicate key update "
-            insert += "%s=%s+1,%s=null" % (self.countField, self.countField, 
-                                            self.lastTimeField)
+            insert += "%s=%s+1,%s=%s" % (self.countField, self.countField, 
+                                    self.lastTimeField,statusdata['lastTime'])
         return insert
 
 

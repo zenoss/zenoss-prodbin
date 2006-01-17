@@ -613,18 +613,21 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def dateString(self, value):
         """Convert a date from database format to string.
         """
-        if isinstance(value, DateTime.DateTime):
-            return value.strftime("%Y/%m/%d %H:%M:%S")
-        return DateTime.DateTime(value).strftime("%Y/%m/%d %H:%M:%S")
+        #if isinstance(value, DateTime.DateTime):
+        #    return value.strftime("%Y/%m/%d %H:%M:%S")
+        dt = DateTime.DateTime(value)
+        cents = dt.millis()%1000/10
+        return "%s.%02d" % (dt.strftime("%Y/%m/%d %H:%M:%S"), cents)
+        
 
 
     def dateDB(self, value):
         """Convert a date to its database format.
         """
         if isinstance(value, DateTime.DateTime):
-            return value.strftime("%Y/%m/%d %H:%M:%S")
-        elif type(value) == types.IntType:
-            DateTime.DateTime(value).strftime("%Y/%m/%d %H:%M:%S")
+            return value.timeTime()
+        elif type(value) == types.StringTypes:
+            return DateTime.DateTime(value).timeTime()
         return value
 
 

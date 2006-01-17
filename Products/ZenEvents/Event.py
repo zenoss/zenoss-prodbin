@@ -9,9 +9,8 @@
 #
 ###############################################################################
 
-#import time
+import time
 import socket
-import DateTime
 
 from ZenEventClasses import Heartbeat, Unknown
 
@@ -66,8 +65,7 @@ class Event(object):
         # not sure we need sub second time stamps
         # if we do uncomment and change event backend to use
         # double presicion values for these two fields.
-        #self.firstTime = time.time()
-        #self.lastTime = time.time()
+        self.firstTime = self.lastTime = time.time()
         self._clearClasses = []
         self._action = "status"
         self._fields = kwargs.get('fields',[])
@@ -108,19 +106,16 @@ class Event(object):
         return clearcls
 
 
-    def initTime(self, timestamp):
-        """Initialize first and last time from timestamp value.
-        """
-        tstamp = DateTime.DateTime(timestamp)
-        self.firstTime = tstamp
-        self.lastTime = tstamp
-
-
     def getDataList(self, fields):
         """return a list of data elements that map to the fields parameter.
         """
         return map(lambda x: getattr(self, x), fields)
 
+
+    def getDedupFields(self, default):
+        """Return list of dedupid fields.
+        """
+        return default
 
 
 class EventHeartbeat(Event):
