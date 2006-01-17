@@ -31,9 +31,9 @@ from StatusMonitor import StatusMonitor
 
 class ZenSnmp(StatusMonitor):
     
-    ncoClass = "/Status/Snmp"
-    ncoAgent = "ZenSnmp"
-    ncoAlertGroup = "SnmpTest"
+    evtClass = "/Status/Snmp"
+    evtAgent = "ZenSnmp"
+    evtAlertGroup = "SnmpTest"
     heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
                 'component': 'zenmon/zensnmp'}
 
@@ -42,7 +42,7 @@ class ZenSnmp(StatusMonitor):
         self.pingconfsrv = self.options.zopeurl
         self.username = self.options.zopeusername
         self.password = self.options.zopepassword
-        self.ncoserver = self.options.netcool 
+        self.evtserver = self.options.zem 
         self.timeout = 1.2
         self.numTries = 3
         self.chunkSize = 50
@@ -55,7 +55,7 @@ class ZenSnmp(StatusMonitor):
         self.pending = {}
         self.processed = []
         self.manager = asynrole.manager((self.report, None))
-        self.ncoeventqueue = []
+        self.eventqueue = []
 
 
     def validConfig(self):
@@ -178,16 +178,17 @@ class ZenSnmp(StatusMonitor):
                     self.sendSnmpToDevice(device)
                 else:
                     #snmp is down log error update zope
-                    #and send to netcool if we have a server
-                    del self.pending[reqid]
+                    #and send to zem if we have a server
                     device.message = ("no snmp response from %s" 
                                         % device.hostname)
+                    device.uptime = device.lastuptime = 0
                     self.log.warn(device.message)
                     if device.currentStatus < 0:
                         device.currentStatus = 1
                     else:
                         device.currentStatus += 1
                     self.processed.append(device)
+                del self.pending[reqid]
         if len(self.pending) == 0 and not self.cycleInterval:
             self.manager.close()
 
@@ -209,12 +210,12 @@ class ZenSnmp(StatusMonitor):
                     self.log.debug('reset status for %s' % device.hostname)
                     messages.append((device.url, str(device.uptime)))
                     device.updateup = randrange(1,10)
-                    if self.ncoserver:
+                    if self.evtserver:
                         device.message = ("snmp agent up on device %s" 
                                                     % device.hostname)
                         device.severity = 0
                         device.type = 2
-                        self.queueNcoEvent(device)
+                        self.queueEvent(device)
                 #update uptime of device
                 if (device.updateup == 1):
                     device.updateup = randrange(1,10)
@@ -232,19 +233,19 @@ class ZenSnmp(StatusMonitor):
                     'snmp failed set status for %s to %d' 
                     % (device.hostname, device.currentStatus)) 
                 messages.append((device.url, str(-1)))
-                if self.ncoserver:
+                if self.evtserver:
                     device.message = ("snmp agent down on device %s" 
                                                 % device.hostname)
                     device.severity = 4
                     device.type = 1
-                    self.queueNcoEvent(device)
+                    self.queueEvent(device)
         try:
             self.log.debug("sending data to server")
             server.updateSnmpDevices(messages)
         except SystemExit: raise
         except:
             self.log.exception("failed to send uptimes to zope")
-        if self.ncoserver: self.sendEvents()
+        if self.evtserver: self.sendEvents()
         self.log.debug('data sent to server') 
         self.processed = []
 
@@ -294,31 +295,32 @@ class ZenSnmp(StatusMonitor):
                         (len(self.devices), (time.time() - startTime)))
  
 
-    def queueNcoEvent(self, statusTest):
-        """place an event in the queue to be sent to the NcoProduct Server"""
+    def queueEvent(self, statusTest):
+        """Put event in the queue to be sent to the ZenEventManager.
+        """
         event = {}
         event['device'] = statusTest.hostname
         event['component'] = "snmp"
         event['summary'] = statusTest.message
-        event['eventClass'] = self.ncoClass
-        event['agent'] = self.ncoAgent
+        event['eventClass'] = self.evtClass
+        event['agent'] = self.evtAgent
         event['severity'] = statusTest.severity
         #event['Type'] = statusTest.type
-        event['eventGroup'] = self.ncoAlertGroup
+        event['eventGroup'] = self.evtAlertGroup
         event['ipAddress'] = statusTest.address
         event['manager'] = os.uname()[1]
-        self.ncoeventqueue.append(event)
+        self.eventqueue.append(event)
 
 
     def sendEvents(self):
-        self.ncoeventqueue.append(self.heartbeat)
-        url = basicAuthUrl(self.username, self.password, self.ncoserver)
+        self.eventqueue.append(self.heartbeat)
+        url = basicAuthUrl(self.username, self.password, self.evtserver)
         server = xmlrpclib.Server(url)
         try:
-            server.sendEvents(self.ncoeventqueue)
+            server.sendEvents(self.eventqueue)
         except Exception, e:
-            self.log.exception("netcool snmp event notification failed")
-        self.ncoeventqueue = []
+            self.log.exception("snmp event notification failed")
+        self.eventqueue = []
 
 
     def buildOptions(self):
@@ -332,10 +334,8 @@ class ZenSnmp(StatusMonitor):
         self.parser.add_option("-p", "--zopepassword", action="store", 
                 type="string", dest="zopepassword",
                 help="password for zope server")
-        self.parser.add_option('-n', '--netcool',
-                dest='netcool',
-                default="",
-                help="XMLRPC path to an NcoProduct instance")
+        self.parser.add_option('--zem', dest='zem',
+                help="XMLRPC path to an ZenEventManager instance")
         self.parser.add_option("--skipbad", action="store_true", 
                 default=0, dest="skipbad",
                 help="skip testing the devices over pingthreshold")

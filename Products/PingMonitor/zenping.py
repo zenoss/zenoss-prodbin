@@ -233,8 +233,8 @@ class ZenPing(ZCmdBase):
 
 
     def sendEvent(self, pj):
-        """send an event to NcoProduct
-        if nosev is true then don't use severity in Identifier"""
+        """Send an event to event backend.
+        """
         evt = Event(
             device=pj.hostname, 
             component="icmp", 
