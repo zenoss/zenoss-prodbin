@@ -28,7 +28,7 @@ addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
 
 class EventClassPropertyMixin(object):
     def zenPropertyIds(self, all=True):
-        props = super(EventClassPropertyMixin, self).zenPropertyIds(all=True)
+        props = super(EventClassPropertyMixin, self).zenPropertyIds(all)
         if all:
             for p in self.zEventProperties:
                 p = "zEvent_" + p
