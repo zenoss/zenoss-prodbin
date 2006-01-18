@@ -126,7 +126,7 @@ class CricketDevice:
 
     def cricketInterfaces(self):
         """build the targets for device interfaces"""
-        targetpath = self.cricketTargetPath() + '/interfaces'
+        targetpath = self.getDeviceClassPath() + '/' + self.id + "/interfaces"
         targettypes = {}
         targets = []
         for interface in self.os.interfaces.objectValuesAll():
@@ -150,7 +150,7 @@ class CricketDevice:
 
     def cricketFilesystems(self):
         """build the cricket configuration for filesystem monitoring"""
-        targetpath = self.cricketTargetPath() + '/filesystems'
+        targetpath = self.getDeviceClassPath() + '/' + self.id + "/filesystems"
         targettypes = {}
         targets = []
         cricketFilesystemType = getattr(self, "zCricketFilesystemType", 
@@ -175,7 +175,7 @@ class CricketDevice:
 
 
     def cricketDisks(self):
-        targetpath = self.cricketTargetPath() + '/disks'
+        targetpath = self.getDeviceClassPath() + '/' + self.id + "/disks"
         targettypes = {}
         targets = []
         cricketDiskType = getattr(self, "zCricketHardDiskType", 
