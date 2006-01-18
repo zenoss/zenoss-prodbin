@@ -98,6 +98,9 @@ class Rnode(object):
             return
         gDevicemap[device.id] = 1
         mint = device.getManageInterface()
+        if not mint: 
+            log.warn("device '%s' not management interface, skipping.")
+            return
         netname = mint.getNetworkName()
         net = self.getNet(netname)
         if net.ip == 'default':
