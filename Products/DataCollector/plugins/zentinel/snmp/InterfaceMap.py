@@ -60,6 +60,7 @@ class InterfaceMap(SnmpPlugin):
         iptable = tabledata.get("iptable")
         iftable = tabledata.get("iftable")
         omtable = {}
+        self.idtable = {}
         for iprow in iptable.values():
             strindex = str(iprow['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
@@ -90,6 +91,9 @@ class InterfaceMap(SnmpPlugin):
         om = self.objectMap(iface)
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.name = om.id
+        if self.idtable.has_key(om.id):
+            om.id = "%s_%s" %(om.id, om.ifindex)
+        self.idtable[om.id] = 1
         om.id = self.prepId(om.id)
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if dontCollectIntNames and re.search(dontCollectIntNames, om.name):
