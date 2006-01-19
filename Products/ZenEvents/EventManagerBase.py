@@ -617,8 +617,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         #if isinstance(value, DateTime.DateTime):
         #    return value.strftime("%Y/%m/%d %H:%M:%S")
         dt = DateTime.DateTime(value)
-        cents = dt.millis()%1000/10
-        return "%s.%02d" % (dt.strftime("%Y/%m/%d %H:%M:%S"), cents)
+        cents = dt.millis()%1000
+        return "%s.%3d" % (dt.strftime("%Y/%m/%d %H:%M:%S"), cents)
         
 
 
@@ -626,9 +626,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """Convert a date to its database format.
         """
         if isinstance(value, DateTime.DateTime):
-            return value.timeTime()
+            return "%.3f" % value.timeTime()
         elif type(value) == types.StringTypes:
-            return DateTime.DateTime(value).timeTime()
+            return "%.3f" % DateTime.DateTime(value).timeTime()
         return value
 
 

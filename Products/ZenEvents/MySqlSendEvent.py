@@ -76,10 +76,12 @@ class MySqlSendEventMixin:
                              event._action, self.escape(event.dedupid)))
                 log.debug(selid)
                 curs.execute(selid)
-                evid = curs.fetchone()[0]
-                insert = self.buildDetailInsert(evid, detaildata)
-                log.debug(insert)
-                curs.execute(insert)
+                evid = curs.fetchone()
+                if evid: 
+                    evid=evid[0]
+                    insert = self.buildDetailInsert(evid, detaildata)
+                    log.debug(insert)
+                    curs.execute(insert)
             if close: db.close()
             return event
         except ProgrammingError, e:
