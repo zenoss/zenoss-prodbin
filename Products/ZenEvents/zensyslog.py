@@ -36,7 +36,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             self.propagate = False
             lname = os.path.join(os.environ['ZENHOME'],"log","origsyslog.log")
             hdlr = logging.FileHandler(lname)
-            hdlr.setFormatter(logging.Formatter("%(message)s")
+            hdlr.setFormatter(logging.Formatter("%(message)s"))
             self.olog.addHandler(hdlr)
         self.evtheartbeat = EventHeartbeat(
             socket.getfqdn(), "zenmon/zensyslog", self.options.heartbeat*3)
@@ -65,7 +65,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         ipaddress = client_address[0]
         hostname = self.resolvaddr(ipaddress)
         msg = request[0]
-        if self.master.options.logorig: 
+        if self.options.logorig: 
             self.olog.info(msg)
         spt = SyslogProcessingThread(self,msg,ipaddress, hostname,
                                     self.options.parsehost)
