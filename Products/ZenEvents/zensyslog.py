@@ -92,6 +92,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             try:
                 self.handle_request()
                 self.sendHeartbeat()
+                self.log.info("connect pool size=%d", self.available())
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected exception")

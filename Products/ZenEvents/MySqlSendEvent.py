@@ -191,7 +191,7 @@ class MySqlSendEventMixin:
         insert += ","+",".join(fields)
         if table == self.statusTable:
             insert += " on duplicate key update "
-            insert += "%s=%s+1,%s=%s" % (self.countField, self.countField, 
+            insert += "%s=%s+1,%s=%.3f" % (self.countField, self.countField, 
                                     self.lastTimeField,statusdata['lastTime'])
         return insert
 
@@ -218,6 +218,8 @@ class MySqlSendEventMixin:
         for name, value in datadict.items():
             if type(value) == types.StringType:
                 fields.append("%s='%s'" % (name, self.escape(value)))
+            elif type(value) == types.FloatType:
+                fields.append("%s=%.3f" % (name, value))
             else:
                 fields.append("%s=%s" % (name, value))
         insert += ",".join(fields)
