@@ -27,6 +27,7 @@ addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
 
 
 class EventClassPropertyMixin(object):
+
     def zenPropertyIds(self, all=True):
         props = super(EventClassPropertyMixin, self).zenPropertyIds(all)
         if all:
@@ -35,6 +36,26 @@ class EventClassPropertyMixin(object):
                 if p in props: continue
                 props.append(p)
         return props
+
+
+    def applyValues(self, evt):
+        """Modify event with values taken from dict Inst.
+        Apply event properties from EventClass.  List of property names is
+        looked for in zProperty 'zEventProperties'. These properties are 
+        looked up using the key 'zEvent_'+prop name (to prevent name clashes). 
+        Any non-None property values are applied to the event.
+        """
+        evt._clearClasses = copy.copy(getattr(self, "zEventClearClasses", []))
+        evt._action = getattr(self, "zEventAction", "status")
+        propnames = getattr(self, "zEventProperties", ())
+        for prop in propnames:
+            propkey = "zEvent_" + prop
+            value = getattr(self, propkey, None)
+            if value != None:
+                setattr(evt, prop, value)
+        return evt
+
+
 
         
 class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
@@ -163,15 +184,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         Any non-None property values are applied to the event.
         """
         evt.eventClass = self.getEventClass()
-        evt._clearClasses = copy.copy(getattr(self, "zEventClearClasses", []))
-        evt._action = getattr(self, "zEventAction", "status")
-        propnames = getattr(self, "zEventProperties", ())
-        for prop in propnames:
-            propkey = "zEvent_" + prop
-            value = getattr(self, propkey, None)
-            if value != None:
-                setattr(evt, prop, value)
-        return evt
+        return EventClassPropertyMixin.applyValues(self, evt)
 
 
     def ruleOrRegex(self, limit=None):

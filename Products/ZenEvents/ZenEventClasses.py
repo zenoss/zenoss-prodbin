@@ -1,6 +1,6 @@
 PingStatus = "/Status/Ping"
 SnmpStatus = "/Status/Snmp"
-AppStart = "/Application/Start"
-AppStop = "/Application/Stop"
+AppStart = "/App/Start"
+AppStop = "/App/Stop"
 Heartbeat = "/Heartbeat"
 Unknown = "/Unknown"

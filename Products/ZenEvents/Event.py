@@ -103,9 +103,13 @@ class Event(object):
 
     def clearClasses(self):
         """Return a list of classes that this event clears.
+        if we have specified clearClasses always return them
+        if we ave a 0 severity return ourself as well.
         """
         clearcls = self._clearClasses
-        if hasattr(self, 'eventClass'): clearcls.append(self.eventClass)
+        evclass = getattr(self, "eventClass", None)
+        sev = getattr(self, 'severity', None)
+        if evclass and sev == 0: clearcls.append(self.eventClass)
         return clearcls
 
 

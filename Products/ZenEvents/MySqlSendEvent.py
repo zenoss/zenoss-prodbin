@@ -39,6 +39,9 @@ class MySqlSendEventMixin:
         if getattr(self, "getDmdRoot", False):
             event = self.applyEventContext(event)
         if not event: return
+        
+        #FIXME - ungly hack to make sure severity is an int
+        event.severity = int(event.severity)
        
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
@@ -63,11 +66,11 @@ class MySqlSendEventMixin:
             curs = db.cursor()
             if event.severity == 0:
                 event._action = "history"
-                clearcls = event.clearClasses()
-                if clearcls:
-                    delete = self.buildClearDelete(event, clearcls)
-                    log.debug(delete)
-                    curs.execute(delete)
+            clearcls = event.clearClasses()
+            if clearcls:
+                delete = self.buildClearDelete(event, clearcls)
+                log.debug(delete)
+                curs.execute(delete)
             evid = guid.generate()
             insert = self.buildStatusInsert(statusdata, event._action, evid)
             log.debug(insert)

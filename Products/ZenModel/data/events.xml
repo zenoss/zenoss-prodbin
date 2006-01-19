@@ -151,9 +151,6 @@ Failed password for edahl from 10.2.1.11 port 53529 ssh2
 </tomanycont>
 </object>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventProperties' >
-['severity']
-</property>
 <property type='None' id='zEvent_severity' >
 4
 </property>
@@ -462,11 +459,11 @@ defaultmapping
 2
 </property>
 <object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventProperties' >
-['severity']
+<property type='None' id='zEvent_severity' >
+0
 </property>
 <property type='lines' id='zEventClearClasses' >
-['/Application/Stop']
+['/App/Stop']
 </property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -644,7 +641,7 @@ Descriptor 1 was not open
 <object id='Dhcp' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ack' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type='lines' id='zEventClearClasses' >
-['/Application/Dhcp/Request']
+['/App/Dhcp/Request']
 </property>
 <tomanycont id='instances'>
 <object id='udhcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>

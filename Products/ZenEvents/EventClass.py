@@ -122,11 +122,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     
     def lookup(self, evt):
-        #FIXME - i need to do this but this isn't correct in this context
-        #if hasattr(evt, "eventClass"):
-        #    evtcls = self.getDmdRoot("Events").getOrganizer(evt.eventClass)
-        evtcls = None
-        if hasattr(evt, "eventClassKey"):
+        evtcls = []
+        if getattr(evt, "eventClass", False):
+            try:
+                return self.getDmdRoot("Events").getOrganizer(evt.eventClass)
+            except KeyError: pass
+        elif getattr(evt, "eventClassKey", False):
             log.debug("lookup eventClassKey:%s", evt.eventClassKey)
             evtcls = self.find(evt.eventClassKey)
         if not evtcls: 
@@ -142,6 +143,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
             evtcl = None
             log.debug("No EventClass matched")
         return evtcl
+
+
+    def applyExtraction(self, evt):
+        """Don't have extraction on event class.
+        """
+        return evt
 
 
     def getInstances(self):

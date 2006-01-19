@@ -46,7 +46,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.evtheartbeat = EventHeartbeat(
             socket.getfqdn(), "zenmon/zensyslog", self.options.heartbeat*3)
         self.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStop, 
+                        eventClass=AppStart, 
                         summary="zensyslog collector started",
                         severity=0, component="zensyslog"))
         self.log.info("started")
