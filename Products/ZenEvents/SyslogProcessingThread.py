@@ -70,7 +70,6 @@ class SyslogProcessingThread(threading.Thread):
         try:
             evt = SyslogEvent(device=self.hostname, ipAddress=self.ipaddress)
             slog.debug("hostname=%s, ip=%s", self.hostname, self.ipaddress)
-            if self.master.options.logorig: evt.originalMessage = self.msg
             slog.debug(self.msg)
 
             evt, msg = self.parsePRI(evt, self.msg) 
@@ -79,11 +78,14 @@ class SyslogProcessingThread(threading.Thread):
             evt, msg = self.parseHEADER(evt, msg)
             evt = self.parseTag(evt, msg) #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
+            zem=None
             try:
                 zem = self.master.getZem()
                 zem.sendEvent(evt)
             finally:
-                zem._p_jar.close()
+                if zem: 
+                    zem._p_jar.close()
+                    del zem
         except:
             slog.exception("event processing failure: %s", self.hostname)
 

@@ -30,6 +30,14 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.processThreads = {}
         self._lastheartbeat = 0
         self._hostmap = {}       # client address/name mapping
+        if self.options.logorig:
+            self.olog = logging.getLogger("origsyslog")
+            self.olog.setLevel(20)
+            self.propagate = False
+            lname = os.path.join(os.environ['ZENHOME'],"log","origsyslog.log")
+            hdlr = logging.FileHandler(lname)
+            hdlr.setFormatter(logging.Formatter("%(message)s")
+            self.olog.addHandler(hdlr)
         self.evtheartbeat = EventHeartbeat(
             socket.getfqdn(), "zenmon/zensyslog", self.options.heartbeat*3)
         self.sendEvent(Event(device=socket.getfqdn(), 
@@ -57,7 +65,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         ipaddress = client_address[0]
         hostname = self.resolvaddr(ipaddress)
         msg = request[0]
-        spt = SyslogProcessingThread(self,request[0],ipaddress, hostname,
+        if self.master.options.logorig: 
+            self.olog.info(msg)
+        spt = SyslogProcessingThread(self,msg,ipaddress, hostname,
                                     self.options.parsehost)
         if not self.options.debug: 
             spt.start() 
@@ -109,7 +119,10 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             zem = self.getZem()
             zem.sendEvent(evt)
         finally:
-            if zem: zem._p_jar.close()
+            if zem: 
+                zem._p_jar.close()
+                del zem
+
 
     def getZem(self):
         """Return our ZenEventManager based on zempath option.

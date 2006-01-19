@@ -30,10 +30,7 @@ class ZeoPoolBase(ZenDaemon):
 
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
-        addr = (self.options.host, self.options.port)
-        storage=ClientStorage.ClientStorage(addr)
-        self.db=DB(storage)
-        self.poollock = Lock()
+        self.opendb()
 
 
     def getConnection(self, path=None):
@@ -42,6 +39,8 @@ class ZeoPoolBase(ZenDaemon):
         """
         try:
             self.poollock.acquire()
+            if not self.is_connected():
+                self.opendb()
             connection=self.db.open()
             root=connection.root()
             app=root['Application']
@@ -55,10 +54,34 @@ class ZeoPoolBase(ZenDaemon):
             self.poollock.release()
 
 
-    def closeAll(self):
+    def opendb(self):
+        addr = (self.options.host, self.options.port)
+        self._storage=ClientStorage.ClientStorage(addr)
+        self.db=DB(self._storage)
+        self.poollock = Lock()
+
+
+    def closedb(self):
         """Close all connections in both free an inuse pools.
         """
         self.db.close()
+        self.db = None
+        self._storage = None
+
+
+    def is_connected(self):
+        """Are we connected to zeo.
+        """
+        return not self._storage or self._storage.is_connected()
+
+
+    def available(self):
+        """Return the number of available connection in our pool.
+        """
+        if self.db._pools:
+            pool=self.db._pools[''] # trunk version pool
+            return len(pool.available)
+        return 0
 
 
     def _getContext(self, app):
