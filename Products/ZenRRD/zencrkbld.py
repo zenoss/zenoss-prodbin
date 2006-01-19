@@ -141,7 +141,7 @@ class ZenCrkBld(ZenDaemon):
             raise TargetDataError, "Malformed targetdata no target found"
         self.curtarget = targetdata['target']
         self.log.debug("building target %s" % self.curtarget)
-        tfile.write("target %s\n" % self.curtarget)
+        tfile.write("target "%s"\n" % self.curtarget)
         for attrib, value in targetdata.items():
             if attrib == 'target' or value == '' or value == None: continue
             value = str(value)
