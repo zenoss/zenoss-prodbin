@@ -125,14 +125,17 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
     def serve(self):
         "Run the service until it is stopped with the stop() method."
         self.running = True
+        last = 0
         while self.running:
             try:
                 self.handle_request()
                 self.process_queue()
                 self.sendHeartbeat()
-                self.log.debug("pool=%d, threads=%d, queue=%d", 
+                if self.options.stats and last+2<time.time():
+                    self.log.info("pool=%d, threads=%d, queue=%d", 
                                 self.available(), len(self._threadlist), 
                                 len(self._rcptqueue))
+                    last = time.time()
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected exception")
@@ -179,6 +182,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.parser.add_option('--parsehost',
             dest='parsehost', action="store_true", 
             help="try to parse the hostname part of a syslog HEADER")
+        self.parser.add_option('--stats',
+            dest='stats', action="store_true", 
+            help="print stats to log every 2 secs")
         self.parser.add_option('--logorig',
             dest='logorig', action="store_true", 
             help="log the original message")
