@@ -31,6 +31,7 @@ class ZeoPoolBase(ZenDaemon):
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
         self.opendb()
+        self.openconn = self.getPoolSize()
 
 
     def getConnection(self, path=None):
@@ -50,6 +51,7 @@ class ZeoPoolBase(ZenDaemon):
                 return app.unrestrictedTraverse(path)
             else:
                 return app
+            self.openconn -= 1
         finally:
             self.poollock.release()
 
@@ -75,11 +77,17 @@ class ZeoPoolBase(ZenDaemon):
         return not self._storage or self._storage.is_connected()
 
 
+    def getPoolSize(self):
+        """Return the target max pool size for this database.
+        """
+        return self.db.getPoolSize()
+
+
     def available(self):
         """Return the number of available connection in our pool.
         """
         if self.db._pools:
-            pool=self.db._pools[''] # trunk version pool
+            pool = self.db._pools[''] # trunk version pool
             return len(pool.available)
         return 0
 

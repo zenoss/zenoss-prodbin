@@ -7,6 +7,7 @@ log = logging.getLogger("zen.Events")
 
 from _mysql_exceptions import ProgrammingError, OperationalError
 
+import Products.ZenUtils.guid as guid
 from DbAccessBase import DbAccessBase
 from Event import Event, EventHeartbeat, buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
@@ -45,12 +46,12 @@ class MySqlSendEventMixin:
             
 
         if not hasattr(event, 'dedupid'):
-            evid = []
+            dedupid = []
             dedupfields = event.getDedupFields(self.defaultIdentifier)
             for field in dedupfields:
                 value = getattr(event, field, "")
-                evid.append(str(value))
-            event.dedupid = "|".join(evid)
+                dedupid.append(str(value))
+            event.dedupid = "|".join(dedupid)
 
         insert = ""
         try:
@@ -67,21 +68,14 @@ class MySqlSendEventMixin:
                     delete = self.buildClearDelete(event, clearcls)
                     log.debug(delete)
                     curs.execute(delete)
-            insert = self.buildStatusInsert(statusdata, event._action)
+            evid = guid.generate()
+            insert = self.buildStatusInsert(statusdata, event._action, evid)
             log.debug(insert)
             rescount = curs.execute(insert)
             if detaildata and rescount == 1:
-                selid = ("select evid from %s where dedupid = '%s' "
-                             "order by lastTime desc limit 1"% (
-                             event._action, self.escape(event.dedupid)))
-                log.debug(selid)
-                curs.execute(selid)
-                evid = curs.fetchone()
-                if evid: 
-                    evid=evid[0]
-                    insert = self.buildDetailInsert(evid, detaildata)
-                    log.debug(insert)
-                    curs.execute(insert)
+                insert = self.buildDetailInsert(evid, detaildata)
+                log.debug(insert)
+                curs.execute(insert)
             if close: db.close()
             return event
         except ProgrammingError, e:
@@ -177,7 +171,7 @@ class MySqlSendEventMixin:
             log.exception(e)
 
 
-    def buildStatusInsert(self, statusdata, table):
+    def buildStatusInsert(self, statusdata, table, evid):
         """
         Build an insert statement for the status table that looks like this:
         insert into status set device='box', count=1, ...
@@ -187,7 +181,7 @@ class MySqlSendEventMixin:
         fields = []
         if table == "history":
             fields.append("deletedTime=null")
-        fields.append("evid=uuid()")
+        fields.append("evid='%s'" % evid)
         insert += ","+",".join(fields)
         if table == self.statusTable:
             insert += " on duplicate key update "

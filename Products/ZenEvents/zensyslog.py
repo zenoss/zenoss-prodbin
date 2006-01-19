@@ -4,7 +4,7 @@ import socket
 import select
 import os
 import logging
-import xmlrpclib
+import threading
 from SocketServer import UDPServer
 
 import Globals
@@ -26,10 +26,15 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         UDPServer.__init__(self, (addr, port), None)
         ZeoPoolBase.__init__(self)
         self.minpriority = self.options.minpriority
+        self.phost = self.options.parsehost
+        self.maxthreads = self.options.maxthreads
         self.zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
-        self.processThreads = {}
+        self._rcptqueue = []
+        self._threadlist = []
         self._lastheartbeat = 0
         self._hostmap = {}       # client address/name mapping
+        self.tlock = threading.Lock()
+
         if self.options.logorig:
             self.olog = logging.getLogger("origsyslog")
             self.olog.setLevel(20)
@@ -62,20 +67,30 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def process_request(self, request, client_address):
         """Start a new thread to process the request."""
-        ipaddress = client_address[0]
-        hostname = self.resolvaddr(ipaddress)
-        msg = request[0]
         if self.options.logorig: 
             self.olog.info(msg)
-        spt = SyslogProcessingThread(self,msg,ipaddress, hostname,
-                                    self.options.parsehost)
-        if not self.options.debug: 
-            spt.start() 
-   
-        
+        ipaddr = client_address[0]
+        host = self.resolvaddr(ipaddr)
+        msg = request[0]
+        rtime = time.time()
+        if len(self._threadlist) < self.maxthreads:
+            self.startthread(msg, ipaddr, host, rtime)
+        else:
+            self._rcptqueue.insert(0, (msg, ipaddr, host, rtime))
+  
+
+    def process_queue(self):
+        """Process queued events.
+        """
+        while (len(self._threadlist) < self.maxthreads 
+                and len(self._rcptqueue)):
+            msg, ipaddr, host, rtime = self._rcptqueue.pop()
+            self.startthread(msg, ipaddr, host, rtime)
+
+
     def handle_request(self):
         """Handle one request, and don't block"""
-        res = select.select([self.socket,],[],[],1)
+        res = select.select([self.socket,],[],[],.2)
         if not res[0]: return
         request, client_address = self.get_request()
         try:
@@ -85,14 +100,39 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             self.log.exception("request from %s:%d failed" % client_address)
 
 
+    def startthread(self, msg, ipaddr, host, rtime):
+        """Start processing thread and add to thread list.
+        """
+        spt = SyslogProcessingThread(self,msg,ipaddr,host,rtime,self.phost)
+        self.tlock.acquire()
+        try:
+            self._threadlist.append(spt)
+        finally:
+            self.tlock.release()
+        spt.start() 
+
+
+    def threadended(self, thread):
+        """Take thread off list.
+        """
+        self.tlock.acquire()
+        try:
+            self._threadlist.remove(thread)
+        finally:
+            self.tlock.release()
+
+
     def serve(self):
         "Run the service until it is stopped with the stop() method."
         self.running = True
         while self.running:
             try:
                 self.handle_request()
+                self.process_queue()
                 self.sendHeartbeat()
-                self.log.info("connect pool size=%d", self.available())
+                self.log.debug("pool=%d, threads=%d, queue=%d", 
+                                self.available(), len(self._threadlist), 
+                                len(self._rcptqueue))
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected exception")
@@ -148,6 +188,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.parser.add_option('--minpriority',
             dest='minpriority', default=6,
             help="Minimum priority that syslog will accecpt")
+        self.parser.add_option('--maxthreads',
+            dest='maxthreads', default=7,
+            help="Max processing threads")
         self.parser.add_option('--heartbeat',
             dest='heartbeat', default=60,
             help="Number of seconds between heartbeats")

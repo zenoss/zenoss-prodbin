@@ -54,13 +54,14 @@ class SyslogProcessingThread(threading.Thread):
     This class does the actual processing of a syslog message.
     """
 
-    def __init__(self, master, msg, ipaddress, hostname, parsehost): 
+    def __init__(self, master, msg, ipaddress, hostname, rtime, parsehost): 
         threading.Thread.__init__(self)
         self.setDaemon(1)
         self.master = master
         self.msg = msg
         self.ipaddress = ipaddress
         self.hostname = hostname
+        self.rtime = rtime
         self.parsehost = parsehost
 
 
@@ -68,7 +69,9 @@ class SyslogProcessingThread(threading.Thread):
         """Peform event processing after event is recieved.
         """
         try:
-            evt = SyslogEvent(device=self.hostname, ipAddress=self.ipaddress)
+            evt = SyslogEvent(device=self.hostname,
+                              ipAddress=self.ipaddress,
+                              rcvtime=self.rtime)
             slog.debug("hostname=%s, ip=%s", self.hostname, self.ipaddress)
             slog.debug(self.msg)
 
@@ -88,6 +91,8 @@ class SyslogProcessingThread(threading.Thread):
                     del zem
         except:
             slog.exception("event processing failure: %s", self.hostname)
+        self.master.threadended(self)
+        self.master = None
 
     
     def parsePRI(self, evt, msg):

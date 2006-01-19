@@ -61,11 +61,14 @@ class Event(object):
     DeviceGroups,
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, rcvtime=None, **kwargs):
         # not sure we need sub second time stamps
         # if we do uncomment and change event backend to use
         # double presicion values for these two fields.
-        self.firstTime = self.lastTime = time.time()
+        if not rcvtime:
+            self.firstTime = self.lastTime = time.time()
+        else:
+            self.firstTime = self.lastTime = rcvtime
         self._clearClasses = []
         self._action = "status"
         self._fields = kwargs.get('fields',[])

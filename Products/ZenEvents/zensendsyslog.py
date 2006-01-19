@@ -1,6 +1,7 @@
 import sys
 import os
 import socket
+import time
 import Globals
 zhome = os.environ['ZENHOME']
 logdir = os.path.join(zhome, "log")
@@ -21,11 +22,15 @@ class ZenSendSyslog(CmdBase):
 
     def run(self):
         self.log.info("sending messages to host %s", self.host)
+        count = 0
+        start = time.time()
         for line in open(self.options.infile).readlines():
             line = line.strip()
             if not line or line.startswith("#"): continue
             self.log.debug(line)
+            count+=1
             self.sock.sendto(line, (self.host, SYSLOG_PORT))
+        self.log.info("sent %d events in %.2f secs", count, time.time()-start)
             
     
     def buildOptions(self):
