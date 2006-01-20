@@ -171,7 +171,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             dest='minpriority', default=6, type="int",
             help="Minimum priority that syslog will accecpt")
         self.parser.add_option('--maxthreads',
-            dest='maxthreads', default=7, type="int",
+            dest='maxthreads', default=1, type="int",
             help="Max processing threads")
         self.parser.add_option('--heartbeat',
             dest='heartbeat', default=60,
