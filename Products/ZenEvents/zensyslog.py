@@ -67,12 +67,12 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def process_request(self, request, client_address):
         """Start a new thread to process the request."""
-        if self.options.logorig: 
-            self.olog.info(msg)
         ipaddr = client_address[0]
         host = self.resolvaddr(ipaddr)
         msg = request[0]
         rtime = time.time()
+        if self.options.logorig: 
+            self.olog.info(msg)
         if len(self._threadlist) < self.maxthreads:
             self.startthread(msg, ipaddr, host, rtime)
         else:
@@ -88,9 +88,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             self.startthread(msg, ipaddr, host, rtime)
 
 
-    def handle_request(self):
+    def handle_request(self, seltimeout=1):
         """Handle one request, and don't block"""
-        res = select.select([self.socket,],[],[],.2)
+        res = select.select([self.socket,],[],[],seltimeout)
         if not res[0]: return
         request, client_address = self.get_request()
         try:
@@ -128,7 +128,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         last = 0
         while self.running:
             try:
-                self.handle_request()
+                seltimeout = 1
+                if self._rcptqueue: seltimeout = 0
+                self.handle_request(seltimeout)
                 self.process_queue()
                 self.sendHeartbeat()
                 if self.options.stats and last+2<time.time():
