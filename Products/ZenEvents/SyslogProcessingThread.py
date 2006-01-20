@@ -1,6 +1,7 @@
 import os
 import re
 import threading
+import Queue
 import pprint
 import logging
 slog = logging.getLogger("zen.Syslog")
@@ -54,45 +55,45 @@ class SyslogProcessingThread(threading.Thread):
     This class does the actual processing of a syslog message.
     """
 
-    def __init__(self, master, msg, ipaddress, hostname, rtime, parsehost): 
+    def __init__(self, rcptqueue, zem, minpriority, parsehost): 
         threading.Thread.__init__(self)
         self.setDaemon(1)
-        self.master = master
-        self.msg = msg
-        self.ipaddress = ipaddress
-        self.hostname = hostname
-        self.rtime = rtime
+        self.rcptqueue = rcptqueue
+        self.minpriority = minpriority
         self.parsehost = parsehost
+        self.zem = zem
+        self.running=True
 
 
     def run(self):
         """Peform event processing after event is recieved.
         """
-        try:
-            evt = SyslogEvent(device=self.hostname,
-                              ipAddress=self.ipaddress,
-                              rcvtime=self.rtime)
-            slog.debug("hostname=%s, ip=%s", self.hostname, self.ipaddress)
-            slog.debug(self.msg)
-
-            evt, msg = self.parsePRI(evt, self.msg) 
-            if evt.priority > self.master.minpriority: return
-
-            evt, msg = self.parseHEADER(evt, msg)
-            evt = self.parseTag(evt, msg) #rest of msg now in summary of event
-            evt = self.buildEventClassKey(evt)
-            zem=None
+        slog.info("starting %s", self.getName())
+        while self.running:
+            host = ""
             try:
-                zem = self.master.getZem()
-                zem.sendEvent(evt)
-            finally:
-                if zem: 
-                    zem._p_jar.close()
-                    del zem
-        except:
-            slog.exception("event processing failure: %s", self.hostname)
-        self.master.threadended(self)
-        self.master = None
+                msg, ipaddr, host, rtime = self.rcptqueue.get(True,1)
+                evt = SyslogEvent(device=host,ipAddress=ipaddr,
+                                  rcvtime=rtime)
+                slog.debug("host=%s, ip=%s", host, ipaddr)
+                slog.debug(msg)
+
+                evt, msg = self.parsePRI(evt, msg) 
+                if evt.priority > self.minpriority: continue
+
+                evt, msg = self.parseHEADER(evt, msg)
+                evt = self.parseTag(evt, msg) 
+                #rest of msg now in summary of event
+                evt = self.buildEventClassKey(evt)
+                self.zem.sendEvent(evt)
+            except Queue.Empty: pass
+            except:
+                slog.exception("event processing failure: %s", host)
+
+
+    def stop(self):
+        slog.info("stopping %s...", self.getName())
+        self.running=False
 
     
     def parsePRI(self, evt, msg):

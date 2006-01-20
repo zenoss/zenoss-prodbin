@@ -4,7 +4,7 @@ import socket
 import select
 import os
 import logging
-import threading
+import Queue
 from SocketServer import UDPServer
 
 import Globals
@@ -30,11 +30,16 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.maxthreads = self.options.maxthreads
         self.zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
         self.evtcount=0L
-        self._rcptqueue = []
-        self._threadlist = []
+        self.rcptqueue = Queue.Queue()
         self._lastheartbeat = 0
+        self._threadlist = []
         self._hostmap = {}       # client address/name mapping
-        self.tlock = threading.Lock()
+
+        for i in range(self.maxthreads):
+            spt = SyslogProcessingThread(self.rcptqueue, self.getZem(), 
+                     self.options.minpriority, self.options.parsehost)
+            self._threadlist.append(spt)
+            spt.start() 
 
         if self.options.logorig:
             self.olog = logging.getLogger("origsyslog")
@@ -62,7 +67,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             #host = host.split('.')[0]       # keep only the host name
         except socket.error:
             host = clientip
-        self._hostmap[clientip] = host   #GIL protected shared write
+        self._hostmap[clientip] = host   
         return host
 
 
@@ -75,20 +80,8 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         if self.options.logorig: 
             self.olog.info(msg)
         self.evtcount += 1
-        if len(self._threadlist) < self.maxthreads:
-            self.startthread(msg, ipaddr, host, rtime)
-        else:
-            self._rcptqueue.insert(0, (msg, ipaddr, host, rtime))
+        self.rcptqueue.put((msg, ipaddr, host, rtime))
   
-
-    def process_queue(self):
-        """Process queued events.
-        """
-        while (len(self._threadlist) < self.maxthreads 
-                and len(self._rcptqueue)):
-            msg, ipaddr, host, rtime = self._rcptqueue.pop()
-            self.startthread(msg, ipaddr, host, rtime)
-
 
     def handle_request(self, seltimeout=1):
         """Handle one request, and don't block"""
@@ -102,28 +95,6 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             self.log.exception("request from %s:%d failed" % client_address)
 
 
-    def startthread(self, msg, ipaddr, host, rtime):
-        """Start processing thread and add to thread list.
-        """
-        spt = SyslogProcessingThread(self,msg,ipaddr,host,rtime,self.phost)
-        self.tlock.acquire()
-        try:
-            self._threadlist.append(spt)
-        finally:
-            self.tlock.release()
-        spt.start() 
-
-
-    def threadended(self, thread):
-        """Take thread off list.
-        """
-        self.tlock.acquire()
-        try:
-            self._threadlist.remove(thread)
-        finally:
-            self.tlock.release()
-
-
     def serve(self):
         "Run the service until it is stopped with the stop() method."
         self.running = True
@@ -131,14 +102,13 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         while self.running:
             try:
                 seltimeout = 1
-                if self._rcptqueue: seltimeout = 0
+                if not self.rcptqueue.empty(): seltimeout = 0
                 self.handle_request(seltimeout)
-                self.process_queue()
                 self.sendHeartbeat()
-                if self.options.stats and last+2<time.time():
-                    self.log.info("count=%d pool=%d, threads=%d, queue=%d", 
+                if self.options.stats and last+5<time.time():
+                    self.log.info("count=%d pool=%d, queue=%d", 
                                 self.evtcount, self.available(), 
-                                len(self._threadlist), len(self._rcptqueue))
+                                self.rcptqueue.qsize())
                     last = time.time()
             except (SystemExit, KeyboardInterrupt): raise
             except:
@@ -148,6 +118,8 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def stop(self):
         self.log.info("stopping...")
+        map(lambda t: t.stop(), self._threadlist)
+        map(lambda t: t.join(2), self._threadlist)
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zensyslog collector stopped",

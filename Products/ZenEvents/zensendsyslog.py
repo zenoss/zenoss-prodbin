@@ -24,13 +24,23 @@ class ZenSendSyslog(CmdBase):
         self.log.info("sending messages to host %s", self.host)
         count = 0
         start = time.time()
-        for line in open(self.options.infile).readlines():
+        def linefilt(line):
             line = line.strip()
-            if not line or line.startswith("#"): continue
-            self.log.debug(line)
+            return line and not line.startswith("#")
+        lines = filter(linefilt, open(self.options.infile).readlines())
+        rate = self.options.rate
+        nextsec = time.time() + .9
+        for line in lines:
+            #self.log.debug(line)
+            if count%rate==0 and nextsec>time.time():
+                while nextsec>time.time(): pass
+                nextsec = time.time() + .9 
             count+=1
             self.sock.sendto(line, (self.host, SYSLOG_PORT))
-        self.log.info("sent %d events in %.2f secs", count, time.time()-start)
+        sendtime = time.time()-start
+        arate = count/sendtime
+        self.log.info("sent %d events in %.2f secs rate %.2f ev/sec", 
+                        count, time.time()-start, arate)
             
     
     def buildOptions(self):
@@ -39,6 +49,10 @@ class ZenSendSyslog(CmdBase):
             dest='infile', default=defaultInfile,
             help="file from which to draw events")
         
+        self.parser.add_option('--rate',
+            dest='rate', type="int", default=80,
+            help="events per sec to send")
+
         self.parser.add_option('-H', '--host',
             dest='host', default='localhost',
             help="host to send to")
