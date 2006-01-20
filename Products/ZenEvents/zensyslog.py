@@ -38,7 +38,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         if self.options.logorig:
             self.olog = logging.getLogger("origsyslog")
             self.olog.setLevel(20)
-            self.propagate = False
+            self.olog.propagate = False
             lname = os.path.join(os.environ['ZENHOME'],"log","origsyslog.log")
             hdlr = logging.FileHandler(lname)
             hdlr.setFormatter(logging.Formatter("%(message)s"))
