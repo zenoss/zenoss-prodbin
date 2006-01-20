@@ -106,6 +106,10 @@ class Rnode(object):
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
+        ip = mint.getIp()
+        if not ip:
+            log.warn("device '%s' no management ip, skipping.",device.id)
+            return
         pj = PingJob(mint.getIp(), device.id, 
                     device.getStatus(PingStatus), cycle)
         net.addPingJob(pj)

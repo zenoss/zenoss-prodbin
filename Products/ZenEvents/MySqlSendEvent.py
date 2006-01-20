@@ -80,7 +80,7 @@ class MySqlSendEventMixin:
                 log.debug(insert)
                 curs.execute(insert)
             if close: db.close()
-            return event
+            #return event
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)

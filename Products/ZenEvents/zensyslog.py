@@ -54,7 +54,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zensyslog collector started",
-                        severity=0, component="zensyslog"))
+                        severity=0, component="zenmon/zensyslog"))
         self.log.info("started")
         
 
@@ -123,7 +123,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zensyslog collector stopped",
-                        severity=2, component="zensyslog"))
+                        severity=4, component="zenmon/zensyslog"))
         self.running = False
 
 

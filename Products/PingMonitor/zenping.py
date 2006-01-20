@@ -31,6 +31,7 @@ import Queue
 
 import Globals # make zope imports work
 
+from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventThread
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import PingStatus, Heartbeat
@@ -68,6 +69,10 @@ class ZenPing(ZCmdBase):
 
         self.eventThread = MySqlSendEventThread(self.dmd.ZenEventManager)
         self.eventThread.start()
+        self.eventThread.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass=AppStop, 
+                        summary="zenping started",
+                        severity=0, component="zenmon/zenping"))
         self.log.info("started")
 
 
@@ -221,6 +226,10 @@ class ZenPing(ZCmdBase):
         self.log.info("stopping...")
         if hasattr(self,"pingThread"):
             self.pingThread.stop()
+        self.eventThread.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass=AppStop, 
+                        summary="zenping stopped",
+                        severity=4, component="zenmon/zenping"))
         self.eventThread.stop()
 
 

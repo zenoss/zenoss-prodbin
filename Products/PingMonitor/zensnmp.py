@@ -16,6 +16,7 @@ import socket
 import os
 import time
 import sys
+import copy
 import xmlrpclib
 import logging
 import asyncore
@@ -26,6 +27,7 @@ from random import randrange
 import Globals
 
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
+from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
 from StatusMonitor import StatusMonitor
 
 
@@ -34,6 +36,14 @@ class ZenSnmp(StatusMonitor):
     evtClass = "/Status/Snmp"
     evtAgent = "ZenSnmp"
     evtAlertGroup = "SnmpTest"
+    startevt = {'eventClass':AppStart, 'device':socket.getfqdn(),
+                'summary': 'zensnmp started', 'component': 'zenmon/zensnmp',
+                'severity':0}
+    stopevt = {'eventClass':AppStop, 'device':socket.getfqdn(),
+                'summary': 'zensnmp stopped', 'component': 'zenmon/zensnmp', 
+                'severity': 4}
+    dnsfail = {'eventClass':DNSFail, 'component': 'zenmon/zensnmp',
+                'severity':3}
     heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
                 'component': 'zenmon/zensnmp'}
 
@@ -105,13 +115,10 @@ class ZenSnmp(StatusMonitor):
             except socket.error: 
                 message = "%s is unresolvable in dns" % hostname
                 self.log.warn(message)
-                try:
-                    url = basicAuthUrl(self.username, self.password, url)
-                    devsrv = xmlrpclib.Server(url)
-                    devsrv.setSnmpStatus(-2)
-                except SystemExit: raise
-                except:
-                    self.log.exception("problem sending dns failure event")
+                evt = copy.copy(self.dnsfail)
+                evt['device'] = hostname
+                evt['summary'] = message
+                self.sendEvent(evt)
 
         if self.baddevices and not self.options.skipbad:
             self.processLoop(self.baddevices)
@@ -268,6 +275,7 @@ class ZenSnmp(StatusMonitor):
     def mainLoop(self):
         """main polling loop"""
         if self.options.cycle:
+            self.sendEvent(self.startevt)
             while 1:
                 try:
                     startLoop = time.time()
@@ -282,7 +290,7 @@ class ZenSnmp(StatusMonitor):
                     runTime = time.time()-startLoop
                     if runTime < self.cycleInterval:
                         time.sleep(self.cycleInterval - runTime)
-                except SystemExit: raise
+                except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("Exception in mainLoop")
 
@@ -293,6 +301,13 @@ class ZenSnmp(StatusMonitor):
             self.log.info("tested %d devices in %3.2f seconds" % 
                         (len(self.devices), (time.time() - startTime)))
  
+
+    def stop(self):
+        """Stop zensnmp. 
+        """
+        self.log.info("stopping...")
+        self.sendEvent(self.stopevt)
+
 
     def queueEvent(self, statusTest):
         """Put event in the queue to be sent to the ZenEventManager.
@@ -309,6 +324,15 @@ class ZenSnmp(StatusMonitor):
         event['ipAddress'] = statusTest.address
         event['manager'] = os.uname()[1]
         self.eventqueue.append(event)
+
+
+    def sendEvent(self, evt):
+        url = basicAuthUrl(self.username, self.password, self.evtserver)
+        server = xmlrpclib.Server(url)
+        try:
+            server.sendEvent(evt)
+        except Exception, e:
+            self.log.exception("snmp event notification failed")
 
 
     def sendEvents(self):
