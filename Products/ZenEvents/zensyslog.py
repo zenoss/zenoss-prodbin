@@ -29,6 +29,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.phost = self.options.parsehost
         self.maxthreads = self.options.maxthreads
         self.zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
+        self.evtcount=0L
         self._rcptqueue = []
         self._threadlist = []
         self._lastheartbeat = 0
@@ -73,6 +74,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         rtime = time.time()
         if self.options.logorig: 
             self.olog.info(msg)
+        self.evtcount += 1
         if len(self._threadlist) < self.maxthreads:
             self.startthread(msg, ipaddr, host, rtime)
         else:
@@ -134,9 +136,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
                 self.process_queue()
                 self.sendHeartbeat()
                 if self.options.stats and last+2<time.time():
-                    self.log.info("pool=%d, threads=%d, queue=%d", 
-                                self.available(), len(self._threadlist), 
-                                len(self._rcptqueue))
+                    self.log.info("count=%d pool=%d, threads=%d, queue=%d", 
+                                self.evtcount, self.available(), 
+                                len(self._threadlist), len(self._rcptqueue))
                     last = time.time()
             except (SystemExit, KeyboardInterrupt): raise
             except:
