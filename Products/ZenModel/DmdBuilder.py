@@ -49,6 +49,7 @@ from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
 from Products.CMFCore.DirectoryView import manage_addDirectoryView
+from Products.ZenModel.UserSettings import manage_addUserSettingsManager
 
 classifications = {
     'Devices':      DeviceClass,
@@ -137,4 +138,5 @@ class DmdBuilder:
                                               evtpass=self.evtpass)
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                     evtpass=self.evtpass, history=True)
+        manage_addUserSettingsManager()
                                     

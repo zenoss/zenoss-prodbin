@@ -16,6 +16,7 @@
     evcontrol here/ZenEventManager/eventControls;
     evcolspan python:len(resultFields)+1+evcontrol;
     severity request/severity | python:2;
+    state request/state | python:0;
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
     ">
@@ -36,7 +37,7 @@
                 size="30" onkeypress="getPageViaEnter(event)"
                 tal:attributes="value request/filter | string:">
             &nbsp; &nbsp;
-            Severity
+            Sev
             <select class="tableheader" name="severity:int"
                     onchange="getTablePage(this.form)">
                 <option tal:repeat="sev here/ZenEventManager/getSeverities"
@@ -45,8 +46,17 @@
                                     selected python:sev[1]==severity" />
             </select>
             &nbsp; &nbsp;
+            State
+            <select class="tableheader" name="state:int"
+                    onchange="getTablePage(this.form)">
+                <option tal:repeat="st here/ZenEventManager/getEventStates"
+                    tal:content="python:st[0]"
+                    tal:attributes="value python:st[1]; 
+                                    selected python:st[1]==state" />
+            </select>
+            &nbsp; &nbsp;
             <input class="navcontrol" type="button" 
-                name="refresh" value="Start Auto-Refresh"
+                name="refresh" value="Start Refresh"
                 onclick="startRefresh(this, this.form);">
             <input class="tableheader" type="text" name="refreshRate" 
                 size='2' value='10'>

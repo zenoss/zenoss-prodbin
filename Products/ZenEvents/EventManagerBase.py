@@ -49,13 +49,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     eventStateConversions = (
                 ('New',0),
-                ('Resolved',1),
-                ('Quarantined',2),
+                ('Acknowledged',2),
                 ('Suppressed',3),
-                ('Acknowledged',4),
-                ('Closed',5),
-                ('Testing',6),
-                ('Bogus',7),
+                ('Bogus',4),
                 )
 
     severityConversions = (
@@ -77,6 +73,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     componentField = "component"
     eventClassField = "eventClass"
     severityField = "severity"
+    stateField = "eventState"
     countField = "count"
     prodStateField = "prodState"
     DeviceGroupField = "DeviceGroups"
@@ -230,7 +227,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
         
     def getEventList(self, resultFields=[], where="", orderby="", severity=None,
-                    startdate=None, enddate=None, offset=0, rows=0):
+                    state=0, startdate=None, enddate=None, offset=0, rows=0):
         """see IEventList.
         """
         try:
@@ -244,7 +241,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                         
             if not where: 
                 where = self.defaultWhere
-            where = self._severityWhere(where, severity)
+            where = self._wand(where, "%s >= %s", self.severityField, severity)
+            where = self._wand(where, "%s <= %s", self.stateField, state)
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
@@ -389,16 +387,16 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCount 
     
     
-    def getOrganizerStatus(self,org, statusclass=None, severity=None, where=""):
+    def getOrganizerStatus(self,org, statusclass=None, severity=None, 
+                           state=None, where=""):
         """see IEventStatus
         """
         orgfield = self.lookupManagedEntityField(org.event_key)
-        select = "select %s from %s " % (orgfield, self.statusTable)
-        if statusclass: 
-            if where: where += " and "
-            where += " %s = '%s'" % (self.eventClassField, statusclass)
-        where = self._severityWhere(where, severity)
-        if where: select += "where " + where
+        select = "select %s from %s where " % (orgfield, self.statusTable)
+        where = self._wand(where, "%s = '%s'", self.eventClassField,statusclass)
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select += where
         #print select
         statusCache = self.checkCache(select)
         if not statusCache:
@@ -426,14 +424,16 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getDeviceStatus(self, device, statclass=None, countField=None, 
-                        severity=None, where=""):
+                        severity=4, state=None, where=""):
         """see IEventStatus
         """
         if countField == None: countField = self.countField
         select = "select %s, %s from %s where " % (
                   self.deviceField, self.countField, self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.eventClassField, statclass)
-        select += self._severityWhere(where, severity)
+        where = self._wand(where, "%s = '%s'", self.eventClassField, statclass)
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select += where
         #print select
         statusCache = self.checkCache(select)
         if not statusCache:
@@ -454,15 +454,17 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getComponentStatus(self, device, component, statclass=None, 
-                            countField=None, severity=None, where=""):
+                    countField=None, severity=5, state=None, where=""):
         """see IEventStatus
         """
         if countField == None: countField = self.countField
         select = "select %s, %s, %s from %s where "\
                   % (self.deviceField, self.ComponentField, countField,
                   self.statusTable)
-        if statclass: select += "%s = '%s'" % (self.eventClassField, statclass)
-        select += self._severityWhere(where, severity)
+        where = self._wand(where, "%s = '%s'", self.eventClassField, statclass)
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select += where
         statusCache = self.checkCache(select)
         if not statusCache:
             db = self.connect()
@@ -503,10 +505,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return getattr(aq_base(self), key, self.defaultResultFields)
 
 
-    def _severityWhere(self, where, severity):
-        if severity != None and where.find(self.severityField) == -1:
+    def _wand(self, where, fmt, field, value):
+        if value != None and where.find(field) == -1:
             if where: where += " and "
-            where += " %s >= %s" % (self.severityField, severity)
+            where += fmt % (field, value)
         return where
 
 

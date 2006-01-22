@@ -142,7 +142,7 @@
     <p>Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
-        <li><a href="/zport/ZenUsers/manageUserFolder">Users</a></li>
+        <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
     </ul>
     </tal:block>

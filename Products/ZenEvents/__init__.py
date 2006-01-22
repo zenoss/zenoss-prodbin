@@ -20,6 +20,8 @@ from EventClass import EventClass, addEventClass, \
     manage_addEventClass
 from EventClassInst import EventClassInst, addEventClassInst, \
     manage_addEventClassInst
+from ActionRule import ActionRule, addActionRule, manage_addActionRule
+    
 
 from EventPopulator import EventPopulator
 from MaintenanceThread import MaintenanceThread
@@ -45,6 +47,11 @@ def initialize(registrar):
         permission="Add DMD Objects",
         icon = 'www/dict_rec_icon.gif',
         constructors = (addEventClassInst, manage_addEventClassInst,)
+        )
+    registrar.registerClass(
+        ActionRule,
+        permission="Add DMD Objects",
+        constructors = (addActionRule, manage_addActionRule,)
         )
 #    global zeneventpopulator
 #    if not zeneventpopulator:

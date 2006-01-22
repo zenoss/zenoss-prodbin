@@ -22,7 +22,6 @@ from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
 
-from Products.ZenModel.UserSettings import UserSettingsId, UserSettingsManager
 
 
 
@@ -48,21 +47,21 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         Return true if user is authenticated and has Manager role.
         """
-        user = self.ZenUsers.getUser()
+        user = self.dmd.ZenUsers.getUser()
         if user: return user.has_role("Manager")
 
 
     def has_role(self, role, userid=None):
         """Check to see of a user has a role.
         """
-        user = self.ZenUsers.getUser(userid)
+        user = self.dmd.ZenUsers.getUser(userid)
         if user: return user.has_role(role)
 
 
     def has_permission(self, perm, userid=None):
         """Check to see of a user has a permission.
         """
-        user = self.ZenUsers.getUser(userid)
+        user = self.dmd.ZenUsers.getUser(userid)
         if user: return user.has_permission(perm)
 
 
@@ -92,11 +91,6 @@ class PortalGenerator:
     def setupCookieAuth(self, p):
         p.manage_addProduct['CMFCore'].manage_addCC(
             id='cookie_authentication')
-
-
-    def setupMembersFolder(self, p):
-        ufm = UserSettingsManager(UserSettingsId)
-        p._setObject(ufm.getId(), ufm)
 
 
     def setupRoles(self, p):
@@ -149,7 +143,6 @@ class PortalGenerator:
     def setup(self, p, create_userfolder):
         if create_userfolder: self.setupUserFolder(p)
         #self.setupCookieAuth(p)
-        self.setupMembersFolder(p)
         self.setupTools(p)
         self.setupMailHost(p)
         self.setupRoles(p)

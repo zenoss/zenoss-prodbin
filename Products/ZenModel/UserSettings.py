@@ -13,9 +13,20 @@ from AccessControl import Permissions as permissions
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
 
+from Products.ZenEvents.ActionRule import ActionRule
+
 from ZenModelRM import ZenModelRM
 
 UserSettingsId = "ZenUsers"
+
+
+def manage_addUserSettingsManager(context, REQUEST=None):
+    """Create user settings manager."""
+    ufm = UserSettingsManager(UserSettingsId)
+    context._setObject(ufm.getId(), ufm)
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+
 
 def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
 
@@ -25,7 +36,7 @@ class UserSettingsManager(ZenModelRM):
     
     meta_type = "UserSettingsManager"
 
-    zPrimaryBasePath = ("", "zport")
+    #zPrimaryBasePath = ("", "zport")
 
     sub_meta_types = ("UserSettings",)
 
@@ -208,6 +219,8 @@ class UserSettings(ZenModelRM):
 
     meta_type = "UserSettings"
 
+    sub_meta_types = ("ActionRule",)
+
     email = ""
     pager = ""
     defaultPageSize = 10
@@ -242,6 +255,11 @@ class UserSettings(ZenModelRM):
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editUserSettings'
+                , 'permissions'   : ("Change Settings",)
+                },
+                { 'id'            : 'actionRules'
+                , 'name'          : 'Action Rules'
+                , 'action'        : 'editActionRules'
                 , 'permissions'   : ("Change Settings",)
                 },
             )
@@ -303,3 +321,25 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
         else:
             return user
+
+
+    security.declareProtected('Change Settings', 'manage_addActionRule')
+    def manage_addActionRule(self, id, REQUEST=None):
+        """Add an action rule to this object.
+        """
+        ar = ActionRule(id)
+        self._setObject(id, ar)
+        ar = self._getOb(id)
+        user = getSecurityManager().getUser()
+        userid = user.getId()
+        if userid != self.id:
+            userid = self.id
+            user = self.getUser(userid)
+            ar.changeOwnership(user)
+            ar.manage_setLocalRoles(userid, ("Owner",))
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+InitializeClass(UserSettingsManager)
+InitializeClass(UserSettings)

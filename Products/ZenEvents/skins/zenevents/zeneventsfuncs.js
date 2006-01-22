@@ -118,11 +118,11 @@ startRefresh = function(button, form) {
     if (autoRefresh) {
         log("stopAutoRefresh");
         refreshControl.cancel()
-        button.value = 'Start Auto-Refresh';
+        button.value = 'Start Refresh';
         autoRefresh=0
     } else {
         log("startAutoRefresh");
-        button.value = 'Stop Auto-Refresh';
+        button.value = 'Stop Refresh';
         autoRefresh=1
         getTablePage(form);
     }

@@ -1,10 +1,8 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
-    tal:attributes="action string:${here/absolute_url_path}">
-    <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
+<form method=post tal:attributes="action string:${here/absolute_url_path}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr tal:define="message request/message | string:State at time:">
         <th class=tabletitle colspan=4

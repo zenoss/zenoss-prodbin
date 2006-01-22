@@ -109,6 +109,14 @@ CREATE TABLE IF NOT EXISTS heartbeat
 ) ENGINE=MEMORY MAX_ROWS=10000;
 
 
+CREATE TABLE IF NOT EXISTS alert_state
+(
+    evid        char(25) not null,
+    userid      varchar(64),
+    PRIMARY KEY ( evid, userid )
+) ENGINE=INNODB;
+
+
 CREATE TABLE IF NOT EXISTS log
 (
     evid        char(25) not null,

@@ -188,7 +188,16 @@ class ZenModelBase(object):
         if self.sub_meta_types:
             mts = filter(lambda mt: mt['name'] in self.sub_meta_types, mts)
         return mts
-   
+
+
+    security.declareProtected('Delete objects', 'manage_deleteObjects')
+    def manage_deleteObjects(self, ids=(), REQUEST=None):
+        """Delete object by id from this object.
+        """
+        for id in ids:  self._delObject(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
 
     security.declareProtected('View', 'helpLink')
     def helpLink(self):

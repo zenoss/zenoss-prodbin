@@ -1,0 +1,56 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1"
+    tal:define="objects python:here.objectValues(spec='ActionRule');
+    tableName string:eventactionrules;
+    zem here/ZenTableManager;
+    batch python:zem.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'primarySortKey','Name')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'delay','Delay')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'action','Action')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'enabled','Enabled')"/>
+    </tr>
+    <tr tal:repeat="action batch">
+        <td class="tablevalues" tal:condition="here/iseditable">
+            <input type="checkbox" name="ids:list" 
+                tal:attributes="value action/getId"/>
+            <a tal:attributes="href action/getPrimaryUrlPath"
+                tal:content="action/getId">action</a>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/iseditable"
+            tal:content="action/getId"/>
+        <td class="tablevalues" tal:content="action/delay"/>
+        <td class="tablevalues" tal:content="action/action"/>
+        <td class="tablevalues" tal:content="action/enabled"/>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr tal:condition="here/iseditable">
+        <td class="tableheader" colspan="4">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addActionRule:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteObjects:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>
