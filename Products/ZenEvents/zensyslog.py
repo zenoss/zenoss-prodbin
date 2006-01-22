@@ -23,8 +23,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
 
     def __init__(self, addr='', port=SYSLOG_PORT):
+        ZeoPoolBase.__init__(self, keeproot=True)
         UDPServer.__init__(self, (addr, port), None)
-        ZeoPoolBase.__init__(self)
+        self.changeUser()
         self.minpriority = self.options.minpriority
         self.phost = self.options.parsehost
         self.maxthreads = self.options.maxthreads
