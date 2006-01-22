@@ -32,9 +32,8 @@ import Queue
 import Globals # make zope imports work
 
 from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
-from Products.ZenEvents.MySqlSendEvent import MySqlSendEventThread
-from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import PingStatus, Heartbeat
+from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from PingThread import PingThread
@@ -67,10 +66,9 @@ class ZenPing(ZCmdBase):
         self.configTime = 0
         self.reportqueue = Queue.Queue()
 
-        self.eventThread = MySqlSendEventThread(self.dmd.ZenEventManager)
-        self.eventThread.start()
-        self.eventThread.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStop, 
+        self.zem = self.dmd.ZenEventManager
+        self.zem.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass=AppStart, 
                         summary="zenping started",
                         severity=0, component="zenmon/zenping"))
         self.log.info("started")
@@ -79,8 +77,6 @@ class ZenPing(ZCmdBase):
     def loadConfig(self):
         "get the config data from file or server"
         if time.time()-self.configTime > self.configCycleInterval:
-            self.getDataRoot()
-            self.syncdb()
             smc = self.dmd.unrestrictedTraverse(self.configpath)
             for att in self.copyattrs:
                 value = getattr(smc, att)
@@ -104,7 +100,6 @@ class ZenPing(ZCmdBase):
             devices = smc.getPingDevices()
             self.prepDevices(devices)
             self.configTime = time.time()
-            self.closedb()
 
 
     def prepDevices(self, devices):
@@ -200,6 +195,7 @@ class ZenPing(ZCmdBase):
             while 1:
                 start = time.time()
                 try:
+                    self.syncdb()
                     self.loadConfig()
                     self.log.info("starting ping cycle")
                     self.sendHeartbeat()
@@ -226,11 +222,10 @@ class ZenPing(ZCmdBase):
         self.log.info("stopping...")
         if hasattr(self,"pingThread"):
             self.pingThread.stop()
-        self.eventThread.sendEvent(Event(device=socket.getfqdn(), 
+        self.zem.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenping stopped",
                         severity=4, component="zenmon/zenping"))
-        self.eventThread.stop()
 
 
     def sendHeartbeat(self):
@@ -238,7 +233,6 @@ class ZenPing(ZCmdBase):
         """
         timeout = self.cycleInterval*3
         evt = EventHeartbeat(socket.getfqdn(), "zenmon/zenping", timeout)
-        self.eventThread.sendEvent(evt)
 
 
     def sendEvent(self, pj):
@@ -256,7 +250,7 @@ class ZenPing(ZCmdBase):
             manager=self.hostname)
         evstate = getattr(pj, 'eventState', None)
         if evstate is not None: evt.eventState = evstate
-        self.eventThread.sendEvent(evt)
+        self.zem.sendEvent(evt)
 
 
 

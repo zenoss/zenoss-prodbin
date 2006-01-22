@@ -118,8 +118,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
 
     def stop(self):
         self.log.info("stopping...")
-        map(lambda t: t.stop(), self._threadlist)
-        map(lambda t: t.join(2), self._threadlist)
+        if hasattr(self, "_threadlist"):
+            map(lambda t: t.stop(), self._threadlist)
+            map(lambda t: t.join(2), self._threadlist)
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zensyslog collector stopped",
