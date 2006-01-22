@@ -1,4 +1,8 @@
+import logging
+log = logging.getLogger("zen.EventView")
+
 from _mysql_exceptions import MySQLError
+
 
 class EventView(object):
 
@@ -39,6 +43,7 @@ class EventView(object):
             return self.getEventManager().getStatusME(self, 
                                         statusclass=statusclass, **kwargs)
         except MySQLError: 
+            log.exception("exception getting status")
             return -1
 
 

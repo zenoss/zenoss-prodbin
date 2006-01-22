@@ -27,7 +27,7 @@ class ActionRule(ZenModelRM):
     
     meta_type = "ActionRule"
 
-    where = "severity >= 4 and eventState = 0 and productionState = 1000"
+    where = "severity >= 4 and eventState = 0 and prodState = 1000"
     delay = 0
     action = "email"
     format = "%(device)s %(summary)s at %(firstTime)s"

@@ -49,9 +49,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     eventStateConversions = (
                 ('New',0),
-                ('Acknowledged',2),
-                ('Suppressed',3),
-                ('Bogus',4),
+                ('Acknowledged',1),
+                ('Suppressed',2),
+                ('Bogus',3),
                 )
 
     severityConversions = (
@@ -388,7 +388,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     
     
     def getOrganizerStatus(self,org, statusclass=None, severity=None, 
-                           state=None, where=""):
+                           state=0, where=""):
         """see IEventStatus
         """
         orgfield = self.lookupManagedEntityField(org.event_key)
@@ -454,7 +454,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getComponentStatus(self, device, component, statclass=None, 
-                    countField=None, severity=5, state=None, where=""):
+                    countField=None, severity=5, state=0, where=""):
         """see IEventStatus
         """
         if countField == None: countField = self.countField

@@ -34,7 +34,7 @@
         <th class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
             Filter
             <input class="tableheader" type="text" name="filter" 
-                size="30" onkeypress="getPageViaEnter(event)"
+                size="20" onkeypress="getPageViaEnter(event)"
                 tal:attributes="value request/filter | string:">
             &nbsp; &nbsp;
             Sev
