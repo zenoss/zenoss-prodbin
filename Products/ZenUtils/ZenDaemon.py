@@ -27,7 +27,7 @@ UMASK = 0
 WORKDIR = "/"
 
 # only close stdin/out/err
-MAXFD = 2 
+MAXFD = 3 
 
 # The standard I/O file descriptors are redirected to /dev/null by default.
 if (hasattr(os, "devnull")):
@@ -111,12 +111,7 @@ class ZenDaemon(CmdBase):
         else:
             os._exit(0)	# Exit parent of the first child.
 
-        #import resource		# Resource usage information.
-        #maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-        #if (maxfd == resource.RLIM_INFINITY):
-        #    maxfd = MAXFD
-
-        # Iterate through and close all file descriptors.
+        # Iterate through and close all stdin/out/err
         for fd in range(0, MAXFD):
             try:
                 os.close(fd)
