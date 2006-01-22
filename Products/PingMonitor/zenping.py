@@ -174,7 +174,7 @@ class ZenPing(ZCmdBase):
                     else:
                         failname = pj.checkpath()
                         if failname:
-                            pj.eventState = 3 #suppressed FIXME
+                            pj.eventState = 2 #suppressed FIXME
                             pj.message += (", failed at %s" % failname)
                         self.log.warn(pj.message)
                         self.sendEvent(pj)

@@ -26,8 +26,8 @@ UMASK = 0
 # Default working directory for the daemon.
 WORKDIR = "/"
 
-# Default maximum for the number of available file descriptors.
-MAXFD = 1024
+# only close stdin/out/err
+MAXFD = 2 
 
 # The standard I/O file descriptors are redirected to /dev/null by default.
 if (hasattr(os, "devnull")):
@@ -51,8 +51,6 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon() 
-                #need to redo logging because files are closed in becomeDaemon
-                self.setupLogging()
 
 
     def setupLogging(self):
@@ -113,13 +111,13 @@ class ZenDaemon(CmdBase):
         else:
             os._exit(0)	# Exit parent of the first child.
 
-        import resource		# Resource usage information.
-        maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-        if (maxfd == resource.RLIM_INFINITY):
-            maxfd = MAXFD
+        #import resource		# Resource usage information.
+        #maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+        #if (maxfd == resource.RLIM_INFINITY):
+        #    maxfd = MAXFD
 
         # Iterate through and close all file descriptors.
-        for fd in range(0, maxfd):
+        for fd in range(0, MAXFD):
             try:
                 os.close(fd)
             except OSError:	# ERROR, fd wasn't open to begin with (ignored)
