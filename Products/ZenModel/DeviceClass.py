@@ -344,7 +344,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zSnmpPort", 161, type="int")
         devs._setProperty("zSnmpVer", "v1")
         devs._setProperty("zSnmpTries", 2, type="int")
-        devs._setProperty("zSnmpTimeout", 1.0, type="float")
+        devs._setProperty("zSnmpTimeout", 2.5, type="float")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
         devs._setProperty("zRouteMapCollectOnlyIndirect", False, type="boolean")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")

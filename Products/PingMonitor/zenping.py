@@ -110,7 +110,7 @@ class ZenPing(ZCmdBase):
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
         for device in devices:
-            status = device.getStatus(PingStatus)
+            status = device.getStatus(PingStatus, state=2)
             if status >= self.maxFailures:
                 cycle = self.configCycleInterval
             else:

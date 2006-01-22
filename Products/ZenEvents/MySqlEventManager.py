@@ -41,12 +41,13 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
     security = ClassSecurityInfo()
     
-    def getEventSummary(self, where="", acked=None):
+    def getEventSummary(self, where="", state=0):
         """
         Return a list of tuples with number of events
         and the color of the severity that the number represents.
         """ 
         select = "select count(*) from %s where " % self.statusTable
+        where = self._wand(where, "%s <= %s", self.stateField, state)
         select += where
         if where: select += " and "
         #print select

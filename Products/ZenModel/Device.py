@@ -295,8 +295,8 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         ips = []
         for r in self.os.routes():
             ipobj = r.nexthop()
-            if ipobj and not ipobj.device(): 
-                ips.append(ipobj.id)
+            #if ipobj and not ipobj.device(): 
+            if ipobj: ips.append(ipobj.id)
         return ips
 
 
