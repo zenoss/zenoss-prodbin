@@ -113,7 +113,8 @@ CREATE TABLE IF NOT EXISTS alert_state
 (
     evid        char(25) not null,
     userid      varchar(64),
-    PRIMARY KEY ( evid, userid )
+    rule        varchar(255),
+    PRIMARY KEY ( evid, userid, rule )
 ) ENGINE=INNODB;
 
 

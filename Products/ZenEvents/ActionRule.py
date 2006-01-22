@@ -3,7 +3,7 @@
 #   Copyright (c) 2006 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
-
+import re
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
@@ -79,6 +79,21 @@ class ActionRule(ZenModelRM):
             if field not in evtfields:
                 return False
         return True
+
+
+    def getAddress(self):
+        """Return the correct address for the action this rule uses.
+        """
+        if self.action == "pager":
+            return self.pager
+        elif self.action == "email":
+            return self.email
+
+
+    def getUserid(self):
+        """Return the userid this action is for.
+        """
+        return self.getPrimaryParent().getId()
 
     
     security.declareProtected('Change Settings', 'manage_editActionRule')

@@ -4,7 +4,12 @@ import socket
 import time
 import Globals
 
+from ZODB.POSException import POSError
+from _mysql_exceptions import OperationalError 
+
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+
+
 
 class ZenActions(ZCmdBase):
     """
@@ -13,8 +18,9 @@ class ZenActions(ZCmdBase):
     """
 
 
-    addstate = "insert into alert_state values ('%s', '%s')"
-    clearstate = "delete from alert_state where evid='%s' and userid='%s'"
+    addstate = "insert into alert_state values ('%s', '%s', '%s')"
+    clearstate = """delete from alert_state where evid='%s' 
+                    and userid='%s' and rule='%s'"""
 
 
     def __init__(self):
@@ -33,10 +39,7 @@ class ZenActions(ZCmdBase):
             self.log.debug("loading aciton rules for:%s", userid)
             for ar in us.objectValues(spec="ActionRule"):
                 if not ar.enabled: continue
-                if ar.action == "page": addr = us.pager
-                elif ar.action == "email": addr = us.email
-                self.actions.append((userid, ar.where, ar.format,
-                                     ar.action, addr, ar.delay))
+                self.actions.append(ar)
                 self.log.debug("aciton:%s for:%s loaded", ar.getId(), userid)
                 
 
@@ -46,48 +49,61 @@ class ZenActions(ZCmdBase):
         zem = self.dmd.ZenEventManager
         db = zem.connect()
         curs = db.cursor()
-        for userid, where, format, action, addr, delay in self.actions:
-            fields = re.findall("%\((\S+)\)s", format)
-            data = {}
-            data = data.fromkeys(fields,"")
-            # get new events
-            nwhere = where
-            if delay > 0:
-                nwhere =  nwhere+""" and firstTime + %s < UNIX_TIMESTAMP()"""%(
-                            delay)
-            newsel = """select %s, evid from status where %s and evid not in 
+        for ar in self.actions:
+            cursql = ""
+            try:
+                fields = ar.getEventFields()
+                userid = ar.getUserid()
+                addr = ar.getAddress()
+                data = {}
+                data = data.fromkeys(fields,"")
+                # get new events
+                nwhere = ar.where
+                if ar.delay > 0:
+                    nwhere += """ and firstTime + %s < UNIX_TIMESTAMP()"""%(
+                                ar.delay)
+                newsel ="""select %s, evid from status where %s and evid not in 
                         (select evid from alert_state where userid='%s')""" % (
                         ",".join(fields), nwhere, userid)
-            self.log.debug(newsel)
-            curs.execute(newsel)
-            for result in curs.fetchall():
-                evid = result[-1]
-                result = map(zem.convert, fields, result[:-1])
-                for k, v in zip(fields, result): data[k]=v
-                msg = format % data
-                actfunc = getattr(self, "send"+action.title())
-                actfunc(msg, addr)
-                addcmd = self.addstate%(evid, userid)
-                self.log.debug(addcmd)
-                curs.execute(addcmd)
-                 
-            # get clear events
-            clearsel = """select %s, evid from history where %s and evid in 
+                self.log.debug(newsel)
+                cursql = newsel
+                curs.execute(newsel)
+                for result in curs.fetchall():
+                    evid = result[-1]
+                    result = map(zem.convert, fields, result[:-1])
+                    for k, v in zip(fields, result): data[k]=v
+                    msg = ar.format % data
+                    actfunc = getattr(self, "send"+ar.action.title())
+                    actfunc(msg, addr)
+                    addcmd = self.addstate%(evid, userid, ar.getId())
+                    self.log.debug(addcmd)
+                    cursql = addcmd
+                    curs.execute(addcmd)
+                     
+                # get clear events
+                clearsel ="""select %s, evid from history where %s and evid in 
                         (select evid from alert_state where userid='%s')""" % (
-                        ",".join(fields), where, userid)
-            self.log.debug(clearsel)
-            curs.execute(clearsel)
-            format = "CLEAR: " + format
-            for result in curs.fetchall():
-                evid = result[-1]
-                result = map(zem.convert, fields, result[:-1])
-                for k, v in zip(fields, result): data[k]=v
-                msg = format % data
-                actfunc = getattr(self, "send"+action.title())
-                actfunc(msg, addr)
-                delcmd = self.clearstate%(evid, userid)
-                self.log.debug(delcmd)
-                curs.execute(delcmd)
+                        ",".join(fields), ar.where, userid)
+                self.log.debug(clearsel)
+                cursql = clearsel
+                curs.execute(clearsel)
+                format = "CLEAR: " + ar.format
+                for result in curs.fetchall():
+                    evid = result[-1]
+                    result = map(zem.convert, fields, result[:-1])
+                    for k, v in zip(fields, result): data[k]=v
+                    msg = format % data
+                    actfunc = getattr(self, "send"+ar.action.title())
+                    actfunc(msg, addr)
+                    delcmd = self.clearstate%(evid, userid, ar.getId())
+                    self.log.debug(delcmd)
+                    cursql = delcmd
+                    curs.execute(delcmd)
+            except (SystemExit, KeyboardInterrupt, OperationalError, POSError): 
+                raise
+            except:
+                if cursql: self.log.warn(cursql)
+                self.log.exception("action:%s",ar.getId())
         db.close()
 
 
