@@ -33,7 +33,7 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.ProductClass import ProductClass
-from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.IpNetwork import manage_addIpNetwork
 from Products.ZenModel.ManufacturerRoot import ManufacturerRoot
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.System import System
@@ -57,7 +57,6 @@ classifications = {
     'Locations':    Location,
     'Systems':      System,
     'Services':     ServiceClass,
-    'Networks':     IpNetwork,
     'Manufacturers':    ManufacturerRoot,
     'Monitors':     MonitorClass,
     'Reports':      ReportClass,
@@ -138,5 +137,6 @@ class DmdBuilder:
                                               evtpass=self.evtpass)
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                     evtpass=self.evtpass, history=True)
-        manage_addUserSettingsManager()
+        manage_addUserSettingsManager(self.dmd)
+        manage_addIpNetwork(self.dmd, "Networks")
                                     
