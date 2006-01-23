@@ -94,7 +94,7 @@
     tal:condition="objects">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
-      <th class="tabletitle" align="left" colspan=5>
+      <th class="tabletitle" align="left" colspan="6">
         IP Addresses
       </th>
     </tr>
@@ -102,6 +102,10 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Address','cmp')">
             Address
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'ptrName','PTR')">
+            PTR
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getDeviceName','Device')">
@@ -126,6 +130,7 @@
         tal:attributes="href ip/absolute_url"
         tal:content="ip/getIpAddress">1.1.1.1/24</a>
     </td>
+    <td class="tablevalues" tal:content="ip/ptrname"/>
     <td class="tablevalues" align="left">
         <a href="_" 
         tal:condition="ip/getDeviceUrl"
@@ -150,7 +155,7 @@
     </td>
     </tr>
   <tr>
-    <td colspan=5 class="tableheader">
+    <td colspan="6" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
