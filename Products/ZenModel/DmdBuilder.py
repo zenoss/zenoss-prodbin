@@ -119,7 +119,7 @@ class DmdBuilder:
                 base._setObject(dr.id, dr)
                 dr = base._getOb(dr.id)
                 dr.isInTree = isInTree
-                if dr.id in ('Devices','Networks'):
+                if dr.id in ('Devices'):
                     dr.createCatalog() 
 
 
