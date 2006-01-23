@@ -35,6 +35,10 @@ class ZenActions(ZCmdBase):
         self.loadActionRules()
         if not self.options.fromaddr:
             self.options.fromaddr = "zenmon@%s" % socket.getfqdn()
+        self.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass=AppStart, 
+                        summary="zenactions started",
+                        severity=0, component="zenmon/zenactions"))
         
 
     def loadActionRules(self):
@@ -117,6 +121,7 @@ class ZenActions(ZCmdBase):
         while 1:
             try:
                 start = time.time()
+                self.syncdb()
                 self.loadActionRules()
                 self.processRules()
                 self.log.info("processed %s rules in %.2f secs", 
@@ -127,9 +132,19 @@ class ZenActions(ZCmdBase):
             time.sleep(self.options.cycletime)
 
 
+    def sendEvent(self, evt)
+        """Send event to the system.
+        """
+        self.dmd.ZenEventManager.sendEvent(evt)
+
+
     def stop(self):
         self.running = False
         self.log.info("stopping")
+        self.sendEvent(Event(device=socket.getfqdn(), 
+                        eventClass=AppStop, 
+                        summary="zenactions stopped",
+                        severity=3, component="zenmon/zenactions"))
 
 
     def sendPage(self, msg, addr):

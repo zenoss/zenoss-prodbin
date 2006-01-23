@@ -180,8 +180,8 @@ class ZenPing(ZCmdBase):
                     pj.status = 0
                     self.log.info(pj.message)
                 # device was down no message sent but is back up
-                elif pj.status == 1:
-                    pj.status = 0
+                #elif pj.status == 1:
+                #    pj.status = 0
                 #self.log.debug(pj.message)
             except (SystemExit, KeyboardInterrupt): raise
             except:
