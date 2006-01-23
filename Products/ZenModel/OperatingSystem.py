@@ -70,7 +70,7 @@ class OperatingSystem(Software):
             if default:
                 ip = default.getNextHopIp()
                 nextdev = default.getNextHopDevice()
-        if ip == "0.0.0.0":
+        if route and route.routetype=="direct":
             ippath.append(target)
             return ippath
         if nextdev: 
@@ -83,7 +83,7 @@ class OperatingSystem(Software):
     def getRouteObjs(self):
         """Return our real route objects.
         """
-        return filter(lambda r: getattr(r, "_targetobj",False), self.routes())
+        return filter(lambda r: r.target(), self.routes())
 
 
     security.declareProtected('View', 'getManageInterface')
