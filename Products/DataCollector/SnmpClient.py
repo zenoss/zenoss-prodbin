@@ -17,7 +17,7 @@ defaultTimeout = 1
 
 class SnmpClient(object):
 
-    def __init__(self, hostname, options=None, device=None, 
+    def __init__(self, hostname, ipaddr, options=None, device=None, 
                  datacollector=None, plugins=[]):
         global defaultTries, defaultTimeout
         self.hostname = hostname
@@ -36,7 +36,7 @@ class SnmpClient(object):
         self.tries = int(getattr(device,'zSnmpTries', defaultTries))
         self.timeout = float(getattr(device,'zSnmpTimeout', defaultTimeout))
 
-        ipaddr = socket.gethostbyname(hostname)
+        #ipaddr = socket.gethostbyname(hostname)
         srcport = snmpprotocol.port()
         self.proxy = agentproxy.AgentProxy(ipaddr, port, community, snmpver,
                                            protocol=srcport.protocol)

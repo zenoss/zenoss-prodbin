@@ -194,33 +194,38 @@ class ZenModeler(ZCmdBase):
         """
         client = None
         hostname = device.id
-        plugins = self.selectPlugins(device,"command")
-        commands = map(lambda x: x.command, plugins)
-        if not commands:
-            self.log.warn("no cmd plugins found for %s" % hostname)
-            return 
-        protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
-        commandPort = getattr(device, 'zCommandPort', defaultPort)
-        if protocol == "ssh": 
-            client = SshClient.SshClient(hostname, commandPort, 
-                                options=self.options,
-                                commands=commands, device=device, 
-                                datacollector=self)
-            self.log.info('ssh collection device %s' % hostname)
-        elif protocol == 'telnet':
-            if commandPort == 22: commandPort = 23 #set default telnet
-            client = TelnetClient.TelnetClient(hostname, commandPort,
-                                options=self.options,
-                                commands=commands, device=device, 
-                                datacollector=self)
-            self.log.info('telnet collection device %s' % hostname)
-        else:
-            self.log.warn("unknown protocol %s for device %s",protocol,hostname)
-        if not client: 
-            self.log.warn("cmd client creation failed")
-        else:
-            self.log.info("plugins: %s", 
-                ", ".join(map(lambda p: p.name(), plugins)))
+        try:
+            plugins = self.selectPlugins(device,"command")
+            commands = map(lambda x: x.command, plugins)
+            if not commands:
+                self.log.warn("no cmd plugins found for %s" % hostname)
+                return 
+            protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
+            commandPort = getattr(device, 'zCommandPort', defaultPort)
+            if protocol == "ssh": 
+                client = SshClient.SshClient(hostname, commandPort, 
+                                    options=self.options,
+                                    commands=commands, device=device, 
+                                    datacollector=self)
+                self.log.info('ssh collection device %s' % hostname)
+            elif protocol == 'telnet':
+                if commandPort == 22: commandPort = 23 #set default telnet
+                client = TelnetClient.TelnetClient(hostname, commandPort,
+                                    options=self.options,
+                                    commands=commands, device=device, 
+                                    datacollector=self)
+                self.log.info('telnet collection device %s' % hostname)
+            else:
+                self.log.warn("unknown protocol %s for device %s",
+                                protocol, hostname)
+            if not client: 
+                self.log.warn("cmd client creation failed")
+            else:
+                self.log.info("plugins: %s", 
+                    ", ".join(map(lambda p: p.name(), plugins)))
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.exception("error opening cmdclient")
         return client
 
     
@@ -228,24 +233,29 @@ class ZenModeler(ZCmdBase):
         """Start snmp collection client.
         """
         client = None
-        plugins = []
-        hostname = device.id
-        plugins = self.selectPlugins(device,"snmp")
-        if not plugins:
-            self.log.warn("no snmp plugins found for %s" % hostname)
-            return 
-        #if (self.checkCollection(device) or 
-        #    self.checkCiscoChange(device, community, port)):
-        if self.checkCollection(device):
-            self.log.info('snmp collection device %s' % hostname)
-            self.log.info("plugins: %s", 
-                ", ".join(map(lambda p: p.name(), plugins)))
-            client = SnmpClient.SnmpClient(device.id, self.options, 
-                                            device, self, plugins)
-                                        
-        if not client or not plugins: 
-            self.log.warn("snmp client creation failed")
-            return
+        try:
+            plugins = []
+            hostname = device.id
+            plugins = self.selectPlugins(device,"snmp")
+            if not plugins:
+                self.log.warn("no snmp plugins found for %s" % hostname)
+                return 
+            #if (self.checkCollection(device) or 
+            #    self.checkCiscoChange(device, community, port)):
+            if self.checkCollection(device):
+                self.log.info('snmp collection device %s' % hostname)
+                self.log.info("plugins: %s", 
+                    ", ".join(map(lambda p: p.name(), plugins)))
+                ipaddr = device.getManageIp()
+                client = SnmpClient.SnmpClient(device.id, ipaddr, self.options, 
+                                                device, self, plugins)
+                                            
+            if not client or not plugins: 
+                self.log.warn("snmp client creation failed")
+                return
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.exception("error opening snmpclient")
         return client
 
 
