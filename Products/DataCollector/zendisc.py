@@ -134,6 +134,8 @@ class ZenDisc(ZenModeler):
                         and socket.gethostbyname(ipobj.ptrName)):
                         devname = ipobj.ptrName
                 except: pass
+                if not devname and snmpname:
+                    devname = snmpname
                 if not devname:
                     self.log.warn("unable to name device using ip '%s'", ip)
                     devname = ip
@@ -144,7 +146,7 @@ class ZenDisc(ZenModeler):
                                   statusMonitors=["localhost"], 
                                   cricketMonitor="localhost")
             transaction.commit()
-            self.collectDevice(dev)
+            self.collectDevice(dev, ip=ip)
             return dev
         except NoSnmp, e:
             self.log.warn(e)
@@ -199,6 +201,7 @@ class ZenDisc(ZenModeler):
                 raise SystemExit("network %s not found in dmd",self.options.net)
             for ip in self.discoverIps((netobj,)):
                 self.discoverDevice(ip, self.options.deviceclass)
+            return
         myname = socket.getfqdn()
         self.log.info("my hostname = %s", myname)
         try:

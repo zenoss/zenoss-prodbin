@@ -172,12 +172,12 @@ class ZenModeler(ZCmdBase):
         return device
 
 
-    def collectDevice(self, device):
+    def collectDevice(self, device, ip=None):
         """Collect data from a single device.
         """
         device = self.resolveDevice(device)
-        cmdclient = self.cmdCollect(device)
-        snmpclient = self.snmpCollect(device)
+        cmdclient = self.cmdCollect(device, ip)
+        snmpclient = self.snmpCollect(device, ip)
         if cmdclient: 
             cmdclient.run()
             self.clients += 1
@@ -190,7 +190,7 @@ class ZenModeler(ZCmdBase):
             reactor.run(False)
 
 
-    def cmdCollect(self, device):
+    def cmdCollect(self, device, ip=None):
         """Start command collection client.
         """
         client = None
@@ -230,7 +230,7 @@ class ZenModeler(ZCmdBase):
         return client
 
     
-    def snmpCollect(self, device):
+    def snmpCollect(self, device, ip=None):
         """Start snmp collection client.
         """
         client = None
@@ -247,12 +247,12 @@ class ZenModeler(ZCmdBase):
                 self.log.info('snmp collection device %s' % hostname)
                 self.log.info("plugins: %s", 
                     ", ".join(map(lambda p: p.name(), plugins)))
-                ipaddr = device.getManageIp()
-                if not ipaddr:
-                    ipaddr = socket.gethostbyname(device.id)
-                client = SnmpClient.SnmpClient(device.id, ipaddr, self.options, 
+                if not ip:
+                    ip = device.getManageIp()
+                    if not ip:
+                        ip = socket.gethostbyname(device.id)
+                client = SnmpClient.SnmpClient(device.id, ip, self.options, 
                                                 device, self, plugins)
-                                            
             if not client or not plugins: 
                 self.log.warn("snmp client creation failed")
                 return

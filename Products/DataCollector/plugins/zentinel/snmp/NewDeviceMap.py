@@ -28,6 +28,7 @@ class NewDeviceMap(SnmpPlugin):
     osregex = (
         re.compile(r'- Software: (.+) \(Build'),    # windows
         re.compile(r'(\S+) \S+ (\S+)'),             # unix
+        re.compile(r'(IOS).*Version (\S+),'),       # cisco
     )
 
     def condition(self, device, log):
