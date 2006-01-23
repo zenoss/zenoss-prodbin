@@ -194,10 +194,11 @@ class ZenDisc(ZenModeler):
 
     def run(self):
         if self.options.net:
-            netobj = self.dmd.Networks._getObj(self.options.net,None) 
+            netobj = self.dmd.Networks._getOb(self.options.net,None) 
             if not netobj:
                 raise SystemExit("network %s not found in dmd",self.options.net)
-            return self.discoverIps((netobj,))
+            for ip in self.discoverIps((netobj,)):
+                self.discoverDevice(ip, self.options.deviceclass)
         myname = socket.getfqdn()
         self.log.info("my hostname = %s", myname)
         try:
@@ -226,6 +227,9 @@ class ZenDisc(ZenModeler):
         ZenModeler.buildOptions(self)
         self.parser.add_option('--net', dest='net',
                     help="discover all device on this network")
+        self.parser.add_option('--deviceclass', dest='deviceclass',
+                    default="/Discovered",
+                    help="default device class for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true",
                     help="remodel existing objects")
