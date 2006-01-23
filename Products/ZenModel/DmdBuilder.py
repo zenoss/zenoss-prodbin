@@ -71,7 +71,6 @@ class DmdBuilder:
         'Locations', 
         'Systems', 
         'Services',
-        'Networks', 
         'Manufacturers',
         'Monitors', 
         'Reports',
