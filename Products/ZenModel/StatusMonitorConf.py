@@ -265,7 +265,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                 if (dev.productionState >= self.prodStateThreshold
                     and dev.zSnmpCommunity):
                    devices.append(( 
-                        dev.id, url, ipaddr
+                        dev.id, url, ipaddr,
                         dev.getSnmpStatusNumber(),
                         dev.zSnmpCommunity,
                         dev.zSnmpPort))
