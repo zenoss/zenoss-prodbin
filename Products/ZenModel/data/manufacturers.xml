@@ -134,12 +134,28 @@ Cisco Content Router Model 4450
 The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manager with Octel voice mail systems
 </property>
 </object>
+<object id='cat355024Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.452
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 3550 24 10/100Base-Tx ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch with DC power
+</property>
+</object>
 <object id='826QuadV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.321
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 800 platform with 1 ethernet, 1 ADSL over ISDN and 4 voice POTS FXS ports
+</property>
+</object>
+<object id='7301' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.476
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 7300 platform, 1 Rack Unit (RU) application specific router with 1 slot
 </property>
 </object>
 <object id='7304' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -156,6 +172,14 @@ Cisco 7304 Chassis
 </property>
 <property type='string' id='description' mode='w' >
 cisco 3250 mobile Router
+</property>
+</object>
+<object id='3750Ge12Sfp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.530
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c3750 switch with 12 SFP (Small Form  FactorPluggable) Gigabit Ethernet ports
 </property>
 </object>
 <object id='PIXFirewall506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -211,6 +235,19 @@ ISDN router forJapan with 10 BaseT 4 ports hub , 1 ISDN BRI(Basic Rate Interface
 Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 16 slots
 </property>
 </object>
+<object id='295024SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.480
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 fixed 1000Base Multimode fiber (SX) ports
+</property>
+</object>
+<object id='2851' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.578
+</property>
+</object>
 <object id='7513mx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.291
@@ -235,6 +272,14 @@ Cisco Content Engine Model 590
 Cisco c2610XM platform 1 integrated fast ethernet interface with SDRAM
 </property>
 </object>
+<object id='2431Iad1T1E1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.548
+</property>
+<property type='string' id='description' mode='w' >
+IAD2431 with 2FE, 2T1/E1
+</property>
+</object>
 <object id='ONS15540ESPx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.481
@@ -243,17 +288,38 @@ Cisco c2610XM platform 1 integrated fast ethernet interface with SDRAM
 Cisco ONS 15540 Extended Services Platform with external optical patch system
 </property>
 </object>
+<object id='CE7305' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.504
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Content Engine Model 7305
+</property>
+</object>
 <object id='AS2511RJ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.154
 </property>
 </object>
-<object id='6400Nrp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Pro3620' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.211
+.1.3.6.1.4.1.9.1.123
+</property>
+</object>
+<object id='Crs18Linecard' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.738
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 6400 Network Routing Processor
+Cisco CRS-1 Series 8 slot Line Card Chassis
+</property>
+</object>
+<object id='NMCUEEC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.711
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Unity Express network module with enhanced capacity (NM-CUE-EC)
 </property>
 </object>
 <object id='FastHub216T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -301,6 +367,14 @@ Cisco Catalyst 3508G-XL switch with 8 GBIC Gigabit ports, can run Standard or En
 Chassis for RPM-XF router module
 </property>
 </object>
+<object id='MGX8880' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.598
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco MGX8880 switch with 32 half height slots
+</property>
+</object>
 <object id='Ce507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.409
@@ -317,6 +391,11 @@ Cisco Content Engine Model 507
 7150 Series chassis with 2 10/100 FE interfaces, 2 T3 interfaces
 </property>
 </object>
+<object id='WSX3011' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.112
+</property>
+</object>
 <object id='Mc3810V3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.286
@@ -325,9 +404,22 @@ Cisco Content Engine Model 507
 Cisco MC3810-V3, capable of data, voice and video.  Supports 2 additional ports than the MC3810-V, used for optional access cards.
 </property>
 </object>
+<object id='NMCUE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.622
+</property>
+</object>
 <object id='AGSplus' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.11
+</property>
+</object>
+<object id='IDS4220' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.741
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Intrusion Detection System 4220
 </property>
 </object>
 <object id='12016' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -346,12 +438,9 @@ Cisco 12000 platform with 16 slots
 Cisco CVA122-e Cable Voice Adapter(Residential Cable Modem with two voice ports)- European version
 </property>
 </object>
-<object id='AIRAP1200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='12012' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.474
-</property>
-<property type='string' id='description' mode='w' >
-1200 series WLAN Access Point with 1 10/100TX port, 1 CardBus slot, 1 Mini PCI slot
+.1.3.6.1.4.1.9.1.173
 </property>
 </object>
 <object id='7140Dualae3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -367,12 +456,12 @@ Cisco CVA122-e Cable Voice Adapter(Residential Cable Modem with two voice ports)
 .1.3.6.1.4.1.9.1.9
 </property>
 </object>
-<object id='804J' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='1401' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.296
+.1.3.6.1.4.1.9.1.206
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 800 platform with 1 ethernet, 2 POTS, 1 BRI/ST, and 1 Japanese BRI U
+Router product with 1 ethernet and 1 ATM25 interface
 </property>
 </object>
 <object id='1407' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -404,12 +493,28 @@ Cisco Catalyst 8515CSR (Campus Switching Router)
 .1.3.6.1.4.1.9.1.5
 </property>
 </object>
-<object id='8510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Ce7326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.190
+.1.3.6.1.4.1.9.1.601
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Catalyst 8510CSR (Campus Switching Router)
+ Cisco Content Engine Model CE-7326-K9
+</property>
+</object>
+<object id='BMGX8850Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.609
+</property>
+<property type='string' id='description' mode='w' >
+ PXM1E based Multiservice Gigabit Switch (ModelB) with 32 half height slots
+</property>
+</object>
+<object id='Ce501K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.612
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Content Engine Model CE-501-K9
 </property>
 </object>
 <object id='2912XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -420,9 +525,9 @@ Cisco Catalyst 8510CSR (Campus Switching Router)
 Catalyst 2912XL switch with 12 autosensing 10/100BaseTX ports, can run Standard or Enterprise edition software.
 </property>
 </object>
-<object id='2102' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2515' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.15
+.1.3.6.1.4.1.9.1.31
 </property>
 </object>
 <object id='Pro4500' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -446,12 +551,28 @@ High Density Circuit Emulation Service Gateway for Private Line Service
 Cisco Catalyst c2950 switch with 24 10BaseS VDSL Ports and 2 GBIC ( Gigabit Interface Converter ) slots (WS-C2950G-24-LRE)
 </property>
 </object>
+<object id='NmeX24Es1Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.664
+</property>
+<property type='string' id='description' mode='w' >
+EtherSwitch Service Module 23 10/100 ports + 1 Ethernet Gigabit port fixed configuration Layer 2/Layer 3 Ethernet switch.
+</property>
+</object>
 <object id='AIRBR1300' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.565
 </property>
 <property type='string' id='description' mode='w' >
 Cisco Aironet 1300 Series Wireless Bridge with 1 10/100TX Ethernet port, 1 IEEE 802.11g radio port
+</property>
+</object>
+<object id='1841' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.620
+</property>
+<property type='string' id='description' mode='w' >
+ 1700 Next Generation data only router with 2 slots
 </property>
 </object>
 <object id='UBR914' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -468,6 +589,19 @@ Cisco uBR914 Cable Modem with removable WIC
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 7400 platform, ASR series with 1 slot
+</property>
+</object>
+<object id='1604' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.116
+</property>
+</object>
+<object id='cat4006' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.448
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 4000 with 6 slots (WS-C4006)
 </property>
 </object>
 <object id='2613' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -528,6 +662,11 @@ Cisco 2600 platform with 1 integrated ethernet interface
 Cisco Catalyst 6000
 </property>
 </object>
+<object id='743' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.96
+</property>
+</object>
 <object id='Pro2501' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.56
@@ -563,6 +702,14 @@ Cisco Catalyst 6000
 .1.3.6.1.4.1.9.1.132
 </property>
 </object>
+<object id='UBR7111E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.345
+</property>
+<property type='string' id='description' mode='w' >
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC11E) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
+</object>
 <object id='OpticalRegenerator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.254
@@ -584,11 +731,6 @@ Cisco Optical Regenerator
 .1.3.6.1.4.1.9.1.166
 </property>
 </object>
-<object id='3104' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.35
-</property>
-</object>
 <object id='6200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.192
@@ -607,9 +749,38 @@ Cisco Optical Regenerator
 Cisco 600 DSL CPE platform with ADSL, CAP, ethernet interface, universal power supply
 </property>
 </object>
+<object id='375024ME' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.574
+</property>
+</object>
+<object id='CDM4650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.487
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Content Distribution Manager Model 4650
+</property>
+</object>
+<object id='4000NAM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.575
+</property>
+<property type='string' id='description' mode='w' >
+ Network analysis Module (NAM) for Catalyst 4000
+</property>
+</object>
 <object id='7000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.8
+</property>
+</object>
+<object id='3750G16TD' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.591
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Catalyst 3750 switch with 16 gigabit and one 10G ethernet port (WS-C3750G-16TD)
 </property>
 </object>
 <object id='UBR7223' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -636,6 +807,14 @@ Universal Broadband Router
 </property>
 <property type='string' id='description' mode='w' >
 1 Fast Ethernet version of c3660 with a DC power supply
+</property>
+</object>
+<object id='IGESM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.592
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Systems Intelligent Gigabit Ethernet Switch Module for IBM eServer BladeCenter (OS-CIGESM-18TT-E)
 </property>
 </object>
 <object id='IE2105' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -675,12 +854,30 @@ Catalyst 8540 Multiservice Switching Router
 c2600M with 1 integrated ethernet interface
 </property>
 </object>
+<object id='742' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.95
+</property>
+</object>
 <object id='2924XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.183
 </property>
 <property type='string' id='description' mode='w' >
 Catalyst 2924XL switch with 24 10/100BaseTX ports; doesn't support port-based VLANs.
+</property>
+</object>
+<object id='744' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.97
+</property>
+</object>
+<object id='FE6326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.661
+</property>
+<property type='string' id='description' mode='w' >
+Cisco File Engine Model FE-6326-K9
 </property>
 </object>
 <object id='2621XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -728,12 +925,17 @@ Cisco Cache Engine
 Cisco 6100 DSLAM Chassis
 </property>
 </object>
-<object id='cat6509Sp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2508' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.310
+.1.3.6.1.4.1.9.1.24
+</property>
+</object>
+<object id='MGX8830' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.229
 </property>
 <property type='string' id='description' mode='w' >
-9-slot Constellation+ vertical slot chassis
+Cisco Multiservice Switch with 16 half-height slots
 </property>
 </object>
 <object id='cat4232L3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -760,6 +962,11 @@ Digital voice capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-only sl
 VoIP (Voice over IP) capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-only slot
 </property>
 </object>
+<object id='3101' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.32
+</property>
+</object>
 <object id='cat6500FirewallSm' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.522
@@ -768,12 +975,20 @@ VoIP (Voice over IP) capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-
 	High performance firewall blade for Catalyst 6500 Series
 </property>
 </object>
-<object id='AIRAP1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='IPSSSM20' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.507
+.1.3.6.1.4.1.9.1.655
 </property>
 <property type='string' id='description' mode='w' >
-1100 series WLAN Access Point with 1 10/100TX port, 1 IEEE 802.11 radio port.
+ Cisco Intrusion Prevention System Security Service Module SSM-20
+</property>
+</object>
+<object id='WLSE1132' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.712
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Wireless LAN Solution Engine WLSE-1132-K9
 </property>
 </object>
 <object id='4500' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -781,20 +996,65 @@ VoIP (Voice over IP) capable Cisco 1700 platform with 2 WIC/VIC slots and 1 VIC-
 .1.3.6.1.4.1.9.1.14
 </property>
 </object>
-<object id='7120Ae3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='WLSE1130' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.263
+.1.3.6.1.4.1.9.1.630
 </property>
 <property type='string' id='description' mode='w' >
-7120 Series chassis with 2 10/100 FE interfaces, 1 E3 ATM interface
+ Cisco WLAN Solution Engine (WLSE) 1130 monitors and configures a WLAN with Cisco WAP and Bridges
 </property>
 </object>
-<object id='29508LRESt' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2955T12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.483
+.1.3.6.1.4.1.9.1.488
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Catalyst c2950 switch with 8 10BaseS VDSL Ports and 2 ST (SFP or 10/100/1000 Base T) (WS-C2950ST-8-LRE)
+Cisco Catalyst c2955 Industrial switch with 12 10/100 BaseTX ports and 2 10/100/1000 Base-TX ports
+</property>
+</object>
+<object id='6kGateway' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.573
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 6000 Acess Gateway line card supporting voice and WAN(Wide Area Network) interfaces as well as conferencing and transcoding services
+</property>
+</object>
+<object id='CVA122' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.306
+</property>
+<property type='string' id='description' mode='w' >
+Cisco CVA122 Cable Voice Adapter (Residential Cable Modem with two Voice Ports)
+</property>
+</object>
+<object id='CVA124' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.307
+</property>
+<property type='string' id='description' mode='w' >
+Cisco CVA124 Cable Voice Adapter (Residential Cable Modem with four Voice Ports)
+</property>
+</object>
+<object id='BMGX8830Pxm45' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.606
+</property>
+<property type='string' id='description' mode='w' >
+ PXM45 based Multiservice Switch (Model B) with 14 half height slots
+</property>
+</object>
+<object id='7401VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.376
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 7400 Family, 1 Slot router
+</property>
+</object>
+<object id='AccessProRC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.38
 </property>
 </object>
 <object id='6kMsfc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -805,12 +1065,12 @@ Cisco Catalyst c2950 switch with 8 10BaseS VDSL Ports and 2 ST (SFP or 10/100/10
 Multilevel Switching Feature Card for Catalyst 6000 that is treated as a standalone system by the NMS
 </property>
 </object>
-<object id='CE565' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='7120Ae3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.491
+.1.3.6.1.4.1.9.1.263
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Content Engine Model 565
+7120 Series chassis with 2 10/100 FE interfaces, 1 E3 ATM interface
 </property>
 </object>
 <object id='cat2948gL3Dc' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -819,6 +1079,14 @@ Cisco Content Engine Model 565
 </property>
 <property type='string' id='description' mode='w' >
 A fixed-configuration Layer 3 Ethernet switch featuring IP, IPX, and IP mulitcast with 48 10/100BaseTX ports using DC power
+</property>
+</object>
+<object id='SOHO91' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.498
+</property>
+<property type='string' id='description' mode='w' >
+SOHO (Small Office Home Office)Router with 4-port 10/100 Base-T Ethernet Switch, 1 10Base-T Ethernet WAN interface
 </property>
 </object>
 <object id='2651' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -835,6 +1103,30 @@ c2650 platform with 2 integrated fast ethernet interfaces
 </property>
 <property type='string' id='description' mode='w' >
 c2650 platform with 1 integrated fast ethernet interface
+</property>
+</object>
+<object id='SOHO96' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.500
+</property>
+<property type='string' id='description' mode='w' >
+SOHO (Small Office Home Office)Router with 4-port 10/100 Base-T Ethernet Switch, 1 ADSL over ISDN interface, 1 ISDN BRI S/T interface
+</property>
+</object>
+<object id='SOHO97' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.496
+</property>
+<property type='string' id='description' mode='w' >
+SOHO (Small Office Home Office) Router with 4-port 10/100 Base-T Ethernet Switch,1 ADSL over POTS interface,data only model
+</property>
+</object>
+<object id='SN5428' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.475
+</property>
+<property type='string' id='description' mode='w' >
+Storage Networking 5428 storage router with 2 SFP (Small Form  Factor Pluggable) GBIC Gigabit Ethernet ports and 8 SFP GBIC Fibre Channel ports
 </property>
 </object>
 <object id='7150Octt1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -861,12 +1153,12 @@ Catalyst 2908XL switch with 8 10/100BaseTX ports
 A standalone 24 port powered Ethernet switch, router and voice gateway
 </property>
 </object>
-<object id='627' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='ContentEngine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.330
+.1.3.6.1.4.1.9.1.361
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 600 DSL CPE pltaform with ADSL, DMT issue 2, 25M ATM interface
+Cisco Content Engine.  The Cisco Content Engine is a Content Networking product that accelerates content delivery, ensuring maximum scalability and availability of content.  The Content Engines offer caching, Content Delivery Network (CDN) services, employee internet management (e.g., URL filtering) and proxy services
 </property>
 </object>
 <object id='2651XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -893,6 +1185,14 @@ Cisco UBR Cable Modem which is a UBR904 with 2 FXS Voice ports
  Catalyst 3550 24 10/100 ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
 </property>
 </object>
+<object id='HSE1140' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.632
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Hosting Solution Engine 1140 manages Cisco powered data centers and Points of Presence with routers, switches, server load balancers, firewalls, intrusion detection systems and other layer 4-7 content delivery products
+</property>
+</object>
 <object id='3661Ac' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.338
@@ -917,20 +1217,20 @@ Cisco VLAN Policy Server 1110 manages VLAN-based policies to control user access
 Cisco 12400 platform with 6 slots
 </property>
 </object>
-<object id='7120Smi3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='FE2636' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.264
+.1.3.6.1.4.1.9.1.740
 </property>
 <property type='string' id='description' mode='w' >
-7120 Series chassis with 2 10/100 FE interfaces, 1 OC3SMI ATM interface
+Cisco File Engine Module for 26xx and 36xx series platforms
 </property>
 </object>
-<object id='IGX8450' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='7206VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.235
+.1.3.6.1.4.1.9.1.222
 </property>
 <property type='string' id='description' mode='w' >
-Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with integrated MGX feeder
+Cisco 7200 platform, VXR series chassis with 6 slots
 </property>
 </object>
 <object id='Trouter' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -954,12 +1254,27 @@ Cisco Content Engine Model 7325
  Cisco Integrated Communication System (ICS) 7750
 </property>
 </object>
-<object id='MGX8830' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Pro744' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.229
+.1.3.6.1.4.1.9.1.87
+</property>
+</object>
+<object id='Pro742' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.85
+</property>
+</object>
+<object id='cat6509Sp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.310
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Multiservice Switch with 16 half-height slots
+9-slot Constellation+ vertical slot chassis
+</property>
+</object>
+<object id='Pro741' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.84
 </property>
 </object>
 <object id='URM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -978,12 +1293,46 @@ Universal Router Module for the IGX platform
 Cisco Catalyst c2950 switch with 24 10/100BaseT ports and 2 10/100/1000BaseT ports
 </property>
 </object>
+<object id='355024PWR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.485
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 3550 24 10/100 ports with inline power and 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
+</object>
+<object id='2502' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.18
+</property>
+</object>
+<object id='CRS8S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.643
+</property>
+<property type='string' id='description' mode='w' >
+Cisco CRS-1 Series 8 Slots Carrier Routing System
+</property>
+</object>
+<object id='Fe611K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.687
+</property>
+<property type='string' id='description' mode='w' >
+Cisco File Engine Model FE-611-K9
+</property>
+</object>
 <object id='PIXFirewall515' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.390
 </property>
 <property type='string' id='description' mode='w' >
 Cisco PIX Firewall 515
+</property>
+</object>
+<object id='AIMCUE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.623
 </property>
 </object>
 <object id='CE508' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1026,6 +1375,22 @@ Cisco 800 platform with 1 ethernet, 1 ADSL over ISDN
 Cisco 7246 Universal Broadband Router, VXR series
 </property>
 </object>
+<object id='2431Iad16Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.547
+</property>
+<property type='string' id='description' mode='w' >
+IAD2431 with 16FXS, 2FE, 1T1/E1
+</property>
+</object>
+<object id='ONS15530' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.460
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ONS 15530 platform
+</property>
+</object>
 <object id='IGX8430' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.234
@@ -1039,12 +1404,30 @@ Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 32 slot
 .1.3.6.1.4.1.9.1.2
 </property>
 </object>
+<object id='1712' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.539
+</property>
+</object>
+<object id='1711' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.538
+</property>
+</object>
 <object id='1710' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.200
 </property>
 <property type='string' id='description' mode='w' >
 VPN(Virtual Private Network) Security Router with 1 FastEthernet and 1 Ethernet interface onboard
+</property>
+</object>
+<object id='PIXFirewall515E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.451
+</property>
+<property type='string' id='description' mode='w' >
+Cisco PIX Firewall 515E
 </property>
 </object>
 <object id='1548M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1071,6 +1454,14 @@ Catalyst 6000 with 6 slots
 Catalyst 6000 with 9 slots
 </property>
 </object>
+<object id='SCEDispatcher' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.682
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Service Control Engine Dispatcher
+</property>
+</object>
 <object id='CSM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.524
@@ -1087,12 +1478,36 @@ Cisco Content Switching Module (CSM) which load balancing internet traffic based
 Six slot MARs router
 </property>
 </object>
+<object id='ONS15327' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.494
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ONS 15327 Platform
+</property>
+</object>
 <object id='3745' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.436
 </property>
 <property type='string' id='description' mode='w' >
 3700 family four slot modular router
+</property>
+</object>
+<object id='IDS4235' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.647
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System 4235
+</property>
+</object>
+<object id='IDS4230' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.742
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Intrusion Detection System 4230
 </property>
 </object>
 <object id='295024LRESt' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1140,6 +1555,14 @@ Router Switching Feature Card for the Catalyst 5000 that is treated as a standal
 .1.3.6.1.4.1.9.1.182
 </property>
 </object>
+<object id='12006' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.590
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco 12000 platform with 6 slots
+</property>
+</object>
 <object id='12004' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.181
@@ -1148,6 +1571,14 @@ Router Switching Feature Card for the Catalyst 5000 that is treated as a standal
 <object id='MC3810' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.157
+</property>
+</object>
+<object id='AIRAP1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.507
+</property>
+<property type='string' id='description' mode='w' >
+1100 series WLAN Access Point with 1 10/100TX port, 1 IEEE 802.11 radio port.
 </property>
 </object>
 <object id='1005' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1170,12 +1601,12 @@ Router Switching Feature Card for the Catalyst 5000 that is treated as a standal
 .1.3.6.1.4.1.9.1.40
 </property>
 </object>
-<object id='ContentEngine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='627' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.361
+.1.3.6.1.4.1.9.1.330
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Content Engine.  The Cisco Content Engine is a Content Networking product that accelerates content delivery, ensuring maximum scalability and availability of content.  The Content Engines offer caching, Content Delivery Network (CDN) services, employee internet management (e.g., URL filtering) and proxy services
+Cisco 600 DSL CPE pltaform with ADSL, DMT issue 2, 25M ATM interface
 </property>
 </object>
 <object id='626' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1189,6 +1620,38 @@ Cisco 600 DSL CPE pltaform with ADSL, DMT issue 1, 25M ATM interface
 <object id='Pro1603' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.119
+</property>
+</object>
+<object id='SN5420' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.407
+</property>
+<property type='string' id='description' mode='w' >
+SRBU Storage Router 1 Fiber Channel port, 1 Gigabit Ethernet port
+</property>
+</object>
+<object id='4948' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.626
+</property>
+<property type='string' id='description' mode='w' >
+ Fixed configuration Catalyst 4000 with 48 10/100/1000BaseT ports and 4 1000BaseX SFP ports (WS-C4948)
+</property>
+</object>
+<object id='WsSvcWLAN1K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.599
+</property>
+<property type='string' id='description' mode='w' >
+ Wireless LAN Module (WS-SVC-WLAN-1-K9) is a Komodo+ based line card for Cat6K family of platforms, which provides wireless domain services (WDS) for IEEE 802.11 wireless clients
+</property>
+</object>
+<object id='Ce511K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.595
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Content Engine Model CE-511-K9
 </property>
 </object>
 <object id='MGX8250' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1207,6 +1670,11 @@ Multi Service Switch with 32 half-height slots
 Cisco 8110 (ATM network termination device) with 3 Line Interface module slots
 </property>
 </object>
+<object id='AIRAP1130' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.618
+</property>
+</object>
 <object id='BPXSes' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.242
@@ -1215,9 +1683,12 @@ Cisco 8110 (ATM network termination device) with 3 Line Interface module slots
 Cisco BPX (Broadband Packet eXchange) Service Expansion Slot controller
 </property>
 </object>
-<object id='Pro753' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='DPA7610' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.78
+.1.3.6.1.4.1.9.1.381
+</property>
+<property type='string' id='description' mode='w' >
+The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manager with Octel voice mail systems.
 </property>
 </object>
 <object id='7507mx' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1246,9 +1717,12 @@ Cisco BPX8600 (Broadband Packet eXchange) series wide-area switch with integrate
 .1.3.6.1.4.1.9.1.118
 </property>
 </object>
-<object id='Pro1601' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Olympus' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.117
+.1.3.6.1.4.1.9.1.358
+</property>
+<property type='string' id='description' mode='w' >
+Cisco VPN (Virtual Private Network) Router with  4 10/100/1000 Gigabitethernet integrated interfaces
 </property>
 </object>
 <object id='1502' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1261,9 +1735,12 @@ Cisco BPX8600 (Broadband Packet eXchange) series wide-area switch with integrate
 .1.3.6.1.4.1.9.1.160
 </property>
 </object>
-<object id='Pro2516' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='10400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.63
+.1.3.6.1.4.1.9.1.272
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 10000 platform with 10 slots
 </property>
 </object>
 <object id='Pro2517' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1322,9 +1799,49 @@ Cisco 2600 chassis with 1 onboard FE
 Cisco c2611XM platform 2 integrated fast ethernet interfaces with SDRAM
 </property>
 </object>
+<object id='2955C12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.489
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2955 Industrial switch with 12 10/100 Base TX ports and 2 100 Base-FX ports
+</property>
+</object>
+<object id='cat355024Mmf' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.453
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 3550 24 10/100Mbps Multimode Fiber ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
+</object>
 <object id='6400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.180
+</property>
+</object>
+<object id='DSC9120CLK9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.686
+</property>
+<property type='string' id='description' mode='w' >
+DS-C9120-CL-K9  - MDS 9120-CL, 20-Port 4 Gbps Fibre Channel Fabric Switch, Commercial
+</property>
+</object>
+<object id='Fe7326K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.680
+</property>
+<property type='string' id='description' mode='w' >
+Cisco File Engine Model FE-7326-K9
+</property>
+</object>
+<object id='Ce7306K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.600
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Content Engine Model CE-7306-K9
 </property>
 </object>
 <object id='2691' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1340,12 +1857,9 @@ One Network Module slot, three WIC slot, two Fast Ethernet port MARS router
 .1.3.6.1.4.1.9.1.178
 </property>
 </object>
-<object id='10400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Pro2516' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.272
-</property>
-<property type='string' id='description' mode='w' >
-Cisco 10000 platform with 10 slots
+.1.3.6.1.4.1.9.1.63
 </property>
 </object>
 <object id='7204VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1356,14 +1870,38 @@ Cisco 10000 platform with 10 slots
 Cisco 7200 platform, VXR series chassis with 4 slots
 </property>
 </object>
-<object id='752' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='ManagementEngine1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.82
+.1.3.6.1.4.1.9.1.285
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Management Engine 1100 for doing distributed SNMP polling
+</property>
+</object>
+<object id='CRS16S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.613
 </property>
 </object>
 <object id='Pro2514' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.62
+</property>
+</object>
+<object id='NmeXd48Es2Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.666
+</property>
+<property type='string' id='description' mode='w' >
+EtherSwitch Service Module 48 10/100 ports + 2 Ethernet Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet switch.
+</property>
+</object>
+<object id='3631Co' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.425
+</property>
+<property type='string' id='description' mode='w' >
+Two Network Module Slot , two WIC slot, one Fast Ethernet port MARS router
 </property>
 </object>
 <object id='CR4430' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1390,9 +1928,20 @@ Cisco 2600 chassis with 2 onboard 10/100 FE ports
 2 Fast Ethernet version of c3660 with a DC power supply
 </property>
 </object>
-<object id='7505' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='As5400XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.48
+.1.3.6.1.4.1.9.1.668
+</property>
+<property type='string' id='description' mode='w' >
+Cisco AS5400XM platform
+</property>
+</object>
+<object id='7750Mrp300' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.456
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ICS 7750 Multiservice Route Processor 300
 </property>
 </object>
 <object id='4000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1416,6 +1965,14 @@ Cisco SOHO (Small Office Home Office) ADSL over ISDN Router, 1 Ethernet and 1 AD
 Cisco SOHO (Small Office Home Office) ADSL Router, 1 Ethernet and 1 ADSL G.992.1 (G.DMT) and G.992.2 (G.Lite) Interface
 </property>
 </object>
+<object id='6kMsfc2a' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.706
+</property>
+<property type='string' id='description' mode='w' >
+Multilevel Switching Feature Card Version 2a for Catalyst 6000 that is treated as a standalone system by the NMS
+</property>
+</object>
 <object id='RPM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.199
@@ -1424,9 +1981,30 @@ Cisco SOHO (Small Office Home Office) ADSL Router, 1 Ethernet and 1 ADSL G.992.1
 Router Processor Module
 </property>
 </object>
+<object id='2502LANFRADFX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.167
+</property>
+</object>
+<object id='AS5350' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.313
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco low end Access server platform
+</property>
+</object>
 <object id='775' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.128
+</property>
+</object>
+<object id='2955S12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.508
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2955 Industrial switch with 12 10/100 Base T ports and 2 100 Base-LX Single Mode Uplink ports
 </property>
 </object>
 <object id='776' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1467,9 +2045,12 @@ Cisco uBR912-C Cable Modem with CSU/DSU WIC
 .1.3.6.1.4.1.9.1.177
 </property>
 </object>
-<object id='AccessProRC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='SCE2000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.38
+.1.3.6.1.4.1.9.1.684
+</property>
+<property type='string' id='description' mode='w' >
+Cisco SCE2000 Service Control Engine
 </property>
 </object>
 <object id='WSC6503' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1478,6 +2059,14 @@ Cisco uBR912-C Cable Modem with CSU/DSU WIC
 </property>
 <property type='string' id='description' mode='w' >
 Catalyst 6000 series chassis with 3 slots
+</property>
+</object>
+<object id='837' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.495
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 837 platform with 4-port 10/100 Base-T Ethernet Switch,1 ADSL over POTS interface,data only model, hardware encryption
 </property>
 </object>
 <object id='6130' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1496,9 +2085,12 @@ Cisco 6130 DSLAM Chassis
 2 Fast Ethernet version of c3660 with a AC power supply for Telco's
 </property>
 </object>
-<object id='1116' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='6kSup720' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.152
+.1.3.6.1.4.1.9.1.557
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 6500 Supervisor Module 720 CPU board that is treated as a standalone system by the NMS
 </property>
 </object>
 <object id='1760' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1533,6 +2125,14 @@ Cisco 12000 platform with 10 slots
 7120 Series chassis with 2 10/100 FE interfaces, 1 E3 interface
 </property>
 </object>
+<object id='IPSSSM10' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.662
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Intrusion Prevention System Security Service Module SSM-10
+</property>
+</object>
 <object id='cat3524tXLEn' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.287
@@ -1541,9 +2141,12 @@ Cisco 12000 platform with 10 slots
 Cisco Catalyst 3524 switch (WS-C3524T-XL-EN) with 24 10/100 ports and 2 GBIC gigabit ports.  Runs Enterprise edition software and provides telephony power to attached IP telephones
 </property>
 </object>
-<object id='12012' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='AIRAP1200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.173
+.1.3.6.1.4.1.9.1.474
+</property>
+<property type='string' id='description' mode='w' >
+1200 series WLAN Access Point with 1 10/100TX port, 1 CardBus slot, 1 Mini PCI slot
 </property>
 </object>
 <object id='802J' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1603,17 +2206,28 @@ Cisco CVA124-e Cable Voice Adapter(Residential Cable Modem with four voice ports
 Cisco Internet router 7600 Series Chassis with 13 slots
 </property>
 </object>
-<object id='PIXFirewall525' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Wlse' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.392
+.1.3.6.1.4.1.9.1.459
 </property>
 <property type='string' id='description' mode='w' >
-Cisco PIX Firewall 525
+Wireless LAN Solution Engine
 </property>
 </object>
-<object id='766' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='677i' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.103
+.1.3.6.1.4.1.9.1.363
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 600 DSL CPE platform with ASDL, DMT issue 2 over ISDN, ethernet interface
+</property>
+</object>
+<object id='SIMSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.555
+</property>
+<property type='string' id='description' mode='w' >
+ciscoSIMSE is an appliance - CiscoWorks Security Information Management Solution Engine
 </property>
 </object>
 <object id='10720' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1637,12 +2251,12 @@ Cisco Content Engine Model 7320
 .1.3.6.1.4.1.9.1.165
 </property>
 </object>
-<object id='1401' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='804J' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.206
+.1.3.6.1.4.1.9.1.296
 </property>
 <property type='string' id='description' mode='w' >
-Router product with 1 ethernet and 1 ATM25 interface
+Cisco 800 platform with 1 ethernet, 2 POTS, 1 BRI/ST, and 1 Japanese BRI U
 </property>
 </object>
 <object id='7120Quadt1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1669,12 +2283,44 @@ Catalyst ATM 8515 Multiservice Switching Router
 Catalyst2950 Long Reach Ethernet switch that confirms to ETSI 997 with 24 LRE interfaces, 2 10/100/1000 Small form factor copper interfaces and DC power supply(WS-C2950ST-24-LRE-997)
 </property>
 </object>
-<object id='14MGX8830Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Ce611K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.458
+.1.3.6.1.4.1.9.1.708
 </property>
 <property type='string' id='description' mode='w' >
-PXM1E Controller based 14 slot MGX8830
+Cisco Content Engine Model CE-611-K9
+</property>
+</object>
+<object id='355012T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.368
+</property>
+<property type='string' id='description' mode='w' >
+ Catalyst 3550 12 1000T ports fixed configuration Layer 2/Layer 3 Ethernet Switch
+</property>
+</object>
+<object id='PIXFirewall506E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.450
+</property>
+<property type='string' id='description' mode='w' >
+Cisco PIX Firewall 506E
+</property>
+</object>
+<object id='WsSvcMWAM1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.621
+</property>
+<property type='string' id='description' mode='w' >
+ Multiprocessor WAN Application Module (WS-SVC-MWAM-1) is a multipurpose blade built for the Cat6k platform
+</property>
+</object>
+<object id='3825' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.543
+</property>
+<property type='string' id='description' mode='w' >
+Two Network Module Slots, Four WIC slots, Two Gigabit Ethernet ports 3800 family router
 </property>
 </object>
 <object id='Pro751' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1682,12 +2328,9 @@ PXM1E Controller based 14 slot MGX8830
 .1.3.6.1.4.1.9.1.76
 </property>
 </object>
-<object id='DPA7610' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Pro753' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.381
-</property>
-<property type='string' id='description' mode='w' >
-The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manager with Octel voice mail systems.
+.1.3.6.1.4.1.9.1.78
 </property>
 </object>
 <object id='Pro752' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1715,6 +2358,11 @@ The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manage
 .1.3.6.1.4.1.9.1.105
 </property>
 </object>
+<object id='Pro2521' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.65
+</property>
+</object>
 <object id='Pro2520' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.104
@@ -1728,12 +2376,52 @@ The Cisco Digital PBX Adapter (DPA) enables the integration of Cisco Call Manage
 Cisco Content Engine Model 507-AV
 </property>
 </object>
+<object id='831' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.497
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 831 platform with 4-port 10/100 Base-T Ethernet Switch, 1 10Base-T Ethernet WAN interface, hardware encryption
+</property>
+</object>
+<object id='836' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.499
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 836 platform with 4-port 10/100 Base-T Ethernet Switch, 1 ADSL over ISDN interface,1 ISDN BRI S/T interface, hardware encryption
+</property>
+</object>
+<object id='8510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.190
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst 8510CSR (Campus Switching Router)
+</property>
+</object>
+<object id='6400Nrp' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.211
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 6400 Network Routing Processor
+</property>
+</object>
 <object id='DSC9216K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.521
 </property>
 <property type='string' id='description' mode='w' >
 DS-C9216-K9    -  MDS 9216 16-port 2Gbps FC + 1-slot Modular Switch
+</property>
+</object>
+<object id='355012G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.431
+</property>
+<property type='string' id='description' mode='w' >
+10 Gig (GBIC) + 2 10/100/1000baseT ports, fixed configuration layer 2/3 Ethernet switch
 </property>
 </object>
 <object id='PIXFirewall520' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1760,12 +2448,25 @@ Catalyst 3750 24T: 24 10/100/1000 ports fixed configuration Layer 2/Layer 3 Ethe
 Cisco VoIP Voice Gateway for connecting analog telephones fax machines to a Cisco Call Manager based system
 </property>
 </object>
-<object id='677i' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='PIXFirewall525' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.363
+.1.3.6.1.4.1.9.1.392
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 600 DSL CPE platform with ASDL, DMT issue 2 over ISDN, ethernet interface
+Cisco PIX Firewall 525
+</property>
+</object>
+<object id='NmNam' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.562
+</property>
+<property type='string' id='description' mode='w' >
+Cisco NM-NAM, NAM for the branch office routers
+</property>
+</object>
+<object id='2510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.26
 </property>
 </object>
 <object id='StandbyGSSM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1776,12 +2477,12 @@ Cisco 600 DSL CPE platform with ASDL, DMT issue 2 over ISDN, ethernet interface
 The Standby Global Site Selector Manager (GSSM) serves as the backup to the Primary GSSM in a Global Site Selector(GSS) Network.
 </property>
 </object>
-<object id='355012T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='14MGX8830Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.368
+.1.3.6.1.4.1.9.1.458
 </property>
 <property type='string' id='description' mode='w' >
- Catalyst 3550 12 1000T ports fixed configuration Layer 2/Layer 3 Ethernet Switch
+PXM1E Controller based 14 slot MGX8830
 </property>
 </object>
 <object id='6kMsfc2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1847,17 +2548,49 @@ Cisco Catalyst c2950 switch  with 12 10/100BaseTX ports (WS-c2950-12)
 .1.3.6.1.4.1.9.1.148
 </property>
 </object>
+<object id='ONS15530ETSI' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.462
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ONS 15530 Chassis, ETSI compliant
+</property>
+</object>
+<object id='cat4503' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.503
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 4000 with 3 slots (WS-C4503)
+</property>
+</object>
+<object id='cat4506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.502
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 4000 with 6 slots (WS-C4506)
+</property>
+</object>
+<object id='cat4507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.501
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 4000 with 7 slots (WS-C4507)
+</property>
+</object>
 <object id='1720' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.201
 </property>
 </object>
-<object id='1721' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='7513z' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.444
+.1.3.6.1.4.1.9.1.289
 </property>
 <property type='string' id='description' mode='w' >
-Enhanced 1720 with support for onboard Fast Ethernet and 2 WAN Interface cards and optional hardware encryption module
+Cisco 7513z chassis, Czbus capable, 13 slots
 </property>
 </object>
 <object id='Pro316T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1897,12 +2630,20 @@ Catalyst 3750 24TS: 24 10/100/1000 ports + 4 Ethernet Gigabit SFP ports fixed co
 Catalyst 2924C-XL switch with 22 10BaseT/100BaseTX and 2 100BaseFX autosensing switch ports; supports port-based VLANs; can run Standard or Enterprise edition software.
 </property>
 </object>
-<object id='12404' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='ONS15454' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.423
+.1.3.6.1.4.1.9.1.493
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 12400 platform with 4 slots
+Cisco ONS 15454 Platform
+</property>
+</object>
+<object id='7120Smi3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.264
+</property>
+<property type='string' id='description' mode='w' >
+7120 Series chassis with 2 10/100 FE interfaces, 1 OC3SMI ATM interface
 </property>
 </object>
 <object id='Ce560' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1913,17 +2654,30 @@ Cisco 12400 platform with 4 slots
 Cisco Content Engine Model 560
 </property>
 </object>
-<object id='MGX8850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2801' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.228
+.1.3.6.1.4.1.9.1.619
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Multiservice Gigabit Switch with 32 half height slots
+ 1700 Next Generation voice enabled router with 4 slots
+</property>
+</object>
+<object id='LocalDirector' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.244
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Local Director
 </property>
 </object>
 <object id='2202' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.16
+</property>
+</object>
+<object id='Catalyst3500' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.111
 </property>
 </object>
 <object id='URM2FE2V' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1934,12 +2688,38 @@ Cisco Multiservice Gigabit Switch with 32 half height slots
 Universal Router Module, with 2 Fast Ethernet ports, and 2 digital voice ports (T1 or E1)
 </property>
 </object>
+<object id='MCS7825I' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.746
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Media Convergence Server 7825 (IBM)
+</property>
+</object>
+<object id='2821' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.577
+</property>
+</object>
+<object id='Pro1020' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.54
+</property>
+</object>
 <object id='633' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.331
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 600 DSL CPE platform with SDSL, 2B1Q line coding, serial interface (V.35/X.21)
+</property>
+</object>
+<object id='ONS15530NEBS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.461
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ONS 15530 Chassis, NEBS compliant
 </property>
 </object>
 <object id='8540csr' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -1986,12 +2766,36 @@ The Mobile Wireless router is a router targeted at application in a cell site Ba
 .1.3.6.1.4.1.9.1.1
 </property>
 </object>
+<object id='UBR7114E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.347
+</property>
+<property type='string' id='description' mode='w' >
+Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC14E) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
+</property>
+</object>
 <object id='As5850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.308
 </property>
 <property type='string' id='description' mode='w' >
 High End Dial Access Server
+</property>
+</object>
+<object id='IDSNMCIDS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.654
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System Network Module NM-CIDS
+</property>
+</object>
+<object id='494810GE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.659
+</property>
+<property type='string' id='description' mode='w' >
+ Catalyst 4000 series fixed configuration switch with 48 10/100/1000BaseT wirespeed ports and two 10Gbps ports
 </property>
 </object>
 <object id='2518' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2004,14 +2808,22 @@ High End Dial Access Server
 .1.3.6.1.4.1.9.1.69
 </property>
 </object>
+<object id='Fe511K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.681
+</property>
+<property type='string' id='description' mode='w' >
+Cisco File Engine Model FE-511-K9
+</property>
+</object>
 <object id='2514' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.30
 </property>
 </object>
-<object id='2515' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2102' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.31
+.1.3.6.1.4.1.9.1.15
 </property>
 </object>
 <object id='2516' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2024,9 +2836,12 @@ High End Dial Access Server
 .1.3.6.1.4.1.9.1.67
 </property>
 </object>
-<object id='2510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='29508LRESt' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.26
+.1.3.6.1.4.1.9.1.483
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 8 10BaseS VDSL Ports and 2 ST (SFP or 10/100/1000 Base T) (WS-C2950ST-8-LRE)
 </property>
 </object>
 <object id='2511' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2052,6 +2867,14 @@ High End Dial Access Server
 Cisco 10000 platform with 7 slots
 </property>
 </object>
+<object id='SCE1000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.683
+</property>
+<property type='string' id='description' mode='w' >
+Cisco SCE1000 Service Control Engine
+</property>
+</object>
 <object id='10008' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.438
@@ -2060,20 +2883,25 @@ Cisco 10000 platform with 7 slots
 Cisco 10000 platform with 10 slots
 </property>
 </object>
-<object id='3524XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='678' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.248
+.1.3.6.1.4.1.9.1.337
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Catalyst 3524XL switch with 24 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
+Cisco 600 DSL CPE platform with ADSL, CAP/DMT/G.Lite, ethernet interface
 </property>
 </object>
-<object id='7513z' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='1721' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.289
+.1.3.6.1.4.1.9.1.444
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 7513z chassis, Czbus capable, 13 slots
+Enhanced 1720 with support for onboard Fast Ethernet and 2 WAN Interface cards and optional hardware encryption module
+</property>
+</object>
+<object id='Pro743' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.86
 </property>
 </object>
 <object id='VG200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2123,12 +2951,33 @@ Modular two slot router in the cisco7200 family
 .1.3.6.1.4.1.9.1.153
 </property>
 </object>
+<object id='356024PS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.563
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 3750 24 10/100 ports with In-Line Power + 2 Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet Switch.(SFP Small Formfactor Pluggable)
+</property>
+</object>
+<object id='677' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.336
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 600 DSL CPE platform with ADSL, DMT issue 2, ethernet interface
+</property>
+</object>
 <object id='URM2FE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.374
 </property>
 <property type='string' id='description' mode='w' >
 Universal router module with 2 Fast Ethernet interfaces for IGX platform
+</property>
+</object>
+<object id='Pro3640' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.124
 </property>
 </object>
 <object id='295024GDC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2145,6 +2994,22 @@ Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 GBIC (Gigabit Inte
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 7507z chassis, Czbus capable, 7 slots
+</property>
+</object>
+<object id='295048G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.429
+</property>
+<property type='string' id='description' mode='w' >
+isco Catalyst c2950 switch with 48 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
+</object>
+<object id='1701ADSLBRI' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.550
+</property>
+<property type='string' id='description' mode='w' >
+Bacardi is a fixed configuration sku with ADSL WIC and ISDN BRI (S/T) or (S/T-V2) WIC
 </property>
 </object>
 <object id='1601' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2167,9 +3032,12 @@ Cisco 7507z chassis, Czbus capable, 7 slots
 .1.3.6.1.4.1.9.1.172
 </property>
 </object>
-<object id='1604' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3220' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.116
+.1.3.6.1.4.1.9.1.553
+</property>
+<property type='string' id='description' mode='w' >
+3220 - Mobile Access Router (MAR)
 </property>
 </object>
 <object id='Pro3116' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2177,12 +3045,14 @@ Cisco 7507z chassis, Czbus capable, 7 slots
 .1.3.6.1.4.1.9.1.149
 </property>
 </object>
-<object id='7750Mrp300' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='7505' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.456
+.1.3.6.1.4.1.9.1.48
 </property>
-<property type='string' id='description' mode='w' >
-Cisco ICS 7750 Multiservice Route Processor 300
+</object>
+<object id='7506' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.47
 </property>
 </object>
 <object id='7507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2190,12 +3060,20 @@ Cisco ICS 7750 Multiservice Route Processor 300
 .1.3.6.1.4.1.9.1.45
 </property>
 </object>
-<object id='AS5350' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='295048SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.313
+.1.3.6.1.4.1.9.1.560
 </property>
 <property type='string' id='description' mode='w' >
- Cisco low end Access server platform
+Cisco Catalyst c2950 switch with 48 10/100BaseT ports and 2 fixed 1000Base Multimode fiber (SX) ports
+</property>
+</object>
+<object id='295048T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.559
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 48 10/100BaseT ports and 2 fixed 10/100/1000BaseT ports
 </property>
 </object>
 <object id='803' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2220,6 +3098,22 @@ Cisco 800 platform with 1 ethernet and 1 BRI U
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 800 platform with 1 ethernet and 1 BRI S/T
+</property>
+</object>
+<object id='12404' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.423
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 12400 platform with 4 slots
+</property>
+</object>
+<object id='806' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.384
+</property>
+<property type='string' id='description' mode='w' >
+Cisco SOHO (Small Office Home Office) router with 4 hubbed 10BaseT Ethernet LAN interfaces and 1 10BaseT Ethernet WAN interface
 </property>
 </object>
 <object id='805' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2264,12 +3158,9 @@ Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with 8 slots
 .1.3.6.1.4.1.9.1.98
 </property>
 </object>
-<object id='SIMSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='766' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.555
-</property>
-<property type='string' id='description' mode='w' >
-ciscoSIMSE is an appliance - CiscoWorks Security Information Management Solution Engine
+.1.3.6.1.4.1.9.1.103
 </property>
 </object>
 <object id='765' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2277,12 +3168,17 @@ ciscoSIMSE is an appliance - CiscoWorks Security Information Management Solution
 .1.3.6.1.4.1.9.1.102
 </property>
 </object>
-<object id='CDM4650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='CCM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.487
+.1.3.6.1.4.1.9.1.593
+</property>
+</object>
+<object id='IDS4250SX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.650
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Content Distribution Manager Model 4650
+ Cisco Intrusion Detection System 4250 SX
 </property>
 </object>
 <object id='2650XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2354,12 +3250,28 @@ Aironet Wireless LAN Access Point 340 series
 7140 Series chassis with 2 10/100 FE interfaces, 2 T3 interfaces
 </property>
 </object>
-<object id='LocalDirector' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='MGX8850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.244
+.1.3.6.1.4.1.9.1.228
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Local Director
+Cisco Multiservice Gigabit Switch with 32 half height slots
+</property>
+</object>
+<object id='NmeXd24Es2St' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.665
+</property>
+<property type='string' id='description' mode='w' >
+EtherSwitch Service Module 24 10/100 ports + 1 Ethernet Gigabit SFP port fixed configuration Layer 2/Layer 3 Ethernet Stackable switch.
+</property>
+</object>
+<object id='MGX8230' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.304
+</property>
+<property type='string' id='description' mode='w' >
+Multi Service Switch with 16 half-height slots
 </property>
 </object>
 <object id='cat3548XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2394,12 +3306,12 @@ Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF lin
 Low-end version of the Universal Broadband Router with 1 PA slot, 1 fixed RF line card (MC14C) and integrated upconvertor, designed for hotels, MDUs and smaller cable operators
 </property>
 </object>
-<object id='678' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3524XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.337
+.1.3.6.1.4.1.9.1.248
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 600 DSL CPE platform with ADSL, CAP/DMT/G.Lite, ethernet interface
+Cisco Catalyst 3524XL switch with 24 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
 </property>
 </object>
 <object id='674' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2426,12 +3338,12 @@ Cisco 600 DSL CPE platform with ADSL, CAP, ethernet interface, POTS connector
 Cisco 600 DSL CPE platform with ADSL, DMT issue 1, ethernet interface
 </property>
 </object>
-<object id='677' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='297024TS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.336
+.1.3.6.1.4.1.9.1.561
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 600 DSL CPE platform with ADSL, DMT issue 2, ethernet interface
+Catalyst 2970 24TS: 24 10/100/1000 ports + 4 Ethernet Gigabit SFP ports fixed configuration Layer 2 Ethernet  switch
 </property>
 </object>
 <object id='29408TF' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2445,6 +3357,14 @@ Cisco 600 DSL CPE platform with ADSL, DMT issue 2, ethernet interface
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 600 DSL CPE platform with SDSL, 2B1Q line coding, ethernet interface
+</property>
+</object>
+<object id='IDS4250XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.651
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System 4250 XL
 </property>
 </object>
 <object id='As5400' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2481,6 +3401,14 @@ Cisco BPX8600 (Broadband Packet eXchange) series basic wide-area switch with 15 
 .1.3.6.1.4.1.9.1.110
 </property>
 </object>
+<object id='2620XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.468
+</property>
+<property type='string' id='description' mode='w' >
+Cisco c2620XM platform 1 integrated fast ethernet interface with SDRAM
+</property>
+</object>
 <object id='6015' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.299
@@ -2508,6 +3436,14 @@ Cisco 7600 Series Chassis with 9 slots
 </property>
 <property type='string' id='description' mode='w' >
 Cisco Optical Services Router 7600 Series Chassis with 6 slots
+</property>
+</object>
+<object id='7604' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.658
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Optical Services Router 7600 Series Chassis with 4 slots
 </property>
 </object>
 <object id='7603' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2539,12 +3475,17 @@ The Mobile Wireless Router (MWR-1941-DC) is a router with a universal power supp
 Cisco UBR925 Cable Modem/Router with VOIP and hardware accelerated IPSEC
 </property>
 </object>
-<object id='2924XLv' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2501' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.217
+.1.3.6.1.4.1.9.1.17
+</property>
+</object>
+<object id='IDS4215' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.646
 </property>
 <property type='string' id='description' mode='w' >
-Catalyst 2924XL switch with 24 10BaseT/100BaseTX autosensing switch ports; supports port-based VLANs; can run Standard or Enterprise edition software.
+ Cisco Intrusion Detection System 4215
 </property>
 </object>
 <object id='3000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2552,9 +3493,41 @@ Catalyst 2924XL switch with 24 10BaseT/100BaseTX autosensing switch ports; suppo
 .1.3.6.1.4.1.9.1.6
 </property>
 </object>
+<object id='ONS15540ESP' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.406
+</property>
+<property type='string' id='description' mode='w' >
+Cisco ONS 15540 Extended Services Platform
+</property>
+</object>
+<object id='IDS4210' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.645
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System 4210
+</property>
+</object>
+<object id='295012G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.427
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 12 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
+</object>
 <object id='WSX5302' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.168
+</property>
+</object>
+<object id='Crs1Fabric' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.739
+</property>
+<property type='string' id='description' mode='w' >
+Cisco CRS-1 Series Fabric Card Chassis
 </property>
 </object>
 <object id='7140Dualat3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2597,6 +3570,11 @@ Cisco 6260 DSLAM Chassis
  Catalyst 3550 48 10/100 ports + 2 Gig uplinks fixed configuration Layer 2/Layer 3 Ethernet Switch
 </property>
 </object>
+<object id='741' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.94
+</property>
+</object>
 <object id='AS5200' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.109
@@ -2610,12 +3588,38 @@ Cisco 6260 DSLAM Chassis
 The Primary Global Site Selector Manager (GSSM) serves as the central management station for a Global Site Selector (GSS) Network.
 </property>
 </object>
-<object id='CE7305' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3845' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.504
+.1.3.6.1.4.1.9.1.544
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Content Engine Model 7305
+Four Network Module Slots, Four WIC slots, Two Gigabit Ethernet ports 3800 family router
+</property>
+</object>
+<object id='NetworkRegistrar' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.611
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Network Registrar (CNR) is a full-featured DNS/DHCP system that provides scalable naming and addressing services for enterprise and service provider networks.
+</property>
+</object>
+<object id='828' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.382
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 800 platform with 1 Ethernet, 1 G.991.2 (G.shdsl) Interface, data only model
+</property>
+</object>
+<object id='Pro761' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.88
+</property>
+</object>
+<object id='Pro762' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.89
 </property>
 </object>
 <object id='Pro765' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2628,12 +3632,28 @@ Cisco Content Engine Model 7305
 .1.3.6.1.4.1.9.1.93
 </property>
 </object>
-<object id='Fasthub100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='356048PS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.226
+.1.3.6.1.4.1.9.1.564
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Fast Hub 100 Series 10/100 Repeater
+Catalyst 3750 48 10/100 ports with In-Line Power + 4 Gigabit SFP ports fixed configuration Layer 2/Layer 3 Ethernet Switch.(SFP Small Formfactor Pluggable)
+</property>
+</object>
+<object id='2611M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.419
+</property>
+<property type='string' id='description' mode='w' >
+c2600M with 2 integrated ethernet interfaces
+</property>
+</object>
+<object id='2430Iad24Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.545
+</property>
+<property type='string' id='description' mode='w' >
+IAD2430 with 24FXS, 2FE
 </property>
 </object>
 <object id='4kGateway' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2684,6 +3704,14 @@ Cisco Hosting Solution Engine 1105 manages Cisco powered data centers and Points
 Cisco PIX Firewall 535
 </property>
 </object>
+<object id='ME6340ACA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.713
+</property>
+<property type='string' id='description' mode='w' >
+DSL Switch 48 port ADSL2/2+, Annex A, AC
+</property>
+</object>
 <object id='1417' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.250
@@ -2692,28 +3720,36 @@ Cisco PIX Firewall 535
 Cisco 1400 series router with 1 Ethernet and 1 ADSL interface, with 1417 chipset
 </property>
 </object>
-<object id='2620XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='MPX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.468
+.1.3.6.1.4.1.9.1.710
 </property>
 <property type='string' id='description' mode='w' >
-Cisco c2620XM platform 1 integrated fast ethernet interface with SDRAM
+Cisco MeetingPlace Express
 </property>
 </object>
-<object id='7206VXR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='CE565' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.222
+.1.3.6.1.4.1.9.1.491
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 7200 platform, VXR series chassis with 6 slots
+Cisco Content Engine Model 565
 </property>
 </object>
-<object id='3512XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='IGX8450' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.247
+.1.3.6.1.4.1.9.1.235
 </property>
 <property type='string' id='description' mode='w' >
-Cisco Catalyst 3512XL switch with 12 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
+Cisco IGX8400 (Integrated Gigabit eXchange) series wide-area switch with integrated MGX feeder
+</property>
+</object>
+<object id='DwCE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.455
+</property>
+<property type='string' id='description' mode='w' >
+Double Wide Cisco Content Engine Module for 26xx
 </property>
 </object>
 <object id='RPMPR' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2740,6 +3776,14 @@ Cisco 6160 DSLAM chassis
 Cisco uBR912-S Cable Modem with Serial WIC
 </property>
 </object>
+<object id='IPS4240' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.648
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Prevention System 4240
+</property>
+</object>
 <object id='295024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.324
@@ -2751,6 +3795,30 @@ Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports (WS-c2950-24)
 <object id='7010' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.12
+</property>
+</object>
+<object id='2431Iad8Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.546
+</property>
+<property type='string' id='description' mode='w' >
+IAD2431 with 8FXS, 2FE, 1T1/E1
+</property>
+</object>
+<object id='IDSIDSM2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.653
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System Module IDSM2
+</property>
+</object>
+<object id='BMGX8830Pxm1E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.607
+</property>
+<property type='string' id='description' mode='w' >
+ PXM1E based Multiservice Switch (Model B) with 14 half height slots
 </property>
 </object>
 <object id='WSX6302Msm' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2782,17 +3850,19 @@ Catalyst 2912MF-XL switch with 12 100BaseFX ports and 2 uplink slots; can only r
 .1.3.6.1.4.1.9.1.83
 </property>
 </object>
-<object id='ManagementEngine1100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='752' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.285
-</property>
-<property type='string' id='description' mode='w' >
-Cisco Management Engine 1100 for doing distributed SNMP polling
+.1.3.6.1.4.1.9.1.82
 </property>
 </object>
 <object id='751' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.81
+</property>
+</object>
+<object id='2811' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.576
 </property>
 </object>
 <object id='37xxStack' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2803,9 +3873,20 @@ Cisco Management Engine 1100 for doing distributed SNMP polling
 A stack of any catalyst37xx stack-able ethernet switches with unified identity (as a single unified switch), control and management.
 </property>
 </object>
-<object id='2502LANFRADFX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='297024' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.167
+.1.3.6.1.4.1.9.1.527
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 2970 24: 24 10/100/1000 ports fixed configuration Layer 2 Ethernet  switch
+</property>
+</object>
+<object id='IDS4250' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.649
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Detection System 4250
 </property>
 </object>
 <object id='ESSE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2816,9 +3897,73 @@ A stack of any catalyst37xx stack-able ethernet switches with unified identity (
 Cisco Ethernet Subscriber Solution Engine
 </property>
 </object>
+<object id='WSC6504E' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.657
+</property>
+<property type='string' id='description' mode='w' >
+ Catalyst 6000 series chassis with 4 slots
+</property>
+</object>
+<object id='ME6340DCA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.714
+</property>
+<property type='string' id='description' mode='w' >
+DSL Switch 48 port ADSL2/2+, Annex A, DC
+</property>
+</object>
+<object id='ME6340DCB' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.715
+</property>
+<property type='string' id='description' mode='w' >
+DSL Switch 48 port ADSL2/2+, Annex B, DC
+</property>
+</object>
 <object id='1020' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.43
+</property>
+</object>
+<object id='As5350XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.679
+</property>
+<property type='string' id='description' mode='w' >
+Low end AS5350XM platfrom
+</property>
+</object>
+<object id='IPS4255' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.652
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Intrusion Prevention System 4255
+</property>
+</object>
+<object id='827H' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.446
+</property>
+<property type='string' id='description' mode='w' >
+Cisco 800 platform with 4-port 10Base-T Ethernet, and 1 ADSL over POTS Interface, data only model
+</property>
+</object>
+<object id='WSC6509neba' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.534
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 6500 series chassis with 9 slots
+</property>
+</object>
+<object id='BMGX8850Pxm45' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.608
+</property>
+<property type='string' id='description' mode='w' >
+ PXM45 based Multiservice Gigabit Switch (ModelB) with 32 half height slots
 </property>
 </object>
 <object id='SC3640' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2845,6 +3990,14 @@ Catalyst 2924C-XL switch; doesn't support port-based VLANs.
 </property>
 <property type='string' id='description' mode='w' >
 Cisco Wireless LAN Access Point 350 series
+</property>
+</object>
+<object id='Ce566K9' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.596
+</property>
+<property type='string' id='description' mode='w' >
+ Cisco Content Engine Model CE-566-K9
 </property>
 </object>
 <object id='7150Dualfe' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2884,9 +4037,33 @@ Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 100BASE-FX uplink 
 .1.3.6.1.4.1.9.1.39
 </property>
 </object>
+<object id='295024G' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.428
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
+</object>
+<object id='295024S' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.430
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Catalyst c2950 switch with 24 10/100 BaseSX ports (Single Mode) and 2 GBIC (Gigabit Interface Converter) slots (WS-c2950g-12)
+</property>
+</object>
 <object id='1912C' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.175
+</property>
+</object>
+<object id='2432Iad24Fxs' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.549
+</property>
+<property type='string' id='description' mode='w' >
+IAD2432 with 24FXS, 2FE, 2T1E1
 </property>
 </object>
 <object id='CE560AV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2897,25 +4074,22 @@ Cisco Catalyst c2950 switch with 24 10/100 BaseTX ports and 2 100BASE-FX uplink 
 Cisco Content Engine Model 560-AV
 </property>
 </object>
-<object id='MGX8230' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3104' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.304
-</property>
-<property type='string' id='description' mode='w' >
-Multi Service Switch with 16 half-height slots
+.1.3.6.1.4.1.9.1.35
 </property>
 </object>
-<object id='3662Ac' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='4510' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.340
-</property>
-<property type='string' id='description' mode='w' >
-2 Fast Ethernet version of c3660 with a AC power supply
+.1.3.6.1.4.1.9.1.537
 </property>
 </object>
-<object id='3101' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='WLSEs20' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.32
+.1.3.6.1.4.1.9.1.709
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Wireless LAN Solution Engine S20.
 </property>
 </object>
 <object id='3102' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2933,9 +4107,9 @@ Multi Service Switch with 16 half-height slots
 .1.3.6.1.4.1.9.1.25
 </property>
 </object>
-<object id='2508' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='1116' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.24
+.1.3.6.1.4.1.9.1.152
 </property>
 </object>
 <object id='2507' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2963,14 +4137,20 @@ Multi Service Switch with 16 half-height slots
 .1.3.6.1.4.1.9.1.19
 </property>
 </object>
-<object id='2502' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3662Ac' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.18
+.1.3.6.1.4.1.9.1.340
+</property>
+<property type='string' id='description' mode='w' >
+2 Fast Ethernet version of c3660 with a AC power supply
 </property>
 </object>
-<object id='2501' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='2924XLv' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.17
+.1.3.6.1.4.1.9.1.217
+</property>
+<property type='string' id='description' mode='w' >
+Catalyst 2924XL switch with 24 10BaseT/100BaseTX autosensing switch ports; supports port-based VLANs; can run Standard or Enterprise edition software.
 </property>
 </object>
 <object id='2500' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2978,12 +4158,12 @@ Multi Service Switch with 16 half-height slots
 .1.3.6.1.4.1.9.1.13
 </property>
 </object>
-<object id='ONS15540ESP' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='371098HP001' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.406
+.1.3.6.1.4.1.9.1.625
 </property>
 <property type='string' id='description' mode='w' >
-Cisco ONS 15540 Extended Services Platform
+ 24 port Gigabit Ethernet switch module for HP ProLiant BL p-class server chassis
 </property>
 </object>
 <object id='827QuadV' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -2994,25 +4174,38 @@ Cisco ONS 15540 Extended Services Platform
 Cisco 800 platform with 1 ethernet, 1 ADSL DMT issue 2, and 4 voice POTS FXS ports
 </property>
 </object>
+<object id='Pro1601' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.117
+</property>
+</object>
+<object id='ICM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.693
+</property>
+<property type='string' id='description' mode='w' >
+Cisco Systems Intelligent Contact Management
+</property>
+</object>
 <object id='ProtocolTranslator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
 .1.3.6.1.4.1.9.1.4
 </property>
 </object>
-<object id='2611M' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='Fasthub100' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.419
+.1.3.6.1.4.1.9.1.226
 </property>
 <property type='string' id='description' mode='w' >
-c2600M with 2 integrated ethernet interfaces
+Cisco Fast Hub 100 Series 10/100 Repeater
 </property>
 </object>
-<object id='DwCE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='3512XL' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.455
+.1.3.6.1.4.1.9.1.247
 </property>
 <property type='string' id='description' mode='w' >
-Double Wide Cisco Content Engine Module for 26xx
+Cisco Catalyst 3512XL switch with 12 10/100BaseTX ports and 2 GBIC Gigabit ports, can run Standard or Enterprise edition software.
 </property>
 </object>
 <object id='116T' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -3020,12 +4213,12 @@ Double Wide Cisco Content Engine Module for 26xx
 .1.3.6.1.4.1.9.1.150
 </property>
 </object>
-<object id='827H' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<object id='WLSE1030' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type='string' id='productKey' mode='w' >
-.1.3.6.1.4.1.9.1.446
+.1.3.6.1.4.1.9.1.631
 </property>
 <property type='string' id='description' mode='w' >
-Cisco 800 platform with 4-port 10Base-T Ethernet, and 1 ADSL over POTS Interface, data only model
+ Cisco WLSE Express 1030 is a  WLSE that monitors and configures a WLAN with Cisco WAP and Bridges with AAA functionality
 </property>
 </object>
 <object id='12410' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -3050,6 +4243,14 @@ Cisco uBR10000 platform with 8 broadband slots and 4 WAN slots
 </property>
 <property type='string' id='description' mode='w' >
 Cisco 12000 platform with 16 slots and 10G fabric card
+</property>
+</object>
+<object id='Nme16Es1Ge' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.9.1.663
+</property>
+<property type='string' id='description' mode='w' >
+EtherSwitch Service Module 16 10/100 ports + 1 Ethernet Gigabit port fixed configuration Layer 2/Layer 3 Ethernet switch.
 </property>
 </object>
 <object id='2000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -3328,9 +4529,9 @@ gnome-vfs2-smb-2.8.2-8
 libgnomeprintui22-2.8.0-1
 </property>
 </object>
-<object id='gnome-session-2.8.0-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='gnomemeeting-1.0.2-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-gnome-session-2.8.0-4
+gnomemeeting-1.0.2-8
 </property>
 </object>
 <object id='gnome-audio-2.0.0-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -3393,14 +4594,14 @@ up2date-gnome-4.3.47-5
 gnome-utils-2.8.0-5
 </property>
 </object>
+<object id='gnome-session-2.8.0-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+gnome-session-2.8.0-4
+</property>
+</object>
 <object id='libgnome-devel-2.8.0-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libgnome-devel-2.8.0-2
-</property>
-</object>
-<object id='gnomemeeting-1.0.2-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type='string' id='productKey' mode='w' >
-gnomemeeting-1.0.2-8
 </property>
 </object>
 <object id='gnome-themes-2.8.0-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4241,11 +5442,6 @@ PowerMTA 3.1a5
 http://www.python.org
 </property>
 <tomanycont id='products'>
-<object id='Python 2.3 pywin32 extensions (build 203)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type='string' id='productKey' mode='w' >
-Python 2.3 pywin32 extensions (build 203)
-</property>
-</object>
 <object id='Python 2.3.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 Python 2.3.4
@@ -4266,9 +5462,9 @@ Python 2.3 py2exe-0.5.4
 pyparted-1.6.8-2
 </property>
 </object>
-<object id='pyxf86config-0.3.19-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='Python 2.4 py2exe-0.5.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-pyxf86config-0.3.19-1
+Python 2.4 py2exe-0.5.4
 </property>
 </object>
 <object id='Python 2.4.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4289,6 +5485,11 @@ PyXML-0.8.3-6
 <object id='Python 2.4 Numeric-23.8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 Python 2.4 Numeric-23.8
+</property>
+</object>
+<object id='pyxf86config-0.3.19-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+pyxf86config-0.3.19-1
 </property>
 </object>
 <object id='python-ldap-2.0.1-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4321,9 +5522,9 @@ pyorbit-2.0.1-1
 python-2.3.4-13.1
 </property>
 </object>
-<object id='Python 2.4 py2exe-0.5.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='Python 2.3 pywin32 extensions (build 203)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-Python 2.4 py2exe-0.5.4
+Python 2.3 pywin32 extensions (build 203)
 </property>
 </object>
 <object id='pygtk2-2.4.0-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4575,6 +5776,11 @@ TIBCO General Interface - Professional Edition BETA - 3.1.0
 libxml2-devel-2.6.14-2
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB839645' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB839645
+</property>
+</object>
 <object id='mktemp-1.5-10' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 mktemp-1.5-10
@@ -4598,6 +5804,16 @@ autoconf-2.59-5
 <object id='libraw1394-0.10.1-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libraw1394-0.10.1-3
+</property>
+</object>
+<object id='Darwin 8.3.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Darwin 8.3.0
+</property>
+</object>
+<object id='Windows 2000 Hotfix - KB329115' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB329115
 </property>
 </object>
 <object id='gamin-devel-0.0.25-1.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4690,9 +5906,9 @@ mod_ssl-2.0.52-3.1
 iproute-2.6.9-3
 </property>
 </object>
-<object id='samba-3.0.10-1.fc3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='postgresql-libs-7.4.8-1.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-samba-3.0.10-1.fc3
+postgresql-libs-7.4.8-1.FC3.1
 </property>
 </object>
 <object id='libgcc-3.4.3-22.fc3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4708,6 +5924,11 @@ mutt-1.4.1-10
 <object id='fedora-release-3-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 fedora-release-3-8
+</property>
+</object>
+<object id='Microsoft Visual Basic 6.0 Professional Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Microsoft Visual Basic 6.0 Professional Edition
 </property>
 </object>
 <object id='blas-3.0-26.fc3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4825,9 +6046,9 @@ pango-devel-1.6.0-7
 rdist-6.1.5-38
 </property>
 </object>
-<object id='ipsec-tools-0.3.3-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='libsoup-2.2.2-1.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-ipsec-tools-0.3.3-1
+libsoup-2.2.2-1.FC3
 </property>
 </object>
 <object id='libwmf-0.2.8.3-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4878,6 +6099,11 @@ libpng10-devel-1.0.16-1
 <object id='docbook-style-dsssl-1.78-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 docbook-style-dsssl-1.78-4
+</property>
+</object>
+<object id='VERITAS NetBackup Client' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+VERITAS NetBackup Client
 </property>
 </object>
 <object id='desktop-printing-0.17-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -4980,9 +6206,9 @@ libjpeg-devel-6b-33
 bison-1.875c-2
 </property>
 </object>
-<object id='rootfiles-8-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='pkgconfig-0.15.0-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-rootfiles-8-1
+pkgconfig-0.15.0-3
 </property>
 </object>
 <object id='hicolor-icon-theme-0.3-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5030,9 +6256,19 @@ nmap-3.70-1
 gmp-devel-4.1.4-3
 </property>
 </object>
+<object id='.1.3.6.1.4.1.311.1.1.3.1.2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='string' id='productKey' mode='w' >
+.1.3.6.1.4.1.311.1.1.3.1.2
+</property>
+</object>
 <object id='libattr-2.4.16-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libattr-2.4.16-3
+</property>
+</object>
+<object id='Windows 2000 Hotfix - KB885836' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB885836
 </property>
 </object>
 <object id='gaim-1.0.1-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5135,6 +6371,11 @@ man-1.5m2-9
 ntp-4.2.0.a.20040617-4
 </property>
 </object>
+<object id='file-roller-2.8.1-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+file-roller-2.8.1-1
+</property>
+</object>
 <object id='libcap-1.10-20' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libcap-1.10-20
@@ -5230,6 +6471,11 @@ cyrus-sasl-md5-2.1.19-3
 stunnel-4.05-3
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB842526' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB842526
+</property>
+</object>
 <object id='ffdshow (remove only)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 ffdshow (remove only)
@@ -5260,9 +6506,9 @@ compat-libstdc++-8-3.3.4.2
 libjpeg-6b-33
 </property>
 </object>
-<object id='file-roller-2.8.1-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='Compaq Survey Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-file-roller-2.8.1-1
+Compaq Survey Utility
 </property>
 </object>
 <object id='krb5-workstation-1.3.4-7' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5350,6 +6596,11 @@ Xaw3d-devel-1.5-23
 curl-devel-7.12.1-1
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB841356' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB841356
+</property>
+</object>
 <object id='e2fsprogs-devel-1.36-1.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 e2fsprogs-devel-1.36-1.FC3.1
@@ -5363,11 +6614,6 @@ libgcrypt-1.2.0-3
 <object id='caching-nameserver-7.3-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 caching-nameserver-7.3-3
-</property>
-</object>
-<object id='postgresql-libs-7.4.8-1.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type='string' id='productKey' mode='w' >
-postgresql-libs-7.4.8-1.FC3.1
 </property>
 </object>
 <object id='GConf2-2.8.1-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5413,6 +6659,11 @@ libdbi-dbd-mysql-0.6.5-9
 <object id='libieee1284-0.2.8-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libieee1284-0.2.8-4
+</property>
+</object>
+<object id='CA eTrust VM Service' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA eTrust VM Service
 </property>
 </object>
 <object id='emacs-leim-21.3-21.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5565,6 +6816,11 @@ fetchmail-6.2.5-6
 net-snmp-debuginfo-5.2.1-10.FC3
 </property>
 </object>
+<object id='Symantec AntiVirus' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Symantec AntiVirus
+</property>
+</object>
 <object id='libxml2-python-2.6.14-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libxml2-python-2.6.14-2
@@ -5598,6 +6854,11 @@ at-spi-devel-1.6.0-3
 <object id='php-pear-4.3.11-2.5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 php-pear-4.3.11-2.5
+</property>
+</object>
+<object id='CA Licensing' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA Licensing
 </property>
 </object>
 <object id='MMC82' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -5880,6 +7141,11 @@ dialog-1.0.20040731-3
 libsilc-0.9.12-7
 </property>
 </object>
+<object id='CA Unicenter Asset Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA Unicenter Asset Management
+</property>
+</object>
 <object id='popt-1.9.1-21' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 popt-1.9.1-21
@@ -5900,14 +7166,14 @@ tcp_wrappers-7.6-37.2
 iptables-1.2.11-3.1
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB840987' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB840987
+</property>
+</object>
 <object id='evolution-data-server-1.0.4-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 evolution-data-server-1.0.4-3
-</property>
-</object>
-<object id='iptables-1.2.11-3.1.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type='string' id='productKey' mode='w' >
-iptables-1.2.11-3.1.FC3
 </property>
 </object>
 <object id='Sony Download Taxi 1.3.0.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6080,9 +7346,19 @@ libogg-1.1.2-1
 findutils-4.1.20-7
 </property>
 </object>
+<object id='memprof-0.5.1-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+memprof-0.5.1-5
+</property>
+</object>
 <object id='zip-2.3-26.3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 zip-2.3-26.3
+</property>
+</object>
+<object id='Altiris Recovery Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Altiris Recovery Agent
 </property>
 </object>
 <object id='AudibleManager' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6095,9 +7371,9 @@ AudibleManager
 tetex-fonts-2.0.2-21.3
 </property>
 </object>
-<object id='libsoup-2.2.2-1.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='ipsec-tools-0.3.3-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-libsoup-2.2.2-1.FC3
+ipsec-tools-0.3.3-1
 </property>
 </object>
 <object id='mingetty-1.07-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6143,6 +7419,11 @@ swig-1.3.21-6
 <object id='squid-2.5.STABLE9-1.FC3.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 squid-2.5.STABLE9-1.FC3.4
+</property>
+</object>
+<object id='Symantec System Center' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Symantec System Center
 </property>
 </object>
 <object id='libusb-0.1.8-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6228,6 +7509,11 @@ SealedMedia Unsealer 3.3.10.1
 <object id='dos2unix-3.1-21' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 dos2unix-3.1-21
+</property>
+</object>
+<object id='Windows 2000 Hotfix - KB889293' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB889293
 </property>
 </object>
 <object id='doxygen-1.3.9.1-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6355,9 +7641,9 @@ numactl-0.6.4-1.9
 eel2-devel-2.8.1-2
 </property>
 </object>
-<object id='nscd-2.3.5-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='htmlview-3.0.0-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-nscd-2.3.5-0.fc3.1
+htmlview-3.0.0-8
 </property>
 </object>
 <object id='Omni-0.9.2-1.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6385,9 +7671,19 @@ grub-0.95-3
 setuptool-1.17-2
 </property>
 </object>
+<object id='Microsoft Internet Explorer 6 SP1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Microsoft Internet Explorer 6 SP1
+</property>
+</object>
 <object id='startup-notification-devel-0.7-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 startup-notification-devel-0.7-1
+</property>
+</object>
+<object id='CA Unicenter Remote Control 6.0 ENU Service Pack 1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA Unicenter Remote Control 6.0 ENU Service Pack 1
 </property>
 </object>
 <object id='.1.3.6.1.4.1.8072.3.2.255' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -6478,6 +7774,11 @@ cdparanoia-libs-alpha9.8-24
 <object id='cyrus-sasl-2.1.19-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 cyrus-sasl-2.1.19-3
+</property>
+</object>
+<object id='Windows 2000 Hotfix - KB841533' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB841533
 </property>
 </object>
 <object id='valgrind-callgrind-0.9.9-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6735,6 +8036,11 @@ cups-libs-1.1.22-0.rc1.8
 ghostscript-7.07-33
 </property>
 </object>
+<object id='Compaq Version Control Agent 1.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Compaq Version Control Agent 1.0
+</property>
+</object>
 <object id='AVI Movie Player' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 AVI Movie Player
@@ -6768,6 +8074,16 @@ gimp-2.2.6-0.fc3.2
 <object id='cyrus-sasl-devel-2.1.19-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 cyrus-sasl-devel-2.1.19-3
+</property>
+</object>
+<object id='CuteFTP 5.0 XP' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CuteFTP 5.0 XP
+</property>
+</object>
+<object id='Windows Media Player Hotfix _See Q828026 for more information_' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows Media Player Hotfix [See Q828026 for more information]
 </property>
 </object>
 <object id='xsane-gimp-0.92-13' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6823,6 +8139,11 @@ aspell-0.50.5-3.fc3
 <object id='pstack-1.2-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 pstack-1.2-4
+</property>
+</object>
+<object id='Windows 2000 Hotfix - KB840315' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB840315
 </property>
 </object>
 <object id='ImageMagick-6.2.2.0-1.fc3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -6940,6 +8261,11 @@ freetype-2.1.9-1
 libpcap-0.8.3-8.FC3
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB873339' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB873339
+</property>
+</object>
 <object id='sane-backends-1.0.15-1.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 sane-backends-1.0.15-1.4
@@ -6993,6 +8319,11 @@ net-snmp-5.2.1-10.FC3
 <object id='speex-1.0.4-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 speex-1.0.4-4
+</property>
+</object>
+<object id='LiveUpdate 2.0 (Symantec Corporation)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+LiveUpdate 2.0 (Symantec Corporation)
 </property>
 </object>
 <object id='evolution-2.0.4-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7093,6 +8424,16 @@ ftp-0.17-22
 <object id='slang-1.4.9-13' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 slang-1.4.9-13
+</property>
+</object>
+<object id='CA Unicenter Software Delivery' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA Unicenter Software Delivery
+</property>
+</object>
+<object id='CA Unicenter NSM' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+CA Unicenter NSM
 </property>
 </object>
 <object id='cryptsetup-0.1-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7250,6 +8591,11 @@ nscd-2.3.3-74
 php-ldap-4.3.11-2.5
 </property>
 </object>
+<object id='Altiris Software Delivery Solution Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Altiris Software Delivery Solution Agent
+</property>
+</object>
 <object id='pam-devel-0.77-66.2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 pam-devel-0.77-66.2
@@ -7290,11 +8636,6 @@ lockdev-1.0.1-4.1
 cdecl-2.5-30
 </property>
 </object>
-<object id='pkgconfig-0.15.0-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type='string' id='productKey' mode='w' >
-pkgconfig-0.15.0-3
-</property>
-</object>
 <object id='vnc-server-4.0-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 vnc-server-4.0-8
@@ -7310,9 +8651,9 @@ usermode-gtk-1.74-1
 filesystem-2.3.0-1
 </property>
 </object>
-<object id='memprof-0.5.1-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='iptables-1.2.11-3.1.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-memprof-0.5.1-5
+iptables-1.2.11-3.1.FC3
 </property>
 </object>
 <object id='gail-devel-1.8.0-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7390,6 +8731,11 @@ zlib-1.2.1.2-1
 gtk-doc-1.2-2
 </property>
 </object>
+<object id='Compaq Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Compaq Management Agents
+</property>
+</object>
 <object id='elfutils-devel-0.96-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 elfutils-devel-0.96-1
@@ -7418,6 +8764,11 @@ libxml2-python-2.6.16-3
 <object id='iiimf-libs-devel-12.1-10.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 iiimf-libs-devel-12.1-10.FC3
+</property>
+</object>
+<object id='Altiris Task Synchronization Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Altiris Task Synchronization Agent
 </property>
 </object>
 <object id='open-1.4-21' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7478,6 +8829,11 @@ ed-0.2-36
 <object id='imlib-1.9.13-21' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 imlib-1.9.13-21
+</property>
+</object>
+<object id='samba-3.0.10-1.fc3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+samba-3.0.10-1.fc3
 </property>
 </object>
 <object id='screen-4.0.2-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7565,9 +8921,9 @@ httpd-2.0.52-3.1
 alchemist-1.0.34-1
 </property>
 </object>
-<object id='pcmcia-cs-3.2.7-1.14' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='rootfiles-8-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-pcmcia-cs-3.2.7-1.14
+rootfiles-8-1
 </property>
 </object>
 <object id='which-2.16-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7675,6 +9031,11 @@ libglade2-2.4.0-5
 gnutls-1.0.20-3.1.1
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB885835' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB885835
+</property>
+</object>
 <object id='mdadm-1.6.0-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 mdadm-1.6.0-2
@@ -7720,6 +9081,11 @@ ctags-5.5.4-1
 beecrypt-3.1.0-6
 </property>
 </object>
+<object id='nscd-2.3.5-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+nscd-2.3.5-0.fc3.1
+</property>
+</object>
 <object id='libbonobo-devel-2.8.0-2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libbonobo-devel-2.8.0-2
@@ -7763,6 +9129,11 @@ Cloudmark Desktop for Microsoft Outlook
 <object id='psacct-6.3.2-31' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 psacct-6.3.2-31
+</property>
+</object>
+<object id='MSDN Library - Visual Studio 6.0a' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+MSDN Library - Visual Studio 6.0a
 </property>
 </object>
 <object id='alsa-lib-devel-1.0.6-8.FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7855,6 +9226,11 @@ autofs-4.1.3-114
 util-linux-2.12a-24.2
 </property>
 </object>
+<object id='Windows 2000 Hotfix - KB841873' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Windows 2000 Hotfix - KB841873
+</property>
+</object>
 <object id='rcs-5.7-26' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 rcs-5.7-26
@@ -7865,14 +9241,19 @@ rcs-5.7-26
 libpng-1.2.8-1.fc3
 </property>
 </object>
-<object id='htmlview-3.0.0-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<object id='Windows 2000 Hotfix - KB841872' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
-htmlview-3.0.0-8
+Windows 2000 Hotfix - KB841872
 </property>
 </object>
 <object id='zlib-devel-1.2.1.2-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 zlib-devel-1.2.1.2-1
+</property>
+</object>
+<object id='Altiris Monitor Agent Package ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Altiris Monitor Agent Package 
 </property>
 </object>
 <object id='gpdf-2.8.0-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7890,9 +9271,19 @@ xterm-192-1
 pam_passwdqc-0.7.5-2
 </property>
 </object>
+<object id='pcmcia-cs-3.2.7-1.14' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+pcmcia-cs-3.2.7-1.14
+</property>
+</object>
 <object id='libexif-0.5.12-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libexif-0.5.12-3
+</property>
+</object>
+<object id='Outlook Express Q823353' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Outlook Express Q823353
 </property>
 </object>
 <object id='bind-libs-9.2.5-1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -7948,6 +9339,11 @@ procmail-3.22-14
 <object id='libglade2-devel-2.4.0-5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='string' id='productKey' mode='w' >
 libglade2-devel-2.4.0-5
+</property>
+</object>
+<object id='Microsoft Web Publishing Wizard 1.53' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type='string' id='productKey' mode='w' >
+Microsoft Web Publishing Wizard 1.53
 </property>
 </object>
 <object id='xsri-2.1.0-8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
