@@ -19,8 +19,15 @@ class ZenActions(ZCmdBase):
 
 
     addstate = "insert into alert_state values ('%s', '%s', '%s')"
+
     clearstate = """delete from alert_state where evid='%s' 
                     and userid='%s' and rule='%s'"""
+
+    newsel = """select %s, evid from status where %s and evid not in 
+             (select evid from alert_state where userid='%s'and rule='%s')""" 
+            
+    clearsel = """select %s, evid from history where %s and evid in 
+               (select evid from alert_state where userid='%s' and rule='%s')"""
 
 
     def __init__(self):
@@ -62,9 +69,8 @@ class ZenActions(ZCmdBase):
                 if ar.delay > 0:
                     nwhere += """ and firstTime + %s < UNIX_TIMESTAMP()"""%(
                                 ar.delay)
-                newsel ="""select %s, evid from status where %s and evid not in 
-                        (select evid from alert_state where userid='%s')""" % (
-                        ",".join(fields), nwhere, userid)
+                newsel = self.newsel % (",".join(fields), nwhere,
+                                        userid, ar.getId())
                 self.log.debug(newsel)
                 cursql = newsel
                 curs.execute(newsel)
@@ -81,9 +87,8 @@ class ZenActions(ZCmdBase):
                     curs.execute(addcmd)
                      
                 # get clear events
-                clearsel ="""select %s, evid from history where %s and evid in 
-                        (select evid from alert_state where userid='%s')""" % (
-                        ",".join(fields), ar.where, userid)
+                clearsel = self.clearsel % (",".join(fields), ar.where, 
+                                            userid, ar.getId())
                 self.log.debug(clearsel)
                 cursql = clearsel
                 curs.execute(clearsel)
