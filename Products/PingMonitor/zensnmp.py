@@ -97,19 +97,13 @@ class ZenSnmp(StatusMonitor):
         self.baddevices = []
         for device in devices:
             hostname, url, ip, currentStatus, community, snmpPort = device
-            # resolve hostnames to ipaddresses
-            #ip = self.forwardDnsLookup(hostname)
             if not ip:
                 message = "%s has no manage ip, skipping" % hostname
                 self.log.warn(message)
-#                evt = copy.copy(self.dnsfail)
-#                evt['device'] = hostname
-#                evt['summary'] = message
-#                self.sendEvent(evt)
-#                stattest = StatusTest(ip, hostname, 
-#                                    url, community,
-#                                    currentStatus,
-#                                    self.numTries, snmpPort)
+                continue
+            stattest = StatusTest(ip, hostname, url, community,
+                                  currentStatus, self.numTries, snmpPort)
+                                
             if currentStatus >= self.maxFailures:
                 self.log.debug("add %s to bad devices ping list" % hostname)
                 self.baddevices.append(stattest)
