@@ -8,7 +8,8 @@ from ZODB.POSException import POSError
 from _mysql_exceptions import OperationalError 
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-
+from Event import Event
+from ZenEventClasses import AppStart, AppStop
 
 
 class ZenActions(ZCmdBase):
@@ -132,7 +133,7 @@ class ZenActions(ZCmdBase):
             time.sleep(self.options.cycletime)
 
 
-    def sendEvent(self, evt)
+    def sendEvent(self, evt):
         """Send event to the system.
         """
         self.dmd.ZenEventManager.sendEvent(evt)
