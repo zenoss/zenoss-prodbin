@@ -96,29 +96,26 @@ class ZenSnmp(StatusMonitor):
         self.devices = []
         self.baddevices = []
         for device in devices:
-            hostname, url, currentStatus, community, snmpPort = device
+            hostname, url, ip, currentStatus, community, snmpPort = device
             # resolve hostnames to ipaddresses
-            try:
-                ip = self.forwardDnsLookup(hostname)
-                stattest = StatusTest(ip, hostname, 
-                                    url, community,
-                                    currentStatus,
-                                    self.numTries, snmpPort)
-
-                if currentStatus >= self.maxFailures:
-                    self.log.debug("add %s to bad devices ping list" % hostname)
-                    self.baddevices.append(stattest)
-                else:
-                    self.log.debug("add %s to main ping list" % hostname)
-                    self.devices.append(stattest)
-
-            except socket.error: 
-                message = "%s is unresolvable in dns" % hostname
+            #ip = self.forwardDnsLookup(hostname)
+            if not ip:
+                message = "%s has no manage ip, skipping" % hostname
                 self.log.warn(message)
-                evt = copy.copy(self.dnsfail)
-                evt['device'] = hostname
-                evt['summary'] = message
-                self.sendEvent(evt)
+#                evt = copy.copy(self.dnsfail)
+#                evt['device'] = hostname
+#                evt['summary'] = message
+#                self.sendEvent(evt)
+#                stattest = StatusTest(ip, hostname, 
+#                                    url, community,
+#                                    currentStatus,
+#                                    self.numTries, snmpPort)
+            if currentStatus >= self.maxFailures:
+                self.log.debug("add %s to bad devices ping list" % hostname)
+                self.baddevices.append(stattest)
+            else:
+                self.log.debug("add %s to main ping list" % hostname)
+                self.devices.append(stattest)
 
         if self.baddevices and not self.options.skipbad:
             self.processLoop(self.baddevices)

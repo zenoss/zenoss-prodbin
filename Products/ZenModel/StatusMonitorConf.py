@@ -255,17 +255,17 @@ class StatusMonitorConf(Monitor, StatusColor):
     def getSnmpDevices(self):
         '''get the devices associated with this
          monitor configuration'''
-        #self.setSnmpHeartbeat()
         devices = []
         for dev in self.devices.objectValuesAll():
             try:
                 dev = dev.primaryAq()
                 if getattr(dev, "zSnmpMonitorIgnore", False): continue
+                ipaddr = dev.getManageIp()
                 url = dev.absolute_url()
                 if (dev.productionState >= self.prodStateThreshold
                     and dev.zSnmpCommunity):
                    devices.append(( 
-                        dev.id, url,
+                        dev.id, url, ipaddr
                         dev.getSnmpStatusNumber(),
                         dev.zSnmpCommunity,
                         dev.zSnmpPort))
