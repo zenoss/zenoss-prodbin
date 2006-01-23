@@ -26,9 +26,9 @@ class NewDeviceMap(SnmpPlugin):
              })
 
     osregex = (
+        re.compile(r'(IOS).*Version (\S+),'),       # cisco
         re.compile(r'- Software: (.+) \(Build'),    # windows
         re.compile(r'(\S+) \S+ (\S+)'),             # unix
-        re.compile(r'(IOS).*Version (\S+),'),       # cisco
     )
 
     def condition(self, device, log):
@@ -43,10 +43,12 @@ class NewDeviceMap(SnmpPlugin):
         getdata, tabledata = results
         om = self.objectMap(getdata)
         om.setHWProductKey = om.snmpOid
+        log.debug("HWProductKey=%s", om.setHWProductKey)
         descr = om.snmpDescr
         for regex in self.osregex:
             m = regex.search(descr)
             if m: 
                 om.setOSProductKey = " ".join(m.groups())
+                log.debug("OSProductKey=%s", om.setOSProductKey)
                 break
         return om

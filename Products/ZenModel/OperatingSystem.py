@@ -5,6 +5,7 @@
 #################################################################
 
 import logging
+log = logging.getLogger("zen.OS")
 
 from Software import Software
 
@@ -51,11 +52,11 @@ class OperatingSystem(Software):
     def traceRoute(self, target, ippath):
         """Trace the route to target using our routing table.
         """
-        logging.debug("device %s target %s", self.getDeviceName(), target)
+        log.debug("device %s target %s", self.getDeviceName(), target)
         nextdev = None
         for route in self.getRouteObjs():
             ip = route.getNextHopIp()
-            logging.debug("target %s next hop %s", route.getTarget(), ip)
+            log.debug("target %s next hop %s", route.getTarget(), ip)
             if ip == target:
                 ippath.append(ip)
                 return ippath
@@ -63,7 +64,7 @@ class OperatingSystem(Software):
                 nextdev = route.getNextHopDevice()
                 break
         else:
-            logging.debug("device %s default route", self.getDeviceName())
+            log.debug("device %s default route", self.getDeviceName())
             ip = ""
             default = self.routes._getOb("0.0.0.0_0", None)
             if default:
