@@ -70,7 +70,7 @@ class OperatingSystem(Software):
             if default:
                 ip = default.getNextHopIp()
                 nextdev = default.getNextHopDevice()
-        if route and route.routetype=="direct":
+        if nextdev == self or ip=="0.0.0.0":
             ippath.append(target)
             return ippath
         if nextdev: 
