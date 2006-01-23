@@ -44,15 +44,17 @@ class ZenDisc(ZenModeler):
             self.discoverRouters(router, seenips)
             
 
-    def discoverIps(self):
+    def discoverIps(self, nets=None):
         """Ping all ips create if nessesary and perform reverse lookup.
         """
         ips = []
         ping = Ping(tries=self.options.tries, timeout=self.options.timeout,
                     chunkSize=self.options.chunkSize)
-        nets = self.dmd.Networks
-        pingthresh = getattr(self.dmd.Networks, "zPingFailThresh", 168)
-        for net in nets.getSubNetworks():
+        pingthresh = 168
+        if not nets:
+            nets = self.dmd.Networks.getSubNetworks()
+            pingthresh = getattr(self.dmd.Networks, "zPingFailThresh", 168)
+        for net in nets:
             if not getattr(net, "zAutoDiscover", False): continue
             self.log.info("discover network '%s'", net.id)
             goodips, badips = ping.ping(net.fullIpList())
@@ -191,6 +193,11 @@ class ZenDisc(ZenModeler):
 
 
     def run(self):
+        if self.options.net:
+            netobj = self.dmd.Networks._getObj(self.options.net,None) 
+            if not netobj:
+                raise SystemExit("network %s not found in dmd",self.options.net)
+            return self.discoverIps((netobj,))
         myname = socket.getfqdn()
         self.log.info("my hostname = %s", myname)
         try:
@@ -217,6 +224,8 @@ class ZenDisc(ZenModeler):
 
     def buildOptions(self):
         ZenModeler.buildOptions(self)
+        self.parser.add_option('--net', dest='net',
+                    help="discover all device on this network")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true",
                     help="remodel existing objects")
