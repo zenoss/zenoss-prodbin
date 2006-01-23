@@ -25,6 +25,7 @@ import time
 import types
 import Queue
 import re
+import socket
 
 import Globals
 import transaction
@@ -247,6 +248,8 @@ class ZenModeler(ZCmdBase):
                 self.log.info("plugins: %s", 
                     ", ".join(map(lambda p: p.name(), plugins)))
                 ipaddr = device.getManageIp()
+                if not ipaddr:
+                    ipaddr = socket.gethostbyname(device.id)
                 client = SnmpClient.SnmpClient(device.id, ipaddr, self.options, 
                                                 device, self, plugins)
                                             
