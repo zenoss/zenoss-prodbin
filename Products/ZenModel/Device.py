@@ -260,7 +260,9 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
 
     def traceRoute(self, target, ippath=None):
         if ippath is None: ippath=[]
-        if not isip(target): target = socket.gethostbyname(target)
+        if not isip(target): 
+            target = self.findDevice(target)
+            if not target: raise ValueError("target %s not found in dmd",target)
         return self.os.traceRoute(target, ippath)
 
 
