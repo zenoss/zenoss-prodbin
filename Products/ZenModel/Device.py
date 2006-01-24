@@ -263,6 +263,7 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         if not isip(target): 
             target = self.findDevice(target)
             if not target: raise ValueError("target %s not found in dmd",target)
+            target = target.getManageIp()
         return self.os.traceRoute(target, ippath)
 
 
