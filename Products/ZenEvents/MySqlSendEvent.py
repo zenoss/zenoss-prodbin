@@ -56,6 +56,12 @@ class MySqlSendEventMixin:
                 dedupid.append(str(value))
             event.dedupid = "|".join(dedupid)
 
+        if getattr(event, "message", False):
+            event.summary = event.message[:128]
+        if getattr(event, "summary", False):
+            event.message = event.summary
+            event.summary = event.summary[:128]
+
         insert = ""
         try:
             close = False

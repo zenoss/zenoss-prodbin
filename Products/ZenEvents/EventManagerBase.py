@@ -38,6 +38,9 @@ from Exceptions import *
 
 from Products.ZenModel.ZenModelBase import ZenModelBase
 
+from ZenEventClasses import Unknown
+
+
 class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager, 
                         PropertyManager, Item):
     """
@@ -691,6 +694,32 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             curs.execute(delete);
             db.close()
         if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage Events','manage_setEventStates')
+    def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
+        """Create an event map from an event or list of events.
+        """
+        evclass = None
+        evmap = None
+        if eventClass and evids: 
+            evclass = self.getDmdRoot("Events").getOrganizer(eventClass)
+            sel = """select eventClassKey, eventClass, message 
+                    from %s where evid in ('%s')"""
+            sel = sel % (self.statusTable, "','".join(evids))
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(sel);
+            for row in curs.fetchall():
+                evclasskey, curevclass, msg = row
+                if curevclass != Unknown: continue
+                evmap = evclass.createInstance(evclasskey)
+                evmap.eventClassKey = evclasskey
+                evmap.example = msg
+            db.close()
+        if REQUEST: 
+            if len(evids) == 1 and evmap: return evmap()
+            elif evclass and evmap: return evclass()
 
 
     security.declareProtected('Manage EventManager','manage_refreshConversions')

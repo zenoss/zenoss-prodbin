@@ -83,13 +83,22 @@
         <input class="tableheader" type="submit" 
             name="manage_deleteEvents:method" value=" Delete " />
         |
-        <input class="tableheader" type="submit" value="Set State:" 
+        <input class="tableheader" type="submit" value="State:" 
                 name="manage_setEventStates:method"/>
         <select class="tableheader" name="eventState"
         tal:define="states zem/getEventStates">
             <option value=""></option>
             <option tal:repeat="state states" tal:content="python:state[0]"
                 tal:attributes="value python:state[1]">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit" value="Map:" 
+                name="manage_createEventMap:method"/>
+        <select class="tableheader" name="eventClass"
+        tal:define="orgs here/Events/getOrganizerNames">
+            <option value=""></option>
+            <option tal:repeat="org orgs" tal:content="org"
+                tal:attributes="value org">/App/Start</option>
         </select> 
         |
         <input class="tableheader" type="submit"

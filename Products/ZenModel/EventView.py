@@ -79,3 +79,14 @@ class EventView(object):
         """
         self.getEventManager().manage_setEventStates(eventState, evids)
         if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    #security.declareProtected('Manage Events','manage_setEventStates')
+    def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
+        """Create an event map from an event or list of events.
+        """
+        screen = self.getEventManager().manage_createEventMap(
+                                      eventClass, evids, REQUEST)
+        if REQUEST:
+            if screen: return screen
+            return self.callZenScreen(REQUEST)

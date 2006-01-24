@@ -173,11 +173,15 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     def createInstance(self, id, REQUEST=None):
         """Add an EventClassInst to this EventClass.
         """
+        c=0
+        while self.instances._getOb(id,False):
+            c+=1
+            id = "%s_%02d" % (id, c)
         ecr = EventClassInst(id)
         ecr.sequence = self.nextSequenceNumber(ecr.eventClassKey)
         self.instances._setObject(id, ecr)
         if REQUEST: return self()
-        else: return id 
+        return self.instances._getOb(id)
 
 
     def removeInstances(self, ids=None, REQUEST=None):
