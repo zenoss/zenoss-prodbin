@@ -218,8 +218,9 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
         log.debug("mapping device '%s'", dev.id)
         memo.append(dev.id)
         for route in dev.os.routes():
-            if route.getNextHopIp() == "0.0.0.0":
-                if not route.getTarget().startswith("127."):
+            if route.routetype == "direct":
+                netid=route.getTarget()
+                if not route.ipcheck(netid):
                     netid = route.getTarget()
                     if rootnode.hasNet(netid): continue
                     net = rnode.addNet(netid,route.getInterfaceIp())
@@ -251,8 +252,9 @@ def netDistMap(root, nmap=None, distance=0, devs=None, memo=None):
         log.debug("mapping device '%s' distance '%s'", dev.id, distance)
         memo.append(dev.id)
         for route in dev.os.routes():
-            if route.getNextHopIp() == "0.0.0.0":
-                if not route.getTarget().startswith("127."):
+            if route.routetype == "direct":
+                netid=route.getTarget()
+                if not route.ipcheck(netid):
                     netip = route.getTargetIp()
                     curdist = nmap.get(netip,sys.maxint)
                     if curdist > distance:
