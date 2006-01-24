@@ -84,7 +84,7 @@ class ActionRule(ZenModelRM):
     def getAddress(self):
         """Return the correct address for the action this rule uses.
         """
-        if self.action == "pager":
+        if self.action == "page":
             return self.pager
         elif self.action == "email":
             return self.email
