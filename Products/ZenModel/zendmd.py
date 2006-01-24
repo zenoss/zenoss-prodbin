@@ -1,3 +1,4 @@
+import socket
 import Globals
 import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -13,6 +14,7 @@ devices = dmd.Devices
 sync = dmd._p_jar.sync
 commit = transaction.commit
 abort = transaction.abort
+me = find(socket.getfqdn())
 
 def zhelp():
     cmds = filter(lambda x: not x.startswith("_"), globals())

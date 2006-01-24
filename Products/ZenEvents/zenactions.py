@@ -153,9 +153,9 @@ class ZenActions(ZCmdBase):
         """
         import Pager
         rcpt = Pager.Recipient(addr)
-        msg = Pager.Message(msg)
-        #msg.callerid = "zenmon"
-        page = Pager.Pager((rcpt,), msg, self.options.snpphost, 
+        pmsg = Pager.Message(msg)
+        #pmsg.callerid = "zenmon"
+        page = Pager.Pager((rcpt,), pmsg, self.options.snpphost, 
                                          self.options.snppport)
         page.send()
         self.log.info("sent page:%s to:%s", msg, addr)
