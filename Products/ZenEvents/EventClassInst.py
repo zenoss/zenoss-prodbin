@@ -197,6 +197,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         limit limits the number of characters returned.
         """
         value = self.rule and self.rule or self.regex
+        if not value and self.example:
+            value = self.example
         if limit: value = value[:limit]
         return value
 
