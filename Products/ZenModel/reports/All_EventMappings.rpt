@@ -1,0 +1,46 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    objects  python:here.getDmdRoot('Events').getInstances();
+    tableName string: neweventclassmapreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='getDmdKey');
+    ">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class=tabletitle align=left colspan="6">
+        Event Classes
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDmdKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'eventClassKey','EventClassKey')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'ruleOrRegex','Evaluation')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getStatus','Events')"/>
+    </tr>
+    <tr tal:repeat="evinst batch">
+        <td class="tablevalues" align="left">
+            <a tal:attributes="href evinst/getPrimaryUrlPath"
+            tal:content="evinst/getDmdKey">Name</a>
+        </td>
+        <td class="tablevalues" tal:content="evinst/eventClassKey"/>
+        <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
+        <td class="tablevalues" tal:content="python:evinst.getStatus()"
+            align="center">0</td>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

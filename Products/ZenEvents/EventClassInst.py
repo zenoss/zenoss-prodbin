@@ -163,7 +163,12 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
     def getEventClass(self):
         """Return the full EventClass of this EventClassInst."""
         return self.getOrganizerName()
-    getDmdKey = getEventClass
+
+
+    def getDmdKey(self):
+        """Return the dmd key of this mapping ie: /App/Start/zentinel
+        """
+        return self.getOrganizerName() + "/" + self.id
 
 
     def applyExtraction(self, evt):
