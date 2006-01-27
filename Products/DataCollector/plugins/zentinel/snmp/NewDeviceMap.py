@@ -32,7 +32,7 @@ class NewDeviceMap(SnmpPlugin):
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
     )
 
-Cisco Catalyst Operating System Software, Version 7.6(10)
+
     def condition(self, device, log):
         """Only run if products have not been set.
         """
