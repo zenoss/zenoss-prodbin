@@ -25,11 +25,25 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'primarySortKey','Name')">Name
-        </th>
+                            tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'clockspeed','Speed')">sd0
-        </th>
+                            tableName,'getProductName','Model')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'clockspeed','Speed')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'clockspeed','Ext Speed')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'clockspeed','L1')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'clockspeed','L2')"/>
+    </tr>
+    <tr tal:repeat="cpu batch">
+        <td class="tablevalues" tal:content="cpu/id"/>
+        <td class="tablevalues" tal:content="cpu/getProductName"/>
+        <td class="tablevalues" tal:content="string:${cpu/clockspeed}MHz"/>
+        <td class="tablevalues" tal:content="string:${cpu/extspeed}MHz"/>
+        <td class="tablevalues" tal:content="string:${cpu/cacheSizeL1} KB"/>
+        <td class="tablevalues" tal:content="string:${cpu/cacheSizeL2} KB"/>
     </tr>
     <tr>
         <td colspan="2" class="tableheader" align='center'>
