@@ -6,10 +6,10 @@
 
 from CollectorPlugin import SnmpPlugin, GetTableMap
 
-class DellCPUMap(SnmpPlugin):
-    """Map HP/Compaq insight manager cpu table to model."""
+class DellPCIMap(SnmpPlugin):
+    """Map HP/Compaq insight manager PCI table to model."""
 
-    maptype = "DellCPUMap"
+    maptype = "DellPCIMap"
     modname = "Products.ZenModel.ExpansionCard"
     relname = "cards"
     compname = "hw"
