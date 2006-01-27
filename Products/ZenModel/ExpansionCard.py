@@ -25,7 +25,11 @@ class ExpansionCard(HWComponent):
 
     portal_type = meta_type = 'ExpansionCard'
 
-    clockspeed = ""
+    slot = ""
+
+    _properties = HWComponent._properties + (
+        {'id':'slot', 'type':'int', 'mode':'w'},
+    )
 
     _relations = HWComponent._relations + (
         ("hw", ToOne(ToManyCont, "DeviceHW", "cards")),

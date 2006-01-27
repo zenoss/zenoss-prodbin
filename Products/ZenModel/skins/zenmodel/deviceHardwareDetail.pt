@@ -27,6 +27,8 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'socket','Socket')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getManufacturerName','Manufacturer')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getProductName','Model')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'clockspeed','Speed')"/>
@@ -41,6 +43,8 @@
     </tr>
     <tr tal:repeat="cpu batch">
         <td class="tablevalues" tal:content="cpu/socket"/>
+        <td class="tablevalues" 
+            tal:content="structure card/getManufacturerLink"/>
         <td class="tablevalues" tal:content="structure cpu/getProductLink"/>
         <td class="tablevalues" tal:content="string:${cpu/clockspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/extspeed} MHz"/>
@@ -63,9 +67,7 @@
                                             sortedHeader='description');"
     tal:condition="objects">
     <tr>
-      <th class="tabletitle" align="left" colspan="1">
-        Hard Disks
-      </th>
+      <th class="tabletitle" align="left" colspan="1">Hard Disks</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -80,6 +82,37 @@
     </tr>
     <tr>
         <td colspan=1 class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="cardList"
+    tal:define="tableName string:hardDiskList;
+    objects here/hw/cards/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='slot');"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan="3">Expansion Cards</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'slot','Slog')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getManufacturerName','Manufacturer')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getProductName','Model')"/>
+    </tr>
+    <tr tal:repeat="card batch">
+        <td class="tablevalues" tal:content="card/slot"/>
+        <td class="tablevalues" 
+            tal:content="structure card/getManufacturerLink"/>
+        <td class="tablevalues" tal:content="structure card/getProductLink"/>
+    </tr>
+    <tr>
+        <td colspan="3" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
