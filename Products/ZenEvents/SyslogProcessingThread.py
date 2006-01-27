@@ -12,19 +12,19 @@ from syslog_h import *
 # Regular expressions that parse syslog tags from different sources
 parsers = (
 # cisco msg with card inicator
-r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
+r"^%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
 
 # cisco standard msg
-r"%(?P<eventClass>\S+): (?P<summary>.*)",
+r"^%(?P<eventClass>\S+): (?P<summary>.*)",
 
 # ntsyslog msg
-r"(?P<component>\S+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+r"^(?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
 # unix syslog with pid
-r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
+r"^(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
 
 # unix syslog without pid
-r"(?P<component>\S+): (?P<summary>.*)",
+r"^(?P<component>\S+): (?P<summary>.*)",
 
 ) 
 

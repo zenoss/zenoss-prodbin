@@ -26,11 +26,13 @@ class NewDeviceMap(SnmpPlugin):
              })
 
     osregex = (
-        re.compile(r'(IOS).*Version (\S+),'),       # cisco
-        re.compile(r'- Software: (.+) \(Build'),    # windows
-        re.compile(r'(\S+) \S+ (\S+)'),             # unix
+        re.compile(r'(IOS).*Version (\S+),'),           # cisco
+        re.compile(r'(Cisco Catalyst).*Version (\S+)'), # cisco catalyst
+        re.compile(r'- Software: (.+) \(Build'),        # windows
+        re.compile(r'(\S+) \S+ (\S+)'),                 # unix
     )
 
+Cisco Catalyst Operating System Software, Version 7.6(10)
     def condition(self, device, log):
         """Only run if products have not been set.
         """
