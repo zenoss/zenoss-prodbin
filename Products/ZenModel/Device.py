@@ -291,6 +291,18 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         self.hw.setProductKey(prodKey)
 
 
+    def setHWSerialNumber(self, number):
+        """Set our hardware serial number.
+        """
+        self.hw.serialNumber = number
+
+
+    def getHWSerialNumber(self):
+        """Return our hardware serial number.
+        """
+        return self.hw.serialNumber
+
+
     def followNextHopIps(self):
         """Return the ips that our indirect routs point to which 
         aren't currently connected to devices.
