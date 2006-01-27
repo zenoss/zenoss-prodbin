@@ -14,9 +14,9 @@ class DellDeviceMap(SnmpPlugin):
 
     snmpGetMap = GetMap({ 
         #'.1.3.6.1.4.1.674.10892.1.300.10.1.8' : 'manufacturer',
-        '.1.3.6.1.4.1.674.10892.1.300.10.1.9' : 'setHWProductKey',
+        '.1.3.6.1.4.1.674.10892.1.300.10.1.9.1' : 'setHWProductKey',
         '.1.3.6.1.4.1.674.10892.1.300.10.1.11.1' : 'serialNumber',
-        '.1.3.6.1.4.1.674.10892.1.400.10.1.6': 'setOSProductKey',
+        '.1.3.6.1.4.1.674.10892.1.400.10.1.6.1': 'setOSProductKey',
          })
 
 
