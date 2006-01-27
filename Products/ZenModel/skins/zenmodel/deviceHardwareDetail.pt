@@ -19,7 +19,7 @@
     objects here/hw/cpus/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <tr>
-      <th class="tabletitle" align="left" colspan="6">
+      <th class="tabletitle" align="left" colspan="7">
         CPUs
       </th>
     </tr>
@@ -41,10 +41,7 @@
     </tr>
     <tr tal:repeat="cpu batch">
         <td class="tablevalues" tal:content="cpu/socket"/>
-        <td class="tablevalues">
-            <a tal:attributes="href cpu/getProductLink" 
-                tal:content="cpu/getProductName">Intel</a>
-        </td>
+        <td class="tablevalues" tal:content="structure cpu/getProductLink"/>
         <td class="tablevalues" tal:content="string:${cpu/clockspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/extspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/cacheSizeL1} KB"/>
@@ -52,7 +49,7 @@
         <td class="tablevalues" tal:content="string:${cpu/voltage} mV"/>
     </tr>
     <tr>
-        <td colspan="6" class="tableheader" align='center'>
+        <td colspan="7" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
