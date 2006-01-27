@@ -44,7 +44,7 @@
     <tr tal:repeat="cpu batch">
         <td class="tablevalues" tal:content="cpu/socket"/>
         <td class="tablevalues" 
-            tal:content="structure card/getManufacturerLink"/>
+            tal:content="structure cpu/getManufacturerLink"/>
         <td class="tablevalues" tal:content="structure cpu/getProductLink"/>
         <td class="tablevalues" tal:content="string:${cpu/clockspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/extspeed} MHz"/>
