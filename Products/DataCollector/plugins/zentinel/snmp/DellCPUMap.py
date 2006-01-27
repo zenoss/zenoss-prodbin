@@ -18,7 +18,6 @@ class DellCPUMap(SnmpPlugin):
         GetTableMap('cpuTable', 
                     '.1.3.6.1.4.1.674.10892.1.1100.30.1',
                     {
-                    '.1': '_cpuidx',
                     '.2': 'socket',
                     '.8': '_manuf',
                     '.10': '_familyidx',
@@ -29,8 +28,8 @@ class DellCPUMap(SnmpPlugin):
                      }
         ),
  	    GetTableMap('cacheTable', 
-                    '1.3.6.1.4.1.674.10892.1.1100.40.1',
-                    {'.6': 'cpuidx', '.11': 'level', '.13': 'size'}
+                    '.1.3.6.1.4.1.674.10892.1.1100.40.1',
+                    {'.6': 'cpusock', '.11': 'level', '.13': 'size'}
         ),
     )
 
@@ -50,11 +49,11 @@ class DellCPUMap(SnmpPlugin):
                 cpufam = om._manuf + " " + cpufam
             om.setProductKey =  cpufam + " " + om._version
             om.id = self.prepId("%s_%s" % (om._manuf,om.socket))
-            cpumap[cpu['_cpuidx']] = om
+            cpumap[om.socket] = om
             rm.append(om)
         
         for cache in cachetable.values():
-            cpu = cpumap.get(cache['cpuidx'], None)
+            cpu = cpumap.get(cache['cpusock'], None)
             if cpu is None: continue
             try: level = self.cacheLevel[cache['level']-1]
             except IndexError: level = None
