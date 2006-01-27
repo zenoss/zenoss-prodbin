@@ -31,6 +31,6 @@ class DellPCIMap(SnmpPlugin):
         for card in pcitable.values():
             om = self.objectMap(card)
             om.id = self.prepId("%s" % om.slot)
-            om.setProductKey("%s %s" % (om._manuf, om._model))
+            om.setProductKey = "%s %s" % (om._manuf, om._model)
             rm.append(om)
         return rm

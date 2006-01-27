@@ -130,7 +130,7 @@
         tal:attributes="href ip/absolute_url"
         tal:content="ip/getIpAddress">1.1.1.1/24</a>
     </td>
-    <td class="tablevalues" tal:content="ip/ptrname"/>
+    <td class="tablevalues" tal:content="ip/ptrName"/>
     <td class="tablevalues" align="left">
         <a href="_" 
         tal:condition="ip/getDeviceUrl"
