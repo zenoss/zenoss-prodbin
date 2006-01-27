@@ -267,6 +267,12 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         return self.os.traceRoute(target, ippath)
 
 
+    def getHWProductName(self):
+        """Return the hardware product name of this device.
+        """
+        return self.hw.getProductName()
+
+
     def getHWProductKey(self):
         """Get our HW product by productKey.
         """

@@ -9,7 +9,8 @@
     tableName string: alldevicereport;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     ">
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody" tal:omit-tag="" />  
+    <span metal:use-macro="here/deviceListMacro/macros/devListReportBody" 
+            tal:omit-tag="" />  
 </table>
 </tal:block>
 </tal:block>

@@ -89,20 +89,17 @@
 <span metal:define-macro="devListReportBody" tal:omit-tag="">
 <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'primarySortKey','Name')">Name
-    </th>
+                        tableName,'primarySortKey','Name')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'getDeviceClassPath','Class')">Class
-    </th>
+                        tableName,'getDeviceClassPath','Class')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getProdState','State')">State
-    </th>
+                        tableName,'getHWProductName','Product')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getPingStatusNumber','Ping')">Ping
-    </th>
+                tableName,'getProdState','State')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getSnmpStatusNumber','Snmp')">SNMP
-    </th>
+                tableName,'getPingStatusNumber','Ping')"/>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getSnmpStatusNumber','Snmp')"/>
 </tr>
 <tr tal:repeat="device batch">
     <td class="tablevalues" align="left">
@@ -111,14 +108,9 @@
             tal:content="device/id">device
         </a>
     </td>
-    <td class="tablevalues" align="left"
-        tal:content="device/getDeviceClassPath">
-        /NetworkDevice/Router
-    </td>
-    <td class="tablevalues" align="left"
-        tal:content="device/getProdState">
-        Production
-    </td >
+    <td class="tablevalues" tal:content="device/getDeviceClassPath"/>
+    <td class="tablevalues" tal:content="device/getHWProductName"/>
+    <td class="tablevalues" tal:content="device/getProdState"/>
     <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
     <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
 </tr>
