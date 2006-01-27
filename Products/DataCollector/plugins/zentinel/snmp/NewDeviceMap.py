@@ -26,9 +26,19 @@ class NewDeviceMap(SnmpPlugin):
              })
 
     osregex = (
-        re.compile(r'(IOS).*Version (\S+),'),           # cisco
-        re.compile(r'(Cisco Catalyst).*Version (\S+)'), # cisco catalyst
-        re.compile(r'- Software: (.+) \(Build'),        # windows
+        #Cisco Internetwork Operating System Software IOS (tm) s72033_rp Software (s72033_rp-IPSERVICESK9-M), Version 12.2(18)SXE3, RELEASE SOFTWARE (fc1) 
+        re.compile(r'(IOS).*Version (\S+),'),           
+
+        #Cisco Catalyst Operating System Software, Version 7.6(10)
+        re.compile(r'(Cisco Catalyst).*Version (\S+)'), 
+
+        #Cisco Systems, Inc./VPN 3000 Concentrator Version 4.1.7.D built 
+        re.compile(r'(Cisco).*\/(VPN \d+).*Version (\S+)'), 
+
+        #Hardware: x86 Family 15 Model 4 Stepping 1 AT/AT COMPATIBLE - Software: Windows Version 5.2 (Build 3790 Multiprocessor Free)
+        re.compile(r'- Software: (.+) \(Build'),        
+
+
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
     )
 
