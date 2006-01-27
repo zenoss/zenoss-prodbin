@@ -19,34 +19,34 @@
     objects here/hw/cpus/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <tr>
-      <th class="tabletitle" align="left" colspan="2">
+      <th class="tabletitle" align="left" colspan="6">
         CPUs
       </th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'primarySortKey','Name')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getProductName','Model')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'clockspeed','Speed')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'clockspeed','Ext Speed')"/>
+                            tableName,'extspeed','Ext Speed')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'clockspeed','L1')"/>
+                            tableName,'cacheSizeL1','L1')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'clockspeed','L2')"/>
+                            tableName,'cacheSizeL2','L2')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'voltage','Volts')"/>
     </tr>
     <tr tal:repeat="cpu batch">
-        <td class="tablevalues" tal:content="cpu/id"/>
         <td class="tablevalues" tal:content="cpu/getProductName"/>
-        <td class="tablevalues" tal:content="string:${cpu/clockspeed}MHz"/>
-        <td class="tablevalues" tal:content="string:${cpu/extspeed}MHz"/>
+        <td class="tablevalues" tal:content="string:${cpu/clockspeed} MHz"/>
+        <td class="tablevalues" tal:content="string:${cpu/extspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/cacheSizeL1} KB"/>
         <td class="tablevalues" tal:content="string:${cpu/cacheSizeL2} KB"/>
+        <td class="tablevalues" tal:content="string:${cpu/voltage} mV"/>
     </tr>
     <tr>
-        <td colspan="2" class="tableheader" align='center'>
+        <td colspan="6" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
