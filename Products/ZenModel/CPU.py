@@ -28,6 +28,7 @@ class CPU(HWComponent):
     socket = 0
     clockspeed = 0
     extspeed = 0
+    voltage = 0
     cacheSizeL1 = 0
     cacheSizeL2 = 0
 
