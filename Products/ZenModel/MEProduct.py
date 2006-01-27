@@ -59,6 +59,11 @@ class MEProduct(ManagedEntity):
         if pclass: return pclass.productKey
         return ""
 
+    
+    def getProductLink(self):
+        return self.productClass.getPrimaryLink()
+
+
 
 
 InitializeClass(MEProduct)

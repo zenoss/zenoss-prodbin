@@ -149,24 +149,6 @@ class Software(MEProduct):
         return ""
        
 
-    def manufacturerName(self):
-        """Return the manufacturer of this software (from its softwareClass)
-        """
-        pclass = self.productClass()
-        if pclass: return pclass.getManufacturerName()
-        return ""
-
-
-    def getManufacturerLink(self):
-        pclass = self.productClass()
-        if pclass: return pclass.manufacturer.getPrimaryLink()
-        return ""
-
-
-    def getProductLink(self):
-        return self.productClass.getPrimaryLink()
-
-
     def getInstallDateObj(self):
         """Return the install date as a DateTime object.
         """
