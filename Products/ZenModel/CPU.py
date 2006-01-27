@@ -25,10 +25,19 @@ class CPU(HWComponent):
 
     portal_type = meta_type = 'CPU'
 
-    clockspeed = ""
+    socket = 0
+    clockspeed = 0
+    extspeed = 0
+    cacheSizeL1 = 0
+    cacheSizeL2 = 0
 
     _properties = (
-         {'id':'clockspeed', 'type':'string', 'mode':'w'},
+         {'id':'socket', 'type':'int', 'mode':'w'},
+         {'id':'clockspeed', 'type':'int', 'mode':'w'},     #MHz
+         {'id':'extspeed', 'type':'int', 'mode':'w'},       #MHz
+         {'id':'voltage', 'type':'int', 'mode':'w'},        #Millivolts
+         {'id':'cacheSizeL1', 'type':'int', 'mode':'w'},    #KBytes
+         {'id':'cacheSizeL2', 'type':'int', 'mode':'w'},    #KBytes
     )    
     
     _relations = HWComponent._relations + (
