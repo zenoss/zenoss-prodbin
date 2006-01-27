@@ -16,7 +16,7 @@ class DellCPUMap(SnmpPlugin):
 
     snmpGetTableMaps = (
         GetTableMap('cpuTable', 
-                    '.1.3.6.1.4.1.674.10892.1.1100.30.1.1',
+                    '.1.3.6.1.4.1.674.10892.1.1100.30.1',
                     {
                     '.1': '_cpuidx',
                     '.2': 'socket',
@@ -44,7 +44,7 @@ class DellCPUMap(SnmpPlugin):
         cpumap = {}
         for cpu in cputable.values():
             om = self.objectMap(cpu)
-            try: cpufam = self.cpufamily[cpu['_familyidx']]
+            try: cpufam = self.cpufamily[cpu['_familyidx']-1]
             except IndexError: cpufam = ""
             if not cpufam.startswith(om._manuf):
                 cpufam = om._manuf + " " + cpufam
@@ -56,7 +56,7 @@ class DellCPUMap(SnmpPlugin):
         for cache in cachetable.values():
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
-            try: level = self.cacheLevel[cpu['level']]
+            try: level = self.cacheLevel[cache['level']-1]
             except IndexError: level = None
             if level == "L1": 
                 cpu.cacheSizeL1 = cache['size']
