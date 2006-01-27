@@ -23,8 +23,9 @@ class HPCPUMap(SnmpPlugin):
                 '.7': 'extspeed',
                 '.9': 'socket',
                  }
- 	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1'
-                {'.1': 'cpuidx', '.2': 'level', '.3', 'size'}
+        ),
+ 	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1',
+                {'.1': 'cpuidx', '.2': 'level', '.3': 'size'}
         ),
     )
 
@@ -43,7 +44,7 @@ class HPCPUMap(SnmpPlugin):
             cpumap[cpu['cpuidx']] = om
             rm.append(om)
         
-        for cache in cachetable.values()
+        for cache in cachetable.values():
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
             if cpu['level'] == 1: 

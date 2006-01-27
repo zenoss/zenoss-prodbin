@@ -27,9 +27,10 @@ class DellCPUMap(SnmpPlugin):
                     '.14': 'voltage',
                     '.16': '_version',
                      }
+        ),
  	    GetTableMap('cacheTable', 
-                    '1.3.6.1.4.1.674.10892.1.1100.40.1'
-                    {'.6': 'cpuidx', '.11': 'level', '.13', 'size'}
+                    '1.3.6.1.4.1.674.10892.1.1100.40.1',
+                    {'.6': 'cpuidx', '.11': 'level', '.13': 'size'}
         ),
     )
 
@@ -46,13 +47,13 @@ class DellCPUMap(SnmpPlugin):
             try: cpufam = self.cpufamily[om._familyidx]
             except IndexError: cpufam = ""
             if not cpufam.startswith(om._manuf):
-                cpufam = om._manuf + " " cpufam
-            om.setProductKey =  cpufam + " " + om._version)
+                cpufam = om._manuf + " " + cpufam
+            om.setProductKey =  cpufam + " " + om._version
             om.id = self.prepId("%s_%s" % (om._manuf,om.socket))
             cpumap[cpu['cpuidx']] = om
             rm.append(om)
         
-        for cache in cachetable.values()
+        for cache in cachetable.values():
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
             try: level = self.cacheLevel[cpu['level']]
@@ -75,16 +76,16 @@ class DellCPUMap(SnmpPlugin):
         "80287",
         "80387",
         "80487",
-        "Intel® Pentium®",
+        "Intel Pentium",
         "Pentium Pro",
         "Pentium II",
         "Pentium MMX",
-        "Celeron®",
+        "Celeron",
         "Xeon",
         "Pentium III",
         "Pentium III Xeon",
         "Pentium III Speed Step",
-        "Itanium®",
+        "Itanium",
         "Intel Xeon",
         "Pentium 4",
         "Intel Xeon MP",
