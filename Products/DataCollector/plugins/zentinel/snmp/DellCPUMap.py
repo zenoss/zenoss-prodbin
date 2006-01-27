@@ -44,7 +44,7 @@ class DellCPUMap(SnmpPlugin):
         cpumap = {}
         for cpu in cputable.values():
             om = self.objectMap(cpu)
-            try: cpufam = self.cpufamily[om._familyidx]
+            try: cpufam = self.cpufamily[cpu['_familyidx']]
             except IndexError: cpufam = ""
             if not cpufam.startswith(om._manuf):
                 cpufam = om._manuf + " " + cpufam
