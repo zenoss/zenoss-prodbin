@@ -25,6 +25,8 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'socket','Socket')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getProductName','Model')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'clockspeed','Speed')"/>
@@ -38,7 +40,11 @@
                             tableName,'voltage','Volts')"/>
     </tr>
     <tr tal:repeat="cpu batch">
-        <td class="tablevalues" tal:content="cpu/getProductName"/>
+        <td class="tablevalues" tal:content="cpu/socket"/>
+        <td class="tablevalues">
+            <a tal:attributes="href cpu/getProductLink" 
+                tal:content="cpu/getProductName">Intel</a>
+        </td>
         <td class="tablevalues" tal:content="string:${cpu/clockspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/extspeed} MHz"/>
         <td class="tablevalues" tal:content="string:${cpu/cacheSizeL1} KB"/>
