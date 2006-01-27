@@ -25,7 +25,7 @@ class HPCPUMap(SnmpPlugin):
                  }
         ),
  	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1',
-                {'.1': '_cpuidx', '.2': 'level', '.3': 'size'}
+                {'.1': 'cpuidx', '.2': 'level', '.3': 'size'}
         ),
     )
 
@@ -36,6 +36,7 @@ class HPCPUMap(SnmpPlugin):
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
+        if not cputable: return
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():

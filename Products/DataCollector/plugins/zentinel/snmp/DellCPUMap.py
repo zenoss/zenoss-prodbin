@@ -39,6 +39,7 @@ class DellCPUMap(SnmpPlugin):
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
+        if not cputable: return
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
