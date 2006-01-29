@@ -359,11 +359,6 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCricketInterfaceIgnoreNames", "")
         devs._setProperty("zCricketInterfaceIgnoreTypes", [], type="lines")
 
-        # what is the management interface
-        devs._setProperty("zManageInterfaceNames", 
-                         ('Loopback0','Ethernet0','hme0','ge0','eth0'), 
-                         type="lines")
-
         # Ping monitor properties
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")

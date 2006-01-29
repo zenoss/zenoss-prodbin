@@ -110,13 +110,13 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, cricketMonitor,
-                REQUEST)
+                statusMonitors, cricketMonitor)
             transaction.commit()
         except:
             log.exception('load of device %s failed' % deviceName)
+            transaction.abort()
         else:
-            device.collectConfig(setlog=False, REQUEST=REQUEST)
+            device.collectDevice(setlog=False, REQUEST=REQUEST)
             log.info("device %s loaded!" % deviceName)
         if REQUEST:
             self.loaderFooter(device, response)

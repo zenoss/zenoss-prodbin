@@ -97,21 +97,17 @@ class Rnode(object):
             log.debug("device '%s' already exists.", device.id)
             return
         gDevicemap[device.id] = 1
-        mint = device.getManageInterface()
-        if not mint: 
-            log.warn("device '%s' no management interface, skipping.",device.id)
+        ipobj = device.getManageIpObj()
+        if not ipobj: 
+            log.warn("device '%s' no management ip, skipping.",device.id)
             return
-        netname = mint.getNetworkName()
+        netname = ipobj.getNetworkName()
         net = self.getNet(netname)
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
-        ip = mint.getIp()
-        if not ip:
-            log.warn("device '%s' no management ip, skipping.",device.id)
-            return
-        pj = PingJob(mint.getIp(), device.id, 
-                    device.getStatus(PingStatus), cycle)
+        pj = PingJob(ipobj.getId(), device.id, 
+                     device.getStatus(PingStatus), cycle)
         net.addPingJob(pj)
         pj.parent = net
 

@@ -83,9 +83,7 @@ class DeviceResultInt:
         """Get the management ip (only) of a device"""
         d = self.device()
         if d:
-            int = d.getManageInterface()
-            if int:
-                return int.getIp()
+            return d.getManageIp()
         return ""
 
 

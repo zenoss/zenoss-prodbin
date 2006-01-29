@@ -13,16 +13,13 @@ import Globals
 import transaction
 
 from Products.ZenUtils.Exceptions import ZentinelException
+from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event
 from Products.PingMonitor.Ping import Ping
+from Products.ZenModel.Device import manage_createDevice
 
 from zenmodeler import ZenModeler
-from SnmpSession import SnmpSession, ZenSnmpError
-
-class NoSnmp(ZentinelException):
-    """Can't open an snmp connection to the device."""
-
 
 class ZenDisc(ZenModeler):
 
@@ -99,11 +96,11 @@ class ZenDisc(ZenModeler):
         for ip in ips: self.discoverDevice(ip)
 
 
-    iptype = re.compile("^\d+\.\d+\.\d+\.\d+$").search
-
-    def discoverDevice(self, ip, devicepath="/Discovered", sync=False):
+    def discoverDevice(self, ip, devicepath="/Discovered"):
+        """Discover a device based on its ip address.
+        """
         devname = ""
-        if not self.iptype(ip):
+        if not isip(ip):
             devname = ip
             ip = socket.gethostbyname(ip)
         try:
@@ -121,77 +118,15 @@ class ZenDisc(ZenModeler):
                     else:
                         self.log.info("ip '%s' on device '%s' remodel",
                                         ip, dev.id)
-            community, port, ver, snmpname = self.findCommunity(ip,devicepath)
-            self.log.debug("device community = %s", community)
-            self.log.debug("device name = %s", snmpname)
-            if not devname:
-                try:
-                    if snmpname and socket.gethostbyname(snmpname):
-                        devname = snmpname
-                except: pass
-                try:
-                    if (not devname and ipobj.ptrName 
-                        and socket.gethostbyname(ipobj.ptrName)):
-                        devname = ipobj.ptrName
-                except: pass
-                if not devname and snmpname:
-                    devname = snmpname
-                if not devname:
-                    self.log.warn("unable to name device using ip '%s'", ip)
-                    devname = ip
-            self.log.info("device name '%s' for ip '%s'", devname, ip)
-            dev = self.devroot(devicepath).createInstance(devname)
-            dev.manage_editDevice(zSnmpCommunity=community, 
-                                  zSnmpPort=port, zSnmpVer=ver,
-                                  statusMonitors=["localhost"], 
-                                  cricketMonitor="localhost")
+            dev = manage_createDevice(self.dmd, ip, devicepath)
             transaction.commit()
-            self.collectDevice(dev, ip=ip)
+            dev.collectDevice()
             return dev
-        except NoSnmp, e:
+        except ZentinelException, e:
             self.log.warn(e)
             #FIXME add event showing problem so we don't remodel later
         except Exception, e:
             self.log.exception("faied device discovery for '%s'", ip)
-
-
-    def devroot(self, devicepath):
-        """Return and create if nesessary devicepath.
-        """
-        return self.dmd.Devices.createOrganizer(devicepath)
-
-    
-    def findCommunity(self, ip, devicepath):
-        """Find the snmp community for an ip address using zSnmpCommunities.
-        """
-        devroot = self.devroot(devicepath)
-        communities = getattr(devroot, "zSnmpCommunities", ())
-        port = getattr(devroot, "zSnmpPort", 161)
-        session = SnmpSession(ip, timeout=2, port=port)
-        sysTableOid = '.1.3.6.1.2.1.1'
-        oid = '.1.3.6.1.2.1.1.5.0'
-        goodcommunity = ""
-        devname = ""
-        snmpver = "v1"
-        for community in communities:
-            session.community = community
-            try:
-                devname = session.get(oid).values()[0]
-                goodcommunity = session.community
-# FIXME - v2 queries don't take multiple head oids which needs to be
-#           reconciled with v1 where we want that as an optimization.
-#           will revisit when I have more time. -EAD
-#                try:
-#                    session.getTable(sysTableOid, bulk=True)
-#                    snmpver="v2"
-#                except (SystemExit, KeyboardInterrupt): raise
-#                except: snmpver="v1" 
-                break
-            except (SystemExit, KeyboardInterrupt): raise
-            except: pass #keep trying until we run out
-        else:
-            raise NoSnmp("no snmp found for ip = %s" % ip)
-        return (goodcommunity, port, snmpver, devname) 
 
 
     def run(self):

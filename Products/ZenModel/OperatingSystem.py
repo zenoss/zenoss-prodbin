@@ -86,23 +86,6 @@ class OperatingSystem(Software):
         return filter(lambda r: r.target(), self.routes())
 
 
-    security.declareProtected('View', 'getManageInterface')
-    def getManageInterface(self):
-        """
-        Return the management interface of a device looks first
-        for zManageInterfaceNames in aquisition path if not found
-        uses default 'Loopback0' and 'Ethernet0' if none of these are found
-        returns the first interface if there is any.
-        """
-        intnames = getattr(self, 'zManageInterfaceNames')
-        for intname in intnames:
-            int = self.interfaces._getOb(intname, None)
-            if int: return int
-        for int in self.interfaces():
-            if int.ipaddresses.countObjects():
-                return int
-
-    
     security.declareProtected('View', 'getDeviceInterfaceByIndex')
     def getInterfaceByIndex(self, ifindex):
         """Return an interface based on its snmp index.

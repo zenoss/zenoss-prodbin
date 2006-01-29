@@ -34,9 +34,12 @@ from Acquisition import aq_base
 from DateTime import DateTime
 from App.Dialogs import MessageDialog
 
+from ZODB.POSException import POSError
 from AccessControl import Permissions as permissions
 
-from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
+#from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
+from Products.DataCollector.SnmpSession import SnmpSession
+
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
@@ -48,26 +51,56 @@ from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 from Exceptions import *
 
-
-def manage_createDevice(context, deviceName, devicePath="", 
+def manage_createDevice(context, deviceName, devicePath="/Discovered", 
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], cricketMonitor="localhost",
-            REQUEST = None):
-
-    "Device factory creates a device and sets up its relations"        
-
-    if context.getDmdRoot("Devices").findDevice(deviceName):
-        raise DeviceExistsError, "Device %s already exists" % deviceName
-    if not devicePath: devicePath = "/Discovered"
+            statusMonitors=["localhost"], cricketMonitor="localhost"):
+    """Device factory creates a device and sets up its relations and collects
+    its configuration.  SNMP Community discovery also happens here.  If an
+    IP is passed for deviceName it will be used for collection and the device
+    name will be set to the SNMP SysName (or ptr if SNMP Fails and ptr is valid)
+    """
+    if isip(deviceName):
+        ip = deviceName
+        deviceName = ""
+        ipobj = context.getDmdRoot('Networks').findIp(ip)
+        if ipobj:
+            dev = ipobj.device()
+            if dev: 
+                raise DeviceExistsError("Ip %s exists on %s" % (ip, deviceName))
+    else:
+        try: ip = socket.gethostbyname(deviceName)
+        except socket.error: ip = ""
+        if context.getDmdRoot("Devices").findDevice(deviceName):
+            raise DeviceExistsError("Device %s already exists" % deviceName)
+    if not zSnmpCommunity:
+        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
+            findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
+    log.debug("device community = %s", zSnmpCommunity)
+    log.debug("device name = %s", snmpname)
+    if not deviceName:
+        try:
+            if snmpname and socket.gethostbyname(snmpname):
+                deviceName = snmpname
+        except socket.error: pass
+        try:
+            if (not deviceName and ipobj.ptrName 
+                and socket.gethostbyname(ipobj.ptrName)):
+                deviceName = ipobj.ptrName
+        except socket.error: pass
+        if not deviceName and snmpname:
+            deviceName = snmpname
+        if not deviceName:
+            log.warn("unable to name device using ip '%s'", ip)
+            deviceName = ip
+    log.info("device name '%s' for ip '%s'", deviceName, ip)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
-    if not zSnmpCommunity:
-        zSnmpCommunity = findSnmpCommunity(deviceClass, deviceName)
+    device.setManageIp(ip)
     device.manage_editDevice(
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
@@ -76,8 +109,46 @@ def manage_createDevice(context, deviceName, devicePath="",
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, cricketMonitor)
-                
     return device
+
+
+def findCommunity(context, ip, devicePath, community="", port=161):
+    """Find the snmp community for an ip address using zSnmpCommunities.
+    """
+    devroot = context.getDmdRoot('Devices').createOrganizer(devicePath)
+    communities = []
+    if community: communities.append(community)
+    communities.extend(getattr(devroot, "zSnmpCommunities", []))
+    if not port:
+        port = getattr(devroot, "zSnmpPort", port)
+    timeout = getattr(devroot, "zSnmpTimeout", 2)    
+    session = SnmpSession(ip, timeout=timeout, port=port)
+    sysTableOid = '.1.3.6.1.2.1.1'
+    oid = '.1.3.6.1.2.1.1.5.0'
+    goodcommunity = ""
+    devname = ""
+    snmpver = "v1"
+    for community in communities:
+        session.community = community
+        try:
+            devname = session.get(oid).values()[0]
+            goodcommunity = session.community
+# FIXME - v2 queries don't take multiple head oids which needs to be
+#           reconciled with v1 where we want that as an optimization.
+#           will revisit when I have more time. -EAD
+#                try:
+#                    session.getTable(sysTableOid, bulk=True)
+#                    snmpver="v2"
+#                except (SystemExit, KeyboardInterrupt): raise
+#                except: snmpver="v1" 
+            break
+        except (SystemExit, KeyboardInterrupt, POSError): raise
+        except: pass #keep trying until we run out
+    else:
+        raise NoSnmp("no snmp found for ip = %s" % ip)
+    return (goodcommunity, port, snmpver, devname) 
+
+
 
 
 def manage_addDevice(context, id, REQUEST = None):
@@ -103,6 +174,7 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
 
     relationshipManagerPathRestriction = '/Devices'
 
+    manageIp = ""
     productionState = 1000
     snmpAgent = ""
     snmpDescr = ""
@@ -115,6 +187,7 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
     sysedgeLicenseMode = ""
 
     _properties = ManagedEntity._properties + (
+        {'id':'manageIp', 'type':'string', 'mode':'w'},
         {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
            'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
@@ -405,23 +478,39 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         return self._snmpLastCollection.getString()
 
 
+    security.declareProtected('Change Device', 'setManageIp')
+    def setManageIp(self, ip="", REQUEST=None):
+        """Set the manage ip, if ip is not passed perform DNS lookup.
+        """
+        if not ip:
+            try: ip = socket.gethostbyname(self.id)
+            except socket.error: ip = ""
+        self.manageIp = ip
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+
     security.declareProtected('View', 'getManageIp')
     def getManageIp(self):
-        """Return the management ip for this device. See getManageInterface.
+        """Return the management ip for this device. 
         """
-        int = self.os.getManageInterface()
-        if int: return int.getIp()
-        return ""
+        return self.manageIp
+
+    
+    def getManageIpObj(self):
+        """Return the management ipobject for this device.
+        """
+        if self.manageIp:
+            return self.Networks.findIp(self.manageIp)
 
     
     security.declareProtected('View', 'getManageInterface')
     def getManageInterface(self):
-        """Return the management interface of a device looks first
-        for zManageInterfaceNames in aquisition path if not found
-        uses default 'Loopback0' and 'Ethernet0' if none of these are found
-        returns the first interface if there is any.
+        """Return the management interface of a device based on its manageIp.
         """
-        return self.os.getManageInterface()
+        ipobj = self.Networks.findIp(self.manageIp)
+        if ipobj: return ipobj.interface()
 
     
     security.declareProtected('View', 'uptimeStr')
@@ -762,8 +851,8 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
     # Management Functions
     ####################################################################
 
-    security.declareProtected('Change Device', 'collectConfig')
-    def collectConfig(self, setlog=True, REQUEST=None):
+    security.declareProtected('Change Device', 'collectDevice')
+    def collectDevice(self, setlog=True, REQUEST=None):
         """collect the configuration of this device"""
         if REQUEST and setlog:
             response = REQUEST.RESPONSE
@@ -775,7 +864,7 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
             from Products.DataCollector.zenmodeler import ZenModeler
             sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
-            sc.collectDevice(self)
+            sc.collectDevice(self, ip=self.manageIp)
         except:
             log.exception('exception collecting data for device %s',self.id)
             sc.stop()

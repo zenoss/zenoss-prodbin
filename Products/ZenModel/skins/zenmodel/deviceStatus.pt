@@ -62,10 +62,10 @@
       <th class="tabletitle" colspan=4>Device</th>
     </tr>
     <tr>
-      <th class="tableheader">Hostname</th>
-      <td class="tablevalues" tal:content="here/id"/>
       <th class="tableheader">SNMP sysName</th>
       <td class="tablevalues" tal:content="here/snmpSysName"/>
+      <th class="tableheader">Manage IP</th>
+      <td class="tablevalues" tal:content="here/getManageIp"/>
     </tr>
     <tr>
       <td class="tableheader">Tag #</td>

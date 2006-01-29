@@ -32,3 +32,7 @@ class PathNotFoundError(ZenModelError):
 
 class TraceRouteGap(ZenModelError):
     """Missing data found during traceroute."""
+
+
+class NoSnmp(ZenModelError):
+    """Can't open an snmp connection to the device."""

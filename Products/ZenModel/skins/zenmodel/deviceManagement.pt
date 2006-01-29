@@ -33,8 +33,17 @@
   <tr>  
   <td class=tableheader>Run configuration collection against this device</td>
   <td class=tableheader>
-      <input class="tableheader" type="submit" name="collectConfig:method"
+      <input class="tableheader" type="submit" name="collectDevice:method"
           value=" Collect Configuration " />
+  </td>
+  </tr>
+  <tr>
+  <td class=tableheader>Reset the manage ip of this device</td>
+  <td class=tableheader>
+      <input class="tableheader" type="text" name="ip" size="15"
+            tal:attributes="value here/getManageIp"/>
+      <input class="tableheader" type="submit" name="setManageIp:method"
+          value=" reset ip " />
   </td>
   </tr>
   <tr>
