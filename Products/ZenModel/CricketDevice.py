@@ -78,7 +78,7 @@ class CricketDevice:
             and self._v_targetdefault['snmp-host'] == self.id):
             self._v_targetdefault = {}
             self._v_targetdefault['target'] = '--default--' 
-            self._v_targetdefault['snmp-host'] = self.id
+            self._v_targetdefault['snmp-host'] = self.manageIp
             self._v_targetdefault['snmp-community'] = self.zSnmpCommunity
             self._v_targetdefault['snmp-port'] = self.zSnmpPort
             if self.snmpOid.find('.1.3.6.1.4.1.9') > -1:
