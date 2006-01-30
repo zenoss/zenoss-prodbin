@@ -51,8 +51,8 @@ class CiscoHSRP(SnmpPlugin):
         nets = device.getDmdRoot("Networks")
         transaction.begin()
         for hsrp in hsrptable.values():
-            actip = self.asip(hsrp['actip'])
-            vip = self.asip(hsrp['vip'])
+            actip = hsrp['actip']
+            vip = hsrp['vip']
             actip = nets.findIp(actip)
             if not actip: 
                 log.warn("active ip %s on device %s not found",actip,device.id)
