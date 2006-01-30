@@ -27,7 +27,7 @@ if [ $SYS = "Darwin" ]; then
     PS="ps -axo pid"
 fi
 
-ARGS=`echo "$*" | sed 's/run//' | sed 's/start//'`
+ARGS=`echo "$*" | sed 's/run//' | sed 's/restart//' | sed 's/start//'`
 
 
 start() {
