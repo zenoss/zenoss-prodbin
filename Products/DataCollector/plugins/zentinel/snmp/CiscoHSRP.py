@@ -38,7 +38,10 @@ class CiscoHSRP(SnmpPlugin):
         
    
     def process(self, device, results, log):
-        """collect snmp information from this device
+        """Add HSRP addresses to an interface.  We need to do this
+        Within the processing code because we aren't adding or removing
+        objects from a relaiton.  Be very carefull about transaction
+        boundries and check for changes before actually chaning things.
         """
         changed = False
         getdata, tabledata = results
@@ -60,7 +63,7 @@ class CiscoHSRP(SnmpPlugin):
                           actip, device.id)
                 continue
             intr = intr.primaryAq()
-            vip = "%s/%s" % (vip, intr.netmask) 
+            vip = "%s/%s" % (vip, actip.netmask) 
             if vip not in intr.getIpAddresses():
                 log.info("adding vip %s to device %s interface %s", 
                         vip, intr.getDeviceName(), intr.id)
