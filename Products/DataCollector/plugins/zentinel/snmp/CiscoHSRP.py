@@ -12,7 +12,7 @@ $Id: InterfaceMap.py,v 1.24 2003/10/30 18:42:19 edahl Exp $"""
 
 __version__ = '$Revision: 1.24 $'[11:-2]
 
-import re
+import transaction
 
 from Products.ZenUtils.Utils import cleanstring
 
@@ -40,6 +40,7 @@ class CiscoHSRP(SnmpPlugin):
     def process(self, device, results, log):
         """collect snmp information from this device
         """
+        changed = False
         getdata, tabledata = results
         log.info('processing hsrp for device %s' % device.id)
         hsrptable = tabledata.get("hsrpTable")
@@ -57,6 +58,10 @@ class CiscoHSRP(SnmpPlugin):
                 log.warn("active ip %s on device %s no interface", 
                           actip, device.id)
                 continue
-            log.info("adding vip %s to device %s interface %s", 
-                    vip, device.id, int.id)
-            int.addIpAddress(vip)
+            vip = "%s/%s" % (vip, int.netmask) 
+            if vip not in int.getIpAddresses():
+                log.info("adding vip %s to device %s interface %s", 
+                        vip, device.id, int.id)
+                int.addIpAddress(vip)
+                changed = True
+        if changed: transaction.commit()      
