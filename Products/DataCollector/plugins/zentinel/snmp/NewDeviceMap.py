@@ -38,7 +38,10 @@ class NewDeviceMap(SnmpPlugin):
         #Hardware: x86 Family 15 Model 4 Stepping 1 AT/AT COMPATIBLE - Software: Windows Version 5.2 (Build 3790 Multiprocessor Free)
         re.compile(r'- Software: (.+) \(Build'),        
 
-
+        #IBM PowerPC CHRP Computer Machine Type: 0x0800004c Processor id: 000919754C00 Base Operating System Runtime AIX version: 05.02.0000.0050 TCP/IP Client Support version: 05.02.0000.0051
+        re.compile(r'(^IBM).*(AIX.*) TCP',)
+   
+        #GENERIC unix
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
     )
 
