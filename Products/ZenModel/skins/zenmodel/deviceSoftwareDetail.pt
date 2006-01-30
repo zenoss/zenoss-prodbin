@@ -12,26 +12,15 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'manufacturerName','Manufacturer')">Manufacturer
-        </th>
+                        tableName,'getManufacturerName','Manufacturer')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'name','Name')">Name
-        </th>
+                        tableName,'getProductName','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'version','Version')">Version
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'build','Build')">Build
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'installDate','Install Date')">InstallDate
-        </th>
+                            tableName,'installDate','Install Date')"/>
     </tr>
     <tr tal:repeat="soft batch">
       <td class="tablevalues" tal:content="structure soft/getManufacturerLink"/>
       <td class="tablevalues" tal:content="structure soft/getProductLink"/>
-      <td class="tablevalues" tal:content="soft/version"/>
-      <td class="tablevalues" tal:content="soft/build"/>
       <td class="tablevalues" tal:content="soft/getInstallDate"/>
     </tr>
     <tr>
