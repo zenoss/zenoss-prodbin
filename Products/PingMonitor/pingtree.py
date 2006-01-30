@@ -97,11 +97,12 @@ class Rnode(object):
             log.debug("device '%s' already exists.", device.id)
             return
         gDevicemap[device.id] = 1
-        ipobj = device.getManageIpObj()
-        if not ipobj: 
+        ip = device.getManageIp()
+        if not ip: 
             log.warn("device '%s' no management ip, skipping.",device.id)
             return
-        netname = ipobj.getNetworkName()
+        netobj = device.getDmdRoot("Networks").getNet(ip)
+        netname = netobj.getNetworkName()
         net = self.getNet(netname)
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
