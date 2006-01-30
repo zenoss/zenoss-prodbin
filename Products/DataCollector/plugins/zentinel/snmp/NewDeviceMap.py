@@ -39,7 +39,7 @@ class NewDeviceMap(SnmpPlugin):
         re.compile(r'- Software: (.+) \(Build'),        
 
         #IBM PowerPC CHRP Computer Machine Type: 0x0800004c Processor id: 000919754C00 Base Operating System Runtime AIX version: 05.02.0000.0050 TCP/IP Client Support version: 05.02.0000.0051
-        re.compile(r'(^IBM).*(AIX.*) TCP',)
+        re.compile(r'^(IBM).*(AIX.*) TCP'),
    
         #GENERIC unix
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
@@ -59,7 +59,7 @@ class NewDeviceMap(SnmpPlugin):
         om = self.objectMap(getdata)
         om.setHWProductKey = om.snmpOid
         log.debug("HWProductKey=%s", om.setHWProductKey)
-        descr = om.snmpDescr
+        descr = re.sub("\s", " ", om.snmpDescr)
         for regex in self.osregex:
             m = regex.search(descr)
             if m: 
