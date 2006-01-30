@@ -181,17 +181,15 @@ class IpInterface(OSComponent, PingStatusInt):
         #see if ip exists already and link it to interface
         ipobj = findIpAddress(self, ip)
         if ipobj:
-            if hasattr(ipobj, 'interface'):
-                dev = ipobj.device()
-                if dev and dev != self.device():
-                    log.warn(
-                        "When adding IP Address %s to %s found it on device %s",
-                            ip, self.getId(), dev.getId())
-            self.addRelation('ipaddresses', ipobj)
+            dev = ipobj.device()
+            if dev and dev != self.device():
+                log.warn("Adding IP Address %s to %s found it on device %s",
+                         ip, self.getId(), dev.getId())
+            self.ipaddresses.addRelation(ipobj)
         #never seen this ip make a new one in correct subnet
         else:  
             ipobj = self.getDmdRoot("Networks").createIp(ip, netmask)
-            self.addRelation('ipaddresses', ipobj)
+            self.ipaddresses.addRelation(ipobj)
   
 
     def addLocalIpAddress(self, ip, netmask=24):

@@ -46,6 +46,7 @@ class CiscoHSRP(SnmpPlugin):
         hsrptable = tabledata.get("hsrpTable")
         if not hsrptable: return
         nets = device.getDmdRoot("Networks")
+        transaction.begin()
         for hsrp in hsrptable.values():
             actip = self.asip(hsrp['actip'])
             vip = self.asip(hsrp['vip'])
@@ -58,10 +59,12 @@ class CiscoHSRP(SnmpPlugin):
                 log.warn("active ip %s on device %s no interface", 
                           actip, device.id)
                 continue
+            int = int.primaryAq()
             vip = "%s/%s" % (vip, int.netmask) 
             if vip not in int.getIpAddresses():
                 log.info("adding vip %s to device %s interface %s", 
-                        vip, device.id, int.id)
+                        vip, int.getDeviceName(), int.id)
                 int.addIpAddress(vip)
                 changed = True
         if changed: transaction.commit()      
+        else: transaction.abort()
