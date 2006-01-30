@@ -102,7 +102,9 @@ class Rnode(object):
             log.warn("device '%s' no management ip, skipping.",device.id)
             return
         netobj = device.getDmdRoot("Networks").getNet(ip)
-        netname = netobj.getNetworkName()
+        netname = "default"
+        if netobj:
+            netname = netobj.getNetworkName()
         net = self.getNet(netname)
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
