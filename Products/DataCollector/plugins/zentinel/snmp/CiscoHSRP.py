@@ -54,17 +54,17 @@ class CiscoHSRP(SnmpPlugin):
             if not actip: 
                 log.warn("active ip %s on device %s not found",actip,device.id)
                 continue
-            int = actip.interface()
-            if not int:
+            intr = actip.interface()
+            if not intr:
                 log.warn("active ip %s on device %s no interface", 
                           actip, device.id)
                 continue
-            int = int.primaryAq()
-            vip = "%s/%s" % (vip, int.netmask) 
-            if vip not in int.getIpAddresses():
+            intr = intr.primaryAq()
+            vip = "%s/%s" % (vip, intr.netmask) 
+            if vip not in intr.getIpAddresses():
                 log.info("adding vip %s to device %s interface %s", 
-                        vip, int.getDeviceName(), int.id)
-                int.addIpAddress(vip)
+                        vip, intr.getDeviceName(), intr.id)
+                intr.addIpAddress(vip)
                 changed = True
         if changed: transaction.commit()      
         else: transaction.abort()
