@@ -107,7 +107,7 @@ class Rnode(object):
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
-        pj = PingJob(ipobj.getId(), device.id, 
+        pj = PingJob(ip, device.id, 
                      device.getStatus(PingStatus), cycle)
         net.addPingJob(pj)
         pj.parent = net
