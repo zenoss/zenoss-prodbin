@@ -174,7 +174,7 @@ class ZenPing(ZCmdBase):
                         self.log.warn(pj.message)
                         self.sendEvent(pj)
                 # device was down and message sent but is back up
-                elif pj.status > 1:
+                elif pj.status > 0:
                     pj.severity = 0
                     self.sendEvent(pj)
                     pj.status = 0
