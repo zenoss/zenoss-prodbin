@@ -167,7 +167,7 @@ class ZenActions(ZCmdBase):
         import smtplib
         from email.MIMEText import MIMEText
         emsg = MIMEText(msg)
-        emsg['Subject'] = "ZenMon: "
+        emsg['Subject'] = "[ZenMon] %s" % msg[:128]
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
         server = smtplib.SMTP(self.options.smtphost, self.options.smtpport)
