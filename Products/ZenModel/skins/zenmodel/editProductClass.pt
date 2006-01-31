@@ -11,6 +11,13 @@
             tal:content="string:${message} ${here/getNowString}" />
     </tr>
     <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="name" size="40"
+            tal:attributes="value here/getId" />
+        </td>
+    </tr>
+    <tr>
         <td class="tableheader">ProductKey</td>
         <td class="tablevalues">
         <input class="tablevalues" type="text" name="productKey" size="40"

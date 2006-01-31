@@ -250,22 +250,12 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         return self.eventClass().find(self.eventClassKey)
         
 
-    security.declareProtected('Manage DMD', 'rename')
-    def rename(self, newId, REQUEST=None):
-        """Delete device from the DMD"""
-        parent = self.getPrimaryParent()
-        parent.manage_renameObject(self.getId(), newId)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.
         """
-        if item == self: 
-            self.index_object()
-            ZenModelRM.manage_afterAdd(self, item, container)
+        self.index_object()
+        ZenModelRM.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
@@ -279,9 +269,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        if item == self or getattr(item, "_operation", -1) < 1: 
-            ZenModelRM.manage_beforeDelete(self, item, container)
-            self.unindex_object()
+        ZenModelRM.manage_beforeDelete(self, item, container)
+        self.unindex_object()
 
 
     def index_object(self):
@@ -313,24 +302,25 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
 
 
     security.declareProtected('Manage DMD', 'manage_editEventClassInst')
-    def manage_editEventClassInst(self, eventClassKey='',
+    def manage_editEventClassInst(self, name="", eventClassKey='',
                                 regex='', rule='', example='', 
                                 explanation='', resolution='', REQUEST=None):
         """Edit a EventClassInst from a web page.
         """
-        self.unindex_object()
+        redirect = self.rename(name)
         if self.eventClassKey != eventClassKey:
+            self.unindex_object()
             self.sequence = self.eventClass().nextSequenceNumber(eventClassKey)
-        self.eventClassKey = eventClassKey
+            self.eventClassKey = eventClassKey
+            self.index_object()
         self.regex = regex
         self.rule = rule
         self.example = example
         self.explanation = explanation
         self.resolution = resolution
-        self.index_object()
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect)
 
 
 InitializeClass(EventClassInst)

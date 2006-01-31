@@ -169,6 +169,7 @@ class Manufacturer(ZenModelRM):
         """
         Edit a Manufacturer from a web page.
         """
+        redirect = self.rename(id)
         self.url = url
         self.supportNumber = supportNumber
         self.address1 = address1
@@ -178,7 +179,7 @@ class Manufacturer(ZenModelRM):
         self.zip = zip
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect)
 
 
 InitializeClass(Manufacturer)

@@ -51,6 +51,19 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         RelationshipManager.__init__(self, id, title)
 
    
+    security.declareProtected('Manage DMD', 'rename')
+    def rename(self, newId, REQUEST=None):
+        """Delete device from the DMD"""
+        renamed = False
+        if newId and newId != self.getId():
+            parent = self.getPrimaryParent()
+            parent.manage_renameObject(self.getId(), newId)
+            renamed = True
+        if REQUEST:
+            return self.callZenScreen(REQUEST, renamed)
+        return renamed
+
+
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):
         return self.getId()

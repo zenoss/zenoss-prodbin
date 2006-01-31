@@ -109,9 +109,8 @@ class ProductClass(ZenModelRM):
         """
         Device only propagates afterAdd if it is the added object.
         """
-        if item == self: 
-            self.index_object()
-            ZenModelRM.manage_afterAdd(self, item, container)
+        self.index_object()
+        ZenModelRM.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
@@ -125,9 +124,8 @@ class ProductClass(ZenModelRM):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        if item == self or getattr(item, "_operation", -1) < 1: 
-            ZenModelRM.manage_beforeDelete(self, item, container)
-            self.unindex_object()
+        ZenModelRM.manage_beforeDelete(self, item, container)
+        self.unindex_object()
 
 
     def index_object(self):
@@ -145,19 +143,21 @@ class ProductClass(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')
-    def manage_editProductClass(self, productKey="", partNumber="", 
+    def manage_editProductClass(self, name="", productKey="", partNumber="", 
                                 description="", REQUEST=None):
         """
         Edit a ProductClass from a web page.
         """
-        self.unindex_object()
-        self.productKey = productKey
+        redirect = self.rename(name)
+        if productKey != self.productKey:
+            self.unindex_object()
+            self.productKey = productKey
+            self.index_object()
         self.partNumber = partNumber
         self.description = description        
-        self.index_object()
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect)
    
 
 InitializeClass(ProductClass)

@@ -59,7 +59,7 @@ class ZenModelBase(object):
         return hash(self.id)
 
     
-    def callZenScreen(self, REQUEST):
+    def callZenScreen(self, REQUEST, redirect=False):
         """
         Call and return screen specified by zenScreenName value of REQUEST.
         If zenScreenName is not present call the default screen.  This is used
@@ -67,10 +67,14 @@ class ZenModelBase(object):
         screen with the correct context.
         """
         screenName = REQUEST.get("zenScreenName", "")
-        REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)
-        screen = getattr(self, screenName, False)
-        if not screen: return self()
-        return screen()
+        if redirect:
+            nurl = "%s/%s" % (self.getPrimaryUrlPath(), screenName)
+            REQUEST['RESPONSE'].redirect(nurl)
+        else:
+            REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)
+            screen = getattr(self, screenName, False)
+            if not screen: return self()
+            return screen()
 
 
     def zenScreenUrl(self):

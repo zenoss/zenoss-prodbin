@@ -15,7 +15,6 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from Products.ZenEvents.ZenEventClasses import PingStatus, SnmpStatus
 
 class DeviceResultInt:
     
@@ -71,6 +70,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getDevicePingStatus')
     def getPingStatus(self):
         """get the ping status of the box if there is one"""
+        from Products.ZenEvents.ZenEventClasses import PingStatus
         d = self.device()
         if d and not getattr(self, 'zPingMonitorIgnore', False):
             return d.getStatus(PingStatus)
@@ -82,6 +82,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         """get the snmp status of the box if there is one"""
+        from Products.ZenEvents.ZenEventClasses import SnmpStatus
         d = self.device()
         if d and not getattr(self, 'zSnmpMonitorIgnore', False):
             return self.getStatus(SnmpStatus)
