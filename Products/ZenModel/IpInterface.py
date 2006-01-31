@@ -33,7 +33,6 @@ from Products.ZenUtils.IpUtil import *
 
 from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
-from PingStatusInt import PingStatusInt
 from Products.ZenModel.Exceptions import *
 
 def manage_addIpInterface(context, id, REQUEST = None):
@@ -49,7 +48,7 @@ def manage_addIpInterface(context, id, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(OSComponent, PingStatusInt):
+class IpInterface(OSComponent):
     """IpInterface object"""
 
     portal_type = meta_type = 'IpInterface'

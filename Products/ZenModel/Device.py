@@ -24,7 +24,6 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
 from ManagedEntity import ManagedEntity
-from PingStatusInt import PingStatusInt
 from CricketDevice import CricketDevice
 
 from AccessControl import ClassSecurityInfo
@@ -162,7 +161,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
     
-class Device(PingStatusInt, CricketDevice, ManagedEntity):
+class Device(CricketDevice, ManagedEntity):
     """
     Device is a key class within zenmon.  It represents the combination of
     compute hardware running an operating system.
@@ -782,15 +781,9 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
         return self
 
 
-    security.declareProtected('View', 'getSnmpStatus')
-    def getSnmpStatus(self):
-        '''get a device's snmp status and perform conversion'''
-        if getattr(self, 'zSnmpMonitorIgnore', False):
-            status = -1
-        else:
-            status = self.getStatus(SnmpStatus)
-        return status
-    getSnmpStatusNumber = getSnmpStatus
+    ####################################################################
+    # Status Management Functions used by status monitors
+    ####################################################################
 
 
     def pastSnmpMaxFailures(self):
@@ -800,27 +793,6 @@ class Device(PingStatusInt, CricketDevice, ManagedEntity):
             statusmon = statusmon[0]
             return statusmon.maxFailures < self.getSnmpStatusNumber()
         return False
-
-
-    def _getDeviceName(self):
-        '''Return the device name id'''
-        return self.getId()
-
-
-    def _getDeviceClassPath(self):
-        """Return the device class path in the form /Server/Linux"""
-        return self.deviceClass().getOrganizerName()
-    getDeviceClassName = _getDeviceClassPath
-
-
-    def _getProdState(self):
-        '''Return the production state of the device'''
-        return self.convertProdState(self.productionState)
-
-    
-    ####################################################################
-    # Status Management Functions used by status monitors
-    ####################################################################
 
 
     security.declareProtected('Manage Device Status', 'setSnmpUpTime')

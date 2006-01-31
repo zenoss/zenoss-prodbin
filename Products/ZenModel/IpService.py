@@ -20,7 +20,6 @@ from Products.ZenRelations.RelSchema import *
 
 from Service import Service
 from IpServiceClass import addIpServiceToClass, getIpServiceClassId
-#from PingStatusInt import PingStatusInt
 
 def manage_addIpService(context, id, title = None, REQUEST = None):
     """make a device"""

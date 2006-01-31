@@ -363,8 +363,9 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")
 
-        # Snmp monitor properites
+        # Status monitor properites
         devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
+        devs._setProperty("zPingMonitorIgnore", False, type="boolean")
 
         # DataCollector properties
         devs._setProperty("zTransportPreference", "snmp")

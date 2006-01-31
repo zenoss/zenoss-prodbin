@@ -18,9 +18,6 @@ log = logging.getLogger("zen.IpAddress")
 
 #base classes for IpAddress
 from ManagedEntity import ManagedEntity
-from DeviceResultInt import DeviceResultInt
-from PingStatusInt import PingStatusInt
-from EventView import EventView
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -59,7 +56,7 @@ def findIpAddress(context, ip):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
+class IpAddress(ManagedEntity):
     """IpAddress object"""
     event_key = portal_type = meta_type = 'IpAddress'
 
@@ -189,6 +186,18 @@ class IpAddress(ManagedEntity, PingStatusInt, DeviceResultInt, EventView):
         if self.network():
             return self.network().absolute_url()
         return ""
+
+    
+    security.declareProtected('View', 'getDeviceUrl')
+    def getDeviceUrl(self):
+        """Get the primary url path of the device in which this ip
+        is associated with.  If no device return url to the ip itself.
+        """
+        d = self.device()
+        if d:
+            return d.getPrimaryUrlPath()
+        else:
+            return self.getPrimaryUrlPath()
 
 
     def device(self):

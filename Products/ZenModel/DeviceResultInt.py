@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
+from Products.ZenEvents.ZenEventClasses import PingStatus, SnmpStatus
 
 class DeviceResultInt:
     
@@ -25,7 +26,7 @@ class DeviceResultInt:
         '''Get the device name of this device or associated device'''
         d = self.device()
         if d:
-            return d._getDeviceName()
+            return d.getId()
         return "No Device"
 
 
@@ -53,7 +54,7 @@ class DeviceResultInt:
         '''Get the device class for this device'''
         d = self.device()
         if d:
-            return d._getDeviceClassPath()
+            return d.deviceClass().getOrganizerName()
         return "No Device"
 
 
@@ -63,16 +64,27 @@ class DeviceResultInt:
         this interface'''
         d = self.device()
         if d:
-            return d._getProdState()
-        return -1 
+            return self.convertProdState(d.productionState)
+        return "None" 
+
+
+    security.declareProtected('View', 'getDevicePingStatus')
+    def getPingStatus(self):
+        """get the ping status of the box if there is one"""
+        d = self.device()
+        if d and not getattr(self, 'zPingMonitorIgnore', False):
+            return d.getStatus(PingStatus)
+        return -1
+    security.declareProtected('View', 'getSnmpStatusNumber')
+    getPingStatusNumber = getPingStatus
 
 
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         """get the snmp status of the box if there is one"""
         d = self.device()
-        if d:
-            return d.getSnmpStatus()
+        if d and not getattr(self, 'zSnmpMonitorIgnore', False):
+            return self.getStatus(SnmpStatus)
         return -1
     getSnmpStatusNumber = getSnmpStatus
     security.declareProtected('View', 'getSnmpStatusNumber')
@@ -83,7 +95,7 @@ class DeviceResultInt:
         """Get the management ip (only) of a device"""
         d = self.device()
         if d:
-            return d.getManageIp()
+            return d.manageIp
         return ""
 
 
