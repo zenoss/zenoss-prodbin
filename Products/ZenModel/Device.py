@@ -87,7 +87,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 deviceName = snmpname
         except socket.error: pass
         try:
-            if (not deviceName and ipobj.ptrName 
+            if (not deviceName and ipobj and ipobj.ptrName 
                 and socket.gethostbyname(ipobj.ptrName)):
                 deviceName = ipobj.ptrName
         except socket.error: pass

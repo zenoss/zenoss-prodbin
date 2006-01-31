@@ -55,6 +55,8 @@ class DeviceResultInt:
         if d:
             return d.deviceClass().getOrganizerName()
         return "No Device"
+    security.declareProtected('View', 'getDeviceClassName')
+    getDeviceClassName = getDeviceClassPath
 
 
     security.declareProtected('View', 'getDeviceProdState')
