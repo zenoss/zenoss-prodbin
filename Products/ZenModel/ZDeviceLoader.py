@@ -24,6 +24,7 @@ from AccessControl import Permissions as permissions
 from OFS.SimpleItem import SimpleItem
 
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils.Exceptions import ZentinelException
 from ZenModelItem import ZenModelItem
 from Device import manage_createDevice
 
@@ -112,6 +113,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, cricketMonitor)
             transaction.commit()
+        except (SystemExit, KeyboardInterrupt): raise
+        except ZentinelException, e:
+            log.critical(e)
         except:
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
