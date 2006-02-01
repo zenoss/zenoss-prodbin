@@ -59,9 +59,12 @@ class InterfaceMap(SnmpPlugin):
         rm = self.relMap()
         iptable = tabledata.get("iptable")
         iftable = tabledata.get("iftable")
+        if iptable is None or iftable is None: return
         omtable = {}
         self.idtable = {}
         for iprow in iptable.values():
+            #FIXME - not getting ifindex back from HP printer
+            if not iprow.has_key("ifindex"): continue
             strindex = str(iprow['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
                 if int(iprow['ifindex']) >= len(iftable): #hack for bad 

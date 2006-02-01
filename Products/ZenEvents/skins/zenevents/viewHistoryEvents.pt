@@ -30,7 +30,7 @@ function datePickerClosed(targetInput) {
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
     orderby request/ev_orderby | here/eventOrderby | string:;
-    resultFields request/ev_resultfields | here/getResultFields |
+    resultFields request/ev_resultfields | here/getHistResultFields |
                     here/ZenEventHistory/defaultResultFields;
     evcontrol here/ZenEventHistory/eventControls;
     evcolspan python:len(resultFields)+1;

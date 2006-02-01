@@ -24,6 +24,11 @@ class EventView(object):
                                                                 self.event_key) 
         
 
+    def getHistResultFields(self):
+        return self.getEventHistory().lookupManagedEntityResultFields(
+                                                                self.event_key) 
+        
+
     def getEventList(self, **kwargs):
         """Return the current event list for this managed entity.
         """

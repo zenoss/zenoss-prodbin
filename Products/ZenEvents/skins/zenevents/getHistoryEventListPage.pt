@@ -7,7 +7,7 @@
         objects python:here.getEventHistoryList(severity=severity,state=state,
                                         startdate=startdate,enddate=enddate);
         sortedHeader request/sortedHeader | string:;
-        resultFields request/ev_resultfields | here/getResultFields | 
+        resultFields request/ev_resultfields | here/getHistResultFields | 
                         here/ZenEventHistory/defaultResultFields;
         filter request/filter | string:;
         evcolspan python:len(resultFields)+1;

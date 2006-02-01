@@ -123,17 +123,18 @@ class IpNetwork(DeviceOrganizer):
         with netmask passed as parameter.
         Subnetworks created based on the zParameter zDefaulNetworkTree.
         """
+        netroot = self.getDmdRoot("Networks")
         if netip.find("/") > -1: 
             netip, netmask = netip.split("/",1)
             netmask = int(netmask)
-        if netmask == 0: raise ValueError("netip '%s' without netmask")
+        netobj = netroot.getNet(netip)
+        if not netobj: return netobj
+        if netmask == 0: 
+            raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
-        netobj = self
-        if netobj.id != "Networks": netobj = self.getDmdRoot("Networks")
-        tnet = self.getDmdRoot("Networks")._getOb(netip, None)
-        if tnet: return tnet
-        netTree = getattr(netobj, 'zDefaultNetworkTree', defaultNetworkTree)
+        netTree = getattr(netroot, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
+        netobj = netroot
         for treemask in netTree:
             if treemask >= netmask:
                 netobj = netobj.addSubNetwork(netip, netmask)
