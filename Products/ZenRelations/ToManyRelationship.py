@@ -86,7 +86,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         
     def _add(self,obj):
         """add an object to one side of this toMany relationship"""
-        if obj in self._objects: return
+        if obj in self._objects: raise RelationshipExistsError
         self._objects.append(aq_base(obj))
         self._count=len(self._objects)
         self._p_changed = 1
@@ -106,6 +106,19 @@ class ToManyRelationship(ToManyRelationshipBase):
         self._count=len(self._objects)
         self._p_changed = 1
 
+
+    def _remoteRemove(self, obj=None):
+        """remove an object from the far side of this relationship
+        if no object is passed in remove all objects"""
+        if obj: 
+            if obj not in self._objects: raise ObjectNotFound
+            objs = [obj]
+        else: objs = self.objectValuesAll()
+        remoteName = self.remoteName()
+        for obj in objs:
+            rel = getattr(obj, remoteName)
+            rel._remove(self.__primary_parent__)
+   
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):
         """Set and object onto a ToMany by calling addRelation"""

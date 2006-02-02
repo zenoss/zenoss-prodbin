@@ -29,7 +29,7 @@ from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base, aq_parent
 
-from Products.ZenRelations.Exceptions import InvalidContainer
+from Products.ZenRelations.Exceptions import *
 
 def manage_addToOneRelationship(context, id, REQUEST = None):
     """ToOneRelationship Factory"""
@@ -70,18 +70,23 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
     def _add(self, obj):
         """add a to one side of a relationship
         if a relationship already exists clear it"""
+        if obj == self.obj: raise RelationshipExistsError
         self._remoteRemove()
         self.obj = aq_base(obj)
 
 
     def _remove(self,obj=None):
         """remove the to one side of a relationship"""
-        self.obj = None 
+        if obj == self.obj:
+            self.obj = None 
+        else:
+            raise ObjectNotFound
 
 
     def _remoteRemove(self, obj=None):
         """clear the remote side of this relationship"""
         if self.obj:
+            if obj != None and obj != self.obj: raise ObjectNotFound
             remoteRel = getattr(aq_base(self.obj), self.remoteName())
             remoteRel._remove(self.__primary_parent__)
 

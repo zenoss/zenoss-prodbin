@@ -60,17 +60,6 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
         self.removeRelation(obj)
 
     
-    def _remoteRemove(self, obj=None):
-        """remove an object from the far side of this relationship
-        if no object is passed in remove all objects"""
-        if obj: objs = [obj]
-        else: objs = self.objectValuesAll()
-        remoteName = self.remoteName()
-        for obj in objs:
-            rel = getattr(obj, remoteName)
-            rel._remove(self.__primary_parent__)
-   
-
     def _setOb(self, id, obj): 
         """don't use attributes in relations"""
         pass

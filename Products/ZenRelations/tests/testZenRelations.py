@@ -221,6 +221,21 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(eth.device() == dev)
 
 
+    def testaddRelationOneToManyContSame(self):
+        """Test setting the many side of one ToManycont twice with same object.
+        """
+        dev = self.create(self.app, Device, "dev")
+        eth = self.create(dev.interfaces, IpInterface, "eth0")
+        dev.interfaces.addRelation(eth)
+        self.failUnless(eth in dev.interfaces())
+        self.failUnless(len(dev.interfaces())==1)
+        self.failUnless(eth.device() == dev)
+        dev.interfaces.addRelation(eth)
+        self.failUnless(eth in dev.interfaces())
+        self.failUnless(len(dev.interfaces())==1)
+        self.failUnless(eth.device() == dev)
+
+
     def testDeleteFromOneToManyCont(self):
         """Delete RM from within a ToManyCon relationship"""
         dev = self.build(self.app, Device, "dev")
@@ -228,6 +243,7 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(eth0 in dev.interfaces())
         dev.interfaces._delObject("eth0")
         self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(eth0.device() == None)
 
 
     def testremoveRelationOneToManyCont(self):
@@ -237,6 +253,7 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(eth.device() == dev)
         dev.removeRelation("interfaces", eth)
         self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(eth.device() == None)
 
 
     def testremoveRelationOneToManyCont2(self):
@@ -246,6 +263,7 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(eth.device() == dev)
         dev.interfaces.removeRelation(eth)
         self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(eth.device() == None)
 
 
     def testremoveRelationOneToManyCont3(self):
@@ -256,6 +274,8 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(len(dev.interfaces()) == 2)
         dev.removeRelation("interfaces")
         self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(eth.device() == None)
+        self.failUnless(eth1.device() == None)
         
 
     def testremoveRelationOneToManyCont4(self):
@@ -266,6 +286,8 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(len(dev.interfaces()) == 2)
         dev.interfaces.removeRelation()
         self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(eth.device() == None)
+        self.failUnless(eth1.device() == None)
         
 
     def testsetObjectOneToManyContH(self):
@@ -351,6 +373,7 @@ class ToManyContRelationshipTest(RMBaseTest):
         self.failUnless(eth1.afterAdd)
         self.failUnless(len(dev.interfaces()) == 2)
 
+    
 
 class ToManyRelationshipTest(RMBaseTest):
 
@@ -395,6 +418,20 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev.location() == riva)
 
 
+    def testaddRelationOneToManySame(self):
+        """Test setting the many side of one to many twice with same object"""
+        dev = self.create(self.app, Device, "dev")
+        anna = self.create(self.app, Location, "anna")
+        anna.devices.addRelation(dev)
+        self.failUnless(dev in anna.devices())
+        self.failUnless(len(anna.devices())==1)
+        self.failUnless(dev.location() == anna)
+        anna.devices.addRelation(dev)
+        self.failUnless(dev in anna.devices())
+        self.failUnless(len(anna.devices())==1)
+        self.failUnless(dev.location() == anna)
+
+
     def testaddRelationToManyNone(self):
         """Test adding None to a to many relationship"""
         dev = self.create(self.app, Device, "dev")
@@ -411,17 +448,6 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev.location() == anna)
 
 
-    def testremoveRelationOneToMany(self):
-        """Test removing from a to many relationship"""
-        dev = self.create(self.app, Device, "dev")
-        anna = self.create(self.app, Location, "anna")
-        anna.addRelation("devices", dev)
-        self.failUnless(dev.location() == anna)
-        anna.removeRelation("devices", dev)
-        self.failIf(dev.location() == anna)
-        self.failIf(dev in anna.devices())
-
-
     def test_delObjectOneToMany(self):
         """Test removing from a to many relationship"""
         dev = self.create(self.app, Device, "dev")
@@ -433,6 +459,17 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failIf(dev in anna.devices())
 
 
+    def testremoveRelationOneToMany(self):
+        """Test removeRelation on a to many object itself """
+        dev = self.create(self.app, Device, "dev")
+        anna = self.build(self.app, Location, "anna")
+        anna.devices.addRelation(dev)
+        self.failUnless(dev.location() == anna)
+        anna.devices.removeRelation()
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+
+    
     def testremoveRelationOneToMany2(self):
         """Test removing from a to many relationship with two objects"""
         dev = self.create(self.app, Device, "dev")
@@ -473,24 +510,31 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev2.location() == None)
 
 
-    def testremoveRelationOnToMany(self):
-        """Test removeRelation on a to many object itself """
+    def testremoveRelationOneToMany5(self):
+        """Test removing non existant object from one to many relationship"""
         dev = self.create(self.app, Device, "dev")
-        anna = self.build(self.app, Location, "anna")
-        anna.devices.addRelation(dev)
+        dev2 = self.create(self.app, Device, "dev2")
+        anna = self.create(self.app, Location, "anna")
+        dev.location.addRelation(anna)
+        self.assertRaises(ObjectNotFound, anna.removeRelation, "devices", dev2)
+        self.failUnless(dev2.location() == None)
         self.failUnless(dev.location() == anna)
-        anna.devices.removeRelation()
-        self.failIf(dev.location() == anna)
-        self.failIf(dev in anna.devices())
+        self.failUnless(dev in anna.devices())
+        self.failUnless(len(anna.devices())==1)
 
 
-    def testaddRelationManyToMany(self):
-        """Test froming a many to many relationship"""
+    def testremoveRelationOneToMany6(self):
+        """Test removing non existant object from one side of one to many rel
+        """
         dev = self.create(self.app, Device, "dev")
-        group = self.create(self.app, Group, "group")
-        dev.addRelation("groups", group)
-        self.failUnless(group in dev.groups())
-        self.failUnless(dev in group.devices())
+        anna = self.create(self.app, Location, "anna")
+        riva = self.create(self.app, Location, "riva")
+        dev.location.addRelation(anna)
+        self.assertRaises(ObjectNotFound, dev.removeRelation, 'location', riva)
+        self.failUnless(riva.devices() == [])
+        self.failUnless(dev.location() == anna)
+        self.failUnless(dev in anna.devices())
+        self.failUnless(len(anna.devices())==1)
 
 
     def testObjectIdsOneToMany(self):
@@ -532,6 +576,15 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless((devid, dev) in loc.devices.objectItemsAll())
         self.failUnless((dev2id, dev2) in loc.devices.objectItemsAll())
         self.failUnless(len(loc.devices.objectItems())==0)
+
+
+    def testaddRelationManyToMany(self):
+        """Test froming a many to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        group = self.create(self.app, Group, "group")
+        dev.addRelation("groups", group)
+        self.failUnless(group in dev.groups())
+        self.failUnless(dev in group.devices())
 
 
     def testSetObjectManyToMany(self):
@@ -580,7 +633,7 @@ class ToManyRelationshipTest(RMBaseTest):
 
 
     def testremoveRelationManyToMany4(self):
-        """Test removing all from to one side of a one to many relationship"""
+        """Test removing all from many to many relationship"""
         dev = self.create(self.app, Device, "dev")
         dev2 = self.create(self.app, Device, "dev2")
         group = self.create(self.app, Group, "group")
@@ -595,6 +648,20 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failIf(dev in group.devices())
         self.failIf(group2 in dev.groups())
         self.failUnless(dev2 in group.devices())
+
+
+    def testremoveRelationManyToMany5(self):
+        """Test removing non existant object from many to many relationship"""
+        dev = self.create(self.app, Device, "dev")
+        group = self.create(self.app, Group, "group")
+        group2 = self.create(self.app, Group, "group2")
+        dev.addRelation("groups", group)
+        self.assertRaises(ObjectNotFound, dev.removeRelation, "groups", group2)
+        self.failUnless(len(group2.devices()) == 0)
+        self.failUnless(len(group.devices()) == 1)
+        self.failUnless(dev in group.devices())
+        self.failUnless(len(dev.groups()) == 1)
+        self.failUnless(group in dev.groups())
 
 
     def testDeleteToManyRelationship(self):

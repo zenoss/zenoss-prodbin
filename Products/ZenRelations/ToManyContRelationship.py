@@ -101,10 +101,12 @@ class ToManyContRelationship(ToManyRelationshipBase):
         
 
     def _add(self,obj):
-        """add an object to one side of this toMany relationship"""
+        """add an object to one side of a ToManyContRelationship.
+        """
         id = obj.id
         if self._objects.has_key(id):
-            del self._objects[id]
+            raise RelationshipExistsError
+            #del self._objects[id]
         v=self._checkId(id)
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
@@ -131,6 +133,19 @@ class ToManyContRelationship(ToManyRelationshipBase):
         self._count=len(self._objects)
         self._p_changed = 1
 
+
+    def _remoteRemove(self, obj=None):
+        """remove an object from the far side of this relationship
+        if no object is passed in remove all objects"""
+        if obj: 
+            if not self._objects.has_key(obj.id): raise ObjectNotFround
+            objs = [obj]
+        else: objs = self.objectValuesAll()
+        remoteName = self.remoteName()
+        for obj in objs:
+            rel = getattr(obj, remoteName)
+            rel._remove(self.__primary_parent__)
+   
 
     def _getOb(self, id, default=zenmarker):
         """look up in our local store and wrap in our aq_chain"""

@@ -14,7 +14,8 @@ $Id: RelationshipBase.py,v 1.26 2003/10/03 16:16:01 edahl Exp $"""
 __version__ = "$Revision: 1.26 $"[11:-2]
 
 import sys
-
+import logging
+log = logging.getLogger("zen.Relations")
   
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -66,11 +67,13 @@ class RelationshipBase(PrimaryPathManager):
         if not isinstance(obj, self.remoteClass()):
             raise ZenSchemaError("%s restricted to class %s. %s is class %s" %
             (self.id, self.remoteClass.__name__, obj.id, obj.__class.__name__))
-        self._add(obj)
-        #obj = obj.__of__(self)
-        #remoteRel = getattr(aq_base(obj), self.remoteName())
-        remoteRel = getattr(obj, self.remoteName())
-        remoteRel._add(self.__primary_parent__)
+        try:
+            self._add(obj)
+            remoteRel = getattr(obj, self.remoteName())
+            remoteRel._add(self.__primary_parent__)
+        except RelationshipExistsError:
+            log.debug("obj: %s exists on %s", 
+                      obj.getPrimaryId(), self.getPrimaryId())
 
 
     def removeRelation(self, obj=None):
