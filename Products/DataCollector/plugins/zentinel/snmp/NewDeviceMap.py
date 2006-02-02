@@ -26,6 +26,9 @@ class NewDeviceMap(SnmpPlugin):
              })
 
     osregex = (
+        #Novell NetWare 5.00.09 September 21, 2000 Proliant ML370
+        re.compile(r'Novell (NetWare \S+)'),
+
         #Cisco Internetwork Operating System Software IOS (tm) s72033_rp Software (s72033_rp-IPSERVICESK9-M), Version 12.2(18)SXE3, RELEASE SOFTWARE (fc1) 
         re.compile(r'(IOS).*Version (\S+),'),           
 
