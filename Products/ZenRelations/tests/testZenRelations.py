@@ -226,11 +226,8 @@ class ToManyContRelationshipTest(RMBaseTest):
         """
         dev = self.create(self.app, Device, "dev")
         eth = self.create(dev.interfaces, IpInterface, "eth0")
-        dev.interfaces.addRelation(eth)
-        self.failUnless(eth in dev.interfaces())
-        self.failUnless(len(dev.interfaces())==1)
-        self.failUnless(eth.device() == dev)
-        dev.interfaces.addRelation(eth)
+        self.assertRaises(RelationshipExistsError, 
+                            dev.interfaces.addRelation, eth)
         self.failUnless(eth in dev.interfaces())
         self.failUnless(len(dev.interfaces())==1)
         self.failUnless(eth.device() == dev)
@@ -426,7 +423,8 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev in anna.devices())
         self.failUnless(len(anna.devices())==1)
         self.failUnless(dev.location() == anna)
-        anna.devices.addRelation(dev)
+        self.assertRaises(RelationshipExistsError, 
+                            anna.devices.addRelation, dev)
         self.failUnless(dev in anna.devices())
         self.failUnless(len(anna.devices())==1)
         self.failUnless(dev.location() == anna)

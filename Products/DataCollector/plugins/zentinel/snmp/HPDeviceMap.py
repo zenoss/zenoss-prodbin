@@ -24,4 +24,6 @@ class HPDeviceMap(SnmpPlugin):
         log.info('processing dell device info on device %s' % device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
+        if om.setOSProductKey.find("NetWare") > -1:
+            delattr(om, 'setOSProductKey')
         return om

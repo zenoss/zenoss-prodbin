@@ -61,7 +61,6 @@ class InterfaceMap(SnmpPlugin):
         iftable = tabledata.get("iftable")
         if iptable is None or iftable is None: return
         omtable = {}
-        self.idtable = {}
         for iprow in iptable.values():
             #FIXME - not getting ifindex back from HP printer
             if not iprow.has_key("ifindex"): continue
@@ -94,9 +93,6 @@ class InterfaceMap(SnmpPlugin):
         om = self.objectMap(iface)
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.name = om.id
-        if self.idtable.has_key(om.id):
-            om.id = "%s_%s" %(om.id, om.ifindex)
-        self.idtable[om.id] = 1
         om.id = self.prepId(om.id)
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if dontCollectIntNames and re.search(dontCollectIntNames, om.name):

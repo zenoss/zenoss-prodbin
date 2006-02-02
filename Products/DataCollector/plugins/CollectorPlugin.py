@@ -152,6 +152,8 @@ class SnmpPlugin(CollectorPlugin):
         try:
             datear = struct.unpack("!h6B", val)
         except: pass
+        if datear[0] == 0: 
+            datear = (1968,1,8,10,15,00)
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
         

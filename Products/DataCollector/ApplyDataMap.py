@@ -94,9 +94,15 @@ class ApplyDataMap(object):
                           relmap.relname, device.id)
             return changed
         relids = rel.objectIdsAll()
+        seenids = []
         for objmap in relmap:
             from Products.ZenModel.ZenModelRM import ZenModelRM
             if hasattr(objmap, 'modname') and hasattr(objmap, 'id'):
+                if seenids.has_key(objmap.id):
+                    seenids[objmap.id] += 1
+                    objmap.id = "%s_%s" % (objmap.id, seenids[objmap.id])
+                else: 
+                    seenids[objmap.id] = 1
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id) 
                     objchange = self._updateObject(obj, objmap)
