@@ -260,16 +260,14 @@ class ToManyRelationship(ToManyRelationshipBase):
             c = keycount.setdefault(key, 0)
             c += 1
             keycount[key] = c
-        dupkeys = []
         for k, v in keycount.items():
             if v > 1: 
                 log.critical("obj:%s rel:%s dup found obj:%s count:%s", 
                              self.getPrimaryId(), self.id, key, v)
-                dupkeys.append(k)
         for obj in self._objects:
             key = obj.getPrimaryId()
-            if repair and key in dupkeys and keycount[key] > 1:
-                while keycount[key] > 0:
+            if repair:
+                while keycount[key] > 1:
                     log.critical("rel:%s remove dup obj:%s", self.id, key)
                     self._objects.remove(obj)
                     self._p_changed = 1
