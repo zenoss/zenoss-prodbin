@@ -73,6 +73,7 @@ class InterfaceMap(SnmpPlugin):
             if not omtable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
                 if not om: continue
+                rm.append(om)
                 omtable[strindex] = om
                 del iftable[strindex]
             else: 
@@ -81,7 +82,6 @@ class InterfaceMap(SnmpPlugin):
             ip = iprow['ipAddress']+"/"+str(self.maskToBits(iprow['netmask']))
             om.setIpAddresses.append(ip)
             #om.ifindex = iprow.ifindex #FIXME ifindex is not set!
-            rm.append(om)
 
         for iface in iftable.values():
             om = self.processInt(device, iface)
