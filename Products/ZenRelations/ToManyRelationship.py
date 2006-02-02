@@ -235,6 +235,9 @@ class ToManyRelationship(ToManyRelationshipBase):
         if len(self._objects): log.info("checking relation: %s", self.id)
         rname = self.remoteName()
         parobj = self.getPrimaryParent()
+
+        # look for objects that don't poing back to us
+        # or who no longer exist in the database
         for obj in self._objects:
             rrel = getattr(obj, rname)
             if not rrel.hasobject(parobj):
@@ -254,31 +257,33 @@ class ToManyRelationship(ToManyRelationshipBase):
                     log.warn("removing rel to:%s", obj.getPrimaryId())
                     self._objects.remove(obj)
                     self._p_changed = 1
+
+        # find duplicate objects
         keycount = {}
         for obj in self._objects:
             key = obj.getPrimaryId()
             c = keycount.setdefault(key, 0)
             c += 1
             keycount[key] = c
-        for k, v in keycount.items():
-            if v > 1: 
+        # Remove duplicate objects or objects that don't exist
+        for key, val in keycount.items():
+            if val > 1: 
                 log.critical("obj:%s rel:%s dup found obj:%s count:%s", 
-                             self.getPrimaryId(), self.id, key, v)
-            else:
-                del keycount[k]
-        for obj in self._objects:
-            key = obj.getPrimaryId()
-            if repair and keycount.get(key, 0) > 1:
-                while keycount[key] > 0:
-                    log.critical("rel:%s remove dup obj:%s", self.id, key)
-                    self._objects.remove(obj)
-                    self._p_changed = 1
-                    keycount[key] -= 1
+                             self.getPrimaryId(), self.id, key, val)
+                if repair:
+                    log.critical("repair key %s", key)
+                    self._objects = [ o for o in self._objects \
+                                        if o.getPrimaryId() != key ]
+                    try:
+                        obj = self.unrestrictedTraverse(key)
+                        self._objects.append(obj)
+                    except KeyError:
+                        log.critical("obj %s not found in database", key)
+
+        # Fix bad count cache
         if repair and len(self._objects) != self._count: 
             log.warn("resetting count on %s", self.getPrimaryId()) 
             self._resetCount()
-
-
 
 
 InitializeClass(ToManyRelationship)
