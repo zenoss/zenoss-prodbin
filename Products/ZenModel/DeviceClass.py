@@ -352,6 +352,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
         devs._setProperty("zFileSystemMapIgnoreNames", "")
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
+        devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
 
         # Cricket properties
         devs._setProperty("zCricketDeviceType", "")

@@ -34,6 +34,7 @@ class IpServiceMap(SnmpPlugin):
         tcptable = tabledata.get("tcptable")
         udptable = tabledata.get("udptable")
         rm = self.relMap()
+        maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
         #tcp services
         tcpports = {}
         for oid, value in tcptable.items():
@@ -41,7 +42,7 @@ class IpServiceMap(SnmpPlugin):
             oidar = oid.split('.')
             addr = '.'.join(oidar[-10:-6])
             port = int(oidar[-6])
-            if port <= 0: continue
+            if maxport > port < 1: continue
             om = tcpports.get(port, None)
             if om:
                 om.ipaddresses.append(addr)
@@ -60,7 +61,7 @@ class IpServiceMap(SnmpPlugin):
         for oid, value in udptable.items():
             oid = oid.split('.')
             port = int(oid[-1])
-            if port <= 0: continue
+            if maxport > port < 1: continue
             addr = value['addr']
             om = udpports.get(port, None)
             if om:
