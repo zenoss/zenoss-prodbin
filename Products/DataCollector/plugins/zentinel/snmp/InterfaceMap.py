@@ -20,6 +20,7 @@ from CollectorPlugin import SnmpPlugin, GetTableMap
 
 class InterfaceMap(SnmpPlugin):
 
+    order = 80
     maptype = "InterfaceMap" 
     compname = "os"
     relname = "interfaces"

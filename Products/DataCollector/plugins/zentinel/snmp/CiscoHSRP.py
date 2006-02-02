@@ -20,6 +20,7 @@ from CollectorPlugin import SnmpPlugin, GetTableMap
 
 class CiscoHSRP(SnmpPlugin):
 
+    order = 10000
     maptype = "CiscoHSRP" 
 
     snmpGetTableMaps = (

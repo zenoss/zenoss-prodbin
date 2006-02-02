@@ -16,6 +16,7 @@ class CollectorPlugin:
 
     """
 
+    order = 100
     transport = ""
     maptype = ""
     relname = ""

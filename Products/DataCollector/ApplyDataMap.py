@@ -34,6 +34,9 @@ class ApplyDataMap(object):
         log.debug("processing data for device %s", device.id)
         devchanged = False
         try:
+            #clientresults = collectorClient.getResults()
+            #clientresults.sort()
+            #for pname, results in clientresults:
             for pname, results in collectorClient.getResults():
                 log.debug("processing plugin %s on device %s", pname, device.id)
                 if not results: 
@@ -94,7 +97,7 @@ class ApplyDataMap(object):
                           relmap.relname, device.id)
             return changed
         relids = rel.objectIdsAll()
-        seenids = []
+        seenids = {}
         for objmap in relmap:
             from Products.ZenModel.ZenModelRM import ZenModelRM
             if hasattr(objmap, 'modname') and hasattr(objmap, 'id'):
