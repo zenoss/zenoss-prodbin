@@ -468,6 +468,19 @@ class ToManyRelationshipTest(RMBaseTest):
         anna.devices.removeRelation()
         self.failIf(dev.location() == anna)
         self.failIf(dev in anna.devices())
+        self.failUnless(len(anna.devices())==0)
+
+    
+    def testremoveRelationOneToMany1(self):
+        """Test removeRelation on a to many object itself """
+        dev = self.create(self.app, Device, "dev")
+        anna = self.build(self.app, Location, "anna")
+        anna.devices.addRelation(dev)
+        self.failUnless(dev.location() == anna)
+        dev.location.removeRelation()
+        self.failIf(dev.location() == anna)
+        self.failIf(dev in anna.devices())
+        self.failUnless(len(anna.devices())==0)
 
     
     def testremoveRelationOneToMany2(self):

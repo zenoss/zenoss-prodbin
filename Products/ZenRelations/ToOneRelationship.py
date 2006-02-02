@@ -77,7 +77,7 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
 
     def _remove(self,obj=None):
         """remove the to one side of a relationship"""
-        if obj == self.obj:
+        if obj == None or obj == self.obj:
             self.obj = None 
         else:
             raise ObjectNotFound
