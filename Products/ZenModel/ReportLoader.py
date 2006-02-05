@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2006 Zentinel Systems, Inc. All rights reserved.
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 import os

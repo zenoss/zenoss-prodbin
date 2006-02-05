@@ -1,6 +1,6 @@
 ################################################################
 #
-#   Copyright (c) 2002 Zentinel Systems, Inc. All rights reserved.
+#   Copyright (c) 2002 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
