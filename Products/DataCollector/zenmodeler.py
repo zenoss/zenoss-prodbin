@@ -4,21 +4,6 @@
 #
 #################################################################
 
-"""ZenModeler
-
-Collects data from devices and puts it into objects in the DMD
-data is passed through 3 queues in this system:
-
-self.devices -> self.clients -> self.deviceMaps
-
-self.devices is a list of DMD devices on which we will collect
-self.clients is the list of active CollectorClients
-self.deviceMaps is the list of results received from remote devices
-
-$Id: ZenModeler.py,v 1.8 2003/12/18 23:07:44 edahl Exp $"""
-
-__version__ = "$Revision: 1.8 $"[11:-2]
-
 import sys
 import os
 import time
@@ -62,11 +47,9 @@ class ZenModeler(ZCmdBase):
         self.threaded = threaded
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
-        self.clients = 0
+        self.clients = []
         self.collectorPlugins = {} 
-        self.deviceMaps = {}
         self.devicegen = None
-        self.running=False
         self.loadPlugins()
         if self.threaded and not self.single:
             self.log.info("starting apply in separate thread.")
@@ -156,8 +139,7 @@ class ZenModeler(ZCmdBase):
             client = self.collectDevice(device)
         if i > 0: 
             self.log.debug("reactor start multi-device")
-            #self.reactorLoop()
-            reactor.run(False)
+            self.reactorLoop()
         else: self.log.warn("no valid clients found")
             
   
@@ -176,18 +158,20 @@ class ZenModeler(ZCmdBase):
         """Collect data from a single device.
         """
         device = self.resolveDevice(device)
+        clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
         cmdclient = self.cmdCollect(device, ip)
         snmpclient = self.snmpCollect(device, ip)
         if cmdclient: 
             cmdclient.run()
-            self.clients += 1
+            cmdclient.timeout = clientTimeout + time.time()
+            self.clients.append(cmdclient)
         if snmpclient: 
             snmpclient.run()
-            self.clients += 1
+            snmpclient.timeout = clientTimeout + time.time()
+            self.clients.append(snmpclient)
         if self.single and (cmdclient or snmpclient):
             self.log.debug("reactor start single-device")
-            #self.reactorLoop(timeout=120)
-            reactor.run(False)
+            self.reactorLoop()
 
 
     def cmdCollect(self, device, ip=None):
@@ -307,12 +291,10 @@ class ZenModeler(ZCmdBase):
             except StopIteration:
                 nodevices = True
         finally:
-            self.clients -= 1
-            self.log.debug("clients=%s nodevices=%s",self.clients,nodevices)
-            if self.clients <= 0 and nodevices: 
-                self.log.debug("reactor stop")
-                #self.running = False
-                reactor.stop()
+            try: self.clients.remove(collectorClient)
+            except ValueError:
+                self.log.warn("client %s not found in active clients",
+                                collectorClient.hostname)
 
 
     def buildOptions(self):
@@ -359,26 +341,29 @@ class ZenModeler(ZCmdBase):
             raise SystemExit("--ignore and --collect are mutually exclusive")
 
 
-    def reactorLoop(self, timeout=0, seltime=1):
+    def timeoutClients(self):
+        active = []
+        for client in self.clients:
+            if client.timeout < time.time():
+                self.log.warn("client %s timeout", client.hostname)
+            active.append(client)
+        self.client = active
+                
+
+    def reactorLoop(self):
         """Our own reactor loop so we can control timeout.
         """
         start = time.time()
-        self.log.debug("starting reactor loop timeout=%s", timeout)
+        self.log.debug("starting reactor loop")
         reactor.startRunning(installSignalHandlers=False)
-        self.running=True
-        while self.running:
+        while self.clients:
             try:
-                if timeout and start + timeout < time.time(): 
-                    self.log.error("reactor loop timeout")
-                    break
                 reactor.runUntilCurrent()
-                t2 = reactor.timeout()
-                t = reactor.running and t2
-                reactor.doIteration(seltime)
+                reactor.doIteration(0)
+                self.timeoutClients()
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected error in reactorLoop")
-        reactor.stop()
         self.log.debug("ended reactor loop runtime=%s", time.time()-start)
 
     
@@ -408,7 +393,6 @@ class ZenModeler(ZCmdBase):
         applyData thread and close the zeo connection.
         """
         self.log.info("stopping...")
-        self.running = False
         self.applyData.stop()
         self.closedb()
 
