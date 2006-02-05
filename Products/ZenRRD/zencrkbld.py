@@ -71,7 +71,7 @@ class ZenCrkBld(ZenDaemon):
                             self.options.zopeurl)
         server = xmlrpclib.Server(url, allow_none=True)
         cricketDataSources = server.cricketDataSources()
-        dsfile = open('ZenmonDataSources', 'w')
+        dsfile = open('ZenossDataSources', 'w')
         self.writeHeader(dsfile)
         dsfile.write(cricketDataSources)
         dsfile.close()

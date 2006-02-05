@@ -30,5 +30,5 @@ def reindex():
     dmd.Networks.reIndex()
     commit()
 
-print "Welcome to zenmon dmd command shell!"
+print "Welcome to zenoss dmd command shell!"
 print "use zhelp() to list commnads"

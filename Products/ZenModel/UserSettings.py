@@ -31,7 +31,7 @@ def manage_addUserSettingsManager(context, REQUEST=None):
 def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
 
 class UserSettingsManager(ZenModelRM):
-    """Manage zenmon user folders.
+    """Manage zenoss user folders.
     """
     
     meta_type = "UserSettingsManager"
@@ -118,7 +118,7 @@ class UserSettingsManager(ZenModelRM):
 
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
                     REQUEST=None,**kw):
-        """Add a zenmon user to the system and set its default properties.
+        """Add a zenoss user to the system and set its default properties.
         """
         if password is None:
             password = self.generatePassword()
@@ -144,7 +144,7 @@ class UserSettingsManager(ZenModelRM):
 
     def manage_changeUser(self, userid, password=None, sndpassword=None,
                           roles=None, domains=None, REQUEST=None, **kw):
-        """Change a zenmon users settings.
+        """Change a zenoss users settings.
         """
         user = self.acl_users.getUser(userid)
         if not user: 
@@ -173,7 +173,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     def manage_deleteUsers(self, userids=(), REQUEST=None):
-        """Delete a list of zenmon users from the system.
+        """Delete a list of zenoss users from the system.
         """
         self.acl_users._doDelUsers(userids)
         for userid in userids:
@@ -214,7 +214,7 @@ addUserSettings = DTMLFile('dtml/addUserSettings',globals())
 
 
 class UserSettings(ZenModelRM):
-    """Zenmon user folder has users preferences.
+    """zenoss user folder has users preferences.
     """
 
     meta_type = "UserSettings"

@@ -35,11 +35,11 @@ class ZenActions(ZCmdBase):
         ZCmdBase.__init__(self)
         self.loadActionRules()
         if not self.options.fromaddr:
-            self.options.fromaddr = "zenmon@%s" % socket.getfqdn()
+            self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenactions started",
-                        severity=0, component="zenmon/zenactions"))
+                        severity=0, component="zenoss/zenactions"))
         
 
     def loadActionRules(self):
@@ -145,7 +145,7 @@ class ZenActions(ZCmdBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenactions stopped",
-                        severity=3, component="zenmon/zenactions"))
+                        severity=3, component="zenoss/zenactions"))
 
 
     def sendPage(self, msg, addr):
@@ -154,7 +154,7 @@ class ZenActions(ZCmdBase):
         import Pager
         rcpt = Pager.Recipient(addr)
         pmsg = Pager.Message(msg)
-        #pmsg.callerid = "zenmon"
+        #pmsg.callerid = "zenoss"
         page = Pager.Pager((rcpt,), pmsg, self.options.snpphost, 
                                          self.options.snppport)
         page.send()
@@ -167,7 +167,7 @@ class ZenActions(ZCmdBase):
         import smtplib
         from email.MIMEText import MIMEText
         emsg = MIMEText(msg)
-        emsg['Subject'] = "[ZenMon] %s" % msg[:128]
+        emsg['Subject'] = "[zenoss] %s" % msg[:128]
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
         server = smtplib.SMTP(self.options.smtphost, self.options.smtpport)

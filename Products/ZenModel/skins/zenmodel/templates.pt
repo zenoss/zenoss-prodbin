@@ -72,7 +72,7 @@
  ====================================================== -->
 <head metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title tal:content="string:ZenMon: ${here/getId}"/>
+    <title tal:content="string:Zenoss: ${here/getId}"/>
     <link rel="stylesheet" type="text/css" 
         href="/zport/portal_skins/default_stylesheet" />
     <link rel="stylesheet" type="text/css"

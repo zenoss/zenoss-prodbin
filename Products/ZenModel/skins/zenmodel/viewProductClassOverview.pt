@@ -10,7 +10,7 @@
       <td class="tablevalues"
         tal:content="structure here/manufacturer/getPrimaryLink"/>
       <td class="tableheader">Name</td>
-      <td class="tablevalues" tal:content="here/id">Zenmon</td>
+      <td class="tablevalues" tal:content="here/id">Zenoss</td>
     </tr>
     <tr>
       <th class="tableheader">Type</th>

@@ -145,8 +145,8 @@ class ZenDaemon(CmdBase):
         CmdBase.buildOptions(self)
         self.parser.add_option('-l', '--logpath',dest='logpath',
                     help='override default logging path')
-        self.parser.add_option('--uid',dest='uid',default="zenmon",
-                    help='user to become when running default:zenmon')
+        self.parser.add_option('--uid',dest='uid',default="zenoss",
+                    help='user to become when running default:zenoss')
         self.parser.add_option('-c', '--cycle',dest='cycle',action="store_true",
                     help="Cycle continuously on cycleInterval from zope")
         self.parser.add_option('-D', '--daemon',

@@ -51,11 +51,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             hdlr.setFormatter(logging.Formatter("%(message)s"))
             self.olog.addHandler(hdlr)
         self.evtheartbeat = EventHeartbeat(
-            socket.getfqdn(), "zenmon/zensyslog", self.options.heartbeat*3)
+            socket.getfqdn(), "zenoss/zensyslog", self.options.heartbeat*3)
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zensyslog collector started",
-                        severity=0, component="zenmon/zensyslog"))
+                        severity=0, component="zenoss/zensyslog"))
         self.log.info("started")
         
 
@@ -125,7 +125,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zensyslog collector stopped",
-                        severity=4, component="zenmon/zensyslog"))
+                        severity=4, component="zenoss/zensyslog"))
         self.running = False
 
 

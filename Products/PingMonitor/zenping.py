@@ -70,7 +70,7 @@ class ZenPing(ZCmdBase):
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenping started",
-                        severity=0, component="zenmon/zenping"))
+                        severity=0, component="zenoss/zenping"))
         self.log.info("started")
 
 
@@ -225,14 +225,14 @@ class ZenPing(ZCmdBase):
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenping stopped",
-                        severity=4, component="zenmon/zenping"))
+                        severity=4, component="zenoss/zenping"))
 
 
     def sendHeartbeat(self):
         """Send a heartbeat event for this monitor.
         """
         timeout = self.cycleInterval*3
-        evt = EventHeartbeat(socket.getfqdn(), "zenmon/zenping", timeout)
+        evt = EventHeartbeat(socket.getfqdn(), "zenoss/zenping", timeout)
 
 
     def sendEvent(self, pj):

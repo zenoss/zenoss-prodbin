@@ -163,7 +163,7 @@ addDevice = DTMLFile('dtml/addDevice',globals())
     
 class Device(CricketDevice, ManagedEntity):
     """
-    Device is a key class within zenmon.  It represents the combination of
+    Device is a key class within zenoss.  It represents the combination of
     compute hardware running an operating system.
     """
 

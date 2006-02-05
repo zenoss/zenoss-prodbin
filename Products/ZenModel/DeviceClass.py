@@ -48,9 +48,9 @@ addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
 class DeviceClass(DeviceOrganizer):
     """
     DeviceClass is a device organizer that manages the primary classification
-    of device objects within the zenmon system.  It manages properties
+    of device objects within the zenoss system.  It manages properties
     that are inherited through acquisition that modify the behavior of
-    many different sub systems within zenmon.
+    many different sub systems within zenoss.
     It also handles the creation of new devices in the system.
     """
    
