@@ -3,4 +3,4 @@
 rm -rf $ZENHOME/zendocs/api
 mkdir -p $ZENHOME/zendocs/api
 cd $ZENHOME/Products
-$ZENHOME/bin/epydoc -o $ZENHOME/zendocs/api -n ZenMon --inheritance listed $ZENPRODUCTS
+$ZENHOME/bin/epydoc -o $ZENHOME/zendocs/api -n Zenoss --inheritance listed $ZENPRODUCTS
