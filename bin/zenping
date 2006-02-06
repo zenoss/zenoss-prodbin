@@ -6,8 +6,6 @@ SUDO=sudo
 PRGHOME=$ZENHOME/Products/PingMonitor
 PRGNAME=zenping.py
 
-CFGFILE=$CFGDIR/zenping.conf
-
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in

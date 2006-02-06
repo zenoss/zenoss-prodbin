@@ -5,7 +5,7 @@
 PRGHOME=$ZENHOME/Products/PingMonitor
 PRGNAME=zensnmp.py
 
-CFGFILE=$CFGDIR/zenping.conf
+CFGFILE=$CFGDIR/zensnmp.conf
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 

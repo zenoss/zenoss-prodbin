@@ -13,29 +13,28 @@ ZENCMDS="zensnmp zenmodeler zencrkbld zenping zensyslog zenactions"
 FUNC=$1
 
 issue() {
-    for cmd in $ZOPECMDS
+    for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
-        $ZENHOME/bin/$cmd "$FUNC"
-    done
-    for cmd in $ZENCMDS
-    do
-        echo -n "Daemon: "
         $ZENHOME/bin/$cmd "$FUNC"
     done
 }
 
 case "$1" in
   start)
+        CMDS="$ZOPECMDS $ZENCMDS"
         issue
         ;;
   stop)
+        CMDS="$ZENCMDS $ZOPECMDS"
         issue
         ;;
   restart)
+        CMDS="$ZOPECMDS $ZENCMDS"
         issue
         ;;
   status)
+        CMDS="$ZOPECMDS $ZENCMDS"
         issue
         ;;
   *)

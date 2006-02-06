@@ -32,7 +32,7 @@ ARGS=`echo "$*" | sed 's/run//' | sed 's/restart//' | sed 's/start//'`
 
 start() {
     if [ ! -f $PIDFILE ]; then    
-        echo $PRGNAME starting...
+        echo starting...
         if [ ${CFGFILE:-""} = "" ]; then
             exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
         else
@@ -40,7 +40,7 @@ start() {
                 --cycle --daemon $ARGS
         fi
     else
-        echo $PRGNAME is already running
+        echo is already running
     fi
 }
 
@@ -55,14 +55,14 @@ run() {
 stop() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
-        echo $PRGNAME stopping...
+        echo stopping...
         `${SUDO:-} kill $PID` 
         if [ $? -gt 0 ]; then
             rm -f $PIDFILE
-            echo $PRGNAME clearing pid file
+            echo clearing pid file
         fi
     else
-        echo $PRGNAME already stopped
+        echo already stopped
     fi
 }
 
@@ -77,15 +77,15 @@ status() {
         PID=`cat $PIDFILE`
         RPID=`$PS | grep $PID`
         if [ ${RPID:-""} = $PID ]; then
-            echo $PRGNAME program running\; pid=$PID
+            echo program running\; pid=$PID
             exit 109
         else
-            echo $PRGNAME \(pid $PID\) not running
+            echo \(pid $PID\) not running
             rm -f $PIDFILE
             exit 100
         fi
     else
-        echo $PRGNAME not running
+        echo not running
         exit 100
     fi
 }
