@@ -90,7 +90,6 @@ class zenbuild(CmdBase):
         dl = XmlDataLoader(noopts=True, app=self.app) 
         dl.loadDatabase()
 
-        
 
 if __name__ == "__main__":
     zb = zenbuild()

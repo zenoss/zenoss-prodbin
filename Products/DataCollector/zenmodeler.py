@@ -137,7 +137,7 @@ class ZenModeler(ZCmdBase):
         for i, device in enumerate(self.devicegen):
             if i >= self.options.parallel: break
             client = self.collectDevice(device)
-        if i > 0: 
+        if len(self.clients) > 0: 
             self.log.debug("reactor start multi-device")
             self.reactorLoop()
         else: self.log.warn("no valid clients found")

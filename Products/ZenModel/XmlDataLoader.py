@@ -19,6 +19,9 @@ class XmlDataLoader(ImportRM):
                 self.options.infile = os.path.join(path,filename)
                 self.log.info("loading: %s", self.options.infile)
                 ImportRM.loadDatabase(self)
+        # Reindex ProductKeys and EventClassKeys after XML load
+        self.dmd.Manufacturers.reIndex()
+        self.dmd.Events.reIndex()
         transaction.commit()              
 
 
