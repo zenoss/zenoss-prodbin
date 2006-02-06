@@ -31,14 +31,14 @@ class ProductClass(ZenModelRM):
 
     #itclass = ""
     name = ""
-    productKey = ""
+    productKeys = []
 
     default_catalog = "productSearch"
 
     _properties = (
         #{'id':'itclass', 'type':'string', 'mode':'w'},
         {'id':'name', 'type':'string', 'mode':'w'},
-        {'id':'productKey', 'type':'string', 'mode':'w'},
+        {'id':'productKeys', 'type':'lines', 'mode':'w'},
         {'id':'partNumber', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'string', 'mode':'w'},
     )
@@ -85,10 +85,10 @@ class ProductClass(ZenModelRM):
 
     def __init__(self, id, title="", productKey="", 
                 partNumber="", description=""):
-        if not productKey: productKey = id
+        if not productKey: 
+            self.productKeys.append(id)
         id = self.prepId.sub('_', id)
         ZenModelRM.__init__(self, id, title)
-        self.productKey = productKey
         self.partNumber = partNumber
         self.description = description
 
@@ -132,26 +132,27 @@ class ProductClass(ZenModelRM):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
-            cat.catalog_object(self, self.productKey)
+            cat.catalog_object(self, self.getPrimaryId())
             
                                                 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
-            cat.uncatalog_object(self.productKey)
+            cat.uncatalog_object(self.getPrimaryId())
 
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')
-    def manage_editProductClass(self, name="", productKey="", partNumber="", 
-                                description="", REQUEST=None):
+    def manage_editProductClass(self, name="", productKeys=[],
+                               partNumber="", description="", REQUEST=None):
         """
         Edit a ProductClass from a web page.
         """
         redirect = self.rename(name)
-        if productKey != self.productKey:
+        productKeys = [ l.strip() for l in productKeys.split('\n') ]
+        if productKeys != self.productKeys:
             self.unindex_object()
-            self.productKey = productKey
+            self.productKeys = productKeys
             self.index_object()
         self.partNumber = partNumber
         self.description = description        

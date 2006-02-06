@@ -137,7 +137,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         """
         cat = getattr(self, self.default_catalog, None)
         if not cat: return 
-        brains = cat({'productKey': query})
+        brains = cat({'productKeys': query})
         prods = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
         if len(prods) == 1: return prods[0]
 
@@ -170,14 +170,21 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         return prod 
 
 
+    def getProductsGen(self):
+        """Return a generator that gets all products.
+        """
+        for manuf in self.values(spec="Manufacturer"):
+            for prod in manuf.products.objectValuesGen():
+                yield prod
+        
+    
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
         transaction.savepoint()
-        for i, manuf in enumerate(self.values(spec="Manufacturer")):
-            for prod in manuf.products():
-                prod.index_object()
+        for i, prod in enumerate(self.getProductsGen()):
+            prod.index_object()
             if not i % 1000: transaction.savepoint()
 
 
@@ -187,7 +194,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         manage_addZCatalog(self, self.default_catalog, 
                             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        zcat.addIndex('productKey', 'FieldIndex')
+        zcat.addIndex('productKeys', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
 
 

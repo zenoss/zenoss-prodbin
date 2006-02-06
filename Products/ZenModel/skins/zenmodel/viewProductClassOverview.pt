@@ -10,19 +10,18 @@
       <td class="tablevalues"
         tal:content="structure here/manufacturer/getPrimaryLink"/>
       <td class="tableheader">Name</td>
-      <td class="tablevalues" tal:content="here/id">Zenoss</td>
+      <td class="tablevalues" tal:content="here/id"/>
     </tr>
     <tr>
       <th class="tableheader">Type</th>
-      <td class="tablevalues" tal:content="here/type">234</td>
-      <th class="tableheader">Product Key</th>
-      <td class="tablevalues" tal:content="here/productKey">234</td>
+      <td class="tablevalues" tal:content="here/type"/>
+      <th class="tableheader">Part Number</th>
+      <td class="tablevalues" tal:content="here/partNumber"/>
     </tr>
     <tr>
-      <th class="tableheader">Count</th>
-      <td class="tablevalues" tal:content="here/count">234</td>
-      <th class="tableheader">Part Number</th>
-      <td class="tablevalues" tal:content="here/partNumber">234</td>
+      <th class="tableheader">Product Keys</th>
+      <td class="tablevalues" colspan="3" 
+        tal:content="python:','.join(here.productKeys)"/>
     </tr>
     <tr>
       <th class="tableheader">Description</th>
