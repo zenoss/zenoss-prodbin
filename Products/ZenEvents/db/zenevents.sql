@@ -29,8 +29,9 @@ CREATE TABLE IF NOT EXISTS status
     Systems         varchar(255) default "",
     DeviceGroups    varchar(255) default "",
     ipAddress       char(15) default "",
-    priority        smallint default -1,
     facility        varchar(8) default "unknown",
+    priority        smallint default -1,
+    ntevid          smallint unsigned default 0,
     PRIMARY KEY ( dedupid ),
     Index evididx (evid)
 ) ENGINE=MEMORY MAX_ROWS=20000;
@@ -64,6 +65,7 @@ CREATE TABLE IF NOT EXISTS history
     ipAddress       char(15) default "",
     facility        varchar(8) default "unknown",
     priority        smallint default -1,
+    ntevid          smallint unsigned default 0,
     deletedTime     timestamp,
     PRIMARY KEY ( evid ),
     INDEX DateRange (firstTime, lastTime)
@@ -98,6 +100,7 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.ipAddress,
             OLD.facility,
             OLD.priority,
+            OLD.ntevid,
             NULL
             );
 
