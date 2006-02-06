@@ -23,16 +23,16 @@ from AccessControl import ClassSecurityInfo
 class ZenTableState:
 
     changesThatResetStart = [
-        "batchSize", "filter", 
-        "negateFilter", "sortedHeader", 
-        "sortedSence", "URL",
+        "batchSize", 
+        "filter", 
+        "sortedHeader", 
+        "sortedSence", 
         ]
 
     requestAtts = [ 
         "batchSize", 
         "filter",
         "filterFields", 
-        "negateFilter",
         "sortedHeader", 
         "sortedSence",
         "sortRule", 
@@ -55,7 +55,6 @@ class ZenTableState:
         self.lastindex = 0
         self.filter = ""
         self.filterFields = []
-        self.negateFilter = 0
         self.totalobjs = 0
         self.abbrStartLabel = 15
         self.abbrEndLabel = 5
@@ -83,12 +82,6 @@ class ZenTableState:
         for attname in self.requestAtts:
             if request.has_key(attname):
                 self.setTableState(attname, request[attname])
-        if (not request.has_key("negateFilter") 
-            and self.negateFilter):
-            self.negateFilter = 0
-            self.resetStart = True
-        if not self.filter:
-            self.negateFilter = 0
         if request.get("first",False): 
             self.resetStart = True
         elif request.get("last", False): 
@@ -101,7 +94,8 @@ class ZenTableState:
             pp = self.start - self.batchSize
             if pp < 0: self.start = 0
             else: self.start = pp
-        if self.resetStart:
+        ourl = "/".join((request.URL,request.get("zenScreenName","")))
+        if self.resetStart or (self.URL != request.URL and self.URL != ourl):
             self.start = 0
             self.resetStart = False
 

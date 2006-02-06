@@ -89,9 +89,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def setupTableState(self, tableName, **keys):
         """initialize or setup the session variable to track table state"""
-        request = self.REQUEST
-        tableStates = self.getTableStates()
         tableState = self.getTableState(tableName, **keys)
+        request = self.REQUEST
         tableState.updateFromRequest(request)
         return tableState
 
@@ -136,7 +135,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
 
     def getBatch(self, tableName, objects, **keys):
-        """fileter, sort and batch objects and pass return set"""
+        """Filter, sort and batch objects and pass return set.
+        """
         tableState = self.setupTableState(tableName, **keys) 
         if tableState.filter and objects:
             objects = self.filterObjects(objects, tableState.filter, 
@@ -152,7 +152,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
             
    
     def getBatchForm(self, objects, request):
-        """fileter, sort and batch objects and pass return set"""
+        """Create batch based on objects no sorting for filter applied.
+        """
         batchSize = request.get('batchSize',self.defaultBatchSize)
         start = int(request.get('start',0))
         resetStart = int(request.get('resetStart',0))

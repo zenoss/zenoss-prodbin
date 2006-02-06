@@ -37,9 +37,6 @@
         tal:attributes="disabled not:batch/next" />
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
-    Not
-    <input class="tableheader" type=checkbox name=negateFilter value=1 
-        tal:attributes="checked ts/negateFilter" />
     Filter
     <input class="tableheader" type="text" name="filter" size=15 value=""
         onkeypress="submitViaEnter(event)"
