@@ -159,7 +159,7 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         return link
 
 
-    def exportXml(self,ofile):
+    def exportXml(self,ofile,ignorerels=[]):
         """return an xml representation of a ToOneRelationship
         <toone id='cricket'>
             /Monitors/Cricket/crk0.srv.hcvlny.cv.net

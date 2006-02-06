@@ -184,10 +184,10 @@ class Organizer(ZenModelRM):
         return orgs
 
 
-    def exportXmlHook(self, ofile):
+    def exportXmlHook(self, ofile, ignorerels):
         """Add export of our child objects.
         """
-        map(lambda o: o.exportXml(ofile), self.children())
+        map(lambda o: o.exportXml(ofile, ignorerels), self.children())
 
 
 InitializeClass(Organizer)

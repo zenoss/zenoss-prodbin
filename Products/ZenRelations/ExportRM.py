@@ -35,6 +35,9 @@ class ExportRM(ZCmdBase):
         self.parser.add_option('-o', '--outfile',
                     dest="outfile",
                     help="output file for export default is stdout")
+        self.parser.add_option('--ignore', action="append",
+                    dest="ignorerels", default=[],
+                    help="relations that should be ignored can be many")
 
 
     def export(self, root=None):
@@ -43,7 +46,7 @@ class ExportRM(ZCmdBase):
         if hasattr(root, "exportXml"):
             self.outfile.write("""<?xml version="1.0"?>\n""")
             self.outfile.write("<objects>\n")
-            root.exportXml(self.outfile,True)
+            root.exportXml(self.outfile,self.options.ignorerels,True)
             self.outfile.write("</objects>\n")
         else:
             print "ERROR: root object not a exportable (exportXml not found)"

@@ -211,7 +211,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         return rel    
 
 
-    def exportXml(self,ofile):
+    def exportXml(self,ofile,ignorerels=[]):
         """Return an xml representation of a ToManyRelationship
         <tomany id='interfaces'>
             <link>/Systems/OOL/Mail</link>

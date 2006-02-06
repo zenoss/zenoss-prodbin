@@ -1,4 +1,4 @@
-#################################################################
+################################################################
 #
 #   Copyright (c) 2005 Zenoss, Inc. All rights reserved.
 #
@@ -222,7 +222,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         return rel    
 
 
-    def exportXml(self, ofile):
+    def exportXml(self, ofile, ignorerels=[]):
         """Return an xml representation of a ToManyContRelationship
         <tomanycont id='interfaces'>
             <object id='hme0' 
@@ -234,7 +234,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if self.countObjects() == 0: return
         ofile.write("<tomanycont id='%s'>\n" % self.id)
         for obj in self.objectValues():
-            obj.exportXml(ofile)
+            obj.exportXml(ofile, ignorerels)
         ofile.write("</tomanycont>\n")
 
     

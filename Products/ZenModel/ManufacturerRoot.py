@@ -191,7 +191,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         zcat.addColumn('getPrimaryId')
 
 
-    def exportXml(self, ofile, root=False):
+    def exportXml(self, ofile, ignorerels=[], root=False):
         """Return an xml based representation of a RelationshipManager
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
             module='Products.Confmon.IpInterface' class='IpInterface'>
@@ -209,7 +209,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         ofile.write(stag)
         for obj in self.objectValues():
             if getattr(aq_base(obj), 'exportXml', False): 
-                obj.exportXml(ofile)
+                obj.exportXml(ofile, ignorerels)
         ofile.write("</object>\n")
 
         

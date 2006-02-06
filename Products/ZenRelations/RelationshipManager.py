@@ -242,7 +242,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     #
     ##########################################################################
 
-    def exportXml(self, ofile, root=False):
+    def exportXml(self, ofile, ignorerels=[], root=False):
         """Return an xml based representation of a RelationshipManager
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
             module='Products.Confmon.IpInterface' class='IpInterface'>
@@ -259,9 +259,9 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                     id , modname, classname)
         ofile.write(stag)
         self.exportXmlProperties(ofile)
-        self.exportXmlRelationships(ofile)
+        self.exportXmlRelationships(ofile, ignorerels)
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)
-        if exportHook and callable(exportHook): exportHook(ofile)
+        if exportHook and callable(exportHook): exportHook(ofile, ignorerels)
         ofile.write("</object>\n")
 
 
@@ -287,10 +287,11 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             ofile.write("</property>\n")
 
 
-    def exportXmlRelationships(self, ofile):
+    def exportXmlRelationships(self, ofile, ignorerels=[]):
         """Return an xml representation of Relationships"""
         for rel in self.getRelationships():
-            rel.exportXml(ofile)
+            if rel.id in ignorerels: continue
+            rel.exportXml(ofile, ignorerels)
         
     
     ##########################################################################

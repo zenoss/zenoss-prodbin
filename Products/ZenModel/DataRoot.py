@@ -135,8 +135,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return filter(lambda o: o.isInTree, self.objectValues())
 
 
-    def exportXmlHook(self,ofile):
-        map(lambda x: x.exportXml(ofile), self.getDmdRoots())
+    def exportXmlHook(self,ofile, ignorerels):
+        map(lambda x: x.exportXml(ofile, ignorerels), self.getDmdRoots())
             
     
     security.declareProtected('View', 'getProdStateConversions')
