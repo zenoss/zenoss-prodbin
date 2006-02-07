@@ -34,8 +34,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
     Catalog Indexing, and Historical change tracking.
     """
 
-    zenPropertyPrefix = "z"
-
     zenRelationsBaseModule = "Products.ZenModel"
 
     meta_type = 'ZenModelRM'

@@ -69,6 +69,11 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -84,6 +89,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         if not id: id = self.dmdRootName
         super(ManufacturerRoot, self).__init__(id)
         self.createCatalog()
+        self.buildzProperties()
 
 
     def manage_addManufacturer(self, manufacturerName, REQUEST=None):
@@ -220,5 +226,11 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         ofile.write("</object>\n")
 
         
+    def buildzProperties(self):
+        if getattr(aq_base(self), "zDeviceClass", False): return
+        self._setProperty("zDeviceClass", "")
+        self._setProperty("zDeviceGroup", "")
+        self._setProperty("zSystem", "")
+
 
 InitializeClass(ManufacturerRoot)

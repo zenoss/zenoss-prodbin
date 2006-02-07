@@ -36,6 +36,9 @@ class SoftwareClass(ProductClass):
     """SoftwareClass object"""
     portal_type = meta_type = 'SoftwareClass'
 
+    build=""
+    version=""
+
     _properties = ProductClass._properties + (
         {'id':'version', 'type':'string', 'mode':'w'},
         {'id':'build', 'type':'string', 'mode':'w'},
@@ -67,12 +70,6 @@ class SoftwareClass(ProductClass):
 #            )
 #          },
 #        )
-    
-    def __init__(self, id, title="", version="", build="", 
-                partNumber="", description=""):
-        ProductClass.__init__(self, id, title, partNumber, description)
-        self.version = ""
-        self.build = ""
 
 
 InitializeClass(SoftwareClass)

@@ -70,6 +70,11 @@ class ProductClass(ZenModelRM):
                 , 'action'        : 'editProductClass'
                 , 'permissions'   : ("Manage DMD", )
                 },
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -83,10 +88,9 @@ class ProductClass(ZenModelRM):
     security = ClassSecurityInfo()
     
 
-    def __init__(self, id, title="", productKey="", 
-                partNumber="", description=""):
+    def __init__(self, id,title="",productKey="",partNumber="",description=""):
         if not productKey: 
-            self.productKeys.append(id)
+            self.productKeys = [id]
         id = self.prepId.sub('_', id)
         ZenModelRM.__init__(self, id, title)
         self.partNumber = partNumber
@@ -104,7 +108,15 @@ class ProductClass(ZenModelRM):
         """
         return self.instances.countObjects()
 
-    
+
+    def productKey(self):
+        """Return the first product key of the device.
+        """
+        if len(self.productKeys) > 0:
+            return self.productKeys[0]
+        return ""
+
+
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.

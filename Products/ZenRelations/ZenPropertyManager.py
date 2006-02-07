@@ -4,13 +4,7 @@
 #
 #################################################################
 
-__doc__="""ConfonPropManager
-
-add keyedselect to property manager
-
-$Id: ZenPropertyManager.py,v 1.4 2002/12/08 18:27:53 edahl Exp $"""
-
-__version__ = "$Revision: 1.4 $"[11:-2]
+import re
 
 from OFS.PropertyManager import PropertyManager
 from Globals import DTMLFile
@@ -34,12 +28,12 @@ class ZenPropertyManager(PropertyManager):
     Prperties can then be added further "down" the aq_chain by calling 
     setZenProperty on any contained node.
 
-    ZenProperties all have the same prefix which is defined by zenPropertyPrefix
+    ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
     """
 
-    zenPropertyPrefix = "zen"
-
+    iszprop = re.compile("^z[A-Z]").search
+    
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
     
@@ -125,10 +119,16 @@ class ZenPropertyManager(PropertyManager):
             rootnode = aq_base(self)
         props = []
         for prop in rootnode.propertyIds():
-            if not prop.startswith(self.zenPropertyPrefix): continue
+            if not self.iszprop(prop): continue
             props.append(prop)
         props.sort()
         return props
+
+
+    def zenPropertyItems(self):
+        """Return list of (id, value) tuples of zenProperties.
+        """
+        return map(lambda x: (x, getattr(self, x)), self.zenPropertyIds())
 
 
     def zenPropertyMap(self):

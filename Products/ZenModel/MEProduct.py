@@ -64,6 +64,13 @@ class MEProduct(ManagedEntity):
         return self.productClass.getPrimaryLink()
 
 
-
+    def getProductContext(self):
+        """Return list of tuples with product context for this product.
+        """
+        prod = self.productClass()
+        if prod: 
+            prodcontext = self.primaryAq()
+            return prodcontext.zenPropertyItems()
+        return []
 
 InitializeClass(MEProduct)

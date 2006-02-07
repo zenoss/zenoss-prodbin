@@ -42,14 +42,14 @@ class ZenPropertyManagerTest(unittest.TestCase):
 
     def testZenPropertyIds(self):
         self.assert_(self.orgroot.zenPropertyIds() == 
-            ["zenBool", "zenFloat", "zenInt", "zenLines", "zenString"])
+            ["zBool", "zFloat", "zInt", "zLines", "zString"])
 
 
     def testZenProperyIdsSubNode(self):
         """Get only ids of a sub node not root"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode._setProperty("zenString", "teststring")
-        self.assert_(subnode.zenPropertyIds() == ["zenString"])
+        subnode._setProperty("zString", "teststring")
+        self.assert_(subnode.zenPropertyIds() == ["zString"])
   
 
     def testZenProperyIdsSubNodeAll(self):
@@ -57,61 +57,61 @@ class ZenPropertyManagerTest(unittest.TestCase):
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
         subnode._setProperty("zenString", "teststring")
         self.assert_(subnode.zenPropertyIds() ==
-            ["zenBool", "zenFloat", "zenInt", "zenLines", "zenString"])
+            ["zBool", "zFloat", "zInt", "zLines", "zString"])
     
     
     def testZenProperyIdsSubNode(self):
         """Get only ids of a sub node not root"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode._setProperty("zenString", "teststring")
-        self.assert_(subnode.zenPropertyPath("zenString") == "/SubOrg")
+        subnode._setProperty("zString", "teststring")
+        self.assert_(subnode.zenPropertyPath("zString") == "/SubOrg")
   
 
     def testSetZenProperyString(self):
         """Set the value of a zenProperty with type string"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenString", "teststring")
-        self.assert_(subnode.zenString == "teststring")
+        subnode.setZenProperty("zString", "teststring")
+        self.assert_(subnode.zString == "teststring")
 
     
     def testSetZenProperyInt(self):
         """Set the value of a zenProperty with type int"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenInt", "1")
-        self.assert_(subnode.zenInt == 1)
+        subnode.setZenProperty("zInt", "1")
+        self.assert_(subnode.zInt == 1)
   
 
     def testSetZenProperyFloat(self):
         """Set the value of a zenProperty with type float"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenFloat", "1.2")
-        self.assert_(subnode.zenFloat == 1.2)
+        subnode.setZenProperty("zFloat", "1.2")
+        self.assert_(subnode.zFloat == 1.2)
   
     
     def testSetZenProperyLines(self):
         """Set the value of a zenProperty with type float"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenLines", "1, 2, 3")
-        self.assert_(subnode.zenLines == ["1","2","3"])
+        subnode.setZenProperty("zLines", "1, 2, 3")
+        self.assert_(subnode.zLines == ["1","2","3"])
   
 
     def testSetZenProperyBool(self):
         """Set the value of a zenProperty with type boolean"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenBool", "False")
-        self.assert_(subnode.zenBool == False)
-        subnode.setZenProperty("zenBool", "True")
-        self.assert_(subnode.zenBool == True)
+        subnode.setZenProperty("zBool", "False")
+        self.assert_(subnode.zBool == False)
+        subnode.setZenProperty("zBool", "True")
+        self.assert_(subnode.zBool == True)
   
     
     def testdeleteZenPropery(self):
         """Set delete a zenProperty from a sub node"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zenBool", False)
-        self.assert_(subnode.zenBool == False)
-        subnode.deleteZenProperty("zenBool")
-        self.failIf(hasattr(aq_base(subnode), "zenBool"))
-        self.assert_(subnode.zenPropertyPath("zenBool") == "/")
+        subnode.setZenProperty("zBool", False)
+        self.assert_(subnode.zBool == False)
+        subnode.deleteZenProperty("zBool")
+        self.failIf(hasattr(aq_base(subnode), "zBool"))
+        self.assert_(subnode.zenPropertyPath("zBool") == "/")
 
 
 def test_suite():

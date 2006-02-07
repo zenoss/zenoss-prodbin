@@ -819,13 +819,41 @@ class Device(CricketDevice, ManagedEntity):
         if DateTime() > lastcoll + hours: return 1
 
 
+    def applyProductContext(self):
+        """Apply zProperties inherited from Product Contexts.
+        """
+        self._applyProdContext(self.hw.getProductContext())
+        self._applyProdContext(self.os.getProductContext())
+        for soft in self.os.software():
+            self._applyProdContext(soft.getProductContext())
+        
+
+    def _applyProdContext(self, context):
+        """Apply zProperties taken for the product context passed in.
+        context is a list of tuples returned from getProductContext
+        on a MEProduct.
+        """
+        for name, value in context:
+            if name == "zDeviceClass" and value:
+                log.info("move device to %s", value)
+                self.moveDevices(value, self.id)
+            elif name == "zDeviceGroup" and value:
+                log.info("add device to group %s", value)
+                self.addDeviceGroup(value)
+            elif name == "zSystem" and value:
+                log.info("add device to system %s", value)
+                self.addSystem(value)
+
+
+
     ####################################################################
     # Management Functions
     ####################################################################
 
     security.declareProtected('Change Device', 'collectDevice')
     def collectDevice(self, setlog=True, REQUEST=None):
-        """collect the configuration of this device"""
+        """collect the configuration of this device.
+        """
         if REQUEST and setlog:
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()

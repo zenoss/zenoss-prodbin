@@ -110,7 +110,7 @@ class Software(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                     productName, manufacturer, **kwargs)
-        prodobj.instances.addRelation(self)
+        self.productClass.addRelation(prodobj)
         if REQUEST:
             REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
                                     % (manufacturer, productName))
@@ -122,7 +122,7 @@ class Software(MEProduct):
         """
         self.productKey = prodKey
         prodobj=self.getDmdRoot("Manufacturers").createSoftwareProduct(prodKey)
-        prodobj.instances.addRelation(self)
+        self.productClass.addRelation(prodobj)
 
 
     def name(self):

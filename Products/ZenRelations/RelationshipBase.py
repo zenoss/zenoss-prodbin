@@ -67,9 +67,13 @@ class RelationshipBase(PrimaryPathManager):
         if not isinstance(obj, self.remoteClass()):
             raise ZenSchemaError("%s restricted to class %s. %s is class %s" %
             (self.id, self.remoteClass.__name__, obj.id, obj.__class.__name__))
-        self._add(obj)
-        remoteRel = getattr(obj, self.remoteName())
-        remoteRel._add(self.__primary_parent__)
+        try:
+            self._add(obj)
+            remoteRel = getattr(obj, self.remoteName())
+            remoteRel._add(self.__primary_parent__)
+        except RelationshipExistsError:
+            log.debug("obj %s already exits on %s", obj.getPrimaryId(),
+                        self.getPrimaryId())
 
 
     def removeRelation(self, obj=None):

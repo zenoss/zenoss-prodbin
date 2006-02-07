@@ -71,11 +71,11 @@ class Organizer(TestBaseClass):
     ("children", ToManyCont(ToOne,"TestSchema.Organizer","parent")),
     )
     def buildOrgProps(self):
-        self._setProperty("zenFloat", -1.0, type="float")
-        self._setProperty("zenInt", -1, type="int")
-        self._setProperty("zenString", "", type="string")
-        self._setProperty("zenBool", True, type="boolean")
-        self._setProperty("zenLines", [], type="lines")
+        self._setProperty("zFloat", -1.0, type="float")
+        self._setProperty("zInt", -1, type="int")
+        self._setProperty("zString", "", type="string")
+        self._setProperty("zBool", True, type="boolean")
+        self._setProperty("zLines", [], type="lines")
 
     def getZenRootNode(self):
         return self.unrestrictedTraverse("/dataroot/Orgs")

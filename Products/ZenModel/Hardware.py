@@ -54,7 +54,7 @@ class Hardware(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         productName, manufacturer, **kwargs)
-        prodobj.instances.addRelation(self)
+        self.productClass.addRelation(prodobj)
         if REQUEST:
             REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
                                     % (manufacturer, productName))
@@ -66,7 +66,7 @@ class Hardware(MEProduct):
         """
         self.productKey = prodKey
         prodobj=self.getDmdRoot("Manufacturers").createHardwareProduct(prodKey)
-        prodobj.instances.addRelation(self)
+        self.productClass.addRelation(prodobj)
 
     
 InitializeClass(Hardware)
