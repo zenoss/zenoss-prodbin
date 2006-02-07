@@ -346,7 +346,8 @@ class ZenModeler(ZCmdBase):
         for client in self.clients:
             if client.timeout < time.time():
                 self.log.warn("client %s timeout", client.hostname)
-            active.append(client)
+            else:
+                active.append(client)
         self.client = active
                 
 
