@@ -348,7 +348,7 @@ class ZenModeler(ZCmdBase):
                 self.log.warn("client %s timeout", client.hostname)
             else:
                 active.append(client)
-        self.client = active
+        self.clients = active
                 
 
     def reactorLoop(self):
