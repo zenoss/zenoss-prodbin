@@ -10,6 +10,7 @@ from _mysql_exceptions import OperationalError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Event import Event
 from ZenEventClasses import AppStart, AppStop
+from Products.ZenEvents.Event import EventHeartbeat
 
 
 class ZenActions(ZCmdBase):
@@ -127,6 +128,7 @@ class ZenActions(ZCmdBase):
                 self.processRules()
                 self.log.info("processed %s rules in %.2f secs", 
                                len(self.actions), time.time()-start)
+                self.sendHeartbeat()
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected exception")
@@ -137,6 +139,14 @@ class ZenActions(ZCmdBase):
         """Send event to the system.
         """
         self.dmd.ZenEventManager.sendEvent(evt)
+
+
+    def sendHeartbeat(self):
+        """Send a heartbeat event for this monitor.
+        """
+        timeout = self.options.cycletime*3
+        evt = EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
+        self.sendEvent(evt)
 
 
     def stop(self):

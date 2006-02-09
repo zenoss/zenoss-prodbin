@@ -32,7 +32,7 @@ import Queue
 import Globals # make zope imports work
 
 from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
-from Products.ZenEvents.ZenEventClasses import PingStatus, Heartbeat
+from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -198,10 +198,10 @@ class ZenPing(ZCmdBase):
                     self.syncdb()
                     self.loadConfig()
                     self.log.info("starting ping cycle")
-                    self.sendHeartbeat()
                     self.cycleLoop()
                     self.log.info("sent %d pings in %3.2f seconds" % 
                                 (self.sent, (time.time() - start)))
+                    self.sendHeartbeat()
                 except (SystemExit, KeyboardInterrupt): raise
                 except:
                     self.log.exception("unknown exception in main loop")
@@ -225,14 +225,15 @@ class ZenPing(ZCmdBase):
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenping stopped",
-                        severity=4, component="zenoss/zenping"))
+                        severity=4, component="zenping"))
 
 
     def sendHeartbeat(self):
         """Send a heartbeat event for this monitor.
         """
         timeout = self.cycleInterval*3
-        evt = EventHeartbeat(socket.getfqdn(), "zenoss/zenping", timeout)
+        evt = EventHeartbeat(socket.getfqdn(), "zenping", timeout)
+        self.zem.sendEvent(evt)
 
 
     def sendEvent(self, pj):

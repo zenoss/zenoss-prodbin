@@ -64,7 +64,7 @@
 		<tr>
 			<th class="tableheader">Device</th>
 			<th class="tableheader">Component</th>
-			<th class="tableheader">Last</th>
+			<th class="tableheader">Seconds</th>
 		</tr>
         <tbody id="devheartbeat">
         </tbody>

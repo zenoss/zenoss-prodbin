@@ -51,11 +51,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             hdlr.setFormatter(logging.Formatter("%(message)s"))
             self.olog.addHandler(hdlr)
         self.evtheartbeat = EventHeartbeat(
-            socket.getfqdn(), "zenoss/zensyslog", self.options.heartbeat*3)
+            socket.getfqdn(), "zensyslog", self.options.heartbeat*3)
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zensyslog collector started",
-                        severity=0, component="zenoss/zensyslog"))
+                        severity=0, component="zensyslog"))
         self.log.info("started")
         
 
@@ -105,12 +105,12 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
                 seltimeout = 1
                 if not self.rcptqueue.empty(): seltimeout = 0
                 self.handle_request(seltimeout)
-                self.sendHeartbeat()
-                if self.options.stats and last+5<time.time():
+                if self.options.stats and last+60<time.time():
                     self.log.info("count=%d pool=%d, queue=%d", 
                                 self.evtcount, self.available(), 
                                 self.rcptqueue.qsize())
                     last = time.time()
+                self.sendHeartbeat()
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected exception")
@@ -125,7 +125,7 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zensyslog collector stopped",
-                        severity=4, component="zenoss/zensyslog"))
+                        severity=4, component="zensyslog"))
         self.running = False
 
 

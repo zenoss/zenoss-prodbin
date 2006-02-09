@@ -37,15 +37,15 @@ class ZenSnmp(StatusMonitor):
     evtAgent = "ZenSnmp"
     evtAlertGroup = "SnmpTest"
     startevt = {'eventClass':AppStart, 'device':socket.getfqdn(),
-                'summary': 'zensnmp started', 'component': 'zenoss/zensnmp',
+                'summary': 'zensnmp started', 'component': 'zensnmp',
                 'severity':0}
     stopevt = {'eventClass':AppStop, 'device':socket.getfqdn(),
-                'summary': 'zensnmp stopped', 'component': 'zenoss/zensnmp', 
+                'summary': 'zensnmp stopped', 'component': 'zensnmp', 
                 'severity': 4}
-    dnsfail = {'eventClass':DNSFail, 'component': 'zenoss/zensnmp',
+    dnsfail = {'eventClass':DNSFail, 'component': 'zensnmp',
                 'severity':3}
     heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
-                'component': 'zenoss/zensnmp'}
+                'component': 'zensnmp'}
 
     def __init__(self):
         StatusMonitor.__init__(self)
