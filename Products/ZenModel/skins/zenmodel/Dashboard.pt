@@ -6,8 +6,9 @@
    </a>
 </tal:block>
 
-<tal:block metal:fill-slot="contentPane"
-    tal:define="zem python:here.ZenEventManager">
+<tal:block metal:fill-slot="contentPane">
+    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" src="dashboard.js"></script>
     <table width=100%>
     <tr>
     <td width="50%" valign="top">
@@ -21,15 +22,6 @@
 			<th class="tableheader">Count</th>
 		</tr>
         <tbody id="devstatus">
-		<tr tal:repeat="dev zem/getDeviceStatusIssues">
-			<td class="tablevalues" tal:define="name python:dev[0]">
-				<a tal:attributes="href 
-                    string:deviceSearchResults?query=${name}"
-					tal:content="name">dev</a>
-			</td>
-            <td class="tablevalues" tal:content="python:dev[1]"/>
-            <td class="tablevalues" tal:content="python:dev[2]"/>
-		</tr>
         </tbody>
 	</table>
     </td>
@@ -46,15 +38,6 @@
 			<th class="tableheader">Count</th>
 		</tr>
         <tbody id="devevents">
-		<tr tal:repeat="dev python:zem.getDeviceIssues(mincount=10)">
-			<td class="tablevalues" tal:define="name python:dev[0]">
-				<a tal:attributes="href 
-                    string:deviceSearchResults?query=${name}"
-					tal:content="name">dev</a>
-			</td>
-            <td class="tablevalues" tal:content="python:dev[1]"/>
-            <td class="tablevalues" tal:content="python:dev[2]"/>
-		</tr>
         </tbody>
 	</table>
     </td>
@@ -62,7 +45,7 @@
     <td valign="top">
 	<table class="zentable" cellpadding="3" cellspacing="1">
 		<tr>
-		  <th class="tabletitle" colspan="6">Status Issues by System</th>
+		  <th class="tabletitle" colspan="6">Systems with Status Issues</th>
 		</tr>
 		<tr>
 			<th class="tableheader">System</th>
@@ -70,15 +53,6 @@
 			<th class="tableheader">Count</th>
 		</tr>
         <tbody id="sysstatus">
-		<tr tal:repeat="dev python:zem.getOrganizerStatusIssues('System')">
-			<td class="tablevalues" tal:define="name python:dev[0]">
-				<a tal:attributes="href 
-                    string:/zport/dmd/Devices${name}"
-					tal:content="name">dev</a>
-			</td>
-            <td class="tablevalues" tal:content="python:dev[1]"/>
-            <td class="tablevalues" tal:content="python:dev[2]"/>
-		</tr>
         </tbody>
 	</table>
     </td>
@@ -93,57 +67,30 @@
 			<th class="tableheader">Last</th>
 		</tr>
         <tbody id="heartbeat">
-		<tr tal:repeat="dev zem/getHeartbeatIssues">
-			<td class="tablevalues" tal:define="name python:dev[0]">
-				<a tal:attributes="href 
-                    string:deviceSearchResults?query=${name}"
-					tal:content="name">dev</a>
-			</td>
-            <td class="tablevalues" tal:content="python:dev[1]"/>
-            <td class="tablevalues" tal:content="python:dev[2]"/>
-		</tr>
         </tbody>
 	</table>
     </td>
     </tr>
-    <tr><td colspan="2">
-	<table class="zentable" cellpadding="3" cellspacing="1"
+    <tr>
+    <td colspan="2">
+        <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="
-        resultFields python:('device','summary','lastTime','count');
-        evcontrol python:0;
-        evcolspan python:len(resultFields);
-        batch python:zem.getEventList(severity=4,rows=5);"
-        tal:on-error="structure here/eventsError"
+        resultFields python:('device','summary','lastTime','count');"
         >
-		<tr>
-		  <th class="tabletitle" tal:attributes="colspan evcolspan">
+        <tr>
+          <th class="tabletitle" 
+            tal:attributes="colspan python:len(resultFields)">
             <a href="/zport/dmd/Events/viewEvents">Events</a>
           </th>
-		</tr>
-        <tr tal:condition="not:batch">
-            <td class="tablevalues"> 
-            No Events
-            </td>
         </tr>
-        <tal:block tal:condition="batch">
         <tr>
-        <th class="tableheader" align="center" 
+        <th class="tableheader" align="center"
             tal:repeat="headername resultFields" tal:content="headername">
         </th>
         </tr>
-        <tr tal:repeat="event batch" 
-            tal:attributes="class event/getCssClass">
-        <tal:block tal:define="evclick 
-            string:javascript:eventWindow('${event/zem}','${event/evid}')">
-        <td tal:repeat="data python:event.getDataListWithLinks(resultFields)"
-            tal:attributes="onclick python:repeat['data'].end and evclick or ''"
-            tal:content="structure data">
-            event data
-        </td>
-        </tal:block>
-        </tr>
-        </tal:block>
-    </table>
+        <tbody id="events">
+        </tbody>
+        </table>
     </td>
     </tr>
     </table>

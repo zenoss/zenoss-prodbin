@@ -10,6 +10,7 @@ $Id: NcoManager.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
+import time
 import types
 import random
 random.seed()
@@ -390,7 +391,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCount 
     
     
-    def getOrganizerStatus(self,org, statusclass=None, severity=None, 
+    def getOrganizerStatus(self, org, statusclass=None, severity=None, 
                            state=0, where=""):
         """see IEventStatus
         """
@@ -415,8 +416,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 for orgname in orgfield.split("|"):
                     orgdict.setdefault(orgname, 0)
                     orgdict[orgname] += 1
-            for key, value in orgdict.items():
-                statusCache.append((key, value))
+            statusCache = orgdict.items()
             self.addToCache(select,statusCache)
             db.close()
         countevts = 0
@@ -424,6 +424,76 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             if key.startswith(org.getOrganizerName()):
                 countevts += value
         return countevts
+
+    
+    def getOrganizerStatusIssues(self, event_key,severity=1,state=0,
+                                where="", limit=10):
+        """Return list of tuples (org, count) for all organizers with events.
+        """
+        orgfield = self.lookupManagedEntityField(event_key)
+        select = "select %s, count from %s where " % (orgfield,self.statusTable)
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        where = self._wand(where,"%s like '%s'",self.eventClassField,"/Status%")
+        select += where
+        statusCache = self.checkCache(select)
+        if not statusCache:
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(select)
+            statusCache=[]
+            orgdict={}
+            for row in curs.fetchall():
+                orgfield = self.cleanstring(row[0])
+                if not orgfield: continue
+                if orgfield.startswith("|"): orgfield = orgfield[1:]
+                for orgname in orgfield.split("|"):
+                    if not orgname: continue
+                    count, total = orgdict.setdefault(orgname, (0,0))
+                    count+=1
+                    total+=row[1]
+                    orgdict[orgname] = (count,total)
+            statusCache = [ [n, c[0], int(c[1])] for n, c in orgdict.items() ]
+            statusCache.sort(lambda x,y: cmp(x[1],y[1]))
+            statusCache.reverse()
+            if limit:
+                statusCache = statusCache[:limit]
+            self.addToCache(select,statusCache)
+            db.close()
+        return statusCache
+
+
+    def getDeviceStatusIssues(self, limit=10):
+        """Return only status issues.
+        """
+        return self.getDeviceIssues(where="eventClass like '/Status%'",
+                                    limit=limit)
+
+
+    def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=10):
+        """Return list of tuples (device, count, total) of events for
+        all devices with events.
+        """
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select = """select distinct device, count(device) as evcount, 
+                    sum(count) from status where %s group by device
+                    having evcount > %s""" % (where, mincount)
+        statusCache = self.checkCache(select)
+        if not statusCache:
+            try:
+                db = self.connect()
+                curs = db.cursor()
+                curs.execute(select)
+                statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
+                #statusCache = list(curs.fetchall())
+                statusCache.sort(lambda x,y: cmp(x[1],y[1]))
+                statusCache.reverse()
+                statusCache = statusCache[:limit]
+            except:
+                log.exception(select)
+                raise
+        return statusCache
 
 
     def getDeviceStatus(self, device, statclass=None, countField=None, 
@@ -456,6 +526,28 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device, 0)
 
 
+    def getHeartbeat(self, failures=True, limit=10):
+        """Return all heartbeat issues list of tuples (device, component, secs)
+        """
+        sel = """select device, component, lastTime from heartbeat """
+        if failures:
+            sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
+                    
+        statusCache = self.checkCache(sel)
+        if not statusCache:
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(sel)
+            statusCache = list(curs.fetchall())
+            statusCache.sort(lambda x,y: cmp(x[2],y[2]))
+            now = time.time()
+            statusCache = [ [d,c, int(now-dt.timeTime())] \
+                            for d, c, dt in statusCache ]
+            if limit:
+                statusCache = statusCache[:limit]
+        return statusCache
+
+        
     def getComponentStatus(self, device, component, statclass=None, 
                     countField=None, severity=5, state=0, where=""):
         """see IEventStatus
@@ -531,7 +623,22 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         enddate = self.dateDB(enddate)
         return startdate, enddate
     
-    
+   
+    def getDashboardInfo(self):
+        """Return a dictionary that has all info for the dashboard.
+        """
+        data = {}
+        data['devstatus'] = self.getDeviceStatusIssues()
+        data['devevents'] = self.getDeviceIssues(mincount=10)
+        data['sysstatus'] = self.getOrganizerStatusIssues('System')
+        data['heartbeat'] = self.getHeartbeat()
+        fields = ('device','summary','lastTime','count')
+        evts = self.getEventList(resultFields=fields,severity=4,rows=5,
+                                where="eventClass not like '/Status%'")
+        data['events'] = [ evt.getEventData() for evt in evts ]
+        return data
+
+        
     #==========================================================================
     # Event sending functions
     #==========================================================================
@@ -676,6 +783,17 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         if evids: 
             delete = "delete from status where evid in ("
             delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
+            db = self.connect()
+            curs = db.cursor()
+            curs.execute(delete);
+            db.close()
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage Events','manage_deleteHeartbeat')
+    def manage_deleteHeartbeat(self, devname, REQUEST=None):
+        if devname:
+            delete = "delete from heartbeat where device = '%s'" % devname
             db = self.connect()
             curs = db.cursor()
             curs.execute(delete);

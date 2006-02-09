@@ -3,9 +3,13 @@ log = logging.getLogger("zen.EventView")
 
 from _mysql_exceptions import MySQLError
 
+from AccessControl import ClassSecurityInfo
+from Globals import InitializeClass
+
 
 class EventView(object):
 
+    security = ClassSecurityInfo()
    
     def getEventManager(self):
         """Return the current event manager for this object.
@@ -70,7 +74,7 @@ class EventView(object):
         return self.getEventManager().getStatusCssClass(status) 
 
     
-    #security.declareProtected('Manage Events','manage_deleteEvents')
+    security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
@@ -78,7 +82,17 @@ class EventView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Manage Events','manage_setEventStates')
+    security.declareProtected('Manage Events','manage_deleteHeartbeat')
+    def manage_deleteHeartbeat(self, REQUEST=None):
+        """Delete events form this managed entity.
+        """
+        dev = self.device()
+        if dev: 
+            self.getEventManager().manage_deleteHeartbeat(dev.id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
@@ -86,7 +100,7 @@ class EventView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Manage Events','manage_setEventStates')
+    security.declareProtected('Manage Events','manage_setEventStates')
     def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
         """Create an event map from an event or list of events.
         """
@@ -95,3 +109,6 @@ class EventView(object):
         if REQUEST:
             if screen: return screen
             return self.callZenScreen(REQUEST)
+
+
+InitializeClass(EventView)

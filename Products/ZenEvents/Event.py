@@ -82,6 +82,11 @@ class Event(object):
         return [(x, getattr(self, x)) for x in self._fields]
 
 
+    def getEventData(self):
+        """return an list of event data"""
+        return [ getattr(self, x) for x in self._fields]
+
+
     def updateFromFields(self, fields, data):
         """
         Update event from list of fields and list of data values.  

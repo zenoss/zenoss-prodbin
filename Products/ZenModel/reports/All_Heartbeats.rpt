@@ -1,0 +1,39 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    objects  python:here.ZenEventManager.getHearbeat(failures=False,limit=0);
+    tableName string: allheartbeatreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)
+    ">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class=tabletitle align=left colspan="6">
+        Event Classes
+      </th>
+    </tr>
+    <tr>
+        <th class="tableheader">Device</th>
+        <th class="tableheader">Component</th>
+        <th class="tableheader">Seconds</th>
+    </tr>
+    <tr tal:repeat="heart batch">
+        <td class="tablevalues" tal:define="devname python:heart[0]">
+            <a tal:attributes="href 
+                string:/zport/dmd/deviceSearchResults?query=${devname}"
+            tal:content="devname">Name</a>
+        </td>
+        <td class="tablevalues" tal:content="python:heart[1]"/>
+        <td class="tablevalues" align=center tal:content="python:heart[2]"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

@@ -55,6 +55,13 @@
   </td>
   </tr>
   <tr>
+  <td class=tableheader>Clear heartbeat events on this device</td>
+  <td class=tableheader>
+      <input class="tableheader" type="submit" 
+        name="manage_deleteHeartbeat:method" value=" Clear " />
+  </td>
+  </tr>
+  <tr>
   <td class=tableheader>Delete this device from the database</td>
   <td class=tableheader>
       <input class="tableheader" type="submit" name="deleteDevice:method"

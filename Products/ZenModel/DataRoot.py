@@ -131,6 +131,18 @@ class DataRoot(ZenModelRM, OrderedFolder):
         ZenModelRM.__init__(self, id, title)
 
 
+    def getResultFields(self):
+        """Result fields for dashboard.
+        """
+        return ('device','summary','lastTime','count')
+       
+
+    def getEventList(self, **kwargs):
+        """Return the current event list for this managed entity.
+        """
+        return self.ZenEventManager.getEventList(**kwargs)
+        
+
     def getDmdRoots(self):
         return filter(lambda o: o.isInTree, self.objectValues())
 

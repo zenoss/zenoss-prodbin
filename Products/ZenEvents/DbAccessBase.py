@@ -18,6 +18,8 @@ class DbAccessBase(object):
             from MySQLdb.constants import FIELD_TYPE
             mysqlconv[FIELD_TYPE.DATETIME] = DateTime.DateTime
             mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime
+            # FIXME for some reason it thinks my int is a long -EAD
+            mysqlconv[FIELD_TYPE.LONG] = int
             db = MySQLdb.connect(host=self.database, user=self.username,
                             passwd=self.password, db="events",conv=mysqlconv)
             db.autocommit(1)
