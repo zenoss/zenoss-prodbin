@@ -47,6 +47,13 @@
   </td>
   </tr>
   <tr>
+  <td class=tableheader>Reset the SNMP Community of this device</td>
+  <td class=tableheader>
+      <input class="tableheader" type="submit" 
+        name="manage_snmpCommunity:method" value=" reset community " />
+  </td>
+  </tr>
+  <tr>
   <td class=tableheader>Change the name of this device</td>
   <td class=tableheader>
       <input class="tableheader" type="text" name="newId" size="25"/>

@@ -118,8 +118,7 @@ def findCommunity(context, ip, devicePath, community="", port=161):
     communities = []
     if community: communities.append(community)
     communities.extend(getattr(devroot, "zSnmpCommunities", []))
-    if not port:
-        port = getattr(devroot, "zSnmpPort", port)
+    port = getattr(devroot, "zSnmpPort", port)
     timeout = getattr(devroot, "zSnmpTimeout", 2)    
     session = SnmpSession(ip, timeout=timeout, port=port)
     sysTableOid = '.1.3.6.1.2.1.1'
@@ -538,6 +537,21 @@ class Device(CricketDevice, ManagedEntity):
     ####################################################################
     # Edit functions used to manage device relations and other attributes
     ####################################################################
+
+    security.declareProtected('Change Device', 'manage_snmpCommunity')
+    def manage_snmpCommunity(self):
+        """Reset the snmp community using the zSnmpCommunities variable.
+        """
+        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
+            findCommunity(self, self.manageIp, self.getDeviceClassPath(),
+                            port=self.zSnmpPort)
+        if self.zSnmpCommunity != zSnmpCommunity:
+            self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
+        if self.zSnmpPort != zSnmpPort:
+            self.setZenProperty("zSnmpPort", zSnmpPort)
+        if self.zSnmpVer != zSnmpVer:
+            self.setZenProperty("zSnmpVer", zSnmpVer)
+
 
     security.declareProtected('Change Device', 'manage_editDevice')
     def manage_editDevice(self, 
