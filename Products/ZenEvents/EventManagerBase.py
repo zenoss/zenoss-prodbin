@@ -631,7 +631,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         data['devstatus'] = self.getDeviceStatusIssues()
         data['devevents'] = self.getDeviceIssues(mincount=10)
         data['sysstatus'] = self.getOrganizerStatusIssues('System')
-        data['heartbeat'] = self.getHeartbeat()
+        data['devheartbeat'] = self.getHeartbeat()
         fields = ('device','summary','lastTime','count')
         evts = self.getEventList(resultFields=fields,severity=4,rows=5,
                                 where="eventClass not like '/Status%'")
