@@ -7,6 +7,7 @@
 import re
 
 from OFS.PropertyManager import PropertyManager
+from zExceptions import BadRequest
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
