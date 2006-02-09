@@ -65,7 +65,7 @@ class ZenPropertyManager(PropertyManager):
         """
         self._wrapperCheck(value)
         if not self.valid_property_id(id):
-            raise BadRequest, 'Invalid or duplicate property id'
+            raise BadRequest, 'Id %s is invalid or duplicate'
         if type in ('selection', 'multiple selection'):
             if not hasattr(self, value):
                 raise BadRequest, 'No select variable %s' % value
