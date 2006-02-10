@@ -12,6 +12,15 @@ body {
     color: &dtml-base_font_color;;
     font-family:  &dtml-base_font_family;;
     font-size:  &dtml-base_font_size;;
+    margin: 0px;
+}
+
+#frame {
+    margin: 0px;
+    padding: 3px;
+    position: relative;
+    background:orange;
+    min-height: 400px;
 }
 
 #topPane{
@@ -31,11 +40,12 @@ body {
 	color: &dtml-toppane_font_color;;
 }
 #leftPane {
-	float: left;
 	left: 0;
+    position: absolute;
 	width: &dtml-leftpane_width;;
     padding: &dtml-leftpane_top_padding; 5px 0px 10px;
 	min-height: 350px;
+    background: purple;
 }
 #leftPane p {
     background: &dtml-base_bg_color;;
@@ -99,11 +109,17 @@ body {
 }
 #rightPane
 {
-	margin: 0px 0px 0px &dtml-rightpane_left_padding;;
+    position: absolute;
+    left: &dtml-rightpane_left_padding;;
+    padding: &dtml-rightpane_border_width;;
+	/*
+    margin: 0px 0px 0px &dtml-rightpane_left_padding;;
 	padding-left: &dtml-rightpane_border_width;;
 	padding-right: &dtml-rightpane_border_width;;
 	padding-bottom: &dtml-rightpane_border_width;;
     background: &dtml-rightpane_border_color;;
+    */
+    background:red;
 }
 #breadCrumbPane
 {
@@ -132,6 +148,7 @@ body {
 	padding: &dtml-contentpane_padding;;
 	background: &dtml-contentpane_bg_color;;
     min-height: 350px;
+    background:green;
 }
 a:link {
     color: &dtml-link_color;;

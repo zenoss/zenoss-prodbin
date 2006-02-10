@@ -34,14 +34,14 @@ leftpane_hover_bg_color:string=#5a6f8f
 
 ## right pane
 rightpane_left_padding:string=115px
-rightpane_border_width:string=15px
+rightpane_border_width:string=5px
 rightpane_border_color:string=#b1bcd2
 
 ## crumb pane
 crumb_font_color:string=#5a6f8f
 crumb_font_color:string=black
 crumb_font_size:string=1.1em
-crumb_padding:string=10px
+crumb_padding:string=5px
 
 ## tabs table
 tabletitle_font_size:string=12px
@@ -52,7 +52,7 @@ tabletitleselected_bg_color:string=#E0E0E0
 
 ## content pane
 contentpane_bg_color:string=#E0E0E0
-contentpane_padding:string=15px
+contentpane_padding:string=5px
 
 ## zentable
 zentable_border_top:string=#b1bcd2

@@ -7,7 +7,10 @@
     Page1 - page template that has slots for 
             breadCrumb and content 
  ====================================================== -->
-<html metal:define-macro="page1">
+<tal:block metal:define-macro="page1">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
     <head metal:use-macro="here/templates/macros/head1"/>
 	<body onLoad="javascript:zenPageInit();">
 	   <div id="frame">
@@ -30,6 +33,7 @@
        </div>
     </body>
 </html>
+</tal:block>
                 
                 
 
@@ -73,10 +77,10 @@
 <head metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:Zenoss: ${here/getId}"/>
-    <link rel="stylesheet" type="text/css" 
-        href="/zport/portal_skins/default_stylesheet" />
-    <link rel="stylesheet" type="text/css"
-        href="/zport/portal_skins/zenevents.css" />
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="/zport/portal_skins/zenoss.css" >
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="/zport/portal_skins/zenevents.css" >
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
     <script type="text/javascript" 
@@ -87,32 +91,25 @@
 <!-- ======================================================
     topPane - standard top area with logo, etc...
  ====================================================== -->
-<div id="topPane" metal:define-macro="topPane">
-
-    <table border="0" width="100%" cellpadding="0" cellspacing="0" ><tr>
-
-        <td width="210px">
-            <a href="/zport/dmd/Dashboard"><img border="0" src="logo.gif"></a>
-        </td>
-
-        <td  valign="middle" align="left">
-            <form action="/zport/dmd/deviceSearchResults" method="POST">
-                <input type="text" name="query" size="15"
-                    tal:attributes="value request/query | string:"/>
-                <input type="submit" name="submit" value="Search"/>
-            </form> 
-       </td>
-       <td  valign="middle" align="right" >
-        <p>
-           <span tal:content="request/AUTHENTICATED_USER"/>
-           | <a tal:attributes="href here/ZenUsers/getUserSettingsUrl">
-                Settings</a>
-           | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
-           <!-- | <a href="#">Help</a> -->
-         </p>
-       </td>
-    </tr></table>
-</div>
+<table id="topPane" metal:define-macro="topPane"
+    cellpadding="0" cellspacing="0" border="0">
+    <td width="220px">
+        <img onclick="" src="logo.gif" alt="Zenoss">
+    </td>
+    <td>
+    <form action="/zport/dmd/deviceSearchResults" method="POST">
+        <input type="text" name="query" size="15"
+            tal:attributes="value request/query | string:"/>
+        <input type="submit" name="submit" value="Search"/>
+    </form> 
+    </td>
+    <td id="settings">
+        <span tal:content="request/AUTHENTICATED_USER"/>
+        | <a tal:attributes="href here/ZenUsers/getUserSettingsUrl">
+        Settings</a>
+        | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
+    </td>
+</table>
 
 <!-- ======================================================
     leftPane - standard left side and nav
