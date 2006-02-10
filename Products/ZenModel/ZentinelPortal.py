@@ -109,7 +109,7 @@ class PortalGenerator:
         mp('Mail forgotten password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
         mp('Query Vocabulary',['ZenUser', 'ZenMonitor', 'Manager',], 1)
         mp('Search ZCatalog',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('View',['ZenUser','ZenMonitor','Manager',], 1)
+        mp('View',['ZenUser','ZenMonitor','Manager','Owner'])
         mp('View History',['ZenUser', 'ZenMonitor', 'Manager',], 1)
         mp('Set own password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
         mp('Set own properties',['ZenUser','ZenMonitor','Manager',], 1)
