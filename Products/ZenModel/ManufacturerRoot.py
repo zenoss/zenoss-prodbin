@@ -69,11 +69,6 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'config'
-                , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Manage DMD",)
-                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
