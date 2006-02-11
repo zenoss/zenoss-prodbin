@@ -33,8 +33,8 @@ devlink = function(name) {
     return A({href:"/zport/dmd/deviceSearchResults?query=" + name}, name)
 }
 
-orglink = function(name, root) {
-    return A({href:"/zport/dmd/" + root + name}, name)
+orglink = function(name) {
+    return A({href:"/zport/dmd/Systems" + name}, name)
 }
 
 eventUpdate = function(rows) {
