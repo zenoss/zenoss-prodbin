@@ -12,14 +12,14 @@ from syslog_h import *
 # Regular expressions that parse syslog tags from different sources
 parsers = (
 
-# cisco msg with card inicator
-r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
-
-# cisco standard msg
-r"%(?P<eventClass>\S+): (?P<summary>.*)",
-
 # evtsys windows msg
 r"^evtsys: (?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+
+# cisco msg with card inicator
+r"^%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
+
+# cisco standard msg
+r"^%(?P<eventClass>\S+): (?P<summary>.*)",
 
 # ntsyslog msg
 r"^(?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
@@ -161,6 +161,7 @@ class SyslogProcessingThread(threading.Thread):
         """
         slog.debug(msg)
         for regex in compiledParsers:        
+            slog.debug("tag regex: %s", regex.pattern)
             m = regex.search(msg)
             if not m: continue
             slog.debug("tag match: %s", m.groupdict())
