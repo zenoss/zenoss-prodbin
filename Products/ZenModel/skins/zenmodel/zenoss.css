@@ -2,7 +2,7 @@ body {
     background-color: white;
     color: black;
     font-family:  Verdana, Arial, Helvetica, sans-serif;
-    font-size:  1em;
+    font-size:  .9em;
     margin: 0px;
 }
 
@@ -45,13 +45,13 @@ body {
 	left: 0;
     position: absolute;
     margin-top:5px;
-	width: 9em;
+	width: 8.3em;
     padding: 25px 5px 0px 10px;
 	min-height: 320px;
+    font-size: .9em;
 }
 #leftPane p {
     background: white;
-    font-size: 1em;
     padding: 0px 0px 0px 3px;
     margin: 0px;
     font-weight: bold;
@@ -64,7 +64,6 @@ body {
     list-style: none; 
     margin: 0px 0px 10px 0px; 
     padding: 0px; 
-    font-size: 1em;
 }
 
 #leftPane ul li {
@@ -77,7 +76,7 @@ body {
 #leftPane ul li a {
     text-decoration: none;
     display: block;
-    padding: 2px 0px 2px 8px;
+    padding: 2px 0px 2px 3px;
     margin: 0px;
     overflow: hidden;
 }
@@ -104,7 +103,8 @@ body {
 #rightPane
 {
     position: absolute;
-    left: 9em;
+    left: 7.9em;
+    /*right:0; */
     padding: 5px;
     margin-top:5px;
     background: #b1bcd2;
@@ -112,7 +112,7 @@ body {
 #breadCrumbPane
 {
 	color: black;
-	font-size: 1.1em;
+	font-size: 1em;
 	padding-bottom: 5px;
 	margin: 0px;
 	font-weight: bold;
@@ -176,7 +176,7 @@ table.tabtable td{
 
 table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 8pt; 
+    font-size: .9em; 
     width: 100%;
     font-weight: normal; 
 	margin: 0px;
@@ -192,18 +192,17 @@ table.zentable {
     border:0;
     margin:0;
     padding:0;
-    font-size: 8pt;
+    font-size: .8em;
 }
 
 .errortitle {
-    font-size: 14pt;
+    font-size: 1.1em;
     font-weight: bold; 
     color: #ff0000;
     background-color: #CCCCCC;
 }
 
 a.tabletitle {  
-    font-size: 12px; 
     color: white;
     font-weight: bold; 
     background-color: #5a6f8f;
@@ -214,6 +213,7 @@ a.tabletitle {
 	padding: 2px 0px 0px 0px;
 	margin: 0px;
     height:23px;
+    font-size:.9em;
 }
 a.tabletitle:link {  
     color: white;
@@ -230,7 +230,6 @@ a.tabletitle:hover {
 }
 
 th.tabletitle {
-    font-size: 12px; 
     color: white;
     background-color: #5a6f8f;
     background-image: url(subtitle_bkgrd.gif);
@@ -240,7 +239,6 @@ th.tabletitle {
 .tabletitleselected { 
     color: #333333;
     background-color: #E0E0E0;
-    font-size: 12px; 
     font-weight: bold; 
 	background-position: right top;
 	background-repeat: no-repeat;
@@ -268,15 +266,14 @@ a.tabletitleselected:hover {
 
 .tableheader { 
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px;
     color: #000000;
     background-color: #CCCCCC;
     font-weight: normal; 
     text-align: left;
+    font-size:.9em;
 }
 .tableheaderselected { 
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px;
     color: #FFFFFF;
     background-color: #999999;
     font-weight: normal; 
@@ -284,21 +281,18 @@ a.tabletitleselected:hover {
 }
 .statusbar { 
     font-family: Verdana, Arial, Helvetica, sans-serif; 
-    font-size: 4pt;
     font-weight: normal; 
     color: #000000;
     background-color: #E0E0E0;
 }
 .tablevalues {  
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
     color: #000040; 
     font-weight: normal; 
     background-color: #EEE;
 }
 td.tablevalues {  
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
     color: #000040; 
     font-weight: normal; 
     background-color: #EEE;
@@ -322,7 +316,6 @@ a.tablevalues:active {
 }
 .statusvalues {  
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: 12px; 
     font-weight: normal;
 }
 
@@ -331,7 +324,7 @@ a.tablevalues:active {
 
 .dpTable {
 	font-family: Tahoma, Arial, Helvetica, sans-serif;
-	font-size: 12px;
+	font-size: .9em;
 	text-align: center;
     color: #000040; 
     background-color: #EEE;
@@ -376,7 +369,7 @@ a.tablevalues:active {
 	}
 
 .dpTitleText {
-	font-size: 12px;
+	font-size: .9em;
 	color: black;
 	}
 
