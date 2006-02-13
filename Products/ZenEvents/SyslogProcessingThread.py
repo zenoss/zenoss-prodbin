@@ -16,13 +16,10 @@ parsers = (
 r"^evtsys: (?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
 # cisco msg with card inicator
-r"^%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
+r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
 
 # cisco standard msg
-r"^%(?P<eventClass>\S+): (?P<summary>.*)",
-
-# ntsyslog msg
-r"^(?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+r"%(?P<eventClassKey>(?P<component>\S+)-\d-\S+): (?P<summary>.*)",
 
 # unix syslog with pid
 r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
