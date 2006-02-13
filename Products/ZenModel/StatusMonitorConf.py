@@ -285,7 +285,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                 if device and uptime:
                     device.setSnmpUpTime(long(uptime))
             except:
-                msg = "error updating device %s\n" % dev.getId()
+                msg = "error updating device %s\n" % url 
                 logging.exception(msg)
                     
   
