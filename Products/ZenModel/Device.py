@@ -76,9 +76,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         except socket.error: ip = ""
         if context.getDmdRoot("Devices").findDevice(deviceName):
             raise DeviceExistsError("Device %s already exists" % deviceName)
-    if not zSnmpCommunity:
-        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
-            findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
+    zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
+        findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
     log.debug("device community = %s", zSnmpCommunity)
     log.debug("device name = %s", snmpname)
     if not deviceName:

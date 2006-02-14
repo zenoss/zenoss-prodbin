@@ -44,10 +44,10 @@ class InterfaceMap(SnmpPlugin):
                  '.2': 'ifindex',
                  '.3': 'netmask'}
         ),
-        # Cisco Interface Description
-        #GetTableMap('ciscodescr', '.1.3.6.1.4.1.9.2.2.1.1',
-        #        {'.28' : 'description'}
-        #),
+        # Interface Description
+        GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
+                {'.18' : 'description'}
+        ),
     )
 
     #dontCollectInterfaceTypes = (1, 18, 76, 77, 81, 134)
@@ -60,7 +60,14 @@ class InterfaceMap(SnmpPlugin):
         rm = self.relMap()
         iptable = tabledata.get("iptable")
         iftable = tabledata.get("iftable")
+        ifalias = tabledata.get("ifalias")
         if iptable is None or iftable is None: return
+
+        # add interface alias (cisco description) to iftable
+        for ifidx, data in ifalias.items():
+            if iftable.has_key(ifidx):
+                iftable[ifidx]['description'] = data['description']
+
         omtable = {}
         for iprow in iptable.values():
             #FIXME - not getting ifindex back from HP printer

@@ -338,6 +338,9 @@ class DeviceClass(DeviceOrganizer):
         # map deviec class to python classs (seperate from device class name)
         devs._setProperty("zPythonClass", "")
 
+        # Display the ifdescripion field or not
+        devs._setProperty("zIfDescription", False, type="boolean")
+
         # Snmp collection properties
         devs._setProperty("zSnmpCommunities",["public", "private"],type="lines")
         devs._setProperty("zSnmpCommunity", "public")

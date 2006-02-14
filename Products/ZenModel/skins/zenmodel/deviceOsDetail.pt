@@ -29,11 +29,10 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'macaddress','MAC')">Name
         </th>
-        <!--
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+        <th tal:condition="here/zIfDescription"
+            tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')">Name
         </th>
-        -->
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -76,11 +75,10 @@
       <td class="tablevalues" tal:content="intf/macaddress">
          00:11:AA:BB:CC:DD
       </td>
-      <!--
-      <td class="tablevalues" tal:content="intf/description">
+      <td tal:condition="here/zIfDescription" 
+          class="tablevalues" tal:content="intf/description">
         A really nice interface
       </td>
-      -->
     </tr>
     <tr>
         <td colspan=7 class="tableheader" align='center'>
