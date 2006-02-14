@@ -158,7 +158,7 @@ class ZenSnmp(StatusMonitor):
                 self.log.debug("%s has uptime of %s" % 
                                 (device.hostname, device.uptime))
             except pysnmp.compat.pysnmp2x.asn1.TypeError, msg:
-                device.uptime = -99
+                device.uptime = -99L
                 self.log.warn("%s responded but decode failed: %s" % 
                                     (device.hostname, msg))
             self.processed.append(device)
@@ -179,7 +179,7 @@ class ZenSnmp(StatusMonitor):
                     #and send to zem if we have a server
                     device.message = ("no snmp response from %s" 
                                         % device.hostname)
-                    device.uptime = device.lastuptime = 0
+                    device.uptime = device.lastuptime = 0L
                     self.log.warn(device.message)
                     if device.currentStatus < 0:
                         device.currentStatus = 1
@@ -206,7 +206,7 @@ class ZenSnmp(StatusMonitor):
                         self.devices.append(device)
                     device.currentStatus = 0
                     self.log.debug('reset status for %s' % device.hostname)
-                    messages.append((device.url, str(device.uptime)))
+                    messages.append((device.hostname, str(device.uptime)))
                     device.updateup = randrange(1,10)
                     if self.evtserver:
                         device.message = ("snmp agent up on device %s" 
@@ -218,7 +218,7 @@ class ZenSnmp(StatusMonitor):
                 if (device.updateup == 1):
                     device.updateup = randrange(1,10)
                     self.log.debug('will send uptime for %s' % device.hostname)
-                    messages.append((device.url, str(device.uptime)))
+                    messages.append((device.hostname, str(device.uptime)))
                 else:
                     device.updateup -= 1
                 device.lastuptime = device.uptime
@@ -230,7 +230,7 @@ class ZenSnmp(StatusMonitor):
                 self.log.debug(
                     'snmp failed set status for %s to %d' 
                     % (device.hostname, device.currentStatus)) 
-                messages.append((device.url, str(-1)))
+                messages.append((device.hostname, str(-1)))
                 if self.evtserver:
                     device.message = ("snmp agent down on device %s" 
                                                 % device.hostname)
@@ -238,7 +238,7 @@ class ZenSnmp(StatusMonitor):
                     device.type = 1
                     self.queueEvent(device)
         try:
-            self.log.debug("sending data to server")
+            self.log.debug("sending %d uptimes to server", len(messages))
             server.updateSnmpDevices(messages)
         except SystemExit: raise
         except:
@@ -372,9 +372,10 @@ class StatusTest:
         self.timeout = 0
         self.sent = 0
         self.message = ""
-        self.uptime = 0
-        self.lastuptime = 0
-        self.updateup = randrange(1,10)
+        self.uptime = 0L
+        self.lastuptime = 0L
+        #self.updateup = randrange(1,10)
+        self.updateup = 1
 
 
 if __name__=='__main__':

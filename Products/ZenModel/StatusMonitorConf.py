@@ -278,10 +278,10 @@ class StatusMonitorConf(Monitor, StatusColor):
     security.declareProtected('View','updateSnmpDevices')
     def updateSnmpDevices(self, devices):
         '''process the snmp status information form the snmpmonitor'''
-        for url, uptime in devices:
+        devs = self.getDmdRoot("Devices")
+        for hostname, uptime in devices:
             try:
-                path = url.split('/')[3:]
-                device = self.getZopeObj(path)
+                device = devs.findDevice(hostname)
                 if device and uptime:
                     device.setSnmpUpTime(long(uptime))
             except:
