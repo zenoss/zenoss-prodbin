@@ -136,9 +136,9 @@ class CommandChannel(channel.SSHChannel):
 
 class SshClient(CollectorClient.CollectorClient):
 
-    def __init__(self, hostname, port=22, commands=[], options=None, 
+    def __init__(self, hostname, ip, port=22, commands=[], options=None, 
                     device=None, datacollector=None):
-        CollectorClient.CollectorClient.__init__(self, hostname, port, 
+        CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
                            commands, options, device, datacollector)
         self.protocol = SshClientTransport
         self.connection = None
@@ -147,8 +147,8 @@ class SshClient(CollectorClient.CollectorClient):
     def run(self):
         """Start ssh collection.
         """
-        if check(self.hostname):
-            reactor.connectTCP(self.hostname, self.port, self)
+        if check(self.ip):
+            reactor.connectTCP(self.ip, self.port, self)
         else:
             raise NoServerFound, \
                 "Ssh server not found on %s port %s" % (

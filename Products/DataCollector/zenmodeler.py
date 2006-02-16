@@ -159,7 +159,10 @@ class ZenModeler(ZCmdBase):
         """
         device = self.resolveDevice(device)
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
-        cmdclient = self.cmdCollect(device, ip)
+        try:
+            cmdclient = self.cmdCollect(device, ip)
+        except NoServerFound,e:
+            self.warn(e)
         snmpclient = self.snmpCollect(device, ip)
         if cmdclient: 
             cmdclient.run()

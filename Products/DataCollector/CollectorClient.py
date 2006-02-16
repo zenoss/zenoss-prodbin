@@ -45,10 +45,11 @@ class CollectorClient(protocol.ClientFactory):
     maintainConnection = False 
     cmdindex = 0
     
-    def __init__(self, hostname, port, commands=[], options=None, 
+    def __init__(self, hostname, ip, port, commands=[], options=None, 
                     device=None, datacollector=None, log=None):
 
         self.hostname = hostname
+        self.ip = ip
         self.port = port
         self.commands = commands
         self.device = device

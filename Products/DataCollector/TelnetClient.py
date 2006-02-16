@@ -266,10 +266,9 @@ class TelnetClientProtocol(telnet.Telnet):
     
 class TelnetClient(CollectorClient.CollectorClient):
     
-    def __init__(self, hostname, port, commands=[], options=None, 
+    def __init__(self, hostname, ip, port, commands=[], options=None, 
                     device=None, datacollector=None):
-        
-        CollectorClient.CollectorClient.__init__(self, hostname, port, 
+        CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
                             commands, options, device, datacollector)
         self.protocol = TelnetClientProtocol 
         self.modeRegex = { 
@@ -318,8 +317,8 @@ class TelnetClient(CollectorClient.CollectorClient):
         """
         if self.termlen:
             self.commands.insert(0, "terminal length 0")
-        if check(self.hostname):
-            reactor.connectTCP(self.hostname, self.port, self)
+        if check(self.ip):
+            reactor.connectTCP(self.ip, self.port, self)
         else:
             raise NoServerFound, \
                 "Telnet server not found on %s port %s" % (
