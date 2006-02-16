@@ -159,15 +159,19 @@ class ZenModeler(ZCmdBase):
         """
         device = self.resolveDevice(device)
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
-        try:
-            cmdclient = self.cmdCollect(device, ip)
-        except NoServerFound,e:
-            self.warn(e)
+        if not ip:
+            ip = device.getManageIp()
+            if not ip:
+                ip = device.setManageIp()
+        cmdclient = self.cmdCollect(device, ip)
         snmpclient = self.snmpCollect(device, ip)
         if cmdclient: 
-            cmdclient.run()
-            cmdclient.timeout = clientTimeout + time.time()
-            self.clients.append(cmdclient)
+            try:
+                cmdclient.run()
+                cmdclient.timeout = clientTimeout + time.time()
+                self.clients.append(cmdclient)
+            except NoServerFound,e:
+                self.log.warn(e)
         if snmpclient: 
             snmpclient.run()
             snmpclient.timeout = clientTimeout + time.time()
@@ -177,7 +181,7 @@ class ZenModeler(ZCmdBase):
             self.reactorLoop()
 
 
-    def cmdCollect(self, device, ip=None):
+    def cmdCollect(self, device, ip):
         """Start command collection client.
         """
         client = None
@@ -191,14 +195,14 @@ class ZenModeler(ZCmdBase):
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
             if protocol == "ssh": 
-                client = SshClient.SshClient(hostname, commandPort, 
+                client = SshClient.SshClient(hostname, ip, commandPort, 
                                     options=self.options,
                                     commands=commands, device=device, 
                                     datacollector=self)
                 self.log.info('ssh collection device %s' % hostname)
             elif protocol == 'telnet':
                 if commandPort == 22: commandPort = 23 #set default telnet
-                client = TelnetClient.TelnetClient(hostname, commandPort,
+                client = TelnetClient.TelnetClient(hostname, ip, commandPort,
                                     options=self.options,
                                     commands=commands, device=device, 
                                     datacollector=self)
@@ -217,7 +221,7 @@ class ZenModeler(ZCmdBase):
         return client
 
     
-    def snmpCollect(self, device, ip=None):
+    def snmpCollect(self, device, ip):
         """Start snmp collection client.
         """
         client = None
@@ -234,10 +238,6 @@ class ZenModeler(ZCmdBase):
                 self.log.info('snmp collection device %s' % hostname)
                 self.log.info("plugins: %s", 
                     ", ".join(map(lambda p: p.name(), plugins)))
-                if not ip:
-                    ip = device.getManageIp()
-                    if not ip:
-                        ip = socket.gethostbyname(device.id)
                 client = SnmpClient.SnmpClient(device.id, ip, self.options, 
                                                 device, self, plugins)
             if not client or not plugins: 

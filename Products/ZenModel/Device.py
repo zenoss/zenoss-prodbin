@@ -485,6 +485,8 @@ class Device(CricketDevice, ManagedEntity):
         self.manageIp = ip
         if REQUEST:
             return self.callZenScreen(REQUEST)
+        else:
+            return self.manageIp
 
 
 
