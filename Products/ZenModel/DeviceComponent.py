@@ -21,7 +21,8 @@ class DeviceComponent(object):
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
     """
-    
+    event_key = "Component"
+
     security = ClassSecurityInfo()
 
     def getParentDeviceName(self):

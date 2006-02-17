@@ -554,7 +554,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """
         if countField == None: countField = self.countField
         select = "select %s, %s, %s from %s where "\
-                  % (self.deviceField, self.ComponentField, countField,
+                  % (self.deviceField, self.componentField, countField,
                   self.statusTable)
         where = self._wand(where, "%s = '%s'", self.eventClassField, statclass)
         where = self._wand(where, "%s >= %s", self.severityField, severity)

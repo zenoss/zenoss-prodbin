@@ -8,6 +8,12 @@ class RelationshipMap(list):
     relname = ""
     compname = ""
 
+    def __init__(self, relname="", compname="", modname="", objmaps=[]):
+        self.relname = relname
+        self.compname = compname
+        self.extend([ ObjectMap(dm, modname=modname) for dm in objmaps ])
+
+
 
 class ObjectMap(object):
     """

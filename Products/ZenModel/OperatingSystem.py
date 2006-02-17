@@ -35,6 +35,7 @@ class OperatingSystem(Software):
         ("interfaces", ToManyCont(ToOne, "IpInterface", "os")),
         ("routes", ToManyCont(ToOne, "IpRouteEntry", "os")),
         ("ipservices", ToManyCont(ToOne, "IpService", "os")),
+        ("winservices", ToManyCont(ToOne, "WinService", "os")),
         ("processes", ToManyCont(ToOne, "OSProcess", "os")),
         ("filesystems", ToManyCont(ToOne, "FileSystem", "os")),
         ("software", ToManyCont(ToOne, "Software", "os")),

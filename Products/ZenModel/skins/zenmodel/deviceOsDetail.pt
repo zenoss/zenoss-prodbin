@@ -87,6 +87,48 @@
     </tr>
 </table>
 
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:condition="here/os/winservices/countObjects"
+    tal:define="tableName string:winserviceslist;
+    objects here/os/winservices/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" colspan="5">
+        Win Services
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'startMode','StartMode')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'caption','Caption')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'startName','StartName')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getStatus','Status','cmp')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="srv batch">
+        <!--
+        <td><a class="tablevalues" tal:content="srv/getId"
+                tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
+        </td>
+        -->
+        <td class="tablevalues" tal:content="srv/getId"/>
+        <td class="tablevalues" tal:content="srv/startMode"/>
+        <td class="tablevalues" tal:content="srv/caption"/>
+        <td class="tablevalues" tal:content="srv/startName"/>
+        <td tal:define="status srv/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
+</table>
 
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="ipserviceList"

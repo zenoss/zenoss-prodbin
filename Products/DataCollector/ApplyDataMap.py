@@ -24,7 +24,7 @@ zenmarker = "__ZENMARKER__"
 
 class ApplyDataMap(object):
 
-    def __init__(self, datacollector):
+    def __init__(self, datacollector=None):
         self.datacollector = datacollector
 
 
@@ -67,6 +67,19 @@ class ApplyDataMap(object):
         except:
             transaction.abort()
             log.exception("plugin %s device %s", pname, device.getId())
+
+
+    def applyDataMap(self, device, datamap, relname="", compname="",modname=""):
+        """Apply a datamap passed as a list of dicts through XML-RPC.
+        """
+        from plugins.DataMaps import RelationshipMap, ObjectMap
+        if relname:
+            datamap = RelationshipMap(relname=relname, compname=compname, 
+                                modname=modname, objmaps=datamap)
+        else:
+            datamap = ObjectMap(datamap, compname=compname, modname=modname)
+        self._applyDataMap(device, datamap)
+
 
 
     def _applyDataMap(self, device, datamap):

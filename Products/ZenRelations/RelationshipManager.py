@@ -203,8 +203,10 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     def buildRelations(self):
         """build our relations based on the schema defined in _relations"""
         if not getattr(self, "_relations", False): return
+        relnames = self.getRelationshipNames()
         for name, schema in self._relations:
-            self._setObject(name, schema.createRelation(name))
+            if name not in relnames:
+                self._setObject(name, schema.createRelation(name))
 
         
     def lookupSchema(cls, relname):

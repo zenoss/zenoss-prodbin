@@ -204,7 +204,7 @@ table.zentable {
 
 a.tabletitle {  
     color: white;
-    font-weight: bold; 
+    /*font-weight: bold; */
     background-color: #5a6f8f;
 	display: block;
 	border-bottom: 1px solid black;
@@ -235,17 +235,17 @@ th.tabletitle {
     background-image: url(subtitle_bkgrd.gif);
     background-repeat: repeat-X;
     text-align: left;
+    font-weight: normal;
 }
 .tabletitleselected { 
     color: #333333;
     background-color: #E0E0E0;
-    font-weight: bold; 
-	background-position: right top;
-	background-repeat: no-repeat;
+    /*font-weight: bold; */
 	display: block;
 	border-right: 2px solid #b1bcd2;
 	padding: 2px 0px 0px 0px;
     height:25px;
+    font-size:.9em;
 }
 
 a.tabletitleselected:link {  

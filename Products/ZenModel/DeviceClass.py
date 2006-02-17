@@ -210,7 +210,43 @@ class DeviceClass(DeviceOrganizer):
                                     device.productionState,
                                     device.getDeviceClassPath())
         return deviceInfo
-   
+  
+
+    security.declareProtected('View', 'getDeviceInfo')
+    def getDeviceWinInfo(self):
+        """Return list of (devname,user,passwd,url) for each device.
+        user and passwd are used to connect via wmi.
+        """
+        devinfo = []
+        for dev in self.getSubDevices():
+            user = getattr(dev,'zWinUser','')
+            passwd = getattr(dev, 'zWinPassword', '')
+            devinfo.append((dev.id,user,passwd,dev.absolute_url()))
+        return devinfo
+    
+    
+    def getWinServices(self):
+        """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
+        """
+        import re
+        svcinfo = []
+        for dev in self.getSubDevices():
+            regex = getattr(dev,'zWinServices', "")
+            if not regex: continue
+            mon = re.compile(regex,re.I).search
+            svcs = {}
+            for svc in dev.os.winservices():
+                if mon(svc.name):
+                    svc.monitored = True
+                    svcs[svc.name] = svc.getStatus()
+                else:
+                    svc.monitored = False
+            if not svcs: continue
+            user = getattr(dev,'zWinUser','')
+            passwd = getattr(dev, 'zWinPassword', '')
+            svcinfo.append((dev.id, user, passwd, svcs))
+        return svcinfo
+
 
     security.declareProtected('View', 'searchDevices')
     def searchDevices(self, query=None, REQUEST=None):

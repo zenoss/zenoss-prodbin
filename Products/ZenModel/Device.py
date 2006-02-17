@@ -38,6 +38,7 @@ from AccessControl import Permissions as permissions
 
 #from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
 from Products.DataCollector.SnmpSession import SnmpSession
+from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
@@ -273,7 +274,7 @@ class Device(CricketDevice, ManagedEntity):
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'management'
-                , 'name'          : 'Management'
+                , 'name'          : 'Manage'
                 , 'action'        : 'deviceManagement'
                 , 'permissions'   : ("Change Device",)
                 },
@@ -328,6 +329,14 @@ class Device(CricketDevice, ManagedEntity):
             ManagedEntity._setPropValue(self, id, value)
 
 
+    def applyDataMap(self, datamap, relname="", compname="", modname=""):
+        """Apply a datamap passed as a list of dicts through XML-RPC.
+        """
+        adm = ApplyDataMap()
+        adm.applyDataMap(self, datamap, relname=relname, 
+                         compname=compname, modname=modname)
+
+    
     def traceRoute(self, target, ippath=None):
         if ippath is None: ippath=[]
         if not isip(target): 

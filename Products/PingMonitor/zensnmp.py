@@ -26,7 +26,7 @@ from random import randrange
 
 import Globals
 
-from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
+from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
 from StatusMonitor import StatusMonitor
 
