@@ -13,7 +13,7 @@ from syslog_h import *
 parsers = (
 
 # evtsys windows msg
-r"^evtsys: (?P<component>[\w\s]+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+r"^evtsys: (?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
 # cisco msg with card inicator
 r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
