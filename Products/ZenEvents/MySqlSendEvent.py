@@ -51,6 +51,10 @@ class MySqlSendEventMixin:
         if not hasattr(event, 'dedupid'):
             dedupid = []
             dedupfields = event.getDedupFields(self.defaultIdentifier)
+            if not hasattr(event, "eventKey"):
+                if type(dedupfields) != types.ListType:
+                    dedupfields = list(dedupfields)
+                dedupfields.append("summary")
             for field in dedupfields:
                 value = getattr(event, field, "")
                 dedupid.append(str(value))
