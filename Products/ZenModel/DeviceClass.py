@@ -236,7 +236,7 @@ class DeviceClass(DeviceOrganizer):
             mon = re.compile(regex,re.I).search
             svcs = {}
             for svc in dev.os.winservices():
-                if mon(svc.name):
+                if mon(svc.caption):
                     svc.monitored = True
                     svcs[svc.name] = svc.getStatus()
                 else:

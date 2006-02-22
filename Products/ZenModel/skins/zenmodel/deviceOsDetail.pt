@@ -99,13 +99,13 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'primarySortKey','Name')"/>
+                        tableName,'caption','Caption')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'startMode','StartMode')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'caption','Caption')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'startName','StartName')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
@@ -115,10 +115,10 @@
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
         -->
-        <td class="tablevalues" tal:content="srv/getId"/>
-        <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/caption"/>
+        <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
+        <td class="tablevalues" tal:content="srv/getId"/>
         <td tal:define="status srv/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
