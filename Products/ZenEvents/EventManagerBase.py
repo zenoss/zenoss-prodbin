@@ -463,6 +463,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache
 
 
+    def getDevicePingIssues(self, limit=10):
+        """Return devices with ping problems.
+        """
+        return self.getDeviceIssues(where="eventClass = '/Status/Ping'",
+                                    limit=limit)
+
+
     def getDeviceStatusIssues(self, limit=10):
         """Return only status issues.
         """
@@ -489,7 +496,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 #statusCache = list(curs.fetchall())
                 statusCache.sort(lambda x,y: cmp(x[1],y[1]))
                 statusCache.reverse()
-                statusCache = statusCache[:limit]
+                if limit:
+                    statusCache = statusCache[:limit]
             except:
                 log.exception(select)
                 raise
