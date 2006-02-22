@@ -566,10 +566,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             curs = db.cursor()
             curs.execute(select)
             statusCache ={}
-            for device, component, count in curs.fetchall():
-                device = self.cleanstring(device)
-                component = self.cleanstring(component)
-                statusCache[device+component] = count
+            for dev, comp, count in curs.fetchall():
+                dev = self.cleanstring(dev)
+                comp = self.cleanstring(comp)
+                statusCache[dev+comp] = count
             self.addToCache(select,statusCache)
             db.close()
         return statusCache.get(device+component, 0)
