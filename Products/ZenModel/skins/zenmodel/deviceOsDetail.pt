@@ -91,7 +91,8 @@
     tal:condition="here/os/winservices/countObjects"
     tal:define="tableName string:winserviceslist;
     objects here/os/winservices/objectValuesAll;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='caption');">
     <tr>
       <th class="tabletitle" colspan="5">
         Win Services
@@ -105,7 +106,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'startName','StartName')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'primarySortKey','Name')"/>
+                        tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
@@ -118,7 +119,7 @@
         <td class="tablevalues" tal:content="srv/caption"/>
         <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
-        <td class="tablevalues" tal:content="srv/getId"/>
+        <td class="tablevalues" tal:content="srv/name"/>
         <td tal:define="status srv/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
