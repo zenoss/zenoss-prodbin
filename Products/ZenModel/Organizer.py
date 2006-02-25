@@ -19,8 +19,9 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError
 from ZenModelRM import ZenModelRM
+from EventView import EventView
         
-class Organizer(ZenModelRM):
+class Organizer(ZenModelRM, EventView):
     """
     OrganizerBase class is base for all hierarchical organization classes.
     It allows Organizers to be addressed and created with file system like

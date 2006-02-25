@@ -1,0 +1,67 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="4"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Service Class</td>
+        <td class="tablevalues" colspan="3"
+            tal:content="structure here/getServiceClassLink"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:content="here/caption"/>
+        <td class="tableheader">Status</td>
+        <td tal:define="status here/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Monitor</td>
+        <td class="tablevalues">
+            <select class="tablevalues"  name="monitor:boolean"
+            tal:condition="here/isManager">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.monitored()"/>
+            </select>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/monitored"/>
+        </td>
+        <td class="tableheader">Cmd Name</td>
+        <td class="tablevalues" tal:content="here/name"/>
+    <tr>
+        <td class="tableheader">Start Mode</td>
+        <td class="tablevalues" tal:content="here/startMode"/>
+        <td class="tableheader">Start Name</td>
+        <td class="tablevalues" tal:content="here/startName"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Service Type</td>
+        <td class="tablevalues" tal:content="here/serviceType"/>
+        <td class="tableheader">Path Name</td>
+        <td class="tablevalues" tal:content="here/pathName"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Accept Pause</td>
+        <td class="tablevalues" tal:content="here/acceptPause"/>
+        <td class="tableheader">Accept Stop</td>
+        <td class="tablevalues" tal:content="here/acceptStop"/>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="4">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editService:method" />
+        </td>
+    </tr>
+</table>
+</form>
+
+</tal:block>
+</tal:block>

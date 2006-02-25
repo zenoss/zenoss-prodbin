@@ -13,8 +13,6 @@ $Id: ProductClass.py,v 1.10 2004/03/26 23:58:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.10 $"[11:-2]
 
-import re
-
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
@@ -25,7 +23,6 @@ from Products.ZenRelations.RelSchema import *
 
 class ProductClass(ZenModelRM):
 
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
 
     meta_type = "ProductClass"
 
@@ -91,7 +88,7 @@ class ProductClass(ZenModelRM):
     def __init__(self, id,title="",productKey="",partNumber="",description=""):
         if not productKey: 
             self.productKeys = [id]
-        id = self.prepId.sub('_', id)
+        id = self.prepId(id)
         ZenModelRM.__init__(self, id, title)
         self.partNumber = partNumber
         self.description = description

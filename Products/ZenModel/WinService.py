@@ -5,38 +5,65 @@
 #################################################################
 
 from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, Permissions
+from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
 
-from OSComponent import OSComponent
+from Service import Service
 
-class WinService(OSComponent):
-    """Hardware object"""
+class WinService(Service):
+    """Windows Service Class
+    """
     portal_type = meta_type = 'WinService'
 
     acceptPause = False
     acceptStop = False
-    monitored = False
-    name = ""
-    caption = ""
-    description = ""
     pathName = ""
     serviceType = ""
     startMode = ""
     startName = ""
     
-    _relations = OSComponent._relations + (
+    _relations = Service._relations + (
         ("os", ToOne(ToManyCont, "OperatingSystem", "winservices")),
     )
 
+    factory_type_information = ( 
+        { 
+            'immediate_view' : 'winServiceDetail',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'winServiceDetail'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+            )
+         },
+        )
+    
     security = ClassSecurityInfo()
-
-    def getStatus(self):
-        """Return the status of this service as a number.
+   
+    def getServiceClass(self):
+        """Return a dict like one set by zenwinmodeler for services.
         """
-        if not self.monitored: return -1
-        return OSComponent.getStatus(self, "/Status/WinService")
+        return {'name': self.name, 'description': self.description }
+
+
+    def caption(self):
+        """Return the windows caption for this service.
+        """
+        svccl = self.serviceclass()
+        if svccl: return svccl.description
+        return ""
+    primarySortKey = caption
 
 
 InitializeClass(WinService)

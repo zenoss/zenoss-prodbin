@@ -236,7 +236,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         rname = self.remoteName()
         parobj = self.getPrimaryParent()
 
-        # look for objects that don't poing back to us
+        # look for objects that don't point back to us
         # or who no longer exist in the database
         for obj in self._objects:
             rrel = getattr(obj, rname)

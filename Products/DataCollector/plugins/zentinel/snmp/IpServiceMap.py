@@ -50,8 +50,9 @@ class IpServiceMap(SnmpPlugin):
                 om = self.objectMap()
                 om.id = 'tcp-%05d' % port
                 om.ipaddresses = [addr,]
-                om.setPort = port
-                om.setProtocol = 'tcp'
+                om.protocol = 'tcp'
+                om.port = port
+                om.setServiceClass = {'protocol': 'tcp', 'port':port}
                 om.discoveryAgent = self.name()
                 tcpports[port] = om
                 rm.append(om)
@@ -70,8 +71,9 @@ class IpServiceMap(SnmpPlugin):
                 om = self.objectMap()
                 om.id = 'udp-%05d' % port
                 om.ipaddresses = [addr,]
-                om.setPort = port
-                om.setProtocol = 'udp'
+                om.protocol = 'udp'
+                om.port = port
+                om.setServiceClass = {'protocol': 'udp', 'port':port}
                 om.discoveryAgent = self.name()
                 udpports[port]=om
                 rm.append(om)

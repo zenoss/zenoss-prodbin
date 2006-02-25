@@ -15,11 +15,12 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 
 from Globals import DTMLFile
 from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo, Permissions
 
 from Products.ZenRelations.RelSchema import *
 
 from Service import Service
-from IpServiceClass import addIpServiceToClass, getIpServiceClassId
+from Products.ZenModel.IpServiceClass import IpServiceClass
 
 def manage_addIpService(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -43,8 +44,8 @@ class IpService(Service):
 
     ipaddresses = []
     discoveryAgent = ""
-    _port = 0 
-    _protocol = None
+    port = 0 
+    protocol = ""
 
     _properties = (
         {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
@@ -54,73 +55,68 @@ class IpService(Service):
         ) 
     _relations = Service._relations + (
         ("os", ToOne(ToManyCont,"OperatingSystem","ipservices")),
-        ("ipserviceclass", ToOne(ToMany,"IpServiceClass","ipservices")),
         )
 
+    factory_type_information = ( 
+        { 
+            'immediate_view' : 'ipServiceDetail',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'ipServiceDetail'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+            )
+         },
+        )
+    
 
-    def __getattr__(self, name):
-        if name == 'port':
-            return self.getPort()
-        elif name == 'protocol':
-            return self.getProtocol()
-        else:
-            raise AttributeError, name
+    def setServiceClass(self, kwargs):
+        """Set the service class based on a dict describing the service.
+        Dict keys are be protocol and port
+        """
+        srvs = self.dmd.getDmdRoot("Services")
+        srvclass = srvs.createServiceClass(factory=IpServiceClass, **kwargs)
+        self.serviceclass.addRelation(srvclass)
 
 
-    def setPort(self, port):
-        """set the port and connect to class if protocol is also set"""
-        self._port = int(port)
-        if self._protocol:
-            addIpServiceToClass(self)
+    def getServiceClass(self):
+        """Return a dict like one set by IpServiceMap for services.
+        """
+        svc = self.serviceclass()
+        if svc:
+            return {'protocol': self.protocol, 'port': svc.port }
+        return {}
 
-    def setProtocol(self, protocol):
-        """set the protocol and connect to class if port is also set"""
-        self._protocol = protocol
-        if self._port:
-            addIpServiceToClass(self)
-       
-
-    def getIpServiceKey(self):
-        """key format to link instance to class"""
-        return getIpServiceClassId(self._protocol, self._port)
 
     def primarySortKey(self):
-        return "%s-%05d" % (self._protocol, self._port)
-        
-    def getPort(self):
-        return self._port
-        #sc = self.ipserviceclass()
-        #if sc: return sc.port
-
-
+        return "%s-%05d" % (self.protocol, self.port)
+    
     def getProtocol(self):
-        return self._protocol
-        #sc = self.ipserviceclass()
-        #if sc: return sc.protocol
+        return self.protocol
 
-
+    def getPort(self):
+        return self.port
+        
     def getKeyword(self):
-        sc = self.ipserviceclass()
-        if sc: return sc.getKeyword()
+        sc = self.serviceclass()
+        if sc: return sc.name
 
     def getDescription(self):
-        sc = self.ipserviceclass()
+        sc = self.serviceclass()
         if sc: return sc.description
 
     def ipServiceClassUrl(self):
-        sc = self.ipserviceclass()
+        sc = self.serviceclass()
         if sc: return sc.getPrimaryUrlPath()
     
     
-    def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks"""
-        self._wrapperCheck(value)
-        if id == 'port':
-            self.setPort(value)
-        elif id == 'protocol':
-            self.setProtocol(value)
-        else:    
-            setattr(self,id,value)
-       
-
 InitializeClass(IpService)

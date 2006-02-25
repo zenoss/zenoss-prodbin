@@ -1,0 +1,70 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" colspan="4">Service Class</th>
+    </tr>
+    <tr>
+      <td class="tableheader">Name</td>
+      <td class="tablevalues" tal:content="here/name"/>
+      <td class="tableheader">Monitor</td>
+      <td class="tablevalues" tal:content="here/zMonitor"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Port</td>
+      <td class="tablevalues" tal:content="here/port"/>
+      <th class="tableheader">Description</th>
+      <td class="tablevalues" tal:content="here/description"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Send String</td>
+      <td class="tablevalues" tal:content="here/sendString"/>
+      <td class="tableheader">Expect Regex</td>
+      <td class="tablevalues" tal:content="here/expectRegex"/>
+    </tr>
+    <tr>
+      <th class="tableheader">Service Keys</th>
+      <td class="tablevalues" colspan="3"
+        tal:content="python:', '.join(here.serviceKeys)"/>
+    </tr>
+</table>
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:serviceinstances;
+    objects here/instances/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">
+        Service Instances 
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDeviceName','Device')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'monitored','Monitor')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getStatus','Status','cmp')"/>
+    </tr>
+    <tr tal:repeat="srv batch">
+      <td class="tablevalues" 
+        tal:content="structure python:srv.getDeviceLink('deviceOsDetail')"/>
+      <td class="tablevalues">
+        <a tal:attributes="href srv/getPrimaryUrlPath" 
+            tal:content="srv/id">tcp-00514</a>
+      </td>      
+      <td class="tablevalues" tal:content="srv/monitored"/>
+      <td tal:define="status srv/getStatus"
+        tal:attributes="class python:here.getStatusCssClass(status)"
+        tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

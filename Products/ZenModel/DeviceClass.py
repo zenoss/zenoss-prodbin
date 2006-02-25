@@ -231,17 +231,19 @@ class DeviceClass(DeviceOrganizer):
         import re
         svcinfo = []
         for dev in self.getSubDevices():
-            regex = getattr(dev,'zWinServices', "")
-            if not regex: continue
-            mon = re.compile(regex,re.I).search
+            #regex = getattr(dev,'zWinServices', "")
+            #if not regex: continue
+            #mon = re.compile(regex,re.I).search
             svcs = {}
             for svc in dev.os.winservices():
-                if mon(svc.caption):
-                    svc.monitored = True
-                    svcs[svc.name] = svc.getStatus()
-                else:
-                    svc.monitored = False
-            if not svcs: continue
+                if svc.monitored():
+                    svcs[svc.name()] = svc.getStatus()
+                #elif mon(svc.caption):
+                #    svc.zMonitor = True
+                #    svcs[svc.name] = svc.getStatus()
+                #else:
+                #    svc.zMonitor = False
+            if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             svcinfo.append((dev.id, user, passwd, svcs))
@@ -429,6 +431,12 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zTelnetEnableRegex", "assword:")
         devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
+
+        # Windows WMI collector properties
+        devs._setProperty("zWinUser", "")
+        devs._setProperty("zWinPassword", "")
+        #devs._setProperty("zWinServices", "")
+        devs._setProperty("zWinEventlog", False, type="boolean")
 
 
 InitializeClass(DeviceClass)

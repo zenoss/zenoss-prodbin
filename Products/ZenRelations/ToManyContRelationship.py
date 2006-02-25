@@ -16,6 +16,8 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 
+from BTrees.OOBTree import OOBTree
+
 from ToManyRelationshipBase import ToManyRelationshipBase
 
 from Products.ZenRelations.Exceptions import *
@@ -45,7 +47,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def __init__(self, id):
         """set our instance values"""
         self.id = id
-        self._objects = {}
+        self._objects = OOBTree()
 
 
     def __call__(self):
@@ -129,7 +131,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
                     (id, self.id))
             del self._objects[id]
         else:
-            self._objects = {}
+            self._objects = OOBTree()
         self._count=len(self._objects)
         self._p_changed = 1
 
@@ -162,7 +164,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             if type(spec)==type('s'): spec=[spec]
             return [obj.id for obj in self._objects.values() \
                         if obj.meta_type in spec]
-        return self._objects.keys()
+        return [ k for k in self._objects.keys() ]
     objectIdsAll = objectIds
 
 

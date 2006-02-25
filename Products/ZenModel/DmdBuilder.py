@@ -35,7 +35,7 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.IpNetwork import manage_addIpNetwork
 from Products.ZenModel.ManufacturerRoot import ManufacturerRoot
-from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
@@ -56,7 +56,7 @@ classifications = {
     'Groups':       DeviceGroup,
     'Locations':    Location,
     'Systems':      System,
-    'Services':     ServiceClass,
+    'Services':     ServiceOrganizer,
     'Manufacturers':    ManufacturerRoot,
     'Monitors':     MonitorClass,
     'Reports':      ReportClass,

@@ -69,6 +69,9 @@ class RelationshipBase(PrimaryPathManager):
             (self.id, self.remoteClass.__name__, obj.id, obj.__class.__name__))
         try:
             self._add(obj)
+            rname = self.remoteName()
+            # make sure remote rel is on this obj
+            getattr(aq_base(obj), rname) 
             remoteRel = getattr(obj, self.remoteName())
             remoteRel._add(self.__primary_parent__)
         except RelationshipExistsError:

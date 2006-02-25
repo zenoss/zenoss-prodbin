@@ -40,11 +40,12 @@ class DeviceResultInt:
 
 
     security.declareProtected('View', 'getDeviceLink')
-    def getDeviceLink(self):
+    def getDeviceLink(self, screen=""):
         '''Get the primary link for the device'''
         d = self.device()
         if d:
-            return "<a href='%s'>%s</a>" % (d.getPrimaryUrlPath(), d.getId())
+            return "<a href='%s/%s'>%s</a>" % (
+                d.getPrimaryUrlPath(), screen, d.getId())
         return ""
 
 

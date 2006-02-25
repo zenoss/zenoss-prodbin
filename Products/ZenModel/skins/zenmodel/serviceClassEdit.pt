@@ -1,0 +1,66 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="2"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="name" size="40"
+            tal:attributes="value here/name" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Monitor</td>
+        <td class="tablevalues">
+        <select class="tablevalues" name="monitor:boolean">
+        <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.zMonitor"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Port</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="port:int" size="40"
+            tal:attributes="value here/port" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">Service Keys</td>
+    </tr>
+    <tr>
+        <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows="6" cols="70"
+            name="serviceKeys:text" 
+            tal:content="python:'\n'.join(here.serviceKeys)">
+        </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">Description</td>
+    </tr>
+    <tr>
+        <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=70
+            name="description:text" tal:content="here/description">
+        </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editServiceClass:method" />
+        </td>
+    </tr>
+</table>
+</form>
+
+</tal:block>
+</tal:block>

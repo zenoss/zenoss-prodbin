@@ -11,6 +11,7 @@ $Id: ZenModelBase.py,v 1.17 2004/04/23 19:11:58 edahl Exp $"""
 __version__ = "$Revision: 1.17 $"[11:-2]
 
 import copy
+import re
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
@@ -58,7 +59,14 @@ class ZenModelBase(object):
     def __hash__(self):
         return hash(self.id)
 
-    
+
+    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]')
+    def prepId(self, id):
+        """Clean string for use as an id.
+        """
+        return self._prepId.sub("-", id)
+
+
     def callZenScreen(self, REQUEST, redirect=False):
         """
         Call and return screen specified by zenScreenName value of REQUEST.

@@ -16,9 +16,8 @@ from AccessControl import Permissions as permissions
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
-from EventView import EventView
 
-class DeviceOrganizer(Organizer, EventView, DeviceManagerBase):
+class DeviceOrganizer(Organizer, DeviceManagerBase):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.

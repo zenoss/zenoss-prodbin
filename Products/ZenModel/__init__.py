@@ -67,6 +67,7 @@ productNames = (
     "Report",
     "ReportClass",
     "ServiceClass",
+    "ServiceOrganizer",
     "SnmpClassifier",
     "Software",
     "SoftwareClass",

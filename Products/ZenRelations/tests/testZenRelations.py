@@ -444,6 +444,14 @@ class ToManyRelationshipTest(RMBaseTest):
         self.failUnless(dev.location() == anna)
 
 
+    def testaddRelationOnToManyMissing(self):
+        """Test addRelation with missing rel on remote end"""
+        dev = self.create(self.app, Device, "dev")
+        dev._delObject("location")
+        anna = self.build(self.app, Location, "anna")
+        self.assertRaises(AttributeError, anna.devices.addRelation, dev)
+
+
     def test_delObjectOneToMany(self):
         """Test removing from a to many relationship"""
         dev = self.create(self.app, Device, "dev")
