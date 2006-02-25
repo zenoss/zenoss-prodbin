@@ -31,6 +31,12 @@ class Service(OSComponent):
 
     security = ClassSecurityInfo()
 
+    def key(self):
+        """Return tuple (manageIp, name) for this service to uniquely id it.
+        """
+        return (self.getManageIp(), self.name())
+
+
     def name(self):
         """Return the name of this service. (short name for net stop/start).
         """
@@ -40,15 +46,35 @@ class Service(OSComponent):
 
     
     def monitored(self):
-        """Should this service be monitored or not.  
-        First check self then ServiceClass
+        """Should this service be monitored or not. Use ServiceClass aq path. 
         """
-        if getattr(aq_base(self), "zMonitor", None) is not None:
-            return self.zMonitor
+        return self._aqprop("zMonitor")
+
+
+    def getSendString(self):
+        return self._aqprop("sendString")
+
+
+    def getExpectRegex(self):
+        return self._aqprop("expectRegex")
+
+
+    def getSeverity(self):
+        """Return the severity for this service when it fails.
+        """
+        #FIXME!!!
+        return 5
+
+
+    def _aqprop(self, prop):
+        """get a property from ourself if it exsits then try serviceclass path.
+        """
+        if getattr(aq_base(self), prop, None) is not None:
+            return getattr(self, prop)
         svccl = self.serviceclass()
         if svccl: 
             svccl = svccl.primaryAq()
-            return svccl.zMonitor
+            return getattr(svccl, prop)
 
 
     def getStatus(self):

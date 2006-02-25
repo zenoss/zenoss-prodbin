@@ -46,6 +46,22 @@ class DeviceComponent(object):
         """
         return self.getEventManager().getComponentStatus(
                 self.getParentDeviceName(), self.id, statclass=statClass)
-                                        
+  
+
+    def getManageIp(self):
+        """Return the manageIP of the device of this component.
+        """
+        dev = self.device()
+        if dev: return dev.getManageIp()
+        return ""
+
+
+    def hostname(self):
+        """Return the hostname of the device of this component.
+        """
+        dev = self.device()
+        if dev: return dev.getId()
+        return ""
+
 
 InitializeClass(DeviceComponent)

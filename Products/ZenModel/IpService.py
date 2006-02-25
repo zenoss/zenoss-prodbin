@@ -79,6 +79,15 @@ class IpService(Service):
         )
     
 
+    def getStatus(self):
+        """Return the status number for this component of class statClass.
+        """
+        if not self.monitored(): return -1
+        statClass = "/Status/IpService"
+        return self.getEventManager().getComponentStatus(
+                self.getParentDeviceName(), self.name(), statclass=statClass)
+  
+
     def setServiceClass(self, kwargs):
         """Set the service class based on a dict describing the service.
         Dict keys are be protocol and port

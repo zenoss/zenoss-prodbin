@@ -11,6 +11,7 @@ from Globals import InitializeClass
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions
+from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 
@@ -76,9 +77,26 @@ class IpServiceClass(ServiceClass):
          },
         )
     
+    security = ClassSecurityInfo()
+    
     def __init__(self, id, serviceKeys=(), description="", port=0):
         ServiceClass.__init__(self, id, serviceKeys, description)
         self.port = port
+
+
+    security.declareProtected('Manage DMD', 'manage_editServiceClass')
+    def manage_editServiceClass(self, name="", monitor=False, serviceKeys=[],
+                               port=0, description="", sendString="",
+                               expectRegex="", REQUEST=None):
+        """
+        Edit a ProductClass from a web page.
+        """
+        self.sendString = sendString
+        self.expectRegex = expectRegex
+        return super(IpServiceClass,self).manage_editServiceClass(
+                                name, monitor, serviceKeys,
+                                port, description)
+   
 
 
 InitializeClass(IpServiceClass)
