@@ -90,6 +90,15 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
                 yield dev
 
 
+    def getMonitoredComponents(self):
+        """Return monitored components for devices within this DeviceOrganizer.
+        """
+        cmps = []
+        for dev in self.getSubDevicesGen():
+            cmps.extend(dev.getMonitoredComponents())
+        return cmps
+
+
     def getAllCounts(self, devrel="devices"):
         """Count all devices within a device group and get the
         ping and snmp counts as well"""

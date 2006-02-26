@@ -31,7 +31,7 @@ class DeviceComponent(object):
         dev = self.device()
         if dev: name = dev.getDeviceName()
         return name
-       
+    hostname = getParentDeviceName
 
     def getParentDeviceUrl(self):
         """return the url of this component's device"""
@@ -40,12 +40,32 @@ class DeviceComponent(object):
         if dev: url = dev.absolute_url()
         return url
     
-    
-    def getStatus(self, statClass):
+   
+    def name(self):
+        """Return the name of this component.  Default is id.
+        """
+        return self.id
+
+
+    def monitored(self):
+        """Return the monitored status of this component. Default is False.
+        """
+        return False
+
+
+    def getInstDescription(self):
+        """Return some text that describes this component.  Default is name.
+        """
+        return self.name()
+
+        
+    def getStatus(self, statClass=None):
         """Return the status number for this component of class statClass.
         """
+        if not self.monitored(): return -1
+        if not statClass: statClass = "/Status/%s" % self.meta_type
         return self.getEventManager().getComponentStatus(
-                self.getParentDeviceName(), self.id, statclass=statClass)
+                self.getParentDeviceName(), self.name(), statclass=statClass)
   
 
     def getManageIp(self):
@@ -53,14 +73,6 @@ class DeviceComponent(object):
         """
         dev = self.device()
         if dev: return dev.getManageIp()
-        return ""
-
-
-    def hostname(self):
-        """Return the hostname of the device of this component.
-        """
-        dev = self.device()
-        if dev: return dev.getId()
         return ""
 
 

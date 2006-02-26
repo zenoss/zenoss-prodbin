@@ -67,6 +67,7 @@ class ZenStatus(ZCmdBase):
 
     def testDevice(self, dev):
         self.log.debug("adding device: %s", dev.getId())
+        if dev.getPingStatus() > 0: return
         for svc in dev.os.ipservices():
             if svc.monitored() and svc.getProtocol() == "tcp":
                 self.log.debug("adding service: %s", svc.name())
@@ -111,8 +112,8 @@ class ZenStatus(ZCmdBase):
                 except:
                     self.log.exception("unknown exception in main loop")
                 runtime = time.time() - start
-                if runtime < self.smc.cycleInterval:
-                    time.sleep(self.smc.cycleInterval - runtime)
+                if runtime < self.options.cycletime:
+                    time.sleep(self.options.cycletime - runtime)
         else:
             self.cycleLoop()
             self.sendHeartbeat()
@@ -135,7 +136,7 @@ class ZenStatus(ZCmdBase):
     def sendHeartbeat(self):
         """Send a heartbeat event for this monitor.
         """
-        timeout = self.smc.cycleInterval*3
+        timeout = self.options.cycletime*3
         evt = EventHeartbeat(socket.getfqdn(), "zenstatus", timeout)
         self.zem.sendEvent(evt)
 
@@ -149,6 +150,10 @@ class ZenStatus(ZCmdBase):
         self.parser.add_option('--parallel', dest='parallel', 
                 default=20, type='int',
                 help="number of devices to collect at one time")
+        self.parser.add_option('--cycletime',
+            dest='cycletime', default=60, type="int",
+            help="check events every cycletime seconds")
+
 
 
 if __name__=='__main__':

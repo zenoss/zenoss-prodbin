@@ -51,6 +51,14 @@ class WinService(Service):
     
     security = ClassSecurityInfo()
    
+    
+    def getInstDescription(self):
+        """Return some text that describes this component.  Default is name.
+        """
+        return "'%s' StartMode:%s StartName:%s" % (self.caption(), 
+                        self.startMode, self.startName)
+
+        
     def getServiceClass(self):
         """Return a dict like one set by zenwinmodeler for services.
         """

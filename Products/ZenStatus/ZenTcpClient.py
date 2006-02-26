@@ -80,7 +80,7 @@ class ZenTcpClient(protocol.ClientFactory):
             log.info("device:%s service:%s back up", 
                      self.svc.hostname(), self.svc.name())
         elif self.msg != "pass":
-            sev = self.svc.getSeverity()
+            sev = self.svc.getFailSeverity()
             log.warn("device:%s service:%s down", 
                      self.svc.hostname(), self.svc.name())
         else:

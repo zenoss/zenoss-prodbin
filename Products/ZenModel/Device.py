@@ -346,6 +346,15 @@ class Device(CricketDevice, ManagedEntity):
         return self.os.traceRoute(target, ippath)
 
 
+    def getMonitoredComponents(self):
+        """Return list of monitored DeviceComponents on this device.
+        """
+        cmps = []
+        cmps.extend([s for s in self.os.ipservices() if s.monitored()])
+        cmps.extend([s for s in self.os.winservices() if s.monitored()])
+        return cmps
+
+
     def getHWProductName(self):
         """Return the hardware product name of this device.
         """

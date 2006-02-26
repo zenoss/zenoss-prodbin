@@ -78,16 +78,16 @@ class IpService(Service):
          },
         )
     
+    security = ClassSecurityInfo()
 
-    def getStatus(self):
-        """Return the status number for this component of class statClass.
+    
+    def getInstDescription(self):
+        """Return some text that describes this component.  Default is name.
         """
-        if not self.monitored(): return -1
-        statClass = "/Status/IpService"
-        return self.getEventManager().getComponentStatus(
-                self.getParentDeviceName(), self.name(), statclass=statClass)
-  
+        return "%s-%d ips:%s" % (self.protocol, self.port, 
+                                 ", ".join(self.ipaddresses))
 
+        
     def setServiceClass(self, kwargs):
         """Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
@@ -95,6 +95,14 @@ class IpService(Service):
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(factory=IpServiceClass, **kwargs)
         self.serviceclass.addRelation(srvclass)
+
+
+    def getSendString(self):
+        return self._aqprop("sendString")
+
+
+    def getExpectRegex(self):
+        return self._aqprop("expectRegex")
 
 
     def getServiceClass(self):
@@ -128,4 +136,16 @@ class IpService(Service):
         if sc: return sc.getPrimaryUrlPath()
     
     
+    security.declareProtected('Manage DMD', 'manage_editService')
+    def manage_editService(self, monitor=False, severity=5, sendString="",
+                            expectRegex="", REQUEST=None):
+        """Edit a Service from a web page.
+        """
+        msg = []
+        msg.append(self._aqsetprop("sendString", sendString, "string"))
+        msg.append(self._aqsetprop("expectRegex", expectRegex, "string"))
+        return super(IpService, self).manage_editService(monitor, severity, 
+                                        msg=msg,REQUEST=REQUEST)
+
+
 InitializeClass(IpService)

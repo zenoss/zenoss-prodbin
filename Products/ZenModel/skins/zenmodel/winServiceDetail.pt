@@ -34,8 +34,20 @@
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/monitored"/>
         </td>
+        <td class="tableheader">Fail Severity</td>
+        <td class="tablevalues">
+            <input class="tablevalues" type="text" name="severity:int" 
+                tal:condition="here/isManager"
+                tal:attributes="value here/getFailSeverity"/>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/getFailSeverity"/>
+        </td>
+    <tr>
+        <td class="tableheader">Service Type</td>
+        <td class="tablevalues" tal:content="here/serviceType"/>
         <td class="tableheader">Cmd Name</td>
         <td class="tablevalues" tal:content="here/name"/>
+    </tr>
     <tr>
         <td class="tableheader">Start Mode</td>
         <td class="tablevalues" tal:content="here/startMode"/>
@@ -43,16 +55,14 @@
         <td class="tablevalues" tal:content="here/startName"/>
     </tr>
     <tr>
-        <td class="tableheader">Service Type</td>
-        <td class="tablevalues" tal:content="here/serviceType"/>
-        <td class="tableheader">Path Name</td>
-        <td class="tablevalues" tal:content="here/pathName"/>
-    </tr>
-    <tr>
         <td class="tableheader">Accept Pause</td>
         <td class="tablevalues" tal:content="here/acceptPause"/>
         <td class="tableheader">Accept Stop</td>
         <td class="tablevalues" tal:content="here/acceptStop"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Path Name</td>
+        <td class="tablevalues" colspan="3" tal:content="here/pathName"/>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan="4">

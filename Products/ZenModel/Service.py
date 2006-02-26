@@ -51,40 +51,12 @@ class Service(OSComponent):
         return self._aqprop("zMonitor")
 
 
-    def getSendString(self):
-        return self._aqprop("sendString")
-
-
-    def getExpectRegex(self):
-        return self._aqprop("expectRegex")
-
-
-    def getSeverity(self):
+    def getFailSeverity(self):
         """Return the severity for this service when it fails.
         """
-        #FIXME!!!
-        return 5
+        return self._aqprop("zFailSeverity")
 
 
-    def _aqprop(self, prop):
-        """get a property from ourself if it exsits then try serviceclass path.
-        """
-        if getattr(aq_base(self), prop, None) is not None:
-            return getattr(self, prop)
-        svccl = self.serviceclass()
-        if svccl: 
-            svccl = svccl.primaryAq()
-            return getattr(svccl, prop)
-
-
-    def getStatus(self):
-        """Return the status of this service as a number.
-        """
-        if not self.monitored(): return -1
-        statusClass = "/Status/%s" % self.meta_type
-        return OSComponent.getStatus(self, statusClass)
-
-   
     def setServiceClass(self, kwargs):
         """Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
@@ -103,23 +75,49 @@ class Service(OSComponent):
         return ""
 
 
-    security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, monitor=False, REQUEST=None):
+    def _aqprop(self, prop):
+        """Get a property from ourself if it exsits then try serviceclass path.
         """
-        Edit a Service from a web page.
+        if getattr(aq_base(self), prop, None) is not None:
+            return getattr(self, prop)
+        svccl = self.serviceclass()
+        if svccl: 
+            svccl = svccl.primaryAq()
+            return getattr(svccl, prop)
+
+
+    def _aqsetprop(self, prop, value, type):
+        """Set a local prop if nessesaary on this service.
         """
-        msg = "No action needed:"
         svccl = self.serviceclass()
         if not svccl: return
         svccl = svccl.primaryAq()
-        if svccl.zMonitor != monitor:
-            self._setProperty("zMonitor", monitor, type="boolean")
-            msg = "Set local zMonitor property:"
-        elif getattr(aq_base(self), "zMonitor", None) is not None:
-            self._delProperty("zMonitor")
-            msg = "Removed local zMonitor property:"
+        svcval = getattr(svccl, prop)
+        locval = getattr(aq_base(self),prop,None)
+        msg = ""
+        if svcval == value and locval is not None:
+            self._delProperty(prop)
+            msg = "Removed local %s" % prop
+        elif svcval != value and locval is None:
+            self._setProperty(prop, value, type=type)
+            msg = "Set local %s" % prop
+        elif locval is not None and locval != value:
+            setattr(self, prop, value)
+            msg = "Update local %s" % prop
+        return msg
+
+
+    security.declareProtected('Manage DMD', 'manage_editService')
+    def manage_editService(self,monitor=False,severity=5,msg=None,REQUEST=None):
+        """Edit a Service from a web page.
+        """
+        if msg is None: msg=[]
+        msg.append(self._aqsetprop("zMonitor", monitor, "boolean"))
+        msg.append(self._aqsetprop("zFailSeverity", severity, "int"))
+        msg = [ m for m in msg if m ]
+        if not msg: msg.append("No action needed")
         if REQUEST:
-            REQUEST['message'] = msg
+            REQUEST['message'] = ", ".join(msg) + ":"
             return self.callZenScreen(REQUEST)
 
 

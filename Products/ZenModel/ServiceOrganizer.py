@@ -187,6 +187,7 @@ class ServiceOrganizer(Organizer):
     def buildZProperties(self):
         if hasattr(aq_base(self), "zMonitor"): return
         self._setProperty("zMonitor", False, type="boolean")
+        self._setProperty("zFailSeverity", 5, type="int")
         self._setProperty("zHideFieldsFromList", [], type="lines")
 
 

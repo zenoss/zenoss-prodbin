@@ -7,21 +7,31 @@
         tal:attributes="value template/id" /> 
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan="4"
+        <th class=tabletitle colspan="2"
             tal:content="string:${message} ${here/getNowString}" />
     </tr>
     <tr>
+        <td class="tableheader">Status</td>
+        <td tal:define="status here/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
         <td class="tableheader">Service Class</td>
-        <td class="tablevalues" colspan="3"
+        <td class="tablevalues"
             tal:content="structure here/getServiceClassLink"/>
     </tr>
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:content="here/name"/>
-        <td class="tableheader">Status</td>
-        <td tal:define="status here/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Protocol</td>
+        <td class="tablevalues" tal:content="here/protocol"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Port</td>
+        <td class="tablevalues" tal:content="here/port"/>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -34,16 +44,43 @@
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/monitored"/>
         </td>
-        <td class="tableheader">Description</td>
-        <td class="tablevalues" tal:content="here/description"/>
-    <tr>
-        <td class="tableheader">Protocol</td>
-        <td class="tablevalues" tal:content="here/protocol"/>
-        <td class="tableheader">Port</td>
-        <td class="tablevalues" tal:content="here/port"/>
     </tr>
     <tr>
-        <td align="left"  class="tableheader" colspan="4">
+        <td class="tableheader">Send String</td>
+        <td class="tablevalues">
+            <input class="tablevalues" type="text" name="sendString" 
+                tal:condition="here/isManager"
+                tal:attributes="value here/getSendString"/>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/getSendString"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Expect Regex</td>
+        <td class="tablevalues">
+            <input class="tablevalues" type="text" name="expectRegex" 
+                tal:condition="here/isManager"
+                tal:attributes="value here/getExpectRegex"/>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/getExpectRegex"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Fail Severity</td>
+        <td class="tablevalues">
+            <input class="tablevalues" type="text" name="severity:int" 
+                tal:condition="here/isManager"
+                tal:attributes="value here/getFailSeverity"/>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/getFailSeverity"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" tal:content="here/description"/>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="2">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editService:method" />
         </td>
