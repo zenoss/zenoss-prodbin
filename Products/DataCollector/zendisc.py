@@ -16,7 +16,7 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event
-from Products.PingMonitor.Ping import Ping
+from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
 
 from zenmodeler import ZenModeler

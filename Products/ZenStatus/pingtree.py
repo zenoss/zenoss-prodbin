@@ -20,7 +20,7 @@ def initglobals(devname):
 
 
 
-log = logging.getLogger("zen.PingMonitor")
+log = logging.getLogger("zen.ZenStatus")
 
 class Rnode(object):
     """Rnode is a router node in the tree map.
