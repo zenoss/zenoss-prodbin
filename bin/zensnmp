@@ -2,7 +2,7 @@
 
 . $ZENHOME/bin/zenfunctions
 
-PRGHOME=$ZENHOME/Products/PingMonitor
+PRGHOME=$ZENHOME/Products/ZenStatus
 PRGNAME=zensnmp.py
 
 CFGFILE=$CFGDIR/zensnmp.conf

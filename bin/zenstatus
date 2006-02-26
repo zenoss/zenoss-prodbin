@@ -2,9 +2,8 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO=sudo
 PRGHOME=$ZENHOME/Products/ZenStatus
-PRGNAME=zenping.py
+PRGNAME=zenstatus.py
 
 PIDFILE=$VARDIR/$PRGNAME.pid
 
