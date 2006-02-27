@@ -26,13 +26,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Port</td>
-        <td class="tablevalues">
-        <input class="tablevalues" type="text" name="port:int" size="40"
-            tal:attributes="value here/port" />
-        </td>
-    </tr>
-    <tr>
         <td class="tableheader" colspan="2">Service Keys</td>
     </tr>
     <tr>
