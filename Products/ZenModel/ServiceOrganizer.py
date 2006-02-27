@@ -96,7 +96,7 @@ class ServiceOrganizer(Organizer):
         except KeyError:
             log.exception(", ".join([b.getPrimaryId for b in brains]))
             raise
-        if len(prods) == 1: return prods[0]
+        if len(prods) >= 1: return prods[0]
 
     
     def countClasses(self):
