@@ -80,7 +80,16 @@ class IpService(Service):
     
     security = ClassSecurityInfo()
 
-    
+
+    def monitored(self):
+        """Return monitored state of ipservice.  
+        If service only listens on 127.0.0.1 return false.
+        """
+        if len(self.ipaddresses) == 1 and "127.0.0.1" in self.ipaddresses:
+            return -1
+        return super(IpService, self).monitored()
+            
+
     def getInstDescription(self):
         """Return some text that describes this component.  Default is name.
         """
