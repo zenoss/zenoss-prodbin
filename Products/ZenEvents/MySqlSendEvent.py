@@ -210,7 +210,7 @@ class MySqlSendEventMixin:
         insert = "insert into %s (evid, name, value) values " % self.detailTable
         var = [] 
         for field, value in detaildict.items():
-            if type(value) == types.StringTypes:
+            if type(value) in types.StringTypes:
                 value = self.escape(value)
             var.append("('%s','%s','%s')" % (evid, field, value)) 
         insert += ",".join(var)        
