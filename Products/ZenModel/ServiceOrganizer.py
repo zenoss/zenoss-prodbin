@@ -24,10 +24,6 @@ def manage_addServiceOrganizer(context, id, REQUEST = None):
     sc = ServiceOrganizer(id)
     context._setObject(id, sc)
     sc = context._getOb(id)
-    if sc.id == sc.dmdRootName:
-        sc.createCatalog()
-        sc.buildZProperties()
-
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 

@@ -8,7 +8,7 @@ from ManagedEntity import ManagedEntity
 from DeviceComponent import DeviceComponent
 
 
-class OSComponent(ManagedEntity, DeviceComponent):
+class OSComponent(DeviceComponent, ManagedEntity):
     """
     Logical Operating System component like a Process, IpInterface, etc.
     """

@@ -8,7 +8,7 @@ from Hardware import Hardware
 from DeviceComponent import DeviceComponent
 
 
-class HWComponent(Hardware, DeviceComponent):
+class HWComponent(DeviceComponent, Hardware):
     """
     Hardware component of a device such as a HardDisk, CPU, etc.
     """
