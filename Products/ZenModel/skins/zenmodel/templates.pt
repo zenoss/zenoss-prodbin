@@ -93,6 +93,7 @@
  ====================================================== -->
 <table id="topPane" metal:define-macro="topPane"
     cellpadding="0" cellspacing="0" border="0">
+    <tr>
     <td width="220px">
         <img onclick="" src="logo.gif" alt="Zenoss">
     </td>
@@ -109,6 +110,7 @@
         Settings</a>
         | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
     </td>
+    </tr>
 </table>
 
 <!-- ======================================================

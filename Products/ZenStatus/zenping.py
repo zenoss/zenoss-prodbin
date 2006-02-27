@@ -70,7 +70,7 @@ class ZenPing(ZCmdBase):
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenping started",
-                        severity=0, component="zenoss/zenping"))
+                        severity=0, component="zenping"))
         self.log.info("started")
 
 
