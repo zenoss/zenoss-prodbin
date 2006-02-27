@@ -49,7 +49,7 @@ class netstat_an(CommandPlugin):
                 om = self.objectMap()
                 om.protocol = proto
                 om.port = int(port)
-                om.id = '%s-%05d' % (om.protocol,om.port)
+                om.id = '%s_%05d' % (om.protocol,om.port)
                 om.createServiceClass = {'protocol': proto, 'port':port}
                 om.ipaddresses = [addr,]
                 om.discoveryAgent = self.name()

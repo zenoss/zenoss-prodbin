@@ -17,7 +17,7 @@ from Acquisition import aq_base
 from Products.ZenRelations.RelSchema import *
 
 from Organizer import Organizer
-from ServiceClass import ServiceClass, getIpServiceKey
+from ServiceClass import ServiceClass
 
 def manage_addServiceOrganizer(context, id, REQUEST = None):
     """make a device class"""
@@ -108,22 +108,15 @@ class ServiceOrganizer(Organizer):
         return count
 
 
-    def createServiceClass(self, protocol="", port=0, name="", description="",
-                            factory=ServiceClass):
+    def createServiceClass(self, name="", description="",
+                           path="", factory=ServiceClass, **kwargs):
         """Create a service class (or retrun existing) based on keywords.
         """
-        if name:
-            key = name
-            if description: dpath = "/WinService/"
-        elif protocol and port > 0:
-            key = getIpServiceKey(protocol, port)
-            dpath = "/IpService/"
-
         svcs = self.getDmdRoot(self.dmdRootName)
-        svccl = svcs.find(key)
+        svccl = svcs.find(name)
         if not svccl: 
-            svcorg = svcs.createOrganizer(dpath)
-            svccl = factory(key, (key,),port=port,description=description)
+            svcorg = svcs.createOrganizer(path)
+            svccl = factory(name, (name,),description=description, **kwargs)
             svcorg.serviceclasses._setObject(svccl.id, svccl)
             svccl = svcorg.serviceclasses._getOb(svccl.id)
         return svccl 

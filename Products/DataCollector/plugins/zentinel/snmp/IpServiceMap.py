@@ -48,7 +48,7 @@ class IpServiceMap(SnmpPlugin):
                 om.ipaddresses.append(addr)
             else:
                 om = self.objectMap()
-                om.id = 'tcp-%05d' % port
+                om.id = 'tcp_%05d' % port
                 om.ipaddresses = [addr,]
                 om.protocol = 'tcp'
                 om.port = port
@@ -69,7 +69,7 @@ class IpServiceMap(SnmpPlugin):
                 om.ipaddresses.append(addr)
             else:
                 om = self.objectMap()
-                om.id = 'udp-%05d' % port
+                om.id = 'udp_%05d' % port
                 om.ipaddresses = [addr,]
                 om.protocol = 'udp'
                 om.port = port

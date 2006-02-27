@@ -19,7 +19,7 @@ import Globals #initalize imports correctly magic!
 
 from Products.ZenUtils.BasicLoader import BasicLoader
 
-from Products.ZenModel.ServiceClass import getIpServiceKey
+from Products.ZenModel.IpService import getIpServiceKey
 from Products.ZenModel.IpServiceClass import IpServiceClass
 
 class IpServiceLoader(BasicLoader):

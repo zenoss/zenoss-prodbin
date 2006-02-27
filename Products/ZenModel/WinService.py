@@ -65,6 +65,20 @@ class WinService(Service):
         return {'name': self.name, 'description': self.description }
 
 
+    def setServiceClass(self, kwargs):
+        """Set the service class based on a dict describing the service.
+        Dict keys are be name and description. where name=ServiceName
+        and description=Caption.
+        """
+        name = kwargs['name']
+        description = kwargs['description']
+        path = "/WinService/"
+        srvs = self.dmd.getDmdRoot("Services")
+        srvclass = srvs.createServiceClass(name=name, description=description, 
+                                           path=path)
+        self.serviceclass.addRelation(srvclass)
+
+
     def caption(self):
         """Return the windows caption for this service.
         """

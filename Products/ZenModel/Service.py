@@ -57,12 +57,12 @@ class Service(OSComponent):
         return self._aqprop("zFailSeverity")
 
 
-    def setServiceClass(self, kwargs):
+    def setServiceClass(self, name="", description=""):
         """Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
         """
         srvs = self.dmd.getDmdRoot("Services")
-        srvclass = srvs.createServiceClass(**kwargs)
+        srvclass = srvs.createServiceClass(name=name, description=description)
         self.serviceclass.addRelation(srvclass)
 
 

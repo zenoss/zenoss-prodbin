@@ -14,10 +14,6 @@
       <td class="tablevalues" tal:content="here/zMonitor"/>
     </tr>
     <tr>
-      <td class="tableheader">Port</td>
-      <td class="tablevalues" tal:content="here/port"/>
-    </tr>
-    <tr>
       <th class="tableheader">Description</th>
       <td class="tablevalues" tal:content="here/description"/>
     </tr>

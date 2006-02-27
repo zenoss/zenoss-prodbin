@@ -24,10 +24,6 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 
 
-def getIpServiceKey(protocol, port):
-    return "%s-%05d" % (protocol, port)
-
-
 def manage_addServiceClass(context, id, REQUEST = None):
     """make a device class"""
     sc = ServiceClass(id)

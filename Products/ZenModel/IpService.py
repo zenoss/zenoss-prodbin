@@ -33,6 +33,11 @@ def manage_addIpService(context, id, title = None, REQUEST = None):
 
 addIpService = DTMLFile('dtml/addIpService',globals())
 
+
+def getIpServiceKey(protocol, port):
+    return "%s_%05d" % (protocol, port)
+
+
 class IpService(Service):
     """
     IpService object
@@ -101,8 +106,13 @@ class IpService(Service):
         """Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
         """
+        protocol = kwargs['protocol']
+        port = kwargs['port']
+        name = getIpServiceKey(protocol, port)
+        path = "/IpService/"
         srvs = self.dmd.getDmdRoot("Services")
-        srvclass = srvs.createServiceClass(factory=IpServiceClass, **kwargs)
+        srvclass = srvs.createServiceClass(name=name, path=path, 
+                               factory=IpServiceClass, port=port)
         self.serviceclass.addRelation(srvclass)
 
 
