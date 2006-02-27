@@ -30,6 +30,7 @@ from Products.ZenRelations.Exceptions import *
 
 class ImportRM(ZCmdBase, ContentHandler):
 
+    rootobj = None
 
     def context(self):
         return self.objstack[-1]
@@ -47,7 +48,10 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.state = name
         self.log.debug("tag %s, context %s", name, self.context().id)
         if name == 'object':
-            self.objstack.append(self.createObject(attrs))
+            obj = self.createObject(attrs)
+            if len(self.objstack) == 1 and hasattr(aq_base(obj), 'reIndex'):
+                self.rootobj = obj
+            self.objstack.append(obj)
         elif name == 'tomanycont' or name == 'tomany':
             self.objstack.append(self.context()._getOb(attrs['id']))
         elif name == 'toone':
@@ -66,8 +70,12 @@ class ImportRM(ZCmdBase, ContentHandler):
         if name in ('object', 'tomany', 'tomanycont'):
             self.objstack.pop()
         elif name == 'objects':
+            self.log.info("End loading objects")
             self.log.info("Processing links")
             self.processLinks()
+            if self.rootobj is not None:
+                self.log.info("calling reIndex %s", self.rootobj.getPrimaryId())
+                self.rootobj.reIndex()
             if not self.options.noCommit:
                 self.commit()
             self.log.info("Loaded %d objects into database" % self.objectnumber)

@@ -463,12 +463,19 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache
 
 
-    def getDevicePingIssues(self, limit=10):
+    def getDevicePingIssues(self, state=2, limit=0):
         """Return devices with ping problems.
         """
         return self.getDeviceIssues(where="eventClass = '/Status/Ping'",
-                                    limit=limit)
+                                    state=state, limit=limit)
 
+
+    def getWmiConnIssues(self, state=2, limit=0):
+        """Return devices with WMI connection failures.
+        """
+        where="eventClass = '/Status/Wmi/Conn' or eventClass = '/Status/Ping'"
+        return self.getDeviceIssues(where=where,state=state,limit=limit)
+        
 
     def getDeviceStatusIssues(self, limit=10):
         """Return only status issues.

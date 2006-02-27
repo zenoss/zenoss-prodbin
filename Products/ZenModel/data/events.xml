@@ -976,6 +976,9 @@ evtsys
 <property type='lines' id='zEventClearClasses' >
 ['/App/Stop']
 </property>
+<property type='None' id='zEvent_severity' >
+0
+</property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type='string' id='eventClassKey' mode='w' >
