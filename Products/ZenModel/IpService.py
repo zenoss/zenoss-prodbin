@@ -86,7 +86,7 @@ class IpService(Service):
         If service only listens on 127.0.0.1 return false.
         """
         if len(self.ipaddresses) == 1 and "127.0.0.1" in self.ipaddresses:
-            return -1
+            return False
         return super(IpService, self).monitored()
             
 
