@@ -398,6 +398,7 @@ class ZenModeler(ZCmdBase):
         """
         self.log.info("stopping...")
         self.applyData.stop()
+        transaction.abort()
         self.closedb()
 
 
