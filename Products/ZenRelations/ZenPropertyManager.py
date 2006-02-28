@@ -151,6 +151,8 @@ class ZenPropertyManager(PropertyManager):
         type = rootnode.getPropertyType(id)
         if type == "lines": 
             value = ", ".join(map(str, value))
+        elif id.find("assword") > -1:
+            value = "*"*len(value)
         return value
 
 
