@@ -60,9 +60,10 @@ class ZenStatus(ZCmdBase):
     
     def startTests(self):
         self.devicegen = self.smc.devices.objectValuesGen()
-        for i, device in enumerate(self.devicegen):
-            if i >= self.options.parallel: break
+        count = 0
+        for device in self.devicegen:
             self.testDevice(device)
+            if self.count >= self.options.parallel: break
 
 
     def testDevice(self, dev):
