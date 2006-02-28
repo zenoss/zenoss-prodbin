@@ -49,7 +49,7 @@ class ZenTcpClient(protocol.ClientFactory):
         self.port = svc.getPort()
         self.sendString = svc.getSendString()
         self.expectRegex = svc.getExpectRegex()
-        self.timeout=5
+        self.timeout=15
         self.deferred = defer.Deferred()
 
 

@@ -83,13 +83,13 @@ class ZenStatus(ZCmdBase):
     def processTest(self, result):
         key, evt = result
         if evt: self.zem.sendEvent(evt)
-        if self.clients.has_key(key):
-            del self.clients[key] 
         try:
             if not self.devicegen: return
             device = self.devicegen.next()
             self.testDevice(device)
         except StopIteration: pass
+        if self.clients.has_key(key):
+            del self.clients[key] 
 
         
     def processError(self, error):
