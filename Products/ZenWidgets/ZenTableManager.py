@@ -190,7 +190,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 value = getattr(obj, field, None)
                 if callable(value):
                     value = value()
-                target.append(str(value))
+                target.append(unicode(value))
             targetstring = " ".join(target)
             if search(targetstring): filteredObjects.append(obj)
         return filteredObjects  
