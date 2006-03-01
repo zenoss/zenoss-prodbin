@@ -85,7 +85,7 @@ class IpServiceClass(ServiceClass):
 
 
     security.declareProtected('Manage DMD', 'manage_editServiceClass')
-    def manage_editServiceClass(self, name="", monitor=False, serviceKeys=[],
+    def manage_editServiceClass(self, name="", monitor=False, serviceKeys="",
                                port=0, description="", sendString="",
                                expectRegex="", REQUEST=None):
         """

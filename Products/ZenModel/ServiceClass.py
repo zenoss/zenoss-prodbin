@@ -166,7 +166,7 @@ class ServiceClass(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_editServiceClass')
-    def manage_editServiceClass(self, name="", monitor=False, serviceKeys=[],
+    def manage_editServiceClass(self, name="", monitor=False, serviceKeys="",
                                port=0, description="", REQUEST=None):
         """
         Edit a ProductClass from a web page.
@@ -175,6 +175,9 @@ class ServiceClass(ZenModelRM):
         id = self.prepId(name)
         if self.zMonitor != monitor:
             self.setZenProperty("zMonitor", monitor)
+            for inst in self.instances(): 
+                inst = inst.primaryAq()
+                inst.index_object()
         redirect = self.rename(id)
         serviceKeys = [ l.strip() for l in serviceKeys.split('\n') ]
         if serviceKeys != self.serviceKeys:
