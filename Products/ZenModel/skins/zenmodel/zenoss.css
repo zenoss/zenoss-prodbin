@@ -2,13 +2,18 @@ body {
     background-color: white;
     color: black;
     font-family:  Verdana, Arial, Helvetica, sans-serif;
+    /*
     font-size:  .9em;
+    */
+    font-size:  9pt;
     margin: 0px;
+    margin: 6px 3px 3px 3px;
 }
 
 #frame {
-    margin: 6px 3px 3px 3px;
+    /*
     position: relative;
+    */
 }
 
 #topPane{
@@ -17,12 +22,23 @@ body {
     background-color: black;
 	height: 35px;
     padding-left:0px;
+    padding-right:10px;
 }
 
 #logo {
     padding:0;
     margin:0;
 }
+
+td.logo {
+    background-color: white;
+    padding: 0px;
+    margin: 0px;
+    width: 75px;
+}      
+td.search {
+    padding-left: 8px;
+}   
 
 #settings {
 }
@@ -33,7 +49,10 @@ body {
 }
 #settings {
 	color: white;
+    /*
     font-size: .8em;
+    */
+    font-size: 7pt; 
     margin:0;
     text-align:right;
     padding-right: 20px;
@@ -42,13 +61,19 @@ body {
 	color: white;
 }
 #leftPane {
-	left: 0;
     position: absolute;
+	left: 0;
     margin-top:5px;
-	width: 8.3em;
-    padding: 25px 5px 0px 10px;
+    padding: 25px 0px 0px 10px;
 	min-height: 320px;
+    background: white;
+	width: 8.3em;
+    /*
+	width: 8.3em;
     font-size: .9em;
+    */
+    font-size: 8pt;
+    overflow: hidden;
 }
 #leftPane p {
     background: white;
@@ -70,13 +95,16 @@ body {
     display: block;
     margin: 0px;
     padding: 0px;
-    border: 0px;
+    padding-top: 3px;
     overflow: hidden;
 }
 #leftPane ul li a {
     text-decoration: none;
     display: block;
+    /*
     padding: 2px 0px 2px 3px;
+    */
+    padding: 0px 0px 0px 3px;
     margin: 0px;
     overflow: hidden;
 }
@@ -102,17 +130,25 @@ body {
 }
 #rightPane
 {
+    /*
     position: absolute;
     left: 7.9em;
-    /*right:0; */
+    right:0;
+    margin-left: 7.9em;
+    float:right;
+    */
     padding: 5px;
-    margin-top:5px;
+    margin-left: 118px;
+    margin-top: 5px;
     background: #b1bcd2;
 }
 #breadCrumbPane
 {
 	color: black;
+    /*
 	font-size: 1em;
+    */
+	font-size: 9pt;
 	padding-bottom: 5px;
 	margin: 0px;
 	font-weight: bold;
@@ -152,6 +188,17 @@ a:hover {
     color:  #000000;
 }
 
+/*
+exploring fixing buttons in IE
+input[type="submit"]{
+    color: orange;
+    border: 2px solid red;
+.tableheader INPUT { 
+    color: expression(this.type=="submit"?'red':'black'); 
+    text-align: expression(this.type=="submit"?'center':); 
+}
+*/
+
 form {
     margin-bottom:0;
     border:0;
@@ -161,10 +208,10 @@ form {
 table.tabtable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-weight: normal; 
-    width: 92%;
 	height: 25px;
 	margin: 0px;
 	padding: 0px;
+    width: 100%;
 }
 
 table.tabtable td{
@@ -176,7 +223,10 @@ table.tabtable td{
 
 table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
+    /*
     font-size: .9em; 
+    */
+    font-size: 8pt;
     width: 100%;
     font-weight: normal; 
 	margin: 0px;
@@ -192,11 +242,17 @@ table.zentable {
     border:0;
     margin:0;
     padding:0;
+    /*
     font-size: .8em;
+    */
+    font-size: 7pt;
 }
 
 .errortitle {
+    /*
     font-size: 1.1em;
+    */
+    font-size: 10pt;
     font-weight: bold; 
     color: #ff0000;
     background-color: #CCCCCC;
@@ -213,7 +269,10 @@ a.tabletitle {
 	padding: 2px 0px 0px 0px;
 	margin: 0px;
     height:23px;
+    /*
     font-size:.9em;
+    */
+    font-size:8pt;
 }
 a.tabletitle:link {  
     color: white;
@@ -245,7 +304,10 @@ th.tabletitle {
 	border-right: 2px solid #b1bcd2;
 	padding: 2px 0px 0px 0px;
     height:25px;
+    /*
     font-size:.9em;
+    */
+    font-size:8pt;
 }
 
 a.tabletitleselected:link {  
@@ -270,7 +332,10 @@ a.tabletitleselected:hover {
     background-color: #CCCCCC;
     font-weight: normal; 
     text-align: left;
+    /*
     font-size:.9em;
+    */
+    font-size:8pt;
 }
 .tableheaderselected { 
     font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -324,7 +389,10 @@ a.tablevalues:active {
 
 .dpTable {
 	font-family: Tahoma, Arial, Helvetica, sans-serif;
+    /*
 	font-size: .9em;
+    */
+    font-size: 8pt;
 	text-align: center;
     color: #000040; 
     background-color: #EEE;
@@ -369,7 +437,10 @@ a.tablevalues:active {
 	}
 
 .dpTitleText {
+    /*
 	font-size: .9em;
+    */
+    font-size: 8pt;
 	color: black;
 	}
 
@@ -380,7 +451,10 @@ a.tablevalues:active {
 
 .dpButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+    /*
 	font-size: 10px;
+    */
+	font-size: 7pt;
     color: #000000;
 	background: #CCCCCC;
 	padding: 0px;
@@ -388,7 +462,10 @@ a.tablevalues:active {
 
 .dpTodayButton {
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+    /*
 	font-size: 10px;
+    */
+	font-size: 7pt;
     color: #000000;
 	background: #CCCCCC;
 	}
