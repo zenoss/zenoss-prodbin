@@ -23,10 +23,8 @@
                             tableName,'getStatus','Status')"/>
     </tr>
     <tr tal:repeat="comp batch">
-        <td class="tablevalues">
-            <a class="tablevalues" tal:attributes="href comp/getParentDeviceUrl"
-                tal:content="comp/hostname">device</a>
-        </td>
+        <td class="tablevalues" 
+          tal:content="structure python:comp.getDeviceLink('deviceOsDetail')"/>
         <td class="tablevalues">
             <a class="tablevalues" tal:attributes="href comp/getPrimaryUrlPath"
                 tal:content="comp/name">smtp</a>
