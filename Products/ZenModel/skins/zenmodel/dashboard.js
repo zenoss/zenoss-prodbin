@@ -16,19 +16,6 @@ eventWindow = function(manager, evid, width, height) {
     evwindow.focus();
 }
 
-rowDisplay = function (row) {
-    var tr = TR(null);
-    for (var i=0;i<row.length;i++) {
-        if (i == 0) {
-            var a = linker(row[i])
-            appendChildNodes(tr, TD(null, a));
-        } else {
-            appendChildNodes(tr, TD(null, row[i]));
-        }
-    }
-    return tr
-}
-
 devlink = function(name) {
     return A({href:"/zport/dmd/deviceSearchResults?query=" + name}, name)
 }
@@ -38,7 +25,7 @@ orglink = function(name) {
 }
 
 eventUpdate = function(rows) {
-    //log("update events");
+    log("           update events");
     var tb = TBODY({'id':'events'})
     for (var i=0;i<rows.length;i++) {
         row = rows[i];
@@ -60,21 +47,32 @@ eventUpdate = function(rows) {
 }
 
 
-var linker = devlink;
 statusUpdate = function(id, data) {
-    if (id.indexOf("dev") == 0) { 
-        linker = devlink;
-    } else { 
-        linker = orglink 
+    newbody = TBODY({'class':'tablevalues', 'id':id});
+    for (var r=0; r<data.length;r++) {
+        var tr = TR(null);
+        var row = data[r];
+        for (var i=0;i<row.length;i++) {
+            if (i == 0) {
+                var a;
+                if (id.indexOf("dev") == 0) {
+                    a = devlink(row[i]);
+                } else {
+                    a = orglink(row[i]);
+                }
+                appendChildNodes(tr, TD(null, a));
+            } else {
+                appendChildNodes(tr, TD(null, row[i]));
+            }
+        }
+        appendChildNodes(newbody,tr);
     }
-    newbody = TBODY({'class':'tablevalues', 'id':id}, 
-                    map(rowDisplay, data)); 
     swapDOM(id, newbody);
 }
 
 
 updateDashboard = function(data) {
-    //log("got data");
+    log("               got data");
     for (var id in data) {
         if (id == "events") {
             eventUpdate(data[id]);
@@ -97,7 +95,8 @@ updateError = function(err) {
 }
 
 refreshData = function() {
-    //log("loading");
+    //logger.debuggingBookmarklet(true)
+    log("loading");
     var defr = loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo")
     defr.addCallback(updateDashboard)
     defr.addErrback(updateError)

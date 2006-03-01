@@ -13,6 +13,7 @@
     <tr>
     <td width="50%" valign="top">
 	<table class="zentable" cellpadding="3" cellspacing="1">
+        <thead>
 		<tr>
 		  <th class="tabletitle" colspan="6">Devices with Status Issues</th>
 		</tr>
@@ -21,12 +22,14 @@
 			<th class="tableheader">Events</th>
 			<th class="tableheader">Count</th>
 		</tr>
+        </thead>
         <tbody id="devstatus">
         </tbody>
 	</table>
     </td>
     <td valign="top">
 	<table class="zentable" cellpadding="3" cellspacing="1">
+        <thead>
 		<tr>
 		  <th class="tabletitle" colspan="6">
             Devices with more than 10 Events
@@ -37,6 +40,7 @@
 			<th class="tableheader">Events</th>
 			<th class="tableheader">Count</th>
 		</tr>
+        </thead>
         <tbody id="devevents">
         </tbody>
 	</table>
@@ -44,6 +48,7 @@
     </tr><tr>
     <td valign="top">
 	<table class="zentable" cellpadding="3" cellspacing="1">
+        <thead>
 		<tr>
 		  <th class="tabletitle" colspan="6">Systems with Status Issues</th>
 		</tr>
@@ -52,12 +57,14 @@
 			<th class="tableheader">Events</th>
 			<th class="tableheader">Count</th>
 		</tr>
+        </thead>
         <tbody id="sysstatus">
         </tbody>
 	</table>
     </td>
     <td valign="top">
 	<table class="zentable" cellpadding="3" cellspacing="1">
+        <thead>
 		<tr>
 		  <th class="tabletitle" colspan="6">Missed Heartbeats</th>
 		</tr>
@@ -66,6 +73,7 @@
 			<th class="tableheader">Component</th>
 			<th class="tableheader">Seconds</th>
 		</tr>
+        </thead>
         <tbody id="devheartbeat">
         </tbody>
 	</table>
@@ -77,6 +85,7 @@
         tal:define="
         resultFields python:('device','summary','lastTime','count');"
         >
+        <thead>
         <tr>
           <th class="tabletitle" 
             tal:attributes="colspan python:len(resultFields)">
@@ -88,6 +97,7 @@
             tal:repeat="headername resultFields" tal:content="headername">
         </th>
         </tr>
+        </thead>
         <tbody id="events">
         </tbody>
         </table>
