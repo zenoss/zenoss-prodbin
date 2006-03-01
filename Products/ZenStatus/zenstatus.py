@@ -91,6 +91,7 @@ class ZenStatus(ZCmdBase):
     def processTest(self, result):
         key, evt = result
         if evt: self.zem.sendEvent(evt)
+        self.nextService()
         if self.clients.has_key(key):
             del self.clients[key] 
 
