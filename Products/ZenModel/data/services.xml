@@ -1220,20 +1220,6 @@ Certificate Distribution Center
 223
 </property>
 </object>
-<object id='cddbp' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
-<property type='string' id='name' mode='w' >
-cddbp
-</property>
-<property type='lines' id='serviceKeys' mode='w' >
-('cddbp', 'tcp_00888')
-</property>
-<property type='text' id='description' mode='w' >
-CD Database Protocol
-</property>
-<property type='int' id='port' mode='w' >
-888
-</property>
-</object>
 <object id='cfdptkt' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
 <property type='string' id='name' mode='w' >
 cfdptkt
@@ -9292,34 +9278,6 @@ wpgs
 </property>
 <property type='int' id='port' mode='w' >
 780
-</property>
-</object>
-<object id='www' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
-<property type='string' id='name' mode='w' >
-www
-</property>
-<property type='lines' id='serviceKeys' mode='w' >
-('www', 'tcp_00080', 'udp_00080')
-</property>
-<property type='text' id='description' mode='w' >
-World Wide Web HTTP
-</property>
-<property type='int' id='port' mode='w' >
-80
-</property>
-</object>
-<object id='www-http' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
-<property type='string' id='name' mode='w' >
-www-http
-</property>
-<property type='lines' id='serviceKeys' mode='w' >
-('www-http', 'tcp_00080', 'udp_00080')
-</property>
-<property type='text' id='description' mode='w' >
-World Wide Web HTTP
-</property>
-<property type='int' id='port' mode='w' >
-80
 </property>
 </object>
 <object id='x-bone-ctl' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>

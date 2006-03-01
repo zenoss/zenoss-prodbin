@@ -58,7 +58,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], cricketMonitor="localhost"):
+            statusMonitors=["localhost"], cricketMonitor="localhost",
+            discoverProto="snmp"):
     """Device factory creates a device and sets up its relations and collects
     its configuration.  SNMP Community discovery also happens here.  If an
     IP is passed for deviceName it will be used for collection and the device
@@ -77,25 +78,29 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         except socket.error: ip = ""
         if context.getDmdRoot("Devices").findDevice(deviceName):
             raise DeviceExistsError("Device %s already exists" % deviceName)
-    zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
-        findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
-    log.debug("device community = %s", zSnmpCommunity)
-    log.debug("device name = %s", snmpname)
-    if not deviceName:
-        try:
-            if snmpname and socket.gethostbyname(snmpname):
-                deviceName = snmpname
-        except socket.error: pass
-        try:
-            if (not deviceName and ipobj and ipobj.ptrName 
-                and socket.gethostbyname(ipobj.ptrName)):
-                deviceName = ipobj.ptrName
-        except socket.error: pass
-        if not deviceName and snmpname:
-            deviceName = snmpname
+    if discoverProto == "snmp":
+        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
+            findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
+        log.debug("device community = %s", zSnmpCommunity)
+        log.debug("device name = %s", snmpname)
         if not deviceName:
-            log.warn("unable to name device using ip '%s'", ip)
-            deviceName = ip
+            try:
+                if snmpname and socket.gethostbyname(snmpname):
+                    deviceName = snmpname
+            except socket.error: pass
+            try:
+                if (not deviceName and ipobj and ipobj.ptrName 
+                    and socket.gethostbyname(ipobj.ptrName)):
+                    deviceName = ipobj.ptrName
+            except socket.error: pass
+            if not deviceName and snmpname:
+                deviceName = snmpname
+            if not deviceName:
+                log.warn("unable to name device using ip '%s'", ip)
+                deviceName = ip
+    elif discoverProto == "command":
+        log.info("discover protocol 'ssh' not implemented yet")
+        return
     log.info("device name '%s' for ip '%s'", deviceName, ip)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)

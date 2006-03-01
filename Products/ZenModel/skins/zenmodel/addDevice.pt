@@ -31,7 +31,7 @@
                                         request/deviceName | nothing"/>
             </td>
             <td class="tableheader" align="left">Device Class Path</td>
-            <td class="tablevalues" align="left" colspan=3>
+            <td class="tablevalues" align="left">
                 <select class="tablevalues" name="devicePath"
                 tal:define="
                 dcs python:here.getDmdRoot('Devices').getOrganizerNames(True);
@@ -40,6 +40,16 @@
                     <option tal:repeat="dc dcs" tal:content="dc" 
                         tal:attributes="value dc; selected python:dc==curdc">
                         /Server/Linux</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Discovery Protocol</td>
+            <td class="tablevalues" align="left" colspan=3>
+                <select class="tablevalues" name="discoverProto">
+                    <option value="snmp">snmp</option>
+                    <option value="ssh">ssh</option>
+                    <option value="none">none</option> 
                 </select>
             </td>
         </tr>

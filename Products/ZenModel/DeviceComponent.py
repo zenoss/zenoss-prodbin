@@ -83,12 +83,12 @@ class DeviceComponent(object):
         Device only propagates afterAdd if it is the added object.
         """
         self.index_object()
-        ZenModelRM.manage_afterAdd(self, item, container)
+        super(DeviceComponent,self).manage_afterAdd(item, container)
 
 
     def manage_afterClone(self, item):
         """Not really sure when this is called."""
-        ZenModelRM.manage_afterClone(self, item)
+        super(DeviceComponent,self).manage_afterClone(item)
         self.index_object()
 
 
@@ -97,7 +97,7 @@ class DeviceComponent(object):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        ZenModelRM.manage_beforeDelete(self, item, container)
+        super(DeviceComponent,self).manage_beforeDelete(item, container)
         self.unindex_object()
 
 

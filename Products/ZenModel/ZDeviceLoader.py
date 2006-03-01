@@ -90,7 +90,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], cricketMonitor="localhost",
-            REQUEST = None):
+            discoverProto="snmp",REQUEST = None):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
@@ -111,7 +111,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, cricketMonitor)
+                statusMonitors, cricketMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
@@ -120,7 +120,8 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
         else:
-            device.collectDevice(setlog=False, REQUEST=REQUEST)
+            if discoverProto != "none":
+                device.collectDevice(setlog=False, REQUEST=REQUEST)
             log.info("device %s loaded!" % deviceName)
         if REQUEST:
             self.loaderFooter(device, response)
