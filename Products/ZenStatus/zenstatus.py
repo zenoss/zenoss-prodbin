@@ -59,35 +59,38 @@ class ZenStatus(ZCmdBase):
 
     
     def startTests(self):
-        self.devicegen = self.smc.devices.objectValuesGen()
+        self.svcgen = self.smc.getSubComponents("IpService")
         count = 0
-        for device in self.devicegen:
-            self.testDevice(device)
-            if self.count >= self.options.parallel: break
+        while self.nextService() and self.count < self.options.parallel: pass
 
 
-    def testDevice(self, dev):
-        self.log.debug("adding device: %s", dev.getId())
-        if dev.getPingStatus() > 0: return
-        for svc in dev.os.ipservices():
-            if svc.monitored() and svc.getProtocol() == "tcp":
-                self.log.debug("adding service: %s", svc.name())
-                self.count += 1
-                d = ZenTcpClient.test(svc)
-                d.addCallback(self.processTest)
-                d.addErrback(self.processError)
-                key = (svc.getManageIp(), svc.name())
-                self.clients[key] = 1
+    def nextService(self):
+        while True:
+            try:
+                svc = self.svcgen.next()
+            except StopIteration: return False
+            dev = svc.device()
+            if dev.getPingStatus() > 0: 
+                self.log.warn("skipping service %s on %s bad ping status.",
+                                svc.name(), dev.getId())
+                continue
+            if svc.getProtocol() != "tcp":
+                self.log.warn("skipping service %s on %s it is not TCP.",
+                                svc.name(), dev.getId())
+                continue
+            self.log.debug("adding service:%s on:%s", svc.name(), dev.getId())
+            self.count += 1
+            d = ZenTcpClient.test(svc)
+            d.addCallback(self.processTest)
+            d.addErrback(self.processError)
+            key = (svc.getManageIp(), svc.name())
+            self.clients[key] = 1
+            return True 
 
 
     def processTest(self, result):
         key, evt = result
         if evt: self.zem.sendEvent(evt)
-        try:
-            if not self.devicegen: return
-            device = self.devicegen.next()
-            self.testDevice(device)
-        except StopIteration: pass
         if self.clients.has_key(key):
             del self.clients[key] 
 
@@ -145,11 +148,11 @@ class ZenStatus(ZCmdBase):
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--configpath', dest='configpath',
-                default="Monitors/StatusMonitors/localhost",
+                default="/Devices/Server",
                 help="path to our monitor config ie: "
-                     "/Monitors/StatusMonitors/localhost")
+                     "/Devices/Server")
         self.parser.add_option('--parallel', dest='parallel', 
-                default=20, type='int',
+                default=50, type='int',
                 help="number of devices to collect at one time")
         self.parser.add_option('--cycletime',
             dest='cycletime', default=60, type="int",

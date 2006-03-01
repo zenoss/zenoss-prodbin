@@ -34,8 +34,13 @@
         <td class="tablevalues" tal:content="here/port"/>
     </tr>
     <tr>
+        <td class="tableheader">Ip Addresses</td>
+        <td class="tablevalues" 
+            tal:content="python: ', '.join(here.ipaddresses)"/>
+    </tr>
+    <tr>
         <td class="tableheader">Monitor</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="not: here/cantMonitor">
             <select class="tablevalues"  name="monitor:boolean"
             tal:condition="here/isManager">
             <option tal:repeat="e python:(True,False)" tal:content="e"
@@ -44,36 +49,44 @@
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/monitored"/>
         </td>
+        <td class="tablevalues" tal:condition="here/cantMonitor"
+            tal:content="here/monitored"/>
     </tr>
     <tr>
         <td class="tableheader">Send String</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="not: here/cantMonitor">
             <input class="tablevalues" type="text" name="sendString" 
                 tal:condition="here/isManager"
                 tal:attributes="value here/getSendString"/>
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/getSendString"/>
         </td>
+        <td class="tablevalues" tal:condition="here/cantMonitor"
+            tal:content="here/getSendString"/>
     </tr>
     <tr>
         <td class="tableheader">Expect Regex</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="not: here/cantMonitor">
             <input class="tablevalues" type="text" name="expectRegex" 
                 tal:condition="here/isManager"
                 tal:attributes="value here/getExpectRegex"/>
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/getExpectRegex"/>
         </td>
+        <td class="tablevalues" tal:condition="here/cantMonitor"
+            tal:content="here/getExpectRegex"/>
     </tr>
     <tr>
         <td class="tableheader">Fail Severity</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="not: here/cantMonitor">
             <input class="tablevalues" type="text" name="severity:int" 
                 tal:condition="here/isManager"
                 tal:attributes="value here/getFailSeverity"/>
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/getFailSeverity"/>
         </td>
+        <td class="tablevalues" tal:condition="here/cantMonitor"
+            tal:content="here/getFailSeverity"/>
     </tr>
     <tr>
         <td class="tableheader">Description</td>

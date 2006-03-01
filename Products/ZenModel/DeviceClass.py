@@ -228,21 +228,13 @@ class DeviceClass(DeviceOrganizer):
     def getWinServices(self):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """
-        import re
         svcinfo = []
+        allsvcs = {}
+        for s in self.getSubComponents("WinService"):
+            svcs=allsvcs.setdefault(s.hostname(),{})
+            svcs[s.name()] = s.getStatus()
         for dev in self.getSubDevices():
-            #regex = getattr(dev,'zWinServices', "")
-            #if not regex: continue
-            #mon = re.compile(regex,re.I).search
-            svcs = {}
-            for svc in dev.os.winservices():
-                if svc.monitored():
-                    svcs[svc.name()] = svc.getStatus()
-                #elif mon(svc.caption):
-                #    svc.zMonitor = True
-                #    svcs[svc.name] = svc.getStatus()
-                #else:
-                #    svc.zMonitor = False
+            svcs = allsvcs.get(dev.getId(), {})
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
@@ -316,6 +308,22 @@ class DeviceClass(DeviceOrganizer):
         dev = self.findDevice(devicename)
         if dev: return dev.getPingStatusNumber()
 
+    
+    def getSubComponents(self, meta_type="", monitored=True):
+        """Return generator of components, by meta_type if specified.
+        """
+        zcat = getattr(self, "componentSearch", None)
+        if zcat: 
+            res = zcat({'meta_type': meta_type, 'monitored': monitored})
+            for b in res:
+                yield self.unrestrictedTraverse(b.getPrimaryId)
+
+
+    def getMonitoredComponents(self):
+        """Return monitored components for devices within this DeviceDeviceClass.
+        """
+        return self.getSubComponents()
+
 
     def createCatalog(self):
         """make the catalog for device searching"""
@@ -343,6 +351,13 @@ class DeviceClass(DeviceOrganizer):
         zcat.addIndex('interfaceName', 'ZCTextIndex', 
                         extra=makeIndexExtraParams('getInterfaceName'))
         zcat.addColumn('getPrimaryId')
+       
+        # make catalog for device components
+        manage_addZCatalog(self, "componentSearch", "componentSearch")
+        zcat = self._getOb("componentSearch")
+        zcat.addIndex('meta_type', 'FieldIndex')
+        zcat.addIndex('monitored', 'FieldIndex')
+        zcat.addColumn('getPrimaryId')
         
 
     def _makeLexicon(self, zcat):
@@ -356,17 +371,23 @@ class DeviceClass(DeviceOrganizer):
         manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
 
 
-    def reIndex(self, interfaces=True):
+    def reIndex(self):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
         transaction.savepoint()
         for dev in self.getSubDevicesGen():
             dev.index_object()
-            if interfaces:
-                for int in dev.os.interfaces():
-                    int.index_object()
-                transaction.savepoint()
+            for int in dev.os.interfaces():
+                int.index_object()
+            transaction.savepoint()
+            for svc in dev.os.winservices():
+                svc.index_object()
+            transaction.savepoint()
+            for svc in dev.os.ipservices():
+                svc.index_object()
+            transaction.savepoint()
+
 
 
     def buildDeviceTreeProperties(self):

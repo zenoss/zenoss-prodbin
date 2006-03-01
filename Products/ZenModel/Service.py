@@ -115,6 +115,7 @@ class Service(OSComponent):
         msg.append(self._aqsetprop("zMonitor", monitor, "boolean"))
         msg.append(self._aqsetprop("zFailSeverity", severity, "int"))
         msg = [ m for m in msg if m ]
+        self.index_object()
         if not msg: msg.append("No action needed")
         if REQUEST:
             REQUEST['message'] = ", ".join(msg) + ":"

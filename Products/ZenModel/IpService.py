@@ -90,10 +90,15 @@ class IpService(Service):
         """Return monitored state of ipservice.  
         If service only listens on 127.0.0.1 return false.
         """
-        if len(self.ipaddresses) == 1 and "127.0.0.1" in self.ipaddresses:
-            return False
+        if self.cantMonitor(): return False
         return super(IpService, self).monitored()
-            
+        
+
+    def cantMonitor(self):
+        """Return true if IpService only listens on 127.0.0.1.
+        """
+        return len(self.ipaddresses) == 1 and "127.0.0.1" in self.ipaddresses
+
 
     def getInstDescription(self):
         """Return some text that describes this component.  Default is name.
@@ -163,6 +168,7 @@ class IpService(Service):
         msg = []
         msg.append(self._aqsetprop("sendString", sendString, "string"))
         msg.append(self._aqsetprop("expectRegex", expectRegex, "string"))
+        self.index_object()
         return super(IpService, self).manage_editService(monitor, severity, 
                                         msg=msg,REQUEST=REQUEST)
 

@@ -75,6 +75,7 @@ productNames = (
     "System",
     "TerminalServer",
     "UserSettings",
+    "WinService",
     "ZDeviceLoader",
     "ZentinelPortal",
 )
