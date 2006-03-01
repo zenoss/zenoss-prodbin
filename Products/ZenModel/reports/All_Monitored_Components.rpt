@@ -16,6 +16,8 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'name','Component')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'meta_type','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getInstDescription','Description')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getStatus','Status')"/>
@@ -29,6 +31,7 @@
             <a class="tablevalues" tal:attributes="href comp/getPrimaryUrlPath"
                 tal:content="comp/name">smtp</a>
         </td>
+        <td class="tablevalues" tal:content="comp/meta_type"/>
         <td class="tablevalues" tal:content="comp/getInstDescription"/>
         <td tal:define="status comp/getStatus"
             tal:attributes="class python:comp.getStatusCssClass(status)"
