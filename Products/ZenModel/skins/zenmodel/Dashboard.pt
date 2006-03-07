@@ -3,7 +3,14 @@
 <tal:block metal:fill-slot="breadCrumbPane">
     /<a tal:attributes="
             href string:${here/absolute_url_path}/${template/id}">Dashboard
+   </a> &nbsp;
+    <a tal:attributes="
+            href string:${here/absolute_url_path}/${template/id}"
+            style="font-weight: normal; font-size: 7pt; text-decoration: none">(refresh)
+            
    </a>
+
+
    <div style="float: right; padding:0; margin-top: -17px; margin-right:15px; font-weight: normal; font-style: normal; font-size: 8pt;  " id="dashTime">Last Updated: 00:00:00</div>
 </tal:block>
 
@@ -13,11 +20,11 @@
     <table width=100%>
     <tr>
     <td width="50%" valign="top">
-        <div style="height: 200px; overflow:auto">
+        <div style="height: 300px; overflow:auto">
         <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
-              <th class="tabletitle" colspan="6"><a style="color: white" href="/zport/dmd/Devices">Devices</a> with Status Monitoring Failures</th>
+              <th class="tabletitle" colspan="6"><a style="color: white" href="/zport/dmd/Events/Status/viewEvents">Devices</a> with Status Monitoring Failures</th>
             </tr>
             <tr>
                 <th class="tableheader">Name</th>
@@ -31,12 +38,12 @@
         </div>
     </td>
     <td valign="top">
-        <div style="height: 200px; overflow:auto">
+        <div style="height: 300px; overflow:auto">
         <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
               <th class="tabletitle" colspan="6">
-              <a style="color: white" href="/zport/dmd/Devices">Devices</a> with Devices with more than 10 Events</th>
+              <a style="color: white" href="/zport/dmd/Devices/viewEvents/">Devices</a> with more than 10 Events</th>
             </tr>
             <tr>
                 <th class="tableheader">Name</th>
@@ -51,11 +58,12 @@
     </td>
     </tr><tr>
     <td valign="top">
-        <div style="height: 150px; overflow:auto">
+        <div style="height: 120px; overflow:auto">
 	    <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
-              <th class="tabletitle" colspan="6">Systems with Status Issues</th>
+              <th class="tabletitle" colspan="6">
+              <a style="color: white" href="/zport/dmd/Systems/viewEvents/">Systems</a> with Status Monitoring Failures</th>
             </tr>
             <tr>
                 <th class="tableheader">System</th>
@@ -69,11 +77,12 @@
         </div>
     </td>
     <td valign="top">
-        <div style="height: 150px; overflow:auto">
+        <div style="height: 120px; overflow:auto">
 	    <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
-              <th class="tabletitle" colspan="6">Missed Heartbeats</th>
+              <th class="tabletitle" colspan="6">
+                Missed <a style="color: white" href="zport/dmd/Reports/All%20Heartbeats">Heartbeats</a></th>
             </tr>
             <tr>
                 <th class="tableheader">Device</th>
