@@ -160,17 +160,17 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
-    <tr tal:repeat="srv batch">
+    <tr tal:repeat="srv batch" class="tablevalues">
         <td><a class="tablevalues" tal:content="srv/name"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
-        <td class="tablevalues" tal:content="srv/protocol"/>
-        <td class="tablevalues" tal:content="srv/port"/>
-        <td class="tablevalues">
+        <td tal:content="srv/protocol"/>
+        <td tal:content="srv/port"/>
+        <td>
             <span tal:omit-tag="" tal:repeat="ip srv/ipaddresses"
                 tal:content="ip"/>
         </td>
-        <td class="tablevalues" tal:content="srv/getDescription"/>
+        <td tal:content="srv/getDescription"/>
         <td tal:define="status srv/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
