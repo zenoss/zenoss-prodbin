@@ -484,7 +484,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                                     limit=limit)
 
 
-    def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
+    def getDeviceIssues(self,severity=1,state=0,where="",mincount=10,limit=0):
         """Return list of tuples (device, count, total) of events for
         all devices with events.
         """
