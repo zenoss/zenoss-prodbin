@@ -6,7 +6,21 @@
 
 
 // Refresh rate in seconds
-var refresh=20
+var refresh=20;
+
+function updateTimestamp(){
+    $("dashTime").innerHTML = "<b>Refreshing...</b>";
+    callLater(1,updateTimestampNow);
+}
+function updateTimestampNow(){
+    var d = new Date();
+    var h = "Last Updated: ";
+
+    h += d.getFullYear() + '/' + d.getMonth() + '/' + d.getDate() + ' ';
+    h += d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() ;
+
+    $("dashTime").innerHTML = h;
+}
 
 //display an event detail in its own native window
 eventWindow = function(manager, evid, width, height) {
@@ -80,6 +94,7 @@ updateDashboard = function(data) {
             statusUpdate(id, data[id]);
         }
     }
+    updateTimestamp();
     callLater(refresh, refreshData);
 }
 

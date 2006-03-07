@@ -4,6 +4,7 @@
     /<a tal:attributes="
             href string:${here/absolute_url_path}/${template/id}">Dashboard
    </a>
+   <div style="float: right; padding:0; margin-top: -17px; margin-right:15px; font-weight: normal; font-style: normal; font-size: 8pt;  " id="dashTime">Last Updated: 00:00:00</div>
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
@@ -12,75 +13,83 @@
     <table width=100%>
     <tr>
     <td width="50%" valign="top">
-	<table class="zentable" cellpadding="3" cellspacing="1">
-        <thead>
-		<tr>
-		  <th class="tabletitle" colspan="6">Devices with Status Issues</th>
-		</tr>
-		<tr>
-			<th class="tableheader">Name</th>
-			<th class="tableheader">Events</th>
-			<th class="tableheader">Count</th>
-		</tr>
-        </thead>
-        <tbody id="devstatus">
-        </tbody>
-	</table>
+        <div style="height: 200px; overflow:auto">
+        <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+            <tr>
+              <th class="tabletitle" colspan="6"><a style="color: white" href="/zport/dmd/Devices">Devices</a> with Status Monitoring Failures</th>
+            </tr>
+            <tr>
+                <th class="tableheader">Name</th>
+                <th class="tableheader">Events</th>
+                <th class="tableheader">Count</th>
+            </tr>
+            </thead>
+            <tbody id="devstatus">
+            </tbody>
+        </table>
+        </div>
     </td>
     <td valign="top">
-	<table class="zentable" cellpadding="3" cellspacing="1">
-        <thead>
-		<tr>
-		  <th class="tabletitle" colspan="6">
-            Devices with more than 10 Events
-          </th>
-		</tr>
-		<tr>
-			<th class="tableheader">Name</th>
-			<th class="tableheader">Events</th>
-			<th class="tableheader">Count</th>
-		</tr>
-        </thead>
-        <tbody id="devevents">
-        </tbody>
-	</table>
+        <div style="height: 200px; overflow:auto">
+        <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+            <tr>
+              <th class="tabletitle" colspan="6">
+              <a style="color: white" href="/zport/dmd/Devices">Devices</a> with Devices with more than 10 Events</th>
+            </tr>
+            <tr>
+                <th class="tableheader">Name</th>
+                <th class="tableheader">Events</th>
+                <th class="tableheader">Count</th>
+            </tr>
+            </thead>
+            <tbody id="devevents">
+            </tbody>
+        </table>
+        </div>
     </td>
     </tr><tr>
     <td valign="top">
-	<table class="zentable" cellpadding="3" cellspacing="1">
-        <thead>
-		<tr>
-		  <th class="tabletitle" colspan="6">Systems with Status Issues</th>
-		</tr>
-		<tr>
-			<th class="tableheader">System</th>
-			<th class="tableheader">Events</th>
-			<th class="tableheader">Count</th>
-		</tr>
-        </thead>
-        <tbody id="sysstatus">
-        </tbody>
-	</table>
+        <div style="height: 150px; overflow:auto">
+	    <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+            <tr>
+              <th class="tabletitle" colspan="6">Systems with Status Issues</th>
+            </tr>
+            <tr>
+                <th class="tableheader">System</th>
+                <th class="tableheader">Events</th>
+                <th class="tableheader">Count</th>
+            </tr>
+            </thead>
+            <tbody id="sysstatus">
+            </tbody>
+            </table>
+        </div>
     </td>
     <td valign="top">
-	<table class="zentable" cellpadding="3" cellspacing="1">
-        <thead>
-		<tr>
-		  <th class="tabletitle" colspan="6">Missed Heartbeats</th>
-		</tr>
-		<tr>
-			<th class="tableheader">Device</th>
-			<th class="tableheader">Component</th>
-			<th class="tableheader">Seconds</th>
-		</tr>
-        </thead>
-        <tbody id="devheartbeat">
-        </tbody>
-	</table>
+        <div style="height: 150px; overflow:auto">
+	    <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+            <tr>
+              <th class="tabletitle" colspan="6">Missed Heartbeats</th>
+            </tr>
+            <tr>
+                <th class="tableheader">Device</th>
+                <th class="tableheader">Component</th>
+                <th class="tableheader">Seconds</th>
+            </tr>
+            </thead>
+            <tbody id="devheartbeat">
+            </tbody>
+	    </table>
+        </div>
     </td>
     </tr>
     <tr>
     <td colspan="2">
+        <div style="height: 150px; overflow:auto">
         <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="
         resultFields python:('device','summary','lastTime','count');"
@@ -89,7 +98,7 @@
         <tr>
           <th class="tabletitle" 
             tal:attributes="colspan python:len(resultFields)">
-            <a href="/zport/dmd/Events/viewEvents">Events</a>
+            <a style="color: white" href="/zport/dmd/Events/viewEvents">Events</a>
           </th>
         </tr>
         <tr>
@@ -101,6 +110,7 @@
         <tbody id="events">
         </tbody>
         </table>
+        </div>
     </td>
     </tr>
     </table>
