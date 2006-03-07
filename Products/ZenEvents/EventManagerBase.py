@@ -427,7 +427,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     
     def getOrganizerStatusIssues(self, event_key,severity=1,state=0,
-                                where="", limit=10):
+                                where="", limit=0):
         """Return list of tuples (org, count) for all organizers with events.
         """
         orgfield = self.lookupManagedEntityField(event_key)
@@ -477,14 +477,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return self.getDeviceIssues(where=where,state=state,limit=limit)
         
 
-    def getDeviceStatusIssues(self, limit=10):
+    def getDeviceStatusIssues(self, limit=0):
         """Return only status issues.
         """
         return self.getDeviceIssues(where="eventClass like '/Status%'",
                                     limit=limit)
 
 
-    def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=10):
+    def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
         """Return list of tuples (device, count, total) of events for
         all devices with events.
         """
@@ -541,7 +541,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device, 0)
 
 
-    def getHeartbeat(self, failures=True, limit=10):
+    def getHeartbeat(self, failures=True, limit=0):
         """Return all heartbeat issues list of tuples (device, component, secs)
         """
         sel = """select device, component, lastTime from heartbeat """
@@ -644,7 +644,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """
         data = {}
         data['devstatus'] = self.getDeviceStatusIssues()
-        data['devevents'] = self.getDeviceIssues(mincount=10)
+        data['devevents'] = self.getDeviceIssues()
         data['sysstatus'] = self.getOrganizerStatusIssues('System')
         data['devheartbeat'] = self.getHeartbeat()
         fields = ('device','summary','lastTime','count')
