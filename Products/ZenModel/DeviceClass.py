@@ -221,7 +221,7 @@ class DeviceClass(DeviceOrganizer):
         ffunc = None
         if lastPoll > 0:
             lastPoll = DateTime.DateTime(lastPoll)
-            ffunc = lambda x: x.getLastChange() > lastPoll
+            ffunc = lambda x: x.getSnmpLastCollection() > lastPoll
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
             user = getattr(dev,'zWinUser','')
