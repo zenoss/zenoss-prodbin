@@ -470,21 +470,29 @@ class Device(CricketDevice, ManagedEntity):
 
     security.declareProtected('View', 'getLastChange')
     def getLastChange(self):
+        """Return DateTime of last change detected on this device.
+        """
         return self._lastChange.getDate()
 
     
     security.declareProtected('View', 'getLastChangeString')
     def getLastChangeString(self):
+        """Return date string of last change detected on this device.
+        """
         return self._lastChange.getString()
 
 
     security.declareProtected('View', 'getLastChange')
     def getLastCricketGenerate(self):
+        """Return DateTime of last cricket generation.
+        """
         return self._lastCricketGenerate.getDate()
 
     
     security.declareProtected('View', 'getLastChangeString')
     def getLastCricketGenerateString(self):
+        """Return date string of last cricket generation.
+        """
         return self._lastCricketGenerate.getString()
 
 

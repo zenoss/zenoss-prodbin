@@ -12,6 +12,7 @@ __version__ = "$Revision: 1.76 $"[11:-2]
 
 import types
 import transaction
+import DateTime
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -213,12 +214,16 @@ class DeviceClass(DeviceOrganizer):
   
 
     security.declareProtected('View', 'getDeviceInfo')
-    def getDeviceWinInfo(self):
+    def getDeviceWinInfo(self, lastPoll=0):
         """Return list of (devname,user,passwd,url) for each device.
         user and passwd are used to connect via wmi.
         """
+        ffunc = None
+        if lastPoll > 0:
+            lastPoll = DateTime.DateTime(lastPoll)
+            ffunc = lambda x: x.getLastChange() > lastPoll
         devinfo = []
-        for dev in self.getSubDevices():
+        for dev in self.getSubDevices(devfilter=ffunc):
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             devinfo.append((dev.id,user,passwd,dev.absolute_url()))

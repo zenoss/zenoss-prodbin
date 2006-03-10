@@ -31,48 +31,44 @@ class CmdBase:
         self.args = []
         self.buildOptions()
         self.parseOptions()
-        self.setupLogging()
         if self.options.configfile:
             parseconfig(self.options)
+        self.setupLogging()
 
 
     def setupLogging(self):
-        """Setup logging to send to stdout. zen.* logged at --logseverity
-        root at ERROR.
-        """
-        logging.basicConfig()
         rlog = logging.getLogger()
-        rlog.setLevel(logging.ERROR)
+        rlog.setLevel(logging.WARN)
+        mname = self.__class__.__name__
+        self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
-        self.log = logging.getLogger("zen."+self.__class__.__name__)
+        if self.options.logpath:
+            logdir = self.options.logpath
+            if not os.path.isdir(os.path.dirname(logdir)):
+                raise SystemExit("logpath:%s doesn't exist" % logdir)
+            logfile = os.path.join(logdir, mname.lower()+".log")
+            h = logging.FileHandler(logfile)
+            h.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                "%Y-%m-%d %H:%M:%S"))
+            rlog.addHandler(h)
+        else:
+            logging.basicConfig()
 
-
-    def setLoggingStream(self, stream):
-        from logging import StreamHandler, Formatter
-        hdlr = StreamHandler(stream)
-        fmt = Formatter(logging.BASIC_FORMAT)
-        hdlr.setFormatter(fmt)
-        rlog = logging.getLogger()
-        rlog.addHandler(hdlr)
-        rlog.setLevel(logging.ERROR)
-        zlog = logging.getLogger("zen")
-        zlog.setLevel(self.options.logseverity)
-        self.log = logging.getLogger("zen."+self.__class__.__name__)
-        
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
 
         self.parser = OptionParser(usage=self.usage, 
                                    version="%prog " + __version__)
-        
         self.parser.add_option('-v', '--logseverity',
                     dest='logseverity',
                     default=20,
                     type='int',
                     help='Logging severity threshold')
-        
+        self.parser.add_option('--logpath',dest='logpath',
+                    help='override default logging path')
         self.parser.add_option("-C", "--configfile", 
                     dest="configfile",
                     help="config file must define all params (see man)")

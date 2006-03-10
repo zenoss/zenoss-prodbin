@@ -143,8 +143,6 @@ class ZenDaemon(CmdBase):
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
-        self.parser.add_option('-l', '--logpath',dest='logpath',
-                    help='override default logging path')
         self.parser.add_option('--uid',dest='uid',default="zenoss",
                     help='user to become when running default:zenoss')
         self.parser.add_option('-c', '--cycle',dest='cycle',action="store_true",
