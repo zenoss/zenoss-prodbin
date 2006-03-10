@@ -106,7 +106,7 @@ class ProductClass(ZenModelRM):
         return self.instances.countObjects()
 
 
-    def productKey(self):
+    def getProductKey(self):
         """Return the first product key of the device.
         """
         if len(self.productKeys) > 0:

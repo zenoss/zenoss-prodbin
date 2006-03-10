@@ -56,7 +56,7 @@ class MEProduct(ManagedEntity):
         """Get the product class of this software.
         """
         pclass = self.productClass()
-        if pclass: return pclass.productKey()
+        if pclass: return pclass.getProductKey()
         return ""
 
     
