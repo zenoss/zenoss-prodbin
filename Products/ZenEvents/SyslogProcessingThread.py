@@ -165,7 +165,7 @@ class SyslogProcessingThread(threading.Thread):
             evt.updateFromDict(m.groupdict())
             break
         else:
-            slog.warn("parseTag failed")
+            slog.warn("parseTag failed:'%s'", msg)
             evt.summary = msg
         return evt
 
