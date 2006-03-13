@@ -36,3 +36,6 @@ class TraceRouteGap(ZenModelError):
 
 class NoSnmp(ZenModelError):
     """Can't open an snmp connection to the device."""
+
+class NoIPAddress(ZenModelError):
+    """No IP Address found for device name."""

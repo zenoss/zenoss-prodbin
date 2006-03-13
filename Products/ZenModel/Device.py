@@ -78,6 +78,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         except socket.error: ip = ""
         if context.getDmdRoot("Devices").findDevice(deviceName):
             raise DeviceExistsError("Device %s already exists" % deviceName)
+    if not ip:
+        raise NoIPAddress("No IP found for name %s" % deviceName)
     if discoverProto == "snmp":
         zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
             findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
@@ -99,8 +101,9 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 log.warn("unable to name device using ip '%s'", ip)
                 deviceName = ip
     elif discoverProto == "command":
-        log.info("discover protocol 'ssh' not implemented yet")
-        return
+        raise ZenModelError("discover protocol 'ssh' not implemented yet")
+    if not deviceName:
+        deviceName = ip
     log.info("device name '%s' for ip '%s'", deviceName, ip)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName)
