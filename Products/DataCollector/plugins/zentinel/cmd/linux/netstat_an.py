@@ -11,7 +11,7 @@ class netstat_an(CommandPlugin):
     Collect running ip services using netstat -an on a linux box.
     """
     maptype = "IpServiceMap" 
-    command = 'netstat -an | grep :\*'
+    command = "netstat -an | grep ':\\*'"
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
@@ -40,6 +40,7 @@ class netstat_an(CommandPlugin):
                 elif len(listar) == 4:
                     addr = "0.0.0.0"
                     port = listar[-1]
+                if not port: continue
                 if addr == "0.0.0.0" or not services.has_key(port):
                     services[port] = (addr, proto)
             except ValueError:
