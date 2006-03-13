@@ -16,4 +16,6 @@ do
     rm -rf $d
     rm -f VERSION.txt
 done
+rm -rf .svn
+rm -f *.txt
 exit;
