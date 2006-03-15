@@ -93,8 +93,7 @@ class ZenActions(ZCmdBase):
                     curs.execute(addcmd)
                      
                 # get clear events
-                clearsel = self.clearsel % (",".join(fields), ar.where, 
-                                            userid, ar.getId())
+                clearsel = self.clearsel % (",".join(fields),userid,ar.getId())
                 self.log.debug(clearsel)
                 cursql = clearsel
                 curs.execute(clearsel)
