@@ -26,9 +26,9 @@ class ZenActions(ZCmdBase):
                     and userid='%s' and rule='%s'"""
 
     newsel = """select %s, evid from status where %s and evid not in 
-             (select evid from alert_state where userid='%s'and rule='%s')""" 
+             (select evid from alert_state where userid='%s' and rule='%s')""" 
             
-    clearsel = """select %s, evid from history where %s and evid in 
+    clearsel = """select %s, evid from history where evid in 
                (select evid from alert_state where userid='%s' and rule='%s')"""
 
 

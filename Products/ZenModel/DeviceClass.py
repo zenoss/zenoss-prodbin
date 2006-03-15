@@ -214,7 +214,7 @@ class DeviceClass(DeviceOrganizer):
   
 
     security.declareProtected('View', 'getDeviceInfo')
-    def getDeviceWinInfo(self, lastPoll=0):
+    def getDeviceWinInfo(self, lastPoll=0, eventlog=False):
         """Return list of (devname,user,passwd,url) for each device.
         user and passwd are used to connect via wmi.
         """
@@ -222,6 +222,8 @@ class DeviceClass(DeviceOrganizer):
         if lastPoll > 0:
             lastPoll = DateTime.DateTime(lastPoll)
             ffunc = lambda x: x.getSnmpLastCollection() > lastPoll
+        if eventlog:
+            ffunc = lambda x: x.zWinEventlog
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
             user = getattr(dev,'zWinUser','')
