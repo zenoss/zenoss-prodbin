@@ -31,7 +31,7 @@ class ActionRule(ZenModelRM):
     delay = 0
     action = "email"
     format = "%(device)s %(summary)s at %(firstTime)s"
-    enabled = True
+    enabled = False
     actionTypes = ("page", "email") 
 
     _properties = ZenModelRM._properties + (
