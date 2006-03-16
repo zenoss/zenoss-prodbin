@@ -16,73 +16,151 @@
 
 <tal:block metal:fill-slot="contentPane">
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <!--
     <script type="text/javascript" src="dashboard.js"></script>
+    -->
     <table width=100%>
     <tr>
-    <td width="50%" valign="top">
-        <div style="height: 300px; overflow:auto">
-        <table class="zentable" cellpadding="3" cellspacing="1">
+
+    <!-- Top Left -->
+    <td rowspan="2" width="50%" valign="top">
+	    <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
-            <tr>
-              <th class="tabletitle" colspan="6"><a style="color: white" href="/zport/dmd/Events/Status/viewEvents">Devices</a> with Status Monitoring Failures</th>
-            </tr>
-            <tr>
-                <th class="tableheader">Name</th>
-                <th class="tableheader">Events</th>
-                <th class="tableheader">Count</th>
-            </tr>
+                <tr>
+                  <th class="tabletitle" colspan="6">
+                  <a style="color: white" href="/zport/dmd/Systems/viewEvents/">Systems</a>-Level Event Summary</th>
+                </tr>
+                <tr>
+                    <th class="tableheader">System</th>
+                    <th class="tableheader">Critical</th>
+                    <th class="tableheader">Error</th>
+                    <th class="tableheader">Warn</th>
+                    <th class="tableheader">Info</th>
+                    <th class="tableheader">Debug</th>
+                    <!--
+                    <th class="tableheader zenevents_5_noack">&nbsp;</th>
+                    <th class="tableheader zenevents_4_noack">&nbsp;</th>
+                    <th class="tableheader zenevents_3_noack">&nbsp;</th>
+                    <th class="tableheader zenevents_2_noack">&nbsp;</th>
+                    <th class="tableheader zenevents_1_noack">&nbsp;</th>
+                    -->
+                </tr>
             </thead>
-            <tbody id="devstatus">
+            <tbody id="sysstatus">
+                <tr>
+                    <td>Email</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td class="zenevents_5_noack"><a href=#>HR</a></td>
+                    <td class="zenevents_5_noack"><a href=#>2</a></td>
+                    <td class="zenevents_4_noack"><a href=#>2</a></td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td><a href=#>Network</a></td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td class="zenevents_2_noack"><a href=#>250</a></td>
+                    <td class="zenevents_1_noack"><a href=#>5</a></td>
+                </tr>
+                <tr>
+                    <td><a href=#>Misys</a></td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td class="zenevents_3_noack"><a href=#>100</a></td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td><a href=#>System A</a></td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
             </tbody>
         </table>
-        </div>
     </td>
     <td valign="top">
-        <div style="height: 300px; overflow:auto">
         <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
-              <th class="tabletitle" colspan="6">
-              <a style="color: white" href="/zport/dmd/Devices/viewEvents/">Devices</a> with more than 10 Events</th>
+              <th class="tabletitle" colspan="4">
+              <a style="color: white" href="/zport/dmd/Devices/viewEvents/">Devices</a> with Events (Severity &gt;= Error)</th>
             </tr>
             <tr>
                 <th class="tableheader">Name</th>
-                <th class="tableheader">Events</th>
-                <th class="tableheader">Count</th>
+                <th class="tableheader">Acknowleged By</th>
+                <th class="tableheader">Critical</th>
+                <th class="tableheader">Error</th>
             </tr>
             </thead>
             <tbody id="devevents">
+                <tr>
+                    <td><a href=#>BOX1</a></td>
+                    <td>jsmith, ajones</td>
+                    <td></td>
+                    <td class="zenevents_4_noack"><a href=#>2/3</a></td>
+                </tr>
+                <tr>
+                    <td class="zenevents_5_noack"><a href=#>BOX1</a></td>
+                    <td>ajones</td>
+                    <td class="zenevents_5_noack"><a href=#>1/3</a></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a href=#>BOX3</a></td>
+                    <td></td>
+                    <td></td>
+                    <td class="zenevents_4_noack"><a href=#>0/5</a></td>
+                </tr>
+                <tr>
+                    <td><a href=#>BOX4</a></td>
+                    <td></td>
+                    <td></td>
+                    <td class="zenevents_4_noack"><a href=#>0/3</a></td>
+                </tr>
             </tbody>
         </table>
-        </div>
     </td>
-    </tr><tr>
-    <td valign="top">
-        <div style="height: 120px; overflow:auto">
+    </tr>
+    <tr>
+     <td valign="bottom">
 	    <table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
             <tr>
               <th class="tabletitle" colspan="6">
-              <a style="color: white" href="/zport/dmd/Systems/viewEvents/">Systems</a> with Status Monitoring Failures</th>
-            </tr>
-            <tr>
-                <th class="tableheader">System</th>
-                <th class="tableheader">Events</th>
-                <th class="tableheader">Count</th>
-            </tr>
-            </thead>
-            <tbody id="sysstatus">
-            </tbody>
-            </table>
-        </div>
-    </td>
-    <td valign="top">
-        <div style="height: 120px; overflow:auto">
-	    <table class="zentable" cellpadding="3" cellspacing="1">
-            <thead>
-            <tr>
-              <th class="tabletitle" colspan="6">
-                Missed <a style="color: white" href="zport/dmd/Reports/All%20Heartbeats">Heartbeats</a></th>
+                Zenoss Infrastructure <a style="color: white" href="zport/dmd/Reports/All%20Heartbeats">Issues</a></th>
             </tr>
             <tr>
                 <th class="tableheader">Device</th>
@@ -91,36 +169,12 @@
             </tr>
             </thead>
             <tbody id="devheartbeat">
+                <tr>
+                    <td>(None)</td>
+                </tr>
             </tbody>
 	    </table>
-        </div>
-    </td>
-    </tr>
-    <tr>
-    <td colspan="2">
-        <div style="height: 150px; overflow:auto">
-        <table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="
-        resultFields python:('device','summary','lastTime','count');"
-        >
-        <thead>
-        <tr>
-          <th class="tabletitle" 
-            tal:attributes="colspan python:len(resultFields)">
-            <a style="color: white" href="/zport/dmd/Events/viewEvents">Events</a>
-          </th>
-        </tr>
-        <tr>
-        <th class="tableheader" align="center"
-            tal:repeat="headername resultFields" tal:content="headername">
-        </th>
-        </tr>
-        </thead>
-        <tbody id="events">
-        </tbody>
-        </table>
-        </div>
-    </td>
+     </td>
     </tr>
     </table>
 </tal:block>
