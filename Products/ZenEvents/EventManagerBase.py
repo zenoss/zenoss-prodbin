@@ -426,7 +426,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return countevts
 
     
-    def getOrganizerStatusIssues(self, event_key,severity=1,state=0,
+    def getOrganizerStatusIssues(self, event_key,severity=4,state=0,
                                 where="", limit=0):
         """Return list of tuples (org, count) for all organizers with events.
         """
