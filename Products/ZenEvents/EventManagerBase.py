@@ -481,7 +481,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """Return only status issues.
         """
         return self.getDeviceIssues(where="eventClass like '/Status%'",
-                                    limit=limit)
+                                    severity=4, limit=limit)
 
 
     def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
