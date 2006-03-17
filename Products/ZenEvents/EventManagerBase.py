@@ -18,6 +18,7 @@ import logging
 log = logging.getLogger("zen.Events")
 
 from AccessControl import ClassSecurityInfo
+from AccessControl import getSecurityManager
 from Globals import InitializeClass
 from Globals import DTMLFile
 from Acquisition import aq_base
@@ -819,9 +820,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         if eventState and evids: 
-            delete = "update status set eventState=%s " % eventState
+            eventState = int(eventState)
+            userid = ""
+            if eventState > 0: userid = getSecurityManager().getUser()
+            delete = "update status set eventState=%s, ownerid='%s' " % (
+                        eventState, userid)
             delete += "where evid in (" 
             delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
+            #print delete
             db = self.connect()
             curs = db.cursor()
             curs.execute(delete);

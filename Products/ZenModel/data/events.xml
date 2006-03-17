@@ -19,7 +19,7 @@ status
 <object id='Login' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Exit' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type='lines' id='zEventClearClasses' >
-['/Security/Connection/Open']
+['/Security/Conn/Open']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -253,7 +253,7 @@ session opened for user edahl by (uid=500)
 </object>
 <object id='Close' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type='lines' id='zEventClearClasses' >
-['/Security/Connection/Open']
+['/Security/Conn/Open']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
