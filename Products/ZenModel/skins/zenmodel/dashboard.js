@@ -87,7 +87,7 @@ updateError = function(err) {
 }
 
 refreshData = function() {
-    logger.debuggingBookmarklet(true)
+    //logger.debuggingBookmarklet(true)
     log("loading");
     var defr = loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo")
     defr.addCallback(updateDashboard)

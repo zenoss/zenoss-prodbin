@@ -611,7 +611,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         where = self._wand(where, "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
         select += where
-        print select
+        #print select
         statusCache = self.checkCache(select)
         if statusCache: return statusCache
         db = self.connect()
