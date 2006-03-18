@@ -12,12 +12,11 @@ function updateTimestamp(){
     $("dashTime").innerHTML = "<b>Refreshing...</b>";
     callLater(1,updateTimestampNow);
 }
+
 function updateTimestampNow(){
     var d = new Date();
     var h = "Last Updated: ";
-
-    h += d.getFullYear() + '/' + d.getMonth() + '/' + d.getDate() + ' ';
-    h += d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() ;
+    h += toISOTimestamp(d)
 
     $("dashTime").innerHTML = h;
 }
@@ -80,9 +79,7 @@ updateError = function(err) {
         return;
     }
     logError(err);
-    var tb = TBODY({'id':'events'},TR({'class':'errortitle'},
-                TD({'colspan':'4'}, "Lost Connection to Zenoss")));
-    swapDOM('events', tb)
+    $("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
     callLater(refresh, refreshData);
 }
 
