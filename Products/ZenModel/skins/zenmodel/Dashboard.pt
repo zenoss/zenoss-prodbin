@@ -57,7 +57,7 @@
             </tr>
             <tr>
                 <th class="tableheader">Name</th>
-                <th class="tableheader">Acknowleged By</th>
+                <th class="tableheader">Acked By</th>
                 <th class="tableheader">Critical</th>
                 <th class="tableheader">Error</th>
             </tr>
