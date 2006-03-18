@@ -147,7 +147,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         [ "/Email", [['zenevents_5_noack', 1, 3], ['zenevents_4_noack', 0, 4]]]
         """
         matrix = []
-        for sys in self.getSubOrganizers():
+        for sys in self.children():
             alink = {"href":sys.getPrimaryUrlPath(), 
                      "content": sys.getOrganizerName()}
             evtsum = sys.getEventSummary()

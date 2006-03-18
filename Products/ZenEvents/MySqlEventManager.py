@@ -74,7 +74,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
             if value < severity: continue
             css = self.getEventCssClass(value)
             ackcount, count = sumdata.get(value, [0,0])
-            sevsum.append([css, ackcount, count])
+            sevsum.append([css, ackcount, int(count)])
         db.close()
         self.addToCache(select, sevsum)
         self.cleanCache()

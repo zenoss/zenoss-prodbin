@@ -57,7 +57,7 @@ def initialize(registrar):
 #    if not zeneventpopulator:
 #        zeneventpopulator = EventPopulator()
 #        zeneventpopulator.start()
-#    global zeneventmaintenance
-#    if not zeneventmaintenance:
-#        zeneventmaintenance = MaintenanceThread()
-#        zeneventmaintenance.start()
+    global zeneventmaintenance
+    if not zeneventmaintenance:
+        zeneventmaintenance = MaintenanceThread()
+        zeneventmaintenance.start()
