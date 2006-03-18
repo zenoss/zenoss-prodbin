@@ -52,11 +52,11 @@ mkTableData = function(data) {
         } else if (data.length==3) {
             log("evtstatus " + repr(data));
             if (data[1] == data[2])
-                td = TD(null, data[1]+"/"+data[2])
+                td = TD({'align':"right"}, data[1]+"/"+data[2])
             else if (data[2] > 0)
-                td = TD({"class":data[0]},data[1]+"/"+data[2]) 
+                td = TD({"class":data[0],'align':"right"},data[1]+"/"+data[2]) 
             else
-                td = TD(null, "0/0")
+                td = TD({'align':"right"}, "0/0")
         } else {
             td = TD(null, "")
         }
