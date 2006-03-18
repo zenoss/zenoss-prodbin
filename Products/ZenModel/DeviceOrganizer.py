@@ -148,7 +148,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         """
         matrix = []
         for sys in self.children():
-            alink = {"href":sys.getPrimaryUrlPath(), 
+            alink = {"href":sys.getPrimaryUrlPath() + "/viewEvents", 
                      "content": sys.getOrganizerName()}
             evtsum = sys.getEventSummary()
             evtsum.insert(0, alink)

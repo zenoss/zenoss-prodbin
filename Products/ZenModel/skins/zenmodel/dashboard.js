@@ -56,6 +56,8 @@ mkTableData = function(data) {
                 td = TD({"class":data[0]},data[1]+"/"+data[2]) 
             else
                 td = TD(null, "0/0")
+        } else {
+            td = TD(null, "")
         }
     } else {
         log("plain " + data);
