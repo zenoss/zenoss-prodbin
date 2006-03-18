@@ -62,10 +62,10 @@ class EventView(object):
         return self.convertStatus(self.getStatus(statclass, **kwargs))
                                                         
     
-    def getEventSummary(self, state=1):
+    def getEventSummary(self, severity=1, state=1):
         """Return an event summary list for this managed entity.
         """
-        return self.getEventManager().getEventSummaryME(self, state)
+        return self.getEventManager().getEventSummaryME(self, severity, state)
 
     
     def getEventOwnerList(self, severity=0, state=1):
