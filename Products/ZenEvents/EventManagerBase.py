@@ -678,8 +678,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         data = {}
         devices = [ d[0] for d in self.getDeviceStatusIssues(severity=4)]
         devdata = []
+        devclass = self.getDmdRoot("Devices")
         for devname in devices:
-            dev = dmd.findDevice(devname)
+            dev = devclass.findDevice(devname)
             alink = {"href":dev.getPrimaryUrlPath(), "content": dev.id}
             owners = dev.getEventOwnerList(severity=4)
             evts.insert(0, owners)
