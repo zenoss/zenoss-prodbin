@@ -41,25 +41,40 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
     security = ClassSecurityInfo()
     
-    def getEventSummary(self, where="", state=0):
+    def getEventSummary(self, where="", severity=1, state=1):
         """
-        Return a list of tuples with number of events
-        and the color of the severity that the number represents.
+        Return a list of tuples with the CSS class, acknowledged count, count
+
+        [['zenevents_5', 0, 3], ...]
+
+        select severity, count(*), group_concat(eventState), 
+            from status where device="win2k.confmon.loc" 
+            and eventState < 2 group by severity desc;
         """ 
-        select = "select count(*) from %s where " % self.statusTable
+        select = "select severity, count(*), group_concat(eventState) "
+        select += "from %s where " % self.statusTable
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
         select += where
-        if where: select += " and "
+        select += " group by severity desc"
         #print select
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
         db = self.connect()
         curs = db.cursor()
+        curs.execute(select)
+        sumdata = {}
+        ownerids = ""
+        for row in curs.fetchall():
+            sev, count, acks = row[:3]
+            ackcount = sum([int(n) for n in acks.split(",")])
+            sumdata[sev] = (ackcount, count)
         sevsum = []
         for name, value in self.getSeverities():
-            sevwhere = " %s = %s" % (self.severityField, value)
-            curs.execute(select+sevwhere)
-            sevsum.append((self.getEventCssClass(value), curs.fetchone()[0]))
+            if value < severity: continue
+            css = self.getEventCssClass(value)
+            ackcount, count = sumdata.get(value, [0,0])
+            sevsum.append([css, ackcount, count])
         db.close()
         self.addToCache(select, sevsum)
         self.cleanCache()
@@ -67,3 +82,4 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
 
 InitializeClass(MySqlEventManager)
+

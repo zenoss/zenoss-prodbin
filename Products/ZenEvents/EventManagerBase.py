@@ -478,11 +478,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return self.getDeviceIssues(where=where,state=state,limit=limit)
         
 
-    def getDeviceStatusIssues(self, limit=0):
+    def getDeviceStatusIssues(self, severity=4, state=1, limit=0):
         """Return only status issues.
         """
         return self.getDeviceIssues(where="eventClass like '/Status%'",
-                                    severity=4, limit=limit)
+                            severity=severity, state=state, limit=limit)
 
 
     def getDeviceIssues(self,severity=1,state=0,where="",mincount=0,limit=0):
@@ -591,6 +591,38 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device+component, 0)
 
 
+    def getEventOwnerListME(self, me, severity=0, state=1):
+        """Return list of event owners based on passed in managed entity.
+        """
+        try:
+            where = self.lookupManagedEntityWhere(me)
+            return self.getEventOwnerList(where, severity, state)
+        except:
+            log.exception("event summary for %s failed" % me.getDmdKey())
+            raise
+
+
+    def getEventOwnerList(self, where="", severity=0, state=1):
+        """Return a list of userids that correspond to the events in where.
+        select distinct ownerid from status where 
+        device="win2k.confmon.loc" and eventState > 2
+        """
+        select ="select distinct ownerid from status where "
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select += where
+        #print select
+        statusCache = self.checkCache(select)
+        if statusCache: return statusCache
+        db = self.connect()
+        curs = db.cursor()
+        curs.execute(select)
+        statusCache = [ uid[0] for uid in curs.fetchall() if uid[0] ]
+        self.addToCache(select,statusCache)
+        db.close()
+        return statusCache
+
+
     def lookupManagedEntityWhere(self, me):
         """Lookup and build where clause for managed entity.
         """
@@ -644,14 +676,21 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """Return a dictionary that has all info for the dashboard.
         """
         data = {}
-        data['devstatus'] = self.getDeviceStatusIssues()
-        data['devevents'] = self.getDeviceIssues(mincount=10)
-        data['sysstatus'] = self.getOrganizerStatusIssues('System')
-        data['devheartbeat'] = self.getHeartbeat()
-        fields = ('device','summary','lastTime','count')
-        evts = self.getEventList(resultFields=fields,severity=4,rows=5,
-                                where="eventClass not like '/Status%'")
-        data['events'] = [ evt.getEventData() for evt in evts ]
+        devices = [ d[0] for d in self.getDeviceStatusIssues(severity=4)]
+        devdata = []
+        for devname in devices:
+            dev = dmd.findDevice(devname)
+            alink = {"href":dev.getPrimaryUrlPath(), "content": dev.id}
+            owners = dev.getEventOwnerList(severity=4)
+            evts.insert(0, owners)
+            evts = dev.getEventSummary(severity=4)
+            evts.insert(0, alink)
+            devdata.append(evts)
+        data['deviceevents'] = devdata
+
+        sysroot = self.getDmdRoot("Systems")
+        data['systemevents'] = sysroot.getEventMatrix()
+        data['heartbeat'] = self.getHeartbeat()
         return data
 
         

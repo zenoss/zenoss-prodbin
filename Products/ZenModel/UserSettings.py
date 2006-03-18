@@ -223,7 +223,7 @@ class UserSettings(ZenModelRM):
 
     email = ""
     pager = ""
-    defaultPageSize = 10
+    defaultPageSize = 40
     defaultEventPageSize = 30
     oncallStart = 0
     oncallEnd = 0

@@ -16,9 +16,7 @@
 
 <tal:block metal:fill-slot="contentPane">
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
-    <!--
     <script type="text/javascript" src="dashboard.js"></script>
-    -->
     <table width=100%>
     <tr>
 
@@ -46,68 +44,7 @@
                     -->
                 </tr>
             </thead>
-            <tbody id="sysstatus">
-                <tr>
-                    <td>Email</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                </tr>
-                <tr>
-                    <td class="zenevents_5_noack"><a href=#>HR</a></td>
-                    <td class="zenevents_5_noack"><a href=#>2</a></td>
-                    <td class="zenevents_4_noack"><a href=#>2</a></td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                </tr>
-                <tr>
-                    <td><a href=#>Network</a></td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td class="zenevents_2_noack"><a href=#>250</a></td>
-                    <td class="zenevents_1_noack"><a href=#>5</a></td>
-                </tr>
-                <tr>
-                    <td><a href=#>Misys</a></td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td class="zenevents_3_noack"><a href=#>100</a></td>
-                    <td>0</td>
-                    <td>0</td>
-                </tr>
-                <tr>
-                    <td><a href=#>System A</a></td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                </tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td><a href=#>System B</a></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tbody id="systemevents">
             </tbody>
         </table>
     </td>
@@ -125,31 +62,7 @@
                 <th class="tableheader">Error</th>
             </tr>
             </thead>
-            <tbody id="devevents">
-                <tr>
-                    <td><a href=#>BOX1</a></td>
-                    <td>jsmith, ajones</td>
-                    <td></td>
-                    <td class="zenevents_4_noack"><a href=#>2/3</a></td>
-                </tr>
-                <tr>
-                    <td class="zenevents_5_noack"><a href=#>BOX1</a></td>
-                    <td>ajones</td>
-                    <td class="zenevents_5_noack"><a href=#>1/3</a></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><a href=#>BOX3</a></td>
-                    <td></td>
-                    <td></td>
-                    <td class="zenevents_4_noack"><a href=#>0/5</a></td>
-                </tr>
-                <tr>
-                    <td><a href=#>BOX4</a></td>
-                    <td></td>
-                    <td></td>
-                    <td class="zenevents_4_noack"><a href=#>0/3</a></td>
-                </tr>
+            <tbody id="deviceevents">
             </tbody>
         </table>
     </td>
@@ -168,7 +81,7 @@
                 <th class="tableheader">Seconds</th>
             </tr>
             </thead>
-            <tbody id="devheartbeat">
+            <tbody id="heartbeat">
                 <tr>
                     <td>(None)</td>
                 </tr>

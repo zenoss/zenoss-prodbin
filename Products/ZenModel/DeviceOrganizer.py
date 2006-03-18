@@ -141,6 +141,20 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             status += group.snmpStatus()
         return status
 
+    
+    def getEventMatrix(self, severity=1, state=1):
+        """Return a list of lists with organizer name and severity rainbow.
+        [ "/Email", [['zenevents_5_noack', 1, 3], ['zenevents_4_noack', 0, 4]]]
+        """
+        matrix = []
+        for sys in self.getSubOrganizers():
+            alink = {"href":sys.getPrimaryUrlPath(), 
+                     "content": sys.getOrganizerName()}
+            evtsum = sys.getEventSummary()
+            evtsum.insert(0, alink)
+            matrix.append(evtsum)
+        return matrix
+
 
     def _status(self, type, devrel="devices"):
         """build status info for device in this device group"""

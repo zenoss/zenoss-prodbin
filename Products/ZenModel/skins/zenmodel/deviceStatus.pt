@@ -22,7 +22,7 @@
                 <td align=center width=16%
                 tal:repeat="evt here/getEventSummary"
                 tal:attributes="class python:evt[0]">
-                    <span tal:replace="python:evt[1]">evtcnt</span>
+                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                 </td>
           </tr>
         </table>
