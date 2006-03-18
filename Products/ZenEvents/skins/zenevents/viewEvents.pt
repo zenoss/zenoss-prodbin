@@ -81,7 +81,7 @@
     <tr tal:condition="here/isManager">
     <td class="tableheader" tal:attributes="colspan evcolspan">
         <input class="tableheader" type="submit" 
-            name="manage_deleteEvents:method" value=" Delete " />
+            name="manage_deleteEvents:method" value=" Archive " />
         |
         <input class="tableheader" type="submit" value="State:" 
                 name="manage_setEventStates:method"/>
