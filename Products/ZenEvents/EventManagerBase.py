@@ -688,10 +688,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             evts.insert(0, owners)
             evts.insert(0, alink)
             devdata.append(evts)
+        devdata.sort()
         data['deviceevents'] = devdata
 
         sysroot = self.getDmdRoot("Systems")
-        data['systemevents'] = sysroot.getEventMatrix()
+        sysdata = sysroot.getEventMatrix()
+        sysdata.sort()
+        data['systemevents'] = sysdata
         data['heartbeat'] = self.getHeartbeat()
         return data
 
