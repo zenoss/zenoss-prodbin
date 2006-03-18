@@ -683,7 +683,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             dev = devclass.findDevice(devname)
             alink = {"href":dev.getPrimaryUrlPath()+"/viewEvents", 
                      "content": dev.id}
-            owners = dev.getEventOwnerList(severity=4)
+            owners = ", ".join(dev.getEventOwnerList(severity=4))
             evts = dev.getEventSummary(severity=4)
             evts.insert(0, owners)
             evts.insert(0, alink)
