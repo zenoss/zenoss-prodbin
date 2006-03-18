@@ -676,7 +676,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """Return a dictionary that has all info for the dashboard.
         """
         data = {}
-        devices = [ d[0] for d in self.getDeviceStatusIssues(severity=4)]
+        devices = [ d[0] for d in self.getDeviceIssues(severity=4, state=1)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
         for devname in devices:
