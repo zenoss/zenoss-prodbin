@@ -51,7 +51,9 @@ mkTableData = function(data) {
             td = TD(data, data.content)
         } else if (data.length==3) {
             log("evtstatus " + repr(data));
-            if (data[2] > 0)
+            if (data[1] == data[2])
+                td = TD(null, data[1]+"/"+data[2])
+            else if (data[2] > 0)
                 td = TD({"class":data[0]},data[1]+"/"+data[2]) 
             else
                 td = TD(null, "0/0")
