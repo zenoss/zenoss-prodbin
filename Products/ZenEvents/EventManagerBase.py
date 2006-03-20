@@ -675,8 +675,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def getDashboardInfo(self):
         """Return a dictionary that has all info for the dashboard.
         """
+        data = self.checkCache("dashboardinfo")
+        if data: return data
         data = {}
-        devices = [ d[0] for d in self.getDeviceIssues(severity=4, state=1)]
+        devices = [d[0] for d in self.getDeviceIssues(severity=4, state=1)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
         for devname in devices:
@@ -695,6 +697,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         sysdata.sort()
         data['systemevents'] = sysdata
         data['heartbeat'] = self.getHeartbeat()
+        self.addToCache("dashboardinfo", data)
+        self.cleanCache()
         return data
 
         
