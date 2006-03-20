@@ -684,9 +684,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             alink = {"href":dev.getPrimaryUrlPath()+"/viewEvents", 
                      "content": dev.id}
             owners = ", ".join(dev.getEventOwnerList(severity=4))
-            evts = dev.getEventSummary(severity=4)
-            evts.insert(0, owners)
-            evts.insert(0, alink)
+            evts = [alink, owners]
+            evts.extend(dev.getEventSummary(severity=4))
             devdata.append(evts)
         devdata.sort()
         data['deviceevents'] = devdata
