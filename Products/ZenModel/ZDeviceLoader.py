@@ -77,11 +77,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         self.id = id
 
 
-    def __call__(self):
-        """addDevice is default screen"""
-        self.addDevice()
-
-
     def loadDevice(self, deviceName, devicePath="/Discovered", 
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
