@@ -13,6 +13,15 @@
     <input class="tablevalues" type="text" name="delay:int" size="5"
         tal:attributes="value here/delay" />
   </td>
+  <td class="tableheader">Enabled</td>
+  <td class="tablevalues">
+    <select class="tablevalues" name="enabled:boolean">
+        <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.enabled"/>
+    </select>
+  </td>
+</tr>
+<tr>
   <td class="tableheader">Action</td>
   <td class="tablevalues">
     <select class="tablevalues" name="action">
@@ -20,12 +29,10 @@
                 tal:attributes="value a; selected python:a==here.action"/>
     </select>
   </td>
-  <td class="tableheader">Enabled</td>
+  <td class="tableheader">Address (optional)</td>
   <td class="tablevalues">
-    <select class="tablevalues" name="enabled:boolean">
-        <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; selected python:e==here.enabled"/>
-    </select>
+    <input class="tablevalues" type="text" name="targetAddr" size="25"
+        tal:attributes="value here/targetAddr" />
   </td>
 </tr>
 <tr>

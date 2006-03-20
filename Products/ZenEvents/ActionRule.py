@@ -33,6 +33,7 @@ class ActionRule(ZenModelRM):
     format = "%(device)s %(summary)s at %(firstTime)s"
     enabled = False
     actionTypes = ("page", "email") 
+    targetAddr = ""
 
     _properties = ZenModelRM._properties + (
         {'id':'where', 'type':'text', 'mode':'w'},
@@ -41,6 +42,7 @@ class ActionRule(ZenModelRM):
         {'id':'action', 'type':'selection', 'mode':'w',
             'select_variable': 'actionTypes',},
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
+        {'id':'targetAddr', 'type':'string', 'mode':'w'},
     )
 
     factory_type_information = ( 
@@ -84,7 +86,9 @@ class ActionRule(ZenModelRM):
     def getAddress(self):
         """Return the correct address for the action this rule uses.
         """
-        if self.action == "page":
+        if self.targetAddr:
+            return self.targetAddr
+        elif self.action == "page":
             return self.pager
         elif self.action == "email":
             return self.email
@@ -98,13 +102,14 @@ class ActionRule(ZenModelRM):
     
     security.declareProtected('Change Settings', 'manage_editActionRule')
     def manage_editActionRule(self,  where="", delay=0, enabled=True, 
-                              action="", REQUEST=None):
+                              action="", targetAddr="", REQUEST=None):
         """Update user settings.
         """
         self.where = where
         self.delay = delay
         self.enabled = enabled
         self.action = action
+        self.targetAddr = targetAddr
         if REQUEST:
             REQUEST['message'] = "User saved at time:"
             return self.callZenScreen(REQUEST)
