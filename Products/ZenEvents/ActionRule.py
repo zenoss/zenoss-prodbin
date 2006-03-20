@@ -114,4 +114,11 @@ class ActionRule(ZenModelRM):
             REQUEST['message'] = "User saved at time:"
             return self.callZenScreen(REQUEST)
 
+
+    def sqlwhere(self):
+        """Return sql where to select alert_state data for this event.
+        """
+        return "userid = '%s' and rule = '%s'" % (self.getUserId, self.id)
+
+
 InitializeClass(ActionRule)
