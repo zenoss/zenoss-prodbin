@@ -4,6 +4,9 @@
 #
 #################################################################
 import re
+import logging
+log = logging.getLogger("zen.ActionRule")
+
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
@@ -108,6 +111,8 @@ class ActionRule(ZenModelRM):
         self.where = where
         self.delay = delay
         self.enabled = enabled
+        if not self.enabled:
+            self._clearAlertState()
         self.action = action
         self.targetAddr = targetAddr
         if REQUEST:
@@ -115,10 +120,27 @@ class ActionRule(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    def manage_beforeDelete(self, item, container):
+        """Clear state in alert_state before we are deleted.
+        """
+        self._clearAlertState()
+
+
+    def _clearAlertState(self):
+        """Clear state in alert_state before we are deleted.
+        """
+        db = self.ZenEventManager.connect()
+        curs = db.cursor()
+        delcmd = "delete from alert_state where %s" % self.sqlwhere()
+        log.debug("clear alert state '%s'", delcmd)
+        curs.execute(delcmd)
+        db.close()
+
+
     def sqlwhere(self):
         """Return sql where to select alert_state data for this event.
         """
-        return "userid = '%s' and rule = '%s'" % (self.getUserId, self.id)
+        return "userid = '%s' and rule = '%s'" % (self.getUserid(), self.id)
 
 
 InitializeClass(ActionRule)

@@ -34,6 +34,7 @@ class ZenActions(ZCmdBase):
 
     def __init__(self):
         ZCmdBase.__init__(self)
+        self.actions = []
         self.loadActionRules()
         if not self.options.fromaddr:
             self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
@@ -46,24 +47,14 @@ class ZenActions(ZCmdBase):
     def loadActionRules(self):
         """Load the ActionRules into the system.
         """
-        actions = []
+        self.actions = []
         for us in self.dmd.ZenUsers.getAllUserSettings():
             userid = us.getId()
             self.log.debug("loading aciton rules for:%s", userid)
             for ar in us.objectValues(spec="ActionRule"):
                 if not ar.enabled: continue
-                actions.append(ar)
-                self.log.debug("aciton:%s for:%s loaded", ar.getId(), userid)
-        zem = self.dmd.ZenEventManager
-        db = zem.connect()
-        curs = db.cursor()
-        for ar in self.actions:
-            if ar not in actions:
-                delcmd = "delete from alert_status where %s" % ar.sqlwhere()
-                self.log.debug("clear old rule '%s'", delcmd)
-                curs.execute(delcmd)
-        db.close()
-        self.actions = actions
+                self.actions.append(ar)
+                self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
                 
 
     def processRules(self):
