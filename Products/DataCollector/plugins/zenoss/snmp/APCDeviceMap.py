@@ -6,7 +6,7 @@
 
 from CollectorPlugin import SnmpPlugin, GetMap
 
-class DellDeviceMap(SnmpPlugin):
+class APCDeviceMap(SnmpPlugin):
     """Map mib elements from Dell Open Manage mib to get hw and os products.
     """
 
@@ -20,7 +20,7 @@ class DellDeviceMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing dell device info on device %s' % device.id)
+        log.info('processing APC device info on device %s' % device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
         return om

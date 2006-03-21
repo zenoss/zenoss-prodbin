@@ -52,7 +52,7 @@
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'type','Type')">Type</th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'productKey','Product Key')">Product Key</th>
+                tableName,'getProductKey','Product Key')">Product Key</th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'count','Count')">Count</th>
   </tr>
@@ -65,7 +65,7 @@
             tal:content="prod/id">name</a>
     </td>
     <td class="tablevalues" tal:content="prod/type">Software</td>
-    <td class="tablevalues" tal:content="prod/productKey">3495</td>
+    <td class="tablevalues" tal:content="prod/getProductKey">3495</td>
     <td class="tablevalues" align="center"
         tal:content="prod/count">Good stuff</td>
   </tr>
