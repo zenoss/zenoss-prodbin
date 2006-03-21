@@ -13,7 +13,7 @@ class PowerwareDeviceMap(SnmpPlugin):
     maptype = "PowerwareDeviceMap" 
 
     snmpGetMap = GetMap({ 
-        '.1.3.6.1.4.1.534.1.1.1.0': 'setHWProductKey',
+        '.1.3.6.1.4.1.534.1.1.2.0': 'setHWProductKey',
          })
 
 
