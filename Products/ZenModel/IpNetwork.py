@@ -199,11 +199,9 @@ class IpNetwork(DeviceOrganizer):
     def hasIp(self, ip):
         """Does network have (contain) this ip.
         """
-        ipnumb = numbip(self.id)
-        maxip = math.pow(2,32-self.netmask)
-        start = ipnumb
-        end = ipnumb+maxip
-        return start <= numbip(ip) <= end
+        start = numbip(self.id)
+        end = start + math.pow(2,32-self.netmask)
+        return start <= numbip(ip) < end
 
         
     def fullIpList(self):
