@@ -226,6 +226,7 @@ class DeviceClass(DeviceOrganizer):
             ffunc = lambda x: x.zWinEventlog
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
+            if dev.productionState < self.prodStateThreshold: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             devinfo.append((dev.id,user,passwd,dev.absolute_url()))
@@ -241,6 +242,7 @@ class DeviceClass(DeviceOrganizer):
             svcs=allsvcs.setdefault(s.hostname(),{})
             svcs[s.name()] = s.getStatus()
         for dev in self.getSubDevices():
+            if dev.productionState < self.prodStateThreshold: continue
             svcs = allsvcs.get(dev.getId(), {})
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
