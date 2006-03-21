@@ -46,6 +46,7 @@ class ZenSnmp(StatusMonitor):
                 'severity':3}
     heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
                 'component': 'zensnmp'}
+    pingprobs = []
 
     def __init__(self):
         StatusMonitor.__init__(self)
@@ -123,7 +124,7 @@ class ZenSnmp(StatusMonitor):
 
     def sendSnmpToDevice(self, device):
         """send a single snmp request"""
-        if device.community:
+        if device.community and device.hostname not in self.pingprobs:
             req = v1.GETREQUEST()
             encoded_oids = map(asn1.OBJECTID().encode, self.oids)
             myreq = req.encode(request_id=self.reqId,
@@ -249,6 +250,7 @@ class ZenSnmp(StatusMonitor):
 
     def processLoop(self, devices):
         """send out snmp and look for timeouts"""
+        self.getPingProblems()
         lendev = len(devices)
         for i in range(0, lendev, self.chunkSize):
             dchunk = devices[i: i + self.chunkSize]
@@ -336,6 +338,15 @@ class ZenSnmp(StatusMonitor):
         except Exception, e:
             self.log.exception("snmp event notification failed")
         self.eventqueue = []
+
+
+    def getPingProblems(self):
+        url = basicAuthUrl(self.username, self.password, self.evtserver)
+        server = xmlrpclib.Server(url)
+        try:
+            self.pingprobs = [ p[0] for p in server.getDevicePingIssues() ]
+        except Exception, e:
+            self.log.exception("failed to load ping problems")
 
 
     def buildOptions(self):
