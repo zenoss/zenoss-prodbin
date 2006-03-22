@@ -11,6 +11,7 @@ $Id: DeviceClass.py,v 1.76 2004/04/22 19:09:53 edahl Exp $"""
 __version__ = "$Revision: 1.76 $"[11:-2]
 
 import types
+import time
 import transaction
 import DateTime
 
@@ -219,6 +220,7 @@ class DeviceClass(DeviceOrganizer):
         user and passwd are used to connect via wmi.
         """
         ffunc = None
+        starttime = time.time()
         if lastPoll > 0:
             lastPoll = DateTime.DateTime(lastPoll)
             ffunc = lambda x: x.getSnmpLastCollection() > lastPoll
@@ -230,7 +232,7 @@ class DeviceClass(DeviceOrganizer):
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             devinfo.append((dev.id,user,passwd,dev.absolute_url()))
-        return devinfo
+        return starttime, devinfo
     
     
     def getWinServices(self):
