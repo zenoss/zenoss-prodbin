@@ -27,6 +27,7 @@ class CollectorPlugin:
     isip = iputil.isip    
 
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
+    _cleanend = re.compile(r"_+$").sub
     def prepId(self, id):
         """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
         with "_".  If id then starts with "_" it is removed.
@@ -35,7 +36,7 @@ class CollectorPlugin:
         if id.startswith("_"):
             if len(id) > 1: id = id[1:]
             else: id = "-"
-        if id.endswith("__"): id = id[:-2]
+        id = self._cleanend("",id)
         return id
 
 

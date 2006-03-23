@@ -72,7 +72,7 @@ class ZenModelBase(object):
         if id.startswith("_"):
             if len(id) > 1: id = id[1:]
             else: id = "-"
-        if id.endswith("__"): id = id[:-2]
+        id = self._cleanend("",id)
         return id
 
 
