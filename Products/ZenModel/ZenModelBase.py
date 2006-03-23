@@ -62,6 +62,7 @@ class ZenModelBase(object):
 
 
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
+    _cleanend = re.compile(r"_+$").sub
     def prepId(self, id):
         """Clean string for use as an id.
         """
