@@ -9,7 +9,7 @@
                                        lambda x: x.snmpAgeCheck(48));
     tableName string: modelcollreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                               sortedHeader='getLastChange');
+                                       sortedHeader='getSnmpLastCollection');
     ">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 

@@ -61,11 +61,19 @@ class ZenModelBase(object):
         return hash(self.id)
 
 
-    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]')
+    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
     def prepId(self, id):
         """Clean string for use as an id.
         """
-        return self._prepId.sub("-", id)
+        """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
+        with "_".  If id then starts with "_" it is removed.
+        """
+        id = self._prepid("_", id)
+        if id.startswith("_"):
+            if len(id) > 1: id = id[1:]
+            else: id = "-"
+        if id.endswith("__"): id = id[:-2]
+        return id
 
 
     def callZenScreen(self, REQUEST, redirect=False):
