@@ -16,7 +16,7 @@
     evcontrol here/ZenEventManager/eventControls;
     evcolspan python:len(resultFields)+1+evcontrol;
     severity request/severity | python:2;
-    state request/state | python:0;
+    state request/state | python:1;
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
     ">

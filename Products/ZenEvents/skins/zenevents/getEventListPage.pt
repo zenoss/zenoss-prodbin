@@ -1,7 +1,7 @@
 <tal:block metal:define-macro="page"
     tal:define="
         severity request/severity | python:2;
-        state request/state | python:0;
+        state request/state | python:1;
         objects python:here.getEventList(severity=severity,state=state);
         sortedHeader request/sortedHeader | string:;
         resultFields request/ev_resultfields | here/getResultFields | 
