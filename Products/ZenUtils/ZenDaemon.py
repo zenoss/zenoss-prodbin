@@ -60,11 +60,12 @@ class ZenDaemon(CmdBase):
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
-        if self.options.daemon:
+        if self.options.daemon or self.options.logpath:
             if self.options.logpath:
                 if not os.path.isdir(os.path.dirname(self.options.logpath)):
                     raise SystemExit("logpath:%s doesn't exist" %
                                         self.options.logpath)
+                logdir = self.options.logpath
             else:
                 logdir = os.path.join(os.environ['ZENHOME'], "log")
             logfile = os.path.join(logdir, mname.lower()+".log")

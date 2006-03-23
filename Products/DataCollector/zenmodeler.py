@@ -379,6 +379,7 @@ class ZenModeler(ZCmdBase):
                 try:
                     self.log.info("starting collector loop")
                     self.app._p_jar.sync()
+                    self.log.info("collecting for path %s", self.options.path)
                     self.collectDevices(self.options.path)
                     self.log.info("ending collector loop")
                 finally:
