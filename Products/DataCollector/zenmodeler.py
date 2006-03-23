@@ -288,7 +288,7 @@ class ZenModeler(ZCmdBase):
             self.applyData.processClient(device, collectorClient)
             while len(self.clients) < self.options.parallel:
                 try:
-                    #if not self.devicegen: raise StopIteration
+                    if not self.devicegen: raise StopIteration
                     device = self.devicegen.next()
                     self.collectDevice(device)
                 except StopIteration:
