@@ -29,7 +29,7 @@ import SnmpClient
 
 from Exceptions import *
 
-defaultParallel = 10
+defaultParallel = 40
 defaultProtocol = "ssh"
 defaultPort = 22
 
@@ -282,17 +282,17 @@ class ZenModeler(ZCmdBase):
         """Callback that processes the return values from a device. 
         """
         try:
-            nodevices = False
             self.log.debug("client for %s finished collecting",
                             collectorClient.hostname)
             device = collectorClient.device
             self.applyData.processClient(device, collectorClient)
-            try:
-                if not self.devicegen: raise StopIteration
-                device = self.devicegen.next()
-                self.collectDevice(device)
-            except StopIteration:
-                nodevices = True
+            while len(self.clients) < self.options.parallel:
+                try:
+                    #if not self.devicegen: raise StopIteration
+                    device = self.devicegen.next()
+                    self.collectDevice(device)
+                except StopIteration:
+                    break
         finally:
             try: self.clients.remove(collectorClient)
             except ValueError:
