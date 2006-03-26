@@ -67,6 +67,19 @@ mkTableData = function(data) {
     return td
 }
 
+var cancelWithTimeout = function (deferred, timeout) { 
+    var canceller = callLater(timeout, function () { 
+        // cancel the deferred after timeout seconds 
+        deferred.cancel(); 
+    }); 
+    return deferred.addCallback(function (res) { 
+        // if the deferred fires successfully, cancel the timeout 
+        canceller.cancel(); 
+        return res; 
+    }); 
+}; 
+
+
 updateDashboard = function(data) {
     log("got data");
     for (var id in data) {
@@ -88,9 +101,10 @@ updateError = function(err) {
 refreshData = function() {
     //logger.debuggingBookmarklet(true)
     log("loading");
-    var defr = loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo")
-    defr.addCallback(updateDashboard)
-    defr.addErrback(updateError)
+    var defr = cancelWithTimeout(
+        loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo"), 5);
+    defr.addCallback(updateDashboard);
+    defr.addErrback(updateError);
 }
 
 addLoadEvent(refreshData);
