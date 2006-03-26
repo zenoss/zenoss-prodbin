@@ -75,14 +75,14 @@
             <td class="tableheader" align="left">Tag Number</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" name="tag" size="25" 
-                    tal:attributes="value device/tag | request/tag | nothing"/>
+                    tal:attributes="value device/hw/tag | request/tag | nothing"/>
                                         
             </td>
             <td class="tableheader" align="left">Serial Number</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     name="serialNumber" size="25" 
-                    tal:attributes="value device/serialNumber | 
+                    tal:attributes="value device/hw/serialNumber | 
                             request/serialNumber | nothing"/>
             </td>
         </tr>

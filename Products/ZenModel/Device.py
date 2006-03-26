@@ -599,8 +599,8 @@ class Device(CricketDevice, ManagedEntity):
                 statusMonitors=["localhost"], cricketMonitor="localhost",
                 REQUEST=None):
         """edit device relations and attributes"""
-        self.tag = tag
-        self.serialNumber = serialNumber
+        self.hw.tag = tag
+        self.hw.serialNumber = serialNumber
         if self.zSnmpCommunity != zSnmpCommunity:
             self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
         if self.zSnmpPort != zSnmpPort:
