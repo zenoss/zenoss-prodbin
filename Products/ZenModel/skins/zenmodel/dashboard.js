@@ -71,6 +71,7 @@ var cancelWithTimeout = function (deferred, timeout) {
     var canceller = callLater(timeout, function () { 
         // cancel the deferred after timeout seconds 
         deferred.cancel(); 
+        log("cancel load data")
     }); 
     return deferred.addCallback(function (res) { 
         // if the deferred fires successfully, cancel the timeout 
@@ -102,7 +103,7 @@ refreshData = function() {
     //logger.debuggingBookmarklet(true)
     log("loading");
     var defr = cancelWithTimeout(
-        loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo"), 5);
+        loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo"), 10);
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
 }
