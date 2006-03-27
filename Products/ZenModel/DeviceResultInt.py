@@ -87,7 +87,7 @@ class DeviceResultInt:
         """get the snmp status of the box if there is one"""
         from Products.ZenEvents.ZenEventClasses import SnmpStatus
         d = self.device()
-        if d and (not getattr(self, 'zSnmpMonitorIgnore', False) or
+        if d and (not getattr(self, 'zSnmpMonitorIgnore', False) and 
             getattr(self, 'zSnmpCommunity', "")):
             return self.getStatus(SnmpStatus)
         return -1
