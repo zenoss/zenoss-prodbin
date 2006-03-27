@@ -62,6 +62,7 @@ class InterfaceMap(SnmpPlugin):
         iftable = tabledata.get("iftable")
         ifalias = tabledata.get("ifalias")
         if iptable is None or iftable is None: return
+        if not ifalias: ifalias = {}
 
         # add interface alias (cisco description) to iftable
         for ifidx, data in ifalias.items():
