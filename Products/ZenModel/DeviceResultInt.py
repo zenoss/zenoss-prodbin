@@ -78,7 +78,7 @@ class DeviceResultInt:
         if d and not getattr(self, 'zPingMonitorIgnore', False):
             return d.getStatus(PingStatus)
         return -1
-    security.declareProtected('View', 'getSnmpStatusNumber')
+    security.declareProtected('View', 'getPingStatusNumber')
     getPingStatusNumber = getPingStatus
 
 
@@ -87,7 +87,8 @@ class DeviceResultInt:
         """get the snmp status of the box if there is one"""
         from Products.ZenEvents.ZenEventClasses import SnmpStatus
         d = self.device()
-        if d and not getattr(self, 'zSnmpMonitorIgnore', False):
+        if d and (not getattr(self, 'zSnmpMonitorIgnore', False) or
+            getattr(self, 'zSnmpCommunity', "")):
             return self.getStatus(SnmpStatus)
         return -1
     getSnmpStatusNumber = getSnmpStatus
