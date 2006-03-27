@@ -67,7 +67,9 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         ownerids = ""
         for row in curs.fetchall():
             sev, count, acks = row[:3]
-            ackcount = sum([int(n) for n in acks.split(",")])
+            if type(acks) in types.StringTypes:
+                acks = acks.split(",")
+            ackcount = sum([int(n) for n in acks])
             sumdata[sev] = (ackcount, count)
         sevsum = []
         for name, value in self.getSeverities():
