@@ -6,7 +6,7 @@
 
 
 // Refresh rate in seconds
-var refresh=20;
+var refresh=30;
 
 function updateTimestamp(){
     $("dashTime").innerHTML = "<b>Refreshing...</b>";
@@ -23,7 +23,7 @@ function updateTimestampNow(){
 
 statusUpdate = function(id, data) {
     newbody = TBODY({'class':'tablevalues', 'id':id});
-    log("statusupdate");
+    //log("statusupdate");
     for (var r=0; r<data.length;r++) {
         var tr = TR(null);
         var row = data[r];
@@ -44,13 +44,13 @@ mkTableData = function(data) {
     var td = null
     if (typeof(data) == "object") {
         if (data.href) { 
-            log("href " + data.content);
+            //log("href " + data.content);
             td = TD(null, A(data, data.content))
         } else if (data.cssclass) {
-            log("css " + data.content);
+            //log("css " + data.content);
             td = TD(data, data.content)
         } else if (data.length==3) {
-            log("evtstatus " + repr(data));
+            //log("evtstatus " + repr(data));
             if (data[1] == data[2])
                 td = TD({'align':"right"}, data[1]+"/"+data[2])
             else if (data[2] > 0)
@@ -61,7 +61,7 @@ mkTableData = function(data) {
             td = TD(null, "")
         }
     } else {
-        log("plain " + data);
+        //log("plain " + data);
         td = TD(null, data)
     }
     return td
@@ -91,9 +91,6 @@ updateDashboard = function(data) {
 }
 
 updateError = function(err) {
-    if (err instanceof CancelledError) {
-        return;
-    }
     logError(err);
     $("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
     callLater(refresh, refreshData);
