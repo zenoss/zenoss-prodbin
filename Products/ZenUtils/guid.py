@@ -34,6 +34,6 @@ def generate():
         days, remain = divmod(secs, 86400)
         id = _uniqueid.next()
         return "%s%s%s%s" % (hexip, hex(int(days))[2:],
-                               hex(int(remain))[2:], hex(id)[2:])
+                               hex(int(remain))[2:], hex(id)[-7:])
     finally:
         lock.release()
