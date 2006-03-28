@@ -864,6 +864,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Manage Events','manage_ackEvents')
+    def manage_ackEvents(self, evids=(), REQUEST=None):
+        return self.manage_setEventStates(1 , evids, REQUEST)
+
+
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         if eventState and evids: 

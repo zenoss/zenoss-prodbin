@@ -51,7 +51,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
+                , 'name'          : 'Archive'
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )

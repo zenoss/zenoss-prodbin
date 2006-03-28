@@ -265,7 +265,7 @@ class Device(CricketDevice, ManagedEntity):
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
+                , 'name'          : 'Archive'
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )

@@ -6,7 +6,7 @@
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
     objects  python:here.getDmdRoot('Devices').getSubDevices(
-                                lambda x: x.getStatus('/Status/Snmp')!=0);
+                                lambda x: x.getSnmpStatus()!=0);
     tableName string: snmpstatusreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                     sortedHeader='getSnmpStatusHeader', sortedSence='desc');
