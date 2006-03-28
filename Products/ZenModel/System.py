@@ -95,7 +95,7 @@ class System(DeviceOrganizer):
                   permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
-                , 'name'          : 'Archive'
+                , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   permissions.view, )
