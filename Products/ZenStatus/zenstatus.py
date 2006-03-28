@@ -80,7 +80,7 @@ class ZenStatus(ZCmdBase):
                                 svc.name(), dev.getId())
                 continue
             if svc.getProtocol() != "tcp":
-                self.log.warn("skipping service %s on %s it is not TCP.",
+                self.log.debug("skipping service %s on %s it is not TCP.",
                                 svc.name(), dev.getId())
                 continue
             self.log.debug("adding service:%s on:%s", svc.name(), dev.getId())
