@@ -80,11 +80,11 @@
     <tal:block metal:define-macro="editor">
     <tr tal:condition="here/isManager">
     <td class="tableheader" tal:attributes="colspan evcolspan">
-        <input class="tableheader" type="submit" 
-            name="manage_deleteEvents:method" value="Archive" />
-        |
         <input class="tableheader" type="submit" value="Acknowledge" 
                 name="manage_ackEvents:method"/>
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteEvents:method" value="History" />
         |
         <input class="tableheader" type="submit" value="Map:" 
                 name="manage_createEventMap:method"/>

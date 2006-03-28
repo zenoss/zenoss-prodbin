@@ -81,7 +81,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
                   Permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
-                , 'name'          : 'Archive'
+                , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (
                   Permissions.view, )
