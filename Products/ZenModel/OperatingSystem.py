@@ -94,7 +94,7 @@ class OperatingSystem(Software):
         return filter(lambda r: r.target(), self.routes())
 
 
-    security.declareProtected('View', 'getDeviceInterfaceByIndex')
+    security.declareProtected('View', 'getInterfaceByIndex')
     def getInterfaceByIndex(self, ifindex):
         """Return an interface based on its snmp index.
         """

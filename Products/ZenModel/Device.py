@@ -241,7 +241,7 @@ class Device(CricketDevice, ManagedEntity):
                   permissions.view, )
                 },
                 { 'id'            : 'osdetail'
-                , 'name'          : 'OS Detail'
+                , 'name'          : 'OS'
                 , 'action'        : 'deviceOsDetail'
                 , 'permissions'   : (
                   permissions.view, )
@@ -273,8 +273,7 @@ class Device(CricketDevice, ManagedEntity):
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },                
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -285,6 +284,11 @@ class Device(CricketDevice, ManagedEntity):
                 , 'name'          : 'Manage'
                 , 'action'        : 'deviceManagement'
                 , 'permissions'   : ("Change Device",)
+                },
+                { 'id'            : 'custom'
+                , 'name'          : 'Custom'
+                , 'action'        : 'customFields'
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'

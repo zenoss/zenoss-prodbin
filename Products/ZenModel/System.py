@@ -157,7 +157,7 @@ class System(DeviceOrganizer):
         return status
 
 
-    security.declareProtected('View', 'eventCount')
+    security.declareProtected('View', 'omniEventCount')
     def omniEventCount(self):
         """eventCount() -> return the number of devices with snmp problems"""
         status = 0 

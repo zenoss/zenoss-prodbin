@@ -214,7 +214,7 @@ class DeviceClass(DeviceOrganizer):
         return deviceInfo
   
 
-    security.declareProtected('View', 'getDeviceInfo')
+    security.declareProtected('View', 'getDeviceWinInfo')
     def getDeviceWinInfo(self, lastPoll=0, eventlog=False):
         """Return list of (devname,user,passwd,url) for each device.
         user and passwd are used to connect via wmi.

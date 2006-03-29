@@ -60,7 +60,7 @@ class DeviceResultInt:
     getDeviceClassName = getDeviceClassPath
 
 
-    security.declareProtected('View', 'getDeviceProdState')
+    security.declareProtected('View', 'getProdState')
     def getProdState(self):
         '''Get the production state of the device associated with
         this interface'''
@@ -70,7 +70,7 @@ class DeviceResultInt:
         return "None" 
 
 
-    security.declareProtected('View', 'getDevicePingStatus')
+    security.declareProtected('View', 'getPingStatus')
     def getPingStatus(self):
         """get the ping status of the box if there is one"""
         from Products.ZenEvents.ZenEventClasses import PingStatus
@@ -95,7 +95,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getSnmpStatusNumber')
 
     
-    security.declareProtected('View', 'getIp')
+    security.declareProtected('View', 'getDeviceIp')
     def getDeviceIp(self):
         """Get the management ip (only) of a device"""
         d = self.device()

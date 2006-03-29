@@ -150,7 +150,7 @@ class ZenPropertyManager(PropertyManager):
         rootnode = self.getZenRootNode()
         type = rootnode.getPropertyType(id)
         if type == "lines": 
-            value = ", ".join(map(str, value))
+            value = "\n".join(map(str, value))
         elif id.endswith("assword"):
             value = "*"*len(value)
         return value
@@ -175,9 +175,6 @@ class ZenPropertyManager(PropertyManager):
         """
         rootnode = self.getZenRootNode()
         ptype = rootnode.getPropertyType(propname)
-        if ptype == "lines": 
-            propvalue = propvalue.split(",")
-            propvalue = map(lambda x: x.strip(), propvalue)
         if getattr(aq_base(self), propname, zenmarker) != zenmarker:
             self._updateProperty(propname, propvalue)
         else:
@@ -185,6 +182,16 @@ class ZenPropertyManager(PropertyManager):
                 propvalue=type_converters[ptype](propvalue)
             self._setProperty(propname, propvalue, type=ptype)
         if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    def saveZenProperties(self, REQUEST):
+        """Save all ZenProperties found in the REQUEST.form object.
+        """
+        for name, value in REQUEST.form.items():
+            if self.iszprop(name):
+                if getattr(self, name, None) != value:
+                    self.setZenProperty(name, value)
+        return self.callZenScreen(REQUEST)
 
     
     def deleteZenProperty(self, propname, REQUEST=None):

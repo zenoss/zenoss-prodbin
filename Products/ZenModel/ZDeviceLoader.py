@@ -230,6 +230,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def loaderFooter(self, devObj, response):
         """add navigation links to the end of the loader output"""
+        if not devObj: return
         devurl = devObj.absolute_url()
         response.write("""<tr class="tableheader"><td colspan="4">
             Navigate to device <a href=%s>%s</a></td></tr>""" 
