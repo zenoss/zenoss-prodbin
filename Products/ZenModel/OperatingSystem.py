@@ -50,6 +50,13 @@ class OperatingSystem(Software):
                                 # but doens't have os relationship
 
 
+    def __call__(self, REQUEST=None):
+        pp = self.getPrimaryParent()
+        screen = getattr(pp, "deviceOsDetail", False)
+        if not screen: return pp()
+        return screen()
+
+
     def traceRoute(self, target, ippath):
         """Trace the route to target using our routing table.
         """
