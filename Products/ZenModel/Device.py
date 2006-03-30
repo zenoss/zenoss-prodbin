@@ -15,6 +15,7 @@ $Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
 __version__ = "$Revision: 1.121 $"[11:-2]
 
 import sys
+import re
 import time
 import socket
 import logging
@@ -167,7 +168,7 @@ def manage_addDevice(context, id, REQUEST = None):
 
 addDevice = DTMLFile('dtml/addDevice',globals())
 
-    
+
 class Device(CricketDevice, ManagedEntity):
     """
     Device is a key class within zenoss.  It represents the combination of
@@ -237,38 +238,32 @@ class Device(CricketDevice, ManagedEntity):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceStatus'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'osdetail'
                 , 'name'          : 'OS'
                 , 'action'        : 'deviceOsDetail'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'hwdetail'
                 , 'name'          : 'Hardware'
                 , 'action'        : 'deviceHardwareDetail'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'swdetail'
                 , 'name'          : 'Software'
                 , 'action'        : 'deviceSoftwareDetail'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'performance'
                 , 'name'          : 'Performance'
@@ -287,19 +282,18 @@ class Device(CricketDevice, ManagedEntity):
                 },
                 { 'id'            : 'custom'
                 , 'name'          : 'Custom'
-                , 'action'        : 'customFields'
+                , 'action'        : 'deviceCustomEdit'
                 , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Change Device",)
+                , 'permissions'   : (permissions.view,)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (permissions.view, )
                 },
             )
          },

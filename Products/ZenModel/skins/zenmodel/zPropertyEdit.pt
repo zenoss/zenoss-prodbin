@@ -53,7 +53,7 @@
         /Devices/Servers
       </td>
     </tr>
-    <tr class="tableheader">
+    <tr class="tableheader" tal:condition="here/isManager">
     <td colspan="5">
         <input class="tableheader" type="submit" 
             name="saveZenProperties:method" value=" Save " />

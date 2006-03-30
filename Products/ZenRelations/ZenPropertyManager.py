@@ -15,6 +15,7 @@ from ZPublisher.Converters import type_converters
 
 from Exceptions import zenmarker
 
+iszprop = re.compile("^z[A-Z]").search
 
 class ZenPropertyManager(PropertyManager):
     """
@@ -33,7 +34,6 @@ class ZenPropertyManager(PropertyManager):
     this can be overridden in a subclass.
     """
 
-    iszprop = re.compile("^z[A-Z]").search
     
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
@@ -108,7 +108,7 @@ class ZenPropertyManager(PropertyManager):
         raise NotImplementedError
 
 
-    def zenPropertyIds(self, all=True):
+    def zenPropertyIds(self, all=True, pfilt=iszprop):
         """
         Return list of device tree property names. 
         If all use list from property root node.
@@ -120,7 +120,7 @@ class ZenPropertyManager(PropertyManager):
             rootnode = aq_base(self)
         props = []
         for prop in rootnode.propertyIds():
-            if not self.iszprop(prop): continue
+            if not pfilt(prop): continue
             props.append(prop)
         props.sort()
         return props
@@ -184,11 +184,11 @@ class ZenPropertyManager(PropertyManager):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    def saveZenProperties(self, REQUEST):
+    def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """Save all ZenProperties found in the REQUEST.form object.
         """
         for name, value in REQUEST.form.items():
-            if self.iszprop(name):
+            if pfilt(name):
                 if getattr(self, name, None) != value:
                     self.setZenProperty(name, value)
         return self.callZenScreen(REQUEST)

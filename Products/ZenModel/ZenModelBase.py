@@ -23,6 +23,9 @@ from Products.CMFCore.utils import _verifyActionPermissions
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin 
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
+# Custom device properties start with c
+iscustprop = re.compile("^c[A-Z]").search
+    
 
 class ZenModelBase(object):
     """
@@ -219,6 +222,18 @@ class ZenModelBase(object):
         for id in ids:  self._delObject(id)
         if REQUEST:
             return self.callZenScreen(REQUEST)
+
+
+    def custPropertyIds(self):
+        """List custom properties that are defined at root node.
+        """
+        return self.zenPropertyIds(pfilt=iscustprop)
+        
+   
+    def saveCustProperties(self, REQUEST):
+        """Save custom properties from REQUEST.form.
+        """
+        return self.saveZenProperties(iscustprop, REQUEST)
 
 
     security.declareProtected('View', 'helpLink')
