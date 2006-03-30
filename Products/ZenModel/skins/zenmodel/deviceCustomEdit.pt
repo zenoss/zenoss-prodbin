@@ -1,0 +1,60 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="props here/custPropertyIds">
+    <tr>
+      <th class="tabletitle" colspan="3">
+      Custom Properties
+      </th>
+    </tr>
+    <tr>
+      <th class="tableheader" align="center">Property</th>
+      <th class="tableheader" align="center">Value</th>
+      <th class="tableheader" align="center">Type</th>
+    </tr>
+    <tr tal:repeat="prop props">
+      <td class="tablevalues" tal:content="prop">
+        zPingInterfaceRegex
+      </td>
+      <td class="tablevalues" tal:condition="not: here/isManager"
+        tal:content="python: here.zenPropertyString(prop)"/>
+      <td class="tablevalues" tal:condition="here/isManager"
+        tal:define="ptype python:here.zenPropertyType(prop);
+                    pvalue python: here.zenPropertyString(prop)">
+            <span tal:condition="python: ptype=='boolean'">
+                <select class="tablevalues" 
+                    tal:attributes="name python:prop+':'+ptype">
+                    <option tal:repeat="e python:(True,False)" tal:content="e"
+                    tal:attributes="value e; selected python:e==pvalue"/>
+                </select>
+            </span>
+            <span tal:condition="python: ptype=='lines'">
+            <textarea class="tablevalues" rows='3' cols="43"
+                tal:attributes="name python:prop+':'+ptype"
+                tal:content="pvalue">
+            </textarea>        
+            </span>
+            <span tal:condition="python: ptype not in ('boolean','lines')">
+            <input class="tablevalues" type="text" size="50"
+                tal:attributes="value pvalue;name python:prop+':'+ptype"/>
+            </span>
+      </td>
+      <td class="tablevalues"
+        tal:content="python: here.zenPropertyType(prop)"> 
+        int
+      </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+    <td colspan="3">
+        <input class="tableheader" type="submit" 
+            name="saveCustProperties:method" value=" Save " />
+    </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>
