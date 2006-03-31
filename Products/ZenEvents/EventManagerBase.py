@@ -672,7 +672,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return startdate, enddate
     
    
-    def getDashboardInfo(self):
+    def getDashboardInfo(self, REQUEST=None):
         """Return a dictionary that has all info for the dashboard.
         """
         data = self.checkCache("dashboardinfo")
@@ -699,6 +699,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         data['heartbeat'] = self.getHeartbeat()
         self.addToCache("dashboardinfo", data)
         self.cleanCache()
+        if REQUEST:
+            REQUEST.RESPONSE.setHeader('Cache-Control', 'no-cache')
+            REQUEST.RESPONSE.setHeader('Expires', '-1')
+            REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return data
 
         
