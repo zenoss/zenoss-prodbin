@@ -21,6 +21,8 @@ from EventClass import EventClass, addEventClass, \
 from EventClassInst import EventClassInst, addEventClassInst, \
     manage_addEventClassInst
 from ActionRule import ActionRule, addActionRule, manage_addActionRule
+from CustomEventView import CustomEventView, addCustomEventView, \
+    manage_addCustomEventView
     
 
 from EventPopulator import EventPopulator
@@ -52,6 +54,11 @@ def initialize(registrar):
         ActionRule,
         permission="Add DMD Objects",
         constructors = (addActionRule, manage_addActionRule,)
+        )
+    registrar.registerClass(
+        CustomEventView,
+        permission="Add DMD Objects",
+        constructors = (addCustomEventView, manage_addCustomEventView,)
         )
 #    global zeneventpopulator
 #    if not zeneventpopulator:

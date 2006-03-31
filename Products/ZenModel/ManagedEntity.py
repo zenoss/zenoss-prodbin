@@ -10,11 +10,11 @@ $Id: DeviceComponent.py,v 1.1 2004/04/06 21:05:03 edahl Exp $"""
 
 from ZenModelRM import ZenModelRM
 from DeviceResultInt import DeviceResultInt
-from EventView import EventView
 from CricketView import CricketView
 
 from Acquisition import aq_base
 
+from Products.ZenEvents.EventView import EventView
 from Products.ZenRelations.RelSchema import *
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, CricketView):

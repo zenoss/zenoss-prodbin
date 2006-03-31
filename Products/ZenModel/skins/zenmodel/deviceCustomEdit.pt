@@ -32,6 +32,13 @@
                     tal:attributes="value e; selected python:e==pvalue"/>
                 </select>
             </span>
+            <span tal:condition="python: ptype=='selection'">
+                <select class="tablevalues" 
+                    tal:attributes="name python:prop">
+                    <option tal:repeat="v python:(True,False)" tal:content="v"
+                    tal:attributes="value v; selected python:v==pvalue"/>
+                </select>
+            </span>
             <span tal:condition="python: ptype=='lines'">
             <textarea class="tablevalues" rows='3' cols="43"
                 tal:attributes="name python:prop+':'+ptype"

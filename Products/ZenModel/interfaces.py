@@ -26,34 +26,3 @@ class IDeviceManager:
         """
         Remove devices from this DeviceManager.
         """
-
-
-class IEventView:
-    """
-    IEventView interface controls how event lists are built for an object.
-    """
-    
-    def eventWhere(self):
-        """
-        Return a where clause that will find events for this object.
-        """
-
-    def eventOrderby(self):
-        """
-        Return a customized orderby for events.
-        """
-
-    def eventResultFields(self):
-        """
-        Return a customized list of result fields for this object.
-        """
-
-    def eventHistoryWhere(self):
-        """
-        Return a where clause that will find history events for this object.
-        """
-
-    def eventHistoryOrderby(self):
-        """
-        Return a customized orderby for history events.
-        """
