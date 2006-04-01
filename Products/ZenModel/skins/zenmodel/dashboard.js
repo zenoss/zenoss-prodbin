@@ -6,7 +6,7 @@
 
 
 // Refresh rate in seconds
-var refresh=30;
+var refresh=10;
 
 function updateTimestamp(){
     $("dashTime").innerHTML = "<b>Refreshing...</b>";
@@ -15,7 +15,7 @@ function updateTimestamp(){
 
 function updateTimestampNow(){
     var d = new Date();
-    var h = "Last Updated: ";
+    var h = "aLast Updated: ";
     h += toISOTimestamp(d)
 
     $("dashTime").innerHTML = h;
@@ -23,12 +23,17 @@ function updateTimestampNow(){
 
 statusUpdate = function(id, data) {
     newbody = TBODY({'class':'tablevalues', 'id':id});
-    //log("statusupdate");
+    log("statusupdate "+id);
+    //log("data="+data.length)
     for (var r=0; r<data.length;r++) {
         var tr = TR(null);
         var row = data[r];
+        //log("row="+row.length)
         for (var j=0; j<row.length; j++) {
-            appendChildNodes(tr, mkTableData(row[j]));
+            var td = mkTableData(row[j]);
+            if (td) appendChildNodes(tr, td);
+            //appendChildNodes(TD(null, "bla"));
+            td = TD(null, "bla");
         }
         appendChildNodes(newbody, tr);
     }
@@ -38,29 +43,36 @@ statusUpdate = function(id, data) {
 
 mkTableData = function(data) {
     //make a TD object based on data passed in
-    //if {href:"/zport/dmd/System/Dev",content:"/Dev"} its an A 
+    //if {href:"/zport/dmd/System/Dev",content:"/Dev"} its a link
     //if ['zenevents_5_noak", 0, 6] its a event status field
     //if typeof(data) == string plain old TD
     var td = null
     if (typeof(data) == "object") {
         if (data.href) { 
             //log("href " + data.content);
-            td = TD(null, A(data, data.content))
+            var content = data.content
+            delete data.content
+            td = TD(null, A(data, content))
         } else if (data.cssclass) {
             //log("css " + data.content);
-            td = TD(data, data.content)
+            var content = data.content
+            delete data.content
+            td = TD(data, content)
         } else if (data.length==3) {
             //log("evtstatus " + repr(data));
             if (data[1] == data[2])
+                //event count == acked count no severity background
                 td = TD({'align':"right"}, data[1]+"/"+data[2])
             else if (data[2] > 0)
+                //event count > 0 add severity background
                 td = TD({"class":data[0],'align':"right"},data[1]+"/"+data[2]) 
             else
+                //no events 
                 td = TD({'align':"right"}, "0/0")
         } else {
             td = TD(null, "")
         }
-    } else {
+    } else if (typeof(data) == "string") {
         //log("plain " + data);
         td = TD(null, data)
     }
@@ -100,7 +112,7 @@ refreshData = function() {
     //logger.debuggingBookmarklet(true)
     log("loading");
     var defr = cancelWithTimeout(
-        loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo"), 10);
+        loadJSONDoc("/zport/dmd/ZenEventManager/getDashboardInfo"), 5);
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
 }
