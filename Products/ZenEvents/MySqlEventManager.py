@@ -69,7 +69,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
             sev, count, acks = row[:3]
             if type(acks) in types.StringTypes:
                 acks = acks.split(",")
-            ackcount = sum([int(n) for n in acks])
+            ackcount = sum([int(n) for n in acks if n.strip()])
             sumdata[sev] = (ackcount, count)
         sevsum = []
         for name, value in self.getSeverities():
