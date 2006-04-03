@@ -687,7 +687,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             if evts[1]==evts[2] or evts[2]==0: 
                 return evtsdata
             else:
-                return {'cssclass':evts[0], 'data':data}
+                return {'cssclass':evts[0], 'data':evtsdata}
 
         for devname in devices:
             dev = devclass.findDevice(devname)
@@ -704,7 +704,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         sysdata = []
         for sys in sysroot.children():
             evts = ["<a href='%s'>%s</a>" % (
-                        dev.getPrimaryUrlPath()+"/viewEvents", 
+                        sys.getPrimaryUrlPath()+"/viewEvents", 
                         sys.getOrganizerName())]
             evts.extend(map(evtsum, sys.getEventSummary()))
             sysdata.append(evts)
