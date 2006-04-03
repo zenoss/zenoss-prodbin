@@ -681,19 +681,34 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         devices = [d[0] for d in self.getDeviceIssues(severity=4, state=1)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
+
+        def evtsum(evts):
+            evtsdata = "%d/%d" % (evts[1],evts[2])
+            if evts[1]==evts[2] or evts[2]==0: 
+                return evtsdata
+            else:
+                return {'cssclass':evts[0], 'data':data}
+
         for devname in devices:
             dev = devclass.findDevice(devname)
-            alink = {"href":dev.getPrimaryUrlPath()+"/viewEvents", 
-                     "content": dev.id}
+            alink = "<a href='%s'>%s</a>" % (
+                        dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
             owners = ", ".join(dev.getEventOwnerList(severity=4))
             evts = [alink, owners]
-            evts.extend(dev.getEventSummary(severity=4))
+            evts.extend(map(evtsum, dev.getEventSummary(severity=4)))
             devdata.append(evts)
         devdata.sort()
         data['deviceevents'] = devdata
 
         sysroot = self.getDmdRoot("Systems")
-        sysdata = sysroot.getEventMatrix()
+        sysdata = []
+        for sys in sysroot.children():
+            evts = ["<a href='%s'>%s</a>" % (
+                        dev.getPrimaryUrlPath()+"/viewEvents", 
+                        sys.getOrganizerName())]
+            evts.extend(map(evtsum, sys.getEventSummary()))
+            sysdata.append(evts)
+        
         sysdata.sort()
         data['systemevents'] = sysdata
         data['heartbeat'] = self.getHeartbeat()

@@ -18,8 +18,8 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError
-from Products.ZenEvents.EventView import EventView
 
+from EventView import EventView
 from ZenModelRM import ZenModelRM
         
 class Organizer(ZenModelRM, EventView):

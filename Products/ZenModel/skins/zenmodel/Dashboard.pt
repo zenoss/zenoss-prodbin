@@ -35,13 +35,6 @@
                     <th class="tableheader">Warn</th>
                     <th class="tableheader">Info</th>
                     <th class="tableheader">Debug</th>
-                    <!--
-                    <th class="tableheader zenevents_5_noack">&nbsp;</th>
-                    <th class="tableheader zenevents_4_noack">&nbsp;</th>
-                    <th class="tableheader zenevents_3_noack">&nbsp;</th>
-                    <th class="tableheader zenevents_2_noack">&nbsp;</th>
-                    <th class="tableheader zenevents_1_noack">&nbsp;</th>
-                    -->
                 </tr>
             </thead>
             <tbody id="systemevents">
