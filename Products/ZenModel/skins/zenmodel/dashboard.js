@@ -26,7 +26,7 @@ function updateTimestampNow(){
 
 statusUpdate = function(id, data) {
     /* draw clear then draw the rows of the tbody */
-    log("drawTableBody "+id);
+    //log("drawTableBody "+id);
     var tbody = $(id);
     clearTableBody(tbody);
     for (var r=0; r<data.length;r++) {
@@ -56,7 +56,7 @@ var cancelWithTimeout = function (deferred, timeout) {
     var canceller = callLater(timeout, function () { 
         // cancel the deferred after timeout seconds 
         deferred.cancel(); 
-        log("cancel load data")
+        //log("cancel load data")
     }); 
     return deferred.addCallback(function (res) { 
         // if the deferred fires successfully, cancel the timeout 
@@ -67,7 +67,7 @@ var cancelWithTimeout = function (deferred, timeout) {
 
 
 updateDashboard = function(data) {
-    log("got data");
+    //log("got data");
     for (var id in data) {
         statusUpdate(id, data[id]);
     }
@@ -82,8 +82,8 @@ updateError = function(err) {
 }
 
 refreshData = function() {
-    logger.debuggingBookmarklet(true)
-    log("loading");
+    //logger.debuggingBookmarklet(true)
+    //log("loading");
     var defr = cancelWithTimeout(
         loadJSONDoc(url), cancelSecs);
     defr.addCallback(updateDashboard);
