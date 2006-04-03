@@ -6,8 +6,8 @@
 
 
 // Refresh rate in seconds
-var refresh=5;
-var cancelSecs=3;
+var refresh=30;
+var cancelSecs=10;
 var url = "/zport/dmd/ZenEventManager/getDashboardInfo";
 //var url="data.json";
 
