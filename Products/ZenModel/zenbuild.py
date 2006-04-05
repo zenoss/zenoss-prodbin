@@ -75,9 +75,9 @@ class zenbuild(CmdBase):
         rrdloader.loadDatabase()
         
         # Load IpService data
-        from Products.ZenModel.IpServiceLoader import IpServiceLoader
-        ipsvcloader = IpServiceLoader(noopts=True, app=self.app) 
-        ipsvcloader.loadDatabase()
+        #from Products.ZenModel.IpServiceLoader import IpServiceLoader
+        #ipsvcloader = IpServiceLoader(noopts=True, app=self.app) 
+        #ipsvcloader.loadDatabase()
 
         # Load reports
         from Products.ZenModel.ReportLoader import ReportLoader
