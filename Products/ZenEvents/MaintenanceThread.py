@@ -37,7 +37,7 @@ class MaintenanceThread(ZenZopeThread):
     def manager(self):
         try:
             return self.app.unrestrictedTraverse("/zport/dmd/ZenEventManager")
-        except KeyError:
+        except (AttributeError, KeyError):
             raise ZenEventError("unable to open /zport/dmd/ZenEventManager")
 
 
