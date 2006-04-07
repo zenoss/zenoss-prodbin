@@ -277,14 +277,14 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
-            cat.catalog_object(self, self.id+self.regex)
+            cat.catalog_object(self, self.getPrimaryId())
             
                                                 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
-            cat.uncatalog_object(self.id+self.regex)
+            cat.uncatalog_object(self.getPrimaryId())
 
 
     security.declareProtected('Manage DMD', 'manage_resequence')
