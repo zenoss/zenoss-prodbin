@@ -34,7 +34,7 @@ class ZenActions(ZCmdBase):
              (select evid from alert_state where userid='%s' and rule='%s')""" 
             
     clearsel = """select %s, h.evid from history h, alert_state a 
-                  where h.evid=a.evid and a.userid='%s' and r.ule='%s'"""
+                  where h.evid=a.evid and a.userid='%s' and a.rule='%s'"""
 
 
     def __init__(self):
