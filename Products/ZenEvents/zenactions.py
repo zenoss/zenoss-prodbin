@@ -46,7 +46,7 @@ class ZenActions(ZCmdBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenactions started",
-                        severity=0, component="zenoss/zenactions"))
+                        severity=0, component="zenactions"))
         
 
     def loadActionRules(self):
@@ -160,7 +160,7 @@ class ZenActions(ZCmdBase):
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenactions stopped",
-                        severity=3, component="zenoss/zenactions"))
+                        severity=3, component="zenactions"))
 
 
     def sendPage(self, msg, addr):
