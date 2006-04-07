@@ -74,9 +74,11 @@ class DeviceResultInt:
     def getPingStatus(self):
         """get the ping status of the box if there is one"""
         from Products.ZenEvents.ZenEventClasses import PingStatus
-        d = self.device()
-        if d and not getattr(self, 'zPingMonitorIgnore', False):
-            return d.getStatus(PingStatus)
+        dev = self.device()
+        if dev:
+            dev = dev.primaryAq()
+            if not getattr(dev, 'zPingMonitorIgnore', False):
+                return dev.getStatus(PingStatus)
         return -1
     security.declareProtected('View', 'getPingStatusNumber')
     getPingStatusNumber = getPingStatus
@@ -86,10 +88,12 @@ class DeviceResultInt:
     def getSnmpStatus(self):
         """get the snmp status of the box if there is one"""
         from Products.ZenEvents.ZenEventClasses import SnmpStatus
-        d = self.device()
-        if d and (not getattr(self, 'zSnmpMonitorIgnore', False) and 
-            getattr(self, 'zSnmpCommunity', "")):
-            return self.getStatus(SnmpStatus)
+        dev = self.device()
+        if dev:
+            dev = dev.primaryAq()
+            if (not getattr(dev, 'zSnmpMonitorIgnore', False) and 
+                getattr(dev, 'zSnmpCommunity', "")):
+                return dev.getStatus(SnmpStatus)
         return -1
     getSnmpStatusNumber = getSnmpStatus
     security.declareProtected('View', 'getSnmpStatusNumber')
