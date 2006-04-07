@@ -25,11 +25,16 @@ class ZenActions(ZCmdBase):
     clearstate = """delete from alert_state where evid='%s' 
                     and userid='%s' and rule='%s'"""
 
+#FIXME attempt to convert subquery to left join that doesn't work 
+#    newsel = """select %s, evid from status s left join alert_state a
+#                on s.evid=a.evid where a.evid is null and  
+#                a.userid='%s' and a.rule='%s'""" 
+
     newsel = """select %s, evid from status where %s and evid not in 
              (select evid from alert_state where userid='%s' and rule='%s')""" 
             
-    clearsel = """select %s, evid from history where evid in 
-               (select evid from alert_state where userid='%s' and rule='%s')"""
+    clearsel = """select %s, h.evid from history h, alert_state a 
+                  where h.evid=a.evid and a.userid='%s' and r.ule='%s'"""
 
 
     def __init__(self):
