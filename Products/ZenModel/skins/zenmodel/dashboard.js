@@ -31,6 +31,7 @@ statusUpdate = function(id, data) {
     clearTableBody(tbody);
     for (var r=0; r<data.length;r++) {
         var tr = tbody.insertRow(tbody.rows.length);
+        setElementClass(tr, "tablevalues");
         var row = data[r];
         for (var j=0; j<row.length; j++) {
             var td = tr.insertCell(tr.cells.length);
