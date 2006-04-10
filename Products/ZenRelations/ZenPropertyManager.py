@@ -165,7 +165,9 @@ class ZenPropertyManager(PropertyManager):
 
     def zenPropertyType(self, id):
         """Return the type of this property."""
-        return self.getZenRootNode().getPropertyType(id)
+        ptype = self.getZenRootNode().getPropertyType(id)
+        if not ptype: ptype = "string"
+        return ptype
 
     
     def setZenProperty(self, propname, propvalue, REQUEST=None):

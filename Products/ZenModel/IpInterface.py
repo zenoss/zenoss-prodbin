@@ -83,6 +83,8 @@ class IpInterface(OSComponent):
     localipcheck = re.compile(r'^127.|^0.').search
     localintcheck = re.compile(r'^lo0').search
     
+    defaultIgnoreTypes = ('Other', 'softwareLoopback', 'CATV MAC Layer')
+    
     factory_type_information = ( 
         { 
             'id'             : 'IpInterface',
@@ -353,6 +355,20 @@ class IpInterface(OSComponent):
         """Return the mac address of this interface.
         """
         return self.macaddress
+
+
+    def getTargetTypeName(self):
+        """Return the interface type as the target type name.
+        """
+        return self.type
+
+
+    def snmpIgnore(self):
+        """Ignore interface types in zCricketInterfaceIgnoreTypes.
+        """
+        ignoreTypes = getattr(self, 'zCricketInterfaceIgnoreTypes', None)
+        if not ignoreTypes: ignoreTypes = self.defaultIgnoreTypes
+        return self.type in ignoreTypes
 
 
     def manage_afterAdd(self, item, container):

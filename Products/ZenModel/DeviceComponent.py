@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
+from Products.ZenRRD.RRDTargetType import lookupTargetType
 
 class DeviceComponent(object):
     """
@@ -53,6 +54,35 @@ class DeviceComponent(object):
         """Return the monitored status of this component. Default is False.
         """
         return False
+
+
+    def snmpIgnore(self):
+        """Should this component be monitored for performance using snmp.
+        """
+        return True
+
+
+    def getSnmpOidTargets(self):
+        """Return a list of (oid, path, type) that define monitorable 
+        """
+        oids = []
+        if self.snmpIgnore(): return oids 
+        basepath = self.getPrimaryDmdId()
+        ttype = lookupTargetType(self, self.getTargetTypeName())
+        for dsname in ttype.dsnames:
+            ds = ttype.getDs(self, dsname)
+            oid = ds.oid
+            snmpindex = getattr(self, "ifindex", self.snmpindex) #FIXME
+            if ds.isrow: oid = "%s.%d" % (oid, snmpindex)
+            oids.append((oid, "/".join((basepath, dsname)), ds.rrdtype))
+        return oids
+
+
+    def getTargetTypeName(self):
+        """Return the target type name of this component.  By default meta_type.
+        Override to create custom type selection.
+        """
+        return self.meta_type
 
 
     def getInstDescription(self):

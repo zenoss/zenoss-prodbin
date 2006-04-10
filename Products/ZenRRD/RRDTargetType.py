@@ -37,6 +37,8 @@ addRRDTargetType = DTMLFile('dtml/addRRDTargetType',globals())
 
 
 def lookupTargetType(context, name):
+    """Lookup a target type object by walking up the aq_path of context.
+    """
     return utils.walkupconfig(context, 
         utils.prefixid(RRDTargetType.meta_type, name))
     
