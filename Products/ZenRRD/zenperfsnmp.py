@@ -1,7 +1,23 @@
+#################################################################
+#
+#   Copyright (c) 2003 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''ZenPerformanceFetcher
+
+Gets snmp performance data and stores it in the RRD files.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
+import os
 
 import Globals
 
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
@@ -10,12 +26,13 @@ from Products.ZenUtils.TwistedAuth import AuthProxy
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol 
 
-import os
-import random
-
+DEFAULT_URL = 'http://localhost:8080/zport/dmd/Monitors/Cricket/localhost'
 SAMPLE_CYCLE_TIME = 5*60
 CONFIG_CYCLE_TIME = 20*60
 MAX_OIDS_PER_REQUEST = 200
+MAX_SNMP_REQUESTS = 100
+
+SAMPLE_CYCLE_TIME = 5
 
 def chunk(lst, n):
     return [lst[i:i+n] for i in range(0, len(lst), n)]
@@ -38,6 +55,8 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.model = None
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
+        self.queryWorkList = []
+
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -46,7 +65,7 @@ class ZenPerformanceFetcher(ZenDaemon):
             "-z", "--zopeurl",
             dest="zopeurl",
             help="XMLRPC url path for performance configuration server ",
-            default='http://localhost:8080/zport/dmd/Monitors/Cricket/localhost')
+            default=DEFAULT_URL)
         self.parser.add_option(
             "-u", "--zopeusername",
             dest="zopeusername", help="username for zope server",
@@ -54,18 +73,22 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
         self.parser.add_option("--debug", dest="debug", action='store_true')
 
+
     def startUpdateConfig(self):
+        'Periodically ask the Zope server for the device list.'
         if not self.model:
             url = basicAuthUrl(self.options.zopeusername,
                                self.options.zopepassword,
                                self.options.zopeurl)
-            print url
             self.model = AuthProxy(url)
         deferred = self.model.callRemote('cricketDeviceList', True)
         deferred.addCallbacks(self.updateConfig, self.reconnect)
         reactor.callLater(CONFIG_CYCLE_TIME, self.startUpdateConfig)
 
+
     def updateConfig(self, deviceList):
+        '''Update the list of devices, and initiate a request
+        to get the device configuration'''
         for device in deviceList:
             self.startDeviceConfig(device)
         # stop collecting those no longer in the list
@@ -74,52 +97,113 @@ class ZenPerformanceFetcher(ZenDaemon):
             del self.proxies[device]
             # we could delete the RRD files, too
 
+
     def startDeviceConfig(self, deviceUrl):
+        'Kick off a request to get the configuration of a device'
         devUrl = basicAuthUrl(self.options.zopeusername,
                               self.options.zopepassword,
                               deviceUrl)
         proxy = AuthProxy(devUrl)
-        proxy.callRemote('getSnmpOidTargets').addCallbacks(self.updateDeviceConfig,
-                                                           self.logError)
+        d = proxy.callRemote('getSnmpOidTargets')
+        d.addCallbacks(self.updateDeviceConfig, self.logError)
+
 
     def updateDeviceConfig(self, snmpTargets):
+        'Save the device configuration and create an SNMP proxy to talk to it'
         deviceName, ip, port, community, oidData = snmpTargets
         p = AgentProxy(ip=ip, port=port,
                        community=community,
                        protocol=self.snmpPort.protocol,
                        allowCache=True)
-        p.oidMap = dict([(oid, (path, type)) for oid, path, type in oidData])
-        oldProxy = self.proxies.get(deviceName, None)
+        p.badOidMode = False
+        p.oidMap = {}
+        for oid, path, dsType in oidData:
+            p.oidMap[oid] = path, dsType
         self.proxies[deviceName] = p
-        if oldProxy is None:
-            # new device, fetch data right away
-            self.startReadDevice(deviceName)
+
 
     def readDevices(self):
-        # stagger the fetch of to avoid a UDP packet storm every read cycle  
-        for deviceName in self.proxies.keys():
-            randomWait = random.randrange(0, max(SAMPLE_CYCLE_TIME / 2, 1))
-            reactor.callLater(randomWait, self.startReadDevice, deviceName)
+        'Periodically fetch the performance values from all known devices'
+        # limit the number of devices we query at once to avoid
+        # a UDP packet storm
+        if self.queryWorkList:
+            self.log.warning("There are still %d devices to query, "
+                             "waiting for them to finish" %
+                             len(self.queryWorkList))
+        else:
+            self.queryWorkList = self.proxies.keys()
+            for i in range(MAX_SNMP_REQUESTS):
+                if not self.queryWorkList: break
+                self.startReadDevice(self.queryWorkList.pop())
         reactor.callLater(SAMPLE_CYCLE_TIME, self.readDevices)
 
+
     def startReadDevice(self, deviceName):
+        '''Initiate a request (or several) to read the performance data
+        from a device'''
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
-        for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
-            proxy.get(part).addCallbacks(self.storeValues, self.logError, (deviceName,))
+        lst = []
+        if proxy.badOidMode:
+            # creep through oids to find the bad oid
+            for oid in proxy.oidMap.keys():
+                d = proxy.get([oid])
+                d.addCallback(self.noticeBadOid, deviceName, oid)
+                lst.append(d)
+        else:
+            # ensure that the request will fit in a packet
+            for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
+                lst.append(proxy.get(part))
+        deferred = defer.DeferredList(lst, consumeErrors=1)
+        deferred.addCallbacks(self.storeValues,
+                              self.finishDevices,
+                              (deviceName,))
+
+    def noticeBadOid(self, result, deviceName, oid):
+        'Remove Oids that return empty responses'
+        proxy = self.proxies.get(deviceName, None)
+        if proxy is None: return
+        if not result:
+            self.logError('Bad oid %s found for device %s' % (oid, deviceName))
+            del proxy.oidMap[oid]
+            return (False, result)
+        return (True, result)
+
+
+    def finishDevices(self, error=None):
+        'work down the list of devices'
+        if error:
+            self.logError(error)
+        if self.queryWorkList:
+            self.startReadDevice(self.queryWorkList.pop())
+
 
     def storeValues(self, updates, deviceName):
+        'decode responses from devices and store the elements in RRD files'
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
-        # oids start with '.' coming back from the client
-        for oid, value in updates.items():
-            path, type = proxy.oidMap[oid.strip('.')]
-            self.storeRRD(path, type, value)
-        print deviceName, '-'*20
+        # bad oid in request
+        if proxy.badOidMode:
+            # bad scan complete, clear the flag
+            proxy.badOidMode = False
+            return
+        for success, update in updates:
+            if success:
+                if not update:
+                    proxy.badOidMode = True
+                for oid, value in update.items():
+                    # oids start with '.' coming back from the client
+                    path, dsType = proxy.oidMap[oid.strip('.')]
+                    self.storeRRD(path, dsType, value)
+        if proxy.badOidMode:
+            self.queryWorkList.append(deviceName)
+        self.finishDevices()
+
 
     def storeRRD(self, path, type, value):
+        'store a value into an RRD file'
         import rrdtool
         filename = rrdPath(path)
         if not os.path.exists(filename):
@@ -146,8 +230,10 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.log.error(error)
 
     def reconnect(self, error):
+        'Errback for handling communications errors with the Zope server'
         self.model = None
-        self.log.error('connection to Zope server dropped (reconnecting)')
+        self.log.error('connection to Zope server dropped (%s), '
+                       'reconnecting' % error)
 
 if __name__ == '__main__':
     zpf = ZenPerformanceFetcher()
