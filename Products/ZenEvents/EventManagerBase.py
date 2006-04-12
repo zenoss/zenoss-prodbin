@@ -551,14 +551,19 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                     
         statusCache = self.checkCache(sel)
         if not statusCache:
+            statusCache = []
             db = self.connect()
             curs = db.cursor()
             curs.execute(sel)
-            statusCache = list(curs.fetchall())
-            statusCache.sort(lambda x,y: cmp(x[2],y[2]))
-            now = time.time()
-            statusCache = [ [d,c, int(now-dt.timeTime())] \
-                            for d, c, dt in statusCache ]
+            res = list(curs.fetchall())
+            res.sort(lambda x,y: cmp(x[2],y[2]))
+            devclass = self.getDmdRoot("Devices")
+            for dev, comp, dtime in res:
+                dtime = "%d" % int(time.time()-dtime.timeTime())
+                dev = devclass.findDevice(dev)
+                alink = "<a href='%s'>%s</a>" % (
+                        dev.getPrimaryUrlPath(), dev.id) 
+                statusCache.append([alink, comp, dtime])
             if limit:
                 statusCache = statusCache[:limit]
         return statusCache
