@@ -11,6 +11,9 @@ var cancelSecs=10;
 var url = "/zport/dmd/ZenEventManager/getDashboardInfo";
 //var url="data.json";
 
+// Look for stupid IE browsers
+var isie = navigator.userAgent.indexOf('MSIE') != -1;
+
 function updateTimestamp(){
     $("dashTime").innerHTML = "<b>Refreshing...</b>";
     callLater(1,updateTimestampNow);
@@ -27,8 +30,13 @@ function updateTimestampNow(){
 statusUpdate = function(id, data) {
     /* draw clear then draw the rows of the tbody */
     //log("drawTableBody "+id);
-    var tbody = $(id);
-    clearTableBody(tbody);
+    var tbody = null;
+    if (isie) {
+        tbody = $(id);
+        clearTableBody(tbody);
+    } else {
+        tbody = TBODY({'id':id});
+    }
     for (var r=0; r<data.length;r++) {
         var tr = tbody.insertRow(tbody.rows.length);
         setElementClass(tr, "tablevalues");
@@ -43,7 +51,7 @@ statusUpdate = function(id, data) {
             }
         }
     }
-
+    if (!isie) swapDOM(id, tbody);
 }
 
 clearTableBody = function(tbody) {

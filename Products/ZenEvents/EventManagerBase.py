@@ -558,11 +558,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             res = list(curs.fetchall())
             res.sort(lambda x,y: cmp(x[2],y[2]))
             devclass = self.getDmdRoot("Devices")
-            for dev, comp, dtime in res:
+            for devname, comp, dtime in res:
                 dtime = "%d" % int(time.time()-dtime.timeTime())
-                dev = devclass.findDevice(dev)
-                alink = "<a href='%s'>%s</a>" % (
-                        dev.getPrimaryUrlPath(), dev.id) 
+                dev = devclass.findDevice(devname)
+                if dev:
+                    alink = "<a href='%s'>%s</a>" % (
+                            dev.getPrimaryUrlPath(), dev.id) 
+                else: alink = devname
                 statusCache.append([alink, comp, dtime])
             if limit:
                 statusCache = statusCache[:limit]
@@ -696,8 +698,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
         for devname in devices:
             dev = devclass.findDevice(devname)
-            alink = "<a href='%s'>%s</a>" % (
+            if dev:
+                alink = "<a href='%s'>%s</a>" % (
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
+            else: alink = devname
             owners = ", ".join(dev.getEventOwnerList(severity=4))
             evts = [alink, owners]
             evts.extend(map(evtsum, dev.getEventSummary(severity=4)))
