@@ -41,7 +41,6 @@ MAX_SNMP_REQUESTS = 100
 COMMON_EVENT_INFO = {
     'device':socket.getfqdn(),
     'component':'zenperfsnmp',
-    'Agent':'PerformanceFetcher'
     }
 
 def chunk(lst, n):
@@ -53,13 +52,6 @@ def rrdPath(branch):
     root = os.path.join(os.getenv('ZENHOME'), 'perf')
     r = os.path.join(root, branch[1:] + '.rrd')
     return r
-
-def nameFromPath(branch):
-    'Pick an RRD data source name from the path name'
-    name = os.path.split(branch)[-1]
-    name = ''.join(name.split(' '))
-    name = '_'.join(name.split('-'))
-    return name
 
 class ZenPerformanceFetcher(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
@@ -81,6 +73,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.configLoaded = defer.Deferred()
         self.configLoaded.addCallbacks(self.readDevices, self.quit)
         self.unresponsiveDevices = Set()
+        self.devicesRead = None
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -88,19 +81,18 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.parser.add_option(
             "-z", "--zopeurl",
             dest="zopeurl",
-            help="XMLRPC url path for performance configuration server ",
+            help="XMLRPC url path for performance configuration server",
             default=DEFAULT_URL)
         self.parser.add_option(
             "-u", "--zopeusername",
             dest="zopeusername", help="username for zope server",
             default='admin')
         self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
+        self.parser.add_option("--debug", dest="debug", action='store_true')
         self.parser.add_option(
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance",
             default=EVENT_URL)
-        self.parser.add_option("--debug", dest="debug", action='store_true')
-
 
     def buildProxy(self, url):
         "create AuthProxy objects with our config and the given url"
@@ -128,12 +120,18 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.log.debug('Unresponsive devices: %r' % deviceList)
         self.unresponsiveDevices = Set([d[0] for d in deviceList])
 
+    def cycle(self, seconds, callable):
+        "callLater if we should be cycling"
+        if self.options.daemon or self.options.cycle:
+            return reactor.callLater(seconds, callable)
+        reactor.stop()
+
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for the device list.'
         deferred = self.model.callRemote('cricketDeviceList', True)
         deferred.addCallbacks(self.updateConfig, self.log.debug)
-        reactor.callLater(CONFIG_CYCLE_TIME, self.startUpdateConfig)
+        self.cycle(CONFIG_CYCLE_TIME, self.startUpdateConfig)
 
 
     def updateConfig(self, deviceList):
@@ -183,6 +181,7 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def readDevices(self, ignored=None):
         'Periodically fetch the performance values from all known devices'
+        self.log.debug('readingDevices')
         # limit the number of devices we query at once to avoid
         # a UDP packet storm
         if self.queryWorkList:
@@ -194,11 +193,19 @@ class ZenPerformanceFetcher(ZenDaemon):
             self.queryWorkList -= self.unresponsiveDevices
             self.startTime = time.time()
             self.devcount = len(self.queryWorkList)
+            lst = []
             for i in range(MAX_SNMP_REQUESTS):
                 if not self.queryWorkList: break
-                self.startReadDevice(self.queryWorkList.pop())
-        reactor.callLater(SAMPLE_CYCLE_TIME, self.readDevices)
+                lst.append(self.startReadDevice(self.queryWorkList.pop()))
+            self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
+            self.devicesRead.addCallback(self.reportRate)
+        self.cycle(SAMPLE_CYCLE_TIME, self.readDevices)
 
+    def reportRate(self, *ignored):
+        self.sendEvent(self.heartbeat)
+        runtime = time.time() - self.startTime
+        self.log.info("collected %d devices in %.2f", 
+                      self.devcount, runtime)
 
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
@@ -215,13 +222,13 @@ class ZenPerformanceFetcher(ZenDaemon):
                 lst.append(d)
         else:
             # ensure that the request will fit in a packet
-            #if self.options.debug: pprint.pprint(proxy.oidMap)
             for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
                 lst.append(proxy.get(part))
-        deferred = defer.DeferredList(lst, consumeErrors=1)
-        deferred.addCallbacks(self.storeValues,
-                              self.finishDevices,
-                              (deviceName,))
+        d = defer.DeferredList(lst, consumeErrors=1)
+        d.addCallbacks(self.storeValues,
+                       self.finishDevices,
+                       (deviceName,))
+        return d
 
     def noticeBadOid(self, result, deviceName, oid):
         'Remove Oids that return empty responses'
@@ -239,13 +246,9 @@ class ZenPerformanceFetcher(ZenDaemon):
         if error:
             self.log.error(error)
         if self.queryWorkList:
-            self.startReadDevice(self.queryWorkList.pop())
-        else:
-            self.sendEvent(self.heartbeat)
-            runtime = time.time() - self.startTime
-            self.log.info("collected %d devices in %.2f", 
-                          self.devcount, runtime)
-
+            self.devicesRead.addDeferred(
+                self.startReadDevice(self.queryWorkList.pop())
+                )
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
@@ -289,7 +292,6 @@ class ZenPerformanceFetcher(ZenDaemon):
                            'RRA:AVERAGE:0.5:288:600',
                            'RRA:MAX:0.5:288:600')
         try:
-            self.log.debug("update %s %s", os.path.basename(filename), value)
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
