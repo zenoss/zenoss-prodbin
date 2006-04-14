@@ -89,7 +89,8 @@ class RRDDataSource(RRDToolItem, PropertyManager):
         src = "ds%d" % self.getIndex()
         dest = src
         if multiid != -1: dest += str(multiid)
-        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, src))
+        file = os.path.join(file, self.getName()) + ".rrd"
+        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, 'ds0'))
         src = dest
 
         if self.rpn: 

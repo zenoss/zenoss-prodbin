@@ -15,6 +15,10 @@ __version__ = "$Revision$"[11:-2]
 
 import os
 import socket
+import time
+import pprint
+
+from sets import Set
 
 import Globals
 
@@ -72,11 +76,11 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.model = self.buildProxy(self.options.zopeurl)
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
-        self.queryWorkList = []
+        self.queryWorkList = Set()
         self.zem = self.buildProxy(self.options.zem)
         self.configLoaded = defer.Deferred()
         self.configLoaded.addCallbacks(self.readDevices, self.quit)
-        self.unresponsiveDevices = set()
+        self.unresponsiveDevices = Set()
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -108,45 +112,47 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def sendEvent(self, event):
         'convenience function for pushing events to the Zope server'
-        self.zem.callRemote('sendEvent', event).addErrback(self.debug)
+        self.zem.callRemote('sendEvent', event).addErrback(self.log.debug)
 
 
     def startFetchUnresponsiveDevices(self, devices):
         "start fetching the devices that are unresponsive"
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getWmiConnIssues')
-        d.addCallbacks(self.setUnresponsiveDevices, self.error)
+        d.addCallbacks(self.setUnresponsiveDevices, self.log.error)
         return d
 
 
     def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
-        self.debug('Unresponsive devices: %r' % deviceList)
-        self.unresponsiveDevices = set([d[0] for d in deviceList])
+        self.log.debug('Unresponsive devices: %r' % deviceList)
+        self.unresponsiveDevices = Set([d[0] for d in deviceList])
 
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for the device list.'
         deferred = self.model.callRemote('cricketDeviceList', True)
-        deferred.addCallbacks(self.updateConfig, self.debug)
+        deferred.addCallbacks(self.updateConfig, self.log.debug)
         reactor.callLater(CONFIG_CYCLE_TIME, self.startUpdateConfig)
 
 
     def updateConfig(self, deviceList):
         '''Update the list of devices, and initiate a request
         to get the device configuration'''
-        self.debug('Configured %d devices' % len(deviceList))
+        self.log.debug('Configured %d devices' % len(deviceList))
         lst = []
         for device in deviceList:
+            self.log.debug("load config for %s", device)
             lst.append(self.startDeviceConfig(device))
         lst.append(self.startFetchUnresponsiveDevices(deviceList))
         if not self.configLoaded.called:
             defer.DeferredList(lst).chainDeferred(self.configLoaded)
             
+        if not deviceList: self.log.warn("no devices found")
         # stop collecting those no longer in the list
         for device in self.proxies.values():
             if device.url not in deviceList:
-                self.debug('removing device %s' % device)
+                self.log.debug('removing device %s' % device)
                 del self.proxies[device]
                 # we could delete the RRD files, too
 
@@ -155,13 +161,14 @@ class ZenPerformanceFetcher(ZenDaemon):
         'Kick off a request to get the configuration of a device'
         proxy = self.buildProxy(deviceUrl)
         d = proxy.callRemote('getSnmpOidTargets')
-        d.addCallbacks(self.updateDeviceConfig, self.error, (deviceUrl,) )
+        d.addCallbacks(self.updateDeviceConfig, self.log.error, (deviceUrl,) )
         return d
 
 
     def updateDeviceConfig(self, snmpTargets, url):
         'Save the device configuration and create an SNMP proxy to talk to it'
         deviceName, ip, port, community, oidData = snmpTargets
+        self.log.debug("received config for %s", deviceName)
         p = self.proxies.get(deviceName, None)
         if p is None:
             p = AgentProxy(ip=ip, port=port, community=community,
@@ -178,14 +185,15 @@ class ZenPerformanceFetcher(ZenDaemon):
         'Periodically fetch the performance values from all known devices'
         # limit the number of devices we query at once to avoid
         # a UDP packet storm
-        self.sendEvent(self.heartbeat)
         if self.queryWorkList:
             self.log.warning("There are still %d devices to query, "
                              "waiting for them to finish" %
                              len(self.queryWorkList))
         else:
-            self.queryWorkList =  set(self.proxies.keys())
-            self.queryWorkList -= set(self.unresponsiveDevices)
+            self.queryWorkList =  Set(self.proxies.keys())
+            self.queryWorkList -= self.unresponsiveDevices
+            self.startTime = time.time()
+            self.devcount = len(self.queryWorkList)
             for i in range(MAX_SNMP_REQUESTS):
                 if not self.queryWorkList: break
                 self.startReadDevice(self.queryWorkList.pop())
@@ -207,6 +215,7 @@ class ZenPerformanceFetcher(ZenDaemon):
                 lst.append(d)
         else:
             # ensure that the request will fit in a packet
+            #if self.options.debug: pprint.pprint(proxy.oidMap)
             for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
                 lst.append(proxy.get(part))
         deferred = defer.DeferredList(lst, consumeErrors=1)
@@ -219,7 +228,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         proxy = self.proxies.get(deviceName, None)
         if proxy is None: return
         if not result:
-            self.error('Bad oid %s found for device %s' % (oid, deviceName))
+            self.log.error('Bad oid %s found for device %s' % (oid, deviceName))
             del proxy.oidMap[oid]
             return (False, result)
         return (True, result)
@@ -228,14 +237,19 @@ class ZenPerformanceFetcher(ZenDaemon):
     def finishDevices(self, error=None):
         'work down the list of devices'
         if error:
-            self.error(error)
+            self.log.error(error)
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
+        else:
+            self.sendEvent(self.heartbeat)
+            runtime = time.time() - self.startTime
+            self.log.info("collected %d devices in %.2f", 
+                          self.devcount, runtime)
 
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
-        self.debug('storeValues %r' % deviceName)
+        self.log.debug('storeValues %r' % deviceName)
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
@@ -253,7 +267,7 @@ class ZenPerformanceFetcher(ZenDaemon):
                     path, dsType = proxy.oidMap[oid.strip('.')]
                     self.storeRRD(path, dsType, value)
         if proxy.badOidMode:
-            self.queryWorkList.append(deviceName)
+            self.queryWorkList.add(deviceName)
         self.finishDevices()
 
 
@@ -265,10 +279,9 @@ class ZenPerformanceFetcher(ZenDaemon):
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:0:U' % (nameFromPath(path),
-                                              type,
-                                              CONFIG_CYCLE_TIME)
+            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0',type,3*SAMPLE_CYCLE_TIME)
             rrdtool.create(filename,
+                           "--step",  str(SAMPLE_CYCLE_TIME),
                            dataSource,
                            'RRA:AVERAGE:0.5:1:600',
                            'RRA:AVERAGE:0.5:6:600',
@@ -276,21 +289,11 @@ class ZenPerformanceFetcher(ZenDaemon):
                            'RRA:AVERAGE:0.5:288:600',
                            'RRA:MAX:0.5:288:600')
         try:
+            self.log.debug("update %s %s", os.path.basename(filename), value)
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             self.log.error('rrd error %s' % err)
-
-
-    def debug(self, message):
-        'Print the message if debugging'
-        if self.options.debug:
-            print message
-
-
-    def error(self, error):
-        'Log a message at the error level'
-        self.log.error(str(error))
 
 
     def quit(self, error):

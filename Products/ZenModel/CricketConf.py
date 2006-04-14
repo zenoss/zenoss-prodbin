@@ -24,6 +24,7 @@ $Id: CricketConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 
 __version__ = "$Revision: 1.30 $"[11:-2]
 
+import os
 import logging
 import transaction
 
@@ -45,6 +46,8 @@ from Monitor import Monitor
 from StatusColor import StatusColor
 
 from ZenDate import ZenDate
+
+PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
 
 def manage_addCricketConf(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -137,7 +140,8 @@ class CricketConf(Monitor, StatusColor):
     def cricketGraphUrl(self, context, targetpath, targettype,
                      view, drange):
         """set the full path of the target and send to view"""
-        targetpath = self.getCricketRoot() + '/cricket-data' + targetpath
+        #targetpath = self.getCricketRoot() + '/cricket-data' + targetpath
+        targetpath = os.path.join(PERF_ROOT, targetpath[1:])
         gopts =  view.graphOpts(context, targetpath, targettype)
         gopts = url_quote('|'.join(gopts))
         return "%s/render?gopts=%s&drange=%d" % (self.cricketurl,gopts,drange)

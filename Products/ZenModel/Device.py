@@ -365,7 +365,7 @@ class Device(CricketDevice, ManagedEntity):
         """Return information for snmp collection on this device in the form
         (devname, ip, snmpport, snmpcommunity [(oid, path, type),])
         """
-        oids = []
+        oids = (super(Device, self).getSnmpOidTargets())
         for o in self.os.interfaces(): oids.extend(o.getSnmpOidTargets())
         for o in self.os.filesystems(): oids.extend(o.getSnmpOidTargets())
         for o in self.hw.harddisks(): oids.extend(o.getSnmpOidTargets())
