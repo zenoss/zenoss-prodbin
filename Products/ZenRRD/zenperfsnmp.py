@@ -23,7 +23,6 @@ from twisted.internet import reactor, defer
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
-from Products.ZenEvents.SendEvent import SendEvent
 
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
@@ -37,7 +36,8 @@ MAX_SNMP_REQUESTS = 100
 
 COMMON_EVENT_INFO = {
     'device':socket.getfqdn(),
-    'component':'zenperfsnmp'
+    'component':'zenperfsnmp',
+    'Agent':'PerformanceFetcher'
     }
 
 def chunk(lst, n):
@@ -69,17 +69,14 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def __init__(self):
         ZenDaemon.__init__(self)
-        self.model = None
+        self.model = self.buildProxy(self.options.zopeurl)
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
         self.queryWorkList = []
-        self.zem = SendEvent('PerformanceFetcher',
-                             self.options.zopeusername,
-                             self.options.zopepassword,
-                             self.options.zem)
-        self.deviceLoopStarted = False
-        self.unresponsiveDevices = []
-
+        self.zem = self.buildProxy(self.options.zem)
+        self.configLoaded = defer.Deferred()
+        self.configLoaded.addCallbacks(self.readDevices, self.quit)
+        self.unresponsiveDevices = set()
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -109,74 +106,79 @@ class ZenPerformanceFetcher(ZenDaemon):
         return AuthProxy(url)
 
 
+    def sendEvent(self, event):
+        'convenience function for pushing events to the Zope server'
+        self.zem.callRemote('sendEvent', event).addErrback(self.debug)
+
+
     def startFetchUnresponsiveDevices(self, devices):
         "start fetching the devices that are unresponsive"
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getWmiConnIssues')
-        d.addCallbacks(self.setUnresponsiveDevices, self.logError)
+        d.addCallbacks(self.setUnresponsiveDevices, self.error)
+        return d
 
 
-    def setUnresponsiveDevices(self, deviceStatus):
+    def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
-        self.unresponsiveDevices = [d[0] for d in deviceStatus]
+        self.debug('Unresponsive devices: %r' % deviceList)
+        self.unresponsiveDevices = set([d[0] for d in deviceList])
 
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for the device list.'
-        if not self.model:
-            self.model = self.buildProxy(self.options.zopeurl)
         deferred = self.model.callRemote('cricketDeviceList', True)
-        deferred.addCallbacks(self.updateConfig, self.reconnect)
+        deferred.addCallbacks(self.updateConfig, self.debug)
         reactor.callLater(CONFIG_CYCLE_TIME, self.startUpdateConfig)
 
 
     def updateConfig(self, deviceList):
         '''Update the list of devices, and initiate a request
         to get the device configuration'''
+        self.debug('Configured %d devices' % len(deviceList))
         lst = []
         for device in deviceList:
             lst.append(self.startDeviceConfig(device))
-        defer.DeferredList(lst, consumeErrors=1).addCallback(self.readDevices1)
-
-        self.startFetchUnresponsiveDevices(deviceList)
+        lst.append(self.startFetchUnresponsiveDevices(deviceList))
+        if not self.configLoaded.called:
+            defer.DeferredList(lst).chainDeferred(self.configLoaded)
             
         # stop collecting those no longer in the list
-        doomed = set(self.proxies.keys()) - set(deviceList)
-        for device in doomed:
-            del self.proxies[device]
-            # we could delete the RRD files, too
+        for device in self.proxies.values():
+            if device.url not in deviceList:
+                self.debug('removing device %s' % device)
+                del self.proxies[device]
+                # we could delete the RRD files, too
 
 
     def startDeviceConfig(self, deviceUrl):
         'Kick off a request to get the configuration of a device'
         proxy = self.buildProxy(deviceUrl)
         d = proxy.callRemote('getSnmpOidTargets')
-        d.addCallbacks(self.updateDeviceConfig, self.logError)
+        d.addCallbacks(self.updateDeviceConfig, self.error, (deviceUrl,) )
         return d
 
 
-    def updateDeviceConfig(self, snmpTargets):
+    def updateDeviceConfig(self, snmpTargets, url):
         'Save the device configuration and create an SNMP proxy to talk to it'
         deviceName, ip, port, community, oidData = snmpTargets
-        p = AgentProxy(ip=ip, port=port, community=community,
-                       protocol=self.snmpPort.protocol, allowCache=True)
+        p = self.proxies.get(deviceName, None)
+        if p is None:
+            p = AgentProxy(ip=ip, port=port, community=community,
+                           protocol=self.snmpPort.protocol, allowCache=True)
+            p.url = url
         p.badOidMode = False
         p.oidMap = {}
         for oid, path, dsType in oidData:
             p.oidMap[oid] = path, dsType
         self.proxies[deviceName] = p
-        return snmpTargets
 
-    def readDevices1(self, *ignored):
-        "Start the read devices timer after we have collected device configs"
-        if self.deviceLoopStarted: return
-        self.deviceLoopStarted = True
-        self.readDevices()
 
-    def readDevices(self):
+    def readDevices(self, ignored=None):
         'Periodically fetch the performance values from all known devices'
         # limit the number of devices we query at once to avoid
         # a UDP packet storm
+        self.sendEvent(self.heartbeat)
         if self.queryWorkList:
             self.log.warning("There are still %d devices to query, "
                              "waiting for them to finish" %
@@ -217,7 +219,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         proxy = self.proxies.get(deviceName, None)
         if proxy is None: return
         if not result:
-            self.logError('Bad oid %s found for device %s' % (oid, deviceName))
+            self.error('Bad oid %s found for device %s' % (oid, deviceName))
             del proxy.oidMap[oid]
             return (False, result)
         return (True, result)
@@ -226,13 +228,14 @@ class ZenPerformanceFetcher(ZenDaemon):
     def finishDevices(self, error=None):
         'work down the list of devices'
         if error:
-            self.logError(error)
+            self.error(error)
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
+        self.debug('storeValues %r' % deviceName)
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
@@ -278,29 +281,39 @@ class ZenPerformanceFetcher(ZenDaemon):
             # may get update errors when updating too quickly
             self.log.error('rrd error %s' % err)
 
-    def logError(self, error):
-        self.log.error(error)
 
-    def reconnect(self, error):
-        'Errback for handling communications errors with the Zope server'
-        self.model = None
-        self.log.error('connection to Zope server dropped (%s), '
-                       'reconnecting' % error)
+    def debug(self, message):
+        'Print the message if debugging'
+        if self.options.debug:
+            print message
 
-    def beat(self):
-        self.zem.server.sendEvent(self.heartbeat)
-        reactor.callLater(SAMPLE_CYCLE_TIME, self.beat)
+
+    def error(self, error):
+        'Log a message at the error level'
+        self.log.error(str(error))
+
+
+    def quit(self, error):
+        'stop the reactor if an error occured on the first config load'
+        print >>sys.stderr, error
+        reactor.stop()
+
 
     def main(self):
+        global SAMPLE_CYCLE_TIME, CONFIG_CYCLE_TIME
         "Run forever, fetching and storing"
+
+        if self.options.debug:
+            SAMPLE_CYCLE_TIME /= 60
+            CONFIG_CYCLE_TIME /= 60
+
         self.heartbeat['timeout'] = SAMPLE_CYCLE_TIME * 3
-        self.zem.server.sendEvent(self.startevt)
+        self.sendEvent(self.startevt)
         
         zpf.startUpdateConfig()
-        self.beat()
         reactor.run()
         
-        self.zem.server.sendEvent(self.stopevt)
+        self.sendEvent(self.stopevt)
 
 if __name__ == '__main__':
     zpf = ZenPerformanceFetcher()
