@@ -74,6 +74,3 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids
-
-
-

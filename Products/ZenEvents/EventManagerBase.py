@@ -689,7 +689,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         devdata = []
         devclass = self.getDmdRoot("Devices")
 
-        def evtsum(evts):
+        def evtprep(evts):
             evtsdata = "%d/%d" % (evts[1],evts[2])
             if evts[1]==evts[2] or evts[2]==0: 
                 return evtsdata
@@ -701,10 +701,15 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             if dev:
                 alink = "<a href='%s'>%s</a>" % (
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
-            else: alink = devname
-            owners = ", ".join(dev.getEventOwnerList(severity=4))
+                owners = ", ".join(dev.getEventOwnerList(severity=4))
+                evtsum = dev.getEventSummary(severity=4)
+            else: 
+                # handle event from device that isn't in dmd
+                alink = devname
+                owners = ""
+                evtsum = self.getEventSummary("device='%s'"%devname,severity=4)
             evts = [alink, owners]
-            evts.extend(map(evtsum, dev.getEventSummary(severity=4)))
+            evts.extend(map(evtprep, evtsum))
             devdata.append(evts)
         devdata.sort()
         data['deviceevents'] = devdata
@@ -715,7 +720,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             evts = ["<a href='%s'>%s</a>" % (
                         sys.getPrimaryUrlPath()+"/viewEvents", 
                         sys.getOrganizerName())]
-            evts.extend(map(evtsum, sys.getEventSummary()))
+            evts.extend(map(evtprep, sys.getEventSummary()))
             sysdata.append(evts)
         
         sysdata.sort()
