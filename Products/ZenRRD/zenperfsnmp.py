@@ -70,7 +70,6 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.snmpPort = snmpprotocol.port()
         self.queryWorkList = Set()
         baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
-        print 'baseURL', baseURL
         if not self.options.zem:
             self.options.zem = baseURL + '/ZenEventManager'
         self.zem = self.buildProxy(self.options.zem)
