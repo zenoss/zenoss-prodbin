@@ -33,8 +33,6 @@ from twistedsnmp import snmpprotocol
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
-SAMPLE_CYCLE_TIME = 5*60
-CONFIG_CYCLE_TIME = 20*60
 MAX_OIDS_PER_REQUEST = 200
 MAX_SNMP_REQUESTS = 100
 
@@ -62,6 +60,11 @@ class ZenPerformanceFetcher(ZenDaemon):
     for event in [startevt, stopevt, heartbeat]:
         event.update(COMMON_EVENT_INFO)
 
+    # these names need to match the property values in StatusMonitorConf
+    configCycleInterval = 20            # minutes
+    snmpCycleInterval = 5*60            # seconds
+    snmpTimeOut = 1.0
+    snmpTries = 3
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -95,6 +98,8 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.parser.add_option(
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance")
+
+        
     def buildProxy(self, url):
         "create AuthProxy objects with our config and the given url"
         url = basicAuthUrl(self.options.zopeusername,
@@ -120,22 +125,44 @@ class ZenPerformanceFetcher(ZenDaemon):
         "remember all the unresponsive devices"
         self.log.debug('Unresponsive devices: %r' % deviceList)
         self.unresponsiveDevices = Set([d[0] for d in deviceList])
+        
 
     def cycle(self, seconds, callable):
         "callLater if we should be cycling"
+        if self.options.debug:
+            seconds /= 60
         if self.options.daemon or self.options.cycle:
-            return reactor.callLater(seconds, callable)
-        reactor.stop()
+            reactor.callLater(seconds, callable)
+        else:
+            reactor.stop()
 
 
     def startUpdateConfig(self):
-        'Periodically ask the Zope server for the device list.'
+        'Periodically ask the Zope server for basic configuration data.'
         deferred = self.model.callRemote('deviceList', True)
-        deferred.addCallbacks(self.updateConfig, self.log.debug)
-        self.cycle(CONFIG_CYCLE_TIME, self.startUpdateConfig)
+        deferred.addCallbacks(self.updateDeviceList, self.log.debug)
+        
+        deferred = self.model.callRemote('propertyItems')
+        deferred.addCallbacks(self.monitorConfigDefaults, self.log.error)
+
+        self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
 
-    def updateConfig(self, deviceList):
+    def monitorConfigDefaults(self, items):
+        'Unpack config defaults for this monitor'
+        map = dict(items)
+        for property in ('configCycleInterval',
+                         'snmpCycleInterval',
+                         'snmpTimeOut',
+                         'snmpTries'):
+            if map.has_key(property):
+                value = map[property]
+                if getattr(self, property) != value:
+                    self.log.debug('Updated %s config to %s' %
+                                   (property, value))
+                setattr(self, property, value)
+
+    def updateDeviceList(self, deviceList):
         '''Update the list of devices, and initiate a request
         to get the device configuration'''
         self.log.debug('Configured %d devices' % len(deviceList))
@@ -170,8 +197,11 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.log.debug("received config for %s", deviceName)
         p = self.proxies.get(deviceName, None)
         if p is None:
-            p = AgentProxy(ip=ip, port=port, community=community,
-                           protocol=self.snmpPort.protocol, allowCache=True)
+            p = AgentProxy(ip=ip,
+                           port=port,
+                           community=community,
+                           protocol=self.snmpPort.protocol,
+                           allowCache=True)
             p.url = url
         p.badOidMode = False
         p.oidMap = {}
@@ -200,13 +230,15 @@ class ZenPerformanceFetcher(ZenDaemon):
                 lst.append(self.startReadDevice(self.queryWorkList.pop()))
             self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
             self.devicesRead.addCallback(self.reportRate)
-        self.cycle(SAMPLE_CYCLE_TIME, self.readDevices)
+        self.cycle(self.snmpCycleInterval, self.readDevices)
+
 
     def reportRate(self, *ignored):
+        self.heartbeat['timeout'] = self.snmpCycleInterval * 3
         self.sendEvent(self.heartbeat)
         runtime = time.time() - self.startTime
-        self.log.info("collected %d devices in %.2f", 
-                      self.devcount, runtime)
+        self.log.info("collected %d devices in %.2f", self.devcount, runtime)
+
 
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
@@ -224,11 +256,9 @@ class ZenPerformanceFetcher(ZenDaemon):
         else:
             # ensure that the request will fit in a packet
             for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
-                lst.append(proxy.get(part))
+                lst.append(proxy.get(part, self.snmpTimeOut, self.snmpTries))
         d = defer.DeferredList(lst, consumeErrors=1)
-        d.addCallbacks(self.storeValues,
-                       self.finishDevices,
-                       (deviceName,))
+        d.addCallbacks(self.storeValues, self.finishDevices, (deviceName,))
         return d
 
     def noticeBadOid(self, result, deviceName, oid):
@@ -283,9 +313,10 @@ class ZenPerformanceFetcher(ZenDaemon):
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0',type,3*SAMPLE_CYCLE_TIME)
+            dataSource = \
+                'DS:%s:%s:%d:0:U' % ('ds0',type,3*self.snmpCycleInterval)
             rrdtool.create(filename,
-                           "--step",  str(SAMPLE_CYCLE_TIME),
+                           "--step",  str(self.snmpCycleInterval),
                            dataSource,
                            'RRA:AVERAGE:0.5:1:600',
                            'RRA:AVERAGE:0.5:6:600',
@@ -306,14 +337,8 @@ class ZenPerformanceFetcher(ZenDaemon):
 
 
     def main(self):
-        global SAMPLE_CYCLE_TIME, CONFIG_CYCLE_TIME
         "Run forever, fetching and storing"
 
-        if self.options.debug:
-            SAMPLE_CYCLE_TIME /= 60
-            CONFIG_CYCLE_TIME /= 60
-
-        self.heartbeat['timeout'] = SAMPLE_CYCLE_TIME * 3
         self.sendEvent(self.startevt)
         
         zpf.startUpdateConfig()
