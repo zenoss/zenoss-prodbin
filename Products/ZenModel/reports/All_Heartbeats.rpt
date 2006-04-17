@@ -21,11 +21,7 @@
         <th class="tableheader">Seconds</th>
     </tr>
     <tr tal:repeat="heart batch">
-        <td class="tablevalues" tal:define="devname python:heart[0]">
-            <a tal:attributes="href 
-                string:/zport/dmd/deviceSearchResults?query=${devname}"
-            tal:content="devname">Name</a>
-        </td>
+        <td class="tablevalues" tal:content="structure python:heart[0]"/>
         <td class="tablevalues" tal:content="python:heart[1]"/>
         <td class="tablevalues" align=center tal:content="python:heart[2]"/>
     </tr>
