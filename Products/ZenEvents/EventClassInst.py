@@ -28,14 +28,14 @@ addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
 
 class EventClassPropertyMixin(object):
 
-    def zenPropertyIds(self, all=True):
-        props = super(EventClassPropertyMixin, self).zenPropertyIds(all)
-        if all:
-            for p in self.zEventProperties:
-                p = "zEvent_" + p
-                if p in props: continue
-                props.append(p)
-        return props
+#    def zenPropertyIds(self, all=True):
+#        props = super(EventClassPropertyMixin, self).zenPropertyIds(all)
+#        if all:
+#            for p in self.zEventProperties:
+#                p = "zEvent_" + p
+#                if p in props: continue
+#                props.append(p)
+#        return props
 
 
     def applyValues(self, evt):
@@ -47,13 +47,16 @@ class EventClassPropertyMixin(object):
         """
         evt._clearClasses = copy.copy(getattr(self, "zEventClearClasses", []))
         evt._action = getattr(self, "zEventAction", "status")
-        propnames = getattr(self, "zEventProperties", ())
-        for prop in propnames:
-            propkey = "zEvent_" + prop
-            value = getattr(self, propkey, None)
-            if value != None:
-                setattr(evt, prop, value)
-        return evt
+        sev = getattr(self, "zEventSeverity", -1)
+        if sev >= 0:
+            evt.severity = sev
+#        propnames = getattr(self, "zEventProperties", ())
+#        for prop in propnames:
+#            propkey = "zEvent_" + prop
+#            value = getattr(self, propkey, None)
+#            if value != None:
+#                setattr(evt, prop, value)
+#        return evt
 
 
 

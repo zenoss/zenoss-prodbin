@@ -94,20 +94,22 @@ class DeviceClass(DeviceOrganizer):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ( permissions.view, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (  permissions.view, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (  permissions.view, )
+                },
+                { 'id'            : 'zenrrd'
+                , 'name'          : 'ZenRRD'
+                , 'action'        : 'zenrrd'
+                , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
@@ -117,8 +119,7 @@ class DeviceClass(DeviceOrganizer):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (  permissions.view, )
                 },
             )
          },
@@ -463,6 +464,10 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zTelnetEnableRegex", "assword:")
         devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
+
+        # Device context Event Mapping
+        #FIXME this is half baked needs to be specific to an event class
+        #devs._setProperty("zEventSeverity", -1, type="int")
 
         # Windows WMI collector properties
         devs._setProperty("zWinUser", "")

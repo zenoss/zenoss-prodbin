@@ -219,10 +219,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     def buildZProperties(self):
         edict = self.getDmdRoot("Events")
-        if getattr(aq_base(edict), "zEventProperties", False): return
-        edict._setProperty("zEventProperties", [], type="lines")
+        if getattr(aq_base(edict), "zEventAction", False): return
         edict._setProperty("zEventClearClasses", [], type="lines")
         edict._setProperty("zEventAction", "status")
+        edict._setProperty("zEventSeverity", -1, type="int")
+        #edict._setProperty("zEventProperties", [], type="lines")
 
 
     def reIndex(self):

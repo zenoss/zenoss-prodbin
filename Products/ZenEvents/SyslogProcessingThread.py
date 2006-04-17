@@ -187,26 +187,3 @@ class SyslogProcessingThread(threading.Thread):
         else:
             slog.debug("no eventClassKey assigned")
         return evt
-
-
-    def applyDeviceContext(self, device, evt):
-        """
-        Apply event attributes from device context.  List of attribute names is
-        looked for in zProperty 'zEventProperties'. These attributes are 
-        looked up using the key 'zEvent_'+attr name (to prevent name clashes). 
-        Any non-None attribute values are applied to the event.
-        """
-        evt.prodState = device.productionState
-        evt.Location = device.getLocationName()
-        evt.DeviceClass  = device.getDeviceClassName()
-        evt.DeviceGroups = "|"+"|".join(device.getDeviceGroupNames())
-        evt.Systems = "|"+"|".join(device.getSystemNames())
-        attnames = getattr(device, "zEventProperties", ())
-        for attr in attnames:
-            attkey = "zEvent_" + attr
-            value = getattr(device, attkey, None)
-            if value != None:
-                setattr(evt, attr, value)
-        return evt
-
-
