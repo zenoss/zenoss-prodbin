@@ -16,7 +16,6 @@ __version__ = "$Revision$"[11:-2]
 import os
 import socket
 import time
-import pprint
 
 from sets import Set
 
@@ -148,15 +147,14 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def monitorConfigDefaults(self, items):
         'Unpack config defaults for this monitor'
-        map = dict(items)
-        for property in ('configCycleInterval',
-                         'snmpCycleInterval'):
-            if map.has_key(property):
-                value = map[property]
-                if getattr(self, property) != value:
+        table = dict(items)
+        for name in ('configCycleInterval', 'snmpCycleInterval'):
+            if table.has_key(name):
+                value = table[name]
+                if getattr(self, name) != value:
                     self.log.debug('Updated %s config to %s' %
-                                   (property, value))
-                setattr(self, property, value)
+                                   (name, value))
+                setattr(self, name, value)
 
     def updateDeviceList(self, deviceList):
         'Update the config for devices devices'
@@ -199,7 +197,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.proxies[deviceName] = p
 
 
-    def readDevices(self, ignored=None):
+    def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
         self.log.debug('readingDevices')
         # limit the number of devices we query at once to avoid
@@ -214,7 +212,7 @@ class ZenPerformanceFetcher(ZenDaemon):
             self.startTime = time.time()
             self.devcount = len(self.queryWorkList)
             lst = []
-            for i in range(MAX_SNMP_REQUESTS):
+            for unused in range(MAX_SNMP_REQUESTS):
                 if not self.queryWorkList: break
                 lst.append(self.startReadDevice(self.queryWorkList.pop()))
             self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
@@ -223,7 +221,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.cycle(self.snmpCycleInterval, self.readDevices)
 
 
-    def reportRate(self, *ignored):
+    def reportRate(self, *unused):
         'Finished reading all the devices, report stats and maybe stop'
         runtime = time.time() - self.startTime
         self.log.info("collected %d devices in %.2f", self.devcount, runtime)
@@ -325,7 +323,7 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
-        print >>sys.stderr, error
+        self.log.error(error)
         reactor.stop()
 
 
