@@ -128,7 +128,7 @@ class ZenDaemon(CmdBase):
             file.write(str(os.getpid()))
             file.close()
         else:
-            raise SystemExit("ERROR: unable to open pid file %s" % pidfile)
+            raise SystemExit("ERROR: unable to open pid file %s" % self.pidfile)
         return(0)
 
 
