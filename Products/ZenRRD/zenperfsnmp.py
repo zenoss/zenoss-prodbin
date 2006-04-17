@@ -31,8 +31,8 @@ from Products.ZenUtils.TwistedAuth import AuthProxy
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
 
-DEFAULT_URL = 'http://localhost:8080/zport/dmd/Monitors/Cricket/localhost'
-EVENT_URL = 'http://localhost:8080/zport/dmd/ZenEventManager'
+BASE_URL = 'http://localhost:8080/zport/dmd'
+DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 SAMPLE_CYCLE_TIME = 5*60
 CONFIG_CYCLE_TIME = 20*60
 MAX_OIDS_PER_REQUEST = 200
@@ -69,6 +69,10 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
         self.queryWorkList = Set()
+        baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
+        print 'baseURL', baseURL
+        if not self.options.zem:
+            self.options.zem = baseURL + '/ZenEventManager'
         self.zem = self.buildProxy(self.options.zem)
         self.configLoaded = defer.Deferred()
         self.configLoaded.addCallbacks(self.readDevices, self.quit)
@@ -91,9 +95,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.parser.add_option("--debug", dest="debug", action='store_true')
         self.parser.add_option(
             '--zem', dest='zem',
-            help="XMLRPC path to an ZenEventManager instance",
-            default=EVENT_URL)
-
+            help="XMLRPC path to an ZenEventManager instance")
     def buildProxy(self, url):
         "create AuthProxy objects with our config and the given url"
         url = basicAuthUrl(self.options.zopeusername,
@@ -129,7 +131,7 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for the device list.'
-        deferred = self.model.callRemote('cricketDeviceList', True)
+        deferred = self.model.callRemote('deviceList', True)
         deferred.addCallbacks(self.updateConfig, self.log.debug)
         self.cycle(CONFIG_CYCLE_TIME, self.startUpdateConfig)
 
