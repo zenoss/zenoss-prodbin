@@ -363,13 +363,20 @@ class Device(CricketDevice, ManagedEntity):
 
     def getSnmpOidTargets(self):
         """Return information for snmp collection on this device in the form
-        (devname, ip, snmpport, snmpcommunity [(oid, path, type),])
+        (devname,
+         (ip, snmpport),
+         (snmpcommunity, snmpversion, snmptimeout, snmptries)
+         [(oid, path, type),])
         """
         oids = (super(Device, self).getSnmpOidTargets())
         for o in self.os.interfaces(): oids.extend(o.getSnmpOidTargets())
         for o in self.os.filesystems(): oids.extend(o.getSnmpOidTargets())
         for o in self.hw.harddisks(): oids.extend(o.getSnmpOidTargets())
-        return (self.id,self.manageIp,self.zSnmpPort,self.zSnmpCommunity,oids)
+        return (self.id,
+                (self.manageIp, self.zSnmpPort),
+                (self.zSnmpCommunity, self.zSnmpVer,
+                 self.zSnmpTimeout, self.zSnmpTries),
+                oids)
                 
 
     def getHWProductName(self):
