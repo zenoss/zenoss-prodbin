@@ -360,4 +360,19 @@ class StatusMonitorConf(Monitor, StatusColor):
         return devlist
        
 
+    security.declareProtected('View','allDeviceSnmpTargets')
+    def allDeviceSnmpTargets(self, force=False):
+        """Return information for snmp collection on all devices in the form
+        (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
+        result = []
+        for dev in self.devices():
+            dev = dev.primaryAq()
+            if (not dev.pastSnmpMaxFailures() 
+                and dev.productionState >= self.prodStateThreshold 
+                and (force or
+                dev.getLastChange() > dev.getLastCricketGenerate())):
+                result.append(dev.getSnmpOidTargets())
+        return result
+       
+
 InitializeClass(StatusMonitorConf)

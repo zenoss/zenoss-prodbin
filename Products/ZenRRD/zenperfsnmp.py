@@ -113,14 +113,6 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.zem.callRemote('sendEvent', event).addErrback(self.log.debug)
 
 
-    def startFetchUnresponsiveDevices(self, devices):
-        "start fetching the devices that are unresponsive"
-        proxy = self.buildProxy(self.options.zem)
-        d = proxy.callRemote('getWmiConnIssues')
-        d.addCallbacks(self.setUnresponsiveDevices, self.log.error)
-        return d
-
-
     def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
         self.log.debug('Unresponsive devices: %r' % deviceList)
@@ -136,11 +128,22 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for basic configuration data.'
-        deferred = self.model.callRemote('deviceList', True)
+        lst = []
+        deferred = self.model.callRemote('allDeviceSnmpTargets', True)
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
+        lst.append(deferred)
 
         deferred = self.model.callRemote('propertyItems')
         deferred.addCallbacks(self.monitorConfigDefaults, self.log.error)
+        lst.append(deferred)
+
+        proxy = self.buildProxy(self.options.zem)
+        deferred = proxy.callRemote('getWmiConnIssues')
+        deferred.addCallbacks(self.setUnresponsiveDevices, self.log.error)
+        lst.append(deferred)
+
+        if not self.configLoaded.called:
+            defer.DeferredList(lst).chainDeferred(self.configLoaded)
 
         self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
@@ -160,35 +163,23 @@ class ZenPerformanceFetcher(ZenDaemon):
                 setattr(self, property, value)
 
     def updateDeviceList(self, deviceList):
-        '''Update the list of devices, and initiate a request
-        to get the device configuration'''
+        'Update the config for devices devices'
         self.log.debug('Configured %d devices' % len(deviceList))
-        lst = []
-        for device in deviceList:
-            self.log.debug("load config for %s", device)
-            lst.append(self.startDeviceConfig(device))
-        lst.append(self.startFetchUnresponsiveDevices(deviceList))
-        if not self.configLoaded.called:
-            defer.DeferredList(lst).chainDeferred(self.configLoaded)
-            
+
         if not deviceList: self.log.warn("no devices found")
+
+        for snmpTargets in deviceList:
+            self.updateDeviceConfig(snmpTargets)
+            
         # stop collecting those no longer in the list
-        for device in self.proxies.values():
-            if device.url not in deviceList:
-                self.log.debug('removing device %s' % device)
-                del self.proxies[device]
-                # we could delete the RRD files, too
+        deviceNames = Set([device[0] for device in deviceList])
+        doomed = Set(self.proxies.keys()) - deviceNames
+        for name in doomed:
+            self.log.debug('removing device %s' % name)
+            del self.proxies[name]
+            # we could delete the RRD files, too
 
-
-    def startDeviceConfig(self, deviceUrl):
-        'Kick off a request to get the configuration of a device'
-        proxy = self.buildProxy(deviceUrl)
-        d = proxy.callRemote('getSnmpOidTargets')
-        d.addCallbacks(self.updateDeviceConfig, self.log.error, (deviceUrl,) )
-        return d
-
-
-    def updateDeviceConfig(self, snmpTargets, url):
+    def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
         deviceName, ip, port, community, oidData = snmpTargets
         self.log.debug("received config for %s", deviceName)
@@ -199,7 +190,6 @@ class ZenPerformanceFetcher(ZenDaemon):
                            community=community,
                            protocol=self.snmpPort.protocol,
                            allowCache=True)
-            p.url = url
         p.badOidMode = False
         p.oidMap = {}
         for oid, path, dsType in oidData:
@@ -227,18 +217,19 @@ class ZenPerformanceFetcher(ZenDaemon):
                 lst.append(self.startReadDevice(self.queryWorkList.pop()))
             self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
             self.devicesRead.addCallback(self.reportRate)
-        if self.options.daemon or self.options.cycle:
-            self.cycle(self.snmpCycleInterval, self.readDevices)
-        else:
-            reactor.stop()
+
+        self.cycle(self.snmpCycleInterval, self.readDevices)
 
 
     def reportRate(self, *ignored):
-        self.heartbeat['timeout'] = self.snmpCycleInterval * 3
-        self.sendEvent(self.heartbeat)
+        'Finished reading all the devices, report stats and maybe stop'
         runtime = time.time() - self.startTime
         self.log.info("collected %d devices in %.2f", self.devcount, runtime)
-
+        if not self.options.daemon and not self.options.cycle:
+            reactor.stop()
+        else:
+            self.heartbeat['timeout'] = self.snmpCycleInterval * 3
+            self.sendEvent(self.heartbeat)
 
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
