@@ -347,4 +347,17 @@ class StatusMonitorConf(Monitor, StatusColor):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('View','deviceList')
+    def deviceList(self, force=False):
+        """Return a list of urls that point to our managed devices"""
+        devlist = []
+        for dev in self.devices():
+            if (not dev.pastSnmpMaxFailures() 
+                and dev.productionState >= self.prodStateThreshold 
+                and (force or
+                dev.getLastChange() > dev.getLastCricketGenerate())):
+                devlist.append(dev.getPrimaryUrlPath(full=True))
+        return devlist
+       
+
 InitializeClass(StatusMonitorConf)
