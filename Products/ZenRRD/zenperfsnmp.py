@@ -131,17 +131,14 @@ class ZenPerformanceFetcher(ZenDaemon):
         "callLater if we should be cycling"
         if self.options.debug:
             seconds /= 60
-        if self.options.daemon or self.options.cycle:
-            reactor.callLater(seconds, callable)
-        else:
-            reactor.stop()
+        reactor.callLater(seconds, callable)
 
 
     def startUpdateConfig(self):
         'Periodically ask the Zope server for basic configuration data.'
         deferred = self.model.callRemote('deviceList', True)
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
-        
+
         deferred = self.model.callRemote('propertyItems')
         deferred.addCallbacks(self.monitorConfigDefaults, self.log.error)
 
@@ -230,7 +227,10 @@ class ZenPerformanceFetcher(ZenDaemon):
                 lst.append(self.startReadDevice(self.queryWorkList.pop()))
             self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
             self.devicesRead.addCallback(self.reportRate)
-        self.cycle(self.snmpCycleInterval, self.readDevices)
+        if self.options.daemon or self.options.cycle:
+            self.cycle(self.snmpCycleInterval, self.readDevices)
+        else:
+            reactor.stop()
 
 
     def reportRate(self, *ignored):
