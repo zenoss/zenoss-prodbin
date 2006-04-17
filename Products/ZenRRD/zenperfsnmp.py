@@ -63,8 +63,6 @@ class ZenPerformanceFetcher(ZenDaemon):
     # these names need to match the property values in StatusMonitorConf
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
-    snmpTimeOut = 1.0
-    snmpTries = 3
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -152,9 +150,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         'Unpack config defaults for this monitor'
         map = dict(items)
         for property in ('configCycleInterval',
-                         'snmpCycleInterval',
-                         'snmpTimeOut',
-                         'snmpTries'):
+                         'snmpCycleInterval'):
             if map.has_key(property):
                 value = map[property]
                 if getattr(self, property) != value:
@@ -181,16 +177,22 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        deviceName, ip, port, community, oidData = snmpTargets
+        (deviceName, hostPort, snmpConfig, oidData) = snmpTargets
+        (ip, port)= hostPort
+        (community, version, timeout, tries) = snmpConfig
         self.log.debug("received config for %s", deviceName)
-        p = self.proxies.get(deviceName, None)
-        if p is None:
-            p = AgentProxy(ip=ip,
-                           port=port,
-                           community=community,
-                           protocol=self.snmpPort.protocol,
-                           allowCache=True)
+        version = '2'
+        if version.find('1') >= 0:
+            version = '1'
+        p = AgentProxy(ip=ip,
+                       port=port,
+                       community=community,
+                       snmpVersion = version,
+                       protocol=self.snmpPort.protocol,
+                       allowCache=True)
         p.badOidMode = False
+        p.timeout = timeout
+        p.tries = tries
         p.oidMap = {}
         for oid, path, dsType in oidData:
             p.oidMap[oid] = path, dsType
@@ -247,7 +249,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         else:
             # ensure that the request will fit in a packet
             for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
-                lst.append(proxy.get(part, self.snmpTimeOut, self.snmpTries))
+                lst.append(proxy.get(part, proxy.timeout, proxy.tries))
         d = defer.DeferredList(lst, consumeErrors=1)
         d.addCallbacks(self.storeValues, self.finishDevices, (deviceName,))
         return d
