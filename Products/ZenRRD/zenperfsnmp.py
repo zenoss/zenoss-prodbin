@@ -176,6 +176,7 @@ class ZenPerformanceFetcher(ZenDaemon):
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
         (deviceName, hostPort, snmpConfig, oidData) = snmpTargets
+        if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
         self.log.debug("received config for %s", deviceName)
