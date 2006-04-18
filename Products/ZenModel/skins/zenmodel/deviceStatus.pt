@@ -196,12 +196,12 @@
     </tr>
     <tr>
       <th class="tableheader">
-        Cricket Server
+        Performance Server
       </th>
       <td class="tablevalues" colspan="3">
         <span tal:replace="structure python: 
-            here.cricket.getPrimaryLink()">
-          cricket server
+            here.perfServer.getPrimaryLink()">
+          performance server
         </span>
       </td>
     </tr>

@@ -1,17 +1,17 @@
 <dtml-var manage_page_header>
 
 <dtml-var "manage_form_title(this(), _,
-           form_title='Add CricketConf',
+           form_title='Add PerformanceConf',
            help_product='RelationshipManager',
-           help_topic='CricketConf_Add.stx'
+           help_topic='PerformanceConf_Add.stx'
 	   )">
 
-<form action="manage_addCricketConf" method="post">
+<form action="manage_addPerformanceConf" method="post">
 <table cellspacing="0" cellpadding="2" border="0">
   <tr>
     <td align="left" valign="top">
     <div class="form-label">
-    Hostname of cricket collector
+    Hostname of performance collector
     </div>
     </td>
     <td align="left" valign="top">

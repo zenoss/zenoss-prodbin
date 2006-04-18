@@ -158,7 +158,7 @@ Server - Server device objects
     <div id="performance">Performance view</div>
 
         Optimon extracts performance information from the Cricket tool.
-        Every cricket target configured for a device will be displayed
+        Every performance target configured for a device will be displayed
         in a graph. These targets may be displayed for a day, a week, a
         month or a year worth of collecting.
 

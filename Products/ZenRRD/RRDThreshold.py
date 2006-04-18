@@ -138,7 +138,7 @@ class RRDThreshold(RRDToolItem, PropertyManager):
         return value 
 
 
-    def getCricketThresholds(self, context):
+    def getPerformanceThresholds(self, context):
         """return the cricket threshold string that this threshold defines"""
         threshs = []
         for ds in self._dsnames:

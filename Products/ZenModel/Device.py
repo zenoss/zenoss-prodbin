@@ -25,7 +25,6 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
 from ManagedEntity import ManagedEntity
-from CricketDevice import CricketDevice
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -59,7 +58,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], cricketMonitor="localhost",
+            statusMonitors=["localhost"], performanceMonitor="localhost",
             discoverProto="snmp"):
     """Device factory creates a device and sets up its relations and collects
     its configuration.  SNMP Community discovery also happens here.  If an
@@ -116,7 +115,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, cricketMonitor)
+                statusMonitors, performanceMonitor)
     return device
 
 
@@ -169,7 +168,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(CricketDevice, ManagedEntity):
+class Device(ManagedEntity):
     """
     Device is a key class within zenoss.  It represents the combination of
     compute hardware running an operating system.
@@ -216,7 +215,7 @@ class Device(CricketDevice, ManagedEntity):
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
         ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
         ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
-        ("cricket", ToOne(ToMany, "CricketConf", "devices")),
+        ("perfServer", ToOne(ToMany, "PerformanceConf", "devices")),
         ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
@@ -265,7 +264,7 @@ class Device(CricketDevice, ManagedEntity):
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (permissions.view, )
                 },
-                { 'id'            : 'performance'
+                { 'id'            : 'perfServer'
                 , 'name'          : 'Performance'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
@@ -312,7 +311,6 @@ class Device(CricketDevice, ManagedEntity):
         self._lastPollSnmpUpTime = ZenStatus(0)
         self._snmpLastCollection = ZenDate('1968/1/8')
         self._lastChange = ZenDate('1968/1/8')
-        self._lastCricketGenerate = ZenDate('1968/1/8')
 
     
     def __getattr__(self, name):
@@ -473,16 +471,16 @@ class Device(CricketDevice, ManagedEntity):
         return map(lambda x: x.getId(), self.monitors())
 
     
-    security.declareProtected('View', 'getCricketServer')
-    def getCricketServer(self):
-        """return device cricket server"""
-        return self.cricket()
+    security.declareProtected('View', 'getPerformanceServer')
+    def getPerformanceServer(self):
+        """return device performance server"""
+        return self.perfServer()
 
 
-    security.declareProtected('View', 'getCricketServer')
-    def getCricketServerName(self):
-        """return device cricket server"""
-        cr = self.cricket()
+    security.declareProtected('View', 'getPerformanceServer')
+    def getPerformanceServerName(self):
+        """return device performance server"""
+        cr = self.perfServer()
         if cr: return cr.getId()
         return ''
 
@@ -499,20 +497,6 @@ class Device(CricketDevice, ManagedEntity):
         """Return date string of last change detected on this device.
         """
         return self._lastChange.getString()
-
-
-    security.declareProtected('View', 'getLastChange')
-    def getLastCricketGenerate(self):
-        """Return DateTime of last cricket generation.
-        """
-        return self._lastCricketGenerate.getDate()
-
-    
-    security.declareProtected('View', 'getLastChangeString')
-    def getLastCricketGenerateString(self):
-        """Return date string of last cricket generation.
-        """
-        return self._lastCricketGenerate.getString()
 
 
     security.declareProtected('View', 'getSnmpLastCollection')
@@ -612,7 +596,7 @@ class Device(CricketDevice, ManagedEntity):
                 hwManufacturer="", hwProductName="", 
                 osManufacturer="", osProductName="", 
                 locationPath="", groupPaths=[], systemPaths=[],
-                statusMonitors=["localhost"], cricketMonitor="localhost",
+                statusMonitors=["localhost"], performanceMonitor="localhost",
                 REQUEST=None):
         """edit device relations and attributes"""
         self.hw.tag = tag
@@ -653,8 +637,8 @@ class Device(CricketDevice, ManagedEntity):
         log.info("setting status monitor to %s" % statusMonitors)
         self.setStatusMonitors(statusMonitors)
 
-        log.info("setting cricket monitor to %s" % cricketMonitor)
-        self.setCricketMonitor(cricketMonitor)
+        log.info("setting performance monitor to %s" % performanceMonitor)
+        self.setPerformanceMonitor(performanceMonitor)
        
         self.setLastChange()
         if REQUEST: 
@@ -674,13 +658,6 @@ class Device(CricketDevice, ManagedEntity):
         """Set the changed datetime for this device. value default is now.
         """
         self._lastChange.setDate(value)
-
-
-    security.declareProtected('Change Device', 'setLastCricketGenerate')
-    def setLastCricketGenerate(self, value=None):
-        """Set the last time cricket generation occurred. value default is now.
-        """
-        self._lastCricketGenerate.setDate(value)
 
 
     security.declareProtected('Change Device', 'setSnmpLastCollection')
@@ -744,17 +721,17 @@ class Device(CricketDevice, ManagedEntity):
             return self.callZenScreen(REQUEST)
    
 
-    security.declareProtected('Change Device', 'setCricketMonitor')
-    def setCricketMonitor(self, cricketMonitor,
-                            newCricketMonitor=None, REQUEST=None):
-        """set the cricket monitor for this device if newCricketMonitor
+    security.declareProtected('Change Device', 'setPerformanceMonitor')
+    def setPerformanceMonitor(self, performanceMonitor,
+                            newPerformanceMonitor=None, REQUEST=None):
+        """set the performance monitor for this device if newPerformanceMonitor
         is passed in create it"""
-        if newCricketMonitor: cricketMonitor = newCricketMonitor
-        obj = self.getDmdRoot("Monitors").getCricketMonitor(
-                                                    cricketMonitor)
-        self.addRelation("cricket", obj)
+        if newPerformanceMonitor: performanceMonitor = newPerformanceMonitor
+        obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
+                                                    performanceMonitor)
+        self.addRelation("perfServer", obj)
         if REQUEST:
-            REQUEST['message'] = "Set Cricket %s at time:" % cricketMonitor
+            REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
             return self.callZenScreen(REQUEST)
 
 

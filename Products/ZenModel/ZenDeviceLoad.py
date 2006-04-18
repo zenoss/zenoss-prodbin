@@ -7,7 +7,7 @@
 __doc__="""CVDeviceUpload
 
 Upload devices from a file with format:
-fqdn:prodState:pingStatus:snmpStatus:system:manufacturer:model:location:cricket
+fqdn:prodState:pingStatus:snmpStatus:system:manufacturer:model:location:perfServer
 
 $Id: CVServerBackup.py,v 1.1.1.1 2004/10/14 20:55:29 edahl Exp $"""
 
@@ -29,7 +29,7 @@ GROUP_PATH=4
 MANUFACTURER=5
 MODEL=6
 LOCATION_PATH=7
-CRICKET_MONITOR=8
+PERF_SERVER=8
 
 
 class ZenDeviceLoad(BasicLoader):
@@ -51,7 +51,7 @@ class ZenDeviceLoad(BasicLoader):
                                     systemPaths=line[SYSTEM_PATH].split("|"),
                                     groupPaths=line[GROUP_PATH].split("|"),
                                     locationPath=line[LOCATION_PATH],
-                                    cricketMonitor=line[CRICKET_MONITOR],
+                                    performanceMonitor=line[PERF_SERVER],
                                     )
             self.log.info("loaded device %s" % deviceName)
         except DeviceExistsError, e:

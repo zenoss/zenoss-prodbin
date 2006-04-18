@@ -84,7 +84,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], cricketMonitor="localhost",
+            statusMonitors=["localhost"], perfMonitor="localhost",
             discoverProto="snmp",REQUEST = None):
         """
         Load a device into the database connecting its major relations
@@ -106,7 +106,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, cricketMonitor, discoverProto)
+                statusMonitors, perfMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
@@ -199,12 +199,12 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setCricketMonitor')
-    def setCricketMonitor(self, newCricketMonitor, REQUEST=None):
-        """add new cricket monitor to the database"""
-        self.getDmdRoot("Monitors").getCricketMonitor(newCricketMonitor)
+    security.declareProtected('Change Device', 'setPerformanceMonitor')
+    def setPerformanceMonitor(self, newPerformanceMonitor, REQUEST=None):
+        """add new performance monitor to the database"""
+        self.getDmdRoot("Monitors").getPerformanceMonitor(newPerformanceMonitor)
         if REQUEST:
-            REQUEST['cricketMonitor'] = newCricketMonitor
+            REQUEST['performanceMonitor'] = newPerformanceMonitor
             return self.callZenScreen(REQUEST)
 
 

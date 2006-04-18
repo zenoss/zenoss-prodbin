@@ -18,7 +18,7 @@ class RRDView:
 
     def rrdGraphUrl(self, targettype=None, view=None, drange=None):
         """resolve targettype and view names to objects 
-        and pass to cricketconf"""
+        and pass to view performance"""
         from Products.ZenRRD.utils import getRRDView
         if not drange: drange = self.defaultDateRange
         if not targettype: targettype = self.getRRDTargetType()
@@ -28,10 +28,10 @@ class RRDView:
             view = targettype.getDefaultView(objpaq)
         else:
             view = getRRDView(objpaq, view)
-        cricketserver = objpaq.getCricketServer()
-        if cricketserver:
-            return cricketserver.cricketGraphUrl(objpaq, targetpath, 
-                                             targettype, view, drange)
+        perfServer = objpaq.getPerformanceServer()
+        if perfServer:
+            return perfServer.performanceGraphUrl(objpaq, targetpath, 
+                                                  targettype, view, drange)
         
 
     def getDefaultGraphs(self, drange=None):

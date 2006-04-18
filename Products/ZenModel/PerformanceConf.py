@@ -4,23 +4,12 @@
 #
 #################################################################
 
-__doc__="""CricketConf
+__doc__="""PerformanceConf
 
-The configuration object for Cricket
+The configuration object for Performance servers
 
-Cricket loads cricket plugins to build a data structor that
-is sent to CricketBuilder through web services from which it can
-build cricket target configuration files. 
 
-Data structure sent to Cricketbuiler is as follows:
-
-((targetfilepath, ({targetdata},)))
-
-targetfilepath is the path where the targets file should be created
-next element is a tuple of target dictionaries. 
-each targetdata dictionary contains the key value pairs for that target
-
-$Id: CricketConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
+$Id: PerformanceConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 
 __version__ = "$Revision: 1.30 $"[11:-2]
 
@@ -49,57 +38,59 @@ from ZenDate import ZenDate
 
 PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
 
-def manage_addCricketConf(context, id, title = None, REQUEST = None):
+def performancePath(target):
+    return os.path.join(PERF_ROOT, target)
+
+def manage_addPerformanceConf(context, id, title = None, REQUEST = None):
     """make a device class"""
-    dc = CricketConf(id)
+    dc = PerformanceConf(id)
     context._setObject(id, dc)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
-addCricketConf = DTMLFile('dtml/addCricketConf',globals())
+addPerformanceConf = DTMLFile('dtml/addPerformanceConf',globals())
 
-class CricketConf(Monitor, StatusColor):
-    '''Configuration for cricket'''
-    portal_type = meta_type = "CricketConf"
+class PerformanceConf(Monitor, StatusColor):
+    '''Configuration for Performance servers'''
+    portal_type = meta_type = "PerformanceConf"
     
-    monitorRootName = "Cricket"
+    monitorRootName = "Performance"
 
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
     _properties = (
-        {'id':'cricketroot','type':'string','mode':'w'},
-        {'id':'cricketurl','type':'string','mode':'w'},
-        {'id':'cricketuser','type':'string','mode':'w'},
-        {'id':'cricketpass','type':'string','mode':'w'},
+        {'id':'renderurl','type':'string','mode':'w'},
+        {'id':'renderuser','type':'string','mode':'w'},
+        {'id':'renderpass','type':'string','mode':'w'},
         {'id':'prodStateThreshold','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
-        ("devices", ToMany(ToOne,"Device","cricket")),
+        ("devices", ToMany(ToOne,"Device","perfServer")),
         )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'CricketConf',
-            'meta_type'      : 'CricketConf',
-            'description'    : """CricketConf class""",
-            'icon'           : 'CricketConf_icon.gif',
+            'id'             : 'PerformanceConf',
+            'meta_type'      : 'PerformanceConf',
+            'description'    : """PerformanceConf class""",
+            'icon'           : 'PerformanceConf_icon.gif',
             'product'        : 'ZenModel',
-            'factory'        : 'manage_addCricketConf',
-            'immediate_view' : 'viewCricketConfOverview',
+            'factory'        : 'manage_addPerformanceConf',
+            'immediate_view' : 'viewPerformanceConfOverview',
             'actions'        :
             ( 
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
-                , 'action'        : 'viewCricketConfOverview'
+                , 'action'        : 'viewPerformanceConfOverview'
                 , 'permissions'   : (
                   permissions.view, )
                 },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
-                , 'action'        : 'editCricketConf'
+                , 'action'        : 'editPerformanceConf'
                 , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'viewHistory'
@@ -115,10 +106,9 @@ class CricketConf(Monitor, StatusColor):
 
     def __init__(self, id):
         Monitor.__init__(self, id)
-        self.cricketroot = ''
-        self.cricketurl = ''
-        self.cricketuser = ''
-        self.cricketpass = ''
+        self.renderurl = ''
+        self.renderuser = ''
+        self.renderpass = ''
         self.prodStateThreshold = 1000
 
 
@@ -137,90 +127,84 @@ class CricketConf(Monitor, StatusColor):
         return devices
 
 
-    def cricketGraphUrl(self, context, targetpath, targettype,
-                     view, drange):
+    def performanceGraphUrl(self, context, targetpath, targettype,
+                            view, drange):
         """set the full path of the target and send to view"""
-        #targetpath = self.getCricketRoot() + '/cricket-data' + targetpath
-        targetpath = os.path.join(PERF_ROOT, targetpath[1:])
+        targetpath = performancePath(targetpath[1:])
         gopts =  view.graphOpts(context, targetpath, targettype)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.cricketurl,gopts,drange)
+        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
  
-    def cricketSummary(self, context, targetpath, targettype):
+    def performanceSummary(self, context, targetpath, targettype):
         """set full path of the target send to view to build opts
         and then call RenderServer through xmlrpc to get data"""
-        targetpath = self.getCricketRoot() + '/cricket-data' + targetpath
+        targetpath = performancePath(targetpath)
         gopts =  view.summaryOpts(context, targetpath, targettype)
         #do xmlrpc call to get data
 
 
-    def cricketMGraphUrl(self, context, targetsmap, view, drange):
+    def performanceMGraphUrl(self, context, targetsmap, view, drange):
         """set the full paths for all targts in map and send to view"""
         ntm = []
         for target, targettype in targetsmap:
             if target.find('.rrd') == -1: target += '.rrd'
-            fulltarget = self.getCricketRoot() + '/cricket-data' + target
+            fulltarget = performancePath(target)
             ntm.append((fulltarget, targettype))
         gopts =  view.multiGraphOpts(context, ntm)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.cricketurl,gopts,drange)
+        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
 
-    def cricketCustomUrl(self, gopts, drange):
+    def renderCustomUrl(self, gopts, drange):
         "return the for a list of custom gopts for a graph"
-        gotps = self._fullCricketPath(gopts)
+        gotps = self._fullPerformancePath(gopts)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.cricketurl,gopts,drange)
+        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
 
-    def cricketCustomSummary(self, gopts, drange):
+    def performanceCustomSummary(self, gopts, drange):
         "fill out full path for custom gopts and call to server"
-        gotps = self._fullCricketPath(gopts)
-        if self.cricketurl.startswith("http"):
-            url = basicAuthUrl(self.cricketuser, self.cricketpass,
-                                self.cricketurl)
+        gotps = self._fullPerformancePath(gopts)
+        if self.renderurl.startswith("http"):
+            url = basicAuthUrl(self.renderuser, self.renderpass,
+                                self.renderurl)
             server = xmlrpclib.Server(url)
         else:
-            server = self.unrestrictedTraverse(self.cricketurl)
+            server = self.unrestrictedTraverse(self.renderurl)
         return server.summary(gopts, drange)
         
 
-    def _fullCricketPath(self, gopts):
+    def _fullPerformancePath(self, gopts):
         "add full path to a list of custom graph options"
         for i in range(len(gopts)):
             opt = gopts[i]
             if opt.find("DEF") == 0:
                 opt = opt.split(':')
                 var, file = opt[1].split('=')
-                file = self.getCricketRoot() + '/cricket-data' + file
+                file = performancePath(file)
                 opt[1] = "%s=%s" % (var, file)
                 opt = ':'.join(opt)
                 gopts[i] = opt
         return gopts
    
 
-    def getCricketRoot(self):
-        """the fully qualified path to this cricket server's root"""
-        return self.cricketroot
-
-
-    security.declareProtected('View','cricketDeviceList')
-    def cricketDeviceList(self, force=False):
+    security.declareProtected('View','performanceDeviceList')
+    def performanceDeviceList(self, force=False):
         """Return a list of urls that point to our managed devices"""
         devlist = []
         for dev in self.devices():
             if (not dev.pastSnmpMaxFailures() 
                 and dev.productionState >= self.prodStateThreshold 
                 and (force or
-                dev.getLastChange() > dev.getLastCricketGenerate())):
+                dev.getLastChange() > dev.getLastPerformanceGenerate())):
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
        
 
-    security.declareProtected('View','cricketDataSources')
-    def cricketDataSources(self):
-        """Return a string that has all the definitions for the cricket dses.
+    security.declareProtected('View','performanceDataSources')
+    def performanceDataSources(self):
+        """Return a string that has all the definitions for the performance dses.
         """
         dses = []
         oidtmpl = "OID %s %s"
@@ -239,18 +223,17 @@ class CricketConf(Monitor, StatusColor):
         return "\n".join(dses)     
 
 
-    security.declareProtected('Manage DMD', 'manage_editCricketConf')
-    def manage_editCricketConf(self, 
-                cricketroot = '', cricketurl = '',
-                cricketuser = '', cricketpass = '', 
+    security.declareProtected('Manage DMD', 'manage_editPerformanceConf')
+    def manage_editPerformanceConf(self, 
+                renderurl = '',
+                renderuser = '', renderpass = '', 
                 prodStateThreshold=1000, REQUEST=None):
         """
-        Edit a CricketConfig from a web page.
+        Edit a PerformanceConfig from a web page.
         """
-        self.cricketroot = cricketroot
-        self.cricketurl = cricketurl
-        self.cricketuser = cricketuser
-        self.cricketpass = cricketpass
+        self.renderurl = renderurl
+        self.renderuser = renderuser
+        self.renderpass = renderpass
         self.prodStateThreshold = prodStateThreshold
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
@@ -258,4 +241,4 @@ class CricketConf(Monitor, StatusColor):
 
 
 
-InitializeClass(CricketConf)
+InitializeClass(PerformanceConf)

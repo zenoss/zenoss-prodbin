@@ -55,7 +55,7 @@ class ZenDeviceDump(ZCmdBase):
             location = device.getLocationName()
             systems = "|".join(device.getSystemNames())
             groups = "|".join(device.getDeviceGroupNames())
-            cricket = device.getCricketServerName()
+            perfMon = device.getPerformanceServerName()
             productionState = str(device.productionState)
             self.outfile.write(":".join((
                                 fqdn,
@@ -66,7 +66,7 @@ class ZenDeviceDump(ZCmdBase):
                                 manuf,
                                 model,
                                 location,
-                                cricket,
+                                perfMon,
                                 ))+"\n")
             logging.info("dumped device %s", fqdn)
         #self.outfile.close()

@@ -27,7 +27,7 @@ class BasicDeviceLoader:
     def loadDevice(self, deviceName, devicePath="", systemPath="",
                 manufacturer="", model="", groupPath="", 
                 locationPath="", rack="",
-                statusMonitorName="localhost", cricketMonitorName="localhost",
+                statusMonitorName="localhost", perfMonitorName="localhost",
                 snmpCommunity="", snmpPort=None,
                 loginName="", loginPassword=""):
         """load a device into the database"""
@@ -65,10 +65,10 @@ class BasicDeviceLoader:
         info("setting status monitor to %s" % statusMonitorName)
         device.setStatusMonitor(statusMonitorName)
 
-        if not cricketMonitorName:
-            cricketMonitorName = self.getCricketMonitorName()
-        info("setting cricket monitor to %s" % cricketMonitorName)
-        device.setCricketMonitor(cricketMonitorName)
+        if not performanceMonitorName:
+            performanceMonitorName = self.getPerformanceMonitorName()
+        info("setting performance monitor to %s" % performanceMonitorName)
+        device.setPerformanceMonitor(performanceMonitorName)
        
         return device
 
@@ -117,8 +117,8 @@ class BasicDeviceLoader:
         return "localhost"
       
 
-    def getCricketMonitorName(self):
-        """return the cricket monitor name, default is localhost"""
+    def getPerformanceMonitorName(self):
+        """return the performance monitor name, default is localhost"""
         return "localhost"
 
 

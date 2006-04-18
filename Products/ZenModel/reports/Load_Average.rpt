@@ -11,7 +11,7 @@
     sh python: ztm.setTableState(tableName,'sortedHeader','datamax');
     ss python: ztm.setTableState(tableName,'sortedSence','desc');
     drange python: ztm.setReqTableState(tableName,'drange',129600);
-    objects python:here.CricketReport.collectData('/Devices','ds0',drange);
+    objects python:here.PerformanceReport.collectData('/Devices','ds0',drange);
     batch python:ztm.getBatch(tableName,objects)
     ">
     <tr class=tabletitle>

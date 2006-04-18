@@ -29,7 +29,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     Also has EventView and RRDView available.
     """
 
-    # list of cricket multigaphs (see CricketView.py)
+    # list of performance multigraphs (see PerformanceView.py)
     # FIXME this needs to go to some new setup and doesn't work now
     #_mgraphs = []
 

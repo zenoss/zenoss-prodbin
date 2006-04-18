@@ -310,12 +310,12 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">Cricket Monitor</td>
+            <td class="tableheader" align="left">Performance Monitor</td>
             <td class="tablevalues" align="left" colspan=3>
-                <select class="tablevalues" name="cricketMonitor"
+                <select class="tablevalues" name="performanceMonitor"
                 tal:define="
-                crks python:here.getDmdRoot('Monitors').getCricketMonitorNames();
-                curcrk here/getCricketServerName | request/cricketMonitor |
+                crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
+                curcrk here/getPerformanceServerName | request/performanceMonitor |
                     string:localhost"
                 >
                     <option tal:repeat="crk crks" 
@@ -326,14 +326,14 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">New CricketMonitor</td>
+            <td class="tableheader" align="left">New Performance Monitor</td>
             <td class="tablevalues" align="left" colspan="3">
                 <input class="tablevalues" type="text" 
-                    size="40" name="newCricketMonitor"
+                    size="40" name="newPerformanceMonitor"
                     onkeypress="return submitViaEnter(event,
-                                            'setCricketMonitor');"/>
+                                            'setPerformanceMonitor');"/>
                 <input class="tableheader" type="submit" 
-                    name="setCricketMonitor:method" value="Add" />
+                    name="setPerformanceMonitor:method" value="Add" />
             </td>
         </tr>
         </span>

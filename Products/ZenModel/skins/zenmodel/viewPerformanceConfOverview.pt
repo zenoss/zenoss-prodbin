@@ -6,19 +6,14 @@
       <th class="tabletitle" align="left" colspan="4">Cricket Configuration</th>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Cricket Root</td>
+      <td class="tableheader" align="left">Render URL</td>
       <td class="tablevalues" align='left'
-        tal:content="here/cricketroot">mon name</td>
+        tal:content="here/renderurl" />
     </tr>
     <tr>
-      <td class="tableheader" align="left">Cricket URL</td>
+      <td class="tableheader" align="left">Render User</td>
       <td class="tablevalues" align='left'
-        tal:content="here/cricketurl" />
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Cricket User</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/cricketuser" />
+        tal:content="here/renderuser" />
     </tr>
     <tr>
       <td class=tableheader align=left>Production State Threshold</td>

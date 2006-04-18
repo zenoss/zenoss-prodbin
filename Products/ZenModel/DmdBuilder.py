@@ -42,8 +42,7 @@ from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
-from Products.ZenModel.CricketConf import manage_addCricketConf
-from Products.ZenModel.CricketReport import manage_addCricketReport
+from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
@@ -77,7 +76,7 @@ class DmdBuilder:
         )
    
     # default monitor classes
-    monRoots = ('StatusMonitors','Cricket')
+    monRoots = ('StatusMonitors','Performance')
 
 
     def __init__(self, portal, evtuser, evtpass):
@@ -97,10 +96,9 @@ class DmdBuilder:
     def buildMonitors(self):
         mons = self.dmd.Monitors
         self.addroots(mons, self.monRoots, "Monitors")
-        manage_addCricketConf(mons.Cricket, "localhost")
-        crk = mons.Cricket._getOb("localhost")
-        crk.cricketurl = "/zport/RenderServer"
-        crk.cricketroot = os.path.join(os.environ['ZENHOME'], "cricket")
+        manage_addPerformanceConf(mons.Performance, "localhost")
+        crk = mons.Performance._getOb("localhost")
+        crk.renderurl = "/zport/RenderServer"
         manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
 
@@ -128,7 +126,7 @@ class DmdBuilder:
         self.buildServices()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
-        manage_addCricketReport(self.dmd)
+        manage_addPerformanceReport(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")

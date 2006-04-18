@@ -55,20 +55,20 @@ class MonitorClass(Classification, Folder):
         return snames
             
 
-    def getCricketMonitor(self, monitorName):
-        """get or create the cricket monitor name"""
-        from Products.ZenModel.CricketConf \
-            import manage_addCricketConf
-        cricketObj = self.getDmdRoot("Monitors").Cricket
-        if not hasattr(cricketObj, monitorName):
-            manage_addCricketConf(cricketObj, monitorName)
-        return cricketObj._getOb(monitorName)
+    def getPerformanceMonitor(self, monitorName):
+        """get or create the performance monitor name"""
+        from Products.ZenModel.PerformanceConf \
+            import manage_addPerformanceConf
+        perfServerObj = self.getDmdRoot("Monitors").Performance
+        if not hasattr(perfServerObj, monitorName):
+            manage_addPerformanceConf(perfServerObj, monitorName)
+        return perfServerObj._getOb(monitorName)
 
 
-    def getCricketMonitorNames(self):
-        """return a list of all cricket monitor names"""
-        cricket = self.getDmdRoot("Monitors").Cricket
-        cnames = cricket.objectIds()
+    def getPerformanceMonitorNames(self):
+        """return a list of all performance monitor names"""
+        perfServer = self.getDmdRoot("Monitors").Performance
+        cnames = perfServer.objectIds()
         cnames.sort()
         return cnames
             

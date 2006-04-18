@@ -32,7 +32,7 @@ class cmdDeviceLoader(BasicLoader, BasicDeviceLoader):
         if self.options.system:
             sys = self.getSystem(self.options.system)
             dev.addRelation('system', sys)
-        self.getCricketMonitor(self.options.cricketDevice, dev)
+        self.getPerformanceMonitor(self.options.perfServer, dev)
         self.getStatusMonitor(self.options.statusMonitor, dev)
 
 
@@ -55,10 +55,10 @@ class cmdDeviceLoader(BasicLoader, BasicDeviceLoader):
                     default=None,
                     help='System Path to device /Mail/MTA')
 
-        self.parser.add_option('--cricket',
-                    dest='cricketDevice',
+        self.parser.add_option('--perfServer',
+                    dest='perfServer',
                     default='',
-                    help='Cricket collector with which to link Dmd devices')
+                    help='Performance data collector with which to link Dmd devices')
 
         self.parser.add_option('--status',
                     dest='statusMonitor',

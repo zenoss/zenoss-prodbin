@@ -90,10 +90,10 @@ Device Path is the path to the device in the DeviceClass tree (something like /S
     </tr>
     <tr>
         <td class="tableheader" align="left" >
-            Cricket Monitor Name
+            Performance Monitor Name
         </td>
         <td class="tablevalues" align="left" >
-            <input type="text" name="cricketMonitorName" 
+            <input type="text" name="performanceMonitorName" 
                 value="localhost" size="40"/>
         </td>
     </tr>
