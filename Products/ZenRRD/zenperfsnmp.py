@@ -26,6 +26,7 @@ from twisted.internet import reactor, defer
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
+from Products.ZenModel.PerformanceConf import performancePath
 
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
@@ -46,9 +47,72 @@ def chunk(lst, n):
 
 def rrdPath(branch):
     'compute where the RDD perf files should go'
-    root = os.path.join(os.getenv('ZENHOME'), 'perf')
-    r = os.path.join(root, branch[1:] + '.rrd')
-    return r
+    return performancePath(branch[1:] + '.rrd')
+
+def firsts(lst):
+    'the first element of every item in a sequence'
+    return [item[0] for item in lst]
+
+class Status:
+    'keep track of the status of many parallel requests'
+    _total = _success = _fail = 0
+    _startTime = _stopTime = 0.0
+    _deferred = None
+
+    
+    def start(self, count):
+        'start the clock'
+        self._total = count
+        self._startTime = time.time()
+        self._deferred = defer.Deferred()
+        return self._deferred
+
+
+    def record(self, successOrFailure):
+        if successOrFailure:
+            self.success()
+        else:
+            self.fail()
+
+        
+    def success(self, *unused):
+        'record a successful result'
+        self._success += 1
+        self._checkFinished()
+
+
+    def fail(self):
+        'record a failed operation'
+        self._fail += 1
+        self._checkFinished()
+
+
+    def _checkFinished(self):
+        'determine the stopping point'
+        if self.finished():
+            self._stopTime = time.time()
+            self._deferred.callback(self)
+
+
+    def finished(self):
+        'determine if we have finished everything'
+        return self.outstanding() == 0
+
+
+    def stats(self):
+        'provide a summary of the effort'
+        stopTime = self._stopTime
+        if not self.finished():
+            stopTime = time.time()
+        return (self._total, self._success, self._fail,
+                stopTime - self._startTime)
+
+
+    def outstanding(self):
+        'return the number of unfinished operations'
+        return self._total - (self._success + self._fail)
+    
+
 
 class ZenPerformanceFetcher(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
@@ -62,6 +126,7 @@ class ZenPerformanceFetcher(ZenDaemon):
     # these names need to match the property values in StatusMonitorConf
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
+    status = Status()
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -113,7 +178,7 @@ class ZenPerformanceFetcher(ZenDaemon):
     def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
         self.log.debug('Unresponsive devices: %r' % deviceList)
-        self.unresponsiveDevices = Set([d[0] for d in deviceList])
+        self.unresponsiveDevices = Set(firsts(deviceList))
         
 
     def cycle(self, seconds, callable):
@@ -152,8 +217,7 @@ class ZenPerformanceFetcher(ZenDaemon):
             if table.has_key(name):
                 value = table[name]
                 if getattr(self, name) != value:
-                    self.log.debug('Updated %s config to %s' %
-                                   (name, value))
+                    self.log.debug('Updated %s config to %s' % (name, value))
                 setattr(self, name, value)
 
     def updateDeviceList(self, deviceList):
@@ -166,7 +230,7 @@ class ZenPerformanceFetcher(ZenDaemon):
             self.updateDeviceConfig(snmpTargets)
             
         # stop collecting those no longer in the list
-        deviceNames = Set([device[0] for device in deviceList])
+        deviceNames = Set(firsts(deviceList))
         doomed = Set(self.proxies.keys()) - deviceNames
         for name in doomed:
             self.log.debug('removing device %s' % name)
@@ -186,10 +250,9 @@ class ZenPerformanceFetcher(ZenDaemon):
         p = AgentProxy(ip=ip,
                        port=port,
                        community=community,
-                       snmpVersion = version,
+                       snmpVersion=version,
                        protocol=self.snmpPort.protocol,
                        allowCache=True)
-        p.badOidMode = False
         p.timeout = timeout
         p.tries = tries
         p.oidMap = {}
@@ -200,32 +263,29 @@ class ZenPerformanceFetcher(ZenDaemon):
 
     def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
-        self.log.debug('readingDevices')
         # limit the number of devices we query at once to avoid
         # a UDP packet storm
-        if self.queryWorkList:
+        if not self.status.finished():
             self.log.warning("There are still %d devices to query, "
                              "waiting for them to finish" %
-                             len(self.queryWorkList))
+                             self.status.outstanding())
         else:
             self.queryWorkList =  Set(self.proxies.keys())
             self.queryWorkList -= self.unresponsiveDevices
-            self.startTime = time.time()
-            self.devcount = len(self.queryWorkList)
-            lst = []
+            self.status = Status()
+            d = self.status.start(len(self.queryWorkList))
+            d.addCallback(self.reportRate)
             for unused in range(MAX_SNMP_REQUESTS):
                 if not self.queryWorkList: break
-                lst.append(self.startReadDevice(self.queryWorkList.pop()))
-            self.devicesRead = defer.DeferredList(lst, consumeErrors=1)
-            self.devicesRead.addCallback(self.reportRate)
-
+                self.startReadDevice(self.queryWorkList.pop())
         self.cycle(self.snmpCycleInterval, self.readDevices)
 
 
     def reportRate(self, *unused):
         'Finished reading all the devices, report stats and maybe stop'
-        runtime = time.time() - self.startTime
-        self.log.info("collected %d devices in %.2f", self.devcount, runtime)
+        total, success, failed, runtime = self.status.stats()
+        self.log.info("collected %d of %d devices in %.2f" %
+                      (success, total, runtime))
         if not self.options.daemon and not self.options.cycle:
             reactor.stop()
         else:
@@ -239,62 +299,36 @@ class ZenPerformanceFetcher(ZenDaemon):
         if proxy is None:
             return
         lst = []
-        if proxy.badOidMode:
-            # creep through oids to find the bad oid
-            for oid in proxy.oidMap.keys():
-                d = proxy.get([oid])
-                d.addCallback(self.noticeBadOid, deviceName, oid)
-                lst.append(d)
-        else:
-            # ensure that the request will fit in a packet
-            for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
-                lst.append(proxy.get(part, proxy.timeout, proxy.tries))
-        d = defer.DeferredList(lst, consumeErrors=1)
-        d.addCallbacks(self.storeValues, self.finishDevices, (deviceName,))
+        # ensure that the request will fit in a packet
+        for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
+            lst.append(proxy.get(part, proxy.timeout, proxy.tries))
+        d = defer.DeferredList(lst, consumeErrors=True)
+        d.addCallback(self.storeValues, deviceName)
         return d
-
-    def noticeBadOid(self, result, deviceName, oid):
-        'Remove Oids that return empty responses'
-        proxy = self.proxies.get(deviceName, None)
-        if proxy is None: return
-        if not result:
-            self.log.error('Bad oid %s found for device %s' % (oid, deviceName))
-            del proxy.oidMap[oid]
-            return (False, result)
-        return (True, result)
-
-
-    def finishDevices(self, error=None):
-        'work down the list of devices'
-        if error:
-            self.log.error(error)
-        if self.queryWorkList:
-            self.devicesRead.addDeferred(
-                self.startReadDevice(self.queryWorkList.pop())
-                )
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
+        successCount = sum(firsts(updates))
+        self.status.record(successCount == len(updates))
         self.log.debug('storeValues %r' % deviceName)
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
         # bad oid in request
-        if proxy.badOidMode:
-            # bad scan complete, clear the flag
-            proxy.badOidMode = False
-            return
         for success, update in updates:
             if success:
-                if not update:
-                    proxy.badOidMode = True
                 for oid, value in update.items():
                     # oids start with '.' coming back from the client
-                    path, dsType = proxy.oidMap[oid.strip('.')]
-                    self.storeRRD(path, dsType, value)
-        if proxy.badOidMode:
-            self.queryWorkList.add(deviceName)
-        self.finishDevices()
+                    oid = oid.strip('.')
+                    # performance monitoring should always get something back
+                    if value == '':
+                        self.log.warn('Suspect oid %s is bad' % oid)
+                        del proxy.oidMap[oid]
+                    else:
+                        path, dsType = proxy.oidMap[oid.strip('.')]
+                        self.storeRRD(path, dsType, value)
+        if self.queryWorkList:
+            self.startReadDevice(self.queryWorkList.pop())
 
 
     def storeRRD(self, path, type, value):
