@@ -83,7 +83,7 @@ class RRDTemplate(ZenModelRM):
         """Return our graphs objects in proper order.
         """
         graphs = self.graphs()
-        graphs.sort(cmp(x.sequence, y.sequence))
+        graphs.sort(lambda x, y: cmp(x.sequence, y.sequence))
         return graphs 
 
 
