@@ -1,6 +1,6 @@
 from Acquisition import aq_base
 
-from Migrate import *
+import Migrate
 
 def convert(evt):
     if hasattr(aq_base(evt), 'zEvent_severity'):
@@ -15,10 +15,10 @@ def convert(evt):
 
 
 
-class EvtProps(Step):
+class EvtProps(Migrate.Step):
     version = 20.0
 
-    def cutover(self):
+    def cutover(self, dmd):
         for evt in dmd.Events.getSubEventClasses():
             convert(evt)
             for inst in evt.getInstances():

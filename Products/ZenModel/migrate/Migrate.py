@@ -2,10 +2,6 @@ import Globals
 import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-class zendmd(ZCmdBase): pass
-zendmd = zendmd()
-dmd = zendmd.dmd
-app = dmd.getPhysicalRoot()
 
 allSteps = []
 
@@ -25,7 +21,7 @@ class Step:
         "do anything you must before running the cutover"
         pass
 
-    def cutover(self):
+    def cutover(self, dmd):
         "perform changes to the database"
         raise NotImplementedError
 
@@ -57,6 +53,11 @@ class Migration:
             self.message("Errors found, quitting")
             return
 
+        class zendmd(ZCmdBase): pass
+        zendmd = zendmd()
+        dmd = zendmd.dmd
+        app = dmd.getPhysicalRoot()
+
         # dump old steps
         if not hasattr(dmd, 'version'):
             dmd.version = 1.0
@@ -68,8 +69,10 @@ class Migration:
             m.prepare()
 
         for m in steps:
+            if m.version != current:
+                self.message("Database going to version %s" % m.version)
             self.message('Installing %s' % m.__class__)
-            m.cutover()
+            m.cutover(dmd)
             dmd.version = m.version
 
         for m in steps:

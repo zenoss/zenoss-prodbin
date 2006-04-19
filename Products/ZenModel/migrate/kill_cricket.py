@@ -1,9 +1,9 @@
-from Migrate import *
+import Migrate
 
-class KillCricket(Step):
+class KillCricket(Migrate.Step):
     version = 20.0
 
-    def cutover(self):
+    def cutover(self, dmd):
         from Products.ZenModel.MonitorClass import manage_addMonitorClass
         if not hasattr(dmd.Monitors, 'Performance'):
             manage_addMonitorClass(dmd.Monitors, 'Performance')
