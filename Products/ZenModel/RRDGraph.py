@@ -112,7 +112,7 @@ class RRDGraph(ZenModelRM):
         """build just the summary of graph data with no graph"""
         gopts = []
         self._v_dsindex = 0
-        self._buildds(context, rrdfile, targettype, self.summary)
+        self._buildds(gopts, context, rrdfile, targettype, self.summary)
         return gopts
 
 
@@ -141,7 +141,7 @@ class RRDGraph(ZenModelRM):
         return gopts
        
 
-    def _buildds(self, context, rrdfile, targettype, summary, multiid=-1): 
+    def _buildds(self, gopts, context, rrdfile, targettype, summary, multiid=-1): 
         for dsname in self.dsnames:
             ds = self.getRRDDataSource(dsname) #aq
             gopts += ds.graphOpts(rrdfile, self._getcolor(),
