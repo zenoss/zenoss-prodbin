@@ -1,3 +1,20 @@
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''
+
+Change the Cricket relationship in Devices to Performance
+to reflect the change from Cricket to zenperfsnmp performance
+monitoring.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
 import Migrate
 
 class KillCricket(Migrate.Step):

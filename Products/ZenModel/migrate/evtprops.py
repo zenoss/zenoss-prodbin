@@ -1,3 +1,19 @@
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''
+
+Rename the property "zEvent_severity" to zEventSeverity and
+remove zEventProperties from all events.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
 from Acquisition import aq_base
 
 import Migrate

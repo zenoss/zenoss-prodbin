@@ -1,9 +1,25 @@
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''Migrate
+
+A small framework for data migration.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
 import Globals
 import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 
 allSteps = []
+
 
 class Step:
     'A single migration step, to be subclassed for each new change'
