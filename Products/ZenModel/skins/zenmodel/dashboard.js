@@ -8,7 +8,6 @@
 // Refresh rate in seconds
 var refresh=30;
 var cancelSecs=10;
-var url = "/zport/dmd/ZenEventManager/getDashboardInfo";
 //var url="data.json";
 
 // Look for stupid IE browsers
@@ -90,7 +89,7 @@ updateError = function(err) {
     callLater(refresh, refreshData);
 }
 
-refreshData = function() {
+refreshData = function(url) {
     //logger.debuggingBookmarklet(true)
     //log("loading");
     var defr = cancelWithTimeout(
@@ -99,4 +98,12 @@ refreshData = function() {
     defr.addErrback(updateError);
 }
 
-addLoadEvent(refreshData);
+normalDashboard = function() {
+    var url = "/zport/dmd/ZenEventManager/getDashboardInfo";
+    refreshData(url)
+}
+
+simpleDashboard = function() {
+    var url = "/zport/dmd/ZenEventManager/getDashboardInfo?simple:boolean=True";
+    refreshData(url)
+}

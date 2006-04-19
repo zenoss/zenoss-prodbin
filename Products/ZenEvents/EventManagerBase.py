@@ -542,7 +542,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device, 0)
 
 
-    def getHeartbeat(self, failures=True, limit=0):
+    def getHeartbeat(self, failures=True, simple=False, limit=0):
         """Return all heartbeat issues list of tuples (device, component, secs)
         """
         sel = """select device, component, lastTime from heartbeat """
@@ -561,7 +561,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             for devname, comp, dtime in res:
                 dtime = "%d" % int(time.time()-dtime.timeTime())
                 dev = devclass.findDevice(devname)
-                if dev:
+                if dev and not simple:
                     alink = "<a href='%s'>%s</a>" % (
                             dev.getPrimaryUrlPath(), dev.id) 
                 else: alink = devname
@@ -679,7 +679,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return startdate, enddate
     
    
-    def getDashboardInfo(self, REQUEST=None):
+    def getDashboardInfo(self, simple=False, REQUEST=None):
         """Return a dictionary that has all info for the dashboard.
         """
         data = self.checkCache("dashboardinfo")
@@ -699,7 +699,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
-                alink = "<a href='%s'>%s</a>" % (
+                if simple:
+                    alink = devname
+                else:
+                    alink = "<a href='%s'>%s</a>" % (
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
                 owners = ", ".join(dev.getEventOwnerList(severity=4))
                 evtsum = dev.getEventSummary(severity=4)
@@ -717,9 +720,13 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         sysroot = self.getDmdRoot("Systems")
         sysdata = []
         for sys in sysroot.children():
-            evts = ["<a href='%s'>%s</a>" % (
+            if simple:
+                alink = sys.getOrganizerName()
+            else:          
+                alink = "<a href='%s'>%s</a>" % (
                         sys.getPrimaryUrlPath()+"/viewEvents", 
-                        sys.getOrganizerName())]
+                        sys.getOrganizerName())
+            evts = [ alink ]
             evts.extend(map(evtprep, sys.getEventSummary()))
             sysdata.append(evts)
         

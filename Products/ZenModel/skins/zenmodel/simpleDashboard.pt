@@ -1,26 +1,25 @@
-<tal:block metal:use-macro="here/templates/macros/page1">
-
-<tal:block metal:fill-slot="breadCrumbPane">
-    /<a tal:attributes="
-            href string:${here/absolute_url_path}/${template/id}">Dashboard
-   </a> &nbsp;
-    <a tal:attributes="
-            href string:${here/absolute_url_path}/${template/id}"
-            style="font-weight: normal; font-size: 7pt; text-decoration: none">(refresh)
-            
-   </a>
-
-
-   <div style="float: right; padding:0; margin-top: -17px; margin-right:15px; font-weight: normal; font-style: normal; font-size: 8pt;  " id="dashTime">Last Updated: 00:00:00</div>
-</tal:block>
-
-<tal:block metal:fill-slot="contentPane">
+<html>
+    <head>
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenoss.css">
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenevents.css">
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" src="dashboard.js"></script>
-    <script type="text/javascript">addLoadEvent(normalDashboard)</script>
+    </head>
+<body>
+    <script type="text/javascript">addLoadEvent(simpleDashboard)</script>
+    <table id="topPane" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+    <td class="logo" width="220px">
+        <img src="logo.gif" alt="Zenoss">
+    </td>
+    <td align="right" id="dashTime">
+    Last Updated: 00:00:00
+    </td>
+    </tr>
+</table>
+<div id="contentPane">
     <table width=100%>
     <tr>
-
     <!-- Top Left -->
     <td rowspan="2" width="50%" valign="top">
 	    <table class="zentable" cellpadding="3" cellspacing="1">
@@ -81,5 +80,7 @@
      </td>
     </tr>
     </table>
-</tal:block>
-</tal:block>
+</div>
+</body>
+</html>
+
