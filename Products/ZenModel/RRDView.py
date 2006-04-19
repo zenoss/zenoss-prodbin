@@ -18,14 +18,14 @@ class RRDView(object):
     configuration generation is in CricketDevice and CricketServer
     """
 
-    def rrdGraphUrl(self, targettype=None, view=None, drange=None):
+    def rrdGraphUrl(self, targettype, view, drange):
         """resolve targettype and view names to objects 
         and pass to view performance"""
-        if not drange: drange = self.defaultDateRange
-        if not targettype: targettype = self.getRRDTargetType()
+        # if not drange: drange = self.defaultDateRange
+        # if not targettype: targettype = self.getRRDTemplate()
         targetpath = self.getPrimaryDmdId()
         objpaq = self.primaryAq()
-        view = targettype.getDefaultView(objpaq)
+        # view = targettype.getDefaultView(objpaq)
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
             return perfServer.performanceGraphUrl(objpaq, targetpath, 
@@ -35,11 +35,12 @@ class RRDView(object):
     def getDefaultGraphs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
-        views = self.getRRDViews()
-        for view in views:
+        # views = self.getRRDViews()
+        template = self.getRRDTemplate(self.getRRDTemplateName())
+        for g in template.getGraphs():
             graph = {}
-            graph['title'] = view
-            graph['url'] = self.rrdGraphUrl(view=view,drange=drange)
+            graph['title'] = 'some title'
+            graph['url'] = self.rrdGraphUrl(template,g,drange)
             if graph['url']:
                 graphs.append(graph)
         return graphs
