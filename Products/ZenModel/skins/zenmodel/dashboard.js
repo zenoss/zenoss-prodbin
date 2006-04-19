@@ -87,22 +87,14 @@ updateError = function(err) {
     $("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
 }
 
-refreshData = function(url) {
+refreshData = function() {
     //logger.debuggingBookmarklet(true)
     //log("loading");
     var defr = cancelWithTimeout(
-        loadJSONDoc(url), cancelSecs);
+        loadJSONDoc(dashurl), cancelSecs);
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
-    callLater(refresh, refreshData, url);
+    callLater(refresh, refreshData, dashurl);
 }
 
-normalDashboard = function() {
-    var url = "/zport/dmd/ZenEventManager/getDashboardInfo";
-    refreshData(url)
-}
-
-simpleDashboard = function() {
-    var url = "/zport/dmd/ZenEventManager/getSimpleDashboardInfo";
-    refreshData(url)
-}
+addLoadEvent(refreshData)

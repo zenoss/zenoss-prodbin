@@ -2,11 +2,13 @@
     <head>
     <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenoss.css">
     <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenevents.css">
+    <script type="text/javascript">
+        var dashurl='/zport/dmd/ZenEventManager/getSimpleDashboardInfo';
+    </script>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" src="dashboard.js"></script>
     </head>
 <body>
-    <script type="text/javascript">addLoadEvent(simpleDashboard)</script>
     <table id="topPane" cellpadding="0" cellspacing="0" border="0">
     <tr>
     <td class="logo" width="220px">

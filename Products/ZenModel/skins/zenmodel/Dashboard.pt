@@ -15,9 +15,11 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
+    <script type="text/javascript">
+        var dashurl='/zport/dmd/ZenEventManager/getDashboardInfo'
+    </script>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" src="dashboard.js"></script>
-    <script type="text/javascript">addLoadEvent(normalDashboard)</script>
     <table width=100%>
     <tr>
 
