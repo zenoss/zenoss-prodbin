@@ -122,8 +122,8 @@ class Migration:
 
 
     def success(self):
-        self.message('committing')
         if self.commit:
+            self.message('committing')
             transaction.commit()
         self.message("Migration successful")
 
