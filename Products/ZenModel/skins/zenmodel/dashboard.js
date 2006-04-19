@@ -103,6 +103,6 @@ normalDashboard = function() {
 }
 
 simpleDashboard = function() {
-    var url = "/zport/dmd/ZenEventManager/getDashboardInfo?simple:boolean=True";
+    var url = "/zport/dmd/ZenEventManager/getSimpleDashboardInfo";
     refreshData(url)
 }
