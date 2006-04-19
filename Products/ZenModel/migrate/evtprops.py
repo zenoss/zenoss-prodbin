@@ -16,7 +16,7 @@ def convert(evt):
 
 
 class EvtProps(Step):
-    version = 20.1
+    version = 20.0
 
     def cutover(self):
         for evt in dmd.Events.getSubEventClasses():
