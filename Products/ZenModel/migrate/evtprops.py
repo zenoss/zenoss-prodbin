@@ -40,9 +40,9 @@ class EvtProps(Migrate.Step):
             for inst in evt.getInstances():
                 convert(evt)
 
-        if hasattr(aq_base(evt), 'zEventProperties'):
+        if hasattr(aq_base(dmd.Events), 'zEventProperties'):
             dmd.Events._delProperty("zEventProperties")
-        if hasattr(aq_base(evt), 'zEvent_severity'):
+        if hasattr(aq_base(dmd.Events), 'zEvent_severity'):
             dmd.Events._delProperty("zEvent_severity")
 
 EvtProps()
