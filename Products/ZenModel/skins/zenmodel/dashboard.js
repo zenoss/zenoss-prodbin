@@ -80,13 +80,11 @@ updateDashboard = function(data) {
         statusUpdate(id, data[id]);
     }
     updateTimestamp();
-    callLater(refresh, refreshData);
 }
 
 updateError = function(err) {
     logError(err);
     $("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
-    callLater(refresh, refreshData);
 }
 
 refreshData = function(url) {
@@ -96,6 +94,7 @@ refreshData = function(url) {
         loadJSONDoc(url), cancelSecs);
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
+    callLater(refresh, refreshData, url);
 }
 
 normalDashboard = function() {
