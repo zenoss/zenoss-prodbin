@@ -679,10 +679,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return startdate, enddate
     
    
+    security.declareProtected('View','getDashboardInfo')
     def getDashboardInfo(self, simple=False, REQUEST=None):
         """Return a dictionary that has all info for the dashboard.
         """
-        data = self.checkCache("dashboardinfo")
+        data = self.checkCache("dashboardinfo%s" % simple)
         if data: return data
         data = {}
         devices = [d[0] for d in self.getDeviceIssues(severity=4, state=1)]
