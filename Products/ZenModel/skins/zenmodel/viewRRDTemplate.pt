@@ -1,0 +1,90 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdtempdslist; 
+        objects here/getRRDDataSources;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:use-macro="here/perfConfig/macros/dsbody"/>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="3">
+        <input class="tableheader" type="submit" 
+            name="manage_addRRDDataSource:method" value=" Add " /> 
+        <select class="tableheader" name="id"
+        tal:define="targets here/getAvailRRDDataSourceNames">
+            <option value=""></option>
+            <option tal:repeat="target targets" tal:content="target"/>
+        </select> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDDataSources:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+<br/>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdgraphlist; 
+        objects here/graphs;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class="tabletitle" align="left" colspan="5">Graphs</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'dsnames','Data Sources')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'units','Units')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'height','Height')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'width','Width')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="graph batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value graph/getId"/>
+            <a tal:attributes="href graph/getPrimaryUrlPath" 
+                tal:content="graph/getId">name</a>
+        </td>
+        <td tal:content="python:','.join(graph.dsnames)"/>
+        <td tal:content="graph/units"/>
+        <td tal:content="graph/height"/>
+        <td tal:content="graph/width"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="5">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            onkeypress="return submitViaEnter(event,'manage_addRRDGraph');" 
+            name="manage_addRRDGraph:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDGraphs:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -1,0 +1,113 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:RRD Graph state at time:">
+        <th class=tabletitle colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Data Sources</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="dsnames:list" multiple
+                tal:define="curdses here/dsnames">
+                <option tal:repeat="ds here/getRRDDataSourceNames" 
+                    tal:attributes="value ds; selected python:ds in curdses"
+                    tal:content="ds">ifInOctets</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Height</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="height:int" size="30"
+            tal:attributes="value here/height" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Width</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="width:int" size="30"
+            tal:attributes="value here/width" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Units</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="units" size="30"
+            tal:attributes="value here/units" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Line Width</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="linewidth:int" size="30"
+            tal:attributes="value here/linewidth" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Log</td>
+        <td class="tablevalues">
+        <select class="tablevalues" name="log:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.log"/>
+        </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Base 1024</td>
+        <td class="tablevalues">
+        <select class="tablevalues" name="base:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.base"/>
+        </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Stacked</td>
+        <td class="tablevalues">
+        <select class="tablevalues" name="stacked:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.stacked"/>
+        </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Min Y</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="miny:int" size="30"
+            tal:attributes="value here/miny" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Max Y</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" name="maxy:int" size="30"
+            tal:attributes="value here/maxy" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Colors</td>
+        <td class="tablevalues">
+        <textarea class="tablevalues" rows="8" cols="20"
+            name="colors:lines" 
+            tal:content="python:'\n'.join(here.colors)">
+        </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

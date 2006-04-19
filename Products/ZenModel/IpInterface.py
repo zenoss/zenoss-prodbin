@@ -357,7 +357,7 @@ class IpInterface(OSComponent):
         return self.macaddress
 
 
-    def getRRDTargetName(self):
+    def getRRDTemplateName(self):
         """Return the interface type as the target type name.
         """
         return self.type

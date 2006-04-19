@@ -1,0 +1,123 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="rrdtemplatelist"
+    tal:define="tableName string:rrdtemplatelist;
+    objects here/getRRDTemplates;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' 
+        tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id"/>
+    <tr>
+      <th class="tabletitle" align="left" colspan="2">RRDTemplates</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')">Device
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getRRDPath','Path')">Device
+        </th>
+    </tr>
+    <tr class="tablevalues" tal:repeat="temp batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value temp/getId"/>
+            <a tal:attributes="href temp/getPrimaryUrlPath" 
+                tal:content="temp/getId">name</a>
+        </td>
+        <td tal:content="temp/getRRDPath"/>
+    </tr>
+    <tr>
+        <td colspan="2" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="2">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            onkeypress="return submitViaEnter(event,'manage_addRRDTemplate');" 
+            name="manage_addRRDTemplate:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" name="moveOrganizer:method"
+                value="Move To" />
+        <select class="tableheader" name="moveTarget"
+        tal:define="targets here/childMoveTargets">
+            <option value=""></option>
+            <option tal:repeat="target targets" 
+                tal:content="target">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDTemplates:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+<br/>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:condition="python:here.id=='Devices'"
+    tal:define="tableName string:rrddatasourcelist;
+    objects here/rrdDataSources;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' 
+        tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id"/>
+    <tal:block metal:define-macro="dsbody">
+    <tr>
+      <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'oid','OID')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'rrdtype','Type')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="ds batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value ds/getId"/>
+            <a tal:attributes="href ds/getPrimaryUrlPath" 
+                tal:content="ds/getId">name</a>
+        </td>
+        <td tal:content="ds/oid"/>
+        <td tal:content="ds/rrdtype"/>
+    </tr>
+    <tr>
+        <td colspan="3" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    </tal:block>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="3">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            onkeypress="return submitViaEnter(event,'manage_addRRDTemplate');" 
+            name="manage_addRRDDataSource:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDDataSources:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

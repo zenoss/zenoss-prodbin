@@ -12,12 +12,13 @@ __version__ = "$Revision: 1.76 $"[11:-2]
 
 import types
 import time
+from sets import Set
 import transaction
 import DateTime
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from OFS.Folder import Folder
+from OFS.Folder import manage_addFolder
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
@@ -27,6 +28,8 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
+from RRDTemplate import RRDTemplate
+from RRDDataSource import RRDDataSource
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 
@@ -65,10 +68,10 @@ class DeviceClass(DeviceOrganizer):
 
     portal_type = meta_type = event_key = "DeviceClass"
 
-    manage_main = Folder.manage_main
+    #manage_main = Folder.manage_main
 
-    manage_options = Folder.manage_options[:-1] + (
-        {'label' : 'Find', 'action' : 'manageDeviceSearch'},)
+    #manage_options = Folder.manage_options[:-1] + (
+    #    {'label' : 'Find', 'action' : 'manageDeviceSearch'},)
 
     #Used to find factory on instance creation
     baseModulePath = "Products.ZenModel"  
@@ -77,6 +80,8 @@ class DeviceClass(DeviceOrganizer):
     
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
+        ("rrdTemplates", ToManyCont(ToOne,"RRDTemplate","deviceClass")),
+        ("rrdDataSources", ToManyCont(ToOne,"RRDDataSource","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -106,9 +111,9 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'zenrrd'
-                , 'name'          : 'ZenRRD'
-                , 'action'        : 'zenrrd'
+                { 'id'            : 'perfConfig'
+                , 'name'          : 'PerfConfig'
+                , 'action'        : 'perfConfig'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'config'
@@ -332,13 +337,85 @@ class DeviceClass(DeviceOrganizer):
 
 
     def getMonitoredComponents(self):
-        """Return monitored components for devices within this DeviceDeviceClass.
+        """Return monitored components for devices within this DeviceDeviceClass
         """
         return self.getSubComponents()
 
 
+    def getRRDDataSourceNames(self):
+        """Return the list of all datasource names.
+        """
+        devs = self.getDmdRoot("Devices")
+        return devs.rrdDataSources.objectIds()
+
+
+    def getRRDDataSource(self, name):
+        """Return a datasource based on its name.
+        """
+        devs = self.getDmdRoot("Devices")
+        return devs.rrdDataSources._getOb(name)
+
+
+    security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
+    def manage_addRRDDataSource(self, id, REQUEST=None):
+        """Add an RRDDataSource to this DeviceClass.
+        """
+        if not id: return self.callZenScreen(REQUEST)
+        org = RRDDataSource(id)
+        self.rrdDataSources._setObject(org.id, org)
+        if REQUEST: return self.callZenScreen(REQUEST)
+            
+
+    def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
+        """Delete RRDDataSources from this DeviceClass 
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids:
+            if getattr(self.rrdDataSources,id,False):
+                self.rrdDataSources._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('View', 'getRRDTemplates')
+    def getRRDTemplates(self, context=None):
+        """Return the actual RRDTemplate instances.
+        """
+        templates = {}
+        if not context: context = self
+        mychain = aq_chain(context)
+        mychain.reverse()
+        for obj in mychain:
+            if not getattr(aq_base(obj), 'rrdTemplates', False): continue
+            for t in obj.rrdTemplates():
+                templates[t.id] = t
+        return templates.values()         
+            
+
+    security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
+    def manage_addRRDTemplate(self, id, REQUEST=None):
+        """Add an RRDTemplate to this DeviceClass.
+        """
+        if not id: return self.callZenScreen(REQUEST)
+        org = RRDTemplate(id)
+        self.rrdTemplates._setObject(org.id, org)
+        if REQUEST: return self.callZenScreen(REQUEST)
+            
+
+    def manage_deleteRRDTemplates(self, ids=(), REQUEST=None):
+        """Delete RRDTemplates from this DeviceClass 
+        (skips ones in other Classes)
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids:
+            if (getattr(aq_base(self), 'rrdTemplates', False) 
+                and getattr(aq_base(self.rrdTemplates),id,False)):
+                self.rrdTemplates._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     def createCatalog(self):
-        """make the catalog for device searching"""
+        """make the catalog for device searching
+        """
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
         # Make catalog for Devices
         manage_addZCatalog(self, self.default_catalog, 

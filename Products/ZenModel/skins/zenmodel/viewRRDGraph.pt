@@ -1,0 +1,48 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">RRD Graph</th>
+    </tr>
+    <tr>
+      <td class="tableheader">Data Sources</td>
+      <td class="tablevalues" colspan="3"
+        tal:content="python:', '.join(here.dsnames)"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Height</td>
+      <td class="tablevalues" tal:content="here/height"/>
+      <td class="tableheader">Width</td>
+      <td class="tablevalues" tal:content="here/width"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Units</td>
+      <td class="tablevalues" tal:content="here/units"/>
+      <td class="tableheader">Line Width</td>
+      <td class="tablevalues" tal:content="here/linewidth"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Log</td>
+      <td class="tablevalues" tal:content="here/log"/>
+      <td class="tableheader">Base 1024</td>
+      <td class="tablevalues" tal:content="here/base"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Stacked</td>
+      <td class="tablevalues" colspan="3" tal:content="here/stacked"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Min Y</td>
+      <td class="tablevalues" tal:content="here/miny"/>
+      <td class="tableheader">Max Y</td>
+      <td class="tablevalues" tal:content="here/maxy"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Colors</td>
+      <td class="tablevalues" colspan="3" 
+        tal:content="python:' '.join(here.colors)"/>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

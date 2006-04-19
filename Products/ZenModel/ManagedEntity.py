@@ -19,8 +19,6 @@ from EventView import EventView
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenRRD.utils import RRDObjectNotFound 
-from Products.ZenRRD.RRDTargetType import lookupTargetType
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     """
@@ -49,28 +47,3 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
         """Overridden in lower classes if a device relationship exists.
         """
         return None
-
-
-    def snmpIgnore(self):
-        """Should this component be monitored for performance using snmp.
-        """
-        return False
-
-
-    def getSnmpOidTargets(self):
-        """Return a list of (oid, path, type) that define monitorable 
-        """
-        oids = []
-        if self.snmpIgnore(): return oids 
-        basepath = self.getPrimaryDmdId()
-        try:
-            ttype = lookupTargetType(self, self.getRRDTargetName())
-            for dsname in ttype.dsnames:
-                ds = ttype.getDs(self, dsname)
-                oid = ds.oid
-                snmpindex = getattr(self, "ifindex", self.snmpindex) #FIXME
-                if ds.isrow: oid = "%s.%d" % (oid, snmpindex)
-                oids.append((oid, "/".join((basepath, dsname)), ds.rrdtype))
-        except RRDObjectNotFound, e:
-            log.warn(e)
-        return oids

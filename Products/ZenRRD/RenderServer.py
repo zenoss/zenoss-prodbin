@@ -43,7 +43,6 @@ def manage_addRenderServer(context, id, REQUEST = None):
 
 addRenderServer = DTMLFile('dtml/addRenderServer',globals())
 
-class RRDToolError(utils.RRDException):pass
 
 class RenderServer(RRDToolItem):
 

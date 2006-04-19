@@ -12,14 +12,10 @@ $Id: utils.py,v 1.9 2003/05/12 16:13:28 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
+from sets import Set
+from Acquisition import aq_chain
 
-from Products.ZenUtils.Exceptions import ZentinelException
-
-class RRDException(ZentinelException): pass
-
-class RRDObjectNotFound(RRDException): pass
-
-class TooManyArgs(RRDException): pass
+from Exceptions import RRDObjectNotFound
 
 def loadargs(obj, args):
     """Load data into a RRD Object"""
@@ -75,7 +71,17 @@ def walkupconfig(context, name):
         if context.id == 'dmd':
             raise RRDObjectNotFound,"Object %s not found in context %s" % \
                                     (name, context.getPrimaryUrlPath())
-               
+              
+
+def templateNames(context):
+    names = Set()
+    for obj in aq_chain(context):
+        rrdconfig = getattr(obj, 'rrdconfig', None)
+        if rrdconfig:
+            names = names.union(rrdconfig.objectIds(spec='RRDTargetType'))
+    return names
+             
+        
 
 def getRRDView(context, name):
     """lookup an rrdview based on its name"""

@@ -144,6 +144,7 @@ class ZenModelBase(object):
         return tabs
 
     
+    security.declareProtected('View', 'getPrimaryDmdId')
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""
         path = list(self.getPrimaryPath())

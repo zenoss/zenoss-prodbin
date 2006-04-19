@@ -62,6 +62,16 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         return renamed
 
 
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None):
+        """Edit a ZenModel object and return its proper page template
+        """
+        self.manage_changeProperties(**REQUEST.form)
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):
         return self.getId()
