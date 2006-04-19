@@ -6,7 +6,7 @@
 
 import types
 
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_chain
 
 from Products.ZenRRD.Exceptions import RRDObjectNotFound 
 
@@ -52,15 +52,15 @@ class RRDView(object):
         return self.meta_type
 
 
-    def getRRDTemplate(self):
+    if 0: # def getRRDTemplate(self):
         """lookup a Template from its name"""
         from Products.ZenRRD.utils import getRRDTemplate
         return getRRDTemplate(self.primaryAq(), self.getRRDTemplateName())
 
 
-    def getRRDViews(self):
+    if 0: # def getRRDViews(self):
         """get the views for a particular targetname"""
-        target = self.getRRDTemplate()
+        target = self.getRRDTemplate(self.getRRDTemplateName())
         return target.getViewNames()
 
 
@@ -81,6 +81,7 @@ class RRDView(object):
                 return obj.rrdTemplates._getOb(name)
 
 
+    ### FIXME is "isrow" needed on DataSource now?
     def getSnmpOidTargets(self):
         """Return a list of (oid, path, type) that define monitorable 
         """
@@ -89,12 +90,15 @@ class RRDView(object):
         basepath = self.getPrimaryDmdId()
         try:
             ttype = self.getRRDTemplate(self.getRRDTemplateName())
-            for dsname in ttype.dsnames:
-                ds = ttype.getDs(self, dsname)
-                oid = ds.oid
-                snmpindex = getattr(self, "ifindex", self.snmpindex) #FIXME
-                if ds.isrow: oid = "%s.%d" % (oid, snmpindex)
-                oids.append((oid, "/".join((basepath, dsname)), ds.rrdtype))
+            if ttype:
+                for ds in ttype.getRRDDataSources():
+                    oid = ds.oid
+                    # FIXME
+                    # snmpindex = getattr(self, "ifindex", self.snmpindex)
+                    # if ds.isrow: oid = "%s.%d" % (oid, snmpindex)
+                    oids.append((oid,
+                                 "/".join((basepath, ds.id)),
+                                 ds.rrdtype))
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids
