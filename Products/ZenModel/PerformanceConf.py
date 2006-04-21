@@ -116,21 +116,14 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             dev = dev.primaryAq()
             if (not dev.pastSnmpMaxFailures() 
-                and dev.productionState >= self.prodStateThreshold 
+                and dev.productionState >= self.prodStateThreshold
+                and not dev.zSnmpMonitorIgnore
                 and (force or
                 dev.getLastChange() > dev.getLastCricketGenerate())):
                 result.append(dev.getSnmpOidTargets())
         return result
        
 
-    security.declareProtected('View','propertyItems')
-    def propertyItems(self):
-        """Return configuration properties for zenperfsnmp.
-        """
-        return {'configCycleInterval': self.configCycleInterval,
-                'snmpCycleInterval': self.snmpCycleInterval }
-
-    
     def performanceGraphUrl(self, context, targetpath, targettype,
                             view, drange):
         """set the full path of the target and send to view"""
