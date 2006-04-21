@@ -43,6 +43,7 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
+from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
