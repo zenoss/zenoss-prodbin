@@ -125,6 +125,13 @@ class ImportRM(ZCmdBase, ContentHandler):
         setter = attrs.get("setter",None)
         self.log.debug("setting object %s att %s type %s value %s" 
                             % (obj.id, name, proptype, value))
+        if proptype == 'selection':
+	    try:
+	        firstElement = getattr(obj, name)[0]
+	        if type(firstElement) == type(''):
+	            proptype = 'string'
+            except IndexError:
+		proptype = 'string'
         if proptype == "date":
             value = DateTime(value)
         elif proptype != "string" and proptype != 'text':
