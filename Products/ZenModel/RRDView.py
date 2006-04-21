@@ -75,7 +75,6 @@ class RRDView(object):
         """Return the closest RRDTemplate named name by walking our aq chain.
         """
         mychain = aq_chain(self)
-        mychain.reverse()
         for obj in mychain:
             if not getattr(aq_base(obj), 'rrdTemplates', False): continue
             if getattr(aq_base(obj.rrdTemplates), name, False):
