@@ -3,24 +3,28 @@
 
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">Cricket Configuration</th>
+      <th class="tabletitle" align="left" colspan="2">Cricket Configuration</th>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Render URL</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/renderurl" />
+      <td class="tableheader">Snmp Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/snmpCycleInterval" />
     </tr>
     <tr>
-      <td class="tableheader" align="left">Render User</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/renderuser" />
+      <td class="tableheader">Config Cycle Interval (mins)</td>
+      <td class="tablevalues" tal:content="here/configCycleInterval" />
     </tr>
     <tr>
-      <td class=tableheader align=left>Production State Threshold</td>
-      <td class=tablevalues colspan="3"
-        tal:content="python:here.convertProdState(here.prodStateThreshold)">
-        device state
-      </td>
+      <td class="tableheader">Production State Threshold</td>
+      <td class="tablevalues"
+        tal:content="python:here.convertProdState(here.prodStateThreshold)"/>
+    </tr>
+    <tr>
+      <td class="tableheader">Render URL</td>
+      <td class="tablevalues" tal:content="here/renderurl" />
+    </tr>
+    <tr>
+      <td class="tableheader">Render User</td>
+      <td class="tablevalues" tal:content="here/renderuser"/>
     </tr>
 </table>
 

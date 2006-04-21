@@ -51,7 +51,7 @@ class RRDDataSource(ZenModelRM):
     rpn = ""
     rrdmax = -1
     color = ""
-    linetype = 'LINE'
+    linetype = ''
     limit = -1
     format = '%0.2lf%s'
 
@@ -101,13 +101,11 @@ class RRDDataSource(ZenModelRM):
     def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
         """build graph options for this datasource"""
         
-        if self.getIndex() == -1: 
-            raise "DataSourceError", "Not part of a TargetType"
         graph = []
         src = "ds%d" % self.getIndex()
         dest = src
         if multiid != -1: dest += str(multiid)
-        file = os.path.join(file, self.getName()) + ".rrd"
+        file = os.path.join(file, self.getId()) + ".rrd"
         graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, 'ds0'))
         src = dest
 
@@ -133,8 +131,8 @@ class RRDDataSource(ZenModelRM):
         if multiid != -1:
             fname = os.path.basename(file)
             if fname.find('.rrd') > -1: fname = fname[:-4]
-            name = "%s-%s" % (self.getName(), fname)
-        else: name = self.getName()
+            name = "%s-%s" % (self.getId(), fname)
+        else: name = self.getId()
 
         graph.append(":".join((type, src, name,)))
 

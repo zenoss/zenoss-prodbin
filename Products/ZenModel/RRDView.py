@@ -21,7 +21,7 @@ class RRDView(object):
     def rrdGraphUrl(self, targettype, view, drange):
         """resolve targettype and view names to objects 
         and pass to view performance"""
-        # if not drange: drange = self.defaultDateRange
+        if not drange: drange = self.defaultDateRange
         # if not targettype: targettype = self.getRRDTemplate()
         targetpath = self.getPrimaryDmdId()
         objpaq = self.primaryAq()
@@ -35,11 +35,11 @@ class RRDView(object):
     def getDefaultGraphs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
-        # views = self.getRRDViews()
         template = self.getRRDTemplate(self.getRRDTemplateName())
+        if not template: return graphs
         for g in template.getGraphs():
             graph = {}
-            graph['title'] = 'some title'
+            graph['title'] = g.getId()
             graph['url'] = self.rrdGraphUrl(template,g,drange)
             if graph['url']:
                 graphs.append(graph)
@@ -82,7 +82,6 @@ class RRDView(object):
                 return obj.rrdTemplates._getOb(name)
 
 
-    ### FIXME is "isrow" needed on DataSource now?
     def getSnmpOidTargets(self):
         """Return a list of (oid, path, type) that define monitorable 
         """
@@ -94,9 +93,8 @@ class RRDView(object):
             if ttype:
                 for ds in ttype.getRRDDataSources():
                     oid = ds.oid
-                    # FIXME
-                    # snmpindex = getattr(self, "ifindex", self.snmpindex)
-                    # if ds.isrow: oid = "%s.%d" % (oid, snmpindex)
+                    snmpindex = getattr(self, "ifindex", self.snmpindex)
+                    if snmpindex: oid = "%s.%s" % (oid, snmpindex)
                     oids.append((oid,
                                  "/".join((basepath, ds.id)),
                                  ds.rrdtype))

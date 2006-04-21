@@ -67,21 +67,23 @@
                                             sortedHeader='description');"
     tal:condition="objects">
     <tr>
-      <th class="tabletitle" align="left" colspan="1">Hard Disks</th>
+      <th class="tabletitle" colspan="2">Hard Disks</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'description','Name')">sd0
-        </th>
+                            tableName,'description','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'snmpindex','Snmp Index')"/>
     </tr>
     <tr tal:repeat="disk batch">
       <td class="tablevalues">
-          <a class=tablevalues tal:content="disk/description" 
+          <a class=tablevalues tal:content="disk/getId" 
             tal:attributes="href disk/getPrimaryUrlPath">sd0</a>
       </td>
+      <td class="tablevalues" tal:content="disk/snmpindex"/>
     </tr>
     <tr>
-        <td colspan=1 class="tableheader" align='center'>
+        <td colspan="2" class="tableheader">
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>

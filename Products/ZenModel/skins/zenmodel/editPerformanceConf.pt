@@ -11,6 +11,34 @@
             tal:content="string:${message} ${here/getNowString}" />
     </tr>
     <tr>
+      <td class="tableheader">Snmp Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="snmpCycleInterval:int" 
+            size="10" tal:attributes="value here/snmpCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Config Cycle Interval (mins)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="configCycleInterval:int" 
+            size="10" tal:attributes="value here/configCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+        <td class="tableheader" align="left">
+            Production State Threshold</td>
+        <td class="tablevalues" align="left" colspan="3">
+            <select class="tablevalues" name="prodStateThreshold:int"
+            tal:define="pstates here/getProdStateConversions;
+                        curstate here/prodStateThreshold">
+                <option tal:repeat="pstate pstates" 
+                    tal:attributes="value python:pstate[1]; 
+                        selected python:curstate == pstate[1]"
+                    tal:content="python:pstate[0]">localhost</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
       <td class="tableheader" align="left">Render URL</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="renderurl" size="50"
@@ -30,20 +58,6 @@
         <input class="tablevalues" type="password" name="renderpass" 
             tal:attributes="value here/renderpass" />
       </td>
-    </tr>
-    <tr>
-        <td class="tableheader" align="left">
-            Production State Threshold</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <select class="tablevalues" name="prodStateThreshold:int"
-            tal:define="pstates here/getProdStateConversions;
-                        curstate here/prodStateThreshold">
-                <option tal:repeat="pstate pstates" 
-                    tal:attributes="value python:pstate[1]; 
-                        selected python:curstate == pstate[1]"
-                    tal:content="python:pstate[0]">localhost</option>
-            </select>
-        </td>
     </tr>
     <tr>
         <td class=tableheader align="left" >

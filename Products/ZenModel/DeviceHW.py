@@ -43,6 +43,13 @@ class DeviceHW(Hardware):
         Hardware.__init__(self, id)
 
     
+    def __call__(self, REQUEST=None):
+        pp = self.getPrimaryParent()
+        screen = getattr(pp, "deviceHardwareDetail", False)
+        if not screen: return pp()
+        return screen()
+
+
     def device(self):
         """Return our Device object for DeviceResultInt.
         """

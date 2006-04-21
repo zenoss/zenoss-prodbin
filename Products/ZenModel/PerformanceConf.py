@@ -60,11 +60,20 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
+    snmpCycleInterval = 60
+    configCycleInterval = 20
+    prodStateThreshold = 1000
+    renderurl = ''
+    renderuser = ''
+    renderpass = ''
+
     _properties = (
+        {'id':'snmpCycleInterval','type':'int','mode':'w'},
+        {'id':'configCycleInterval','type':'int','mode':'w'},
+        {'id':'prodStateThreshold','type':'int','mode':'w'},
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
-        {'id':'prodStateThreshold','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Device","perfServer")),
@@ -73,12 +82,6 @@ class PerformanceConf(Monitor, StatusColor):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'PerformanceConf',
-            'meta_type'      : 'PerformanceConf',
-            'description'    : """PerformanceConf class""",
-            'icon'           : 'PerformanceConf_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addPerformanceConf',
             'immediate_view' : 'viewPerformanceConfOverview',
             'actions'        :
             ( 
@@ -104,29 +107,30 @@ class PerformanceConf(Monitor, StatusColor):
         )
 
 
-    def __init__(self, id):
-        Monitor.__init__(self, id)
-        self.renderurl = ''
-        self.renderuser = ''
-        self.renderpass = ''
-        self.prodStateThreshold = 1000
-
 
     security.declareProtected('View','getDevices')
-    def getDevices(self):
-        '''get the devices associated with this
-        ping monitor configuration'''
-        devices = []
-        for dev in self.devices.objectValuesAll():
-            #if dev.productionState == 'Pre-Production':
-            devices.append({
-                'snmp_community': dev.zSnmpCommunity,
-                'name': dev.getParent().id,
-                'dns_name': dev.id,
-                'url_path': dev.getPrimaryUrlPath()})
-        return devices
+    def getDevices(self, force=False):
+        """Return information for snmp collection on all devices in the form
+        (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
+        result = []
+        for dev in self.devices():
+            dev = dev.primaryAq()
+            if (not dev.pastSnmpMaxFailures() 
+                and dev.productionState >= self.prodStateThreshold 
+                and (force or
+                dev.getLastChange() > dev.getLastCricketGenerate())):
+                result.append(dev.getSnmpOidTargets())
+        return result
+       
 
+    security.declareProtected('View','propertyItems')
+    def propertyItems(self):
+        """Return configuration properties for zenperfsnmp.
+        """
+        return {'configCycleInterval': self.configCycleInterval,
+                'snmpCycleInterval': self.snmpCycleInterval }
 
+    
     def performanceGraphUrl(self, context, targetpath, targettype,
                             view, drange):
         """set the full path of the target and send to view"""

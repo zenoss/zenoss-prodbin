@@ -191,7 +191,7 @@ class ZenPerformanceFetcher(ZenDaemon):
     def startUpdateConfig(self):
         'Periodically ask the Zope server for basic configuration data.'
         lst = []
-        deferred = self.model.callRemote('allDeviceSnmpTargets', True)
+        deferred = self.model.callRemote('getDevices', True)
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
         lst.append(deferred)
 

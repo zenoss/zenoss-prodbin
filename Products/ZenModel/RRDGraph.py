@@ -39,7 +39,7 @@ class RRDGraph(ZenModelRM):
 
     dsnames = []
     height = 100
-    width = 400
+    width = 500
     threshmap = []
     units = ""
     log = False
@@ -100,23 +100,22 @@ class RRDGraph(ZenModelRM):
     
     def graphOpts(self, context, rrdfile, targettype):
         """build the graph opts for a single rrdfile"""
-        self._v_dsindex = 0
-        self._v_threshcoloridx = len(self.colors)
         gopts = self._graphsetup()
         gopts = self._buildds(gopts, context, rrdfile, targettype, self.summary)
-        gopts = self._thresholds(gopts, context, targettype)
+        #gopts = self._thresholds(gopts, context, targettype)
         return gopts
 
     
     def summaryOpts(self, context, rrdfile, targettype):
         """build just the summary of graph data with no graph"""
         gopts = []
-        self._v_dsindex = 0
         self._buildds(gopts, context, rrdfile, targettype, self.summary)
         return gopts
 
 
     def _graphsetup(self):
+        """Setup global graph parameters.
+        """
         gopts = []
         if self.height:
             gopts.append('--height=%d' % self.height)
@@ -141,16 +140,24 @@ class RRDGraph(ZenModelRM):
         return gopts
        
 
-    def _buildds(self, gopts, context, rrdfile, targettype, summary, multiid=-1): 
+    def _buildds(self, gopts, context, rrdfile, targettype, summary,multiid=-1):
+        """Add commands to draw data sources in this graph.
+        """
+        dsindex = 0
         for dsname in self.dsnames:
             ds = self.getRRDDataSource(dsname) #aq
-            gopts += ds.graphOpts(rrdfile, self._getcolor(),
-                                self._gettype(), summary, multiid)
-            self._v_dsindex += 1
+            ds.setIndex(dsindex)
+            defcolor = self.colors[dsindex]
+            deftype = self._gettype(dsindex)
+            gopts += ds.graphOpts(rrdfile, defcolor, deftype, summary, multiid)
+            dsindex += 1
+        return gopts
 
 
     def _thresholds(self, context, targettype):
-        """build the hrule opts for any thresholds that apply to our graph"""
+        """Add the hrule commands for any thresholds in this graph.
+        """
+        self._v_threshcoloridx = len(self.colors)
         allthreshs = targettype.getThresholds(context) 
         threshs = []
         for thresh in allthreshs:
@@ -182,14 +189,11 @@ class RRDGraph(ZenModelRM):
         return a
 
 
-    def _getcolor(self):
-        """get a default datasource color by working forwards on the ds list"""
-        return self.colors[self._v_dsindex]
-
-
-    def _gettype(self):
-        """get a default graph type first is area rest are lines"""
-        if self._v_dsindex == 0:
+    def _gettype(self, idx):
+        """Return the default graph type for a data source
+        first is area rest are lines
+        """
+        if idx == 0:
             return "AREA"
         elif self.stacked:
             return "STACK"
