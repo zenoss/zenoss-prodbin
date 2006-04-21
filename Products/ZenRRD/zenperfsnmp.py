@@ -257,6 +257,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         p.tries = tries
         p.oidMap = {}
         for oid, path, dsType in oidData:
+            oid = '.'+oid.lstrip('.')
             p.oidMap[oid] = path, dsType
         self.proxies[deviceName] = p
 
@@ -318,14 +319,12 @@ class ZenPerformanceFetcher(ZenDaemon):
         for success, update in updates:
             if success:
                 for oid, value in update.items():
-                    # oids start with '.' coming back from the client
-                    oid = oid.strip('.')
                     # performance monitoring should always get something back
                     if value == '':
                         self.log.warn('Suspect oid %s is bad' % oid)
                         del proxy.oidMap[oid]
                     else:
-                        path, dsType = proxy.oidMap[oid.strip('.')]
+                        path, dsType = proxy.oidMap[oid]
                         self.storeRRD(path, dsType, value)
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
