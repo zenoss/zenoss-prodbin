@@ -4,6 +4,7 @@
 #
 #################################################################
 
+import os
 import types
 
 from Acquisition import aq_base, aq_chain
@@ -18,29 +19,59 @@ class RRDView(object):
     configuration generation is in CricketDevice and CricketServer
     """
 
-    def rrdGraphUrl(self, targettype, view, drange):
-        """resolve targettype and view names to objects 
-        and pass to view performance"""
+    def getRRDGraphUrl(self, graph, drange=None, template=None):
+        """resolve template and graph names to objects 
+        and pass to graph performance"""
         if not drange: drange = self.defaultDateRange
-        # if not targettype: targettype = self.getRRDTemplate()
+        if not template: template = self.getRRDTemplate()
+        if type(graph) in types.StringTypes: 
+            graph = template.graphs._getOb(graph)
         targetpath = self.getPrimaryDmdId()
         objpaq = self.primaryAq()
-        # view = targettype.getDefaultView(objpaq)
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
             return perfServer.performanceGraphUrl(objpaq, targetpath, 
-                                                  targettype, view, drange)
+                                                  template, graph, drange)
         
 
+    def getRRDValue(self, dsname, drange=None, function="LAST"):
+        """Return a single rrd value from its file using function.
+        """
+        dsnames = (dsname,)
+        return self.getRRDValues(dsnames, drange, function)[dsname]
+
+        
+    def getRRDValues(self, dsnames, drange=None, function="LAST"):
+        """Return a dict of key value pairs where dsnames are the keys.
+        """
+        if not drange: drange = self.defaultDateRange
+        #template = Set(self.getRRDTemplate())
+        #if dsnames not in template: raise
+        gopts = []
+        basepath = self.getPrimaryDmdId()
+        for dsname in dsnames:
+            filename = os.path.join(basepath, dsname) + ".rrd"
+            gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
+            gopts.append("VDEF:%s=%s_r,%s" % (dsname,dsname,function))
+            gopts.append("PRINT:%s:%%.2lf" % (dsname))
+        perfServer = self.getPerformanceServer()
+        if perfServer:
+            vals = perfServer.performanceCustomSummary(gopts, drange)
+        res = {}
+        for key,val in zip(dsnames, vals): res[key] = float(val)
+        return res
+        
+        
+    
     def getDefaultGraphs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
-        template = self.getRRDTemplate(self.getRRDTemplateName())
+        template = self.getRRDTemplate()
         if not template: return graphs
         for g in template.getGraphs():
             graph = {}
             graph['title'] = g.getId()
-            graph['url'] = self.rrdGraphUrl(template,g,drange)
+            graph['url'] = self.getRRDGraphUrl(g,drange,template=template)
             if graph['url']:
                 graphs.append(graph)
         return graphs
@@ -53,27 +84,16 @@ class RRDView(object):
         return self.meta_type
 
 
-    if 0: # def getRRDTemplate(self):
-        """lookup a Template from its name"""
-        from Products.ZenRRD.utils import getRRDTemplate
-        return getRRDTemplate(self.primaryAq(), self.getRRDTemplateName())
-
-
-    if 0: # def getRRDViews(self):
-        """get the views for a particular targetname"""
-        target = self.getRRDTemplate(self.getRRDTemplateName())
-        return target.getViewNames()
-
-
     def snmpIgnore(self):
         """Should this component be monitored for performance using snmp.
         """
         return False
 
 
-    def getRRDTemplate(self, name):
+    def getRRDTemplate(self, name=None):
         """Return the closest RRDTemplate named name by walking our aq chain.
         """
+        if not name: name = self.getRRDTemplateName()
         mychain = aq_chain(self)
         for obj in mychain:
             if not getattr(aq_base(obj), 'rrdTemplates', False): continue

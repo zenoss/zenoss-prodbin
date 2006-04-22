@@ -32,7 +32,6 @@ class HRFileSystemMap(SnmpPlugin):
              '.3': 'mount',
              '.4': 'blockSize',
              '.5': 'totalBlocks',
-             '.6': 'usedBlocks',
              }
         ),
     )
@@ -64,14 +63,6 @@ class HRFileSystemMap(SnmpPlugin):
                 (not skipfsnames or not re.search(skipfsnames,fs['mount']))):
                 om = self.objectMap(fs)
                 om.id = self.prepId(om.mount)
-                om.totalBytes = size
-                om.blockSize = long(om.blockSize)
-                om.availBytes = long(om.blockSize * 
-                                    (om.totalBlocks - om.usedBlocks))
-                om.usedBytes = long(om.blockSize * om.usedBlocks)
-                om.capacity = "%d" % (om.usedBytes / float(size) * 100)
-                delattr(om,'totalBlocks')
-                delattr(om,'usedBlocks')
                 rm.append(om)
         maps.append(rm)
         return maps

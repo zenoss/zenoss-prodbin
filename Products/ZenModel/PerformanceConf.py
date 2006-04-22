@@ -39,6 +39,7 @@ from ZenDate import ZenDate
 PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
 
 def performancePath(target):
+    if target.startswith("/"): target = target[1:]
     return os.path.join(PERF_ROOT, target)
 
 def manage_addPerformanceConf(context, id, title = None, REQUEST = None):

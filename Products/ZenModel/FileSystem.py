@@ -12,6 +12,8 @@ $Id: FileSystem.py,v 1.12 2004/04/06 22:33:23 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
 
+import locale
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 
@@ -39,18 +41,28 @@ class FileSystem(OSComponent):
 
     manage_editFileSystemForm = DTMLFile('dtml/manageEditFileSystem',globals())
     
+    mount = ""
+    storageDevice = ""
+    type = ""
+    blockSize = 0
+    totalBlocks = 0L
+    totalFiles = 0
+    capacity = 0
+    inodeCapacity = 0
+    maxNameLen = 0
+
     _properties = (
         {'id':'mount', 'type':'string', 'mode':''},
         {'id':'storageDevice', 'type':'string', 'mode':''},
         {'id':'type', 'type':'string', 'mode':''},
         {'id':'blockSize', 'type':'int', 'mode':''},
-        {'id':'totalBytes', 'type':'long', 'mode':''},
-        {'id':'usedBytes', 'type':'long', 'mode':''},
-        {'id':'availBytes', 'type':'long', 'mode':''},
+        #{'id':'totalBytes', 'type':'long', 'mode':''},
+        #{'id':'usedBytes', 'type':'long', 'mode':''},
+        #{'id':'availBytes', 'type':'long', 'mode':''},
         {'id':'totalFiles', 'type':'long', 'mode':''},
-        {'id':'availFiles', 'type':'long', 'mode':''},
-        {'id':'capacity', 'type':'int', 'mode':''},
-        {'id':'inodeCapacity', 'type':'int', 'mode':''},
+        #{'id':'availFiles', 'type':'long', 'mode':''},
+        #{'id':'capacity', 'type':'int', 'mode':''},
+        #{'id':'inodeCapacity', 'type':'int', 'mode':''},
         {'id':'maxNameLen', 'type':'int', 'mode':''},
         )
     _relations = OSComponent._relations + (
@@ -83,21 +95,23 @@ class FileSystem(OSComponent):
           },
         )
 
+    
+    def totalBytes(self):
+        return self.blockSize * self.totalBlocks
 
-    def __init__(self, id, title = None): 
-        OSComponent.__init__(self, id, title)
-        self.mount = ""
-        self.storageDevice = ""
-        self.type = ""
-        self.blockSize = 0
-        self.totalBytes = 0
-        self.usedBytes = 0
-        self.availBytes = 0
-        self.totalFiles = 0
-        self.availFiles = 0
-        self.capacity = 0
-        self.inodeCapacity = 0
-        self.maxNameLen = 0
+    def totalBytesString(self):
+        return locale.format("%d", self.totalBytes(), True)
+
+    def usedBytes(self):
+        #return self.blockSize * self.usedBlocks
+        return 0
+
+    def availBytes(self):
+        #return self.blockSize * (self.totalBlocks - self.usedBlocks)
+        return 0
+
+    def availFiles(self):
+        return 0
 
     def viewName(self): return self.mount
 

@@ -9,11 +9,15 @@ __doc__="""RRDGraph
 RRDGraph defines the global options for an rrdtool graph.
 """
 
+import os
+import re
 import time
 
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+
+from Products.PageTemplates.Expressions import getEngine
 
 from Products.ZenRelations.RelSchema import *
 
@@ -49,6 +53,7 @@ class RRDGraph(ZenModelRM):
     summary = True
     miny = -1
     maxy = -1
+    custom = ""
 
 
     _properties = (
@@ -64,6 +69,7 @@ class RRDGraph(ZenModelRM):
         {'id':'miny', 'type':'int', 'mode':'w'},
         {'id':'maxy', 'type':'int', 'mode':'w'},
         {'id':'colors', 'type':'lines', 'mode':'w'},
+        {'id':'custom', 'type':'text', 'mode':'w'},
         )
 
     _relations =  (
@@ -81,16 +87,11 @@ class RRDGraph(ZenModelRM):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
     { 
-        'immediate_view' : 'viewRRDGraph',
+        'immediate_view' : 'editRRDGraph',
         'actions'        :
         ( 
-            { 'id'            : 'overview'
-            , 'name'          : 'Overview'
-            , 'action'        : 'viewRRDGraph'
-            , 'permissions'   : ( Permissions.view, )
-            },
             { 'id'            : 'edit'
-            , 'name'          : 'Edit'
+            , 'name'          : 'RRD Graph'
             , 'action'        : 'editRRDGraph'
             , 'permissions'   : ( Permissions.view, )
             },
@@ -98,22 +99,37 @@ class RRDGraph(ZenModelRM):
     },
     )
     
-    def graphOpts(self, context, rrdfile, targettype):
+    def graphOpts(self, context, rrdfile, template):
         """build the graph opts for a single rrdfile"""
-        gopts = self._graphsetup()
-        gopts = self._buildds(gopts, context, rrdfile, targettype, self.summary)
-        #gopts = self._thresholds(gopts, context, targettype)
+        gopts = self.graphsetup()
+        if self.custom:
+            gopts = self.buildCustomDS(gopts, rrdfile)
+            compiled = getattr(self, "_v_compiled", None)
+            if not compiled:
+                self._v_comcust = compiled = getEngine().compile(
+                                        "string:"+self.custom)
+            res = compiled(getEngine().getContext({
+                            'here':context, 
+                            'device':context.device(), 
+                            'nothing':None}))
+            if isinstance(res, Exception):
+                raise res
+            gopts.extend(res.split("\n"))
+            gopts = self.addSummary(gopts)
+        else:
+            gopts = self.buildDS(gopts, rrdfile, template, self.summary)
+        #gopts = self.thresholds(gopts, context, targettype)
         return gopts
 
     
     def summaryOpts(self, context, rrdfile, targettype):
         """build just the summary of graph data with no graph"""
         gopts = []
-        self._buildds(gopts, context, rrdfile, targettype, self.summary)
+        self.buildDS(gopts, context, rrdfile, targettype, self.summary)
         return gopts
 
 
-    def _graphsetup(self):
+    def graphsetup(self):
         """Setup global graph parameters.
         """
         gopts = []
@@ -140,7 +156,18 @@ class RRDGraph(ZenModelRM):
         return gopts
        
 
-    def _buildds(self, gopts, context, rrdfile, targettype, summary,multiid=-1):
+    def buildCustomDS(self, gopts, rrdfile):
+        """Build a list of DEF statements for the dsnames in this graph.
+        Their variable name will be dsname.  These can then be used in a 
+        custom statement.
+        """
+        for dsname in self.dsnames:
+            myfile = os.path.join(rrdfile, dsname) + ".rrd"
+            gopts.append('DEF:%s=%s:ds0:%s' % (dsname, myfile, "AVERAGE"))
+        return gopts
+            
+
+    def buildDS(self, gopts, rrdfile, targettype, summary,multiid=-1):
         """Add commands to draw data sources in this graph.
         """
         dsindex = 0
@@ -148,13 +175,13 @@ class RRDGraph(ZenModelRM):
             ds = self.getRRDDataSource(dsname) #aq
             ds.setIndex(dsindex)
             defcolor = self.colors[dsindex]
-            deftype = self._gettype(dsindex)
+            deftype = self.gettype(dsindex)
             gopts += ds.graphOpts(rrdfile, defcolor, deftype, summary, multiid)
             dsindex += 1
         return gopts
 
 
-    def _thresholds(self, context, targettype):
+    def thresholds(self, context, targettype):
         """Add the hrule commands for any thresholds in this graph.
         """
         self._v_threshcoloridx = len(self.colors)
@@ -171,25 +198,57 @@ class RRDGraph(ZenModelRM):
                 minvalue = thresh.getGraphMinval(context)
                 if minvalue and minvalue != 'n':
                     minvalue = str(minvalue)
-                    minvalue += self._getthreshcolor()
+                    minvalue += self.getthreshcolor()
                     gopts.append("HRULE:%s:%s" % 
                             (minvalue, thresh.getMinLabel(context)))
                 maxvalue = thresh.getGraphMaxval(context)
                 if maxvalue:
                     maxvalue = str(maxvalue)
-                    maxvalue += self._getthreshcolor()
+                    maxvalue += self.getthreshcolor()
                     gopts.append("HRULE:%s:%s" % 
                             (maxvalue, thresh.getMaxLabel(context)))
 
+    
+    gelement = re.compile("^LINE|^AREA|^STACK", re.I).search
+    def addSummary(self, gopts):
+        """Add summary labels for all graphed elements in gopts.
+        """
+        vars = [o.split(":",2)[1].split("#")[0] for o in gopts if self.gelement(o)]
+        pad = max([len(v) for v in vars])
+        for var in vars: 
+            gopts = self.summary(gopts, var, pad=pad)
+        return gopts
+            
 
-    def _getthreshcolor(self):
+    def summary(self, gopts, src, pad=0, format="%0.2lf%s", ongraph=1):
+        """Add the standard summary opts to a graph for variable src.
+        VDEF:src_last=src,LAST 
+        GPRINT:src_last:cur\:%0.2lf%s 
+        VDEF:src_avg=src,AVERAGE
+        GPRINT:src_avg:avg\:%0.2lf%s
+        VDEF:src_max=src,MAXIMUM 
+        GPRINT:src_max:max\:%0.2lf%s\j
+        """
+        funcs = (("cur\:", "LAST"), ("avg\:", "AVERAGE"), ("max\:", "MAXIMUM"))
+        for tag, func in funcs:
+            label = "%s%s" % (tag, format)
+            if pad: label = label.ljust(pad)
+            vdef = "%s_%s" % (src,func.lower())
+            gopts.append("VDEF:%s=%s,%s" % (vdef,src,func))
+            opt = ongraph and "GPRINT" or "PRINT"
+            gopts.append("%s:%s:%s" % (opt, vdef, label))
+        gopts[-1] += "\j"
+        return gopts
+    
+
+    def getthreshcolor(self):
         """get a threshold color by working backwards down the color list"""
         self._v_threshcoloridx -= 1
         a= self.colors[self._v_threshcoloridx]
         return a
 
 
-    def _gettype(self, idx):
+    def gettype(self, idx):
         """Return the default graph type for a data source
         first is area rest are lines
         """
