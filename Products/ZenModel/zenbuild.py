@@ -70,9 +70,9 @@ class zenbuild(CmdBase):
         dmdBuilder.build()
 
         # Load RRD Data
-        from Products.ZenRRD.RRDLoader import RRDLoader
-        rrdloader = RRDLoader(noopts=True, app=self.app) 
-        rrdloader.loadDatabase()
+        #from Products.ZenRRD.RRDLoader import RRDLoader
+        #rrdloader = RRDLoader(noopts=True, app=self.app) 
+        #rrdloader.loadDatabase()
         
         # Load IpService data
         #from Products.ZenModel.IpServiceLoader import IpServiceLoader
