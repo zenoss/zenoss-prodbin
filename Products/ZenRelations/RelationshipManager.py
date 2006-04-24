@@ -170,9 +170,12 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         id = self.id
         if getattr(aq_base(container), id, zenmarker) is not zenmarker:
             id = "copy_of_" + id
-        cobj = self.__class__(id, buildRelations=False) #make new instance
+        #FIXME copy code doesn't really work!!!!
+        #cobj = self.__class__(id, buildRelations=False) #make new instance
+        cobj = self.__class__(id) #make new instance
         cobj = cobj.__of__(container) #give the copy container's aq chain
-        for sobj in self.objectValues():
+        for objid, sobj in self.objectItems():
+            if getattr(aq_base(self), objid, None): continue
             csobj = sobj._getCopy(cobj)
             cobj._setObject(csobj.id, csobj)
         noprop = getattr(self, 'zNoPropertiesCopy', [])
