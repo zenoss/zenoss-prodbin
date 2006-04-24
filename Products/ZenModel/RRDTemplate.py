@@ -10,7 +10,6 @@ from AccessControl import ClassSecurityInfo, Permissions
 
 from ZenModelRM import ZenModelRM
 
-
 from Products.ZenRelations.RelSchema import *
 
 
@@ -39,6 +38,7 @@ class RRDTemplate(ZenModelRM):
 
     _relations =  (
         ("deviceClass", ToOne(ToManyCont,"RRDTemplate", "rrdTemplates")),
+        ("datasources", ToManyCont(ToOne,"RRDDataSource", "rrdTemplate")),
         ("graphs", ToManyCont(ToOne,"RRDGraph", "rrdTemplate")),
         ("thresholds", ToManyCont(ToOne,"RRDThreshold", "rrdTemplate")),
         )
@@ -59,26 +59,6 @@ class RRDTemplate(ZenModelRM):
     },
     )
 
-    def getRRDDataSources(self):
-        """Return data sources for this template.
-        """
-        return [self.getRRDDataSource(dsname) for dsname in self.dsnames]
-
-
-    def getRRDDataSourceNames(self):
-        """Return list of data source names used on this object.
-        """
-        return [ ds for ds in self.getPrimaryParent().getRRDDataSourceNames() \
-                    if ds in self.dsnames ]
-
-        
-    def getAvailRRDDataSourceNames(self):
-        """Return list of availible data source names not used on this object.
-        """
-        return [ ds for ds in self.getPrimaryParent().getRRDDataSourceNames() \
-                    if ds not in self.dsnames ]
-
-        
     def getGraphs(self):
         """Return our graphs objects in proper order.
         """
@@ -94,27 +74,43 @@ class RRDTemplate(ZenModelRM):
         return self.getPrimaryParent().getPrimaryDmdId(subrel="rrdTemplates")
    
 
-    def manage_addRRDDataSource(self, id="", REQUEST=None):
-        """Add a data source name to our dsnames list.
+    def getRRDDataSourceNames(self):
+        """Return the list of all datasource names.
         """
-        if id and id not in self.dsnames:
-            if not self.dsnames: self.dsnames = []
-            self.dsnames.append(id)
-            self._p_changed = 1
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
+        return self.datasources.objectIds()
 
+    
+    def getRRDDataSources(self):
+        """Return a list of all datasources on this template.
+        """
+        return self.datasources.objectValues()
+
+
+    def getRRDDataSource(self, name):
+        """Return a datasource based on its name.
+        """
+        return self.datasources._getOb(name)
+
+
+    security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
+    def manage_addRRDDataSource(self, id, REQUEST=None):
+        """Add an RRDDataSource to this DeviceClass.
+        """
+        from RRDDataSource import RRDDataSource
+        if not id: return self.callZenScreen(REQUEST)
+        org = RRDDataSource(id)
+        self.datasources._setObject(org.id, org)
+        if REQUEST: return self.callZenScreen(REQUEST)
+            
 
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
-        """Remove a a list of dsnames from our dsnames list.
+        """Delete RRDDataSources from this DeviceClass 
         """
+        if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
-            try: 
-                self.dsnames.remove(id)
-                self._p_changed = True
-            except ValueError: pass 
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
+            if getattr(self.datasources,id,False):
+                self.datasources._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     def manage_addRRDGraph(self, id="", REQUEST=None):

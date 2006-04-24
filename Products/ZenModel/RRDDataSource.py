@@ -72,22 +72,17 @@ class RRDDataSource(ZenModelRM):
 
 
     _relations = (
-        ("deviceClass", ToOne(ToManyCont,"DeviceClass","rrdDataSources")),
+        ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate","datasources")),
         )
     
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
     { 
-        'immediate_view' : 'viewRRDDataSource',
+        'immediate_view' : 'editRRDDataSource',
         'actions'        :
         ( 
-            { 'id'            : 'overview'
-            , 'name'          : 'Overview'
-            , 'action'        : 'viewRRDDataSource'
-            , 'permissions'   : ( Permissions.view, )
-            },
             { 'id'            : 'edit'
-            , 'name'          : 'Edit'
+            , 'name'          : 'RRD Data Source'
             , 'action'        : 'editRRDDataSource'
             , 'permissions'   : ( Permissions.view, )
             },

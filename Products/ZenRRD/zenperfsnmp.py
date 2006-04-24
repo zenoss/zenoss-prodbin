@@ -4,7 +4,7 @@
 #
 #################################################################
 
-__doc__='''ZenPerformanceFetcher
+__doc__='''zenperfsnmp
 
 Gets snmp performance data and stores it in the RRD files.
 
@@ -114,7 +114,7 @@ class Status:
     
 
 
-class ZenPerformanceFetcher(ZenDaemon):
+class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
     startevt = {'eventClass':'/App/Start', 'summary': 'started', 'severity': 0}
@@ -335,6 +335,7 @@ class ZenPerformanceFetcher(ZenDaemon):
         import rrdtool
         filename = rrdPath(path)
         if not os.path.exists(filename):
+            self.log.debug("create new rrd %s", filename)
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
@@ -349,6 +350,7 @@ class ZenPerformanceFetcher(ZenDaemon):
                            'RRA:AVERAGE:0.5:288:600',
                            'RRA:MAX:0.5:288:600')
         try:
+            self.log.debug("update %s with %s", filename, value)
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
@@ -372,5 +374,5 @@ class ZenPerformanceFetcher(ZenDaemon):
         self.sendEvent(self.stopevt)
 
 if __name__ == '__main__':
-    zpf = ZenPerformanceFetcher()
+    zpf = zenperfsnmp()
     zpf.main()

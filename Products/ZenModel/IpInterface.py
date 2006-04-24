@@ -364,11 +364,9 @@ class IpInterface(OSComponent):
 
 
     def snmpIgnore(self):
-        """Ignore interface types in zCricketInterfaceIgnoreTypes.
+        """Ignore interface that are operationally down.
         """
-        ignoreTypes = getattr(self, 'zCricketInterfaceIgnoreTypes', None)
-        if not ignoreTypes: ignoreTypes = self.defaultIgnoreTypes
-        return self.type in ignoreTypes
+        return self.operStatus > 1
 
 
     def manage_afterAdd(self, item, container):

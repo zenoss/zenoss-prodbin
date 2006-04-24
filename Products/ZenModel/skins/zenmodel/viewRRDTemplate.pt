@@ -7,16 +7,39 @@
         objects here/getRRDDataSources;
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tal:block metal:use-macro="here/perfConfig/macros/dsbody"/>
+    <tr>
+      <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'oid','OID')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'rrdtype','Type')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="ds batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value ds/getId"/>
+            <a tal:attributes="href ds/getPrimaryUrlPath" 
+                tal:content="ds/getId">name</a>
+        </td>
+        <td tal:content="ds/oid"/>
+        <td tal:content="ds/rrdtype"/>
+    </tr>
+    <tr>
+        <td colspan="3" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
     <tr class="tableheader" tal:condition="here/isManager">
         <td colspan="3">
+        <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
-            name="manage_addRRDDataSource:method" value=" Add " /> 
-        <select class="tableheader" name="id"
-        tal:define="targets here/getAvailRRDDataSourceNames">
-            <option value=""></option>
-            <option tal:repeat="target targets" tal:content="target"/>
-        </select> 
+          onkeypress="return submitViaEnter(event,'manage_addRRDDataSource');" 
+          name="manage_addRRDDataSource:method" value=" Add " /> 
         |
         <input class="tableheader" type="submit" 
             name="manage_deleteRRDDataSources:method" value=" Delete " />

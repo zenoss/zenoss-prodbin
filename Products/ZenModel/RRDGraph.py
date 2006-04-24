@@ -42,6 +42,7 @@ class RRDGraph(ZenModelRM):
     security = ClassSecurityInfo()
 
     dsnames = []
+    sequence = 0
     height = 100
     width = 500
     threshmap = []
@@ -58,6 +59,7 @@ class RRDGraph(ZenModelRM):
 
     _properties = (
         {'id':'dsnames', 'type':'lines', 'mode':'w'},
+        {'id':'sequence', 'type':'int', 'mode':'w'},
         {'id':'height', 'type':'int', 'mode':'w'},
         {'id':'width', 'type':'int', 'mode':'w'},
         {'id':'units', 'type':'string', 'mode':'w'},

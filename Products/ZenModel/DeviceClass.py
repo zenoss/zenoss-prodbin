@@ -29,7 +29,6 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 from RRDTemplate import RRDTemplate
-from RRDDataSource import RRDDataSource
 
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 
@@ -81,7 +80,6 @@ class DeviceClass(DeviceOrganizer):
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
         ("rrdTemplates", ToManyCont(ToOne,"RRDTemplate","deviceClass")),
-        ("rrdDataSources", ToManyCont(ToOne,"RRDDataSource","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -342,40 +340,6 @@ class DeviceClass(DeviceOrganizer):
         return self.getSubComponents()
 
 
-    def getRRDDataSourceNames(self):
-        """Return the list of all datasource names.
-        """
-        devs = self.getDmdRoot("Devices")
-        return devs.rrdDataSources.objectIds()
-
-
-    def getRRDDataSource(self, name):
-        """Return a datasource based on its name.
-        """
-        devs = self.getDmdRoot("Devices")
-        return devs.rrdDataSources._getOb(name)
-
-
-    security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
-    def manage_addRRDDataSource(self, id, REQUEST=None):
-        """Add an RRDDataSource to this DeviceClass.
-        """
-        if not id: return self.callZenScreen(REQUEST)
-        org = RRDDataSource(id)
-        self.rrdDataSources._setObject(org.id, org)
-        if REQUEST: return self.callZenScreen(REQUEST)
-            
-
-    def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
-        """Delete RRDDataSources from this DeviceClass 
-        """
-        if not ids: return self.callZenScreen(REQUEST)
-        for id in ids:
-            if getattr(self.rrdDataSources,id,False):
-                self.rrdDataSources._delObject(id)
-        if REQUEST: return self.callZenScreen(REQUEST)
-
-
     security.declareProtected('View', 'getRRDTemplates')
     def getRRDTemplates(self, context=None):
         """Return the actual RRDTemplate instances.
@@ -505,12 +469,11 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
         devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
 
-        # Cricket properties
-        devs._setProperty("zCricketDeviceType", "")
-        devs._setProperty("zCricketInterfaceMap", [], type="lines")
-        devs._setProperty("zCricketInterfaceIgnoreNames", "")
-        devs._setProperty("zCricketInterfaceIgnoreTypes", [], type="lines")
-
+        # RRD properties
+        #FIXME - should this be added to allow for more flexability of
+        # RRDTemplate binding?
+        #devs._setProperty("zRRDTemplateName", "")
+        
         # Ping monitor properties
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")

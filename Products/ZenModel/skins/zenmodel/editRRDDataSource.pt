@@ -6,23 +6,22 @@
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
 <table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">RRD Data Source</th>
-    </tr>
     <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan=4
+        <th class=tabletitle colspan="2"
             tal:content="string:${message} ${here/getNowString}" />
     </tr>
     <tr>
         <td class="tableheader">OID</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="oid" size="40"
             tal:attributes="value here/oid" />
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/oid"/>
     </tr>
     <tr>
       <td class="tableheader">Type</td>
-      <td class="tablevalues">
+      <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="rrdtype"
         tal:define="curtype here/rrdtype">
             <option tal:repeat="type here/rrdtypes" 
@@ -31,10 +30,12 @@
                 tal:content="python:type">localhost</option>
         </select>
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rrdtype"/>
     </tr>
     <tr>
       <td class="tableheader">Line Type</td>
-      <td class="tablevalues">
+      <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="linetype"
         tal:define="curtype here/linetype">
             <option tal:repeat="type here/linetypes" 
@@ -43,55 +44,69 @@
                 tal:content="python:type">localhost</option>
         </select>
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/linetype"/>
     </tr>
     <tr>
         <td class="tableheader">RPN</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="rpn" size="40"
             tal:attributes="value here/rpn" />
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rpn"/>
     </tr>
     <tr>
         <td class="tableheader">RRD Max</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="rrdmax" size="40"
             tal:attributes="value here/rrdmax" />
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rrdmax"/>
     </tr>
     <tr>
         <td class="tableheader">Limit</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="limit" size="40"
             tal:attributes="value here/limit" />
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/limit"/>
     </tr>
     <tr>
         <td class="tableheader">Color</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="color" size="40"
             tal:attributes="value here/color" />
         </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/color"/>
     </tr>
     <tr>
         <td class="tableheader">Format</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="format" size="40"
             tal:attributes="value here/format" />
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/format"/>
     </tr>
     <tr>
         <td class="tableheader">Create Cmd</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="here/isManager">
         <textarea class="tablevalues" rows="5" cols="50"
             name="createCmd:text" 
             tal:content="here/createCmd">
         </textarea>
         </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/createCmd"/>
     </tr>
     <tr>
         <td class=tableheader align="left" >
         </td>
-        <td class="tableheader" colspan="3">
+        <td class="tableheader" colspan="2">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
