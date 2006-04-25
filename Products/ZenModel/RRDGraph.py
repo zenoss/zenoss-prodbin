@@ -218,11 +218,11 @@ class RRDGraph(ZenModelRM):
         vars = [o.split(":",2)[1].split("#")[0] for o in gopts if self.gelement(o)]
         pad = max([len(v) for v in vars])
         for var in vars: 
-            gopts = self.summary(gopts, var, pad=pad)
+            gopts = self.dataSourceSum(gopts, var, pad=pad)
         return gopts
             
 
-    def summary(self, gopts, src, pad=0, format="%0.2lf%s", ongraph=1):
+    def dataSourceSum(self, gopts, src, pad=0, format="%0.2lf%s", ongraph=1):
         """Add the standard summary opts to a graph for variable src.
         VDEF:src_last=src,LAST 
         GPRINT:src_last:cur\:%0.2lf%s 

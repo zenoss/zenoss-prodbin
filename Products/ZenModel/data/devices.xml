@@ -145,7 +145,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Up Time&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -193,7 +193,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Errors&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -234,7 +234,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Packets&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -275,7 +275,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Throughput&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -478,7 +478,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Utilization&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -657,7 +657,7 @@ False
 True
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at CPU&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -698,7 +698,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Process Count&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -750,7 +750,7 @@ False
 True
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at CPU&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -791,7 +791,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Free Memory&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -832,7 +832,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Page Faults&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -873,7 +873,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Process Count&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1
@@ -1023,7 +1023,7 @@ False
 False
 </property>
 <property type='boolean' id='summary' mode='w' >
-&lt;bound method RRDGraph.summary of &lt;RRDGraph at Queue Length&gt;&gt;
+True
 </property>
 <property type='int' id='miny' mode='w' >
 -1

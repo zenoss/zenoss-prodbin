@@ -32,6 +32,7 @@ class RebuildRRDRelations(Migrate.Step):
 
 
     def cutover(self, dmd):
+        #FIXME deal with filesystem object migration
         for dc in dmd.Devices.getSubOrganizers():
             #print dc.id
             self.convert(dc)
