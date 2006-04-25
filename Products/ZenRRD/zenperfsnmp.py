@@ -114,6 +114,21 @@ class Status:
         return self._total - (self._success + self._fail)
     
 
+class SnmpStatus:
+    "track SNMP status failure counts"
+
+    count = 0
+    alive = True
+
+    def getStatus(self):
+        return self.alive
+    def updateStatus(self, value):
+        if value == False:
+            self.count == 0
+        if value and value != self.alive:
+            self.count = 0
+        self.alive = value
+
 
 class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
@@ -121,11 +136,11 @@ class zenperfsnmp(ZenDaemon):
     startevt = {'eventClass':'/App/Start', 'summary': 'started', 'severity': 0}
     stopevt = {'eventClass':'/App/Stop', 'summary': 'stopped', 'severity': 4}
     heartbeat = {'eventClass':'/Heartbeat'}
-    snmpStatus = {'manager': os.uname()[1],
+    snmpStatusEvent = {'manager': os.uname()[1],
                   'eventClass': '/Status/Snmp',
                   'agent': 'ZenPerfSnmp',
                   'eventGroup': 'SnmpTest'}
-    for event in [startevt, stopevt, heartbeat, snmpStatus]:
+    for event in [startevt, stopevt, heartbeat, snmpStatusEvent]:
         event.update(COMMON_EVENT_INFO)
 
     # these names need to match the property values in StatusMonitorConf
@@ -263,10 +278,12 @@ class zenperfsnmp(ZenDaemon):
         p.timeout = timeout
         p.tries = tries
         p.oidMap = {}
-        p.alive = True
+        p.snmpStatus = SnmpStatus()
         for oid, path, dsType in oidData:
             oid = '.'+oid.lstrip('.')
             p.oidMap[oid] = path, dsType
+        old = self.proxies.get(deviceName, p)
+        p.snmpStatus = old.snmpStatus
         self.proxies[deviceName] = p
 
 
@@ -324,18 +341,17 @@ class zenperfsnmp(ZenDaemon):
         success = reduce(bool.__and__, firsts(updates))
         self.status.record(success)
         if not success:
-            self.sendEvent(self.snmpStatus,
+            self.sendEvent(self.snmpStatusEvent,
                            summary='snmp agent down on device %s' % deviceName,
                            hostname=deviceName,
                            severity=4)
-        elif not proxy.alive:
-            self.sendEvent(self.snmpStatus, 
+        elif not proxy.snmpStatus.getStatus():
+            self.sendEvent(self.snmpStatusEvent, 
                            summary='snmp agent up on device %s' % deviceName,
                            hostname=deviceName,
                            severity=0)
-        proxy.alive = success
+        proxy.snmpStatus.updateStatus(success)
         
-        # bad oid in request
         for success, update in updates:
             if success:
                 for oid, value in update.items():
