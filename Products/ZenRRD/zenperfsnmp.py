@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 #################################################################
 #
 #   Copyright (c) 2003 Zenoss, Inc. All rights reserved.
@@ -120,7 +121,11 @@ class zenperfsnmp(ZenDaemon):
     startevt = {'eventClass':'/App/Start', 'summary': 'started', 'severity': 0}
     stopevt = {'eventClass':'/App/Stop', 'summary': 'stopped', 'severity': 4}
     heartbeat = {'eventClass':'/Heartbeat'}
-    for event in [startevt, stopevt, heartbeat]:
+    snmpStatus = {'manager': os.uname()[1],
+                  'eventClass': '/Status/Snmp',
+                  'agent': 'ZenPerfSnmp',
+                  'eventGroup': 'SnmpTest'}
+    for event in [startevt, stopevt, heartbeat, snmpStatus]:
         event.update(COMMON_EVENT_INFO)
 
     # these names need to match the property values in StatusMonitorConf
@@ -170,9 +175,11 @@ class zenperfsnmp(ZenDaemon):
         return AuthProxy(url)
 
 
-    def sendEvent(self, event):
+    def sendEvent(self, event, **kw):
         'convenience function for pushing events to the Zope server'
-        self.zem.callRemote('sendEvent', event).addErrback(self.log.debug)
+        ev = event.copy()
+        ev.update(kw)
+        self.zem.callRemote('sendEvent', ev).addErrback(self.log.error)
 
 
     def setUnresponsiveDevices(self, deviceList):
@@ -256,6 +263,7 @@ class zenperfsnmp(ZenDaemon):
         p.timeout = timeout
         p.tries = tries
         p.oidMap = {}
+        p.alive = True
         for oid, path, dsType in oidData:
             oid = '.'+oid.lstrip('.')
             p.oidMap[oid] = path, dsType
@@ -290,8 +298,7 @@ class zenperfsnmp(ZenDaemon):
         if not self.options.daemon and not self.options.cycle:
             reactor.stop()
         else:
-            self.heartbeat['timeout'] = self.snmpCycleInterval * 3
-            self.sendEvent(self.heartbeat)
+            self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
 
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
@@ -309,12 +316,25 @@ class zenperfsnmp(ZenDaemon):
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
-        successCount = sum(firsts(updates))
-        self.status.record(successCount == len(updates))
-        self.log.debug('storeValues %r' % deviceName)
+
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
+        
+        success = reduce(bool.__and__, firsts(updates))
+        self.status.record(success)
+        if not success:
+            self.sendEvent(self.snmpStatus,
+                           summary='snmp agent down on device %s' % deviceName,
+                           hostname=deviceName,
+                           severity=4)
+        elif not proxy.alive:
+            self.sendEvent(self.snmpStatus, 
+                           summary='snmp agent up on device %s' % deviceName,
+                           hostname=deviceName,
+                           severity=0)
+        proxy.alive = success
+        
         # bad oid in request
         for success, update in updates:
             if success:
@@ -350,7 +370,6 @@ class zenperfsnmp(ZenDaemon):
                            'RRA:AVERAGE:0.5:288:600',
                            'RRA:MAX:0.5:288:600')
         try:
-            self.log.debug("update %s with %s", filename, value)
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
@@ -362,7 +381,6 @@ class zenperfsnmp(ZenDaemon):
         self.log.error(error)
         reactor.stop()
 
-
     def main(self):
         "Run forever, fetching and storing"
 
@@ -372,6 +390,7 @@ class zenperfsnmp(ZenDaemon):
         reactor.run()
         
         self.sendEvent(self.stopevt)
+
 
 if __name__ == '__main__':
     zpf = zenperfsnmp()
