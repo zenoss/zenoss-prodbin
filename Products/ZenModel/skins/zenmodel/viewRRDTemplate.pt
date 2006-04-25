@@ -7,6 +7,7 @@
         objects here/getRRDDataSources;
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:define-macro="dsbody">
     <tr>
       <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
     </tr>
@@ -49,6 +50,7 @@
                 onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
+    </tal:block>
 </table>
 </form>
 <br/>
@@ -59,6 +61,7 @@
         objects here/thresholds;
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:define-macro="threshbody">
     <tr>
       <th class="tabletitle" align="left" colspan="4">Thresholds</th>
     </tr>
@@ -72,17 +75,17 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'escalateCount','Escalate Count')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="graph batch">
+    <tr class="tablevalues" tal:repeat="templ batch">
         <td>
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
-                tal:attributes="value graph/getId"/>
-            <a tal:attributes="href graph/getPrimaryUrlPath" 
-                tal:content="graph/getId">name</a>
+                tal:attributes="value templ/getId"/>
+            <a tal:attributes="href templ/getPrimaryUrlPath" 
+                tal:content="templ/getId">name</a>
         </td>
-        <td tal:content="python:','.join(graph.dsnames)"/>
-        <td tal:content="graph/severity"/>
-        <td tal:content="graph/escalateCount"/>
+        <td tal:content="python:','.join(templ.dsnames)"/>
+        <td tal:content="templ/severity"/>
+        <td tal:content="templ/escalateCount"/>
     </tr>
     <tr>
         <td colspan="4" class="tableheader">
@@ -104,6 +107,7 @@
                 onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
+    </tal:block>
 </table>
 </form>
 <br/>
@@ -111,13 +115,17 @@
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="tableName string:rrdgraphlist; 
-        objects here/graphs;
-        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+        objects here/getGraphs;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence')">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:define-macro="graphbody">
     <tr>
-      <th class="tabletitle" align="left" colspan="5">Graphs</th>
+      <th class="tabletitle" align="left" colspan="6">Graphs</th>
     </tr>
     <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -132,6 +140,11 @@
     <tr class="tablevalues" tal:repeat="graph batch">
         <td>
             <input tal:condition="here/isManager" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value graph/sequence"/>
+        </td>
+        <td>
+            <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value graph/getId"/>
             <a tal:attributes="href graph/getPrimaryUrlPath" 
@@ -143,12 +156,12 @@
         <td tal:content="graph/width"/>
     </tr>
     <tr>
-        <td colspan="5" class="tableheader">
+        <td colspan="6" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="here/isManager">
-        <td colspan="5">
+        <td colspan="6">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
             onkeypress="return submitViaEnter(event,'manage_addRRDGraph');" 
@@ -160,8 +173,12 @@
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_resequenceRRDGraphs:method" value=" Re-Sequence " />
         </td>
     </tr>
+    </tal:block>
 </table>
 </form>
 </tal:block>

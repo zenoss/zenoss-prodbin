@@ -78,6 +78,16 @@ class DeviceComponent(object):
         return ""
 
     
+    def getRRDTemplate(self, name=None):
+        """Return the closest RRDTemplate named name by walking our aq chain.
+        """
+        if not name: name = self.getRRDTemplateName()
+        templ = getattr(self, name, None)
+        if templ is None:
+            templ = super(DeviceComponent, self).getRRDTemplate(name)
+        return templ
+
+
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.

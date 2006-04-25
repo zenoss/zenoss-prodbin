@@ -281,6 +281,7 @@ class zenperfsnmp(ZenDaemon):
         p.oidMap = {}
         p.snmpStatus = SnmpStatus()
         for oid, path, dsType in oidData:
+        for oid, path, dsType, threshs in oidData:
             oid = '.'+oid.lstrip('.')
             p.oidMap[oid] = path, dsType
         old = self.proxies.get(deviceName, p)

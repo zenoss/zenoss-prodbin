@@ -46,7 +46,7 @@ class FileSystem(OSComponent):
     type = ""
     blockSize = 0
     totalBlocks = 0L
-    totalFiles = 0
+    totalFiles = 0L
     capacity = 0
     inodeCapacity = 0
     maxNameLen = 0
@@ -56,13 +56,8 @@ class FileSystem(OSComponent):
         {'id':'storageDevice', 'type':'string', 'mode':''},
         {'id':'type', 'type':'string', 'mode':''},
         {'id':'blockSize', 'type':'int', 'mode':''},
-        #{'id':'totalBytes', 'type':'long', 'mode':''},
-        #{'id':'usedBytes', 'type':'long', 'mode':''},
-        #{'id':'availBytes', 'type':'long', 'mode':''},
+        {'id':'totalBlocks', 'type':'long', 'mode':''},
         {'id':'totalFiles', 'type':'long', 'mode':''},
-        #{'id':'availFiles', 'type':'long', 'mode':''},
-        #{'id':'capacity', 'type':'int', 'mode':''},
-        #{'id':'inodeCapacity', 'type':'int', 'mode':''},
         {'id':'maxNameLen', 'type':'int', 'mode':''},
         )
     _relations = OSComponent._relations + (
@@ -86,6 +81,11 @@ class FileSystem(OSComponent):
                 , 'action'        : 'viewFileSystem'
                 , 'permissions'   : ('View',)
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'PerfConf'
+                , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
+                },                
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -111,6 +111,12 @@ class FileSystem(OSComponent):
         return 0
 
     def availFiles(self):
+        return 0
+
+    def capacity(self):
+        return 0
+
+    def inodeCapacity(self):
         return 0
 
     def viewName(self): return self.mount

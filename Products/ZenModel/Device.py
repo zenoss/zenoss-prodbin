@@ -265,9 +265,14 @@ class Device(ManagedEntity):
                 , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'perfServer'
-                , 'name'          : 'Performance'
+                , 'name'          : 'Perf'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
+                },                
+                { 'id'            : 'perfConf'
+                , 'name'          : 'PerfConf'
+                , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
                 },                
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
@@ -376,6 +381,16 @@ class Device(ManagedEntity):
                  self.zSnmpTimeout, self.zSnmpTries),
                 oids)
                 
+
+    def getRRDTemplate(self, name=None):
+        """Return the closest RRDTemplate named name by walking our aq chain.
+        """
+        if not name: name = self.getRRDTemplateName()
+        templ = getattr(self, name, None)
+        if templ is None:
+            templ = super(Device, self).getRRDTemplate(name)
+        return templ
+
 
     def getHWProductName(self):
         """Return the hardware product name of this device.

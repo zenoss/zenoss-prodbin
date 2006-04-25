@@ -63,8 +63,7 @@ class RRDTemplate(ZenModelRM):
         """Return our graphs objects in proper order.
         """
         graphs = self.graphs()
-        #FIXME need to sequence graphs
-        #graphs.sort(lambda x, y: cmp(x.sequence, y.sequence))
+        graphs.sort(lambda x, y: cmp(x.sequence, y.sequence))
         return graphs 
 
 
@@ -134,6 +133,7 @@ class RRDTemplate(ZenModelRM):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Manage DMD', 'manage_addRRDGraph')
     def manage_addRRDGraph(self, id="", REQUEST=None):
         """Add an RRDGraph to our RRDTemplate.
         """
@@ -145,6 +145,7 @@ class RRDTemplate(ZenModelRM):
             return self.callZenScreen(REQUEST)
         
 
+    security.declareProtected('Manage DMD', 'manage_deleteRRDGraphs')
     def manage_deleteRRDGraphs(self, ids=(), REQUEST=None):
         """Remove an RRDGraph from this RRDTemplate.
         """
@@ -153,5 +154,18 @@ class RRDTemplate(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+
+    security.declareProtected('Manage DMD', 'manage_resequenceRRDGraphs')
+    def manage_resequenceRRDGraphs(self, seqmap=(), REQUEST=None):
+        """Reorder the sequecne of the RRDGraphs.
+        """
+        for i, graph in enumerate(self.getGraphs()):
+            graph.sequence = seqmap[i]
+        for i, graph in enumerate(self.getGraphs()):
+            graph.sequence = i
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+        
 
 InitializeClass(RRDTemplate)

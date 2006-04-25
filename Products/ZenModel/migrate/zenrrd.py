@@ -32,11 +32,24 @@ class RebuildRRDRelations(Migrate.Step):
 
 
     def cutover(self, dmd):
-        #FIXME deal with filesystem object migration
         for dc in dmd.Devices.getSubOrganizers():
-            #print dc.id
             self.convert(dc)
         self.convert(dmd.Devices)
+
+        for dev in dmd.Devices.getSubDevicesGen():
+            for fs in dev.os.filesystems():
+                if not callable(fs.totalBytes):
+                    delattr(fs, 'totalBytes')
+                if not callable(fs.usedBytes):
+                    delattr(fs, 'usedBytes')
+                if not callable(fs.availBytes):
+                    delattr(fs, 'availBytes')
+                if not callable(fs.availFiles):
+                    delattr(fs, 'availFiles')
+                if not callable(fs.capacity):
+                    delattr(fs, 'capacity')
+                if not callable(fs.inodeCapacity):
+                    delattr(fs, 'inodeCapacity')
 
 
 RebuildRRDRelations()

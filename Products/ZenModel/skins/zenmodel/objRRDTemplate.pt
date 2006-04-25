@@ -1,0 +1,42 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane" tal:define="templ here/getRRDTemplate">
+<table class="zentable" cellpadding="3" cellspacing="1">
+<tr>
+    <th class="tabletitle" 
+        tal:content="string: RRDTemplate @ ${templ/getRRDPath}"/>
+</tr>
+</table>
+<form method="post" tal:attributes="action templ/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdtempdslist; 
+        objects templ/getRRDDataSources;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:use-macro="here/viewRRDTemplate/macros/dsbody"/>
+</table>
+</form>
+<br/>
+<form method="post" tal:attributes="action templ/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdthreshsoldist; 
+        objects templ/thresholds;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:use-macro="here/viewRRDTemplate/macros/threshbody"/>
+</table>
+</form>
+<br/>
+<form method="post" tal:attributes="action templ/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdgraphlist; 
+        objects templ/graphs;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:use-macro="here/viewRRDTemplate/macros/graphbody"/>
+</table>
+</form>
+</tal:block>
+</tal:block>
