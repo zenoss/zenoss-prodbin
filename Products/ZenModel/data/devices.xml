@@ -290,7 +290,7 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
-<property type='string' id='dsnames' mode='w' >
+<property type='lines' id='dsnames' mode='w' >
 ['ifInOctets', 'ifOutOctets']
 </property>
 <property type='string' id='maxval' mode='w' >
@@ -513,7 +513,7 @@ AREA:percent#00cc00:utilization
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
-<property type='string' id='dsnames' mode='w' >
+<property type='lines' id='dsnames' mode='w' >
 ['usedBlocks']
 </property>
 <property type='string' id='maxval' mode='w' >
