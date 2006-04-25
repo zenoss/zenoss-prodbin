@@ -288,6 +288,22 @@ True
 </property>
 </object>
 </tomanycont>
+<tomanycont id='thresholds'>
+<object id='Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='string' id='dsnames' mode='w' >
+['ifInOctets', 'ifOutOctets']
+</property>
+<property type='string' id='maxval' mode='w' >
+here.speed / 8 * .85
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='escalateCount' mode='w' >
+0
+</property>
+</object>
+</tomanycont>
 <tomanycont id='datasources'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
 <property type='string' id='oid' mode='w' >
@@ -492,6 +508,22 @@ True
 <property type='text' id='custom' mode='w' >
 CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
 AREA:percent#00cc00:utilization
+</property>
+</object>
+</tomanycont>
+<tomanycont id='thresholds'>
+<object id='Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='string' id='dsnames' mode='w' >
+['usedBlocks']
+</property>
+<property type='string' id='maxval' mode='w' >
+here.totalBlocks * .9
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='escalateCount' mode='w' >
+0
 </property>
 </object>
 </tomanycont>
@@ -708,6 +740,16 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+</object>
+</tomanycont>
+<tomanycont id='thresholds'>
+<object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='escalateCount' mode='w' >
+0
 </property>
 </object>
 </tomanycont>
