@@ -36,6 +36,7 @@ BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 200
 MAX_SNMP_REQUESTS = 100
+FAILURE_COUNT_INCREASES_SEVERITY = 10
 
 COMMON_EVENT_INFO = {
     'device':socket.getfqdn(),
@@ -114,7 +115,7 @@ class Status:
         return self._total - (self._success + self._fail)
     
 
-class SnmpStatus:
+    class SnmpStatus:
     "track SNMP status failure counts"
 
     count = 0
@@ -124,7 +125,7 @@ class SnmpStatus:
         return self.alive
     def updateStatus(self, value):
         if value == False:
-            self.count == 0
+            self.count += 1
         if value and value != self.alive:
             self.count = 0
         self.alive = value
@@ -341,10 +342,14 @@ class zenperfsnmp(ZenDaemon):
         success = reduce(bool.__and__, firsts(updates))
         self.status.record(success)
         if not success:
+            severity = 4
+            if proxy.snmpStatus.count >= FAILURE_COUNT_INCREASES_SEVERITY:
+                severity += 1
+            self.log.debug('severity %d', severity)
             self.sendEvent(self.snmpStatusEvent,
                            summary='snmp agent down on device %s' % deviceName,
                            hostname=deviceName,
-                           severity=4)
+                           severity=severity)
         elif not proxy.snmpStatus.getStatus():
             self.sendEvent(self.snmpStatusEvent, 
                            summary='snmp agent up on device %s' % deviceName,
