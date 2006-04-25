@@ -113,6 +113,27 @@ class RRDTemplate(ZenModelRM):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Add DMD Objects', 'manage_addRRDThreshold')
+    def manage_addRRDThreshold(self, id, REQUEST=None):
+        """Add an RRDThreshold to this DeviceClass.
+        """
+        from RRDThreshold import RRDThreshold
+        if not id: return self.callZenScreen(REQUEST)
+        org = RRDThreshold(id)
+        self.thresholds._setObject(org.id, org)
+        if REQUEST: return self.callZenScreen(REQUEST)
+            
+
+    def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
+        """Delete RRDThresholds from this DeviceClass 
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids:
+            if getattr(self.thresholds,id,False):
+                self.thresholds._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     def manage_addRRDGraph(self, id="", REQUEST=None):
         """Add an RRDGraph to our RRDTemplate.
         """

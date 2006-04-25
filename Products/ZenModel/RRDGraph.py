@@ -17,9 +17,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 
-from Products.PageTemplates.Expressions import getEngine
-
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.ZenTales import talesEval
 
 from ZenModelRM import ZenModelRM
 
@@ -106,16 +105,7 @@ class RRDGraph(ZenModelRM):
         gopts = self.graphsetup()
         if self.custom:
             gopts = self.buildCustomDS(gopts, rrdfile)
-            compiled = getattr(self, "_v_compiled", None)
-            if not compiled:
-                self._v_comcust = compiled = getEngine().compile(
-                                        "string:"+self.custom)
-            res = compiled(getEngine().getContext({
-                            'here':context, 
-                            'device':context.device(), 
-                            'nothing':None}))
-            if isinstance(res, Exception):
-                raise res
+            res = talesEval("string:"+self.custom, context)
             gopts.extend(res.split("\n"))
             gopts = self.addSummary(gopts)
         else:

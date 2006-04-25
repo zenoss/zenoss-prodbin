@@ -101,6 +101,17 @@ class RRDView(object):
                 return obj.rrdTemplates._getOb(name)
 
 
+    def getThresholds(self, templ):
+        """Return a dictionary where keys are dsnames and values are thresholds.
+        """
+        map = {}
+        for thresh in templ.thresholds():
+            for dsname in thresh.dsnames:
+                threshdef = map.setdefault(dsname, [])
+                threshdef.append(thresh.getConfig(self))
+        return map
+
+        
     def getSnmpOidTargets(self):
         """Return a list of (oid, path, type) that define monitorable 
         """
@@ -108,15 +119,15 @@ class RRDView(object):
         if self.snmpIgnore(): return oids 
         basepath = self.getPrimaryDmdId()
         try:
-            ttype = self.getRRDTemplate(self.getRRDTemplateName())
-            if ttype:
-                for ds in ttype.getRRDDataSources():
+            templ = self.getRRDTemplate(self.getRRDTemplateName())
+            if templ:
+                threshs = self.getThresholds(templ)
+                for ds in templ.getRRDDataSources():
                     oid = ds.oid
                     snmpindex = getattr(self, "ifindex", self.snmpindex)
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
-                    oids.append((oid,
-                                 "/".join((basepath, ds.id)),
-                                 ds.rrdtype))
+                    oids.append((oid, "/".join((basepath, ds.id)),
+                                 ds.rrdtype, threshs.get(ds.id,[])))
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids

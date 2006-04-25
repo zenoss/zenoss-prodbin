@@ -1,0 +1,72 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:state at time:">
+        <th class="tabletitle" colspan="2"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Data Sources</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues" name="dsnames:list" multiple
+                tal:define="curdses here/dsnames">
+                <option tal:repeat="ds here/getRRDDataSourceNames" 
+                    tal:attributes="value ds; selected python:ds in curdses"
+                    tal:content="ds">ifInOctets</option>
+            </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="python:', '.join(here.dsnames)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Min Value</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="minval" size="50"
+            tal:attributes="value here/minval" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/minval"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Max Value</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="maxval" size="50"
+            tal:attributes="value here/maxval" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/maxval"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Severity</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="severity:int" size="10"
+            tal:attributes="value here/severity" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Escalate Count</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" 
+            name="escalateCount:int" size="10"
+            tal:attributes="value here/escalateCount" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/escalateCount"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>
