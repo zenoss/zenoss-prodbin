@@ -115,7 +115,7 @@ class Status:
         return self._total - (self._success + self._fail)
     
 
-    class SnmpStatus:
+class SnmpStatus:
     "track SNMP status failure counts"
 
     count = 0
@@ -223,7 +223,7 @@ class zenperfsnmp(ZenDaemon):
         lst.append(deferred)
 
         proxy = self.buildProxy(self.options.zem)
-        deferred = proxy.callRemote('getWmiConnIssues')
+        deferred = proxy.callRemote('getDevicePingIssues')
         deferred.addCallbacks(self.setUnresponsiveDevices, self.log.error)
         lst.append(deferred)
 
