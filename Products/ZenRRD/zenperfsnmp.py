@@ -71,6 +71,7 @@ class Status:
 
 
     def record(self, successOrFailure):
+        'single funtion to record success or failure'
         if successOrFailure:
             self.success()
         else:
@@ -114,26 +115,41 @@ class Status:
         'return the number of unfinished operations'
         return self._total - (self._success + self._fail)
 
+
 class SnmpStatus:
-    "track SNMP status failure counts"
+    "track and report SNMP status failures"
+
+    snmpStatusEvent = {'eventClass': '/Status/Snmp',
+                       'manager': os.uname()[1],
+                       'agent': 'ZenPerfSnmp',
+                       'eventGroup': 'SnmpTest'}
 
     count = 0
     alive = True
 
-    def isDown(self):
-        return self.alive == False
-
-    
-    def isUp(self):
-        return self.alive
-
-    
-    def updateStatus(self, value):
-        if value == False:
-            self.count += 1
-        if value and value != self.alive:
+    def updateStatus(self, deviceName, success, eventCb):
+        'Send events on snmp failures'
+        if success:
+            if not self.alive:
+                eventCb(self.snmpStatusEvent, 
+                        summary='snmp agent up on device ' + deviceName,
+                        hostname=deviceName,
+                        severity=0)
             self.count = 0
-        self.alive = value
+        else:
+            severity = 4
+            if self.count >= FAILURE_COUNT_INCREASES_SEVERITY:
+                severity += 1
+            eventCb(self.snmpStatusEvent,
+                    summary='snmp agent down on device ' + deviceName,
+                    hostname=deviceName,
+                    severity=severity)
+        
+            self.count += 1
+        self.alive = success
+
+        
+
 
 class Threshold:
     count = 0
@@ -153,12 +169,13 @@ class Threshold:
         self.escalateCount = count
 
     def check(self, device, name, value, eventCb):
+        'Check the value for min/max thresholds, and post events'
         thresh = None
         if self.maximum is not None and value >= self.maximum:
             thresh = self.maximum
         if self.minimum is not None and value <= self.minimum:
             thresh = self.maximum
-        if thresh != None:
+        if thresh is not None:
             self.count += 1
             severity = self.severity
             if self.escalateCount and self.count >= self.escalateCount:
@@ -170,7 +187,6 @@ class Threshold:
                     summary=summary,
                     message='current %s: %.2f' % (name, value),
                     severity=severity)
-            print self.count, self.escalateCount, severity, summary
         else:
             if self.count:
                 summary = '%s %s threshold restored' % (device, self.label)
@@ -179,7 +195,6 @@ class Threshold:
                         summary=summary,
                         message='current %s: %.2f' % (name, value),
                         severity=0)
-                print summary
             self.count = 0
 
 
@@ -189,10 +204,6 @@ class zenperfsnmp(ZenDaemon):
     startevt = {'eventClass':'/App/Start', 'summary': 'started', 'severity': 0}
     stopevt = {'eventClass':'/App/Stop', 'summary': 'stopped', 'severity': 4}
     heartbeat = {'eventClass':'/Heartbeat'}
-    snmpStatusEvent = {'eventClass': '/Status/Snmp',
-                       'manager': os.uname()[1],
-                       'agent': 'ZenPerfSnmp',
-                       'eventGroup': 'SnmpTest'}
 
     # these names need to match the property values in StatusMonitorConf
     configCycleInterval = 20            # minutes
@@ -352,7 +363,7 @@ class zenperfsnmp(ZenDaemon):
                                   version, timeout, tries)
         for oid, path, dsType, thresholds in oidData:
             oid = '.'+oid.lstrip('.')
-            p.oidMap[oid] = path, dsType, map(lambda x: Threshold(*x), thresholds)
+            p.oidMap[oid] = path, dsType, [Threshold(*t) for t in thresholds]
         self.proxies[deviceName] = p
 
 
@@ -409,21 +420,7 @@ class zenperfsnmp(ZenDaemon):
         
         success = reduce(bool.__and__, firsts(updates))
         self.status.record(success)
-        if success:
-            if proxy.snmpStatus.isDown():
-                self.sendEvent(self.snmpStatusEvent, 
-                               summary='snmp agent up on device ' + deviceName,
-                               hostname=deviceName,
-                               severity=0)
-        else:
-            severity = 4
-            if proxy.snmpStatus.count >= FAILURE_COUNT_INCREASES_SEVERITY:
-                severity += 1
-            self.sendEvent(self.snmpStatusEvent,
-                           summary='snmp agent down on device ' + deviceName,
-                           hostname=deviceName,
-                           severity=severity)
-        proxy.snmpStatus.updateStatus(success)
+        proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
         
         for success, update in updates:
             if success:
