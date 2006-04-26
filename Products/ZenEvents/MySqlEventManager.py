@@ -67,6 +67,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         ownerids = ""
         for row in curs.fetchall():
             sev, count, acks = row[:3]
+            if hasattr(acks, 'tostring'):
+                acks = acks.tostring()
             if type(acks) in types.StringTypes:
                 acks = acks.split(",")
             ackcount = sum([int(n) for n in acks if n.strip()])
