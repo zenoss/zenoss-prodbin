@@ -158,6 +158,16 @@ True
 </property>
 </object>
 </tomanycont>
+<tomanycont id='thresholds'>
+<object id='sdf' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='escalateCount' mode='w' >
+0
+</property>
+</object>
+</tomanycont>
 </object>
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='lines' id='dsnames' mode='w' >
@@ -169,7 +179,7 @@ True
 ['ifInErrors', 'ifOutErrors']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+2
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -210,7 +220,7 @@ True
 ['ifInUcastPackets', 'ifOutUcastPackets']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+1
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -706,7 +716,7 @@ True
 ['hrSystemProcesses']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+1
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -745,6 +755,12 @@ True
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='lines' id='dsnames' mode='w' >
+['ssCpuRawUser']
+</property>
+<property type='string' id='maxval' mode='w' >
+50
+</property>
 <property type='int' id='severity' mode='w' >
 3
 </property>
@@ -809,7 +825,7 @@ True
 ['memoryAvailableKBytes']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+1
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -850,7 +866,7 @@ True
 ['memoryPageFaultsPerSec']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+2
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -891,7 +907,7 @@ True
 ['hrSystemProcesses']
 </property>
 <property type='int' id='sequence' mode='w' >
-0
+3
 </property>
 <property type='int' id='height' mode='w' >
 100
@@ -1096,7 +1112,7 @@ True
 -1
 </property>
 <property type='string' id='format' mode='w' >
-%d%s
+%.0lf
 </property>
 </object>
 <object id='lDiskAvgDiskWriteQueueLength' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
@@ -1116,7 +1132,7 @@ True
 -1
 </property>
 <property type='string' id='format' mode='w' >
-%d%s
+%.0lf
 </property>
 </object>
 </tomanycont>

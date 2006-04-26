@@ -237,6 +237,13 @@ class ZenModelBase(object):
         return self.saveZenProperties(iscustprop, REQUEST)
 
 
+    def isLocalName(self, name):
+        """Check to see if a name is local to our current context.
+        """
+        v = getattr(aq_base(self), name, '__ZENMARKER__') 
+        return v != '__ZENMARKER__'
+
+
     security.declareProtected('View', 'helpLink')
     def helpLink(self):
         '''return a link to the objects help file'''

@@ -59,6 +59,13 @@ class RRDTemplate(ZenModelRM):
     },
     )
 
+    def isEditable(self, context):
+        """Is this template editable in context.
+        """
+        return (self.isManager() and 
+                (context == self or context.isLocalName(self.id)))
+
+    
     def getGraphs(self):
         """Return our graphs objects in proper order.
         """

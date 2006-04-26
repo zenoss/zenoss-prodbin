@@ -131,3 +131,22 @@ class RRDView(object):
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids
+
+
+    def copyRRDTemplate(self, REQUEST=None):
+        """Make a local copy of our RRDTemplate if one doesn't exist.
+        """
+        templ = self.getRRDTemplate()
+        if not self.isLocalName(templ.id):
+            ct = templ._getCopy(self)
+            self._setObject(ct.id, ct)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    def deleteRRDTemplate(self, REQUEST=None):
+        """Delete our local RRDTemplate if it exists.
+        """
+        tname = self.getRRDTemplateName()
+        if self.isLocalName(tname):
+            self._delObject(tname)
+        if REQUEST: return self.callZenScreen(REQUEST)

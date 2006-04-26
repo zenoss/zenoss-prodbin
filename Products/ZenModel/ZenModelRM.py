@@ -44,9 +44,9 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
 
     security = ClassSecurityInfo()
    
-    def __init__(self, id, title=None):
+    def __init__(self, id, title=None, buildRelations=True):
         self.createdTime = DateTime(time.time())
-        RelationshipManager.__init__(self, id, title)
+        RelationshipManager.__init__(self, id, title, buildRelations)
 
    
     security.declareProtected('Manage DMD', 'rename')
