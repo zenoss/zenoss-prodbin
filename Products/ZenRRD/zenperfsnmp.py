@@ -17,6 +17,8 @@ __version__ = "$Revision$"[11:-2]
 import os
 import socket
 import time
+import logging
+log = logging.getLogger("zen.zenperfsnmp")
 
 from sets import Set
 
@@ -39,8 +41,8 @@ MAX_SNMP_REQUESTS = 100
 FAILURE_COUNT_INCREASES_SEVERITY = 10
 
 COMMON_EVENT_INFO = {
-    'device':socket.getfqdn(),
-    'component':'zenperfsnmp',
+    'agent': 'zenperfsnmp',
+    'manager':socket.getfqdn(),
     }
 
 def chunk(lst, n):
@@ -120,33 +122,31 @@ class SnmpStatus:
     "track and report SNMP status failures"
 
     snmpStatusEvent = {'eventClass': '/Status/Snmp',
-                       'manager': os.uname()[1],
-                       'agent': 'ZenPerfSnmp',
+                       'component': 'snmp',
                        'eventGroup': 'SnmpTest'}
 
-    count = 0
-    alive = True
+    
+    def __init__(self, snmpState):
+        self.count = snmpState
+
 
     def updateStatus(self, deviceName, success, eventCb):
         'Send events on snmp failures'
         if success:
-            if not self.alive:
+            if self.count > 0:
+                summary='snmp agent up on device ' + deviceName
                 eventCb(self.snmpStatusEvent, 
-                        summary='snmp agent up on device ' + deviceName,
-                        hostname=deviceName,
+                        device=deviceName, summary=summary,
                         severity=0)
+                log.info(summary)
             self.count = 0
         else:
-            severity = 4
-            if self.count >= FAILURE_COUNT_INCREASES_SEVERITY:
-                severity += 1
+            summary='snmp agent down on device ' + deviceName
             eventCb(self.snmpStatusEvent,
-                    summary='snmp agent down on device ' + deviceName,
-                    hostname=deviceName,
-                    severity=severity)
-        
+                    device=deviceName, summary=summary,
+                    severity=4)
+            log.warn(summary)
             self.count += 1
-        self.alive = success
 
         
 
@@ -183,7 +183,7 @@ class Threshold:
             summary = '%s %s threshold of %s exceeded: current value %.2f' % (
                 device, self.label, thresh, value)
             eventCb(self.threshevt,
-                    hostname=device,
+                    device=device,
                     summary=summary,
                     eventKey=oid,
                     component=oid,
@@ -193,7 +193,7 @@ class Threshold:
                 summary = '%s %s threshold restored current value: %.2f' % (
                     device, self.label, value)
                 eventCb(self.threshevt,
-                        hostname=device,
+                        device=device,
                         summary=summary,
                         eventKey=oid,
                         component=oid,
@@ -204,9 +204,12 @@ class Threshold:
 class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
-    startevt = {'eventClass':'/App/Start', 'summary': 'started', 'severity': 0}
-    stopevt = {'eventClass':'/App/Stop', 'summary': 'stopped', 'severity': 4}
-    heartbeat = {'eventClass':'/Heartbeat'}
+    startevt = {'device':socket.getfqdn(), 'eventClass':'/App/Start', 
+                'component':'zenperfsnmp', 'summary': 'started', 'severity': 0}
+    stopevt = {'device':socket.getfqdn(), 'eventClass':'/App/Stop', 
+                'component':'zenperfsnmp', 'summary': 'stopped', 'severity': 4}
+    heartbeat = {'device':socket.getfqdn(), 'component':'zenperfsnmp',
+                    'eventClass':'/Heartbeat'}
 
     # these names need to match the property values in StatusMonitorConf
     configCycleInterval = 20            # minutes
@@ -260,6 +263,7 @@ class zenperfsnmp(ZenDaemon):
         ev = event.copy()
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
+        #self.log.debug(ev)
         self.zem.callRemote('sendEvent', ev).addErrback(self.log.error)
 
 
@@ -327,7 +331,7 @@ class zenperfsnmp(ZenDaemon):
 
 
     def updateAgentProxy(self,
-                         deviceName, ip, port, community,
+                         deviceName, snmpStatus, ip, port, community,
                          version, timeout, tries):
         "create or update proxy"
         # find any cached proxy
@@ -340,7 +344,7 @@ class zenperfsnmp(ZenDaemon):
                            protocol=self.snmpPort.protocol,
                            allowCache=True)
             p.oidMap = {}
-            p.snmpStatus = SnmpStatus()
+            p.snmpStatus = SnmpStatus(snmpStatus)
         else:
             p.ip = ip
             p.port = port
@@ -353,7 +357,7 @@ class zenperfsnmp(ZenDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        (deviceName, hostPort, snmpConfig, oidData) = snmpTargets
+        (deviceName, snmpStatus, hostPort, snmpConfig, oidData) = snmpTargets
         if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
@@ -361,7 +365,7 @@ class zenperfsnmp(ZenDaemon):
         version = '2'
         if version.find('1') >= 0:
             version = '1'
-        p = self.updateAgentProxy(deviceName,
+        p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, community,
                                   version, timeout, tries)
         for oid, path, dsType, thresholds in oidData:
@@ -461,6 +465,7 @@ class zenperfsnmp(ZenDaemon):
                            'RRA:AVERAGE:0.5:288:600',
                            'RRA:MAX:0.5:288:600')
         try:
+            #self.log.debug("%s %s", filename, value)
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly

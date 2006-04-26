@@ -375,7 +375,7 @@ class Device(ManagedEntity):
         for o in self.os.interfaces(): oids.extend(o.getSnmpOidTargets())
         for o in self.os.filesystems(): oids.extend(o.getSnmpOidTargets())
         for o in self.hw.harddisks(): oids.extend(o.getSnmpOidTargets())
-        return (self.id,
+        return (self.id, self.getSnmpStatus(),
                 (self.manageIp, self.zSnmpPort),
                 (self.zSnmpCommunity, self.zSnmpVer,
                  self.zSnmpTimeout, self.zSnmpTries),

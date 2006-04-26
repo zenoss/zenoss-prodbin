@@ -891,6 +891,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             curs = db.cursor()
             curs.execute(delete);
             db.close()
+            self.clearCache()
         if REQUEST: return self.callZenScreen(REQUEST)
 
 

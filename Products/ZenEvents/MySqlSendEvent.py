@@ -27,7 +27,7 @@ class MySqlSendEventMixin:
 
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
             return self._sendHeartbeat(event, db)
-            
+        
         for field in self.requiredEventFields:
             if not hasattr(event, field):
                 raise ZenEventError(
@@ -140,16 +140,7 @@ class MySqlSendEventMixin:
         evt.DeviceClass  = device.getDeviceClassName()
         evt.DeviceGroups = "|"+"|".join(device.getDeviceGroupNames())
         evt.Systems = "|"+"|".join(device.getSystemNames())
-#        sev = getattr(device, "zEventSeverity", -1)
-#        if sev >= 0:
-#            evt.severity = sev
-#        attnames = getattr(device, "zEventProperties", ())
-#        for attr in attnames:
-#            attkey = "zEvent_" + attr
-#            value = getattr(device, attkey, None)
-#            if value != None:
-#                setattr(evt, attr, value)
-#        return evt
+        return evt
 
 
     def _sendHeartbeat(self, event, db=None):
