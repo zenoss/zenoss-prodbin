@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS history
     ownerid         varchar(32) default "",
     deletedTime     timestamp,
     PRIMARY KEY ( evid ),
+    INDEX device (device),
     INDEX DateRange (firstTime, lastTime)
 ) ENGINE=INNODB;
 
