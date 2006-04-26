@@ -138,8 +138,13 @@ class RRDTemplate(ZenModelRM):
         """Add an RRDGraph to our RRDTemplate.
         """
         from RRDGraph import RRDGraph
+        nextseq = 0
+        graphs = self.getGraphs()
+        if len(graphs) > 0:
+            nextseq = graphs[-1].sequence + 1
         if id:
             graph = RRDGraph(id)
+            graph.sequence = nextseq
             self.graphs._setObject(graph.id, graph)
         if REQUEST:
             return self.callZenScreen(REQUEST)
@@ -151,6 +156,7 @@ class RRDTemplate(ZenModelRM):
         """
         for id in ids:
             self.graphs._delObject(id)
+            self.manage_resequenceRRDGraphs()
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -159,8 +165,9 @@ class RRDTemplate(ZenModelRM):
     def manage_resequenceRRDGraphs(self, seqmap=(), REQUEST=None):
         """Reorder the sequecne of the RRDGraphs.
         """
-        for i, graph in enumerate(self.getGraphs()):
-            graph.sequence = seqmap[i]
+        if seqmap:
+            for i, graph in enumerate(self.getGraphs()):
+                graph.sequence = seqmap[i]
         for i, graph in enumerate(self.getGraphs()):
             graph.sequence = i
         if REQUEST:

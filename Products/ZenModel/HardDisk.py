@@ -69,6 +69,11 @@ class HardDisk(HWComponent):
                 , 'action'        : 'viewHardDisk'
                 , 'permissions'   : ('View',)
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'PerfConf'
+                , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
+                },                
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
