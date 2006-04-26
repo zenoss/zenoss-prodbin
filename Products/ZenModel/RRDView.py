@@ -126,7 +126,10 @@ class RRDView(object):
                     oid = ds.oid
                     snmpindex = getattr(self, "ifindex", self.snmpindex)
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
-                    oids.append((oid, "/".join((basepath, ds.id)),
+                    cname = self.meta_type != "Device" \
+                                and self.viewName() or ds.id
+                    oids.append((cname, oid, 
+                                 "/".join((basepath, ds.id)),
                                  ds.rrdtype, threshs.get(ds.id,[])))
         except RRDObjectNotFound, e:
             log.warn(e)

@@ -168,7 +168,7 @@ class Threshold:
         self.severity = severity
         self.escalateCount = count
 
-    def check(self, device, oid, value, eventCb):
+    def check(self, device, cname, oid, value, eventCb):
         'Check the value for min/max thresholds, and post events'
         thresh = None
         if self.maximum is not None and value >= self.maximum:
@@ -186,7 +186,7 @@ class Threshold:
                     device=device,
                     summary=summary,
                     eventKey=oid,
-                    component=oid,
+                    component=cname,
                     severity=severity)
         else:
             if self.count:
@@ -196,7 +196,7 @@ class Threshold:
                         device=device,
                         summary=summary,
                         eventKey=oid,
-                        component=oid,
+                        component=cname,
                         severity=0)
             self.count = 0
 
@@ -368,9 +368,9 @@ class zenperfsnmp(ZenDaemon):
         p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, community,
                                   version, timeout, tries)
-        for oid, path, dsType, thresholds in oidData:
+        for name, oid, path, dsType, thresholds in oidData:
             oid = '.'+oid.lstrip('.')
-            p.oidMap[oid] = path, dsType, [Threshold(*t) for t in thresholds]
+            p.oidMap[oid] = name,path,dsType,[Threshold(*t) for t in thresholds]
         self.proxies[deviceName] = p
 
 
@@ -437,15 +437,15 @@ class zenperfsnmp(ZenDaemon):
                         self.log.warn('Suspect oid %s is bad' % oid)
                         del proxy.oidMap[oid]
                     else:
-                        path, dsType, thresholds = proxy.oidMap[oid]
-                        self.storeRRD(deviceName,
+                        cname, path, dsType, thresholds = proxy.oidMap[oid]
+                        self.storeRRD(deviceName, cname,
                                       oid, path, dsType, thresholds,
                                       value)
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
 
-    def storeRRD(self, device, oid, path, type, thresholds, value):
+    def storeRRD(self, device, cname, oid, path, type, thresholds, value):
         'store a value into an RRD file'
         import rrdtool
         filename = rrdPath(path)
@@ -478,7 +478,7 @@ class zenperfsnmp(ZenDaemon):
                                  '-e', 'now')
             value = values[0][0]
         for threshold in thresholds:
-            threshold.check(device, oid, value, self.sendEvent)
+            threshold.check(device, cname, oid, value, self.sendEvent)
 
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
