@@ -37,6 +37,7 @@ from twistedsnmp import snmpprotocol
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 200
+MAX_OIDS_PER_REQUEST = 1
 MAX_SNMP_REQUESTS = 100
 FAILURE_COUNT_INCREASES_SEVERITY = 10
 
@@ -341,7 +342,7 @@ class zenperfsnmp(ZenDaemon):
                            community=community,
                            snmpVersion=version,
                            protocol=self.snmpPort.protocol,
-                           allowCache=True)
+                           allowCache=False)
             p.oidMap = {}
             p.snmpStatus = SnmpStatus(snmpStatus)
         else:
