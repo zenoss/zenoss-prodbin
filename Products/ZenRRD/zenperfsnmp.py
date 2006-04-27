@@ -200,7 +200,6 @@ class Threshold:
                         severity=0)
             self.count = 0
 
-
 class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
@@ -362,9 +361,10 @@ class zenperfsnmp(ZenDaemon):
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
         self.log.debug("received config for %s", deviceName)
-        version = '2'
         if version.find('1') >= 0:
             version = '1'
+        else:
+            version = '2'
         p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, community,
                                   version, timeout, tries)
