@@ -14,6 +14,7 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 
 import sys
 import os
+import types
 import transaction
 
 from xml.sax import make_parser, saxutils
@@ -84,9 +85,7 @@ class ImportRM(ZCmdBase, ContentHandler):
             self.charvalue = ""
        
 
-    def characters(self, chars):    
-        chars = str(chars.strip())
-        if not chars: return
+    def characters(self, chars):
         self.charvalue += saxutils.unescape(chars)
 
 
@@ -125,10 +124,11 @@ class ImportRM(ZCmdBase, ContentHandler):
         setter = attrs.get("setter",None)
         self.log.debug("setting object %s att %s type %s value %s" 
                             % (obj.id, name, proptype, value))
+        value = value.strip()
         if proptype == 'selection':
 	    try:
 	        firstElement = getattr(obj, name)[0]
-	        if type(firstElement) == type(''):
+	        if type(firstElement) in types.StringTypes:
 	            proptype = 'string'
             except IndexError:
 		proptype = 'string'
@@ -139,7 +139,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         if not obj.hasProperty(name):
             obj._setProperty(name, value, type=proptype, setter=setter)
         else:
-            obj._updateProperty(name,value)
+            obj._updateProperty(name, value)
 
 
     def addLink(self, rel, objid):
