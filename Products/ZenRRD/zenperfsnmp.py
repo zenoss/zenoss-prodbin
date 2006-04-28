@@ -493,7 +493,8 @@ class zenperfsnmp(ZenDaemon):
                                  '-e', 'now')
             value = values[0][0]
         for threshold in oidData.thresholds:
-            threshold.check(device, oidData.name, oid, value, self.sendEvent)
+            if self.options.cycle:
+                threshold.check(device, oidData.name, oid, value, self.sendEvent)
 
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
