@@ -506,7 +506,7 @@ class zenperfsnmp(ZenDaemon):
         self.sendEvent(self.startevt)
         
         zpf.startUpdateConfig()
-        reactor.run()
+        reactor.run(installSignalHandlers=False)
         
         self.sendEvent(self.stopevt)
 
