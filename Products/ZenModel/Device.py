@@ -369,7 +369,7 @@ class Device(ManagedEntity):
         (devname,
          (ip, snmpport),
          (snmpcommunity, snmpversion, snmptimeout, snmptries)
-         [(oid, path, type),])
+         [(name, oid, path, type, createCmd, thresholds),])
         """
         oids = (super(Device, self).getSnmpOidTargets())
         for o in self.os.interfaces(): oids.extend(o.getSnmpOidTargets())

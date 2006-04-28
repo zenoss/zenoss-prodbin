@@ -113,8 +113,8 @@ class RRDView(object):
 
         
     def getSnmpOidTargets(self):
-        """Return a list of (oid, path, type) that define monitorable 
-        """
+        """Return a list of (name, oid, path, type, createCmd, thresholds)
+        that define monitorable"""
         oids = []
         if self.snmpIgnore(): return oids 
         basepath = self.getPrimaryDmdId()
@@ -128,9 +128,12 @@ class RRDView(object):
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
                     cname = self.meta_type != "Device" \
                                 and self.viewName() or ds.id
-                    oids.append((cname, oid, 
+                    oids.append((cname,
+                                 oid,
                                  "/".join((basepath, ds.id)),
-                                 ds.rrdtype, threshs.get(ds.id,[])))
+                                 ds.rrdtype,
+                                 ds.createCmd,
+                                 threshs.get(ds.id,[])))
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids

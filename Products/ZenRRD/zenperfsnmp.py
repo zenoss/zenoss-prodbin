@@ -46,6 +46,13 @@ COMMON_EVENT_INFO = {
     'manager':socket.getfqdn(),
     }
 
+DEFAULT_CREATE_COMMAND = "RRA:AVERAGE:0.5:1:600 " \
+                         "RRA:AVERAGE:0.5:6:600 " \
+                         "RRA:AVERAGE:0.5:24:600 " \
+                         "RRA:AVERAGE:0.5:288:600 " \
+                         "RRA:MAX:0.5:288:600"
+
+
 def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
@@ -201,6 +208,15 @@ class Threshold:
                         severity=0)
             self.count = 0
 
+class OidData:
+    def __init__(self, name, path,
+                 dataStorageType, rrdCreateCommand, thresholds):
+        self.name = name
+        self.path = path
+        self.dataStorageType = dataStorageType
+        self.rrdCreateCommand = rrdCreateCommand
+        self.thresholds = thresholds
+
 class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
@@ -312,6 +328,7 @@ class zenperfsnmp(ZenDaemon):
                     self.log.debug('Updated %s config to %s' % (name, value))
                 setattr(self, name, value)
 
+
     def updateDeviceList(self, deviceList):
         'Update the config for devices devices'
         self.log.debug('Configured %d devices' % len(deviceList))
@@ -369,9 +386,12 @@ class zenperfsnmp(ZenDaemon):
         p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, community,
                                   version, timeout, tries)
-        for name, oid, path, dsType, thresholds in oidData:
+	for name, oid, path, dsType, createCmd, thresholds in oidData:
+            if not createCmd.strip():
+                createCmd = DEFAULT_CREATE_COMMAND
             oid = '.'+oid.lstrip('.')
-            p.oidMap[oid] = name,path,dsType,[Threshold(*t) for t in thresholds]
+            thresholds = [Threshold(*t) for t in thresholds]
+            p.oidMap[oid] = OidData(name, path, dsType, createCmd, thresholds)
         self.proxies[deviceName] = p
 
 
@@ -438,33 +458,28 @@ class zenperfsnmp(ZenDaemon):
                         self.log.warn('Suspect oid %s is bad' % oid)
                         del proxy.oidMap[oid]
                     else:
-                        cname, path, dsType, thresholds = proxy.oidMap[oid]
-                        self.storeRRD(deviceName, cname,
-                                      oid, path, dsType, thresholds,
-                                      value)
+                        self.storeRRD(deviceName, oid, value)
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
 
-    def storeRRD(self, device, cname, oid, path, type, thresholds, value):
+    def storeRRD(self, device, oid, value):
         'store a value into an RRD file'
+        oidData = self.proxies[device].oidMap[oid]
+        
         import rrdtool
-        filename = rrdPath(path)
+        filename = rrdPath(oidData.path)
         if not os.path.exists(filename):
             self.log.debug("create new rrd %s", filename)
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            dataSource = \
-                'DS:%s:%s:%d:0:U' % ('ds0',type,3*self.snmpCycleInterval)
+            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0',
+                                              oidData.dataStorageType,
+                                              3*self.snmpCycleInterval)
             rrdtool.create(filename,
                            "--step",  str(self.snmpCycleInterval),
-                           dataSource,
-                           'RRA:AVERAGE:0.5:1:600',
-                           'RRA:AVERAGE:0.5:6:600',
-                           'RRA:AVERAGE:0.5:24:600',
-                           'RRA:AVERAGE:0.5:288:600',
-                           'RRA:MAX:0.5:288:600')
+                           dataSource, *oidData.rrdCreateCommand.split())
         try:
             #self.log.debug("%s %s", filename, value)
             rrdtool.update(filename, 'N:%s' % value)
@@ -478,8 +493,8 @@ class zenperfsnmp(ZenDaemon):
                                  '-s', 'now-%d' % self.snmpCycleInterval,
                                  '-e', 'now')
             value = values[0][0]
-        for threshold in thresholds:
-            threshold.check(device, cname, oid, value, self.sendEvent)
+        for threshold in oidData.thresholds:
+            threshold.check(device, oidData.name, oid, value, self.sendEvent)
 
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
