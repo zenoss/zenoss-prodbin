@@ -114,8 +114,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 ]
 
 
-    defaultDateRange = 129600
+    defaultDateRange = 18000
     performanceDateRanges = [ 
+        ('Hourly',18000,),
         ('Daily',129600,),
         ('Weekly',864000,),
         ('Monthly',3628800,),

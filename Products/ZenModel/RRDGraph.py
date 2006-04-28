@@ -110,21 +110,21 @@ class RRDGraph(ZenModelRM):
             gopts = self.addSummary(gopts)
         else:
             gopts = self.buildDS(gopts, rrdfile, template, self.summary)
-        #gopts = self.thresholds(gopts, context, targettype)
+            gopts = self.thresholds(gopts, context, template)
         return gopts
 
     
-    def summaryOpts(self, context, rrdfile, targettype):
+    def summaryOpts(self, context, rrdfile, template):
         """build just the summary of graph data with no graph"""
         gopts = []
-        self.buildDS(gopts, context, rrdfile, targettype, self.summary)
+        self.buildDS(gopts, context, rrdfile, template, self.summary)
         return gopts
 
 
     def graphsetup(self):
         """Setup global graph parameters.
         """
-        gopts = []
+        gopts = ['-F', '-E']
         if self.height:
             gopts.append('--height=%d' % self.height)
         if self.width:
@@ -159,12 +159,12 @@ class RRDGraph(ZenModelRM):
         return gopts
             
 
-    def buildDS(self, gopts, rrdfile, targettype, summary,multiid=-1):
+    def buildDS(self, gopts, rrdfile, template, summary,multiid=-1):
         """Add commands to draw data sources in this graph.
         """
         dsindex = 0
         for dsname in self.dsnames:
-            ds = self.getRRDDataSource(dsname) #aq
+            ds = template.getRRDDataSource(dsname)
             ds.setIndex(dsindex)
             defcolor = self.colors[dsindex]
             deftype = self.gettype(dsindex)
@@ -173,11 +173,11 @@ class RRDGraph(ZenModelRM):
         return gopts
 
 
-    def thresholds(self, context, targettype):
+    def thresholds(self, gopts, context, template):
         """Add the hrule commands for any thresholds in this graph.
         """
-        self._v_threshcoloridx = len(self.colors)
-        allthreshs = targettype.getThresholds(context) 
+        self._v_threshidx = len(self.colors)
+        allthreshs = template.thresholds()
         threshs = []
         for thresh in allthreshs:
             for dsname in thresh.dsnames:
@@ -188,17 +188,24 @@ class RRDGraph(ZenModelRM):
         for thresh in threshs:
             if thresh.meta_type == 'RRDThreshold':
                 minvalue = thresh.getGraphMinval(context)
-                if minvalue and minvalue != 'n':
-                    minvalue = str(minvalue)
-                    minvalue += self.getthreshcolor()
-                    gopts.append("HRULE:%s:%s" % 
-                            (minvalue, thresh.getMinLabel(context)))
+                label = thresh.getMinLabel(context)
+                self.threshLine(gopts, minvalue, context, label)
                 maxvalue = thresh.getGraphMaxval(context)
-                if maxvalue:
-                    maxvalue = str(maxvalue)
-                    maxvalue += self.getthreshcolor()
-                    gopts.append("HRULE:%s:%s" % 
-                            (maxvalue, thresh.getMaxLabel(context)))
+                label = thresh.getMaxLabel(context)
+                self.threshLine(gopts, maxvalue, context, label)
+        return gopts
+
+
+    def threshLine(self, gopts, value, context, label):
+        if value is None: return gopts
+        value = str(value)
+        gopts.append("HRULE:%s%s:%s" % (str(value), 
+                     self.getthreshcolor(), label))
+        #VDEF can't do full rpn expression yet still need HRULE
+        #gopts.append("VDEF:th%s=%s" % (self._v_threshidx, value))
+        #gopts.append("LINE1:th%#%s:%s" % (self._v_threshidx,
+        #    self.getthreshcolor(), thresh.getMaxLabel(context)))
+        return gopts
 
     
     gelement = re.compile("^LINE|^AREA|^STACK", re.I).search
@@ -224,7 +231,7 @@ class RRDGraph(ZenModelRM):
         funcs = (("cur\:", "LAST"), ("avg\:", "AVERAGE"), ("max\:", "MAXIMUM"))
         for tag, func in funcs:
             label = "%s%s" % (tag, format)
-            if pad: label = label.ljust(pad)
+            #if pad: label = label.ljust(pad)
             vdef = "%s_%s" % (src,func.lower())
             gopts.append("VDEF:%s=%s,%s" % (vdef,src,func))
             opt = ongraph and "GPRINT" or "PRINT"
@@ -235,8 +242,8 @@ class RRDGraph(ZenModelRM):
 
     def getthreshcolor(self):
         """get a threshold color by working backwards down the color list"""
-        self._v_threshcoloridx -= 1
-        a= self.colors[self._v_threshcoloridx]
+        self._v_threshidx -= 1
+        a= self.colors[self._v_threshidx]
         return a
 
 

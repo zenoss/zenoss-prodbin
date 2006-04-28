@@ -4,7 +4,7 @@
 <table metal:define-macro="objectperf" 
     class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
-    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);
+    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',18000);
     url python:here.absolute_url()+'/'+template.getId()"
     >
     <tr>

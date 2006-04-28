@@ -14,6 +14,23 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.ZenTales import talesEval
 
 
+def rpneval(value, rpn):
+    """totally bogus rpn valuation only works with one level stack"""
+    if value is None: return value
+    operators = ('+','-','*','/')
+    rpn = rpn.split(',')
+    operator = ''
+    for i in range(len(rpn)):
+        symbol = rpn.pop()
+        symbol = symbol.strip()
+        if symbol in operators:
+            operator = symbol
+        else:
+            expr = str(value) + operator + symbol
+            value = eval(expr)
+    return value
+
+
 def manage_addRRDThreshold(context, id, REQUEST = None):
     """make a RRDThreshold"""
     tt = RRDThreshold(id)
@@ -66,49 +83,56 @@ class RRDThreshold(ZenModelRM):
         """Return the config used by the collector to process simple min/max
         thresholds. (id, minval, maxval, severity, escalateCount)
         """
+        return (self.id,self.getMinval(context),self.getMaxval(context),
+                self.severity,self.escalateCount)
+
+  
+    def getMinval(self, context):
+        """Build the min value for this threshold.
+        """
         minval = None
-        maxval = None
         if self.minval:
             minval = talesEval("python:"+self.minval, context)
+        return minval
+
+
+    def getMaxval(self, context):
+        """Build the max value for this threshold.
+        """
+        maxval = None
         if self.maxval:
             maxval = talesEval("python:"+self.maxval, context)
-        return (self.id,minval,maxval,self.severity,self.escalateCount)
-   
+        return maxval
+
 
     def getGraphMinval(self, context):
-        """when graphing use this so that rpn conversions are accounted for"""
-        ds = None
-        try:
-            ds = utils.getRRDDataSource(context, self._dsnames[0])
-        except utils.RRDObjectNotFound: pass    
-        if ds and ds.rpn:
-            return utils.rpneval(self.getMinval(context), ds.rpn)
-        else:
-            return self.getMinval(context)
+        return self.getGraphValue(context, self.getMinval)
 
 
     def getGraphMaxval(self, context):
+        return self.getGraphValue(context, self.getMaxval)
+
+
+    def getGraphValue(self, context, getfunc):
         """when graphing use this so that rpn conversions are accounted for"""
-        ds = None
-        try:
-            ds = utils.getRRDDataSource(context, self._dsnames[0])
-        except utils.RRDObjectNotFound: pass    
+        val = getfunc(context)
+        if val is None or len(self.dsnames) == 0: return 
+        ds = self.getRRDDataSource(self.dsnames[0])
         if ds and ds.rpn:
-            return utils.rpneval(self.getMaxval(context), ds.rpn)
-        else:
-            return self.getMaxval(context)
+            #When VDEF does full rpn
+            #val = "%s,%s" % (val, ds.rpn)
+            val = rpneval(val, ds.rpn)
+        return val
 
 
     def getMinLabel(self, context):
         """build a label for a min threshold"""
-        rootid = utils.rootid(self.meta_type, self.id)
-        return "%s < %s" % (rootid, self.setPower(self.getGraphMinval(context)))
+        return "%s < %s" % (self.id,self.setPower(self.getGraphMinval(context)))
 
 
     def getMaxLabel(self, context):
         """build a label for a max threshold"""
-        rootid = utils.rootid(self.meta_type, self.id)
-        return "%s > %s" % (rootid, self.setPower(self.getGraphMaxval(context)))
+        return "%s > %s" % (self.id,self.setPower(self.getGraphMaxval(context)))
 
 
     def setPower(self, number):
@@ -117,8 +141,8 @@ class RRDThreshold(ZenModelRM):
         for power in powers:
             number = number / 1000
             if number < 1000:  
-                return "%0.3f%s" % (number, power)
-        return "%.3f%s" % (number, powers[-1])
+                return "%0.2f%s" % (number, power)
+        return "%.2f%s" % (number, powers[-1])
 
 
 InitializeClass(RRDThreshold)

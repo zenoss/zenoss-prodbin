@@ -76,7 +76,7 @@ class RenderServer(RRDToolItem):
                 os.makedirs(self.tmpdir)
             filename = "%s/graph-%s" % (self.tmpdir,id)
             gopts.insert(0, filename)
-            log.debug("\n".join(gopts))
+            log.debug(" ".join(gopts))
             try:
                 rrdtool.graph(*gopts)
             except:    
