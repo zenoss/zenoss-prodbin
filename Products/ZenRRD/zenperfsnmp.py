@@ -93,7 +93,7 @@ class Status:
         self._checkFinished()
 
 
-    def fail(self):
+    def fail(self, *unused):
         'record a failed operation'
         self._fail += 1
         self._checkFinished()
@@ -230,6 +230,7 @@ class zenperfsnmp(ZenDaemon):
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
     status = Status()
+    outstandingEvents = 0
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -279,8 +280,19 @@ class zenperfsnmp(ZenDaemon):
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
         #self.log.debug(ev)
-        self.zem.callRemote('sendEvent', ev).addErrback(self.log.error)
+        d = self.zem.callRemote('sendEvent', ev)
+        self.outstandingEvents += 1
+        d.addErrback(self.log.error)
+        d.addCallback(self.eventSent)
 
+    def eventSent(self, *unused):
+        self.outstandingEvents -= 1
+        self.maybeQuit()
+
+    def maybeQuit(self):
+        if self.outstandingEvents == 0 and self.status.finished():
+            if not (self.options.daemon or self.options.cycle):
+                reactor.stop()
 
     def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
@@ -419,10 +431,8 @@ class zenperfsnmp(ZenDaemon):
         total, success, failed, runtime = self.status.stats()
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
-        if not self.options.daemon and not self.options.cycle:
-            reactor.stop()
-        else:
-            self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
+        self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
+        self.maybeQuit()
 
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
@@ -486,15 +496,14 @@ class zenperfsnmp(ZenDaemon):
             # may get update errors when updating too quickly
             self.log.error('rrd error %s' % err)
 
-        if type == 'COUNTER':
+        if oidData.dataStorageType == 'COUNTER':
             range, names, values = \
                    rrdtool.fetch(filename, 'AVERAGE',
-                                 '-s', 'now-%d' % self.snmpCycleInterval,
+                                 '-s', 'now-%d' % self.snmpCycleInterval*2,
                                  '-e', 'now')
             value = values[0][0]
         for threshold in oidData.thresholds:
-            if self.options.cycle:
-                threshold.check(device, oidData.name, oid, value, self.sendEvent)
+            threshold.check(device, oidData.name, oid, value, self.sendEvent)
 
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
@@ -507,7 +516,7 @@ class zenperfsnmp(ZenDaemon):
         self.sendEvent(self.startevt)
         
         zpf.startUpdateConfig()
-        reactor.run(installSignalHandlers=False)
+        reactor.run(installSignalHandlers=True)
         
         self.sendEvent(self.stopevt)
 
