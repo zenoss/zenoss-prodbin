@@ -34,6 +34,8 @@ from Products.ZenModel.PerformanceConf import performancePath
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
 
+import CountedProxy
+
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 200
@@ -44,13 +46,6 @@ COMMON_EVENT_INFO = {
     'agent': 'zenperfsnmp',
     'manager':socket.getfqdn(),
     }
-
-DEFAULT_CREATE_COMMAND = "RRA:AVERAGE:0.5:1:600 " \
-                         "RRA:AVERAGE:0.5:6:600 " \
-                         "RRA:AVERAGE:0.5:24:600 " \
-                         "RRA:AVERAGE:0.5:288:600 " \
-                         "RRA:MAX:0.5:288:600"
-
 
 def chunk(lst, n):
     'break lst into n-sized chunks'
@@ -155,10 +150,9 @@ class SnmpStatus:
             log.warn(summary)
             self.count += 1
 
-        
-
 
 class Threshold:
+    'Hold threshold config and send events based on the current value'
     count = 0
     label = ''
     minimum = None
@@ -227,13 +221,14 @@ class zenperfsnmp(ZenDaemon):
                     'eventClass':'/Heartbeat'}
 
     # these names need to match the property values in StatusMonitorConf
+    defaultRRDCreateCommand = None
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
     status = Status()
-    outstandingEvents = 0
 
     def __init__(self):
         ZenDaemon.__init__(self)
+        CountedProxy.setCallback(self.maybeQuit)
         self.model = self.buildProxy(self.options.zopeurl)
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
@@ -247,8 +242,12 @@ class zenperfsnmp(ZenDaemon):
         self.unresponsiveDevices = Set()
         self.devicesRead = None
 
+
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
+
+        self.parser.add_option('--device', dest='device',
+                               help='gather performance for a single device')
 
         self.parser.add_option(
             "-z", "--zopeurl",
@@ -271,7 +270,7 @@ class zenperfsnmp(ZenDaemon):
         url = basicAuthUrl(self.options.zopeusername,
                            self.options.zopepassword,
                            url)
-        return AuthProxy(url)
+        return CountedProxy.CountedProxy(AuthProxy(url))
 
 
     def sendEvent(self, event, **kw):
@@ -280,19 +279,15 @@ class zenperfsnmp(ZenDaemon):
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
         #self.log.debug(ev)
-        d = self.zem.callRemote('sendEvent', ev)
-        self.outstandingEvents += 1
-        d.addErrback(self.log.error)
-        d.addCallback(self.eventSent)
+        self.zem.callRemote('sendEvent', ev).addErrback(self.log.error)
 
-    def eventSent(self, *unused):
-        self.outstandingEvents -= 1
-        self.maybeQuit()
 
     def maybeQuit(self):
-        if self.outstandingEvents == 0 and self.status.finished():
-            if not (self.options.daemon or self.options.cycle):
+        "Stop if all performance has been fetched, and we aren't cycling"
+        if self.status.finished() and CountedProxy.allFinished():
+            if not self.options.daemon and not self.options.cycle:
                 reactor.stop()
+
 
     def setUnresponsiveDevices(self, deviceList):
         "remember all the unresponsive devices"
@@ -312,6 +307,10 @@ class zenperfsnmp(ZenDaemon):
         lst = []
         deferred = self.model.callRemote('getDevices', True)
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
+        lst.append(deferred)
+
+        deferred = self.model.callRemote('getDefaultRRDCreateCommand')
+        deferred.addCallbacks(self.setRRDCreateCommand, self.log.debug)
         lst.append(deferred)
 
         deferred = self.model.callRemote('propertyItems')
@@ -342,6 +341,10 @@ class zenperfsnmp(ZenDaemon):
 
     def updateDeviceList(self, deviceList):
         'Update the config for devices devices'
+        if self.options.device:
+            self.log.debug('Gathering performance data for %s ' %
+                           self.options.device)
+            deviceList = [n for n in deviceList if n[0] == self.options.device]
         self.log.debug('Configured %d devices' % len(deviceList))
 
         if not deviceList: self.log.warn("no devices found")
@@ -357,6 +360,9 @@ class zenperfsnmp(ZenDaemon):
             del self.proxies[name]
             # we could delete the RRD files, too
 
+
+    def setRRDCreateCommand(self, command):
+        self.defaultRRDCreateCommand = command
 
     def updateAgentProxy(self,
                          deviceName, snmpStatus, ip, port, community,
@@ -398,8 +404,7 @@ class zenperfsnmp(ZenDaemon):
                                   ip, port, community,
                                   version, timeout, tries)
 	for name, oid, path, dsType, createCmd, thresholds in oidData:
-            if not createCmd.strip():
-                createCmd = DEFAULT_CREATE_COMMAND
+            createCmd = createCmd.strip()
             oid = '.'+oid.lstrip('.')
             thresholds = [Threshold(*t) for t in thresholds]
             p.oidMap[oid] = OidData(name, path, dsType, createCmd, thresholds)
@@ -486,9 +491,17 @@ class zenperfsnmp(ZenDaemon):
             dataSource = 'DS:%s:%s:%d:0:U' % ('ds0',
                                               oidData.dataStorageType,
                                               3*self.snmpCycleInterval)
-            rrdtool.create(filename,
-                           "--step",  str(self.snmpCycleInterval),
-                           dataSource, *oidData.rrdCreateCommand.split())
+            rrdCommand = oidData.rrdCreateCommand
+            if not rrdCommand:
+                rrdCommand = self.defaultRRDCreateCommand
+            if rrdCommand:
+                rrdtool.create(filename,
+                               "--step",  str(self.snmpCycleInterval),
+                               dataSource, *rrdCommand.split())
+            else:
+                self.log.error('No default RRD create command configured')
+                return
+
         try:
             #self.log.debug("%s %s", filename, value)
             rrdtool.update(filename, 'N:%s' % value)
