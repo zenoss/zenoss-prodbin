@@ -60,6 +60,15 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Default RRD Create Command</td>
+      <td class="tablevalues">
+	<textarea class="tablevalues" rows=5 cols=60
+		   name="defaultRRDCreateCommand" 
+                    tal:content="here/defaultRRDCreateCommand">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan=3>

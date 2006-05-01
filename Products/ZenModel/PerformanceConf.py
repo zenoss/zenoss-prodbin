@@ -67,6 +67,11 @@ class PerformanceConf(Monitor, StatusColor):
     renderurl = ''
     renderuser = ''
     renderpass = ''
+    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:600\n' \
+                              'RRA:AVERAGE:0.5:6:600\n' \
+                              'RRA:AVERAGE:0.5:24:600\n' \
+                              'RRA:AVERAGE:0.5:288:600\n' \
+                              'RRA:MAX:0.5:288:600'
 
     _properties = (
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
@@ -123,7 +128,20 @@ class PerformanceConf(Monitor, StatusColor):
                 dev.getLastChange() > dev.getLastCricketGenerate())):
                 result.append(dev.getSnmpOidTargets())
         return result
-       
+
+
+    security.declareProtected('View','getDefaultRRDCreateCommand')
+    def getDefaultRRDCreateCommand(self):
+        """Get the default RRD Create Command, as a string.
+        For example:
+                 '''RRA:AVERAGE:0.5:1:600
+                    RRA:AVERAGE:0.5:6:600
+                    RRA:AVERAGE:0.5:24:600
+                    RRA:AVERAGE:0.5:288:600
+                    RRA:MAX:0.5:288:600'''
+        """
+        return self.defaultRRDCreateCommand
+        
 
     def performanceGraphUrl(self, context, targetpath, targettype,
                             view, drange):
@@ -225,7 +243,8 @@ class PerformanceConf(Monitor, StatusColor):
     def manage_editPerformanceConf(self, 
                 renderurl = '',
                 renderuser = '', renderpass = '', 
-                prodStateThreshold=1000, REQUEST=None):
+                prodStateThreshold=1000,
+                defaultRRDCreateCommand = None, REQUEST=None):
         """
         Edit a PerformanceConfig from a web page.
         """
@@ -233,6 +252,8 @@ class PerformanceConf(Monitor, StatusColor):
         self.renderuser = renderuser
         self.renderpass = renderpass
         self.prodStateThreshold = prodStateThreshold
+        if defaultRRDCreateCommand:
+            self.defaultRRDCreateCommand = defaultRRDCreateCommand
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
             return self.callZenScreen(REQUEST)
