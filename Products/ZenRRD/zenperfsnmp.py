@@ -485,13 +485,14 @@ class zenperfsnmp(ZenDaemon):
         if proxy.singleOidMode:
             # remove any oids that didn't report
             for doomed in Set(proxy.oidMap.keys()) - Set(oids):
-                self.log.warn('Suspect oid %s is bad' % doomed)
+                self.log.warn('Suspect oid %s on %s is bad', doomed, deviceName)
                 del proxy.oidMap[doomed]
         proxy.singleOidMode = singleOidMode
         if proxy.singleOidMode:
             # fetch this device again, ASAP
             self.status.moreWork(1)
-            self.log.warn('Recollecting %s', deviceName)
+            self.log.warn('Error collecting data on %s, recollecting',
+                          deviceName)
             self.startReadDevice(deviceName)
                         
         if self.queryWorkList:
