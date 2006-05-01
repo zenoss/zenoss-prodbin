@@ -119,6 +119,9 @@ class Status:
         'return the number of unfinished operations'
         return self._total - (self._success + self._fail)
 
+    def moreWork(self, count):
+        self._total += count
+
 
 class SnmpStatus:
     "track and report SNMP status failures"
@@ -379,6 +382,7 @@ class zenperfsnmp(ZenDaemon):
                            allowCache=False)
             p.oidMap = {}
             p.snmpStatus = SnmpStatus(snmpStatus)
+            p.singleOidMode = False
         else:
             p.ip = ip
             p.port = port
@@ -447,7 +451,10 @@ class zenperfsnmp(ZenDaemon):
             return
         lst = []
         # ensure that the request will fit in a packet
-        for part in chunk(proxy.oidMap.keys(), MAX_OIDS_PER_REQUEST):
+        n = MAX_OIDS_PER_REQUEST
+        if proxy.singleOidMode:
+            n = 1
+        for part in chunk(proxy.oidMap.keys(), n):
             lst.append(proxy.get(part, proxy.timeout, proxy.tries))
         d = defer.DeferredList(lst, consumeErrors=True)
         d.addCallback(self.storeValues, deviceName)
@@ -460,22 +467,39 @@ class zenperfsnmp(ZenDaemon):
         if proxy is None:
             return
         
-        success = reduce(bool.__and__, firsts(updates))
-        self.status.record(success)
-        proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
-        
+        singleOidMode = False
+        oids = []
         for success, update in updates:
             if success:
+                # failure to report is probably a bad OID
+                if not update and not proxy.singleOidMode:
+                    singleOidMode = True
                 for oid, value in update.items():
+                    oids.append(oid)
                     # performance monitoring should always get something back
                     if value == '':
                         self.log.warn('Suspect oid %s is bad' % oid)
                         del proxy.oidMap[oid]
                     else:
                         self.storeRRD(deviceName, oid, value)
+        if proxy.singleOidMode:
+            # remove any oids that didn't report
+            for doomed in Set(proxy.oidMap.keys()) - Set(oids):
+                self.log.warn('Suspect oid %s is bad' % doomed)
+                del proxy.oidMap[doomed]
+        proxy.singleOidMode = singleOidMode
+        if proxy.singleOidMode:
+            # fetch this device again, ASAP
+            self.status.moreWork(1)
+            self.log.warn('Recollecting %s', deviceName)
+            self.startReadDevice(deviceName)
+                        
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
+        success = reduce(bool.__and__, firsts(updates))
+        self.status.record(success)
+        proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
 
     def storeRRD(self, device, oid, value):
         'store a value into an RRD file'
