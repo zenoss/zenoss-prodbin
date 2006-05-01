@@ -523,13 +523,21 @@ class zenperfsnmp(ZenDaemon):
         self.log.error(error)
         reactor.stop()
 
+    def sigTerm(self, signum, frame):
+        'controlled shutdown of main loop on interrupt'
+        try:
+            ZenDaemon.sigTerm(self, signum, frame)
+        except SystemExit, ex:
+            reactor.stop()
+
     def main(self):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
         
         zpf.startUpdateConfig()
-        reactor.run(installSignalHandlers=True)
+
+        reactor.run(installSignalHandlers=False)
         
         self.sendEvent(self.stopevt)
 
