@@ -106,7 +106,25 @@ class RenderServer(RRDToolItem):
             raise
         return values
         
-    
+
+    security.declareProtected('GenSummary', 'currentValues')
+    def currentValues(self, paths):
+        """return latest values"""
+        gopts = ['/dev/null']
+        for i, p in enumerate(paths):
+            gopts.append("DEF:x%d_r=%s:ds0:AVERAGE" % (i,p))
+            gopts.append("VDEF:v%d=x%d_r,LAST" % (i, i))
+            gopts.append("PRINT:v%d:%%.2lf" % (i))
+        gopts.append('--end=now')
+        gopts.append('--start=now-300')
+        try:
+            values = map(float, rrdtool.graph(*gopts)[2])
+        except:
+            log.exception("failed generating summary")
+            log.warn(" ".join(gopts))
+            raise
+        return values
+        
 
     def rrdcmd(self, gopts, ftype='PNG'): 
         filename, gopts = self._setfile(gopts, ftype)
