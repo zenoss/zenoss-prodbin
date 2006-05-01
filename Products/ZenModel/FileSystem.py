@@ -103,21 +103,25 @@ class FileSystem(OSComponent):
         return locale.format("%d", self.totalBytes(), True)
 
     def usedBytes(self):
-        #return self.blockSize * self.usedBlocks
-        return 0
+        return self.blockSize * self.usedBlocks()
 
     def availBytes(self):
-        #return self.blockSize * (self.totalBlocks - self.usedBlocks)
-        return 0
+        return self.blockSize * (self.totalBlocks - self.usedBlocks())
 
     def availFiles(self):
         return 0
 
     def capacity(self):
-        return 0
+        return int(100.0 * self.usedBytes() / self.totalBytes())
 
     def inodeCapacity(self):
         return 0
+
+    def usedBlocks(self):
+        return long(self.cacheRRDValue('usedBlocks'))
+
+    def getRRDNames(self):
+        return ['usedBlocks']
 
     def viewName(self): return self.mount
 

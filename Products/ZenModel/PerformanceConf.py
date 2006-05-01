@@ -189,7 +189,18 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             server = self.unrestrictedTraverse(self.renderurl)
         return server.summary(gopts, drange)
-        
+
+
+    def currentValues(self, paths):
+        "fill out full path and call to server"
+        if self.renderurl.startswith("http"):
+            url = basicAuthUrl(self.renderuser, self.renderpass,
+                                self.renderurl)
+            server = xmlrpclib.Server(url)
+        else:
+            server = self.unrestrictedTraverse(self.renderurl)
+        return server.currentValues(map(performancePath, paths))
+
 
     def _fullPerformancePath(self, gopts):
         "add full path to a list of custom graph options"

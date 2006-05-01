@@ -380,7 +380,7 @@ class Device(ManagedEntity):
                 (self.zSnmpCommunity, self.zSnmpVer,
                  self.zSnmpTimeout, self.zSnmpTries),
                 oids)
-                
+
 
     def getRRDTemplate(self, name=None):
         """Return the closest RRDTemplate named name by walking our aq chain.
@@ -991,5 +991,16 @@ class Device(ManagedEntity):
         if cat != None: 
             cat.uncatalog_object(self.getId())
 
-
+    def cacheComponents(self):
+        "Read current RRD values for all of a device's components"
+        paths = (super(Device, self).getRRDPaths())
+        for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
+        for c in self.os.filesystems(): paths.extend(c.getRRDPaths())
+        for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
+        objpaq = self.primaryAq()
+        perfServer = objpaq.getPerformanceServer()
+        if perfServer:
+            import RRDView
+            RRDView.updateCache(zip(paths, perfServer.currentValues(paths)))
+            
 InitializeClass(Device)

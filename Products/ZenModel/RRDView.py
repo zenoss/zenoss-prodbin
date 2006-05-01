@@ -6,11 +6,15 @@
 
 import os
 import types
+import time
 
 from Acquisition import aq_base, aq_chain
 
 from Products.ZenRRD.Exceptions import RRDObjectNotFound 
 
+CACHE_TIME = 60.
+
+_cache = {} # Map of (filename -> value, time)
 
 class RRDView(object):
     """
@@ -32,7 +36,20 @@ class RRDView(object):
         if perfServer:
             return perfServer.performanceGraphUrl(objpaq, targetpath, 
                                                   template, graph, drange)
-        
+
+    
+    def cacheRRDValue(self, dsname):
+        "read an RRDValue with and cache it"
+        now = time.time()
+        filename = self.getRRDFileName(dsname)
+        value, lastTime = _cache.get(filename, (0, 0) )
+        if lastTime + CACHE_TIME < now:
+            perfServer = self.getPerformanceServer()
+            if perfServer:
+                value = perfServer.currentValues([filename])[0]
+                _cache[filename] = (value, now)
+        return value
+
 
     def getRRDValue(self, dsname, drange=None, function="LAST"):
         """Return a single rrd value from its file using function.
@@ -48,9 +65,8 @@ class RRDView(object):
         #template = Set(self.getRRDTemplate())
         #if dsnames not in template: raise
         gopts = []
-        basepath = self.getPrimaryDmdId()
         for dsname in dsnames:
-            filename = os.path.join(basepath, dsname) + ".rrd"
+            filename = self.getRRDFileName(dsname)
             gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
             gopts.append("VDEF:%s=%s_r,%s" % (dsname,dsname,function))
             gopts.append("PRINT:%s:%%.2lf" % (dsname))
@@ -83,6 +99,14 @@ class RRDView(object):
         """
         return self.meta_type
 
+    def getRRDFileName(self, dsname):
+        return os.path.join(self.getPrimaryDmdId(), dsname) + ".rrd"
+
+    def getRRDNames(self):
+        return []
+
+    def getRRDPaths(self):
+        return map(self.getRRDFileName, self.getRRDNames())
 
     def snmpIgnore(self):
         """Should this component be monitored for performance using snmp.
@@ -156,3 +180,8 @@ class RRDView(object):
         if self.isLocalName(tname):
             self._delObject(tname)
         if REQUEST: return self.callZenScreen(REQUEST)
+
+def updateCache(filenameValues):
+    now = time.time()
+    for filename, value in filenameValues:
+        _cache[filename] = (value, now)
