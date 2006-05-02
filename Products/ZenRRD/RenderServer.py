@@ -62,6 +62,7 @@ class RenderServer(RRDToolItem):
     def render(self, gopts, drange, ftype='PNG', REQUEST=None):
         """render a graph and return it"""
         gopts = gopts.split('|')
+        gopts = [g for g in gopts if g]
         drange = int(drange)
         id = self.graphId(gopts, drange, ftype)
         graph = self.getGraph(id, ftype, REQUEST)
