@@ -74,6 +74,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             if dev: 
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, deviceName))
     else:
+        deviceName = context.prepId(deviceName)
         try: ip = socket.gethostbyname(deviceName)
         except socket.error: ip = ""
         if context.getDmdRoot("Devices").findDevice(deviceName):
@@ -106,6 +107,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         deviceName = ip
     log.info("device name '%s' for ip '%s'", deviceName, ip)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
+    deviceName = context.prepId(deviceName)
     device = deviceClass.createInstance(deviceName)
     device.setManageIp(ip)
     device.manage_editDevice(
