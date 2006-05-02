@@ -108,7 +108,7 @@ def parseconfig(options):
     """parse a config file which has key value pairs delimited by white space"""
     lines = open(options.configfile).readlines()
     for line in lines:
-        if line[1] == '#': continue
+        if line.lstrip().startswith('#'): continue
         key, value = line.split()
         key = key.lower()
         setattr(options, key, value)
