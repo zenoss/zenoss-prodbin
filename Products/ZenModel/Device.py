@@ -317,6 +317,14 @@ class Device(ManagedEntity):
         self._snmpLastCollection = ZenDate('1968/1/8')
         self._lastChange = ZenDate('1968/1/8')
 
+    def getRRDNames(self):
+        return ['sysUpTime']
+
+    def sysUpTime(self):
+        try:
+            return self.cacheRRDValue('sysUpTime')
+        except Exception, ex:
+            return -1
     
     def __getattr__(self, name):
         if name == 'snmpUpTime':
@@ -325,9 +333,8 @@ class Device(ManagedEntity):
             return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
             return self._snmpLastCollection.getDate()
-        else:
+         else:
             raise AttributeError, name
-
 
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
@@ -564,15 +571,16 @@ class Device(ManagedEntity):
     security.declareProtected('View', 'uptimeStr')
     def uptimeStr(self):
         '''return a textual representation of the snmp uptime'''
-        if self.snmpUpTime < 0:
+        ut = self.sysUpTime()
+        if ut < 0:
             return "Unknown"
-        elif self.snmpUpTime == 0:
+        elif ut == 0:
             return "0d:0h:0m:0s"
-        ut = self.snmpUpTime
-        days = ut/8640000
-        hour = (ut%8640000)/360000
-        mins = ((ut%8640000)%360000)/6000
-        secs = (((ut%8640000)%360000)%6000)/100.0
+        ut = float(ut)/100.
+        days = ut/86400
+        hour = (ut%86400)/3600
+        mins = (ut%3600)/60
+        secs = ut%60
         return "%02dd:%02dh:%02dm:%02ds" % (
             days, hour, mins, secs)
 
@@ -1001,6 +1009,11 @@ class Device(ManagedEntity):
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
             import RRDView
-            RRDView.updateCache(zip(paths, perfServer.currentValues(paths)))
+            try:
+                result = perfServer.currentValues(paths)
+                if result:
+                    RRDView.updateCache(zip(paths, result))
+            except Exception:
+                log.error("Unable to cache valus for %s", id);
             
 InitializeClass(Device)

@@ -308,7 +308,7 @@ class zenperfsnmp(ZenDaemon):
     def startUpdateConfig(self):
         'Periodically ask the Zope server for basic configuration data.'
         lst = []
-        deferred = self.model.callRemote('getDevices', True)
+        deferred = self.model.callRemote('getDevices')
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
         lst.append(deferred)
 
@@ -417,22 +417,25 @@ class zenperfsnmp(ZenDaemon):
 
     def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
-        # limit the number of devices we query at once to avoid
-        # a UDP packet storm
-        if not self.status.finished():
-            self.log.warning("There are still %d devices to query, "
-                             "waiting for them to finish" %
-                             self.status.outstanding())
-        else:
-            self.queryWorkList =  Set(self.proxies.keys())
-            self.queryWorkList -= self.unresponsiveDevices
-            self.status = Status()
-            d = self.status.start(len(self.queryWorkList))
-            d.addCallback(self.reportRate)
-            for unused in range(MAX_SNMP_REQUESTS):
-                if not self.queryWorkList: break
-                self.startReadDevice(self.queryWorkList.pop())
         self.cycle(self.snmpCycleInterval, self.readDevices)
+        
+        if not self.status.finished():
+            _, _, _, age = self.status.stats()
+            if age < self.configCycleInterval * 2:
+                self.log.warning("There are still %d devices to query, "
+                                 "waiting for them to finish" %
+                                 self.status.outstanding())
+                return
+            self.log.warning("Devices status is not clearing.  Restarting.")
+
+        self.queryWorkList =  Set(self.proxies.keys())
+        self.queryWorkList -= self.unresponsiveDevices
+        self.status = Status()
+        d = self.status.start(len(self.queryWorkList))
+        d.addCallback(self.reportRate)
+        for unused in range(MAX_SNMP_REQUESTS):
+            if not self.queryWorkList: break
+            self.startReadDevice(self.queryWorkList.pop())
 
 
     def reportRate(self, *unused):

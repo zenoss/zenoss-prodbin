@@ -115,7 +115,7 @@ class PerformanceConf(Monitor, StatusColor):
 
 
     security.declareProtected('View','getDevices')
-    def getDevices(self, force=False):
+    def getDevices(self):
         """Return information for snmp collection on all devices in the form
         (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
         result = []
@@ -123,9 +123,7 @@ class PerformanceConf(Monitor, StatusColor):
             dev = dev.primaryAq()
             if (not dev.pastSnmpMaxFailures() 
                 and dev.productionState >= self.prodStateThreshold
-                and not dev.zSnmpMonitorIgnore
-                and (force or
-                dev.getLastChange() > dev.getLastCricketGenerate())):
+                and not dev.zSnmpMonitorIgnore):
                 result.append(dev.getSnmpOidTargets())
         return result
 

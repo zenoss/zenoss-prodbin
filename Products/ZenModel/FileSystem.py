@@ -33,6 +33,13 @@ def manage_addFileSystem(context, id, REQUEST = None):
 
 addFileSystem = DTMLFile('dtml/addFileSystem',globals())
 
+def unknown(f):
+    def protect(*args, **kw):
+        try:
+            return f(*args, **kw)
+        except Exception, ex:
+            return "Unknown"
+    return protect
 
 class FileSystem(OSComponent):
     """FileSystem object"""
@@ -104,15 +111,18 @@ class FileSystem(OSComponent):
 
     def usedBytes(self):
         return self.blockSize * self.usedBlocks()
+    usedBytes = unknown(usedBytes)
 
     def availBytes(self):
         return self.blockSize * (self.totalBlocks - self.usedBlocks())
+    availBytes = unknown(availBytes)
 
     def availFiles(self):
         return 0
 
     def capacity(self):
         return int(100.0 * self.usedBytes() / self.totalBytes())
+    capacity = unknown(capacity)
 
     def inodeCapacity(self):
         return 0
