@@ -338,7 +338,8 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 MySqlSendEvent.sendEvent(self, evt, db) 
             except Empty: pass
             except OperationalError:
-                db =self.reconnect()
+                log.warn(e)
+                #db =self.reconnect()
             except Exception, e: 
                 log.exception(e) 
         db.close()
@@ -353,6 +354,7 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         self.join(3)
 
 
+    #FIXME this doesn't work properly
     def reconnect(self):
         while self.running:
             try:

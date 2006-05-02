@@ -10,6 +10,7 @@ import time
 import sys
 
 from twisted.internet import reactor
+from _mysql_exceptions import OperationalError
 
 import Globals # make zope imports work
 
@@ -34,7 +35,7 @@ class ZenStatus(ZCmdBase):
             self.configpath = self.configpath[1:]
         self.smc = self.dmd.unrestrictedTraverse(self.configpath)
         self.zem = self.dmd.ZenEventManager
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenstatus started",
                         severity=0, component="zenstatus"))
@@ -95,7 +96,7 @@ class ZenStatus(ZCmdBase):
 
     def processTest(self, result):
         key, evt = result
-        if evt: self.zem.sendEvent(evt)
+        if evt: self.sendEvent(evt)
         self.nextService()
         if self.clients.has_key(key):
             del self.clients[key] 
@@ -137,10 +138,19 @@ class ZenStatus(ZCmdBase):
         self.log.info("stopping...")
         if hasattr(self,"pingThread"):
             self.pingThread.stop()
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenstatus stopped",
                         severity=4, component="zenstatus"))
+
+
+    def sendEvent(self, evt):
+        """Send an event for this monitor.
+        """
+        try:
+            self.zem.sendEvent(evt)
+        except OperationalError, e:
+            self.log.warn("failed sending heartbeat: %s", e)
 
 
     def sendHeartbeat(self):
@@ -148,7 +158,7 @@ class ZenStatus(ZCmdBase):
         """
         timeout = self.options.cycletime*3
         evt = EventHeartbeat(socket.getfqdn(), "zenstatus", timeout)
-        self.zem.sendEvent(evt)
+        self.sendEvent(evt)
 
 
     def buildOptions(self):
