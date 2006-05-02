@@ -213,7 +213,8 @@ class RRDGraph(ZenModelRM):
         """Add summary labels for all graphed elements in gopts.
         """
         vars = [o.split(":",2)[1].split("#")[0] for o in gopts if self.gelement(o)]
-        pad = max([len(v) for v in vars])
+
+        pad = max([len(v) for v in vars] + [0])
         for var in vars: 
             gopts = self.dataSourceSum(gopts, var, pad=pad)
         return gopts
