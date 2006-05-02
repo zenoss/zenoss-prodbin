@@ -33,14 +33,6 @@ def manage_addFileSystem(context, id, REQUEST = None):
 
 addFileSystem = DTMLFile('dtml/addFileSystem',globals())
 
-def unknown(f):
-    def protect(*args, **kw):
-        try:
-            return f(*args, **kw)
-        except Exception, ex:
-            return "Unknown"
-    return protect
-
 class FileSystem(OSComponent):
     """FileSystem object"""
 
@@ -110,25 +102,34 @@ class FileSystem(OSComponent):
         return locale.format("%d", self.totalBytes(), True)
 
     def usedBytes(self):
-        return self.blockSize * self.usedBlocks()
-    usedBytes = unknown(usedBytes)
+        blocks = self.usedBlocks(None)
+        if blocks is not None:
+            return self.blockSize * blocks
+        return None
 
     def availBytes(self):
-        return self.blockSize * (self.totalBlocks - self.usedBlocks())
-    availBytes = unknown(availBytes)
+        blocks = self.usedBlocks()
+        if blocks is not None:
+            return self.blockSize * (self.totalBlocks - self.usedBlocks())
+        return 'Unknown'
 
     def availFiles(self):
         return 0
 
     def capacity(self):
-        return int(100.0 * self.usedBytes() / self.totalBytes())
-    capacity = unknown(capacity)
+        usedBytes = self.usedBytes()
+        if usedBytes is not None:
+            return int(100.0 * self.usedBytes() / self.totalBytes())
+        return 'Unknown'
 
     def inodeCapacity(self):
         return 0
 
-    def usedBlocks(self):
-        return long(self.cacheRRDValue('usedBlocks'))
+    def usedBlocks(self, default = None):
+        blocks = self.cacheRRDValue('usedBlocks', default)
+        if blocks is not None:
+            return long(blocks)
+        return None
 
     def getRRDNames(self):
         return ['usedBlocks']
