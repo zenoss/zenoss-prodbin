@@ -7,6 +7,7 @@
 import os
 import types
 import time
+import threading
 
 from Acquisition import aq_base, aq_chain
 
@@ -14,7 +15,66 @@ from Products.ZenRRD.Exceptions import RRDObjectNotFound
 
 CACHE_TIME = 60.
 
-_cache = {} # Map of (filename -> value, time)
+class TimedCache:
+    "Store elements in a map for the given time"
+
+    def __init__(self, map, timeout):
+        self.map = map
+        self.timeout = timeout
+
+    
+    def get(self, key, default):
+        if not self.map.has_key(key):
+            return default
+        value, timeStored = self.map[key]
+        if timeStored + self.timeout < time.time():
+            del self.map[key]
+            return default
+        return value
+
+
+    def __setitem__(self, key, value):
+        self.map[key] = (value, time.time())
+
+    def update(self, d):
+        now = time.time()
+        for k, v in d.items():
+            self.map[k] = (v, now)
+
+class LockedDict:
+    "Use a simple lock for all read/write access to a map"
+
+    def __init__(self, map):
+        self.map = map
+        self.lock = threading.Lock()
+
+
+    def impl(self, m, *args, **kw):
+        "call a method on the map, with the lock held"
+        self.lock.acquire()
+        try:
+            return m(*args, **kw)
+        finally:
+            self.lock.release()
+
+        
+    def has_key(self, *args, **kw):
+        return self.impl(self.map.has_key, *args, **kw)
+
+
+    def get(self, *args, **kw):
+        return self.impl(self.map.get, *args, **kw)
+
+        
+    def __setitem__(self, *args, **kw):
+        return self.impl(self.map.__setitem__, *args, **kw)
+
+
+    def update(self, *args, **kw):
+        return self.impl(self.map.update, *args, **kw)
+
+
+_cache = LockedDict(TimedCache({}, CACHE_TIME))
 
 class RRDView(object):
     """
@@ -42,14 +102,13 @@ class RRDView(object):
         "read an RRDValue with and cache it"
         now = time.time()
         filename = self.getRRDFileName(dsname)
-        value, lastTime = _cache.get(filename, (0, 0) )
-        if lastTime + CACHE_TIME < now:
+        value = _cache.get(filename, None)
+        if value is None:
             perfServer = self.getPerformanceServer()
             if perfServer:
                 value = perfServer.currentValues([filename])[0]
-                _cache[filename] = (value, now)
+                _cache[filename] = value
         return value
-
 
     def getRRDValue(self, dsname, drange=None, function="LAST"):
         """Return a single rrd value from its file using function.
@@ -183,5 +242,4 @@ class RRDView(object):
 
 def updateCache(filenameValues):
     now = time.time()
-    for filename, value in filenameValues:
-        _cache[filename] = (value, now)
+    _cache.update(dict(filenameValues))
