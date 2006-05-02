@@ -130,9 +130,9 @@ class Ping(object):
             pingJob.sent = pkt.seq + 1
             self.jobqueue[pingJob.ipaddr] = pingJob
         except (SystemExit, KeyboardInterrupt): raise
-        except:
+        except Exception, e:
             pingJob.rtt = -1
-            pingJob.message = "%s error sending to socket" % pingJob.ipaddr
+            pingJob.message = "%s sendto error %s" % (pingJob.ipaddr, e)
             if hasattr(self, "reportPingJob"):
                 self.reportPingJob(pingJob)
 
