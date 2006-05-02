@@ -58,7 +58,10 @@ if(tt) {
     </tr>
     <tr tal:repeat="field fields">
         <td class="tableheader" tal:content="python:field[0]">field</td>
-        <td class="tablevalues" tal:content="python:field[1]">value</td>
+        <td class=tablevalues tal:condition="python:field[0]!='message'"
+            tal:content="python:field[1]">value</td>
+        <td class="tablevalues" tal:condition="python:field[0]=='message'">
+            <pre tal:content="python:field[1]"></pre></td>
     </tr>
 </table>
 </html>

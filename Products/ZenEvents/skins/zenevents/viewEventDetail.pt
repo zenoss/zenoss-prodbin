@@ -15,7 +15,7 @@
     </tr>
     <tr tal:repeat="field objects">
         <td class=tableheader tal:content="python:field[0]">field</td>
-        <td class=tablevalues tal:content="python:field[1]">value</td>
+        <td class="tablevalues" tal:content="python:field[1]">value</td>
     </tr>
 </table>
 </html>
