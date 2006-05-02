@@ -152,7 +152,7 @@ class SnmpPlugin(CollectorPlugin):
         """
         datear = (1968,1,8,10,15,00)
         try:
-            datear = struct.unpack("!h6B", val)
+            datear = struct.unpack("!h5B", val[0:7])
         except: pass
         if datear[0] == 0: 
             datear = (1968,1,8,10,15,00)
