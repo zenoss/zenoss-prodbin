@@ -333,7 +333,7 @@ class Device(ManagedEntity):
             return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
             return self._snmpLastCollection.getDate()
-         else:
+        else:
             raise AttributeError, name
 
     def _setPropValue(self, id, value):
