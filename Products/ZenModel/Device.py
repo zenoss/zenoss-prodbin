@@ -324,7 +324,7 @@ class Device(ManagedEntity):
 
     def sysUpTime(self):
         try:
-            return self.cacheRRDValue('sysUpTime')
+            return self.cacheRRDValue('sysUpTime', default)
         except Exception, ex:
             return -1
     
@@ -948,6 +948,8 @@ class Device(ManagedEntity):
     def deleteDevice(self, REQUEST=None):
         """Delete device from the DMD"""
         parent = self.getPrimaryParent()
+        self.getEventManager().manage_deleteHeartbeat(self.getId())
+        self.getEventManager().manage_deleteAllEvents(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
             REQUEST['RESPONSE'].redirect(parent.absolute_url() + 

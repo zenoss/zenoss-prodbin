@@ -42,7 +42,7 @@ class RRDView(object):
                                                   template, graph, drange)
 
     
-    def cacheRRDValue(self, dsname):
+    def cacheRRDValue(self, dsname, default = "Unknown"):
         "read an RRDValue with and cache it"
         now = time.time()
         filename = self.getRRDFileName(dsname)
@@ -54,7 +54,7 @@ class RRDView(object):
                 _cache[filename] = value
             except Exception, ex:
                 log.error('Unable to cache value for %s on %s', dsname, id)
-                return "Unknown"
+                return default
         return value
 
     def getRRDValue(self, dsname, drange=None, function="LAST"):

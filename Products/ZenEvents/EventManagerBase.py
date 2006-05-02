@@ -895,6 +895,17 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Manage Events','manage_deleteAllEvents')
+    def manage_deleteAllEvents(self, devname, REQUEST=None):
+        delete = 'delete from status where device = "%s"' % devname
+        db = self.connect()
+        curs = db.cursor()
+        curs.execute(delete);
+        db.close()
+        self.clearCache()
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
         if devname:
