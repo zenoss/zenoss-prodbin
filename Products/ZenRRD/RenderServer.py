@@ -118,7 +118,11 @@ class RenderServer(RRDToolItem):
         gopts.append('--end=now')
         gopts.append('--start=now-300')
         try:
-            values = map(float, rrdtool.graph(*gopts)[2])
+            values = rrdtool.graph(*gopts)[2]
+            if values:
+                values = map(float, values)
+            else:
+                values = []
         except:
             log.exception("failed generating summary")
             log.warn(" ".join(gopts))
