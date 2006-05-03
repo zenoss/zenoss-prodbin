@@ -16,7 +16,7 @@ import copy
 from struct import unpack
 import Globals
 
-from pysnmp.compat.pysnmp2x import asn1, v1
+from pysnmp.compat.pysnmp2x import asn1, v1, asynrole
 from pysnmp.proto import v2c
 from pysnmp.mapping.udp import role
 from pysnmp.proto.api import alpha
