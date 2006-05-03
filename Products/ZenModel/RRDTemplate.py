@@ -25,13 +25,13 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 
 
-def crumbspath(subobj, crumbs):
+def crumbspath(templ, crumbs):
     """Create the crumbs path for sub objects of an RRDTemplate.
     """
-    dc = subobj.rrdTemplate().deviceClass() 
+    dc = templ.deviceClass() 
     pt = "/perfConfig"
     if not dc: 
-       dc = subobj.rrdTemplate().getPrimaryParent()
+       dc = templ.getPrimaryParent()
        pt = "/objRRDTemplate"
     url = dc.getPrimaryUrlPath()+pt
     del crumbs[-2]
@@ -80,9 +80,7 @@ class RRDTemplate(ZenModelRM):
         [('url','id'), ...]
         """
         crumbs = super(RRDTemplate, self).breadCrumbs(terminator)
-        url = self.deviceClass().getPrimaryUrlPath() + "/perfConfig"
-        crumbs.insert(-1,(url,'PerfConfig'))
-        return crumbs
+        return crumbspath(self, crumbs)
 
 
     def isEditable(self, context):
@@ -132,8 +130,17 @@ class RRDTemplate(ZenModelRM):
         if not id: return self.callZenScreen(REQUEST)
         org = RRDDataSource(id)
         self.datasources._setObject(org.id, org)
-        if REQUEST: return self.callZenScreen(REQUEST)
-            
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
+
+
+    def callZenScreen(self, REQUEST):
+        """Redirect to primary parent object if this template is locally defined
+        """
+        if REQUEST.get('zenScreenName',"") == "objRRDTemplate":
+            return self.getPrimaryParent().callZenScreen(REQUEST)
+        return super(RRDTemplate, self).callZenScreen(REQUEST)
+
 
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
         """Delete RRDDataSources from this DeviceClass 
@@ -142,7 +149,8 @@ class RRDTemplate(ZenModelRM):
         for id in ids:
             if getattr(self.datasources,id,False):
                 self.datasources._delObject(id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDThreshold')
@@ -153,7 +161,8 @@ class RRDTemplate(ZenModelRM):
         if not id: return self.callZenScreen(REQUEST)
         org = RRDThreshold(id)
         self.thresholds._setObject(org.id, org)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
             
 
     def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
@@ -163,7 +172,8 @@ class RRDTemplate(ZenModelRM):
         for id in ids:
             if getattr(self.thresholds,id,False):
                 self.thresholds._delObject(id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage DMD', 'manage_addRRDGraph')

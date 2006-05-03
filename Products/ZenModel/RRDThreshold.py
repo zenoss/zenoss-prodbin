@@ -85,7 +85,7 @@ class RRDThreshold(ZenModelRM):
         """
         from RRDTemplate import crumbspath
         crumbs = super(RRDThreshold, self).breadCrumbs(terminator)
-        return crumbspath(self, crumbs)
+        return crumbspath(self.getRRDTemplate(), crumbs)
 
 
     def getConfig(self, context):
