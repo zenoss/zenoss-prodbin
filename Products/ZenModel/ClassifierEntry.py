@@ -33,7 +33,8 @@ def manage_addClassifierEntry(context, id=None, title=None,
     """make a device"""
     if not id:
         id = context.ZenClassifier.getNextClassifierEntryId()
-    ce = ClassifierEntry(id, default_catalog=default_catalog, 
+    ce = ClassifierEntry(id, title=title,
+                         default_catalog=default_catalog, 
                         keywords=keywords, deviceClassPath=deviceClassPath,
                         product=product, systemPath=systemPath, 
                         locationPath=locationPath, manufacturer=manufacturer,
