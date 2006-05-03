@@ -87,7 +87,7 @@ class ApplyDataMap(object):
         """
         changed = False
         tobj = device
-        if getattr(datamap, "compname", False)==False: return changed
+        if not getattr(datamap, "compname", False): return changed
         if datamap.compname: 
             tobj = getattr(device, datamap.compname)
         if hasattr(datamap, "relname"):
