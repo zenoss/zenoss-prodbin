@@ -14,6 +14,7 @@ $Id: CmdDeviceLoader.py,v 1.1 2004/03/26 23:59:52 edahl Exp $"""
 __version__ = "$Revision: 1.1 $"[11:-2]
 
 from BasicDeviceLoader import BasicDeviceLoader
+from Products.ZenUtils.BasicLoader import BasicLoader
 
 class cmdDeviceLoader(BasicLoader, BasicDeviceLoader):
 
