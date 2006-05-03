@@ -59,8 +59,10 @@
             <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value ds/getId"/>
-            <a tal:attributes="href ds/getPrimaryUrlPath" 
+            <a tal:condition="editable"
+                tal:attributes="href ds/getPrimaryUrlPath" 
                 tal:content="ds/getId">name</a>
+            <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
         </td>
         <td tal:content="ds/oid"/>
         <td tal:content="ds/rrdtype"/>
@@ -110,17 +112,19 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'escalateCount','Escalate Count')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="templ batch">
+    <tr class="tablevalues" tal:repeat="thresh batch">
         <td>
             <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
-                tal:attributes="value templ/getId"/>
-            <a tal:attributes="href templ/getPrimaryUrlPath" 
-                tal:content="templ/getId">name</a>
+                tal:attributes="value thresh/getId"/>
+            <a tal:condition="editable"
+                tal:attributes="href thresh/getPrimaryUrlPath" 
+                tal:content="thresh/getId">name</a>
+            <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
-        <td tal:content="python:','.join(templ.dsnames)"/>
-        <td tal:content="templ/severity"/>
-        <td tal:content="templ/escalateCount"/>
+        <td tal:content="python:','.join(thresh.dsnames)"/>
+        <td tal:content="thresh/severity"/>
+        <td tal:content="thresh/escalateCount"/>
     </tr>
     <tr>
         <td colspan="4" class="tableheader">
@@ -183,8 +187,10 @@
             <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value graph/getId"/>
-            <a tal:attributes="href graph/getPrimaryUrlPath" 
+            <a tal:condition="editable"
+                tal:attributes="href graph/getPrimaryUrlPath" 
                 tal:content="graph/getId">name</a>
+            <tal:block tal:condition="not:editable" tal:content="graph/getId"/>
         </td>
         <td tal:content="python:','.join(graph.dsnames)"/>
         <td tal:content="graph/units"/>
