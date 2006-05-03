@@ -121,6 +121,8 @@ class RenderServer(RRDToolItem):
         try:
             values = rrdtool.graph(*gopts)[2]
             if values:
+                if values.count('nan') > 0:
+                    raise ValueError('Data Unavailable')
                 values = map(float, values)
             else:
                 values = []
