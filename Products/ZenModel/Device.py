@@ -201,7 +201,6 @@ class Device(ManagedEntity):
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
         {'id':'snmpOid', 'type':'string', 'mode':''},
-        {'id':'snmpUpTime', 'type':'int', 'mode':''},
         {'id':'snmpContact', 'type':'string', 'mode':''},
         {'id':'snmpSysName', 'type':'string', 'mode':''},
         {'id':'snmpLocation', 'type':'string', 'mode':''},
@@ -314,13 +313,14 @@ class Device(ManagedEntity):
         hw = DeviceHW()
         self._setObject(hw.id, hw)
         #self.commandStatus = "Not Tested"
-        self._snmpUpTime = ZenStatus(-1)
         self._lastPollSnmpUpTime = ZenStatus(0)
         self._snmpLastCollection = ZenDate('1968/1/8')
         self._lastChange = ZenDate('1968/1/8')
 
+
     def getRRDNames(self):
         return ['sysUpTime']
+
 
     def sysUpTime(self):
         try:
@@ -329,15 +329,15 @@ class Device(ManagedEntity):
             log.exception("failed getting sysUpTime")
             return -1
     
+
     def __getattr__(self, name):
-        if name == 'snmpUpTime':
-            return self._snmpUpTime.getStatus()
-        elif name == 'lastPollSnmpUpTime':
+        if name == 'lastPollSnmpUpTime':
             return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
             return self._snmpLastCollection.getDate()
         else:
             raise AttributeError, name
+
 
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
@@ -863,19 +863,13 @@ class Device(ManagedEntity):
         return False
 
 
-    security.declareProtected('Manage Device Status', 'setSnmpUpTime')
-    def setSnmpUpTime(self, value):
-        """set the value of the snmpUpTime status object"""
-        self._snmpUpTime.setStatus(value)
-
-
-    security.declareProtected('Manage Device Status', 'setSnmpUpTime')
+    security.declareProtected('Manage Device Status', 'getLastPollSnmpUpTime')
     def getLastPollSnmpUpTime(self):
         """set the value of the snmpUpTime status object"""
         return self._lastPollSnmpUpTime.getStatus()
 
 
-    security.declareProtected('Manage Device Status', 'setSnmpUpTime')
+    security.declareProtected('Manage Device Status', 'setLastPollSnmpUpTime')
     def setLastPollSnmpUpTime(self, value):
         """set the value of the snmpUpTime status object"""
         self._lastPollSnmpUpTime.setStatus(value)
@@ -1007,9 +1001,11 @@ class Device(ManagedEntity):
     def cacheComponents(self):
         "Read current RRD values for all of a device's components"
         paths = self.getRRDPaths()[:]
-        for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
+        #FIXME need better way to scope and need to get DataSources 
+        # from RRDTemplates
+        #for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
         for c in self.os.filesystems(): paths.extend(c.getRRDPaths())
-        for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
+        #for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
         objpaq = self.primaryAq()
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
@@ -1019,6 +1015,6 @@ class Device(ManagedEntity):
                 if result:
                     RRDView.updateCache(zip(paths, result))
             except Exception:
-                log.error("Unable to cache valus for %s", id);
+                log.exception("Unable to cache values for %s", id);
             
 InitializeClass(Device)

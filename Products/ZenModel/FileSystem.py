@@ -102,7 +102,7 @@ class FileSystem(OSComponent):
         return locale.format("%d", self.totalBytes(), True)
 
     def usedBytes(self):
-        blocks = self.usedBlocks(None)
+        blocks = self.usedBlocks()
         if blocks is not None:
             return self.blockSize * blocks
         return None

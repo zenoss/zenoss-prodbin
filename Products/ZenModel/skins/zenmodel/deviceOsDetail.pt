@@ -183,7 +183,6 @@
     </tr>
 </table>
 
-
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
@@ -192,7 +191,7 @@
                                             sortedHeader='mount');"
     tal:condition="objects">
     <tr>
-      <th class="tabletitle" align="left" colspan="12">
+      <th class="tabletitle" align="left" colspan="5">
         File Systems
       </th>
     </tr>
@@ -212,9 +211,11 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'capacity','% Util')">% Util
         </th>
+        <!--
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'storageDevice','Storage Device')">Device
         </th>
+        -->
     </tr>
     <tr tal:condition="not:objects">
         <th class="tableheader" align="left">
@@ -238,17 +239,18 @@
       <td class="tablevalues"
         tal:content="fsys/capacity">vol
       </td>
+      <!--
       <td class="tablevalues"
         tal:content="fsys/storageDevice">vol
       </td>
+      -->
     </tr>
     <tr>
-        <td colspan=6 class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 </table>
-
 
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="routeTableList"
@@ -256,7 +258,7 @@
     objects here/os/routes/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <tr>
-      <th class="tabletitle" align="left" colspan="12">
+      <th class="tabletitle" align="left" colspan="5">
         Routes
       </th>
     </tr>
@@ -297,7 +299,7 @@
       <td class="tablevalues" tal:content="route/routetype"/>
     </tr>
     <tr>
-        <td colspan=5 class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>

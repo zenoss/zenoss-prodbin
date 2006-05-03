@@ -34,7 +34,8 @@ class DeviceManagerBase:
     def removeDevices(self, deviceNames=None, REQUEST=None):
         """see IManageDevice"""
         if not deviceNames: return self()
-        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            self.devices._delObject(devname)
+            dev = self.devices._getOb(devname)
+            dev.deleteDevice()
         if REQUEST: return self()
