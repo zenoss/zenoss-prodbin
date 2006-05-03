@@ -25,6 +25,21 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 
 
+def crumbspath(subobj, crumbs):
+    """Create the crumbs path for sub objects of an RRDTemplate.
+    """
+    dc = subobj.rrdTemplate().deviceClass() 
+    pt = "/perfConfig"
+    if not dc: 
+       dc = subobj.rrdTemplate().getPrimaryParent()
+       pt = "/objRRDTemplate"
+    url = dc.getPrimaryUrlPath()+pt
+    del crumbs[-2]
+    crumbs.insert(-1,(url,'PerfConf'))
+    return crumbs
+
+
+
 class RRDTemplate(ZenModelRM):
 
     meta_type = 'RRDTemplate'

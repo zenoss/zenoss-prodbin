@@ -83,10 +83,9 @@ class RRDThreshold(ZenModelRM):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
         """
+        from RRDTemplate import crumbspath
         crumbs = super(RRDThreshold, self).breadCrumbs(terminator)
-        url = self.rrdTemplate().deviceClass().getPrimaryUrlPath()+"/perfConfig"
-        crumbs.insert(-2,(url,'PerfConfig'))
-        return crumbs
+        return crumbspath(self, crumbs)
 
 
     def getConfig(self, context):
