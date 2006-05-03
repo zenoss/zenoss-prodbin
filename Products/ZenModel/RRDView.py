@@ -44,7 +44,6 @@ class RRDView(object):
     
     def cacheRRDValue(self, dsname, default = "Unknown"):
         "read an RRDValue with and cache it"
-        now = time.time()
         filename = self.getRRDFileName(dsname)
         value = _cache.get(filename, None)
         if value is None:
@@ -52,7 +51,7 @@ class RRDView(object):
                 perfServer = self.getPerformanceServer()
                 value = perfServer.currentValues([filename])[0]
                 _cache[filename] = value
-            except Exception, ex:
+            except Exception:
                 log.error('Unable to cache value for %s on %s', dsname, id)
                 return default
         return value
@@ -134,12 +133,12 @@ class RRDView(object):
     def getThresholds(self, templ):
         """Return a dictionary where keys are dsnames and values are thresholds.
         """
-        map = {}
+        result = {}
         for thresh in templ.thresholds():
             for dsname in thresh.dsnames:
-                threshdef = map.setdefault(dsname, [])
+                threshdef = result.setdefault(dsname, [])
                 threshdef.append(thresh.getConfig(self))
-        return map
+        return result
 
         
     def getSnmpOidTargets(self):
@@ -188,5 +187,4 @@ class RRDView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 def updateCache(filenameValues):
-    now = time.time()
     _cache.update(dict(filenameValues))
