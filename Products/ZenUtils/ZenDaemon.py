@@ -124,15 +124,15 @@ class ZenDaemon(CmdBase):
         os.dup2(0, 1)			# standard output (1)
         os.dup2(0, 2)			# standard error (2)
         if os.path.exists(self.zenvar):
-            file = open(self.pidfile, 'w')
-            file.write(str(os.getpid()))
-            file.close()
+            fp = open(self.pidfile, 'w')
+            fp.write(str(os.getpid()))
+            fp.close()
         else:
             raise SystemExit("ERROR: unable to open pid file %s" % self.pidfile)
         return(0)
 
 
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, *unused):
         stop = getattr(self, "stop", None)
         if callable(stop): stop()
         if os.path.exists(self.pidfile):
