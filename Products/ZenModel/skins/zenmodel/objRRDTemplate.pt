@@ -19,6 +19,9 @@
             name="deleteRRDTemplate:method" value="Remove Local" />
         </td>
     </tr>
+    <tr>
+        <td class="tableheader" colspan="2" tal:content="templ/description"/>
+    </tr>
 </table>
 </form>
 <br/>

@@ -17,7 +17,9 @@
         <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/id"/>
     </tr>
+    <tr>
     <td class="tableheader" colspan="2">Description</td>
+    </tr>
     <tr>
     <td class="tablevalues" colspan="2">
         <textarea class="tablevalues" rows="2" cols="60" name="description:text"
