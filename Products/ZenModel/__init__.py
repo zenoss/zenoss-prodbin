@@ -68,6 +68,7 @@ productNames = (
     "RRDDataSource",
     "RRDGraph",
     "RRDTemplate",
+    "RRDThreshold",
     "ServiceClass",
     "ServiceOrganizer",
     "SnmpClassifier",

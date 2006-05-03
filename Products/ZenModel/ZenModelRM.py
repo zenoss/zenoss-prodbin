@@ -66,10 +66,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
     def zmanage_editProperties(self, REQUEST=None):
         """Edit a ZenModel object and return its proper page template
         """
+        redirect = False
+        if REQUEST.form.has_key("newId"):
+            redirect = self.rename(REQUEST.form["newId"])
         self.manage_changeProperties(**REQUEST.form)
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect)
 
 
     security.declareProtected('View', 'getDmdKey')

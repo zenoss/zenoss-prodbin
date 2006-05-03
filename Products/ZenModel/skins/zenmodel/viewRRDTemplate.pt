@@ -3,6 +3,38 @@
     tal:define="editable python:here.isEditable(here)">
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="3"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <td class="tableheader" colspan="2">Description</td>
+    <tr>
+    <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows="2" cols="60" name="description:text"
+            tal:content="here/description">
+        </textarea>
+    </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value="Save"
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+</form>
+<br/>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="tableName string:rrdtempdslist; 
         objects here/getRRDDataSources;

@@ -31,10 +31,10 @@ class RRDTemplate(ZenModelRM):
 
     security = ClassSecurityInfo()
   
-    dsnames = []
+    description = ""
 
     _properties = (
-        {'id':'dsnames', 'type':'lines', 'mode':'w'},
+        {'id':'description', 'type':'text', 'mode':'w'},
         )
 
     _relations =  (
