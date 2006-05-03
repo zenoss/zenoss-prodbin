@@ -66,13 +66,4 @@ class ReportClass(Classification, Folder):
         '''constructor'''
         Classification.__init__(self, id, title)
      
-    security.declareProtected('Change Page Templates','pt_editAction')
-    def pt_editAction(self, REQUEST, title, text, 
-                        content_type, expand, description):
-        
-        self.description = description
-        return ZopePageTemplate.pt_editAction(self, REQUEST, title, text,
-                                            content_type, expand)
-
-
 InitializeClass(ReportClass)
