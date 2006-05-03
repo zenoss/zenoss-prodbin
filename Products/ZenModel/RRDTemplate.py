@@ -7,6 +7,7 @@
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Acquisition import aq_parent
 
 from ZenModelRM import ZenModelRM
 
@@ -58,6 +59,16 @@ class RRDTemplate(ZenModelRM):
         )
     },
     )
+
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add ActionRules list.
+        [('url','id'), ...]
+        """
+        crumbs = super(RRDTemplate, self).breadCrumbs(terminator)
+        url = self.deviceClass().getPrimaryUrlPath() + "/perfConfig"
+        crumbs.insert(-1,(url,'PerfConfig'))
+        return crumbs
+
 
     def isEditable(self, context):
         """Is this template editable in context.

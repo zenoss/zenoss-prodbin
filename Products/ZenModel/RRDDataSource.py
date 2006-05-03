@@ -18,6 +18,7 @@ import os
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Acquisition import aq_parent
 
 from Products.ZenRelations.RelSchema import *
 
@@ -91,6 +92,16 @@ class RRDDataSource(ZenModelRM):
     )
 
     security = ClassSecurityInfo()
+
+
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add ActionRules list.
+        [('url','id'), ...]
+        """
+        crumbs = super(RRDDataSource, self).breadCrumbs(terminator)
+        url = self.rrdTemplate().deviceClass().getPrimaryUrlPath()+"/perfConfig"
+        crumbs.insert(-2,(url,'PerfConfig'))
+        return crumbs
 
 
     def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):

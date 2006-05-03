@@ -100,6 +100,16 @@ class RRDGraph(ZenModelRM):
     },
     )
     
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add ActionRules list.
+        [('url','id'), ...]
+        """
+        crumbs = super(RRDGraph, self).breadCrumbs(terminator)
+        url = self.rrdTemplate().deviceClass().getPrimaryUrlPath()+"/perfConfig"
+        crumbs.insert(-2,(url,'PerfConfig'))
+        return crumbs
+
+
     def graphOpts(self, context, rrdfile, template):
         """build the graph opts for a single rrdfile"""
         gopts = self.graphsetup()

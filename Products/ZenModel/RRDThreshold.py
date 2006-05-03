@@ -79,6 +79,16 @@ class RRDThreshold(ZenModelRM):
     },
     )
     
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add ActionRules list.
+        [('url','id'), ...]
+        """
+        crumbs = super(RRDThreshold, self).breadCrumbs(terminator)
+        url = self.rrdTemplate().deviceClass().getPrimaryUrlPath()+"/perfConfig"
+        crumbs.insert(-2,(url,'PerfConfig'))
+        return crumbs
+
+
     def getConfig(self, context):
         """Return the config used by the collector to process simple min/max
         thresholds. (id, minval, maxval, severity, escalateCount)
