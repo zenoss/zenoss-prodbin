@@ -365,6 +365,35 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST: return self.callZenScreen(REQUEST)
             
 
+    def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
+        """Put a reference to the objects named in ids in the clip board"""
+        if not ids: return self.callZenScreen(REQUEST)
+        ids = [ id for id in ids if self.rrdTemplates.hasObject(id)]
+        if not ids: return self.callZenScreen(REQUEST)
+        cp = self.rrdTemplates.manage_copyObjects(ids)
+        if REQUEST: 
+            resp=REQUEST['RESPONSE']
+            resp.setCookie('__cp', cp, path='/zport/dmd')
+            REQUEST['__cp'] = cp
+            return self.callZenScreen(REQUEST)
+        return cp
+
+
+    def manage_pasteRRDTemplates(self, cb_copy_data=None, REQUEST=None):
+        """Paste RRDTemplates that have been copied before.
+        """
+        cp = None
+        if cb_copy_data: cp = cb_copy_data
+        elif REQUEST:
+            cp = REQUEST.get("__cp",None)
+        if cp: self.rrdTemplates.manage_pasteObjects(cp)
+        if REQUEST: 
+            REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
+                            expires='Wed, 31-Dec-97 23:59:59 GMT')
+            REQUEST['__cp'] = None
+            return self.callZenScreen(REQUEST)
+
+
     def manage_deleteRRDTemplates(self, ids=(), REQUEST=None):
         """Delete RRDTemplates from this DeviceClass 
         (skips ones in other Classes)

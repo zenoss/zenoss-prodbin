@@ -159,6 +159,12 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         return link
 
 
+    def getPrimaryHref(self):
+        """Return the primary URL for our related object.
+        """
+        return self.obj.getPrimaryUrlPath()
+
+
     def exportXml(self,ofile,ignorerels=[]):
         """return an xml representation of a ToOneRelationship
         <toone id='cricket'>
