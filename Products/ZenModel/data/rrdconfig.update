@@ -1,93 +1,6 @@
 <?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='boolean' id='zIfDescription' >
-False
-</property>
-<property type='lines' id='zSnmpCommunities' >
-['public', 'private']
-</property>
-<property type='string' id='zSnmpCommunity' >
-public
-</property>
-<property type='int' id='zSnmpPort' >
-161
-</property>
-<property type='string' id='zSnmpVer' >
-v1
-</property>
-<property type='int' id='zSnmpTries' >
-2
-</property>
-<property type='float' id='zSnmpTimeout' >
-2.5
-</property>
-<property type='boolean' id='zRouteMapCollectOnlyLocal' >
-False
-</property>
-<property type='boolean' id='zRouteMapCollectOnlyIndirect' >
-False
-</property>
-<property type='int' id='zIpServiceMapMaxPort' >
-1024
-</property>
-<property type='boolean' id='zSnmpMonitorIgnore' >
-False
-</property>
-<property type='boolean' id='zPingMonitorIgnore' >
-False
-</property>
-<property type='string' id='zTransportPreference' >
-snmp
-</property>
-<property type='int' id='zCollectorClientTimeout' >
-180
-</property>
-<property type='string' id='zCommandProtocol' >
-ssh
-</property>
-<property type='int' id='zCommandPort' >
-22
-</property>
-<property type='int' id='zCommandLoginTries' >
-1
-</property>
-<property type='float' id='zCommandLoginTimeout' >
-10.0
-</property>
-<property type='float' id='zCommandCommandTimeout' >
-10.0
-</property>
-<property type='string' id='zCommandExistanceTest' >
-test -f %s
-</property>
-<property type='string' id='zTelnetLoginRegex' >
-ogin:.$
-</property>
-<property type='string' id='zTelnetPasswordRegex' >
-assword:
-</property>
-<property type='lines' id='zTelnetSuccessRegexList' >
-['\\$.$', '\\#.$']
-</property>
-<property type='boolean' id='zTelnetEnable' >
-False
-</property>
-<property type='string' id='zTelnetEnableRegex' >
-assword:
-</property>
-<property type='boolean' id='zTelnetTermLength' >
-True
-</property>
-<property type='float' id='zTelnetPromptTimeout' >
-10.0
-</property>
-<property type='boolean' id='zWinEventlog' >
-False
-</property>
-<property type='date' id='cDateTest' >
-1900/01/01
-</property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <tomanycont id='datasources'>
@@ -445,15 +358,9 @@ here.speed / 8 * .01
 </object>
 </tomanycont>
 <object id='Discovered' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='string' id='zCollectorCollectPlugins' >
-NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
-</property>
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='string' id='zCollectorCollectPlugins' >
-NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
-</property>
 <object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='RSM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
@@ -1195,16 +1102,6 @@ True
 </tomanycont>
 </object>
 </tomanycont>
-</object>
-<object id='Solaris' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-</object>
-<object id='Darwin' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-</object>
-</object>
-<object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<object id='Laser' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-</object>
-<object id='InkJet' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 </object>
 </object>

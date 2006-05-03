@@ -3,10 +3,9 @@ log = logging.getLogger("zen.EventView")
 
 from _mysql_exceptions import MySQLError
 
-from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
-from Globals import DTMLFile
-from AccessControl import Permissions
+from Globals import DTMLFile, InitializeClass
+from AccessControl import Permissions, ClassSecurityInfo
+from Acquisition import aq_parent
 
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -39,10 +38,49 @@ class CustomEventView(ZenModelRM):
         {'id':'resultFields', 'type':'lines', 'mode':'w'},
     )
 
+    factory_type_information = ( 
+        { 
+            'immediate_view' : 'getEventView',
+            'actions'        :
+            ( 
+                { 'id'            : 'view'
+                , 'name'          : 'View'
+                , 'action'        : 'getEventView'
+                , 'permissions'   : ("View",)
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editEventView'
+                , 'permissions'   : ("Change Settings",)
+                },
+            )
+         },
+        )
+
     security = ClassSecurityInfo()
 
 
-    def __call__(self):
+    security.declareProtected('View', 'zentinelTabs')
+    def zentinelTabs(self, templateName):
+        """Return a list of hashs that define the screen tabs for this object.
+        [{'name':'Name','action':'template','selected':False},...]
+        """
+        tabs = super(CustomEventView, self).zentinelTabs(templateName)
+        if templateName.endswith("Events"): tabs[0]['selected']=True
+        return tabs
+
+
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add CustomViews list.
+        [('url','id'), ...]
+        """
+        crumbs = super(CustomEventView, self).breadCrumbs(terminator)
+        url = aq_parent(self).absolute_url_path() + "/editEventViews"
+        crumbs.insert(-1,(url,'Event Views'))
+        return crumbs
+
+
+    def getEventView(self):
         """Return the default screen for this custom view.
         """
         if self.type == "status":
@@ -60,16 +98,27 @@ class CustomEventView(ZenModelRM):
             return self.ZenEventHistory
 
 
+    def getResultFields(self):
+        zem = self.getEventManager()
+        return self.resultFields and self.resultFields \
+                            or zem.defaultResultFields
+
+
+    def getEventSummary(self, severity=1, state=1):
+        """Return the current event summary for this custom view.
+        """
+        zem = self.getEventManager()
+        where = self.where and self.where or zem.defaultWhere
+        return zem.getEventSummary(where,severity,state)
+
+
     def getEventList(self, **kwargs):
-        """Return the current event list for this managed entity.
+        """Return the current event list for this custom view.
         """
         zem = self.getEventManager()
         orderby = self.orderby and self.orderby or zem.defaultOrderby
         where = self.where and self.where or zem.defaultWhere
-        resultFields = self.resultFields and self.resultFields \
-                            or zem.defaultResultFields
-        return zem.getEventList(resultFields,where,orderby,**kwargs)
-                                
+        return zem.getEventList(self.getResultFields(),where,orderby,**kwargs)
     getEventHistoryList = getEventList
         
 

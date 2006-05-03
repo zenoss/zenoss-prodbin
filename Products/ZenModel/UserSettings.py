@@ -14,6 +14,7 @@ from AccessControl import getSecurityManager
 from Acquisition import aq_base
 
 from Products.ZenEvents.ActionRule import ActionRule
+from Products.ZenEvents.CustomEventView import CustomEventView
 
 from ZenModelRM import ZenModelRM
 
@@ -243,24 +244,20 @@ class UserSettings(ZenModelRM):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'UserSettings',
-            'meta_type'      : 'UserSettings',
-            'description'    : """Base class for all devices""",
-            'icon'           : 'UserSettings.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addUserSettings',
             'immediate_view' : 'editUserSettings',
             'actions'        :
             ( 
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editUserSettings'
-                , 'permissions'   : ("Change Settings",)
+                {'name'          : 'Edit',
+                'action'        : 'editUserSettings',
+                'permissions'   : ("Change Settings",),
                 },
-                { 'id'            : 'actionRules'
-                , 'name'          : 'Action Rules'
-                , 'action'        : 'editActionRules'
-                , 'permissions'   : ("Change Settings",)
+                {'name'          : 'Event Views',
+                'action'        : 'editEventViews',
+                'permissions'   : ("Change Settings",),
+                },
+                {'name'          : 'Alerting Rules',
+                'action'        : 'editActionRules',
+                'permissions'   : ("Change Settings",),
                 },
             )
          },
@@ -328,6 +325,24 @@ class UserSettings(ZenModelRM):
         """Add an action rule to this object.
         """
         ar = ActionRule(id)
+        self._setObject(id, ar)
+        ar = self._getOb(id)
+        user = getSecurityManager().getUser()
+        userid = user.getId()
+        if userid != self.id:
+            userid = self.id
+            user = self.getUser(userid)
+            ar.changeOwnership(user)
+            ar.manage_setLocalRoles(userid, ("Owner",))
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Settings', 'manage_addCustomEventView')
+    def manage_addCustomEventView(self, id, REQUEST=None):
+        """Add an action rule to this object.
+        """
+        ar = CustomEventView(id)
         self._setObject(id, ar)
         ar = self._getOb(id)
         user = getSecurityManager().getUser()

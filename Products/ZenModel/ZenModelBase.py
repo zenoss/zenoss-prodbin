@@ -110,7 +110,9 @@ class ZenModelBase(object):
 
     security.declareProtected('View', 'breadCrumbs')
     def breadCrumbs(self, terminator='dmd'):
-        '''return the breadcrumb links along a primary path'''
+        """Return the breadcrumb links for this object.
+        [('url','id'), ...]
+        """
         links = []
         curDir = self.primaryAq()
         while curDir.id != terminator:
@@ -129,7 +131,9 @@ class ZenModelBase(object):
     
     security.declareProtected('View', 'zentinelTabs')
     def zentinelTabs(self, templateName):
-        '''return a list of hashs that define the screen tabs for this object'''
+        """Return a list of hashs that define the screen tabs for this object.
+        [{'name':'Name','action':'template','selected':False},...]
+        """
         tabs = []
         user = getSecurityManager().getUser()
         actions = self.factory_type_information[0]['actions']

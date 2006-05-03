@@ -11,6 +11,7 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
+from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 
@@ -69,6 +70,17 @@ class ActionRule(ZenModelRM):
         )
 
     security = ClassSecurityInfo()
+
+
+    def breadCrumbs(self, terminator='dmd'):
+        """Return the breadcrumb links for this object add ActionRules list.
+        [('url','id'), ...]
+        """
+        crumbs = super(ActionRule, self).breadCrumbs(terminator)
+        url = aq_parent(self).absolute_url_path() + "/editActionRules"
+        crumbs.insert(-1,(url,'Alerting Rules'))
+        return crumbs
+
 
     def getEventFields(self):
         """Return list of fields used in format.
