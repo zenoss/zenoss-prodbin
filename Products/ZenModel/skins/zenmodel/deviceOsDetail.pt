@@ -264,24 +264,15 @@
     </tr>
     <tr tal:condition="batch">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'primarySortKey','Destination')">
-            Destination
-        </th>
+                            tableName,'primarySortKey','Destination')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getNextHopIp','NextHop')">
-            Next
-        </th>
-        <th class="tableheader" align="left">
-            Interface
-        </th>
+                            tableName,'getNextHopIp','NextHop')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'routeproto','Protocol')">
-            Protocol
-        </th>
+                            tableName,'getInterfaceNameString','Interface')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'routetype','Type')">
-            Type
-        </th>
+                            tableName,'routeproto','Protocol')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'routetype','Type')"/>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -294,7 +285,7 @@
           <span tal:replace="structure route/getNextHopIpLink"/>
           (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
-      <td class="tablevalues" tal:content="route/interface/getRelatedId"/>
+      <td class="tablevalues" tal:content="route/getInterfaceNameString"/>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
     </tr>
