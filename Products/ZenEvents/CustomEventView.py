@@ -84,9 +84,9 @@ class CustomEventView(ZenModelRM):
         """Return the default screen for this custom view.
         """
         if self.type == "status":
-            return getattr(self, "viewEvents")()
+            return self.viewEvents()
         else:    
-            return getattr(self, "viewHistoryEvents")()
+            return self.viewHistoryEvents()
         
    
     def getEventManager(self):
