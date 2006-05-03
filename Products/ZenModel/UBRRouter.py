@@ -20,8 +20,8 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Router import Router
 from IpAddress import findIpAddress
+from Device import Device
 
 def manage_addUBRRouter(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -36,11 +36,11 @@ def manage_addUBRRouter(context, id, title = None, REQUEST = None):
 addUBRRouter = DTMLFile('dtml/addUBRRouter',globals())
 
 
-class UBRRouter(Router):
+class UBRRouter(Device):
     """UBRRouter object"""
     portal_type = meta_type = 'UBRRouter'
 
-    _relations = Router._relations + (
+    _relations = Device._relations + (
         ("dhcpservers", ToMany(ToMany, "Device", "dhcpubrclients")),
         )
 
