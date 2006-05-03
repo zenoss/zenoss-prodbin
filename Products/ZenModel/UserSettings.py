@@ -188,7 +188,7 @@ class UserSettingsManager(ZenModelRM):
     def cleanUserFolders(self):
         """Delete orphaned user folders.
         """
-        userfolders = self._getOb(UserFolderId)
+        userfolders = self._getOb(UserSettingsId)
         userids = self.acl_users.getUserNames()
         for fid in userfolders.objectIds():
             if fid not in userids:

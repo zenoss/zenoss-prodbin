@@ -52,7 +52,7 @@ class RRDView(object):
                 value = perfServer.currentValues([filename])[0]
                 _cache[filename] = value
             except Exception:
-                log.error('Unable to cache value for %s on %s', dsname, id)
+                log.error('Unable to cache value for %s', dsname)
                 return default
         return value
 

@@ -145,9 +145,9 @@ class IpAddress(ManagedEntity):
         network = aqself.aq_parent
         netip = getnetstr(ip, network.netmask)
         if netip == network.id:
-            aqs.aq_parent._renameObject(aqs.id, ip)
+            network._renameObject(aqs.id, ip)
         else:
-            raise WrongSubNetError, \
+            raise WrongSubnetError, \
                     "Ip %s is in a different subnet than %s" % (ip, self.id)
                     
 

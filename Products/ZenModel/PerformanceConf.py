@@ -150,14 +150,6 @@ class PerformanceConf(Monitor, StatusColor):
         return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
  
-    def performanceSummary(self, context, targetpath, targettype):
-        """set full path of the target send to view to build opts
-        and then call RenderServer through xmlrpc to get data"""
-        targetpath = performancePath(targetpath)
-        gopts =  view.summaryOpts(context, targetpath, targettype)
-        #do xmlrpc call to get data
-
-
     def performanceMGraphUrl(self, context, targetsmap, view, drange):
         """set the full paths for all targts in map and send to view"""
         ntm = []
@@ -172,14 +164,14 @@ class PerformanceConf(Monitor, StatusColor):
 
     def renderCustomUrl(self, gopts, drange):
         "return the for a list of custom gopts for a graph"
-        gotps = self._fullPerformancePath(gopts)
+        gopts = self._fullPerformancePath(gopts)
         gopts = url_quote('|'.join(gopts))
         return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
 
     def performanceCustomSummary(self, gopts, drange):
         "fill out full path for custom gopts and call to server"
-        gotps = self._fullPerformancePath(gopts)
+        gopts = self._fullPerformancePath(gopts)
         if self.renderurl.startswith("http"):
             url = basicAuthUrl(self.renderuser, self.renderpass,
                                 self.renderurl)

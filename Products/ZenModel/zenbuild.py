@@ -16,7 +16,6 @@ import sys
 import os
 
 import Globals
-import sys,os
 import transaction
 
 if not os.environ.has_key('ZENHOME'):

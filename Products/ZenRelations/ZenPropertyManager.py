@@ -46,13 +46,14 @@ class ZenPropertyManager(PropertyManager):
         if not getattr(self,'_v_propdict',False):
             self._v_propdict = self.propdict()
         if self._v_propdict.has_key('setter'):
+            settername = self._v_propdict['setter']
             setter = getattr(aq_base(obj), settername, None)
             if not setter:
                 raise ValueError("setter %s for property %s doesn't exist"
-                                    % (settername, name))
+                                    % (settername, id))
             if not callable(setter):
                 raise TypeError("setter %s for property %s not callable"
-                                    % (settername, name))
+                                    % (settername, id))
             setter(value)
         else:
             setattr(self,id,value)

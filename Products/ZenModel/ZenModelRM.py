@@ -175,6 +175,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
             obj.index_object()
         if hasattr(aq_base(obj), 'objectValues'):
             sub=obj.objectValues()
-            for item in obj.objectValues():
+            for item in sub:
                 self.reindex_all(item)
         return 'done!'

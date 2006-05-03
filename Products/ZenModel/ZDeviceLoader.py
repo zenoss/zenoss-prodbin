@@ -13,7 +13,6 @@ $Id: ZDeviceLoader.py,v 1.19 2004/04/22 02:14:12 edahl Exp $"""
 
 __version__ = "$Revision: 1.19 $"[11:-2]
 
-import StringIO
 import logging
 log = logging.getLogger("zen.DeviceLoader")
 

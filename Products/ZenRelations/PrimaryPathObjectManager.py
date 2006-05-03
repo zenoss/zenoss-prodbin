@@ -89,7 +89,7 @@ class PrimaryPathObjectManagerBase(PrimaryPathManager):
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
         obj.__primary_parent__ = aq_base(self) 
-        return ObjectManager._setObject(self, id, obj, roles, user, set_owner=1)
+        return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
     def _delObject(self, id, dp=1):

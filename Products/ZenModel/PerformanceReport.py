@@ -10,7 +10,6 @@ $Id: PerformanceReport.py,v 1.1.1.1 2004/10/14 20:55:29 edahl Exp $"""
 
 __version__ = "$Revision: 1.1.1.1 $"[11:-2]
 
-import pprint
 import logging
 log = logging.getLogger("zen.Cricket")
 

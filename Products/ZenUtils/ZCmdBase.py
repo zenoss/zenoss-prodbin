@@ -32,7 +32,7 @@ class ZCmdBase(ZenDaemon):
             storage=ClientStorage.ClientStorage(addr)
             self.db=DB(storage)
             self.poollock = Lock()
-        self.getDataRoot(app)
+        self.getDataRoot()
 
 
     def getConnection(self):
@@ -79,7 +79,7 @@ class ZCmdBase(ZenDaemon):
         self.dmd = None
 
 
-    def getDataRoot(self, app=None):
+    def getDataRoot(self):
         if not self.app: self.opendb()
         if not self.dataroot:
             self.dataroot = self.app.unrestrictedTraverse(self.options.dataroot)

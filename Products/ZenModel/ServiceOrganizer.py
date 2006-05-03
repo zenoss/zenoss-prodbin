@@ -134,7 +134,7 @@ class ServiceOrganizer(Organizer):
 
     
     def unmonitorServiceClasses(self, ids=None, REQUEST=None):
-        return self.monitorServiceClasses(self, ids, False, REQUEST)
+        return self.monitorServiceClasses(ids, False, REQUEST)
 
    
     def monitorServiceClasses(self, ids=None, monitor=True, REQUEST=None):

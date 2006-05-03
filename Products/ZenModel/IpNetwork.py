@@ -148,9 +148,7 @@ class IpNetwork(DeviceOrganizer):
     def getNet(self, ip):
         """Return the net starting form the Networks root for ip.
         """
-        nets = self
-        if not self.id == "Networks": nets = self.getDmdRoot("Networks")
-        return self._getNet(ip)
+        return self.getDmdRoot("Networks")._getNet(ip)
 
 
     def _getNet(self, ip):

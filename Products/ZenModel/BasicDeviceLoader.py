@@ -65,10 +65,10 @@ class BasicDeviceLoader:
         info("setting status monitor to %s" % statusMonitorName)
         device.setStatusMonitor(statusMonitorName)
 
-        if not performanceMonitorName:
-            performanceMonitorName = self.getPerformanceMonitorName()
-        info("setting performance monitor to %s" % performanceMonitorName)
-        device.setPerformanceMonitor(performanceMonitorName)
+        if not perfMonitorName:
+            perfMonitorName = self.getPerformanceMonitorName()
+        info("setting performance monitor to %s" % perfMonitorName)
+        device.setPerformanceMonitor(perfMonitorName)
        
         return device
 
