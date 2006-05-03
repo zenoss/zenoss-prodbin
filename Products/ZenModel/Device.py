@@ -324,8 +324,9 @@ class Device(ManagedEntity):
 
     def sysUpTime(self):
         try:
-            return self.cacheRRDValue('sysUpTime', default)
-        except Exception, ex:
+            return self.cacheRRDValue('sysUpTime', -1)
+        except Exception:
+            log.exception("failed getting sysUpTime")
             return -1
     
     def __getattr__(self, name):
@@ -1005,7 +1006,7 @@ class Device(ManagedEntity):
 
     def cacheComponents(self):
         "Read current RRD values for all of a device's components"
-        paths = (super(Device, self).getRRDPaths())
+        paths = self.getRRDPaths()[:]
         for c in self.os.interfaces(): paths.extend(c.getRRDPaths())
         for c in self.os.filesystems(): paths.extend(c.getRRDPaths())
         for c in self.hw.harddisks(): paths.extend(c.getRRDPaths())
