@@ -34,7 +34,7 @@ def crumbspath(templ, crumbs, remove=True):
        dc = templ.getPrimaryParent()
        pt = "/objRRDTemplate"
     url = dc.getPrimaryUrlPath()+pt
-    if remove: del crumbs[-2]
+    if remove or pt == "/objRRDTemplate" : del crumbs[-2]
     crumbs.insert(-1,(url,'PerfConf'))
     return crumbs
 
