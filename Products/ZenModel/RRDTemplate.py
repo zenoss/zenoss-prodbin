@@ -25,7 +25,7 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 
 
-def crumbspath(templ, crumbs):
+def crumbspath(templ, crumbs, remove=True):
     """Create the crumbs path for sub objects of an RRDTemplate.
     """
     dc = templ.deviceClass() 
@@ -34,7 +34,7 @@ def crumbspath(templ, crumbs):
        dc = templ.getPrimaryParent()
        pt = "/objRRDTemplate"
     url = dc.getPrimaryUrlPath()+pt
-    del crumbs[-2]
+    if remove: del crumbs[-2]
     crumbs.insert(-1,(url,'PerfConf'))
     return crumbs
 
@@ -80,7 +80,7 @@ class RRDTemplate(ZenModelRM):
         [('url','id'), ...]
         """
         crumbs = super(RRDTemplate, self).breadCrumbs(terminator)
-        return crumbspath(self, crumbs)
+        return crumbspath(self, crumbs, False)
 
 
     def isEditable(self, context):
