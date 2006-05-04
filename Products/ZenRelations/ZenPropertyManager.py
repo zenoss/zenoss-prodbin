@@ -83,6 +83,7 @@ class ZenPropertyManager(PropertyManager):
             self._setPropValue(id, value)
 
 
+    _onlystars = re.compile("^\*+$").search
     def manage_editProperties(self, REQUEST):
         """
         Edit object properties via the web.
@@ -95,6 +96,8 @@ class ZenPropertyManager(PropertyManager):
             name=prop['id']
             if 'w' in prop.get('mode', 'wd'):
                 value=REQUEST.get(name, '')
+                if self.zenPropIsPassword(name) and self._onlystars(value):
+                    continue
                 self._updateProperty(name, value)
         if getattr(self, "index_object", False):
             self.index_object()
@@ -152,9 +155,15 @@ class ZenPropertyManager(PropertyManager):
         type = rootnode.getPropertyType(id)
         if type == "lines": 
             value = "\n".join(map(str, value))
-        elif id.endswith("assword"):
+        elif self.zenPropIsPassword(id):
             value = "*"*len(value)
         return value
+
+
+    def zenPropIsPassword(self, id):
+        """Is this field a password field.
+        """
+        return id.endswith("assword")
 
 
     def zenPropertyPath(self, id):
@@ -192,6 +201,8 @@ class ZenPropertyManager(PropertyManager):
         """
         for name, value in REQUEST.form.items():
             if pfilt(name):
+                if self.zenPropIsPassword(name) and self._onlystars(value):
+                    continue
                 if getattr(self, name, None) != value:
                     self.setZenProperty(name, value)
         return self.callZenScreen(REQUEST)
