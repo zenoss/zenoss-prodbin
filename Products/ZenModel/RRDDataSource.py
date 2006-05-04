@@ -100,7 +100,7 @@ class RRDDataSource(ZenModelRM):
         """
         from RRDTemplate import crumbspath
         crumbs = super(RRDDataSource, self).breadCrumbs(terminator)
-        return crumbspath(self.rrdTemplate(), crumbs)
+        return crumbspath(self.rrdTemplate(), crumbs, -2)
 
 
     def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
