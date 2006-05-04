@@ -368,7 +368,7 @@ class DeviceClass(DeviceOrganizer):
     def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
         """Put a reference to the objects named in ids in the clip board"""
         if not ids: return self.callZenScreen(REQUEST)
-        ids = [ id for id in ids if self.rrdTemplates.hasObject(id)]
+        ids = [ id for id in ids if self.rrdTemplates._getOb(id, None) != None]
         if not ids: return self.callZenScreen(REQUEST)
         cp = self.rrdTemplates.manage_copyObjects(ids)
         if REQUEST: 
