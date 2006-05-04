@@ -134,12 +134,12 @@ class RRDTemplate(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    def callZenScreen(self, REQUEST):
+    def callZenScreen(self, REQUEST, redirect=False):
         """Redirect to primary parent object if this template is locally defined
         """
         if REQUEST.get('zenScreenName',"") == "objRRDTemplate":
-            return self.getPrimaryParent().callZenScreen(REQUEST)
-        return super(RRDTemplate, self).callZenScreen(REQUEST)
+            return self.getPrimaryParent().callZenScreen(REQUEST, redirect)
+        return super(RRDTemplate, self).callZenScreen(REQUEST, redirect)
 
 
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
