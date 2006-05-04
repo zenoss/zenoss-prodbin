@@ -67,11 +67,11 @@ class PerformanceConf(Monitor, StatusColor):
     renderurl = ''
     renderuser = ''
     renderpass = ''
-    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:600\n' \
-                              'RRA:AVERAGE:0.5:6:600\n' \
-                              'RRA:AVERAGE:0.5:24:600\n' \
-                              'RRA:AVERAGE:0.5:288:600\n' \
-                              'RRA:MAX:0.5:288:600'
+    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:1800\n' \
+                              'RRA:AVERAGE:0.5:6:1800\n' \
+                              'RRA:AVERAGE:0.5:24:1800\n' \
+                              'RRA:AVERAGE:0.5:288:1800\n' \
+                              'RRA:MAX:0.5:288:1800'
 
     _properties = (
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
