@@ -14,11 +14,6 @@
       <td class="tablevalues" tal:content="here/configCycleInterval" />
     </tr>
     <tr>
-      <td class="tableheader">Production State Threshold</td>
-      <td class="tablevalues"
-        tal:content="python:here.convertProdState(here.prodStateThreshold)"/>
-    </tr>
-    <tr>
       <td class="tableheader">Render URL</td>
       <td class="tablevalues" tal:content="here/renderurl" />
     </tr>

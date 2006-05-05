@@ -48,13 +48,6 @@
         tal:content="here/configCycleInterval">fails
       </td>
     </tr>
-    <tr>
-      <td class=tableheader align=left>Production State Threshold</td>
-      <td class=tablevalues colspan="3"
-        tal:content="python:here.convertProdState(here.prodStateThreshold)">
-        device state
-      </td>
-    </tr>
 </table>
 <br>
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>

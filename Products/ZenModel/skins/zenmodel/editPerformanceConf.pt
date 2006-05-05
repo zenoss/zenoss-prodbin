@@ -25,20 +25,6 @@
       </td>
     </tr>
     <tr>
-        <td class="tableheader" align="left">
-            Production State Threshold</td>
-        <td class="tablevalues" align="left" colspan="3">
-            <select class="tablevalues" name="prodStateThreshold:int"
-            tal:define="pstates here/getProdStateConversions;
-                        curstate here/prodStateThreshold">
-                <option tal:repeat="pstate pstates" 
-                    tal:attributes="value python:pstate[1]; 
-                        selected python:curstate == pstate[1]"
-                    tal:content="python:pstate[0]">localhost</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Render URL</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="renderurl" size="50"
