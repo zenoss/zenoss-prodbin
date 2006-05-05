@@ -42,13 +42,17 @@ class KillCricket(Migrate.Step):
             manage_addMonitorClass(dmd.Monitors, 'Performance')
 
         from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
-        for c in dmd.Monitors.Cricket.objectValues():
-            if not hasattr(dmd.Monitors.Performance, c.id):
-                manage_addPerformanceConf(dmd.Monitors.Performance, c.id)
-                p = dmd.Monitors.Performance._getOb(c.id)
-                p.renderurl = c.cricketurl
-                p.renderuser = c.cricketuser
-                p.renderpass = c.cricketpass
+        if hasattr(dmd.Monitors, 'Cricket'):
+            for c in dmd.Monitors.Cricket.objectValues():
+                if not hasattr(dmd.Monitors.Performance, c.id):
+                    manage_addPerformanceConf(dmd.Monitors.Performance, c.id)
+                    p = dmd.Monitors.Performance._getOb(c.id)
+                    p.renderurl = c.cricketurl
+                    p.renderuser = c.cricketuser
+                    p.renderpass = c.cricketpass
+            if hasattr(dmd.Monitors.Cricket, 'localhost'):
+                dmd.Monitors.Cricket._delObject('localhost')
+            dmd.Monitors._delObject("Cricket")
 
         for dev in dmd.Devices.getSubDevices():
             dev.buildRelations()
@@ -70,11 +74,6 @@ class KillCricket(Migrate.Step):
                 if not callable(fs.inodeCapacity):
                     delattr(fs, 'inodeCapacity')
 
-        if hasattr(dmd.Monitors, 'Cricket'):
-            if hasattr(dmd.Monitors.Cricket, 'localhost'):
-                dmd.Monitors.Cricket._delObject('localhost')
-            dmd.Monitors._delObject("Cricket")
-        
         for dc in dmd.Devices.getSubOrganizers():
             self.convert(dc)
         self.convert(dmd.Devices)
