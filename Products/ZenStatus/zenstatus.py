@@ -23,7 +23,6 @@ class ZenStatus(ZCmdBase):
 
     agent = "ZenTCP"
     eventGroup = "TCPTest"
-    prodStateThreshold = 1000
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
@@ -76,7 +75,7 @@ class ZenStatus(ZCmdBase):
                 self.log.warn("skipping service %s on %s bad ping status.",
                                 svc.name(), dev.getId())
                 continue
-            if dev.productionState < self.prodStateThreshold:
+            if dev.monitorDevice()
                 self.log.warn("skipping service %s on %s prod state too low.",
                                 svc.name(), dev.getId())
                 continue
