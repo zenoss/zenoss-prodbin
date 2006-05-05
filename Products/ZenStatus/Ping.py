@@ -111,6 +111,8 @@ class Ping(object):
                 pingJob = self.sendqueue.next()
                 self.devcount += 1
                 self.sendPacket(pingJob)
+                if self.devcount % self.chunkSize == 0:
+                    log.debug("Sent %d packets", self.devcount)
         except StopIteration: self.morepkts = False
             
 
