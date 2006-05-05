@@ -24,7 +24,7 @@ from Acquisition import aq_base
 from AccessControl import getSecurityManager
 
 from OFS import Moniker
-from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound
+from OFS.CopySupport import CopyError, _cb_decode, eInvalid, eNotFound, eNoData
                             
 from App.Dialogs import MessageDialog
 
