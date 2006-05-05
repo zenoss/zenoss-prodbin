@@ -39,6 +39,35 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from PingThread import PingThread
 import pingtree
 
+def findIp():
+    try:
+        return socket.gethostbyname(socket.getfqdn())
+    except socket.gaierror:
+        # find the first non-loopback interface address
+        import re
+        ifconfigs = ['/sbin/ifconfig',
+                     '/usr/sbin/ifconfig',
+                     '/usr/bin/ifconfig',
+                     '/bin/ifconfig']
+        ifconfig = filter(os.path.exists, ifconfigs)[0]
+        fp = os.popen(ifconfig + ' -a')
+        config = fp.read().split('\n\n')
+        fp.close()
+        pat = r'(addr:|inet) *([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})[^0-9]'
+        parse = re.compile(pat)
+        results = []
+        for c in config:
+            addr = parse.search(c)
+            if addr:
+                results.append(addr.group(2))
+        try:
+            results.remove('127.0.0.1')
+        except ValueError:
+            pass
+        if results:
+            return results[0]
+    return '127.0.0.1'
+
 
 class ZenPing(ZCmdBase):
 
@@ -95,8 +124,7 @@ class ZenPing(ZCmdBase):
             else:
                 self.log.critical("ZenPing '%s' not found,"
                                   "ignoring network topology.",self.hostname)
-                ip = socket.gethostbyname(self.hostname)
-                self.pingtree = pingtree.Rnode(ip, self.hostname, 0)
+                self.pingtree = pingtree.Rnode(findIp(), self.hostname, 0)
             devices = smc.getPingDevices()
             self.prepDevices(devices)
             self.configTime = time.time()
