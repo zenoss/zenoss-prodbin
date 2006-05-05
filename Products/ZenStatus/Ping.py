@@ -12,6 +12,7 @@ import select
 import socket
 import ip
 import icmp
+import errno
 import pprint
 import logging
 log = logging.getLogger("zen.Ping")
@@ -141,32 +142,38 @@ class Ping(object):
 
     def recvPacket(self):
         """receive a packet and decode its header"""
-        try:
-            data = self.pingsocket.recv(1024)
-            if not data: return
-            ipreply = ip.Packet(data)
-            icmppkt = icmp.Packet(ipreply.data)
-            sip =  ipreply.src
-            if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
-                icmppkt.id == self.procId and self.jobqueue.has_key(sip)):
-                plog.debug("echo reply pkt %s %s", sip, icmppkt)
-                self.pingJobSucceed(self.jobqueue[sip])
-            elif icmppkt.type == icmp.ICMP_UNREACH:
-                plog.debug("host unreachable pkt %s %s", sip, icmppkt)
-                try:
-                    origpkt = ip.Packet(icmppkt.data)
-                    origicmp = icmp.Packet(origpkt.data)
-                    dip = origpkt.dst
-                    if (origicmp.data == self.pktdata 
-                        and self.jobqueue.has_key(dip)):
-                        self.pingJobFail(self.jobqueue[dip])
-                except ValueError:
-                    plog.warn("failed to parse host unreachable packet")
-            else:
-                plog.debug("unexpected pkt %s %s", sip, icmppkt)
-        except (SystemExit, KeyboardInterrupt): raise
-        except Exception, e:
-            log.exception("receiving packet")
+        while 1:
+            try:
+                data = self.pingsocket.recv(1024)
+                if not data: return
+                ipreply = ip.Packet(data)
+                icmppkt = icmp.Packet(ipreply.data)
+                sip =  ipreply.src
+                if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
+                    icmppkt.id == self.procId and self.jobqueue.has_key(sip)):
+                    plog.debug("echo reply pkt %s %s", sip, icmppkt)
+                    self.pingJobSucceed(self.jobqueue[sip])
+                elif icmppkt.type == icmp.ICMP_UNREACH:
+                    plog.debug("host unreachable pkt %s %s", sip, icmppkt)
+                    try:
+                        origpkt = ip.Packet(icmppkt.data)
+                        origicmp = icmp.Packet(origpkt.data)
+                        dip = origpkt.dst
+                        if (origicmp.data == self.pktdata 
+                            and self.jobqueue.has_key(dip)):
+                            self.pingJobFail(self.jobqueue[dip])
+                    except ValueError:
+                        plog.warn("failed to parse host unreachable packet")
+                else:
+                    plog.debug("unexpected pkt %s %s", sip, icmppkt)
+            except (SystemExit, KeyboardInterrupt): raise
+            except socket.error, err:
+                err, errmsg = err.args
+                if err == errno.EAGAIN:
+                    return
+                raise err
+            except Exception, e:
+                log.exception("receiving packet")
 
 
 
