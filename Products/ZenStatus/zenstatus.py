@@ -75,7 +75,7 @@ class ZenStatus(ZCmdBase):
                 self.log.warn("skipping service %s on %s bad ping status.",
                                 svc.name(), dev.getId())
                 continue
-            if dev.monitorDevice():
+            if not dev.monitorDevice():
                 self.log.warn("skipping service %s on %s prod state too low.",
                                 svc.name(), dev.getId())
                 continue
