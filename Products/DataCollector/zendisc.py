@@ -135,7 +135,7 @@ class ZenDisc(ZenModeler):
             if not netobj:
                 raise SystemExit("network %s not found in dmd",self.options.net)
             for ip in self.discoverIps((netobj,)):
-                trasaction.sync()
+		self.dmd._p_jar.sync()
                 self.discoverDevice(ip, self.options.deviceclass)
             return
         myname = socket.getfqdn()
