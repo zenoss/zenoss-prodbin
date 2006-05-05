@@ -61,7 +61,7 @@ class PingJob:
         if parent: return parent.routerpj()
 
 
-plog = logging.getLogger("Ping")
+plog = logging.getLogger("zen.Ping")
 class Ping(object):    
     """
     Class that provides syncronous icmp ping.
@@ -78,6 +78,7 @@ class Ping(object):
         self.devcount = 0
         self.createPingSocket()
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
+        self.incount = self.outcount = 0
 
 
     def __del__(self):
@@ -130,7 +131,7 @@ class Ping(object):
             pingJob.start = time.time()
             plog.debug("send icmp to '%s'", pingJob.ipaddr)
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
-            pingJob.sent = pkt.seq + 1
+            pingJob.sent += 1 
             self.jobqueue[pingJob.ipaddr] = pingJob
         except (SystemExit, KeyboardInterrupt): raise
         except Exception, e:
@@ -226,6 +227,7 @@ class Ping(object):
         while self.morepkts or len(self.jobqueue):
             plog.debug("morepkts=%s jobqueue=%s",self.morepkts,
                         len(self.jobqueue))
+            plog.debug("incount=%s outcount=%s", self.incount, self.outcount)
             while 1:
                 data = select.select([self.pingsocket,], [], [], 0.1)
                 if data[0]:

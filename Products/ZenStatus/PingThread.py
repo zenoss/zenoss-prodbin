@@ -34,6 +34,7 @@ class PingThread(threading.Thread, Ping):
     def sendPing(self, pj):
         """Called from main thread to add new pingjob to send queue.
         """
+        self.incount += 1
         self.sendqueue.put(pj)
         
 
@@ -41,6 +42,7 @@ class PingThread(threading.Thread, Ping):
     def reportPingJob(self, pj):
         """Pass pingJobs back to our master thread when done.
         """
+        self.outcount += 1
         self.reportqueue.put(pj)
 
 
