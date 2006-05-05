@@ -232,7 +232,7 @@ class DeviceClass(DeviceOrganizer):
             ffunc = lambda x: x.zWinEventlog
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
-            if dev.productionState < self.prodStateThreshold: continue
+            if not dev.monitorDevice(): continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             devinfo.append((dev.id,user,passwd,dev.absolute_url()))
@@ -248,7 +248,7 @@ class DeviceClass(DeviceOrganizer):
             svcs=allsvcs.setdefault(s.hostname(),{})
             svcs[s.name()] = s.getStatus()
         for dev in self.getSubDevices():
-            if dev.productionState < self.prodStateThreshold: continue
+            if not dev.monitorDevice(): continue
             svcs = allsvcs.get(dev.getId(), {})
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
@@ -478,6 +478,9 @@ class DeviceClass(DeviceOrganizer):
 
         # map deviec class to python classs (seperate from device class name)
         devs._setProperty("zPythonClass", "")
+
+        # production state threshold at which to start monitoring boxes
+        devs._setProperty("zProdStateThreshold", 500, type="int")
 
         # Display the ifdescripion field or not
         devs._setProperty("zIfDescription", False, type="boolean")

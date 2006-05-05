@@ -33,7 +33,7 @@ class ZenModelBase(object):
     some screen management functionality, and general utility methods.
     """
     sub_meta_types = ()
-    prodStateThreshold = 1000
+    #prodStateThreshold = 500
 
     security = ClassSecurityInfo()
 

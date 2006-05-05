@@ -672,6 +672,12 @@ class Device(ManagedEntity):
             return self.callZenScreen(REQUEST)
 
 
+    def monitorDevice(self):
+        """Is device production state >= zProdStateThreshold.
+        """
+        return self.productionState >= self.zProdStateThreshold
+
+
     security.declareProtected('Change Device', 'setProdState')
     def setProdState(self, state):
         """Set a device's production state as an integer.

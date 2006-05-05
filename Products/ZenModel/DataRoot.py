@@ -52,11 +52,11 @@ class DataRoot(ZenModelRM, OrderedFolder):
     #setTitle = DTMLFile('dtml/setTitle',globals())
 
     _properties=(
-                {'id':'title', 'type': 'string', 'mode':'w'},
-                {'id':'prodStateConversions','type':'lines','mode':'w'},
-                {'id':'statusConversions','type':'lines','mode':'w'},
-                {'id':'interfaceStateConversions','type':'lines','mode':'w'},
-                )
+        {'id':'title', 'type': 'string', 'mode':'w'},
+        {'id':'prodStateConversions','type':'lines','mode':'w'},
+        {'id':'statusConversions','type':'lines','mode':'w'},
+        {'id':'interfaceStateConversions','type':'lines','mode':'w'},
+        )
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -87,6 +87,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         )
 
     security = ClassSecurityInfo()
+
 
 
     prodStateConversions = [

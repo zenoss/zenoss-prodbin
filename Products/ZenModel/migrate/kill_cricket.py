@@ -70,11 +70,16 @@ class KillCricket(Migrate.Step):
                 if not callable(fs.inodeCapacity):
                     delattr(fs, 'inodeCapacity')
 
-        if hasattr(dmd.Monitors.Cricket, 'localhost'):
-            dmd.Monitors.Cricket._delObject('localhost')
+        if hasattr(dmd.Monitors, 'Cricket'):
+            if hasattr(dmd.Monitors.Cricket, 'localhost'):
+                dmd.Monitors.Cricket._delObject('localhost')
+            dmd.Monitors._delObject("Cricket")
         
         for dc in dmd.Devices.getSubOrganizers():
             self.convert(dc)
         self.convert(dmd.Devices)
+
+        if not hasattr(dmd.Devices, 'zProdStateThreshold'):
+            dmd.Devices._setProperty("zProdStateThreshold", 500, type="int")
 
 KillCricket()

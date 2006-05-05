@@ -77,7 +77,7 @@
         </td>
         <td align="left"  class="tableheader" colspan=3>
             <input class="tableheader" type="submit" value=" Save "
-                name="manage_editStatusMonitorConf:method" />
+                name="zmanage_editProperties:method" />
         </td>
     </tr>
 </table>

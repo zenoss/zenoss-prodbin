@@ -63,7 +63,7 @@ class PerformanceConf(Monitor, StatusColor):
 
     snmpCycleInterval = 60
     configCycleInterval = 20
-    prodStateThreshold = 1000
+    prodStateThreshold = 500
     renderurl = ''
     renderuser = ''
     renderpass = ''
@@ -72,6 +72,8 @@ class PerformanceConf(Monitor, StatusColor):
                               'RRA:AVERAGE:0.5:24:1800\n' \
                               'RRA:AVERAGE:0.5:288:1800\n' \
                               'RRA:MAX:0.5:288:1800'
+                              #'RRA:HWPREDICT:1440:0.5:0.5:1440',
+
 
     _properties = (
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
@@ -207,14 +209,12 @@ class PerformanceConf(Monitor, StatusColor):
    
 
     security.declareProtected('View','performanceDeviceList')
-    def performanceDeviceList(self, force=False):
+    def performanceDeviceList(self, force=True):
         """Return a list of urls that point to our managed devices"""
         devlist = []
         for dev in self.devices():
-            if (not dev.pastSnmpMaxFailures() 
-                and dev.productionState >= self.prodStateThreshold 
-                and (force or
-                dev.getLastChange() > dev.getLastPerformanceGenerate())):
+            dev = dev.primaryAq()
+            if not dev.pastSnmpMaxFailures() and dev.monitorDevice():
                 devlist.append(dev.getPrimaryUrlPath(full=True))
         return devlist
        
@@ -238,27 +238,6 @@ class PerformanceConf(Monitor, StatusColor):
             dses.append(oidtmpl % (ds.getName(), ds.oid))
             dses.append(dstmpl %(ds.getName(), ds.rrdtype, ds.getName(), inst))
         return "\n".join(dses)     
-
-
-    security.declareProtected('Manage DMD', 'manage_editPerformanceConf')
-    def manage_editPerformanceConf(self, 
-                renderurl = '',
-                renderuser = '', renderpass = '', 
-                prodStateThreshold=1000,
-                defaultRRDCreateCommand = None, REQUEST=None):
-        """
-        Edit a PerformanceConfig from a web page.
-        """
-        self.renderurl = renderurl
-        self.renderuser = renderuser
-        self.renderpass = renderpass
-        self.prodStateThreshold = prodStateThreshold
-        if defaultRRDCreateCommand:
-            self.defaultRRDCreateCommand = defaultRRDCreateCommand
-        if REQUEST:
-            REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
-
 
 
 InitializeClass(PerformanceConf)

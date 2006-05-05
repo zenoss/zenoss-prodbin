@@ -47,6 +47,19 @@ class StatusMonitorConf(Monitor, StatusColor):
 
     monitorRootName = "StatusMonitors"
 
+    chunk=75,
+    timeOut=1.5,
+    tries=2,
+    snmpTimeOut=3.0,
+    snmpTries=2,
+    cycleInterval=60,
+    snmpCycleInterval=60,
+    configCycleInterval=20,
+    maxFailures = 1440,
+    cycleFailWarn = 2,
+    cycleFailCritical = 3
+    #prodStateThreshold = 500
+
     _properties = (
         {'id':'chunk','type':'int','mode':'w'},
         {'id':'timeOut','type':'float','mode':'w'},
@@ -99,35 +112,6 @@ class StatusMonitorConf(Monitor, StatusColor):
         )
 
     security = ClassSecurityInfo()
-
-    def __init__(self, id, title=None,
-                chunk=75,
-                timeOut=1.5,
-                tries=2,
-                snmpTimeOut=3.0,
-                snmpTries=2,
-                cycleInterval=60,
-                snmpCycleInterval=60,
-                configCycleInterval=20,
-                maxFailures = 1440,
-                cycleFailWarn = 2,
-                cycleFailCritical = 3
-                ):
-        '''Create a  monitor configuration'''
-        Monitor.__init__(self, id, title)
-        self.chunk = chunk
-        self.timeOut = timeOut
-        self.tries = tries
-        self.snmpTimeOut = snmpTimeOut
-        self.snmpTries = snmpTries
-        self.cycleInterval = cycleInterval
-        self.snmpCycleInterval = snmpCycleInterval
-        self.configCycleInterval = configCycleInterval
-        self.maxFailures = maxFailures
-        self.cycleFailWarn = cycleFailWarn
-        self.cycleFailCritical = cycleFailCritical
-        self.prodStateThreshold = 1000
-
 
     security.declareProtected('View','getPathName')
     def getPathName(self):
@@ -201,18 +185,12 @@ class StatusMonitorConf(Monitor, StatusColor):
 
     security.declareProtected('View','getPingDevices')
     def getPingDevices(self):
-        '''get the devices associated with this
-         monitor configuration'''
+        '''Return devices associated with this monitor configuration.
+        '''
         devices = []
         for dev in self.devices.objectValuesAll():
-            try:
-                if dev.productionState >= self.prodStateThreshold:
-                    dev = dev.primaryAq()
-                    devices.append(dev)
-                    #devices += self.getExtraPingInterfaces(dev)
-            except:
-                msg = "exception getting device %s\n" % dev.getId()
-                logging.exception(msg)
+            dev = dev.primaryAq()
+            if dev.monitorDevice(): devices.append(dev)
         return devices
 
 
@@ -262,8 +240,7 @@ class StatusMonitorConf(Monitor, StatusColor):
                 if getattr(dev, "zSnmpMonitorIgnore", False): continue
                 ipaddr = dev.getManageIp()
                 url = dev.absolute_url()
-                if (dev.productionState >= self.prodStateThreshold
-                    and dev.zSnmpCommunity):
+                if dev.monitorDevice() and dev.zSnmpCommunity:
                    devices.append(( 
                         dev.id, url, ipaddr,
                         dev.getSnmpStatusNumber(),
@@ -319,45 +296,4 @@ class StatusMonitorConf(Monitor, StatusColor):
         self.snmpHeartbeat.setDate()
 
     
-    security.declareProtected('Manage DMD', 'manage_editStatusMonitorConf')
-    def manage_editStatusMonitorConf(self, 
-                    chunk=75,timeOut=1.5,tries=2,
-                    snmpTimeOut=3.0,snmpTries=2,
-                    cycleInterval=60,snmpCycleInterval=60,
-                    configCycleInterval=20,
-                    cycleFailWarn=2,cycleFailCritical=3,
-                    maxFailures=1440,prodStateThreshold=1000, REQUEST=None):
-        """
-        Edit a StatusMonitorConf from a web page.
-        """
-        self.chunk = chunk
-        self.timeOut = timeOut
-        self.tries = tries
-        self.snmpTimeOut = snmpTimeOut
-        self.snmpTries = snmpTries
-        self.cycleInterval = cycleInterval
-        self.snmpCycleInterval = snmpCycleInterval
-        self.configCycleInterval = configCycleInterval
-        self.cycleFailWarn = cycleFailWarn
-        self.cycleFailCritical = cycleFailCritical
-        self.maxFailures = maxFailures
-        self.prodStateThreshold = prodStateThreshold
-        if REQUEST:
-            REQUEST['message'] = "Saved at time:"
-            return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('View','deviceList')
-    def deviceList(self, force=False):
-        """Return a list of urls that point to our managed devices"""
-        devlist = []
-        for dev in self.devices():
-            if (not dev.pastSnmpMaxFailures() 
-                and dev.productionState >= self.prodStateThreshold 
-                and (force or
-                dev.getLastChange() > dev.getLastCricketGenerate())):
-                devlist.append(dev.getPrimaryUrlPath(full=True))
-        return devlist
-       
-
 InitializeClass(StatusMonitorConf)
