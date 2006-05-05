@@ -147,7 +147,7 @@ def cleanstring(value):
     return value
 
 
-def getSubObjects(base, filter=None, decend=None, retobjs=[]):
+def getSubObjects(base, filter=None, decend=None, retobjs=None):
     """do a depth first search looking for objects that the function filter
     returns as true. If decend is passed it will check to see if we
     should keep going down or not"""
