@@ -9,7 +9,7 @@ import socket
 import logging
 
 from Products.ZenEvents.ZenEventClasses import PingStatus
-from Ping import PingJob
+from AsyncPing import PingJob
 
 
 def initglobals(devname):

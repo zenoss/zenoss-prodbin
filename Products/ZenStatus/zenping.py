@@ -24,9 +24,7 @@ import ip
 import icmp
 import os
 import time
-import select
 import sys
-import xmlrpclib
 import Queue
 
 import Globals # make zope imports work
@@ -36,8 +34,10 @@ from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from PingThread import PingThread
+from AsyncPing import Ping
 import pingtree
+
+from twisted.internet import reactor, defer
 
 def findIp():
     try:
@@ -76,15 +76,6 @@ class ZenPing(ZCmdBase):
 
     pathcheckthresh = 10
 
-    copyattrs = (
-        "timeOut",
-        "tries",
-        "chunk",
-        "cycleInterval",
-        "configCycleInterval",
-        "maxFailures",
-    )
-
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
         self.hostname = socket.getfqdn()
@@ -97,20 +88,21 @@ class ZenPing(ZCmdBase):
 
         self.zem = self.dmd.ZenEventManager
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStart, 
-                        summary="zenping started",
-                        severity=0, component="zenping"))
+                                 eventClass=AppStart, 
+                                 summary="zenping started",
+                                 severity=0,
+                                 component="zenping"))
         self.log.info("started")
-
 
     def loadConfig(self):
         "get the config data from file or server"
         if time.time()-self.configTime > self.configCycleInterval:
             smc = self.dmd.unrestrictedTraverse(self.configpath)
-            for att in self.copyattrs:
-                value = getattr(smc, att)
-                setattr(self, att, value)
-            self.configCycleInterval = self.configCycleInterval*60
+            for att in ("timeOut", "tries", "chunk",
+                        "cycleInterval", "configCycleInterval",
+                        "maxFailures",):
+                setattr(self, att, getattr(smc, att))
+            self.configCycleInterval *= 60
             me = None
             if self.options.name:
                 me = self.dmd.Devices.findDevice(self.options.name)
@@ -148,117 +140,99 @@ class ZenPing(ZCmdBase):
         pj.inprocess = True
         pj.pathcheck += 1
         self.log.debug("queue '%s' ip '%s'", pj.hostname, pj.ipaddr)
-        self.pingThread.sendPing(pj)
+        pj.deferred.addCallback(self.receiveReport)
+        self.pinger.sendPacket(pj)
 
 
-    def receiveReport(self):
+    def receiveReport(self, pj):
+        self.log.debug('receiveReport %s', pj)
+        self.reports += 1
+        self.log.debug("receive report for '%s'", pj.hostname)
+        pj.inprocess = False
         try:
-            pj = self.reportqueue.get(True,1)
-            self.reports += 1
-            self.log.debug("receive report for '%s'", pj.hostname)
-            pj.inprocess = False
-            return pj
-        except Queue.Empty: pass
+            pj = self.pjgen.next()
+            self.sendPing(pj)
+        except StopIteration:
+            pass
+        except Exception, ex:
+            import traceback
+            traceback.print_exc(ex)
 
+        if self.reports == self.sent:
+            self.sendHeartbeat()
+            runtime = time.time() - self.start
+            self.log.info("sent %d pings in %3.2f seconds" %
+                          (self.sent, runtime))
+            if self.options.cycle:
+                nextRun = max(self.cycleInterval - runtime, 0)
+                reactor.callLater(nextRun, self.startSynchDb)
+            else:
+                self.stop()
+            
+        if pj.rtt == -1:
+                pj.status += 1
+                if pj.status == 1:         
+                    self.log.debug("first failure '%s'", pj.hostname)
+                    # if our path back is currently clear add our parent
+                    # to the ping list again to see if path is really clear
+                    # and then re-ping ourself.
+                    if not pj.checkpath():
+                        routerpj = pj.routerpj()
+                        if routerpj:
+                            self.sendPing(routerpj)
+                        self.sendPing(pj)
+                else:
+                    failname = pj.checkpath()
+                    if failname:
+                        pj.eventState = 2 # suppressed FIXME
+                        pj.message += (", failed at %s" % failname)
+                    self.log.warn(pj.message)
+                    self.sendEvent(pj)
+        # device was down and message sent but is back up
+        elif pj.status > 0:
+            pj.severity = 0
+            self.sendEvent(pj)
+            pj.status = 0
+            self.log.info(pj.message)
 
-    def cycleLoop(self):
-        self.reportqueue = Queue.Queue()
-        self.pingThread = PingThread(self.reportqueue,
-                                    self.tries, self.timeOut, self.chunk)
+    def startCycleLoop(self):
+        self.pinger = Ping(self.tries, self.timeOut, self.chunk)
         self.sent = self.reports = 0
-        pjgen = self.pingtree.pjgen()
-        for i, pj in enumerate(pjgen):
+        self.pjgen = self.pingtree.pjgen()
+        for i, pj in enumerate(self.pjgen):
             if i > self.chunk: break
             self.sendPing(pj)
-        self.pingThread.start()
-        while self.reports < self.sent or not self.pingThread.isAlive():
-            self.log.debug("reports=%s sent=%s", self.reports, self.sent)
-            try: 
-                pj = pjgen.next()
-                self.sendPing(pj)
-            except StopIteration: pass
-            pj = self.receiveReport()
-            if not pj: continue
-            try:
-                self.log.debug("processing pj for %s" % pj.hostname)
 
-                # ping attempt failed
-                if pj.rtt == -1:
-                    pj.status += 1
-                    if pj.status == 1:         
-                        self.log.debug("first failure '%s'", pj.hostname)
-                        # if our path back is currently clear add our parent
-                        # to the ping list again to see if path is really clear
-                        # and then reping ourself.
-                        if not pj.checkpath():
-                            routerpj = pj.routerpj()
-                            if routerpj: self.sendPing(routerpj)
-                            self.sendPing(pj)
-                    else:
-                        failname = pj.checkpath()
-                        if failname:
-                            pj.eventState = 2 #suppressed FIXME
-                            pj.message += (", failed at %s" % failname)
-                        self.log.warn(pj.message)
-                        self.sendEvent(pj)
-                # device was down and message sent but is back up
-                elif pj.status > 0:
-                    pj.severity = 0
-                    self.sendEvent(pj)
-                    pj.status = 0
-                    self.log.info(pj.message)
-                # device was down no message sent but is back up
-                #elif pj.status == 1:
-                #    pj.status = 0
-                #self.log.debug(pj.message)
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("processing pj for '%s'", pj.hostname)
-        self.pingThread.stop()
+    def startSynchDb(self):
+        self.start = time.time()
+        self.syncdb()
+        self.startLoadConfig()
 
+    def startLoadConfig(self):
+        self.loadConfig()
+        self.startCycleLoop()
 
-    def mainLoop(self):
-        # for the first run, quit on failure
-        if self.options.cycle:
-            while 1:
-                start = time.time()
-                try:
-                    self.syncdb()
-                    self.loadConfig()
-                    self.log.info("starting ping cycle")
-                    self.cycleLoop()
-                    self.log.info("sent %d pings in %3.2f seconds" % 
-                                (self.sent, (time.time() - start)))
-                    self.sendHeartbeat()
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
-                    self.log.exception("unknown exception in main loop")
-                runtime = time.time() - start
-                if runtime < self.cycleInterval:
-                    time.sleep(self.cycleInterval - runtime)
-        else:
-            self.loadConfig()
-            self.cycleLoop()
-            self.sendHeartbeat()
-        self.stop()
-        self.log.info("stopped")
+    def sigTerm(self, signum, frame):
+        'controlled shutdown of main loop on interrupt'
+        try:
+            ZCmdBase.sigTerm(self, signum, frame)
+        except SystemExit:
+            reactor.stop()
 
+    def start(self):
+        self.startSynchDb()
 
     def stop(self):
-        """Stop zenping and its child threads.
-        """
         self.log.info("stopping...")
-        if hasattr(self,"pingThread"):
-            self.pingThread.stop()
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStop, 
-                        summary="zenping stopped",
-                        severity=4, component="zenping"))
+                                 eventClass=AppStop, 
+                                 summary="zenping stopped",
+                                 severity=4, component="zenping"))
+        reactor.stop()
 
 
     def sendHeartbeat(self):
-        """Send a heartbeat event for this monitor.
-        """
+        'Send a heartbeat event for this monitor.'
         timeout = self.cycleInterval*3
         evt = EventHeartbeat(socket.getfqdn(), "zenping", timeout)
         self.zem.sendEvent(evt)
@@ -267,35 +241,39 @@ class ZenPing(ZCmdBase):
     def sendEvent(self, pj):
         """Send an event to event backend.
         """
-        evt = Event(
-            device=pj.hostname, 
-            component="icmp", 
-            ipAddress=pj.ipaddr, 
-            summary=pj.message, 
-            severity=pj.severity,
-            eventClass=PingStatus,
-            eventGroup=self.eventGroup, 
-            agent=self.agent, 
-            manager=self.hostname)
+        evt = Event(device=pj.hostname, 
+                    component="icmp", 
+                    ipAddress=pj.ipaddr, 
+                    summary=pj.message, 
+                    severity=pj.severity,
+                    eventClass=PingStatus,
+                    eventGroup=self.eventGroup, 
+                    agent=self.agent, 
+                    manager=self.hostname)
         evstate = getattr(pj, 'eventState', None)
         if evstate is not None: evt.eventState = evstate
         self.zem.sendEvent(evt)
 
-
-
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--configpath', dest='configpath',
-                default="Monitors/StatusMonitors/localhost",
-                help="path to our monitor config ie: "
-                     "/Monitors/StatusMonitors/localhost")
-        self.parser.add_option('--name', dest='name',
-                help="name to use when looking up our record in the dmd"
-                     "defaults to our fqdn as returned by socket.getfqdn")
+        self.parser.add_option('--configpath',
+                               dest='configpath',
+                               default="Monitors/StatusMonitors/localhost",
+                               help="path to our monitor config ie: "
+                               "/Monitors/StatusMonitors/localhost")
+        self.parser.add_option('--name',
+                               dest='name',
+                               help=("name to use when looking up our "
+                                     "record in the dmd "
+                                     "defaults to our fqdn as returned "
+                                     "by socket.getfqdn"))
+
 
 
 if __name__=='__main__':
     if sys.platform == 'win32':
         time.time = time.clock
     pm = ZenPing()
-    pm.mainLoop()
+    pm.start()
+    reactor.run(installSignalHandlers=False)
+    pm.log.info("stopped")
