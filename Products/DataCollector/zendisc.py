@@ -140,6 +140,7 @@ class ZenDisc(ZenModeler):
             return
         myname = socket.getfqdn()
         self.log.info("my hostname = %s", myname)
+        myip = None
         try:
             myip = socket.gethostbyname(myname)
             self.log.info("my ip = %s", myip)
