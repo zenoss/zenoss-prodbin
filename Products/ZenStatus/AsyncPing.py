@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2005 Zenoss, Inc. All rights reserved.
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
@@ -130,7 +130,7 @@ class Ping(object):
         """receive a packet and decode its header"""
         while 1:
             try:
-                data = self.pingsocket.recv(1024)
+                data, (host, port) = self.pingsocket.recvfrom(1024)
                 if not data: return
                 ipreply = ip.Packet(data)
                 icmppkt = icmp.Packet(ipreply.data)
@@ -141,11 +141,11 @@ class Ping(object):
                     plog.debug("echo reply pkt %s %s", sip, icmppkt)
                     self.pingJobSucceed(self.jobqueue[sip])
                 elif icmppkt.type == icmp.ICMP_UNREACH:
-                    plog.debug("host unreachable pkt %s %s", sip, icmppkt)
                     try:
                         origpkt = ip.Packet(icmppkt.data)
                         origicmp = icmp.Packet(origpkt.data)
                         dip = origpkt.dst
+                        plog.debug("host unreachable pkt %s", dip)
                         if (origicmp.data == self.pktdata 
                             and self.jobqueue.has_key(dip)):
                             self.pingJobFail(self.jobqueue[dip])
@@ -159,8 +159,8 @@ class Ping(object):
                 if err == errno.EAGAIN:
                     return
                 raise err
-            except Exception:
-                log.exception("receiving packet")
+            except Exception, ex:
+                log.exception("receiving packet error: %s" % ex)
 
 
     def pingJobSucceed(self, pj):
@@ -169,7 +169,6 @@ class Ping(object):
         plog.debug("pj succeed for %s", pj.ipaddr)
         pj.rtt = time.time() - pj.start
         pj.message = "%s ip %s is up" % (pj.hostname, pj.ipaddr)
-        del self.jobqueue[pj.ipaddr]
         self.reportPingJob(pj)
 
 
@@ -179,11 +178,12 @@ class Ping(object):
         plog.debug("pj fail for %s", pj.ipaddr)
         pj.rtt = -1
         pj.message = "%s ip %s is down" % (pj.hostname, pj.ipaddr) 
-        del self.jobqueue[pj.ipaddr]
         self.reportPingJob(pj)
 
     def reportPingJob(self, pj):
-        pj.deferred.callback(pj)
+        del self.jobqueue[pj.ipaddr]
+        if not pj.deferred.called:
+            pj.deferred.callback(pj)
 
     def checkTimeout(self, pj):
         if self.jobqueue.has_key(pj.ipaddr):

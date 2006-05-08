@@ -140,14 +140,13 @@ class ZenPing(ZCmdBase):
         pj.inprocess = True
         pj.pathcheck += 1
         self.log.debug("queue '%s' ip '%s'", pj.hostname, pj.ipaddr)
-        pj.deferred.addCallback(self.receiveReport)
         self.pinger.sendPacket(pj)
+        pj.deferred.addCallback(self.receiveReport)
 
 
     def receiveReport(self, pj):
-        self.log.debug('receiveReport %s', pj)
         self.reports += 1
-        self.log.debug("receive report for '%s'", pj.hostname)
+        self.log.debug("Sent %d Reports %d" % (self.sent, self.reports))
         pj.inprocess = False
         try:
             pj = self.pjgen.next()
@@ -199,12 +198,12 @@ class ZenPing(ZCmdBase):
         self.pinger = Ping(self.tries, self.timeOut, self.chunk)
         self.sent = self.reports = 0
         self.pjgen = self.pingtree.pjgen()
+        self.start = time.time()
         for i, pj in enumerate(self.pjgen):
             if i > self.chunk: break
             self.sendPing(pj)
 
     def startSynchDb(self):
-        self.start = time.time()
         self.syncdb()
         self.startLoadConfig()
 
