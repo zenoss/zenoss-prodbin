@@ -185,12 +185,34 @@ class ZenPing(ZCmdBase):
                         pj.message += (", failed at %s" % failname)
                     self.log.warn(pj.message)
                     self.sendEvent(pj)
+                    self.markChildrenDown(pj)
         # device was down and message sent but is back up
         elif pj.status > 0:
             pj.severity = 0
             self.sendEvent(pj)
             pj.status = 0
             self.log.info(pj.message)
+
+    def markChildrenDown(self, pj):
+        """If this is a router PingJob, mark all Nodes
+        away from the ping monitor as down"""
+
+        # unfortunately there's no mapping from pj to router, so find it
+        routers = []
+        def recurse(node):
+            if routers: return
+            if node.pj == pj:
+                routers.append(pj)
+            for c in node.children:
+                recurse(c)
+        recurse(self.pingtree)
+        if not routers: return
+        assert len(routers) == 1
+        children = routers[0].pjgen()
+        children.next()                 # skip self
+        for pj in children:
+            pj.eventState = 2           # suppress
+            self.sendEvent(pj)
 
     def startCycleLoop(self):
         self.pinger = Ping(self.tries, self.timeOut, self.chunk)
