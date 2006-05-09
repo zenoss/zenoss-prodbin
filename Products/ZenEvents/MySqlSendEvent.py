@@ -6,12 +6,13 @@ import logging
 log = logging.getLogger("zen.Events")
 
 from _mysql_exceptions import ProgrammingError, OperationalError
+from ZEO.Exceptions import ClientDisconnected
 
 import Products.ZenUtils.guid as guid
 from DbAccessBase import DbAccessBase
 from Event import Event, EventHeartbeat, buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
-from Exceptions import *
+from Products.ZenEvents.Exceptions import *
 
 class MySqlSendEventMixin:
     """
@@ -37,11 +38,16 @@ class MySqlSendEventMixin:
         event.severity = int(event.severity)
         
         if getattr(self, "getDmdRoot", False):
-            event = self.applyEventContext(event)
+            try:
+                event = self.applyEventContext(event)
+            except ClientDisconnected, e:
+                log.error(e)
+                raise ZenBackendFailure(str(e))
         if not event: return
         
         #FIXME - ungly hack to make sure severity is an int
-        event.severity = int(event.severity)
+        # Don't think this is needed anymore
+        #event.severity = int(event.severity)
        
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
@@ -94,6 +100,9 @@ class MySqlSendEventMixin:
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)
+        except OperationalError, e:
+            log.error(e)
+            raise ZenBackendFailure(str(e))
             
 
     def applyEventContext(self, evt):
@@ -176,6 +185,8 @@ class MySqlSendEventMixin:
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)
+        except OperationalError, e:
+            raise ZenBackendFailure(str(e))
 
 
     def buildStatusInsert(self, statusdata, table, evid):

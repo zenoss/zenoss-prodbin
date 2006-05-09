@@ -16,6 +16,7 @@ from Event import Event, EventHeartbeat
 from SyslogProcessingThread import SyslogProcessingThread
 
 from ZenEventClasses import AppStart, AppStop
+from Products.ZenEvents.Exceptions import ZenBackendFailure
 
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
@@ -138,8 +139,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
     def sendEvent(self, evt):
         zem = None
         try:
-            zem = self.getZem()
-            zem.sendEvent(evt)
+            try:
+                zem = self.getZem()
+                zem.sendEvent(evt)
+            except ZenBackendFailure, e:
+                self.log.error(e)
         finally:
             if zem: 
                 zem._p_jar.close()

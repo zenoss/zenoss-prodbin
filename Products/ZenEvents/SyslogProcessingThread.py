@@ -7,6 +7,7 @@ import logging
 slog = logging.getLogger("zen.Syslog")
 
 from Event import Event
+from Exceptions import ZenBackendFailure
 from syslog_h import *
 
 # Regular expressions that parse syslog tags from different sources
@@ -88,6 +89,9 @@ class SyslogProcessingThread(threading.Thread):
                 evt = self.buildEventClassKey(evt)
                 self.zem.sendEvent(evt)
             except Queue.Empty: pass
+            except ZenBackendFailure, e:
+                #FIXME - need to save event for recovery when backend is up.
+                slog.error("ZenEvent backend failre: %s", e) 
             except:
                 slog.exception("event processing failure: %s", host)
 
