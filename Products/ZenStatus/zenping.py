@@ -137,7 +137,7 @@ class ZenPing(ZCmdBase):
         self.sent += 1
         pj.inprocess = True
         pj.pathcheck += 1
-        self.log.debug("queue '%s' ip '%s'", pj.hostname, pj.ipaddr)
+        self.log.debug("pinging '%s' ip '%s'", pj.hostname, pj.ipaddr)
         self.pinger.sendPacket(pj)
         pj.deferred.addCallback(self.receiveReport)
 
@@ -193,6 +193,7 @@ class ZenPing(ZCmdBase):
             pj.status = 0
             self.log.info(pj.message)
 
+
     def markChildrenDown(self, pj):
         """If this is a router PingJob, mark all Nodes
         away from the ping monitor as down"""
@@ -213,6 +214,7 @@ class ZenPing(ZCmdBase):
         for pj in children:
             pj.eventState = 2           # suppress
             self.sendEvent(pj)
+
 
     def startCycleLoop(self):
         self.pinger = Ping(self.tries, self.timeOut, self.chunk)
