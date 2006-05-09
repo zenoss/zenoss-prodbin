@@ -5,7 +5,6 @@
 PRGHOME=$ZENHOME/Products/ZenRRD
 PRGNAME=zenperfsnmp.py
 CFGFILE=$CFGDIR/zenperfsnmp.conf
-
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in

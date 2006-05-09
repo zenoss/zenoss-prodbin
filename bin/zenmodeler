@@ -5,7 +5,7 @@
 
 PRGHOME=$ZENHOME/Products/DataCollector
 PRGNAME=zenmodeler.py
-
+CFGFILE=$CFGDIR/zenmodeler.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {

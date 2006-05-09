@@ -1,4 +1,0 @@
-#!/bin/bash
-export ZENHOME=/usr/local/zenoss
-export PERL5LIB=$ZENHOME/lib/perl
-$ZENHOME/cricket/bin/collect-subtrees $*

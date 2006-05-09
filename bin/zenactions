@@ -4,7 +4,7 @@
 
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenactions.py
-
+CFGFILE=$CFGDIR/zenactions.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 case "$1" in
