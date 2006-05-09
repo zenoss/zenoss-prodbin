@@ -145,9 +145,10 @@ class ZenDaemon(CmdBase):
     def buildOptions(self):
         CmdBase.buildOptions(self)
         self.parser.add_option('--uid',dest='uid',default="zenoss",
-                    help='user to become when running default:zenoss')
-        self.parser.add_option('-c', '--cycle',dest='cycle',action="store_true",
-                    help="Cycle continuously on cycleInterval from zope")
-        self.parser.add_option('-D', '--daemon',
-                    dest='daemon',action="store_true",
-                    help="Become a unix daemon")
+                help='user to become when running default:zenoss')
+        self.parser.add_option('-c', '--cycle',dest='cycle',
+                action="store_true", default=False,
+                help="Cycle continuously on cycleInterval from zope")
+        self.parser.add_option('-D', '--daemon', default=False,
+                dest='daemon',action="store_true",
+                help="Become a unix daemon")

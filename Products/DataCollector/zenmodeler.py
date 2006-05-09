@@ -303,7 +303,7 @@ class ZenModeler(ZCmdBase):
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--debug',
-                dest='debug', action="store_true",
+                dest='debug', action="store_true", default=False,
                 help="don't fork threads for processing")
         self.parser.add_option('--parallel', dest='parallel', 
                 type='int', default=defaultParallel,
@@ -330,7 +330,7 @@ class ZenModeler(ZCmdBase):
                 help="number of times to try to write if a "
                      "readconflict is found")
         self.parser.add_option("-F", "--force",
-                    dest="force", action='store_true',
+                    dest="force", action='store_true', default=False,
                     help="force collection of config data " 
                          "(even without change to the device)")
         TelnetClient.buildOptions(self.parser, self.usage)

@@ -12,9 +12,12 @@ $Id: Utils.py,v 1.15 2004/04/04 02:22:38 edahl Exp $"""
 
 __version__ = "$Revision: 1.15 $"[11:-2]
 
+import sys
+import os
 import types
 import struct
 import logging
+log = logging.getLogger("zen.Utils")
 
 from Acquisition import aq_base
 
@@ -106,11 +109,17 @@ def checkClass(myclass, className):
 
 def parseconfig(options):
     """parse a config file which has key value pairs delimited by white space"""
+    if not os.path.exists(options.configfile):
+        print >>sys.stderr, "WARN: config file %s not found skipping" % (
+                            options.configfile)
+        return
     lines = open(options.configfile).readlines()
     for line in lines:
         if line.lstrip().startswith('#'): continue
         key, value = line.split()
         key = key.lower()
+        defval = getattr(options, key, None)
+        if defval: value = type(defval)(value)
         setattr(options, key, value)
 
 
@@ -213,7 +222,7 @@ def zenpathjoin(pathar):
     return "/" + "/".join(pathar)
 
 def OLDgetHierarchyObj(root, name, factory, lastfactory=None, 
-                    relpath=None, lastrelpath=None, log=None):
+                    relpath=None, lastrelpath=None, llog=None):
     """build and return the path to an object 
     based on a hierarchical name (ex /Mail/Mta) relative
     to the root passed in.  If lastfactory is passed the leaf object
@@ -233,20 +242,19 @@ def OLDgetHierarchyObj(root, name, factory, lastfactory=None,
             if relpath and getattr(aq_base(root), relpath, False):
                 relobj = getattr(root, relpath)
                 if not getattr(aq_base(relobj), id, False):
-                    if log: log.debug(
-                        "creating object with id %s in relation %s" % 
-                        (id, relobj.getId()))
+                    log.debug("creating object with id %s in relation %s",
+                                id, relobj.getId())
                     factory(relobj, id)
                 nextroot = relobj._getOb(id)
             else:
-                if log: log.debug("creating object with id %s"%id)
+                log.debug("creating object with id %s", id)
                 factory(root, id)
                 nextroot = root._getOb(id)
         root = nextroot
     return root
 
 
-def createHierarchyObj(root, name, factory, relpath="", log=None):
+def createHierarchyObj(root, name, factory, relpath="", llog=None):
     """
     Create a hierarchy object from its path we use relpath to skip down
     any missing relations in the path and factory is the constructor for 
@@ -260,8 +268,7 @@ def createHierarchyObj(root, name, factory, relpath="", log=None):
         if not getattr(aq_base(root), id, False):
             if id == relpath: 
                 raise AttributeError("relpath %s not found" % relpath)
-            if log: log.debug("Creating object with id %s in object %s" % 
-                            (id, root.getId()))
+            log.debug("Creating object with id %s in object %s",id,root.getId())
             newobj = factory(id)
             root._setObject(id, newobj)
         root = getattr(root, id)

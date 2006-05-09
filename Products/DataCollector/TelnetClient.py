@@ -355,10 +355,10 @@ def buildOptions(parser=None, usage=None):
                 default = defaultPasswordRegex,
                 help='regex that will find the password prompt')
     parser.add_option('--enable',
-                dest='enable', action='store_true',
+                dest='enable', action='store_true', default=False,
                 help='enter enable mode on a cisco device')
     parser.add_option('--termlen',
-                dest='termlen', action='store_true',
+                dest='termlen', action='store_true', default=False,
                 help='enter send terminal length 0 on a cisco device')
     parser.add_option('--enablePause',
                 dest='enablePause', type='float',

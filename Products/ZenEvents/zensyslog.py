@@ -162,16 +162,16 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             dest='dmdpath', default="/zport/dmd",
             help="zope path to our dmd /zport/dmd")
         self.parser.add_option('--parsehost',
-            dest='parsehost', action="store_true", 
+            dest='parsehost', action="store_true",  default=False,
             help="try to parse the hostname part of a syslog HEADER")
         self.parser.add_option('--stats',
-            dest='stats', action="store_true", 
+            dest='stats', action="store_true",  default=False,
             help="print stats to log every 2 secs")
         self.parser.add_option('--logorig',
-            dest='logorig', action="store_true", 
+            dest='logorig', action="store_true",  default=False,
             help="log the original message")
         self.parser.add_option('--debug',
-            dest='debug', action="store_true", 
+            dest='debug', action="store_true",  default=False,
             help="debug mode no threads")
         self.parser.add_option('--minpriority',
             dest='minpriority', default=6, type="int",

@@ -171,10 +171,10 @@ class ZenDisc(ZenModeler):
                     default="/Discovered",
                     help="default device class for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
-                    action="store_true",
+                    action="store_true", default=False,
                     help="remodel existing objects")
         self.parser.add_option('--routers', dest='routersonly',
-                    action="store_true",
+                    action="store_true", default=False,
                     help="only discover routers")
         self.parser.add_option('--tries', dest='tries', default=1, type="int",
                     help="how many ping tries")
