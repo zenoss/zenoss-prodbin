@@ -25,7 +25,6 @@ import icmp
 import os
 import time
 import sys
-import Queue
 
 import Globals # make zope imports work
 
@@ -84,7 +83,6 @@ class ZenPing(ZCmdBase):
             self.configpath = self.configpath[1:]
         self.configCycleInterval = 0
         self.configTime = 0
-        self.reportqueue = Queue.Queue()
 
         self.zem = self.dmd.ZenEventManager
         self.zem.sendEvent(Event(device=socket.getfqdn(), 
