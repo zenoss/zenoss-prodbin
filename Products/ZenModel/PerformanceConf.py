@@ -63,7 +63,6 @@ class PerformanceConf(Monitor, StatusColor):
 
     snmpCycleInterval = 60
     configCycleInterval = 20
-    prodStateThreshold = 500
     renderurl = ''
     renderuser = ''
     renderpass = ''
@@ -78,7 +77,6 @@ class PerformanceConf(Monitor, StatusColor):
     _properties = (
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
         {'id':'configCycleInterval','type':'int','mode':'w'},
-        {'id':'prodStateThreshold','type':'int','mode':'w'},
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
@@ -123,8 +121,7 @@ class PerformanceConf(Monitor, StatusColor):
         result = []
         for dev in self.devices():
             dev = dev.primaryAq()
-            if (not dev.pastSnmpMaxFailures() 
-                and dev.productionState >= self.prodStateThreshold
+            if (not dev.pastSnmpMaxFailures() and dev.monitorDevice()
                 and not dev.zSnmpMonitorIgnore):
                 result.append(dev.getSnmpOidTargets())
         return result

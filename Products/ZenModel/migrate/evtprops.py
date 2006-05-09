@@ -22,7 +22,8 @@ def convert(evt):
     if hasattr(aq_base(evt), 'zEvent_severity'):
         try:
             sev = int(evt.zEvent_severity)
-            evt._setProperty('zEventSeverity', sev, type='int')
+            if not hasattr(aq_base(evt), 'zEventSeverity'):
+                evt._setProperty('zEventSeverity', sev, type='int')
         except ValueError:
             print sev 
         evt._delProperty('zEvent_severity')
@@ -38,7 +39,7 @@ class EvtProps(Migrate.Step):
         for evt in dmd.Events.getSubEventClasses():
             convert(evt)
             for inst in evt.getInstances():
-                convert(evt)
+                convert(inst)
         convert(dmd.Events)
 
 EvtProps()

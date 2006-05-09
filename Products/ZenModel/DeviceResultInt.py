@@ -77,7 +77,8 @@ class DeviceResultInt:
         dev = self.device()
         if dev:
             dev = dev.primaryAq()
-            if not getattr(dev, 'zPingMonitorIgnore', False):
+            if not (dev.monitorDevice() or 
+                getattr(dev, 'zPingMonitorIgnore', False)):
                 return dev.getStatus(PingStatus)
         return -1
     security.declareProtected('View', 'getPingStatusNumber')
@@ -91,8 +92,9 @@ class DeviceResultInt:
         dev = self.device()
         if dev:
             dev = dev.primaryAq()
-            if (not getattr(dev, 'zSnmpMonitorIgnore', False) and 
-                getattr(dev, 'zSnmpCommunity', "")):
+            if (not (getattr(dev, 'zSnmpMonitorIgnore', False)
+                or dev.monitorDevice()) 
+                and getattr(dev, 'zSnmpCommunity', "")):
                 return dev.getStatus(SnmpStatus)
         return -1
     getSnmpStatusNumber = getSnmpStatus
