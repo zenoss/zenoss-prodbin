@@ -249,7 +249,7 @@ class zenperfsnmp(ZenDaemon):
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
 
-        self.parser.add_option('--device', dest='device',
+        self.parser.add_option('--device', dest='device', default="",
                                help='gather performance for a single device')
 
         self.parser.add_option(
@@ -309,7 +309,7 @@ class zenperfsnmp(ZenDaemon):
     def startUpdateConfig(self):
         'Periodically ask the Zope server for basic configuration data.'
         lst = []
-        deferred = self.model.callRemote('getDevices')
+        deferred = self.model.callRemote('getDevices', self.options.device)
         deferred.addCallbacks(self.updateDeviceList, self.log.debug)
         lst.append(deferred)
 
@@ -348,7 +348,6 @@ class zenperfsnmp(ZenDaemon):
         if self.options.device:
             self.log.debug('Gathering performance data for %s ' %
                            self.options.device)
-            deviceList = [n for n in deviceList if n[0] == self.options.device]
         self.log.debug('Configured %d devices' % len(deviceList))
 
         if not deviceList: self.log.warn("no devices found")
