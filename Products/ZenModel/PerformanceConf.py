@@ -14,8 +14,9 @@ $Id: PerformanceConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
-import logging
 import transaction
+import logging
+log = logging.getLogger("zen.PerformanceConf")
 
 import xmlrpclib
 
@@ -122,8 +123,7 @@ class PerformanceConf(Monitor, StatusColor):
         result = []
         for dev in self.devices():
             dev = dev.primaryAq()
-            if (not dev.pastSnmpMaxFailures() and dev.monitorDevice()
-                and not dev.zSnmpMonitorIgnore):
+            if dev.monitorDevice() and dev.getSnmpStatus() != -1:
                 try:
                     result.append(dev.getSnmpOidTargets())
                 except POSError: raise
