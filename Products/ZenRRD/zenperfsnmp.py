@@ -262,7 +262,7 @@ class zenperfsnmp(ZenDaemon):
             dest="zopeusername", help="username for zope server",
             default='admin')
         self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
-        self.parser.add_option("--debug", dest="debug", action='store_true'
+        self.parser.add_option("--debug", dest="debug", action='store_true',
                                 default='False')
         self.parser.add_option(
             '--zem', dest='zem',
