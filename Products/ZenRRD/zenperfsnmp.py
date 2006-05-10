@@ -502,7 +502,7 @@ class zenperfsnmp(ZenDaemon):
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
-        success = reduce(bool.__and__, firsts(updates))
+        success = reduce(bool.__and__, [True] + firsts(updates))
         self.status.record(success)
         proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
 
