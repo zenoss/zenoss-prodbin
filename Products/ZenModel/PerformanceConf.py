@@ -19,6 +19,7 @@ import transaction
 
 import xmlrpclib
 
+from ZODB.POSException import POSError
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -123,7 +124,11 @@ class PerformanceConf(Monitor, StatusColor):
             dev = dev.primaryAq()
             if (not dev.pastSnmpMaxFailures() and dev.monitorDevice()
                 and not dev.zSnmpMonitorIgnore):
-                result.append(dev.getSnmpOidTargets())
+                try:
+                    result.append(dev.getSnmpOidTargets())
+                except POSError: raise
+                except:
+                    log.exception("device %s", dev.id)
         return result
 
 
