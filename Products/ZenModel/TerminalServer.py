@@ -50,4 +50,7 @@ class TerminalServer(Device):
     
     security = ClassSecurityInfo()
 
+    def getRRDTemplateName(self):
+        return "Device"
+
 InitializeClass(TerminalServer)
