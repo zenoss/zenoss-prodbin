@@ -460,9 +460,10 @@ class zenperfsnmp(ZenDaemon):
             n = 1
         for part in chunk(proxy.oidMap.keys(), n):
             lst.append(proxy.get(part, proxy.timeout, proxy.tries))
-        d = defer.DeferredList(lst, consumeErrors=True)
-        d.addCallback(self.storeValues, deviceName)
-        return d
+        if lst:
+            d = defer.DeferredList(lst, consumeErrors=True)
+            d.addCallback(self.storeValues, deviceName)
+            return d
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
