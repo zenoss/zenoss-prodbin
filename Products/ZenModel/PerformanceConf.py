@@ -117,11 +117,12 @@ class PerformanceConf(Monitor, StatusColor):
 
 
     security.declareProtected('View','getDevices')
-    def getDevices(self):
+    def getDevices(self, devname=None):
         """Return information for snmp collection on all devices in the form
         (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
         result = []
         for dev in self.devices():
+            if devname and dev.id != devname: continue
             dev = dev.primaryAq()
             if dev.monitorDevice() and dev.getSnmpStatus() != -1:
                 try:
