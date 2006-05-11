@@ -135,7 +135,7 @@ class IpInterface(OSComponent):
     security.declareProtected('View', 'viewName')
     def viewName(self):
         """Use the unmagled interface name for display"""
-        return self.name
+        return self.name.rstrip('\x00') #Bogus fix for MS names
 
     def primarySortKey(self):
         return self.name
