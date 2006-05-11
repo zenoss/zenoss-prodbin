@@ -117,11 +117,12 @@ class ActionRule(ZenModelRM):
     
     security.declareProtected('Change Settings', 'manage_editActionRule')
     def manage_editActionRule(self,  where="", delay=0, enabled=True, 
-                              action="", targetAddr="", REQUEST=None):
+                          action="", format="", targetAddr="", REQUEST=None):
         """Update user settings.
         """
         self.where = where
         self.delay = delay
+        self.format = format
         self.enabled = enabled
         if not self.enabled:
             self._clearAlertState()

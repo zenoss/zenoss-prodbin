@@ -686,7 +686,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         data = self.checkCache("dashboardinfo%s" % simple)
         if data: return data
         data = {}
-        devices = [d[0] for d in self.getDeviceIssues(severity=4, state=1)]
+        devices = [d[0] for d in self.getDeviceIssues(
+                            severity=4, state=1, limit=100)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
 
