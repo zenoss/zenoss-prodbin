@@ -25,7 +25,6 @@ from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
 # Custom device properties start with c
 iscustprop = re.compile("^c[A-Z]").search
-    
 
 class ZenModelBase(object):
     """
@@ -235,6 +234,21 @@ class ZenModelBase(object):
         return self.zenPropertyIds(pfilt=iscustprop)
         
    
+    def custPropertyMap(self):
+        """List custom property definitions
+        [{'id':'cName','label':'Name', 'type':'string'},]
+        """
+        return self.zenPropertyMap(pfilt=iscustprop)
+
+
+    def visibleCustPropertyMap(self):
+        """List custom property definitions that should be visible
+        [{'id':'cName','label':'Name', 'type':'string'},]
+        """
+        return [ p for p in self.zenPropertyMap(pfilt=iscustprop) \
+                    if p.get('visible', True) ]
+
+
     def saveCustProperties(self, REQUEST):
         """Save custom properties from REQUEST.form.
         """

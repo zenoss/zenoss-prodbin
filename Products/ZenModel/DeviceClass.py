@@ -131,6 +131,20 @@ class DeviceClass(DeviceOrganizer):
     security = ClassSecurityInfo()
 
     
+    security.declareProtected('View', 'zentinelTabs')
+    def zentinelTabs(self, templateName):
+        """Return a list of hashs that define the screen tabs for this object.
+        [{'name':'Name','action':'template','selected':False},...]
+        """
+        tabs = super(DeviceClass, self).zentinelTabs(templateName)
+        if self.getPrimaryId() == "/zport/dmd/Devices" and self.isManager():
+            tab = {'action': 'editCustSchema', 'name':'Custom Schema'}
+            if templateName == tab['action']:
+                tab['selected'] = True
+            tabs.insert(-1, tab)
+        return tabs
+
+
     def getPeerDeviceClassNames(self, pyclass=None):
         "Return a list of all device paths that have the python class pyclass"
         if pyclass == None: 

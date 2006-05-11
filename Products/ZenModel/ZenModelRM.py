@@ -23,6 +23,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
+from ZPublisher.Converters import type_converters
 
 from Products.ZenUtils.Utils import getSubObjects
 
@@ -75,6 +76,26 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
             return self.callZenScreen(REQUEST, redirect)
 
 
+    def zmanage_addProperty(self, id, value, type, label, visible,REQUEST=None):
+        """Add a new property via the web.
+        Sets a new property with the given id, type, and value.
+        """
+        if type_converters.has_key(type):
+            value=type_converters[type](value)
+        self._setProperty(id.strip(), value, type, label, visible)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    def zmanage_delProperties(self, ids=(), REQUEST=None):
+        """Delete properties from an object.
+        """
+        for id in ids:
+            self._delProperty(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):
         return self.getId()

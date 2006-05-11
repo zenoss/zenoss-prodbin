@@ -1,0 +1,127 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="props here/custPropertyMap">
+    <tr>
+      <th class="tabletitle" colspan="5">
+      Custom Properties
+      </th>
+    </tr>
+    <tr>
+      <th class="tableheader">Property</th>
+      <th class="tableheader">Label</th>
+      <th class="tableheader">Value</th>
+      <th class="tableheader">Type</th>
+      <th class="tableheader">Visible</th>
+    </tr>
+    <tr tal:repeat="prop props">
+      <td class="tableheader">
+          <input type="checkbox" name="ids:list" tal:attributes="value prop/id">
+          <tal:block tal:content="prop/id"/>
+      </td>
+      <td class="tableheader" tal:content="prop/label | nothing"/>
+      <td class="tablevalues" tal:condition="not: here/isManager"
+        tal:content="python: here.zenPropertyString(prop['id'])"/>
+      <td class="tablevalues" tal:condition="here/isManager"
+        tal:define="ptype prop/type | string:string;
+                    pname python:prop['id']+':'+ptype;
+                    pvalue python: here.zenPropertyString(prop['id'])">
+            <span tal:condition="python: ptype=='boolean'">
+                <select class="tablevalues" 
+                    tal:attributes="name pname">
+                    <option tal:repeat="e python:(True,False)" tal:content="e"
+                    tal:attributes="value e; selected python:e==pvalue"/>
+                </select>
+            </span>
+            <span tal:condition="python: ptype=='selection'">
+                <select class="tablevalues" 
+                    tal:attributes="name prop/id">
+                    <option tal:repeat="v python:getattr(here, prop['select_variable'], [])" 
+                        tal:content="v"/>
+                </select>
+                <span tal:content="string: select_variable: ${prop/select_variable}"/>
+            </span>
+            <span tal:condition="python: ptype=='lines'">
+            <textarea class="tablevalues" rows='3' cols="43"
+                tal:attributes="name pname"
+                tal:content="pvalue">
+            </textarea>        
+            </span>
+            <span tal:condition="python: ptype not in ('boolean','lines','selection')">
+            <input class="tablevalues" type="text" size="50"
+                tal:attributes="value pvalue;name pname"/>
+            </span>
+      </td>
+      <td class="tablevalues" tal:content="prop/type"/> 
+      <td class="tablevalues" tal:content="prop/visible | python:True"/> 
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+    <td colspan="5">
+        <input class="tableheader" type="submit" 
+            name="saveCustProperties:method" value=" Save " />
+        |
+        <input name="zmanage_delProperties:method" type="submit" 
+            class="tableheader" value="Delete" />
+
+    </td>
+    </tr>
+</table>
+</form>
+<br/>
+<form method="post"
+tal:attributes="action here/getPrimaryUrlPath">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1">
+<tr><th class="tabletitle" colspan="2">Add Property</th></tr>
+<tr>
+  <td class="tableheader">Label</td>
+  <td class="tablevalues"> 
+  <input type="text" name="label" size="30" value=""/>
+  </td>
+</tr>
+<tr>
+  <td class="tableheader">Name</td>
+  <td class="tablevalues"> 
+  <input type="text" name="id" size="30" value=""/>
+  </td>
+</tr>
+<tr>
+  <td class="tableheader">Type</td>
+  <td class="tablevalues"> 
+    <select name="type">
+      <option>boolean</option>
+      <option>date</option>
+      <option>float</option>
+      <option>int</option>
+      <option>lines</option>
+      <option>long</option>
+      <option selected>string</option>
+      <option>selection</option>
+    </select>
+  </td>
+</tr>
+<tr><td class="tableheader">Default</td>
+  <td class="tablevalues"><input type="text" name="value" size="30" /></td>
+</tr>
+<tr>
+    <td class="tableheader">Visible</td>
+    <td class="tablevalues">
+        <select class="tablevalues" name="visible:boolean">
+            <option>True</option>
+            <option>False</option>
+        </select>
+    </td>
+<tr>
+  <td class="tableheader" colspan="2">
+  <input class="tableheader" type="submit" name="zmanage_addProperty:method" 
+        value=" Add " />
+  </td>
+</tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

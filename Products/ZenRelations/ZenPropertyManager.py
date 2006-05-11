@@ -59,7 +59,8 @@ class ZenPropertyManager(PropertyManager):
             setattr(self,id,value)
 
 
-    def _setProperty(self, id, value, type='string', setter=None):
+    def _setProperty(self, id, value, type='string', label=None, 
+                    visible=True, setter=None):
         """for selection and multiple selection properties
         the value argument indicates the select variable
         of the property
@@ -67,19 +68,24 @@ class ZenPropertyManager(PropertyManager):
         self._wrapperCheck(value)
         if not self.valid_property_id(id):
             raise BadRequest, 'Id %s is invalid or duplicate' % id
+
+        def setprops():
+            pschema = {'id':id,'type':type, 'visible':visible,
+                'select_variable':value}
+            self._properties=self._properties+(pschema,)
+            if setter: pschema['setter'] = setter
+            if label: pschema['label'] = label 
+            
         if type in ('selection', 'multiple selection'):
             if not hasattr(self, value):
                 raise BadRequest, 'No select variable %s' % value
-            self._properties=self._properties + (
-                {'id':id, 'type':type, 'select_variable':value},)
+            setprops()    
             if type=='selection':
                 self._setPropValue(id, '')
             else:
                 self._setPropValue(id, [])
         else:
-            pschema = {'id':id,'type':type}
-            if setter: pschema['setter'] = setter
-            self._properties=self._properties+(pschema,)
+            setprops()
             self._setPropValue(id, value)
 
 
@@ -136,14 +142,12 @@ class ZenPropertyManager(PropertyManager):
         return map(lambda x: (x, getattr(self, x)), self.zenPropertyIds())
 
 
-    def zenPropertyMap(self):
+    def zenPropertyMap(self, pfilt=iszprop):
         """Return property mapping of device tree properties."""
         rootnode = self.getZenRootNode()
-        pnames = self.zenPropertyIds()
         pmap = []
         for pdict in rootnode.propertyMap():
-            if pdict['id'] in pnames:
-                pmap.append(pdict)
+            if pfilt(pdict['id']): pmap.append(pdict)
         pmap.sort(lambda x, y: cmp(x['id'], y['id']))
         return pmap
             
@@ -190,6 +194,7 @@ class ZenPropertyManager(PropertyManager):
         if getattr(aq_base(self), propname, zenmarker) != zenmarker:
             self._updateProperty(propname, propvalue)
         else:
+            if ptype in ("selection", 'multiple selection'): ptype="string"
             if type_converters.has_key(ptype):
                 propvalue=type_converters[ptype](propvalue)
             self._setProperty(propname, propvalue, type=ptype)
