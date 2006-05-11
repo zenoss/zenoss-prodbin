@@ -188,16 +188,10 @@ a:hover {
     color:  #000000;
 }
 
-/*
-exploring fixing buttons in IE
-input[type="submit"]{
-    color: orange;
-    border: 2px solid red;
-.tableheader INPUT { 
-    color: expression(this.type=="submit"?'red':'black'); 
-    text-align: expression(this.type=="submit"?'center':); 
+@media print{
+    #topPane, #leftPane, #tabsPane { display: none }
+    #rightPane { margin-left: 5px;  }
 }
-*/
 
 form {
     margin-bottom:0;
