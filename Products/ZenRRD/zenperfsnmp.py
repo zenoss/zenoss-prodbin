@@ -241,10 +241,9 @@ class zenperfsnmp(ZenDaemon):
             self.options.zem = baseURL + '/ZenEventManager'
         self.zem = self.buildProxy(self.options.zem)
         self.configLoaded = defer.Deferred()
-        self.configLoaded.addCallbacks(self.readDevices, self.quit)
+        self.configLoaded.addCallbacks(self.scanCycle, self.quit)
         self.unresponsiveDevices = Set()
-        self.devicesRead = None
-
+        self.cycleComplete = False
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -263,7 +262,7 @@ class zenperfsnmp(ZenDaemon):
             default='admin')
         self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
         self.parser.add_option("--debug", dest="debug", action='store_true',
-                                default='False')
+                                default=False)
         self.parser.add_option(
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance")
@@ -288,16 +287,10 @@ class zenperfsnmp(ZenDaemon):
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
-        if self.status.finished() and CountedProxy.allFinished():
+        if self.cycleComplete and CountedProxy.allFinished():
             if not self.options.daemon and not self.options.cycle:
                 reactor.stop()
 
-
-    def setUnresponsiveDevices(self, deviceList):
-        "remember all the unresponsive devices"
-        self.log.debug('Unresponsive devices: %r' % deviceList)
-        self.unresponsiveDevices = Set(firsts(deviceList))
-        
 
     def cycle(self, seconds, callable):
         "callLater if we should be cycling"
@@ -321,16 +314,10 @@ class zenperfsnmp(ZenDaemon):
         deferred.addCallbacks(self.monitorConfigDefaults, self.log.error)
         lst.append(deferred)
 
-        proxy = self.buildProxy(self.options.zem)
-        deferred = proxy.callRemote('getDevicePingIssues')
-        deferred.addCallbacks(self.setUnresponsiveDevices, self.log.error)
-        lst.append(deferred)
-
         if not self.configLoaded.called:
             defer.DeferredList(lst).chainDeferred(self.configLoaded)
 
         self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
-
 
     def monitorConfigDefaults(self, items):
         'Unpack config defaults for this monitor'
@@ -415,9 +402,24 @@ class zenperfsnmp(ZenDaemon):
         self.proxies[deviceName] = p
 
 
+    def scanCycle(self, *unused):
+        self.log.debug("getting device ping issues")
+        proxy = self.buildProxy(self.options.zem)
+        d = proxy.callRemote('getDevicePingIssues')
+        d.addCallbacks(self.setUnresponsiveDevices, self.log.error)
+
+        self.cycle(self.snmpCycleInterval, self.scanCycle)
+
+
+    def setUnresponsiveDevices(self, deviceList):
+        "remember all the unresponsive devices"
+        self.log.debug('Unresponsive devices: %r' % deviceList)
+        self.unresponsiveDevices = Set(firsts(deviceList))
+        self.readDevices()
+
+        
     def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
-        self.cycle(self.snmpCycleInterval, self.readDevices)
         
         if not self.status.finished():
             _, _, _, age = self.status.stats()
@@ -444,6 +446,7 @@ class zenperfsnmp(ZenDaemon):
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
         self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
+        self.cycleComplete = True
         self.maybeQuit()
 
     def startReadDevice(self, deviceName):
@@ -459,10 +462,9 @@ class zenperfsnmp(ZenDaemon):
             n = 1
         for part in chunk(proxy.oidMap.keys(), n):
             lst.append(proxy.get(part, proxy.timeout, proxy.tries))
-        if lst:
-            d = defer.DeferredList(lst, consumeErrors=True)
-            d.addCallback(self.storeValues, deviceName)
-            return d
+        d = defer.DeferredList(lst, consumeErrors=True)
+        d.addCallback(self.storeValues, deviceName)
+        return d
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
@@ -470,7 +472,7 @@ class zenperfsnmp(ZenDaemon):
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
-        
+
         singleOidMode = False
         oids = []
         for success, update in updates:
