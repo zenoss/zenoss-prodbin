@@ -79,6 +79,12 @@ class ZenModelBase(object):
         return id
 
 
+    def getIdLink(self):
+        """Return an A link to this object with its id as the name.
+        """
+        return "<a href='%s'>%s</a>" % (self.getPrimaryUrlPath(), self.id)
+
+
     def callZenScreen(self, REQUEST, redirect=False):
         """
         Call and return screen specified by zenScreenName value of REQUEST.

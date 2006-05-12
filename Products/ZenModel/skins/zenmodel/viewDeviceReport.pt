@@ -1,0 +1,19 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1"
+    tal:on-error="string: Device Report ${here/title} has errors">
+    <tr>
+        <th class="tabletitle" tal:content="here/title"
+            tal:attributes="colspan python:len(here.columns)">
+            Device Report
+        </th>
+    </tr>
+    <tr tal:content="structure here/reportHeader"/>
+    <tr tal:replace="structure here/reportBody"/>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -95,7 +95,18 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    
+   
+    def zmanage_delObjects(self, ids=(), relation="", REQUEST=None):
+        """Delete objects from this object or one of its relations.
+        """
+        target = self
+        if relation: target = self._getOb(relation)
+        for id in ids:
+            target._delObject(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+        
+
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):
         return self.getId()

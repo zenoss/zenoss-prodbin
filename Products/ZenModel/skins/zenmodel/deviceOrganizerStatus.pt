@@ -34,7 +34,7 @@
             tal:define="objects here/children;
             tableName string:children;
             batch python:here.ZenTableManager.getBatch(tableName,objects);">
-        <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <input type='hidden' name='tableName' tal:attributes="value tableName"/>
         <input type="hidden" name="zenScreenName" 
                 tal:attributes="value template/id"/>
         <tr>
@@ -71,7 +71,7 @@
         </th>
         </tr>
         <tr tal:repeat="devorg batch">
-            <td class="tablevalues" align="left" width="50%">
+            <td class="tablevalues">
                 <input tal:condition="here/isManager" 
                     type="checkbox" name="organizerPaths:list" 
                     tal:attributes="value devorg/getId"/>

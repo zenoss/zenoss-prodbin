@@ -1,0 +1,96 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:RRD Graph state at time:">
+        <th class="tabletitle" colspan="2"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Path</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="path:string" size="30"
+            tal:attributes="value here/path" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/path"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Query</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <textarea class="tablevalues" rows="4" cols="40"
+            name="deviceQuery" tal:content="here/deviceQuery"
+            tal:attributes="style here/testQueryStyle">
+        </textarea>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/deviceQuery"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Sort Column</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="sortedHeader" size="30"
+            tal:attributes="value here/sortedHeader" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/sortedHeader"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Sort Sense</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="sortedSence" size="30"
+            tal:attributes="value here/sortedSence" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/sortedSence"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Columns</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <textarea class="tablevalues" rows="8" cols="25"
+            name="columns:lines" 
+            tal:content="python:'\n'.join(here.columns)">
+        </textarea>
+        </td>
+      <td class="tablevalues" colspan="3" 
+        tal:condition="not:here/isManager" 
+        tal:content="python:' '.join(here.columns)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Column Names</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <textarea class="tablevalues" rows="8" cols="25"
+            name="colnames:lines" 
+            tal:content="python:'\n'.join(here.colnames)"
+            tal:attributes="style here/testColNamesStyle">
+        </textarea>
+        </td>
+      <td class="tablevalues" colspan="3" 
+        tal:condition="not:here/isManager" 
+        tal:content="python:' '.join(here.colnames)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

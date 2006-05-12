@@ -10,6 +10,10 @@ body {
     margin: 6px 3px 3px 3px;
 }
 
+input,textarea {
+    font-size: 9pt;
+}
+
 #frame {
     /*
     position: relative;

@@ -68,7 +68,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
 
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
-        """get all the devices under and instance of a DeviceGroup"""
+        """get all the devices under an instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
         if not devices: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)

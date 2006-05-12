@@ -12,6 +12,8 @@ $Id: ReportClass.py,v 1.3 2004/04/22 15:33:44 edahl Exp $"""
 
 __version__ = "$Revision: 1.3 $"[11:-2]
 
+import types
+
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from OFS.Folder import Folder
@@ -19,7 +21,8 @@ from Globals import DTMLFile
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from Classification import Classification
+from Organizer import Organizer
+from Report import Report
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -31,22 +34,15 @@ def manage_addReportClass(context, id, title = None, REQUEST = None):
 
 addReportClass = DTMLFile('dtml/addReportClass',globals())
 
-class ReportClass(Classification, Folder):
+class ReportClass(Organizer):
+    dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
-    manage_main = Folder.manage_main
-    manage_options = Folder.manage_options
 
     sub_meta_types = ("ReportClass", "Report")
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'ReportClass',
-            'meta_type'      : 'ReportClass',
-            'description'    : """ReportClass class""",
-            'icon'           : 'ReportClass_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addReportClass',
             'immediate_view' : 'viewReportClass',
             'actions'        :
             ( 
@@ -62,8 +58,45 @@ class ReportClass(Classification, Folder):
     
     security = ClassSecurityInfo()
 
-    def __init__(self, id, title=None):
-        '''constructor'''
-        Classification.__init__(self, id, title)
+
+    def reports(self):
+        """Return list of report instances.
+        """
+        return [ r for r in self.objectValues(spec=('Report','DeviceReport')) ]
+
+        
+    def countReports(self):
+        """Return a count of all our contained children."""
+        count = len(self.reports())
+        for child in self.children():
+            count += child.countChildren()
+        return count
+        
+
+    security.declareProtected('Manage DMD', 'manage_addDeviceReport')
+    def manage_addDeviceReport(self, id, REQUEST=None):
+        """Add an action rule to this object.
+        """
+        from Products.ZenModel.DeviceReport import DeviceReport
+        dr = DeviceReport(id)
+        self._setObject(id, dr)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    
+    def moveReports(self, moveTarget, ids=None, REQUEST=None):
+        """Move a report from here organizer to moveTarget.
+        """
+        if not moveTarget or not ids: return self()
+        if type(ids) in types.StringTypes: ids = (ids,)
+        target = self.getOrganizer(moveTarget)
+        for rptname in ids:
+            rpt = self._getOb(rptname)
+            rpt._operation = 1 # moving object state
+            self._delObject(rptname)
+            target._setObject(rptname, rpt)
+        if REQUEST:
+            REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+    
      
 InitializeClass(ReportClass)
