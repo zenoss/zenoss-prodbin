@@ -29,6 +29,7 @@ from twisted.internet import reactor, defer
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
+from Products.ZenUtils.Chain import Chain
 from Products.ZenModel.PerformanceConf import performancePath
 
 from twistedsnmp.agentproxy import AgentProxy
@@ -466,9 +467,12 @@ class zenperfsnmp(ZenDaemon):
         if proxy.singleOidMode:
             n = 1
         for part in chunk(proxy.oidMap.keys(), n):
-            lst.append(proxy.get(part, proxy.timeout, proxy.tries))
+            def function():
+                return proxy.get(part, proxy.timeout, proxy.tries)
+            lst.append(function)
             self.snmpOidsRequested += len(part)
-        d = defer.DeferredList(lst, consumeErrors=True)
+        chain = Chain(iter(lst))
+        d = chain.run()
         d.addCallback(self.storeValues, deviceName)
         return d
 
@@ -527,7 +531,7 @@ class zenperfsnmp(ZenDaemon):
                 log.debug("Successful request ratio for %s is %2d%%",
                           deviceName,
                           successPercent)
-        success = False
+        success = True
         if updates:
             success = successCount > 0
         self.status.record(success)
