@@ -38,8 +38,8 @@ import CountedProxy
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
-MAX_OIDS_PER_REQUEST = 200
-MAX_SNMP_REQUESTS = 100
+MAX_OIDS_PER_REQUEST = 40
+MAX_SNMP_REQUESTS = 50
 FAILURE_COUNT_INCREASES_SEVERITY = 10
 
 COMMON_EVENT_INFO = {
@@ -149,7 +149,7 @@ class SnmpStatus:
             summary='snmp agent down on device ' + deviceName
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
-                    severity=4)
+                    severity=1)
             log.warn(summary)
             self.count += 1
 
@@ -244,6 +244,7 @@ class zenperfsnmp(ZenDaemon):
         self.configLoaded.addCallbacks(self.scanCycle, self.quit)
         self.unresponsiveDevices = Set()
         self.cycleComplete = False
+        self.snmpOidsRequested = 0
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -445,6 +446,8 @@ class zenperfsnmp(ZenDaemon):
         total, success, failed, runtime = self.status.stats()
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
+        self.log.debug("Sent %d SNMP OID requests", self.snmpOidsRequested)
+        self.snmpOidsRequested = 0
         self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
         self.cycleComplete = True
         self.maybeQuit()
@@ -452,6 +455,7 @@ class zenperfsnmp(ZenDaemon):
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
         from a device'''
+        self.log.debug('Start collection on %s', deviceName)
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
@@ -462,9 +466,21 @@ class zenperfsnmp(ZenDaemon):
             n = 1
         for part in chunk(proxy.oidMap.keys(), n):
             lst.append(proxy.get(part, proxy.timeout, proxy.tries))
+            self.snmpOidsRequested += len(part)
         d = defer.DeferredList(lst, consumeErrors=True)
         d.addCallback(self.storeValues, deviceName)
         return d
+
+    def badOid(self, deviceName, oid):
+        proxy = self.proxies.get(deviceName, None)
+        if proxy is None:
+            return
+        summary = 'Suspect oid %s on %s is bad' % (oid, deviceName)
+        self.sendEvent(self.status.snmpStatusEvent,
+                       device=deviceName, summary=summary, severity=1)
+        self.log.warn(summary)
+        del proxy.oidMap[oid]
+        
 
     def storeValues(self, updates, deviceName):
         'decode responses from devices and store the elements in RRD files'
@@ -484,15 +500,14 @@ class zenperfsnmp(ZenDaemon):
                     oids.append(oid)
                     # performance monitoring should always get something back
                     if value == '':
-                        self.log.warn('Suspect oid %s is bad' % oid)
-                        del proxy.oidMap[oid]
+                        self.badOid(deviceName, oid)
                     else:
                         self.storeRRD(deviceName, oid, value)
         if proxy.singleOidMode:
             # remove any oids that didn't report
             for doomed in Set(proxy.oidMap.keys()) - Set(oids):
-                self.log.warn('Suspect oid %s on %s is bad', doomed, deviceName)
-                del proxy.oidMap[doomed]
+                self.badOid(deviceName, oid)
+
         proxy.singleOidMode = singleOidMode
         if proxy.singleOidMode:
             # fetch this device again, ASAP
@@ -504,7 +519,16 @@ class zenperfsnmp(ZenDaemon):
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
-        success = reduce(bool.__and__, [True] + firsts(updates))
+        successCount = sum(firsts(updates))
+        if successCount:
+            successPercent = successCount * 100 / len(updates)
+            if successPercent not in (0, 100):
+                log.debug("Successful request ratio for %s is %2d%%",
+                          deviceName,
+                          successPercent)
+        success = False
+        if updates:
+            success = successCount > 0
         self.status.record(success)
         proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
 
