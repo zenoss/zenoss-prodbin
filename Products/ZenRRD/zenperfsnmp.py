@@ -38,8 +38,8 @@ import CountedProxy
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
-MAX_OIDS_PER_REQUEST = 40
-MAX_SNMP_REQUESTS = 50
+MAX_OIDS_PER_REQUEST = 20
+MAX_SNMP_REQUESTS = 30
 FAILURE_COUNT_INCREASES_SEVERITY = 10
 
 COMMON_EVENT_INFO = {
@@ -477,7 +477,7 @@ class zenperfsnmp(ZenDaemon):
         if proxy is None:
             return
         summary = 'Suspect oid %s on %s is bad' % (oid, deviceName)
-        self.sendEvent(self.status.snmpStatusEvent,
+        self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
                        device=deviceName, summary=summary, severity=1)
         self.log.warn(summary)
         del proxy.oidMap[oid]
@@ -507,7 +507,7 @@ class zenperfsnmp(ZenDaemon):
         if proxy.singleOidMode:
             # remove any oids that didn't report
             for doomed in Set(proxy.oidMap.keys()) - Set(oids):
-                self.badOid(deviceName, oid)
+                self.badOid(deviceName, doomed)
 
         proxy.singleOidMode = singleOidMode
         if proxy.singleOidMode:
