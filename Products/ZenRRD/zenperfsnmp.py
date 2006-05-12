@@ -279,6 +279,7 @@ class zenperfsnmp(ZenDaemon):
 
     def sendEvent(self, event, **kw):
         'convenience function for pushing events to the Zope server'
+        return
         ev = event.copy()
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
