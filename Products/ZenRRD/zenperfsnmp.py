@@ -45,24 +45,29 @@ FAILURE_COUNT_INCREASES_SEVERITY = 10
 
 COMMON_EVENT_INFO = {
     'agent': 'zenperfsnmp',
-    'manager':socket.getfqdn(),
+    'manager': socket.getfqdn(),
     }
+
 
 def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
+
 def sort(lst):
     lst.sort()
     return lst
+
 
 def rrdPath(branch):
     'compute where the RDD perf files should go'
     return performancePath(branch[1:] + '.rrd')
 
+
 def firsts(lst):
     'the first element of every item in a sequence'
     return [item[0] for item in lst]
+
 
 class Status:
     'keep track of the status of many parallel requests'
@@ -124,6 +129,7 @@ class Status:
         'return the number of unfinished operations'
         return self._total - (self._success + self._fail)
 
+
     def moreWork(self, count):
         self._total += count
 
@@ -176,6 +182,7 @@ class Threshold:
         self.maximum = maximum
         self.severity = severity
         self.escalateCount = count
+
 
     def check(self, device, cname, oid, value, eventCb):
         'Check the value for min/max thresholds, and post events'
@@ -234,6 +241,7 @@ class zenperfsnmp(ZenDaemon):
     snmpCycleInterval = 5*60            # seconds
     status = Status()
 
+
     def __init__(self):
         ZenDaemon.__init__(self)
         CountedProxy.setCallback(self.maybeQuit)
@@ -250,6 +258,7 @@ class zenperfsnmp(ZenDaemon):
         self.unresponsiveDevices = Set()
         self.cycleComplete = False
         self.snmpOidsRequested = 0
+
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
@@ -326,6 +335,7 @@ class zenperfsnmp(ZenDaemon):
 
         self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
+
     def monitorConfigDefaults(self, items):
         'Unpack config defaults for this monitor'
         table = dict(items)
@@ -361,6 +371,7 @@ class zenperfsnmp(ZenDaemon):
     def setRRDCreateCommand(self, command):
         self.defaultRRDCreateCommand = command
 
+
     def updateAgentProxy(self,
                          deviceName, snmpStatus, ip, port, community,
                          version, timeout, tries):
@@ -373,7 +384,7 @@ class zenperfsnmp(ZenDaemon):
                            community=community,
                            snmpVersion=version,
                            protocol=self.snmpPort.protocol,
-                           allowCache=False)
+                           allowCache=True)
             p.oidMap = {}
             p.snmpStatus = SnmpStatus(snmpStatus)
             p.singleOidMode = False
@@ -506,13 +517,15 @@ class zenperfsnmp(ZenDaemon):
         else:
             singleOidMode = False
             oids = []
-            for oid, value in update.items():
-                # performance monitoring should always get something back
-                if value == '':
-                    self.badOid(deviceName, oid)
-                else:
-                    self.storeRRD(deviceName, oid, value)
-                oids.append(oid)
+            for success, update in updates:
+                if success:
+                    for oid, value in update.items():
+                        # should always get something back
+                        if value == '':
+                            self.badOid(deviceName, oid)
+                        else:
+                            self.storeRRD(deviceName, oid, value)
+                        oids.append(oid)
 
         if proxy.singleOidMode:
             # remove any oids that didn't report
