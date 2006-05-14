@@ -173,8 +173,8 @@ class Threshold:
     maximum = None
     severity = 3
     escalateCount = 0
-
     threshevt = {'eventClass':'/Perf/Snmp', 'agent': 'ZenPerfSnmp'}
+
 
     def __init__(self, label, minimum, maximum, severity, count):
         self.label = label
@@ -216,6 +216,7 @@ class Threshold:
                         severity=0)
             self.count = 0
 
+
 class OidData:
     def __init__(self, name, path,
                  dataStorageType, rrdCreateCommand, thresholds):
@@ -224,6 +225,7 @@ class OidData:
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
         self.thresholds = thresholds
+
 
 class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
@@ -425,7 +427,6 @@ class zenperfsnmp(ZenDaemon):
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getDevicePingIssues')
         d.addCallbacks(self.setUnresponsiveDevices, self.log.error)
-
         self.cycle(self.snmpCycleInterval, self.scanCycle)
 
 
@@ -469,6 +470,7 @@ class zenperfsnmp(ZenDaemon):
         self.cycleComplete = True
         self.maybeQuit()
 
+
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
         from a device'''
@@ -486,6 +488,7 @@ class zenperfsnmp(ZenDaemon):
         d.addCallback(self.storeValues, deviceName)
         self.snmpOidsRequested += len(proxy.oidMap)
         return d
+
 
     def badOid(self, deviceName, oid):
         proxy = self.proxies.get(deviceName, None)
@@ -549,6 +552,7 @@ class zenperfsnmp(ZenDaemon):
         self.status.record(success)
         proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
 
+
     def storeRRD(self, device, oid, value):
         'store a value into an RRD file'
         oidData = self.proxies[device].oidMap[oid]
@@ -590,10 +594,12 @@ class zenperfsnmp(ZenDaemon):
         for threshold in oidData.thresholds:
             threshold.check(device, oidData.name, oid, value, self.sendEvent)
 
+
     def quit(self, error):
         'stop the reactor if an error occured on the first config load'
         self.log.error(error)
         reactor.stop()
+
 
     def sigTerm(self, signum, frame):
         'controlled shutdown of main loop on interrupt'
@@ -602,15 +608,13 @@ class zenperfsnmp(ZenDaemon):
         except SystemExit, ex:
             reactor.stop()
 
+
     def main(self):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
-        
         zpf.startUpdateConfig()
-
         reactor.run(installSignalHandlers=False)
-        
         self.sendEvent(self.stopevt)
 
 
