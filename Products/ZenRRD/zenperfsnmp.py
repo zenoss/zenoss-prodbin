@@ -52,6 +52,10 @@ def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
+def sort(lst):
+    lst.sort()
+    return lst
+
 def rrdPath(branch):
     'compute where the RDD perf files should go'
     return performancePath(branch[1:] + '.rrd')
@@ -461,19 +465,16 @@ class zenperfsnmp(ZenDaemon):
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
-        lst = []
         # ensure that the request will fit in a packet
         n = MAX_OIDS_PER_REQUEST
         if proxy.singleOidMode:
             n = 1
-        for part in chunk(proxy.oidMap.keys(), n):
-            def function():
-                return proxy.get(part, proxy.timeout, proxy.tries)
-            lst.append(function)
-            self.snmpOidsRequested += len(part)
-        chain = Chain(iter(lst))
+        def getLater(oids):
+            return proxy.get(oids, proxy.timeout, proxy.tries)
+        chain = Chain(getLater, iter(chunk(sort(proxy.oidMap.keys()), n)))
         d = chain.run()
         d.addCallback(self.storeValues, deviceName)
+        self.snmpOidsRequested += len(proxy.oidMap)
         return d
 
     def badOid(self, deviceName, oid):
@@ -495,33 +496,37 @@ class zenperfsnmp(ZenDaemon):
             return
 
         singleOidMode = False
-        oids = []
+        # Look for problems
+        singleOidMode = True
         for success, update in updates:
             if success:
-                # failure to report is probably a bad OID
+                # empty update is probably a bad OID in the request somewhere
                 if not update and not proxy.singleOidMode:
-                    singleOidMode = True
-                for oid, value in update.items():
-                    oids.append(oid)
-                    # performance monitoring should always get something back
-                    if value == '':
-                        self.badOid(deviceName, oid)
-                    else:
-                        self.storeRRD(deviceName, oid, value)
+                    break
+        else:
+            singleOidMode = False
+            oids = []
+            for oid, value in update.items():
+                # performance monitoring should always get something back
+                if value == '':
+                    self.badOid(deviceName, oid)
+                else:
+                    self.storeRRD(deviceName, oid, value)
+                oids.append(oid)
+
         if proxy.singleOidMode:
             # remove any oids that didn't report
             for doomed in Set(proxy.oidMap.keys()) - Set(oids):
                 self.badOid(deviceName, doomed)
 
         proxy.singleOidMode = singleOidMode
-        if proxy.singleOidMode:
+        if singleOidMode:
             # fetch this device again, ASAP
             self.status.moreWork(1)
             self.log.warn('Error collecting data on %s, recollecting',
                           deviceName)
             self.startReadDevice(deviceName)
-                        
-        if self.queryWorkList:
+        elif self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
         successCount = sum(firsts(updates))
@@ -567,7 +572,7 @@ class zenperfsnmp(ZenDaemon):
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
-            self.log.error('rrd error %s' % err)
+            self.log.error('rrd error %s %s', err, oidData.path)
 
         if oidData.dataStorageType == 'COUNTER':
             range, names, values = \

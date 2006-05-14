@@ -19,12 +19,11 @@ __version__ = "$Revision$"[11:-2]
 from twisted.internet import defer
 
 class Chain:
-    """Takes an interable of callables, which return deferred, and
-    returns the results of calling all those functions and waiting
-    on the defers"""
+    """Call a function over an interable of data, after each finishes."""
 
-    def __init__(self, sequence):
-        self.callables = sequence
+    def __init__(self, callable, iterable):
+        self.callable = callable
+        self.iterable = iterable
         self.results = []
         self.defer = defer.Deferred()
 
@@ -35,8 +34,8 @@ class Chain:
     def next(self):
         "run the next step"
         try:
-            next = self.callables.next()
-            next().addCallbacks(self.success, self.failure)
+            next = self.iterable.next()
+            self.callable(next).addCallbacks(self.success, self.failure)
         except StopIteration:
             self.defer.callback(self.results)
 
