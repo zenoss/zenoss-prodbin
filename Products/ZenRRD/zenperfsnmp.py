@@ -39,7 +39,7 @@ import CountedProxy
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
-MAX_OIDS_PER_REQUEST = 20
+MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 30
 FAILURE_COUNT_INCREASES_SEVERITY = 10
 
@@ -472,7 +472,6 @@ class zenperfsnmp(ZenDaemon):
     def startReadDevice(self, deviceName):
         '''Initiate a request (or several) to read the performance data
         from a device'''
-        self.log.debug('Start collection on %s', deviceName)
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
@@ -506,43 +505,38 @@ class zenperfsnmp(ZenDaemon):
         if proxy is None:
             return
 
-        singleOidMode = False
         # Look for problems
-        singleOidMode = True
+        for success, update in updates:
+            # empty update is probably a bad OID in the request somewhere
+            if success and not update and not proxy.singleOidMode:
+                self.status.record(True)
+                proxy.singleOidMode = True
+                self.status.moreWork(1)
+                self.log.warn('Error collecting data on %s, recollecting',
+                              deviceName)
+                self.startReadDevice(deviceName)
+                return
+
+        successCount = sum(firsts(updates))
+        oids = []
         for success, update in updates:
             if success:
-                # empty update is probably a bad OID in the request somewhere
-                if not update and not proxy.singleOidMode:
-                    break
-        else:
-            singleOidMode = False
-            oids = []
-            for success, update in updates:
-                if success:
-                    for oid, value in update.items():
-                        # should always get something back
-                        if value == '':
-                            self.badOid(deviceName, oid)
-                        else:
-                            self.storeRRD(deviceName, oid, value)
-                        oids.append(oid)
+                for oid, value in update.items():
+                    # should always get something back
+                    if value == '':
+                        self.badOid(deviceName, oid)
+                    else:
+                        self.storeRRD(deviceName, oid, value)
+                    oids.append(oid)
 
-        if proxy.singleOidMode:
+        if successCount == len(updates) and proxy.singleOidMode:
             # remove any oids that didn't report
             for doomed in Set(proxy.oidMap.keys()) - Set(oids):
                 self.badOid(deviceName, doomed)
 
-        proxy.singleOidMode = singleOidMode
-        if singleOidMode:
-            # fetch this device again, ASAP
-            self.status.moreWork(1)
-            self.log.warn('Error collecting data on %s, recollecting',
-                          deviceName)
-            self.startReadDevice(deviceName)
-        elif self.queryWorkList:
+        if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
-        successCount = sum(firsts(updates))
         if successCount:
             successPercent = successCount * 100 / len(updates)
             if successPercent not in (0, 100):
