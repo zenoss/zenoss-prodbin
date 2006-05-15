@@ -8,21 +8,16 @@
 
 __doc__=''' ZenPing
 
-creates a queue of hosts to be pinged (jobs),
+Creates a list of hosts to be pinged (jobs),
 and pings them until they respond, or the
-maximum number of pings has been sent. After
-sending out all these pings, we loop in a
-receive function processing everything we get
-back
+maximum number of pings has been sent.
 
 $Id: ZenPing.py,v 1.70 2004/04/22 20:54:23 edahl Exp $'''
 
 __version__ = "$Revision: 1.70 $"[11:-2]
 
-import socket
-import ip
-import icmp
-import os
+from socket import gethostbyname, getfqdn
+
 import time
 import sys
 
@@ -31,7 +26,6 @@ import Globals # make zope imports work
 from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
 from Products.ZenEvents.ZenEventClasses import PingStatus
 from Products.ZenEvents.Event import Event, EventHeartbeat
-from Products.ZenUtils.Utils import parseconfig, basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from AsyncPing import Ping
 import pingtree
@@ -40,9 +34,10 @@ from twisted.internet import reactor, defer
 
 def findIp():
     try:
-        return socket.gethostbyname(socket.getfqdn())
-    except socket.gaierror:
+        return gethostbyname(getfqdn())
+    except gaierror:
         # find the first non-loopback interface address
+        import os
         import re
         ifconfigs = ['/sbin/ifconfig',
                      '/usr/sbin/ifconfig',
@@ -52,7 +47,8 @@ def findIp():
         fp = os.popen(ifconfig + ' -a')
         config = fp.read().split('\n\n')
         fp.close()
-        pat = r'(addr:|inet) *([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})[^0-9]'
+        digits = r'[0-9]{1,3}'
+        pat = r'(addr:|inet) *(%s\.%s\.%s\.%s)[^0-9]' % ((digits,)*4)
         parse = re.compile(pat)
         results = []
         for c in config:
@@ -74,10 +70,16 @@ class ZenPing(ZCmdBase):
     eventGroup = "Ping"
 
     pathcheckthresh = 10
+    timeOut = 1.5
+    tries = 2
+    chunk = 75
+    cycleInterval = 60
+    configCycleInterval = 20
+    maxFailures = 1440
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
-        self.hostname = socket.getfqdn()
+        self.hostname = getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
             self.configpath = self.configpath[1:]
@@ -85,21 +87,26 @@ class ZenPing(ZCmdBase):
         self.configTime = 0
 
         self.zem = self.dmd.ZenEventManager
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                                 eventClass=AppStart, 
-                                 summary="zenping started",
-                                 severity=0,
-                                 component="zenping"))
+        self.doSendEvent(Event(device=getfqdn(), 
+                               eventClass=AppStart, 
+                               summary="zenping started",
+                               severity=0,
+                               component="zenping"))
         self.log.info("started")
 
     def loadConfig(self):
         "get the config data from file or server"
         if time.time()-self.configTime > self.configCycleInterval:
+            changed = False
             smc = self.dmd.unrestrictedTraverse(self.configpath)
             for att in ("timeOut", "tries", "chunk",
                         "cycleInterval", "configCycleInterval",
                         "maxFailures",):
-                setattr(self, att, getattr(smc, att))
+                before = getattr(self, att)
+                after = getattr(smc, att)
+                setattr(self, att, after)
+                if not changed:
+                    changed = before != after
             self.configCycleInterval *= 60
             me = None
             if self.options.name:
@@ -245,19 +252,22 @@ class ZenPing(ZCmdBase):
 
     def stop(self):
         self.log.info("stopping...")
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                                 eventClass=AppStop, 
-                                 summary="zenping stopped",
-                                 severity=4, component="zenping"))
+        self.doSendEvent(Event(device=getfqdn(), 
+                               eventClass=AppStop, 
+                               summary="zenping stopped",
+                               severity=4, component="zenping"))
         reactor.stop()
 
 
     def sendHeartbeat(self):
         'Send a heartbeat event for this monitor.'
         timeout = self.cycleInterval*3
-        evt = EventHeartbeat(socket.getfqdn(), "zenping", timeout)
-        self.zem.sendEvent(evt)
+        evt = EventHeartbeat(getfqdn(), "zenping", timeout)
+        self.doSendEvent(evt)
 
+    def doSendEvent(self, evt):
+        return
+        self.zen.sendEvent(evt)
 
     def sendEvent(self, pj):
         """Send an event to event backend.
@@ -273,7 +283,7 @@ class ZenPing(ZCmdBase):
                     manager=self.hostname)
         evstate = getattr(pj, 'eventState', None)
         if evstate is not None: evt.eventState = evstate
-        self.zem.sendEvent(evt)
+        self.doSendEvent(evt)
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
@@ -287,7 +297,7 @@ class ZenPing(ZCmdBase):
                                help=("name to use when looking up our "
                                      "record in the dmd "
                                      "defaults to our fqdn as returned "
-                                     "by socket.getfqdn"))
+                                     "by getfqdn"))
 
 
 
