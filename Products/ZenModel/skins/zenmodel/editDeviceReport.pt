@@ -20,6 +20,15 @@
             tal:content="here/id"/>
     </tr>
     <tr>
+        <td class="tableheader">Title</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="title" size="40"
+                tal:attributes="value here/title" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/title"/>
+    </tr>
+    <tr>
         <td class="tableheader">Path</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="path:string" size="30"

@@ -65,7 +65,7 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
-    <tr tal:condition="here/isManager">
+    <tr tal:condition="python:here.isManager() and here.id=='Device Reports'">
     <td class="tableheader" colspan="2">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 

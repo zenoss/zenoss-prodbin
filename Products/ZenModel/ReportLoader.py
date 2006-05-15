@@ -20,11 +20,15 @@ class ReportLoader(ZCmdBase):
             for filename in filter(lambda f: f.endswith(".rpt"), filenames):
                 fullname = os.path.join(path,filename)
                 fid = filename[:-4].replace("_"," ")
-                if getattr(reproot, fid, False): continue
-                self.log.info("loading: %s", filename)
+                orgpath = path.replace("_", " ")
+                orgpath = [p for p in os.path.split(orgpath) if p != 'reports']
+                orgpath = "/" + "/".join(orgpath)
+                rorg = reproot.createOrganizer(orgpath)
+                if getattr(rorg, fid, False): continue
+                self.log.info("loading: %s %s", orgpath, filename)
                 fdata = file(fullname).read()
                 rpt = Report(fid, text=fdata)
-                reproot._setObject(fid, rpt)
+                rorg._setObject(fid, rpt)
         transaction.commit()              
 
 

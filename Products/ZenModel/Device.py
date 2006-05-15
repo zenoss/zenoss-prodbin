@@ -414,6 +414,12 @@ class Device(ManagedEntity):
         return self.hw.getProductKey()
 
 
+    def getOSProductName(self):
+        """Return the OS product name of this device.
+        """
+        return self.os.getProductName()
+
+
     def getOSProductKey(self):
         """Get our OS product by productKey.
         """

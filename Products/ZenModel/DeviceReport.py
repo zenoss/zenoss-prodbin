@@ -96,25 +96,35 @@ class DeviceReport(ZenModelRM):
             h.append(self.ZenTableManager.getTableHeader(tname , field, name))
         return "\n".join(h)
 
+
+    def reportHeaders(self):
+        h = []
+        for i, field in enumerate(self.columns):
+            try:name = self.colnames[i]
+            except IndexError: name = field
+            h.append((field, name))
+        return h
+
             
-    def reportBody(self): 
+    def reportBody(self, batch): 
         """body of this report create from a filtered and sorted batch.
         """
-        batch = self.ZenTableManager.getBatch(
-                    self.getPrimaryId(), self.getDevices(), 
-                    sortedHeader=self.sortedHeader, 
-                    sortedSence=self.sortedSence)
         body = []
         for dev in batch:
             body.append("<tr class='tablevalues'>") 
             for field in self.columns:
                 body.append("<td>")
+                if field == "getId": field += "Link"
                 attr = getattr(dev, field)
                 if callable(attr): value = attr()
                 else: value = attr
                 if type(value) in (types.ListType, types.TupleType):
                     value = ", ".join(value)
-                if not field.endswith("Link"): value = cgi.escape(value)
+                if (not field.endswith("Link") 
+                    and type(value) in types.StringTypes): 
+                    value = cgi.escape(value)
+                elif type(value) not in types.StringTypes:
+                    value = str(value)
                 body.append(value)
                 body.append("</td>")
             body.append("</tr>")
