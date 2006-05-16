@@ -346,8 +346,8 @@ class zenperfsnmp(ZenDaemon):
                 if getattr(self, name) != value:
                     self.log.debug('Updated %s config to %s' % (name, value))
                 setattr(self, name, value)
-	if not self.configLoaded.called:
-           self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
+
+        self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
 
     def updateDeviceList(self, deviceList):
