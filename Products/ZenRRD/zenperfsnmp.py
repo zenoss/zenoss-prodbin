@@ -335,11 +335,10 @@ class zenperfsnmp(ZenDaemon):
             deferred = defer.DeferredList(lst, consumeErrors=True)
             deferred.chainDeferred(self.configLoaded)
 
-        self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
-
 
     def monitorConfigDefaults(self, items):
         'Unpack config defaults for this monitor'
+
         table = dict(items)
         for name in ('configCycleInterval', 'snmpCycleInterval'):
             if table.has_key(name):
@@ -347,6 +346,8 @@ class zenperfsnmp(ZenDaemon):
                 if getattr(self, name) != value:
                     self.log.debug('Updated %s config to %s' % (name, value))
                 setattr(self, name, value)
+	if not self.configLoaded.called:
+           self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
 
     def updateDeviceList(self, deviceList):
@@ -422,8 +423,9 @@ class zenperfsnmp(ZenDaemon):
         self.proxies[deviceName] = p
 
 
-    def scanCycle(self, configStatus):
-        for success, result in configStatus:
+    def scanCycle(self, configStatus=None):
+        if configStatus:
+          for success, result in configStatus:
             if not success:
                 msg = 'Unable to fetch config %s' % result
                 self.log.error(msg)
