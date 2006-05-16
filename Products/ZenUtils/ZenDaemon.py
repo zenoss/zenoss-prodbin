@@ -17,7 +17,6 @@ import os
 import pwd
 import signal
 import logging
-logging.getLogger('Init').addHandler(logging.StreamHandler(sys.stderr))
 
 from CmdBase import CmdBase
 
