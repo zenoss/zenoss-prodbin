@@ -28,7 +28,6 @@ log = logging.getLogger("zen")
 
 from AccessControl import ModuleSecurityInfo
 
-from Products.CMFCore.permissions import AddPortalContent
 from Products.CMFCore.DirectoryView import registerDirectory
 
 confmon_globals = globals()
