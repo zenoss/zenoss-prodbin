@@ -266,7 +266,6 @@ class ZenPing(ZCmdBase):
         self.doSendEvent(evt)
 
     def doSendEvent(self, evt):
-        return
         self.zen.sendEvent(evt)
 
     def sendEvent(self, pj):
