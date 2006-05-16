@@ -320,19 +320,20 @@ class zenperfsnmp(ZenDaemon):
         'Periodically ask the Zope server for basic configuration data.'
         lst = []
         deferred = self.model.callRemote('getDevices', self.options.device)
-        deferred.addCallbacks(self.updateDeviceList)
+        deferred.addCallback(self.updateDeviceList)
         lst.append(deferred)
 
         deferred = self.model.callRemote('getDefaultRRDCreateCommand')
-        deferred.addCallbacks(self.setRRDCreateCommand)
+        deferred.addCallback(self.setRRDCreateCommand)
         lst.append(deferred)
 
         deferred = self.model.callRemote('propertyItems')
-        deferred.addCallbacks(self.monitorConfigDefaults)
+        deferred.addCallback(self.monitorConfigDefaults)
         lst.append(deferred)
 
         if not self.configLoaded.called:
-            defer.DeferredList(lst).chainDeferred(self.configLoaded)
+            deferred = defer.DeferredList(lst, consumeErrors=True)
+            deferred.chainDeferred(self.configLoaded)
 
         self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
 
