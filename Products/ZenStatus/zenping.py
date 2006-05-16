@@ -266,7 +266,7 @@ class ZenPing(ZCmdBase):
         self.doSendEvent(evt)
 
     def doSendEvent(self, evt):
-        self.zen.sendEvent(evt)
+        self.zem.sendEvent(evt)
 
     def sendEvent(self, pj):
         """Send an event to event backend.
