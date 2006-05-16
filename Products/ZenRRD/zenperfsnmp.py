@@ -320,15 +320,15 @@ class zenperfsnmp(ZenDaemon):
         'Periodically ask the Zope server for basic configuration data.'
         lst = []
         deferred = self.model.callRemote('getDevices', self.options.device)
-        deferred.addCallbacks(self.updateDeviceList, self.log.debug)
+        deferred.addCallbacks(self.updateDeviceList)
         lst.append(deferred)
 
         deferred = self.model.callRemote('getDefaultRRDCreateCommand')
-        deferred.addCallbacks(self.setRRDCreateCommand, self.log.debug)
+        deferred.addCallbacks(self.setRRDCreateCommand)
         lst.append(deferred)
 
         deferred = self.model.callRemote('propertyItems')
-        deferred.addCallbacks(self.monitorConfigDefaults, self.log.error)
+        deferred.addCallbacks(self.monitorConfigDefaults)
         lst.append(deferred)
 
         if not self.configLoaded.called:
@@ -421,7 +421,16 @@ class zenperfsnmp(ZenDaemon):
         self.proxies[deviceName] = p
 
 
-    def scanCycle(self, *unused):
+    def scanCycle(self, configStatus):
+        for success, result in configStatus:
+            if not success:
+                msg = 'Unable to fetch config %s' % result
+                self.log.error(msg)
+                self.sendEvent(component='zenperfsnmp',
+                               severity=4,
+                               summary=msg,
+                               eventClass='/Status/Snmp')
+                break
         self.log.debug("getting device ping issues")
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getDevicePingIssues')
