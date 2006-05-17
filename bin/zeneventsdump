@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Dump events in the MySQL in memory table status
+# Make sure that MYUSER MYPASS and MYSQLHOME are set properly
+# The backup file can be loaded back into the database using:
+#    load data infile '/usr/local/mysql/backup/status.data' into table status;
+# put this command in a file and use it in the init-file parameter to mysqld
+
+MYUSER=root
+MYPASS=PASS
+
+MYSQLHOME=/usr/local/mysql
+
+MYSQL=$MYSQLHOME/bin/mysql
+BKDIR=$MYSQLHOME/backup
+BKFILE=$BKDIR/status.data
+
+if [ ! -e $BKDIR ]; then
+    mkdir -p $BKDIR
+	chown mysql $BKDIR
+fi
+
+rm -f $BKFILE
+
+echo "select * from status into outfile \"$BKFILE\";" | $MYSQL -u $MYUSER --password=$MYPASS events
+
