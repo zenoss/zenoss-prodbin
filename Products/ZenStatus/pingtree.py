@@ -185,7 +185,6 @@ class Net(object):
 
     def pjgen(self):
         for pj in self.pingjobs:
-            pj.reset()
             yield pj
   
     def addPingJob(self, pj):
