@@ -67,10 +67,9 @@ class Ping(object):
     Class that provides syncronous icmp ping.
     """
 
-    def __init__(self, tries=2, timeout=2, chunkSize=10):
+    def __init__(self, tries=2, timeout=2):
         self.tries = tries
         self.timeout = timeout
-        self.chunkSize = chunkSize
         self.procId = os.getpid()
         self.jobqueue = {}
         self.pingsocket = None
