@@ -119,12 +119,9 @@ class ZenPing(ZCmdBase):
         self.failed = {}
         for device in devices:
             status = device.getStatus(PingStatus, state=2)
-            if status >= self.maxFailures:
-                cycle = self.configCycleInterval
-            else:
-                cycle = self.cycleInterval
-            self.log.debug("add device '%s' cycle=%s",device.id, cycle)
-            self.pingtree.addDevice(device, cycle)
+            if status:
+                self.failed[device.getManageIp()] = 1
+            self.pingtree.addDevice(device)
 
 
     def buildOptions(self):
@@ -194,6 +191,9 @@ class ZenPing(ZCmdBase):
         self.sendEvent(evt)
 
     def pingSuccess(self, pj):
+        if self.failed.get(pj.ipaddr, 0) > 0:
+            pj.severity = 0
+            self.sendPingEvent(pj)
         self.log.debug('success %s', pj.ipaddr)
         self.failed[pj.ipaddr] = 0
         self.log.debug("Success %s %s", pj.ipaddr, self.failed[pj.ipaddr])
