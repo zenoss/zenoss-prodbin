@@ -41,7 +41,7 @@ BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 30
-FAILURE_COUNT_INCREASES_SEVERITY = 10
+BAD_SEVERITY=4
 
 COMMON_EVENT_INFO = {
     'agent': 'zenperfsnmp',
@@ -160,7 +160,7 @@ class SnmpStatus:
             summary='snmp agent down on device ' + deviceName
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
-                    severity=1)
+                    severity=BAD_SEVERITY)
             log.warn(summary)
             self.count += 1
 
@@ -233,7 +233,8 @@ class zenperfsnmp(ZenDaemon):
     startevt = {'device':socket.getfqdn(), 'eventClass':'/App/Start', 
                 'component':'zenperfsnmp', 'summary': 'started', 'severity': 0}
     stopevt = {'device':socket.getfqdn(), 'eventClass':'/App/Stop', 
-                'component':'zenperfsnmp', 'summary': 'stopped', 'severity': 4}
+               'component':'zenperfsnmp', 'summary': 'stopped',
+               'severity': BAD_SEVERITY}
     heartbeat = {'device':socket.getfqdn(), 'component':'zenperfsnmp',
                     'eventClass':'/Heartbeat'}
 
@@ -260,6 +261,7 @@ class zenperfsnmp(ZenDaemon):
         self.unresponsiveDevices = Set()
         self.cycleComplete = False
         self.snmpOidsRequested = 0
+        self.events = []
 
 
     def buildOptions(self):
@@ -299,7 +301,14 @@ class zenperfsnmp(ZenDaemon):
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
         #self.log.debug(ev)
-        self.zem.callRemote('sendEvent', ev).addErrback(self.log.error)
+        self.events.append(ev)
+
+
+    def sendEvents(self):
+        if self.events:
+            d = self.zem.callRemote('sendEvents', self.events)
+            d.addErrback(self.log.error)
+            self.events = []
 
 
     def maybeQuit(self):
@@ -430,7 +439,7 @@ class zenperfsnmp(ZenDaemon):
                 msg = 'Unable to fetch config %s' % result
                 self.log.error(msg)
                 self.sendEvent(component='zenperfsnmp',
-                               severity=4,
+                               severity=BAD_SEVERITY,
                                summary=msg,
                                eventClass='/Status/Snmp')
                 break
@@ -479,6 +488,7 @@ class zenperfsnmp(ZenDaemon):
         self.snmpOidsRequested = 0
         self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
         self.cycleComplete = True
+        self.sendEvents()
         self.maybeQuit()
 
 
@@ -507,7 +517,8 @@ class zenperfsnmp(ZenDaemon):
             return
         summary = 'Suspect oid %s on %s is bad' % (oid, deviceName)
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
-                       device=deviceName, summary=summary, severity=1)
+                       device=deviceName, summary=summary,
+                       severity=BAD_SEVERITY)
         self.log.warn(summary)
         del proxy.oidMap[oid]
         
