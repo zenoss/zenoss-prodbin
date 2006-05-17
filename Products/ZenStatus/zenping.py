@@ -165,12 +165,10 @@ class ZenPing(ZCmdBase):
                 return False
 
     def ping(self, pj):
-        if self.failed.get(pj.ipaddr, 0) < self.maxFailures:
-            self.log.debug("starting %s", pj.ipaddr)
-            pj.reset()
-            self.pinger.sendPacket(pj)
-            pj.deferred.addCallbacks(self.pingSuccess,
-                                     self.pingFailed)
+        self.log.debug("starting %s", pj.ipaddr)
+        pj.reset()
+        self.pinger.sendPacket(pj)
+        pj.deferred.addCallbacks(self.pingSuccess, self.pingFailed)
         
     def next(self):
         self.jobs += 1
