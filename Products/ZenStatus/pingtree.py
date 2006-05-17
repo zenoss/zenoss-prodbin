@@ -89,7 +89,7 @@ class Rnode(object):
         return net
 
 
-    def addDevice(self, device, cycle):
+    def addDevice(self, device, unused_cycle=60):
         """Add a device to the ping tree.
         """
         global gDevicemap
@@ -109,8 +109,7 @@ class Rnode(object):
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
-        pj = PingJob(ip, device.id, 
-                     device.getStatus(PingStatus), cycle)
+        pj = PingJob(ip, device.id, device.getStatus(PingStatus))
         net.addPingJob(pj)
         pj.parent = net
 
