@@ -515,9 +515,12 @@ class zenperfsnmp(ZenDaemon):
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
-        summary = 'Suspect oid %s on %s is bad' % (oid, deviceName)
+        name = proxy.oidMap[oid].name
+        summary = 'Error reading value for "%s" on %s (oid %s is bad)' % (
+            name, deviceName, oid)
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
                        device=deviceName, summary=summary,
+                       component=name,
                        severity=BAD_SEVERITY)
         self.log.warn(summary)
         del proxy.oidMap[oid]
