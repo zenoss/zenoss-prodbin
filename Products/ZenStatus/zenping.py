@@ -47,9 +47,11 @@ class ZenPing(ZCmdBase):
     pingTreeIter = None
     startTime = None
     jobs = 0
+    reconfigured = True
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
+        self.failed = {}
         self.hostname = getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
@@ -111,18 +113,17 @@ class ZenPing(ZCmdBase):
             self.pingtree = pingtree.Rnode(findIp(), self.hostname, 0)
         devices = smc.getPingDevices()
         self.prepDevices(devices)
+        
         reactor.callLater(self.configCycleInterval, self.loadConfig)
 
 
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
-        self.failed = {}
         for device in devices:
             status = device.getStatus(PingStatus, state=2)
-            if status:
-                self.failed[device.getManageIp()] = 1
+            self.failed[device.getManageIp()] = status
             self.pingtree.addDevice(device)
-
+        reconfigured = True
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
@@ -155,11 +156,13 @@ class ZenPing(ZCmdBase):
         while 1:
             try:
                 pj = self.pingTreeIter.next()
+                failures = self.failed.get(pj.ipaddr, 0)
+                if failures < self.maxFailures or self.reconfigured:
+                    self.ping(pj)
+                    return True
             except StopIteration:
                 self.pingTreeIter = None
                 return False
-            self.ping(pj)
-            return True
 
     def ping(self, pj):
         if self.failed.get(pj.ipaddr, 0) < self.maxFailures:
@@ -181,6 +184,7 @@ class ZenPing(ZCmdBase):
         runtime = time.time() - self.start
         self.log.info("Finished pinging %d jobs in %.2f seconds",
                       self.jobs, runtime)
+        self.reconfigured = False
         if not self.options.cycle:
             self.stop()
 
