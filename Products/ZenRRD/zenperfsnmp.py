@@ -31,6 +31,7 @@ from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Chain import Chain
 from Products.ZenModel.PerformanceConf import performancePath
+from Products.ZenEvents import Event
 
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
@@ -41,7 +42,7 @@ BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 30
-BAD_SEVERITY=4
+BAD_SEVERITY=Event.Warning
 
 COMMON_EVENT_INFO = {
     'agent': 'zenperfsnmp',
@@ -521,7 +522,7 @@ class zenperfsnmp(ZenDaemon):
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
                        device=deviceName, summary=summary,
                        component=name,
-                       severity=BAD_SEVERITY)
+                       severity=Event.Notice)
         self.log.warn(summary)
         del proxy.oidMap[oid]
         
