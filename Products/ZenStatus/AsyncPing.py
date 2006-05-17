@@ -64,18 +64,14 @@ class Ping(object):
     Class that provides asyncronous icmp ping.
     """
     
-    def __init__(self, tries=2, timeout=2, chunkSize=10):
+    def __init__(self, tries=2, timeout=2):
         self.tries = tries
         self.timeout = timeout
-        self.chunkSize = chunkSize
         self.procId = os.getpid()
         self.jobqueue = {}
-        self.pingsocket = None
-        self.morepkts = True
-        self.devcount = 0
-        self.createPingSocket()
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
-        self.incount = self.outcount = 0
+        self.createPingSocket()
+
 
     def createPingSocket(self):
         """make an ICMP socket to use for sending and receiving pings"""
@@ -117,7 +113,7 @@ class Ping(object):
             plog.debug("send icmp to '%s'", pingJob.ipaddr)
             reactor.callLater(self.timeout, self.checkTimeout, pingJob)
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
-            pingJob.sent += 1 
+            pingJob.sent += 1
             self.jobqueue[pingJob.ipaddr] = pingJob
         except (SystemExit, KeyboardInterrupt): raise
         except Exception, e:
@@ -177,13 +173,20 @@ class Ping(object):
         """
         plog.debug("pj fail for %s", pj.ipaddr)
         pj.rtt = -1
-        pj.message = "%s ip %s is down" % (pj.hostname, pj.ipaddr) 
+        pj.message = "%s ip %s is down" % (pj.hostname, pj.ipaddr)
         self.reportPingJob(pj)
+
 
     def reportPingJob(self, pj):
         del self.jobqueue[pj.ipaddr]
         if not pj.deferred.called:
-            pj.deferred.callback(pj)
+            if pj.rtt < 0:
+                pj.deferred.errback(pj)
+            else:
+                pj.deferred.callback(pj)
+        else:
+            plog.debug("duplicate ping packet received for %s" % pj.ipaddr)
+
 
     def checkTimeout(self, pj):
         if self.jobqueue.has_key(pj.ipaddr):
@@ -194,6 +197,11 @@ class Ping(object):
                     self.pingJobFail(pj)
                 else:
                     self.sendPacket(pj)
+            else:
+                plog.debug("calling checkTimeout needlessly for %s", pj.ipaddr)
+
+    def jobCount(self):
+        return len(self.jobqueue)
 
     def ping(self, ip):
         """Perform async ping of a list of ips returns (goodips, badips).
@@ -201,6 +209,7 @@ class Ping(object):
         pj = PingJob(ip)
         self.sendPacket(pj)
         return pj.deferred
+
 
 def _printResults(results, start):
     good = [pj for s, pj in results if s and pj.rtt >= 0]
