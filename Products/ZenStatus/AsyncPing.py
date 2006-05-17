@@ -139,13 +139,15 @@ class Ping(object):
                 elif icmppkt.type == icmp.ICMP_UNREACH:
                     try:
                         origpkt = ip.Packet(icmppkt.data)
-                        origicmp = icmp.Packet(origpkt.data)
-                        dip = origpkt.dst
-                        plog.debug("host unreachable pkt %s", dip)
-                        if (origicmp.data == self.pktdata 
-                            and self.jobqueue.has_key(dip)):
-                            self.pingJobFail(self.jobqueue[dip])
-                    except ValueError:
+                        # ensure it was an ICMP packet
+                        if origpkt.p == 1:
+                            origicmp = icmp.Packet(origpkt.data)
+                            dip = origpkt.dst
+                            plog.debug("host unreachable pkt %s", dip)
+                            if (origicmp.data == self.pktdata 
+                                and self.jobqueue.has_key(dip)):
+                                self.pingJobFail(self.jobqueue[dip])
+                    except ValueError, ex:
                         plog.warn("failed to parse host unreachable packet")
                 else:
                     plog.debug("unexpected pkt %s %s", sip, icmppkt)
@@ -178,7 +180,10 @@ class Ping(object):
 
 
     def reportPingJob(self, pj):
-        del self.jobqueue[pj.ipaddr]
+        try:
+            del self.jobqueue[pj.ipaddr]
+        except KeyError:
+            pass
         if not pj.deferred.called:
             if pj.rtt < 0:
                 pj.deferred.errback(pj)
