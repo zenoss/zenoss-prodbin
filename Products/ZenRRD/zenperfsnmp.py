@@ -154,7 +154,7 @@ class SnmpStatus:
                 summary='snmp agent up on device ' + deviceName
                 eventCb(self.snmpStatusEvent, 
                         device=deviceName, summary=summary,
-                        severity=0)
+                        severity=Event.Clear)
                 log.info(summary)
             self.count = 0
         else:
@@ -172,7 +172,7 @@ class Threshold:
     label = ''
     minimum = None
     maximum = None
-    severity = 3
+    severity = Event.Notice
     escalateCount = 0
     threshevt = {'eventClass':'/Perf/Snmp', 'agent': 'ZenPerfSnmp'}
 
@@ -214,7 +214,7 @@ class Threshold:
                         summary=summary,
                         eventKey=oid,
                         component=cname,
-                        severity=0)
+                        severity=Event.Clear)
             self.count = 0
 
 
@@ -232,7 +232,8 @@ class zenperfsnmp(ZenDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
     startevt = {'device':socket.getfqdn(), 'eventClass':'/App/Start', 
-                'component':'zenperfsnmp', 'summary': 'started', 'severity': 0}
+                'component':'zenperfsnmp', 'summary': 'started',
+                'severity': Event.Clear}
     stopevt = {'device':socket.getfqdn(), 'eventClass':'/App/Stop', 
                'component':'zenperfsnmp', 'summary': 'stopped',
                'severity': BAD_SEVERITY}
@@ -296,13 +297,15 @@ class zenperfsnmp(ZenDaemon):
         return CountedProxy.CountedProxy(AuthProxy(url))
 
 
-    def sendEvent(self, event, **kw):
+    def sendEvent(self, event, now=False, **kw):
         'convenience function for pushing events to the Zope server'
         ev = event.copy()
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
         #self.log.debug(ev)
         self.events.append(ev)
+	if now:
+	    self.sendEvents()
 
 
     def sendEvents(self):
@@ -641,7 +644,7 @@ class zenperfsnmp(ZenDaemon):
         self.sendEvent(self.startevt)
         zpf.startUpdateConfig()
         reactor.run(installSignalHandlers=False)
-        self.sendEvent(self.stopevt)
+        self.sendEvent(self.stopevt, now=True)
 
 
 if __name__ == '__main__':
