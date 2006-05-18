@@ -5,13 +5,15 @@
 #################################################################
 
 from Products.PageTemplates.Expressions import getEngine
+from DateTime import DateTime
 
 _compiled = {}
 def talesEval(express, context):
     """Perform a TALES eval on the express using context.
     """
     compiled = talesCompile(express, context)    
-    res = compiled(getEngine().getContext({'here':context, 'nothing':None}))
+    res = compiled(getEngine().getContext(
+        {'here':context, 'nothing':None, 'now': DateTime() }))
     if isinstance(res, Exception):
         raise res
     return res
