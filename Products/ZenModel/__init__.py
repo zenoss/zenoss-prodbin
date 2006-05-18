@@ -43,6 +43,7 @@ productNames = (
     "DeviceClass",
     "DeviceGroup",
     "DeviceHW",
+    "DeviceReport",
     "ExpansionCard",
     "FileSystem",
     "HardDisk",
