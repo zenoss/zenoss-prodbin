@@ -27,6 +27,7 @@ renderTableBody = function(html) {
     log("renderTableBody");
     resetLoadStatus();
     evbody = document.getElementById("eventsBody");
+    /* this won't work on IE */
     evbody.innerHTML = html;
     document.forms.control.resetStart.value = 0;
 };
@@ -64,6 +65,11 @@ getTablePage = function(form) {
     } else {
         loadStatusDefered = loadStatus()
     }
+    /*
+    d = doSimpleXMLHttpRequest(form.url.value, formContents(form))
+    d.addCallback(processData)
+    d.addCallback(errorHandler)
+    */
     dojo.io.bind({url: form.url.value, formNode: form, 
         load: processData,
         error: errorHandler,

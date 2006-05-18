@@ -10,6 +10,7 @@
                     sortedHeader=here.sortedHeader, 
                     sortedSence=here.sortedSence)"
     tal:on-error="string: Device Report ${here/title} has errors">
+    <input type="hidden" name="tableName" tal:attributes="value tableName"/>
     <tr>
         <th class="tabletitle" tal:content="here/title_or_id"
             tal:attributes="colspan python:len(here.columns)">

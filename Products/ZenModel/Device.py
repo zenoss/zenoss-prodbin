@@ -402,6 +402,12 @@ class Device(ManagedEntity):
         return templ
 
 
+    def getHWManufacturerName(self):
+        """Return the hardware manufacturer name of this device.
+        """
+        return self.hw.getManufacturerName()
+
+
     def getHWProductName(self):
         """Return the hardware product name of this device.
         """
@@ -412,6 +418,12 @@ class Device(ManagedEntity):
         """Get our HW product by productKey.
         """
         return self.hw.getProductKey()
+
+
+    def getOSManufacturerName(self):
+        """Return the OS manufacturer name of this device.
+        """
+        return self.os.getManufacturerName()
 
 
     def getOSProductName(self):

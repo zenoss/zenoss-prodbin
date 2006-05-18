@@ -59,7 +59,7 @@
                 name="refresh" value="Start Refresh"
                 onclick="startRefresh(this, this.form);">
             <input class="tableheader" type="text" name="refreshRate" 
-                size='2' value='10'>
+                size='2' value='60'>
                 
         </th>
     </tr>
