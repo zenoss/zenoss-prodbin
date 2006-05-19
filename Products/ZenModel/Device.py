@@ -660,11 +660,15 @@ class Device(ManagedEntity):
             log.info("setting hardware manufacturer to %s productName to %s"
                             % (hwManufacturer, hwProductName))
             self.hw.setProduct(hwProductName, hwManufacturer)
+        else:
+            self.hw.productClass.removeRelation()
 
         if osManufacturer and osProductName:
             log.info("setting os manufacturer to %s productName to %s"
                             % (osManufacturer, osProductName))
             self.os.setProduct(osProductName, osManufacturer)
+        else:
+            self.os.productClass.removeRelation()
 
         if locationPath: 
             log.info("setting location to %s" % locationPath)

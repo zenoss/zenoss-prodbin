@@ -79,14 +79,17 @@ class InterfaceMap(SnmpPlugin):
                     strindex = str(len(iftable))          #ifindex on wrt54g
                 else: 
                     continue                                 
-            if not omtable.has_key(strindex):
+            if not omtable.has_key(strindex) and iftable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
                 if not om: continue
                 rm.append(om)
                 omtable[strindex] = om
                 del iftable[strindex]
-            else: 
+            elif omtable.has_key(strindex): 
                 om = omtable[strindex]
+            else:
+                log.warn("ip points to missing ifindex %s skipping", strindex) 
+                continue
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
             ip = iprow['ipAddress']+"/"+str(self.maskToBits(iprow['netmask']))
             om.setIpAddresses.append(ip)

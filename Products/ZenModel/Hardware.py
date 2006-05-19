@@ -64,9 +64,11 @@ class Hardware(MEProduct):
     def setProductKey(self, prodKey):
         """Set the product class of this software by its productKey.
         """
-        #self.productKey = prodKey
-        prodobj=self.getDmdRoot("Manufacturers").createHardwareProduct(prodKey)
-        self.productClass.addRelation(prodobj)
-
+        if prodKey:
+            manufs = self.getDmdRoot("Manufacturers")
+            prodobj = manufs.createHardwareProduct(prodKey)
+            self.productClass.addRelation(prodobj)
+        else:
+            self.productClass.removeRelation()
     
 InitializeClass(Hardware)

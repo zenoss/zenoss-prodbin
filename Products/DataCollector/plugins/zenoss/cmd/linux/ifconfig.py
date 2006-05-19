@@ -45,6 +45,7 @@ class ifconfig(CommandPlugin):
                     name, itype, iface.macaddress=m.groups()[:3]
                 else:
                     name, itype = m.groups()[3:]
+                if itype.startswith("Ethernet"): itype = "ethernetCsmacd"
                 iface.type = itype.strip()
                 iface.name = name
                 iface.id = self.prepId(name)

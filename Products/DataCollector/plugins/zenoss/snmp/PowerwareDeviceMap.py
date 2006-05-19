@@ -17,6 +17,12 @@ class PowerwareDeviceMap(SnmpPlugin):
          })
 
 
+    def condition(self, device, log):
+        """only for boxes with proper object id
+        """
+        return device.snmpOid.startswith(".1.3.6.1.4.1.534")
+
+
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing Powerware device info on device %s' % device.id)
