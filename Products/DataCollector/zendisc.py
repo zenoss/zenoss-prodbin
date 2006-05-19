@@ -15,7 +15,7 @@ import transaction
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import PingStatus
-from Products.ZenEvents.Event import Event
+from Products.ZenEvents.Event import Event, Info
 from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
 
@@ -125,8 +125,17 @@ class ZenDisc(ZenModeler):
         except ZentinelException, e:
             self.log.warn(e)
             #FIXME add event showing problem so we don't remodel later
+            evt = Event(device=ip,
+                        component=ip,
+                        ipAddress=ip,
+                        eventKey=ip,
+                        eventClass="/Status/Snmp",
+                        summary=str(e),
+                        severity=Info,
+                        agent="Discover")
+            self.dmd.ZenEventManager.sendEvent(evt)
         except Exception, e:
-            self.log.exception("faied device discovery for '%s'", ip)
+            self.log.exception("failed device discovery for '%s'", ip)
 
 
     def run(self):
