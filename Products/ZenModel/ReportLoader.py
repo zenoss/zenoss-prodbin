@@ -21,7 +21,9 @@ class ReportLoader(ZCmdBase):
                 fullname = os.path.join(path,filename)
                 fid = filename[:-4].replace("_"," ")
                 orgpath = path.replace("_", " ")
-                orgpath = [p for p in os.path.split(orgpath) if p != 'reports']
+                orgpath = orgpath.split("/")
+                idx = orgpath.index("reports") + 1
+                orgpath = orgpath[idx:]
                 orgpath = "/" + "/".join(orgpath)
                 rorg = reproot.createOrganizer(orgpath)
                 if getattr(rorg, fid, False): continue
