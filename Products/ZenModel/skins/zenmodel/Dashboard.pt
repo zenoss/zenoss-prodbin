@@ -19,6 +19,7 @@
         var dashurl='/zport/dmd/ZenEventManager/getDashboardInfo'
     </script>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" src="/zport/js/zenutils.js"></script>
     <script type="text/javascript" src="dashboard.js"></script>
     <table width=100%>
     <tr>
