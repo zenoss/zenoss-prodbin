@@ -38,7 +38,7 @@ class ReportClass(Organizer):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
-    sub_meta_types = ("ReportClass", "Report")
+    sub_meta_types = ("ReportClass", "Report", 'DeviceReport')
 
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 

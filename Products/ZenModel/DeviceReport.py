@@ -16,6 +16,16 @@ from Products.ZenUtils.ZenTales import talesEval
 #from Report import Report
 from ZenModelRM import ZenModelRM
 
+def manage_addDeviceReport(context, id, title = None, REQUEST = None):
+    """Add a DeviceReport
+    """
+    dc = DeviceReprot(id, title)
+    context._setObject(id, dc)
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+                   
+
+
 class DeviceReport(ZenModelRM):
 
     meta_type = "DeviceReport"
