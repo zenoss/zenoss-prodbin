@@ -82,6 +82,7 @@ class Status:
         self._total = count
         self._startTime = time.time()
         self._deferred = defer.Deferred()
+        self._checkFinished()           # count could be zero
         return self._deferred
 
 
@@ -368,9 +369,12 @@ class zenperfsnmp(ZenDaemon):
         if self.options.device:
             self.log.debug('Gathering performance data for %s ' %
                            self.options.device)
-        self.log.debug('Configured %d devices' % len(deviceList))
 
-        if not deviceList: self.log.warn("no devices found")
+        if not deviceList:
+            self.log.warn("no devices found, keeping existing list")
+            return
+
+        self.log.debug('Configured %d devices' % len(deviceList))
 
         for snmpTargets in deviceList:
             self.updateDeviceConfig(snmpTargets)
@@ -450,14 +454,18 @@ class zenperfsnmp(ZenDaemon):
         self.log.debug("getting device ping issues")
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getDevicePingIssues')
-        d.addCallbacks(self.setUnresponsiveDevices, self.log.error)
+        d.addBoth(self.setUnresponsiveDevices)
         self.cycle(self.snmpCycleInterval, self.scanCycle)
 
 
-    def setUnresponsiveDevices(self, deviceList):
+    def setUnresponsiveDevices(self, arg):
         "remember all the unresponsive devices"
-        self.log.debug('Unresponsive devices: %r' % deviceList)
-        self.unresponsiveDevices = Set(firsts(deviceList))
+        if isinstance(arg, list):
+            deviceList = arg
+            self.log.debug('Unresponsive devices: %r' % deviceList)
+            self.unresponsiveDevices = Set(firsts(deviceList))
+        else:
+            self.log.error(arg)
         self.readDevices()
 
         
