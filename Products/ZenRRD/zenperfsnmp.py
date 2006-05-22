@@ -37,6 +37,7 @@ from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
 
 import CountedProxy
+from FileCleanup import FileCleanup
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
@@ -245,6 +246,7 @@ class zenperfsnmp(ZenDaemon):
     defaultRRDCreateCommand = None
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
+    maxRrdFileAge = 30 * (24*60*60)     # seconds
     status = Status()
 
 
@@ -265,7 +267,16 @@ class zenperfsnmp(ZenDaemon):
         self.cycleComplete = False
         self.snmpOidsRequested = 0
         self.events = []
+        self.fileCleanup = FileCleanup(performancePath(''), '.*\\.rrd$')
+        self.fileCleanup.process = self.cleanup
+        self.fileCleanup.start()
 
+    def cleanup(self, fullPath):
+        self.log.warning("Deleting old RRD file: %s", fullPath)
+        try:
+            os.unlink(fullPath)
+        except OSError:
+            self.log.error("Unable to delete old RRD file: %s", fullPath)
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)
