@@ -76,7 +76,7 @@ class InterfaceMap(SnmpPlugin):
             strindex = str(iprow['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
                 log.warn("skipping %s points to missing ifindex %s",
-                            iprow['ipAddress'], iprow['ifindex'])
+                            iprow.get('ipAddress',""), iprow.get('ifindex',""))
                 continue                                 
             if not omtable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
@@ -102,6 +102,7 @@ class InterfaceMap(SnmpPlugin):
 
     def processInt(self, device, iface):
         om = self.objectMap(iface)
+        if not hasattr(om, 'id'): return None
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.name = om.id
         om.id = self.prepId(om.id)
