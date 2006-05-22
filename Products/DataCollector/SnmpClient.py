@@ -14,6 +14,7 @@ global defaultTries, defaultTimeout
 defaultTries = 2
 defaultTimeout = 1
 
+DEFAULT_MAX_REPETITIONS = 40
 
 class SnmpClient(object):
 
@@ -58,7 +59,8 @@ class SnmpClient(object):
                 d.addErrback(self._handleError, pname)
             for tmap in plugin.snmpGetTableMaps:
                 d = self.proxy.getTable(tmap.getoids(),
-                       timeout=self.timeout, retryCount=self.tries)
+                       timeout=self.timeout, retryCount=self.tries,
+                       maxRepetitions=DEFAULT_MAX_REPETITIONS)
                 self.queries +=1
                 d.addCallback(self._snmpGetTableCallback, pname, tmap)
                 d.addErrback( self._handleError, pname)
@@ -149,7 +151,7 @@ if __name__ == "__main__":
     log.setLevel(20)
     import sys
     sys.path.append("plugins")
-    from plugins.zentinel.snmp.InterfaceMap import InterfaceMap
+    from plugins.zenoss.snmp.InterfaceMap import InterfaceMap
     ifmap = InterfaceMap()
     sc = SnmpClient("gate.confmon.loc", community="zentinel", plugins=[ifmap,])
     reactor.run()
