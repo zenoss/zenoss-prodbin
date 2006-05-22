@@ -75,11 +75,10 @@ class InterfaceMap(SnmpPlugin):
             if not iprow.has_key("ifindex"): continue
             strindex = str(iprow['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
-                if int(iprow['ifindex']) >= len(iftable): #hack for bad 
-                    strindex = str(len(iftable))          #ifindex on wrt54g
-                else: 
-                    continue                                 
-            if not omtable.has_key(strindex) and iftable.has_key(strindex):
+                log.warn("skipping %s points to missing ifindex %s",
+                            iprow['ipAddress'], iprow['ifindex'])
+                continue                                 
+            if not omtable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
                 if not om: continue
                 rm.append(om)
