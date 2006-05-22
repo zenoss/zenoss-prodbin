@@ -133,7 +133,8 @@ class ZenDisc(ZenModeler):
                         summary=str(e),
                         severity=Info,
                         agent="Discover")
-            self.dmd.ZenEventManager.sendEvent(evt)
+            if self.options.snmpMissing:
+                self.dmd.ZenEventManager.sendEvent(evt)
         except Exception, e:
             self.log.exception("failed device discovery for '%s'", ip)
 
@@ -193,7 +194,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--chunk', dest='chunkSize', 
                     default=10, type="int",
                     help="number of in flight ping packets")
-
+        self.parser.add_option('--snmp-missing', dest='snmpMissing',
+                    action="store_true", default=False,
+                    help="send an event if SNMP is not found on the device")
 
 if __name__ == "__main__":
     try:
