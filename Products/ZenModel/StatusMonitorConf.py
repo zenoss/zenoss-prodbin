@@ -47,16 +47,16 @@ class StatusMonitorConf(Monitor, StatusColor):
 
     monitorRootName = "StatusMonitors"
 
-    chunk=75,
-    timeOut=1.5,
-    tries=2,
-    snmpTimeOut=3.0,
-    snmpTries=2,
-    cycleInterval=60,
-    snmpCycleInterval=60,
-    configCycleInterval=20,
-    maxFailures = 1440,
-    cycleFailWarn = 2,
+    chunk=75
+    timeOut=1.5
+    tries=2
+    snmpTimeOut=3.0
+    snmpTries=2
+    cycleInterval=60
+    snmpCycleInterval=60
+    configCycleInterval=20
+    maxFailures = 1440
+    cycleFailWarn = 2
     cycleFailCritical = 3
     #prodStateThreshold = 500
 
