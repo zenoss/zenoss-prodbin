@@ -14,7 +14,7 @@ global defaultTries, defaultTimeout
 defaultTries = 2
 defaultTimeout = 1
 
-DEFAULT_MAX_REPETITIONS = 40
+DEFAULT_MAX_OIDS_BACK = 40
 
 class SnmpClient(object):
 
@@ -58,9 +58,11 @@ class SnmpClient(object):
                 d.addCallback(self._snmpGetCallback, pname)
                 d.addErrback(self._handleError, pname)
             for tmap in plugin.snmpGetTableMaps:
+                rowSize = len(tmap.getoids())
+                maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
                 d = self.proxy.getTable(tmap.getoids(),
                        timeout=self.timeout, retryCount=self.tries,
-                       maxRepetitions=DEFAULT_MAX_REPETITIONS)
+                       maxRepetitions=maxRepetitions)
                 self.queries +=1
                 d.addCallback(self._snmpGetTableCallback, pname, tmap)
                 d.addErrback( self._handleError, pname)
