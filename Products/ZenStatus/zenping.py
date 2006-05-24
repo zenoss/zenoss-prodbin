@@ -67,10 +67,11 @@ class ZenPing(ZCmdBase):
         self.log.info("started")
 
     def sendEvent(self, evt):
+        "wrapper for sending an event"
         self.zem.sendEvent(evt)
 
     def sendPingEvent(self, pj):
-        "Send an event to event backend."
+        "Send an event based on a ping job to the event backend."
         evt = Event(device=pj.hostname, 
                     component="icmp", 
                     ipAddress=pj.ipaddr, 
@@ -85,7 +86,10 @@ class ZenPing(ZCmdBase):
         self.sendEvent(evt)
 
     def loadConfig(self):
-        "get the config data from file or server"
+        "get the config data"
+        reactor.callLater(self.configCycleInterval, self.loadConfig)
+
+        self.dmd._p_jar.sync()
         changed = False
         smc = self.dmd.unrestrictedTraverse(self.configpath)
         for att in ("timeOut", "tries", "chunk",
@@ -113,8 +117,6 @@ class ZenPing(ZCmdBase):
             self.pingtree = pingtree.Rnode(findIp(), self.hostname, 0)
         devices = smc.getPingDevices()
         self.prepDevices(devices)
-        
-        reactor.callLater(self.configCycleInterval, self.loadConfig)
 
 
     def prepDevices(self, devices):
@@ -122,8 +124,10 @@ class ZenPing(ZCmdBase):
         for device in devices:
             status = device.getStatus(PingStatus, state=2)
             self.failed[device.getManageIp()] = status
-            self.pingtree.addDevice(device)
+            if device.monitorDevice() and not device.zPingMonitorIgnore:
+                self.pingtree.addDevice(device)
         reconfigured = True
+
 
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
@@ -141,16 +145,19 @@ class ZenPing(ZCmdBase):
 
 
     def pingCycle(self):
+        "Start a new run against the ping job tree"
+        reactor.callLater(self.cycleInterval, self.pingCycle)
+
         if self.pingTreeIter == None:
             self.start = time.time()
             self.jobs = 0
             self.pingTreeIter = self.pingtree.pjgen()
         while self.pinger.jobCount() < self.chunk and self.startOne():
             pass
-        reactor.callLater(self.cycleInterval, self.pingCycle)
 
 
     def startOne(self):
+        "Initiate the next ping job"
         if not self.pingTreeIter:
             return False
         while 1:
@@ -165,12 +172,14 @@ class ZenPing(ZCmdBase):
                 return False
 
     def ping(self, pj):
+        "Perform a ping"
         self.log.debug("starting %s", pj.ipaddr)
         pj.reset()
         self.pinger.sendPacket(pj)
         pj.deferred.addCallbacks(self.pingSuccess, self.pingFailed)
         
     def next(self):
+        "Pull up the next ping job, which may throw StopIteration"
         self.jobs += 1
         self.startOne()
         if self.pinger.jobCount() == 0:
@@ -178,6 +187,7 @@ class ZenPing(ZCmdBase):
 
     
     def endCycle(self, *unused):
+        "Note the end of the ping list with a successful status message"
         self.sendHeartbeat()
         runtime = time.time() - self.start
         self.log.info("Finished pinging %d jobs in %.2f seconds",
@@ -193,6 +203,7 @@ class ZenPing(ZCmdBase):
         self.sendEvent(evt)
 
     def pingSuccess(self, pj):
+        "Callback for a good ping response"
         if self.failed.get(pj.ipaddr, 0) > 0:
             pj.severity = 0
             self.sendPingEvent(pj)
@@ -202,6 +213,7 @@ class ZenPing(ZCmdBase):
         self.next()
 
     def pingFailed(self, err):
+        "Callback for a bad (no) ping response"
         pj = err.value
         self.log.debug('failure %s', pj.ipaddr)
         self.failed.setdefault(pj.ipaddr, 0)
@@ -237,11 +249,13 @@ class ZenPing(ZCmdBase):
             reactor.stop()
 
     def start(self):
+        "Get things going"
         self.loadConfig()
         self.pinger = Ping(self.tries, self.timeOut)
         self.pingCycle()
 
     def stop(self):
+        "Support keyboard interrupt "
         self.log.info("stopping...")
         self.sendEvent(Event(device=getfqdn(), 
                                eventClass=AppStop, 
