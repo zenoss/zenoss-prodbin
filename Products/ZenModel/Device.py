@@ -700,6 +700,12 @@ class Device(ManagedEntity):
         return self.productionState >= self.zProdStateThreshold
 
 
+    def getProductionStateString(self):
+        """Return the prodstate as a string.
+        """
+        return self.convertProdState(self.productionState)
+
+
     security.declareProtected('Change Device', 'setProdState')
     def setProdState(self, state):
         """Set a device's production state as an integer.

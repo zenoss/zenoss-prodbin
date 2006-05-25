@@ -71,7 +71,7 @@ class ZenTableState:
         self.__dict__.update(keys)
         for key in keys.keys():
             if key not in self.requestAtts:
-                self.requetatts.append(key)
+                self.requestAtts.append(key)
 
 
     def updateFromRequest(self, request):
