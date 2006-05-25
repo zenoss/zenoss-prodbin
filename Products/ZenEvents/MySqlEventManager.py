@@ -41,7 +41,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
     security = ClassSecurityInfo()
     
-    def getEventSummary(self, where="", severity=1, state=1):
+    def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
         Return a list of tuples with the CSS class, acknowledged count, count
 
@@ -55,6 +55,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         select += "from %s where " % self.statusTable
         where = self._wand(where, "%s >= %s", self.severityField, severity)
         where = self._wand(where, "%s <= %s", self.stateField, state)
+        if prodState is not None:
+            where = self._wand(where, "%s >= %s", 'prodState', prodState)
         select += where
         select += " group by severity desc"
         #print select

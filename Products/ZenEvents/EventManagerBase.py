@@ -283,14 +283,14 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             raise
 
 
-    def getEventSummaryME(self, me, severity=1, state=1):
+    def getEventSummaryME(self, me, severity=1, state=1, prodState=None):
         """
         Return a list of tuples with number of events
         and the color of the severity that the number represents.
         """ 
         try:
             where = self.lookupManagedEntityWhere(me)
-            return self.getEventSummary(where, severity, state)
+            return self.getEventSummary(where, severity, state, prodState=None)
         except:
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
