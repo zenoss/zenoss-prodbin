@@ -290,7 +290,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """ 
         try:
             where = self.lookupManagedEntityWhere(me)
-            return self.getEventSummary(where, severity, state, prodState=None)
+            return self.getEventSummary(where, severity, state, prodState)
         except:
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
@@ -730,7 +730,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                         sys.getPrimaryUrlPath()+"/viewEvents", 
                         sys.getOrganizerName())
             evts = [ alink ]
-            evts.extend(map(evtprep, sys.getEventSummary()))
+            evts.extend(map(evtprep, sys.getEventSummary(prodState=1000)))
             sysdata.append(evts)
         
         sysdata.sort()
