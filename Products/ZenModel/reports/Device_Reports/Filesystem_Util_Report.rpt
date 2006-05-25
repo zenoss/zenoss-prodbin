@@ -5,9 +5,9 @@
 <tal:block metal:fill-slot="contentPane">
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
-    objects  python:here.getDmdRoot('Devices').getSubComponents('FileSystem');
+    objects  python:here.getDmdRoot('Devices').getSubComponents('FileSystem',False);
     tableName string: filesystemutilreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='capacity', sortSence='desc');
+    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='capacity', sortedSence='desc');
     ">
     <th class="tabletitle" colspan="6">All Monitored Components</th>
     <tr>
@@ -24,9 +24,10 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'capacity','% Util')"/>
     </tr>
-    <tr tal:repeat="fsys batch">
+    <tal:block tal:repeat="fsys batch">
+    <tr tal:condition="python:fsys.device().monitorDevice()">
         <td class="tablevalues" 
-          tal:content="structure python:comp.getDeviceLink('deviceOsDetail')"/>
+          tal:content="structure python:fsys.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
           <a class=tablevalues tal:content="fsys/mount" 
             tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
@@ -44,6 +45,7 @@
         tal:content="fsys/capacity">vol
       </td>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="6" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
