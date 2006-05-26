@@ -204,7 +204,7 @@ class ZenPing(ZCmdBase):
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
-        if self.failed.get(pj.ipaddr, 0) > 0:
+        if self.failed.get(pj.ipaddr, 0) > 1:
             pj.severity = 0
             self.sendPingEvent(pj)
         self.log.debug('success %s', pj.ipaddr)
