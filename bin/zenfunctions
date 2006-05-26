@@ -34,9 +34,9 @@ start() {
     if [ ! -f $PIDFILE ]; then    
         echo starting...
         if [ ${CFGFILE:-""} = "" ]; then
-            exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
+            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
         else
-            exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
                 --cycle --daemon $ARGS
         fi
     else
@@ -46,9 +46,9 @@ start() {
 
 run() {
     if [ ${CFGFILE:-""} = "" ]; then
-        exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME $ARGS
+        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME $ARGS
     else        
-        exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
+        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
     fi
 }
 
