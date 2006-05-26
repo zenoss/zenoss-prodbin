@@ -60,6 +60,7 @@
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     size="25" name="zSnmpCommunity"
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value request/zSnmpCommunity | 
                             device/zSnmpCommunity | string:"/>
             </td>
@@ -67,6 +68,7 @@
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     size="25" name="zSnmpPort:int" 
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value request/zSnmpPort | 
                             device/zSnmpPort | python:161"/>
             </td>
@@ -75,6 +77,7 @@
             <td class="tableheader" align="left">Tag Number</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" name="tag" size="25" 
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value device/hw/tag | request/tag | nothing"/>
                                         
             </td>
@@ -82,6 +85,7 @@
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     name="serialNumber" size="25" 
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value device/hw/serialNumber | 
                             request/serialNumber | nothing"/>
             </td>
@@ -91,6 +95,7 @@
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     size="25" name="rackSlot:int"
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value device/rackSlot | 
                             request/rackSlot | python:0"/>
             </td>
