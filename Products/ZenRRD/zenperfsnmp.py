@@ -15,6 +15,7 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 import os
+import errno
 import socket
 import time
 import logging
@@ -267,7 +268,14 @@ class zenperfsnmp(ZenDaemon):
         self.cycleComplete = False
         self.snmpOidsRequested = 0
         self.events = []
-        self.fileCleanup = FileCleanup(performancePath(''), '.*\\.rrd$')
+        perfRoot = performancePath('')
+	try:
+	    os.makedirs(perfRoot)
+        except OSError, ex:
+	    err, msg = ex.args
+	    if err != errno.EEXIST:
+		raise
+        self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$')
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
 
