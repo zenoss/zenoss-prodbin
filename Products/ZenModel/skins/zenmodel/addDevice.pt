@@ -26,7 +26,9 @@
         <tr>
             <td class="tableheader" align="left">Device Name</td>
             <td class="tablevalues" align="left">
-                <input class="tablevalues" type="text" size="25" name="deviceName"
+                <input class="tablevalues" type="text" 
+		    size="25" name="deviceName"
+		    onkeypress="return submitViaEnter(event,'loadDevice');"
                     tal:attributes="value device/getDeviceName | 
                                         request/deviceName | nothing"/>
             </td>
