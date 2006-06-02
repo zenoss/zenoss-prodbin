@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS history
     deletedTime     timestamp,
     PRIMARY KEY ( evid ),
     INDEX device (device),
-    INDEX DateRange (firstTime, lastTime)
+    INDEX firstTime (firstTime),
+    INDEX lastTime(lastTime)
 ) ENGINE=INNODB;
 
 CREATE TRIGGER status_delete BEFORE DELETE ON status
