@@ -66,6 +66,9 @@ class ZenDisc(ZenModeler):
                         net.ipaddresses.removeRelation(ipobj)
                     else:
                         self.sendEvent(ipobj)
+                else:
+                    if self.options.addInactive:
+                        self.sendEvent(net.createIp(ip))
             transaction.commit()
         self.log.info("discovered %s active ips", len(ips))    
         return ips
@@ -203,6 +206,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
                     action="store_true", default=False,
                     help="send an event if SNMP is not found on the device")
+        self.parser.add_option('--add-inactive', dest='addInactive',
+                    action="store_true", default=False,
+                    help="add all IPs found, even if they are unresponsive")
 
 if __name__ == "__main__":
     try:
