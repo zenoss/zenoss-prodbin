@@ -120,7 +120,8 @@ class ZenDisc(ZenModeler):
                                         ip, dev.id)
             dev = manage_createDevice(self.dmd, ip, devicepath)
             transaction.commit()
-            dev.collectDevice()
+            if self.options.remodel:
+                dev.collectDevice()
             return dev
         except ZentinelException, e:
             self.log.warn(e)
