@@ -34,7 +34,7 @@ class RRDView(object):
         if not template: template = self.getRRDTemplate()
         if type(graph) in types.StringTypes: 
             graph = template.graphs._getOb(graph)
-        targetpath = self.getPrimaryDmdId()
+        targetpath = self.rrdPath()
         objpaq = self.primaryAq()
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
@@ -105,7 +105,7 @@ class RRDView(object):
         return self.meta_type
 
     def getRRDFileName(self, dsname):
-        return os.path.join(self.getPrimaryDmdId(), dsname) + ".rrd"
+        return os.path.join(self.rrdPath(), dsname) + ".rrd"
 
     def getRRDNames(self):
         return []
@@ -140,13 +140,15 @@ class RRDView(object):
                 threshdef.append(thresh.getConfig(self))
         return result
 
+    def rrdPath(self):
+        return "/" + self.id
         
     def getSnmpOidTargets(self):
         """Return a list of (name, oid, path, type, createCmd, thresholds)
         that define monitorable"""
         oids = []
         if self.snmpIgnore(): return oids 
-        basepath = self.getPrimaryDmdId()
+        basepath = self.rrdPath()
         try:
             templ = self.getRRDTemplate(self.getRRDTemplateName())
             if templ:
