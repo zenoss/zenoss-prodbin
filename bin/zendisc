@@ -8,31 +8,5 @@ PRGNAME=zendisc.py
 CFGFILE=$CFGDIR/zendisc.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-run() {
-    exec $PYTHON $PRGHOME/$PRGNAME $ARGS
-}
+generic "$@"
 
-case "$1" in
-  run)
-        run
-        ;;
-  start)
-        start
-        ;;
-  stop)
-        stop
-        ;;
-  restart)
-        restart
-        ;;
-  status)
-        status
-        ;;
-  help)
-        help
-        ;;
-  *)
-        echo $"Usage: $0 {run|start|stop|restart|status|help}"
-        exit 1
-esac
-exit $?
