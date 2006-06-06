@@ -56,19 +56,24 @@ class ZenDisc(ZenModeler):
             self.log.info("discover network '%s'", net.id)
             goodips, badips = ping.ping(net.fullIpList())
             for ip in goodips:
-                ipobj = net.createIp(ip) 
+                ipobj = net.createIp(ip)
+                if self.options.resetPtr:
+                    ipobj.setPtrName()
                 if not ipobj.device():
                     ips.append(ip)
+                if ipobj.getStatus(PingStatus) > 0:
+                    self.sendEvent(ipobj)
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
-                if ipobj:
-                    if ipobj.getStatus(PingStatus) > pingthresh:
-                        net.ipaddresses.removeRelation(ipobj)
-                    else:
-                        self.sendEvent(ipobj)
-                else:
-                    if self.options.addInactive:
-                        self.sendEvent(net.createIp(ip))
+                if self.options.addInactive:
+                    if not ipobj:
+                        ipobj = net.createIp(ip)
+                    self.sendEvent(ipobj)
+                elif ipobj and ipobj.getStatus(PingStatus) > pingthresh:
+                    net.ipaddresses.removeRelation(ipobj)
+                if ipobj and self.options.resetPtr:
+                    ipobj.setPtrName()
+
             transaction.commit()
         self.log.info("discovered %s active ips", len(ips))    
         return ips
@@ -115,7 +120,7 @@ class ZenDisc(ZenModeler):
                 dev = ipobj.device() 
                 if dev:
                     if not self.options.remodel:
-                        self.log.info("ip '%s' on device '%s' skiping",
+                        self.log.info("ip '%s' on device '%s' skipping",
                                         ip, dev.id)
                         return dev.primaryAq()
                     else:
@@ -208,6 +213,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--add-inactive', dest='addInactive',
                     action="store_true", default=False,
                     help="add all IPs found, even if they are unresponsive")
+        self.parser.add_option('--reset-ptr', dest='resetPtr',
+                    action="store_true", default=False,
+                    help="Reset all ip PTR records")
 
 if __name__ == "__main__":
     try:

@@ -100,6 +100,10 @@ class IpAddress(ManagedEntity):
         ManagedEntity.__init__(self, id)
         self._netmask = maskToBits(netmask)
         self.ptrName = None
+        self.setPtrName()
+
+
+    def setPtrName(self):
         try:
             data = socket.gethostbyaddr(id)
             if data: self.ptrName = data[0]
@@ -115,7 +119,6 @@ class IpAddress(ManagedEntity):
 
     def setNetmask(self, value):
         self._netmask = maskToBits(value)
-
 
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
