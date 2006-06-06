@@ -105,10 +105,10 @@ class IpAddress(ManagedEntity):
 
     def setPtrName(self):
         try:
-            data = socket.gethostbyaddr(id)
+            data = socket.gethostbyaddr(self.id)
             if data: self.ptrName = data[0]
         except socket.error, e:
-            log.warn("%s: %s", id, e)
+            log.warn("%s: %s", self.id, e)
 
 
     security.declareProtected('View', 'primarySortKey')
