@@ -141,7 +141,10 @@ class RRDView(object):
         return result
 
     def rrdPath(self):
-        return "/" + self.id
+        d = self.device()
+        if not d: return "/Devices/" + self.id
+        skip = len(d.getPrimaryPath()) - 1
+        return '/Devices/' + '/'.join(self.getPrimaryPath()[skip:])
         
     def getSnmpOidTargets(self):
         """Return a list of (name, oid, path, type, createCmd, thresholds)
