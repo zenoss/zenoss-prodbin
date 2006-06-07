@@ -51,10 +51,12 @@ class ZenDisc(ZenModeler):
         if not nets:
             nets = self.dmd.Networks.getSubNetworks()
             pingthresh = getattr(self.dmd.Networks, "zPingFailThresh", 168)
+        goodCount = 0
         for net in nets:
             if not getattr(net, "zAutoDiscover", False): continue
             self.log.info("discover network '%s'", net.id)
             goodips, badips = ping.ping(net.fullIpList())
+            goodCount += len(goodips)
             for ip in goodips:
                 ipobj = net.createIp(ip)
                 if self.options.resetPtr:
@@ -75,7 +77,7 @@ class ZenDisc(ZenModeler):
                     ipobj.setPtrName()
 
             transaction.commit()
-        self.log.info("discovered %s active ips", len(ips))    
+        self.log.info("discovered %s active ips", goodCount)    
         return ips
        
 
