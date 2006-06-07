@@ -16,3 +16,5 @@ __version__ = "$Revision$"[11:-2]
 import evtprops
 import kill_cricket
 import reindex_history
+import hoist_perf_data
+
