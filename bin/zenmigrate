@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenModel/migrate
+PRGNAME=zenmigrate.py
+CFGFILE=$CFGDIR/zenmigrate.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
+
