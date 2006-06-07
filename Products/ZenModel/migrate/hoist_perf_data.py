@@ -35,7 +35,7 @@ class HoistPerfData(Migrate.Step):
         for name in names:
             if name and name != '/':
                 name = name.lstrip('/')
-                root = os.path.join(oldbase, name)
+                root = os.path.join(oldbase, name, "devices")
                 try:
                     for f in os.listdir(root):
                         oldname = os.path.join(root, f)
