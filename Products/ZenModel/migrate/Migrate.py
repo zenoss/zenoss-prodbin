@@ -20,6 +20,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 allSteps = []
 
+class MigrationFailed(Exception): pass
 
 class Step:
     'A single migration step, to be subclassed for each new change'
@@ -45,6 +46,8 @@ class Step:
         "remove any intermediate results"
         pass
 
+    def revert(self):
+        pass
 
 class Migration:
     "main driver for migration: walks the steps and performs commit/abort"
@@ -62,16 +65,11 @@ class Migration:
         # check version numbers
         good = True
         while steps and steps[0].version < 0:
-            self.message("Migration %s does not set the version number")
-            steps.pop(0)
-            good = False
-        if not good:
-            self.message("Errors found, quitting")
-            return
+            raise MigrationFailed("Migration %s does not set "
+                                  "the version number" %
+                                  steps[0].__class__.__name__)
 
-        class zendmd(ZCmdBase): pass
-        zendmd = zendmd()
-        dmd = zendmd.dmd
+        dmd = self.dmd()
         app = dmd.getPhysicalRoot()
 
         # dump old steps
@@ -117,8 +115,21 @@ class Migration:
         pass
 
 
+    def dmd(self):
+        class zendmd(ZCmdBase): pass
+        zendmd = zendmd()
+        return zendmd.dmd
+
+
     def recover(self):
         transaction.abort()
+        steps = allSteps[:]
+        dmd = self.dmd()
+        current = dmd.version
+        while steps and steps[0].version < current:
+            steps.pop(0)
+        for m in steps:
+            m.revert()
 
 
     def success(self):
