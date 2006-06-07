@@ -9,7 +9,6 @@ __doc__='''
 Rename the property "zEvent_severity" to zEventSeverity and
 remove zEventProperties from all events.
 
-$Id$
 '''
 
 __version__ = "$Revision$"[11:-2]

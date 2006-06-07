@@ -8,7 +8,6 @@ __doc__='''
 
 Re-index the event history table.
 
-$Id$
 '''
 
 __version__ = "$Revision$"[11:-2]

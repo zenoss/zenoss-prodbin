@@ -9,7 +9,6 @@ __doc__='''
 Move the perf data out of the category-based directories and into a
 single namespace.
 
-$Id$
 '''
 
 __version__ = "$Revision$"[11:-2]
