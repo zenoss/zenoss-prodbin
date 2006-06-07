@@ -90,6 +90,9 @@ class Migration(ZCmdBase):
         if self.useDatabaseVersion:
             while steps and steps[0].version < current:
                 steps.pop(0)
+        if self.options.newer:
+            while steps and steps[0].version <= current:
+                steps.pop(0)
 
         for m in steps:
             m.prepare()
@@ -147,7 +150,8 @@ class Migration(ZCmdBase):
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--step',
-                               dest="step",
+                               action='append',
+                               dest="steps",
                                help="Run the given step")
         self.parser.add_option('--commit',
                                dest="commit",
@@ -164,6 +168,12 @@ class Migration(ZCmdBase):
                                type='float',
                                default=None,
                                help="Run the steps by version number")
+        self.parser.add_option('--newer',
+                               dest="newer",
+                               action='store_true',
+                               default=False,
+                               help="Run only steps newer than the "
+                               "current database version.")
 
     def orderedSteps(self):
         return self.allSteps
@@ -191,10 +201,15 @@ class Migration(ZCmdBase):
             self.allSteps = [s for s in self.allSteps
                              if abs(s.version - self.options.level) < 0.0001]
             self.useDatabaseVersion = False
-        if self.options.step:
+        if self.options.steps:
             import re
-            r = re.compile('.*' + self.options.step + '.*')
-            self.allSteps = [s for s in self.allSteps if r.match(s.name())]
+            def matches(name):
+                for step in self.options.steps:
+                    if re.match('.*' + step + '.*', name):
+                        return True
+                return False
+            self.allSteps = [s for s in self.allSteps if matches(s.name())]
             self.useDatabaseVersion = False
-        log.debug("Level %s, step = %s", self.options.level, self.options.step)
+        log.debug("Level %s, steps = %s",
+                  self.options.level, self.options.steps)
         self.cutover()
