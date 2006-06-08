@@ -42,6 +42,7 @@ from Products.ZenModel.ZenModelBase import ZenModelBase
 
 from ZenEventClasses import Unknown
 
+import time
 
 class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager, 
                         PropertyManager, Item):
@@ -832,11 +833,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def dateString(self, value):
         """Convert a date from database format to string.
         """
-        #if isinstance(value, DateTime.DateTime):
-        #    return value.strftime("%Y/%m/%d %H:%M:%S")
-        dt = DateTime.DateTime(value)
-        cents = dt.millis()%1000
-        return "%s.%3d" % (dt.strftime("%Y/%m/%d %H:%M:%S"), cents)
+        # assume value is GMT, so shove it into our timezone
+        value -= time.timezone
+        # get seconds as floating point
+        secs = value % 100
+        return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.gmtime(value)) % secs
         
 
 
