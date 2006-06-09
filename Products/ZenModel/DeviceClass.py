@@ -474,14 +474,8 @@ class DeviceClass(DeviceOrganizer):
         transaction.savepoint()
         for dev in self.getSubDevicesGen():
             dev.index_object()
-            for int in dev.os.interfaces():
-                int.index_object()
-            transaction.savepoint()
-            for svc in dev.os.winservices():
-                svc.index_object()
-            transaction.savepoint()
-            for svc in dev.os.ipservices():
-                svc.index_object()
+            for comp in dev.getDeviceComponents():
+                comp.index_object()
             transaction.savepoint()
 
 

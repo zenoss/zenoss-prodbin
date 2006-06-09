@@ -43,7 +43,7 @@ class HardDisk(HWComponent):
     description = ""
     hostresindex = 0
 
-    _properties = (
+    _properties = HWComponent._properties + (
                  {'id':'description', 'type':'string', 'mode':'w'},
                  {'id':'hostresindex', 'type':'int', 'mode':'w'},
                 )    

@@ -1,7 +1,10 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<br/>
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
 <table metal:define-macro="objectperf" 
     border=0 cellpadding=3 width=100% 
     align="center" bgcolor="#ffffff" cellspacing=1
@@ -10,22 +13,34 @@
     <tr>
       <td class=tableheader align=left>Mount Point</td>
       <td class=tablevalues tal:content="here/mount">/usr</td>
-      <td class=tableheader align=left>Storage Device</td>
-      <td class=tablevalues tal:content="here/storageDevice">1</td>
+        <td class="tableheader">Monitor</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues"  name="monitor:boolean"
+            tal:condition="here/isManager">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.monitored()"/>
+            </select>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/monitored"/>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/monitored"/>
     </tr>  
     <tr>
+      <td class=tableheader align=left>Storage Device</td>
+      <td class=tablevalues tal:content="here/storageDevice">1</td>
       <td class=tableheader align=left>Type</td>
       <td class=tablevalues tal:content="here/type">/usr</td>
+    </tr>
+    <tr>
       <td class=tableheader align=left>Block Size</td>
       <td class=tablevalues tal:content="here/blockSize">1</td>
-    </tr>
-    <tr>
       <td class=tableheader align=left>Total Bytes</td>
       <td class=tablevalues tal:content="here/totalBytes">/usr</td>
-      <td class=tableheader align=left>Use Bytes</td>
-      <td class=tablevalues tal:content="here/usedBytes">1</td>
     </tr>
     <tr>
+      <td class=tableheader align=left>Used Bytes</td>
+      <td class=tablevalues tal:content="here/usedBytes">1</td>
       <td class=tableheader align=left>Available Bytes</td>
       <td class=tablevalues colspan="3" tal:content="here/availBytes">/usr</td>
     </tr>
@@ -47,7 +62,14 @@
       <td class=tableheader align=left>Snmp Index</td>
       <td class=tablevalues tal:content="here/snmpindex">1</td>
     </tr>
+    <tr tal:condition="here/isManager">
+        <td align="left"  class="tableheader" colspan="4">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
 </table>
+</form>
 <br/>
 <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
 

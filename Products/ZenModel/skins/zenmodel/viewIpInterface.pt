@@ -1,7 +1,10 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<br/>
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
 <table metal:define-macro="objectperf" 
     border=0 cellpadding=3 width=100% 
     align="center" bgcolor="#ffffff" cellspacing=1
@@ -14,8 +17,20 @@
       <td class=tablevalues tal:content="here/macaddress">00:11:22:AA:BB:CC</td>
     </tr>
     <tr>
+        <td class="tableheader">Monitor</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues"  name="monitor:boolean"
+            tal:condition="here/isManager">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.monitored()"/>
+            </select>
+            <tal:block tal:condition="not:here/isManager" 
+                tal:content="here/monitored"/>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/monitored"/>
       <td class=tableheader align=left>IP Addresses</td>
-      <td class=tablevalues colspan=3>
+      <td class=tablevalues>
           <span tal:repeat="ip here/getIpAddressObjs" omit-tag="">
             <a class=tablevalues 
                 tal:condition="python:hasattr(ip,'getIpAddress')"
@@ -57,7 +72,14 @@
         A nice interface
     </td>
     </tr>
+    <tr tal:condition="here/isManager">
+        <td align="left"  class="tableheader" colspan="4">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
 </table>
+</form>
 <br/>
 <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
 

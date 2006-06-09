@@ -50,7 +50,7 @@ class FileSystem(OSComponent):
     inodeCapacity = 0
     maxNameLen = 0
 
-    _properties = (
+    _properties = OSComponent._properties + (
         {'id':'mount', 'type':'string', 'mode':''},
         {'id':'storageDevice', 'type':'string', 'mode':''},
         {'id':'type', 'type':'string', 'mode':''},

@@ -58,9 +58,9 @@ class IpInterface(OSComponent):
    
     # catalog to find interfaces that should be pinged
     # indexes are id and description
-    default_catalog = 'interfaceSearch'
+    #default_catalog = 'interfaceSearch'
     
-    _properties = (
+    _properties = OSComponent._properties + (
         {'id':'ips', 'type':'lines', 'mode':'w', 'setter':'setIpAddresses'},
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'ifindex', 'type':'string', 'mode':'w'},
@@ -374,18 +374,18 @@ class IpInterface(OSComponent):
         return self.operStatus > 1
 
 
-    def manage_afterAdd(self, item, container):
-        """Index this interface after it is added to an interfaces relation.
-        """
-        if item == self or item == self.device(): 
-            self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Index this interface after it is cloned.
-        """
-        OSComponent.manage_afterClone(self, item)
-        self.index_object()
+#    def manage_afterAdd(self, item, container):
+#        """Index this interface after it is added to an interfaces relation.
+#        """
+#        if item == self or item == self.device(): 
+#            self.index_object()
+#
+#
+#    def manage_afterClone(self, item):
+#        """Index this interface after it is cloned.
+#        """
+#        OSComponent.manage_afterClone(self, item)
+#        self.index_object()
 
 
     def manage_beforeDelete(self, item, container):
@@ -394,24 +394,24 @@ class IpInterface(OSComponent):
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1): 
             OSComponent.manage_beforeDelete(self, item, container)
-            self.unindex_object()
+            #self.unindex_object()
 
 
-    def index_object(self):
-        """Index. Interfaces use hostname + interface name as uid.
-        """
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            self.uid = self.device().getId() + "." + self.getId()
-            cat.catalog_object(self, self.uid)
-            
-                                                
-    def unindex_object(self):
-        """Unindex. Interfaces use hostname + interface name as uid.
-        """
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.uncatalog_object(self.uid)
+#    def index_object(self):
+#        """Index. Interfaces use hostname + interface name as uid.
+#        """
+#        cat = getattr(self, self.default_catalog, None)
+#        if cat != None: 
+#            self.uid = self.device().getId() + "." + self.getId()
+#            cat.catalog_object(self, self.uid)
+#            
+#                                                
+#    def unindex_object(self):
+#        """Unindex. Interfaces use hostname + interface name as uid.
+#        """
+#        cat = getattr(self, self.default_catalog, None)
+#        if cat != None: 
+#            cat.uncatalog_object(self.uid)
 
 
 InitializeClass(IpInterface)

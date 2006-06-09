@@ -369,8 +369,21 @@ class Device(ManagedEntity):
         """Return list of monitored DeviceComponents on this device.
         """
         cmps = []
-        cmps.extend([s for s in self.os.ipservices() if s.monitored()])
-        cmps.extend([s for s in self.os.winservices() if s.monitored()])
+        cmps.extend([c for c in self.os.ipservices() if c.monitored()])
+        cmps.extend([c for c in self.os.winservices() if c.monitored()])
+        cmps.extend([c for c in self.os.interfaces() if c.monitoried()])
+        cmps.extend([c for c in self.hw.harddisks() if c.monitoried()])
+        return cmps
+
+
+    def getDeviceComponents(self):
+        """Return list of all DeviceComponents on this device.
+        """
+        cmps = []
+        cmps.extend(self.os.ipservices())
+        cmps.extend(self.os.winservices())
+        cmps.extend(self.os.interfaces())
+        cmps.extend(self.hw.harddisks())
         return cmps
 
 

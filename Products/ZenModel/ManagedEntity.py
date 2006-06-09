@@ -33,10 +33,12 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
 
     # primary snmpindex for this managed entity
     snmpindex = 0
+    monitor = True
 
     _properties = (
-                 {'id':'snmpindex', 'type':'int', 'mode':'w'},
-                )    
+     {'id':'snmpindex', 'type':'int', 'mode':'w'},
+     {'id':'monitor', 'type':'boolean', 'mode':'w'},
+    )    
 
     _relations = (
         ("dependenices", ToMany(ToMany, "ManagedEntity", "dependants")),

@@ -27,6 +27,7 @@ class DeviceComponent(object):
 
     security = ClassSecurityInfo()
 
+
     def getParentDeviceName(self):
         """return the name of this component's device"""
         name = ""
@@ -52,7 +53,7 @@ class DeviceComponent(object):
     def monitored(self):
         """Return the monitored status of this component. Default is False.
         """
-        return False
+        return self.monitor
 
 
     def getInstDescription(self):
