@@ -58,6 +58,7 @@ class SshClientTransport(transport.SSHClientTransport):
             
                 
 class SshUserAuth(userauth.SSHUserAuthClient):
+    lastPublicKey = False
     def __init__(self, user, instance, factory):
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
@@ -76,7 +77,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         path = os.path.expanduser('~/.ssh/id_dsa') 
         # this works with rsa too
         # just change the name here and in getPrivateKey
-        if not os.path.exists(path) or hasattr(self, 'lastPublicKey'):
+        if not os.path.exists(path) or self.lastPublicKey:
             # the file doesn't exist, or we've tried a public key
             return
         return keys.getPublicKeyString(path+'.pub')
@@ -168,14 +169,21 @@ class SshClient(CollectorClient.CollectorClient):
 
 
 def main():
+    import socket
     parser = CollectorClient.buildOptions()
     options = CollectorClient.parseOptions(parser,22)
-    client = SshClient(options.hostname, options.port, 
+    client = SshClient(options.hostname,
+                       socket.gethostbyname(options.hostname),
+                       options.port, 
                 commands=options.commands, options=options)
-    while 1:
-        reactor.iterate()
+    def stop():
         if client.commandsFinished():
-            break
+            reactor.stop()
+        else:
+            reactor.callLater(1, stop)
+    stop()
+    client.run()
+    reactor.run()
     import pprint
     pprint.pprint(client.getResults())
 
