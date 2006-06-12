@@ -28,7 +28,9 @@ $Id: TelnetClient.py,v 1.15 2004/04/05 02:05:30 edahl Exp $"""
 
 __version__ = "$Revision: 1.15 $"[11:-2]
 
-from twisted.protocols import telnet
+import Globals
+
+from twisted.conch import telnet
 from twisted.internet import protocol, reactor
 
 import re
@@ -72,6 +74,9 @@ class TelnetClientProtocol(telnet.Telnet):
     command = ''
     enabled = -1 
     scCallLater = None
+    bytes = ''
+    lastwrite = ''
+    result = ''
 
     def connectionMade(self):
         self.factory.myprotocol = self #bogus hack
@@ -79,6 +84,7 @@ class TelnetClientProtocol(telnet.Telnet):
         log.info("connected to device %s" % self.hostname)
         self.setTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.startTimeout()        
+        self.protocol = telnet.TelnetProtocol()
 
     # the following functions turn off all telnet options
     def iac_DO(self, feature):
@@ -109,8 +115,7 @@ class TelnetClientProtocol(telnet.Telnet):
     def write(self, data):
         "save the last bit of data that we wrote"
         self.lastwrite = data
-        telnet.Telnet.write(self, data)
-       
+        self.transport.write(data)
 
     def processChunk(self, chunk):
         self.buffer = self.buffer + chunk
@@ -123,7 +128,6 @@ class TelnetClientProtocol(telnet.Telnet):
             self.processLine(self.buffer)
             self.buffer = ""
         
-
     def processLine(self, line):
         """I call a method that looks like 'telnet_*' where '*' is filled
         in by the current mode. telnet_* methods should return a string which
@@ -131,11 +135,23 @@ class TelnetClientProtocol(telnet.Telnet):
         self.cancelTimeout()
         line = re.sub("\r\n|\r", "\n", line) #convert \r\n to \n
         #if server is echoing take it out
-        if line.find(self.lastwrite) == 0: 
+        if self.lastwrite.startswith(line):
+            self.lastwrite = self.lastwrite[len(line):]
+            line = ''
+        elif line.find(self.lastwrite) == 0: 
             line = line[len(self.lastwrite):]
         self.mode = getattr(self, "telnet_"+self.mode)(line)
-        if not self.mode == 'Done': self.startTimeout()        
+        if not self.mode == 'Done': self.startTimeout()
 
+    def dataReceived(self, data):
+        telnet.Telnet.dataReceived(self, data)
+        log.debug('line %r', self.bytes)
+        if self.bytes:
+            self.processLine(self.bytes)
+        self.bytes = ''
+            
+    def applicationDataReceived(self, bytes):
+        self.bytes += bytes
 
     def startTimeout(self):
         if self.timeout > 0:
@@ -176,6 +192,9 @@ class TelnetClientProtocol(telnet.Telnet):
 
     def telnet_Login(self, data):
         "Called when login prompt is received"
+        log.debug('Search finds: %r', re.search(self.factory.loginRegex, data))
+        if not re.search(self.factory.loginRegex, data): # login failed
+            return 'Login'
         log.debug("login tries=%s" % self.factory.loginTries)
         if not self.factory.loginTries:
             self.transport.loseConnection()
@@ -246,17 +265,21 @@ class TelnetClientProtocol(telnet.Telnet):
 
     def telnet_Command(self, data):
         """process the data from a sent command
-        if there are now more commands move to final state"""
+        if there are no more commands move to final state"""
+        self.result += data
+        if self.result.find(self.commandPrompt) < 0:
+            return 'Command'
+        data, self.result = self.result, ''
         log.debug("command = %s" % self.curCommand())
         log.debug("data=%s" % data)
         self.factory.addResult(self.curCommand(), data[0:-len(self.p1)])
+        self.factory.cmdindex += 1
         if self.factory.commandsFinished():
             self.factory.clientFinished()
             if not self.factory.maintainConnection:
                 self.transport.loseConnection()
             return 'Done'
         else:
-            self.factory.cmdindex += 1
             return self.telnet_SendCommand("")
 
 
@@ -270,7 +293,7 @@ class TelnetClient(CollectorClient.CollectorClient):
                     device=None, datacollector=None):
         CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
                             commands, options, device, datacollector)
-        self.protocol = TelnetClientProtocol 
+        self.protocol = TelnetClientProtocol
         self.modeRegex = { 
                     'FindPrompt' : '.*',
                     'WasteTime' : '.*',
@@ -325,12 +348,6 @@ class TelnetClient(CollectorClient.CollectorClient):
                                 self.hostname, self.port)
 
 
-
-    def commandsFinished(self):
-        """called by protocol to see if all commands have been run"""
-        return len(self.commands) == self.cmdindex + 1
-
-
     def Command(self, commands):
         """add new commands to be run reset cmdindex to 0"""
         CollectorClient.CollectorClient.addCommand(self, commands)
@@ -372,18 +389,26 @@ def buildOptions(parser=None, usage=None):
 
 
 def main():
+    import socket
     import getpass
     parser = buildOptions()
     options = CollectorClient.parseOptions(parser, 23)
     if not options.password:
         options.password = getpass.getpass("%s@%s's password: " % 
                         (options.username, options.hostname))
-    client = TelnetClient(options.hostname, options.port,
-                    commands=options.commands, options=options)
-    while 1:
-        reactor.iterate()
+    logging.basicConfig(level=10)
+    client = TelnetClient(options.hostname,
+                          socket.gethostbyname(options.hostname),
+                          options.port,
+                          commands=options.commands, options=options)
+    client.run()
+    def stop():
         if client.commandsFinished():
-            break
+            reactor.stop()
+        else:
+            reactor.callLater(1, stop)
+    stop()
+    reactor.run()
     import pprint
     pprint.pprint(client.getResults())
 
