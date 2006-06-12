@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+SUDO=sudo
+PRGHOME=$ZENHOME/Products/ZenEvents
+PRGNAME=zentrap.py
+CFGFILE=$CFGDIR/zentrap.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
