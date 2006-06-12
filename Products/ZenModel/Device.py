@@ -810,6 +810,8 @@ class Device(ManagedEntity):
 
     security.declareProtected('Change Device', 'setStatusMonitors')
     def setStatusMonitors(self, statusMonitors):
+        """Set Status Monitor by list statusMonitors
+        """
         objGetter = self.getDmdRoot("Monitors").getStatusMonitor
         self._setRelations("monitors", objGetter, statusMonitors)
 

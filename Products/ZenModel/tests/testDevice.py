@@ -15,10 +15,11 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 
 zeoconn = ZeoConn()
 
-class DeviceTest(unittest.TestCase):
+class TestDevice(unittest.TestCase):
 
     def setUp(self):
         self.dmd = zeoconn.dmd
+        self.dev = self.dmd.Devices.createInstance("testdev")
 
 
     def tearDown(self):
@@ -29,23 +30,45 @@ class DeviceTest(unittest.TestCase):
     def testcreateInstanceDevice(self):
         from Products.ZenModel.Device import Device
         devices = self.dmd.Devices
-        dev = devices.createInstance("testdev")
-        self.assert_(isinstance(dev, Device))
-        self.assert_(dev.deviceClass() == devices)
-        self.assert_(dev.getDeviceClassName() == "/")
+        self.assert_(isinstance(self.dev, Device))
+        self.assert_(self.dev.deviceClass() == devices)
+        self.assert_(self.dev.getDeviceClassName() == "/")
     
                             
     def testIpRouteCreation(self):
         from Products.ZenModel.IpRouteEntry import IpRouteEntry
-        dev = self.dmd.Devices.createInstance("testdev")
         ipr = IpRouteEntry("1.2.3.4_24")
-        dev.os.routes._setObject(ipr.id, ipr)
-        ipr = dev.os.routes._getOb(ipr.id) 
+        self.dev.os.routes._setObject(ipr.id, ipr)
+        ipr = self.dev.os.routes._getOb(ipr.id) 
         ipr.setTarget("1.2.3.4/24")
         self.assert_(ipr.getTarget() == "1.2.3.0/24")
         net = ipr.target()
         self.assert_(ipr in net.clientroutes())
         
+
+    def testSetLocation(self):
+        self.dev.setLocation('/Test/Loc')
+        self.assert_(self.dev.getLocationName() == '/Test/Loc')
+
+    
+    def testAddLocation(self):
+        self.dev.addLocation('/Test')
+        self.assert_("/Test" in self.dmd.Locations.getOrganizerNames())
+
+
+    def testSetStatusMonitors(self):
+        self.dev.setStatusMonitors(['test1','test2'])
+        smms = self.dev.getStatusMonitorNames()
+        self.assert_('test1' in smms)
+        self.assert_('test2' in smms)
+        self.dev.setStatusMonitors(['test1'])
+        smms = self.dev.getStatusMonitorNames()
+        self.assert_('test1' in smms)
+        self.assert_('test2' not in smms)
+        self.dev.setStatusMonitors(['test3'])
+        smms = self.dev.getStatusMonitorNames()
+        self.assert_('test3' in smms)
+        self.assert_('test1' not in smms)
         
     
 def main():
