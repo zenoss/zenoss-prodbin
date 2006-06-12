@@ -45,6 +45,7 @@ class ServiceClass(ZenModelRM):
     name = ""
     serviceKeys = ()
     description = ""
+    port = 0 #FIXME prevent failures when ServiceClass is added manually
     
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
