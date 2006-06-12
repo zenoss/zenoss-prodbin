@@ -1,13 +1,8 @@
-import sys
 import time
 import socket 
-import select
-import os
-import logging
 
 import Globals
 
-from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from Event import Event, EventHeartbeat
@@ -15,24 +10,25 @@ from Event import Event, EventHeartbeat
 from ZenEventClasses import AppStart, AppStop
 from Products.ZenEvents.Exceptions import ZenBackendFailure
 
-from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
-from socket import getfqdn
+from twisted.internet.protocol import DatagramProtocol
 
 TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
 
 class ZenTrap(ZCmdBase, DatagramProtocol):
 
+
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
         self.zem = self.dmd.ZenEventManager
         reactor.listenUDP(self.options.trapPort, self)
-        self.sendEvent(Event(device=getfqdn(), 
+        self.sendEvent(Event(device=socket.getfqdn(), 
                                eventClass=AppStart, 
                                summary="zentrap started",
                                severity=0,
                                component="zentrap"))
         self.log.info("started")
+
 
     def datagramReceived(self, data, addr):
         if self.options.rawLog:
@@ -45,15 +41,20 @@ class ZenTrap(ZCmdBase, DatagramProtocol):
             fp.close()
         self.log.debug('Received %r from %r', data, addr)
 
+
     def sendEvent(self, evt):
         "wrapper for sending an event"
         self.zem.sendEvent(evt)
 
+
     def heartbeat(self):
+        """Since we don't do anything on a regular basis,
+        just send heartbeats regularly"""
         seconds = 10
-        evt = EventHeartbeat(getfqdn(), "zentrap", 3*seconds)
+        evt = EventHeartbeat(socket.getfqdn(), "zentrap", 3*seconds)
         self.sendEvent(evt)
         reactor.callLater(self.heartbeat, seconds)
+
         
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
