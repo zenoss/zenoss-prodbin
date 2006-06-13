@@ -30,7 +30,12 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 
 import Globals
 
-from twisted.conch import telnet
+#FIXME take away except when we are totally migrated
+try:
+    from twisted.conch import telnet
+except:
+    from twisted.protocols import telnet
+
 from twisted.internet import protocol, reactor
 
 import re
