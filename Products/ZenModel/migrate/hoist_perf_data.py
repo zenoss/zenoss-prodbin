@@ -40,6 +40,7 @@ class HoistPerfData(Migrate.Step):
                     for f in os.listdir(root):
                         oldname = os.path.join(root, f)
                         newname = os.path.join(oldbase, f)
+                        if os.path.isdir(newname): continue
                         os.renames(oldname, newname)
                         self.renames.append( (oldname, newname) )
                 except OSError, err:
