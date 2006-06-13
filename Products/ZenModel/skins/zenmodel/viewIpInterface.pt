@@ -81,7 +81,9 @@
 </table>
 </form>
 <br/>
+<tal:block tal:condition="here/monitored" >
 <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+</tal:block>
 
 </tal:block>
 </tal:block>
