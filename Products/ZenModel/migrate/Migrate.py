@@ -133,7 +133,7 @@ class Migration(ZCmdBase):
     def recover(self):
         transaction.abort()
         steps = self.allSteps[:]
-        current = self.dmd.version
+        current = getattr(self.dmd, "version", 0)
         while steps and steps[0].version < current:
             steps.pop(0)
         for m in steps:
