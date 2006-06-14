@@ -70,7 +70,7 @@
             <thead>
             <tr>
               <th class="tabletitle" colspan="6">
-                Zenoss Infrastructure <a style="color: white" href="zport/dmd/Reports/All%20Heartbeats">Issues</a></th>
+                Zenoss Infrastructure <a style="color: white" href="zport/dmd/Reports/Event%20Reports/All%20Heartbeats">Issues</a></th>
             </tr>
             <tr>
                 <th class="tableheader">Device</th>
