@@ -60,9 +60,21 @@ class IpInterface(OSComponent):
     # indexes are id and description
     #default_catalog = 'interfaceSearch'
     
+    ifindex = 0 
+    interfaceName = ''
+    macaddress = ""
+    type = ""
+    description = ""
+    mtu = 0
+    speed = 0
+    adminStatus = 0
+    operStatus = 0
+    _ipAddresses = []
+
+
     _properties = OSComponent._properties + (
         {'id':'ips', 'type':'lines', 'mode':'w', 'setter':'setIpAddresses'},
-        {'id':'name', 'type':'string', 'mode':'w'},
+        {'id':'interfaceName', 'type':'string', 'mode':'w'},
         {'id':'ifindex', 'type':'string', 'mode':'w'},
         {'id':'macaddress', 'type':'string', 'mode':'w'},
         {'id':'type', 'type':'string', 'mode':'w'},
@@ -72,6 +84,7 @@ class IpInterface(OSComponent):
         {'id':'adminStatus', 'type':'int', 'mode':'w'},
         {'id':'operStatus', 'type':'int', 'mode':'w'},
         )
+
     _relations = OSComponent._relations + (
         ("os", ToOne(ToManyCont,"OperatingSystem","interfaces")),
         ("ipaddresses", ToMany(ToOne,"IpAddress","interface")),
@@ -119,27 +132,15 @@ class IpInterface(OSComponent):
 
     def __init__(self, id, title = None):
         OSComponent.__init__(self, id, title)
-        self.ifindex = 0 
-        self.name = ''
-        self.macaddress = ""
-        self.type = ""
-        self.description = ""
-        self.mtu = 0
-        self.speed = 0
-        self.adminStatus = 0
-        self.operStatus = 0
-        self._ipAddresses = []
-        self.uid = ""
 
-
+       
     security.declareProtected('View', 'viewName')
     def viewName(self):
         """Use the unmagled interface name for display"""
-        return self.name.rstrip('\x00') #Bogus fix for MS names
+        return self.interfaceName.rstrip('\x00') #Bogus fix for MS names
+    name = primarySortKey = viewName
 
-    def primarySortKey(self):
-        return self.name
-
+    
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
@@ -352,7 +353,7 @@ class IpInterface(OSComponent):
     def getInterfaceName(self):
         """Return the name of this interface.
         """
-        return self.name
+        return self.interfaceName
 
 
     security.declareProtected('View', 'getInterfaceMacaddress')
@@ -374,44 +375,12 @@ class IpInterface(OSComponent):
         return self.operStatus > 1
 
 
-#    def manage_afterAdd(self, item, container):
-#        """Index this interface after it is added to an interfaces relation.
-#        """
-#        if item == self or item == self.device(): 
-#            self.index_object()
-#
-#
-#    def manage_afterClone(self, item):
-#        """Index this interface after it is cloned.
-#        """
-#        OSComponent.manage_afterClone(self, item)
-#        self.index_object()
-
-
     def manage_beforeDelete(self, item, container):
         """Unindex this interface after it is deleted.
         """
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1): 
             OSComponent.manage_beforeDelete(self, item, container)
-            #self.unindex_object()
-
-
-#    def index_object(self):
-#        """Index. Interfaces use hostname + interface name as uid.
-#        """
-#        cat = getattr(self, self.default_catalog, None)
-#        if cat != None: 
-#            self.uid = self.device().getId() + "." + self.getId()
-#            cat.catalog_object(self, self.uid)
-#            
-#                                                
-#    def unindex_object(self):
-#        """Unindex. Interfaces use hostname + interface name as uid.
-#        """
-#        cat = getattr(self, self.default_catalog, None)
-#        if cat != None: 
-#            cat.uncatalog_object(self.uid)
 
 
 InitializeClass(IpInterface)
