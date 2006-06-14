@@ -52,8 +52,8 @@ class TestDevice(unittest.TestCase):
 
     
     def testAddLocation(self):
-        self.dev.addLocation('/Test')
-        self.assert_("/Test" in self.dmd.Locations.getOrganizerNames())
+        self.dev.addLocation('/Test/Loc')
+        self.assert_('/Test/Loc' in self.dmd.Locations.getOrganizerNames())
 
 
     def testSetStatusMonitors(self):
@@ -69,10 +69,110 @@ class TestDevice(unittest.TestCase):
         smms = self.dev.getStatusMonitorNames()
         self.assert_('test3' in smms)
         self.assert_('test1' not in smms)
-        
+
     
+    def testSetHWSerialNumber(self):
+        self.dev.setHWSerialNumber('testKey')
+        self.assert_(self.dev.getHWSerialNumber() == 'testKey')
+    
+
+    def testSetOSProductKey(self):
+        self.dev.setOSProductKey('testKey')
+        self.assert_(self.dev.getOSProductKey() == 'testKey')
+
+
+    def testSetHWProductKey(self):
+        self.dev.setHWProductKey('testKey')
+        self.assert_(self.dev.getHWProductKey() == 'testKey')
+
+
+    def testSetLastChange(self):
+        from DateTime import DateTime
+        dt = DateTime()
+        self.dev.setLastChange(dt)
+        self.assert_(self.dev.getLastChange() == dt)
+
+
+    def testSetProdState(self):
+        self.dev.setProdState(500)
+        self.assert_(self.dev.getProductionStateString() == 'Pre-Production')
+
+
+    def testSetSnmpLastCollection(self):
+        from DateTime import DateTime
+        dt = DateTime()
+        self.dev.setSnmpLastCollection(dt)
+        self.assert_(self.dev.getSnmpLastCollection() == dt)
+
+
+    def testSetHWProduct(self):
+        self.dev.setHWProduct('testHW', 'HP')
+        self.assert_('testHW' in self.dev.getDmdRoot("Manufacturers")\
+                     .getProductNames('HP')\
+                    )
+
+
+    def testSetLastPollSnmpUpTime(self):
+        from DateTime import DateTime
+        dt = DateTime()
+        self.dev.setLastPollSnmpUpTime(dt)
+        self.assert_(int(dt) == self.dev.getLastPollSnmpUpTime())
+
+
+#   def testRenameDevice(self):
+#        self.dev.renameDevice('newID')
+#        self.assert_(self.dev.getID() == 'newID')
+
+
+    def testSetOSProduct(self):
+        self.dev.setOSProduct('testOS', 'HP')
+        self.assert_('testOS' in self.dev.getDmdRoot("Manufacturers")\
+                     .getProductNames('HP')\
+                    ) 
+
+
+    def testAddStatusMonitor(self):
+        self.dev.addStatusMonitor('testMon')
+        self.assert_('testMon' in\
+                     self.dev.getDmdRoot("Monitors").getStatusMonitorNames()\
+                    )
+
+
+    def testAddSystem(self):
+        self.dev.addSystem('/test/sys/loc')
+        self.assert_('/test/sys/loc' in self.dev.getSystemNames())
+        
+
+    def testAddDeviceGroup(self):
+        self.dev.addDeviceGroup('/test/dev/grp/loc')
+        self.assert_('/test/dev/grp/loc' in self.dev.getDeviceGroupNames())
+
+
+    def testAddManufacturer(self):
+        self.dev.addManufacturer('testHWMfr')
+        self.assert_('testHWMfr' in self.dev.getDmdRoot("Manufacturers").getManufacturerNames())
+
+
+    def testGetOsVersion(self):
+        self.assert_(self.dev.getOsVersion() == "GET_OS_VERSION_HERE")
+
+
+    def testGetOSProductName(self):
+        self.assert_(self.dev.getOSProductName() == "GET_OS_PRODUCT_NAME_HERE")
+        
+
+    def testSnmpAgeCheck(self):
+        self.dev.setSnmpLastCollection()
+        self.assert_(self.dev.snmpAgeCheck(0) == 1)
+        self.assert_(self.dev.snmpAgeCheck(5) == None)
+
+
+    def testSetTerminalServer(self):
+        self.dev.setTerminalServer('iDontExist')
+        
+
 def main():
-    unittest.TextTestRunner().run(test_suite())
+       unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
-    unittest.main()
+       unittest.main()
