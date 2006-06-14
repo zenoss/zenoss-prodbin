@@ -54,20 +54,20 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     #FQDNID = hash(socket.getfqdn())
 
     eventStateConversions = (
-                ('New',0),
+                ('New',         0),
                 ('Acknowledged',1),
-                ('Suppressed',2),
-                ('Bogus',3),
+                ('Suppressed',  2),
+                #('Bogus',       3),
                 )
 
     severityConversions = (
-                ('Critical',6),
-                ('Error',5),
-                ('Warning',4),
-                ('Notice',3),
-                ('Info',2),
-                ('Debug',1),
-                ('Clear',0),
+                ('Critical',5),
+                ('Error',   4),
+                ('Warning', 3),
+                #('Notice', 3),
+                ('Info',    2),
+                ('Debug',   1),
+                ('Clear',   0),
                 )
     
     statusTable = "status"
@@ -213,10 +213,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
         self.defaultOrderby="%s desc" % self.lastTimeField
 
-        self.severityCount = 0
         self._schema = {}
         self._fieldlist = []
-        self._conversions = {}  # [Colname] = {Value:Conversion,}
         self._colors = ()
         self._ackedcolors = ()
         ObjectCache.__init__(self)
@@ -775,9 +773,12 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """Perform convertion of value coming from database value if nessesary.
         """
         value = self.cleanstring(value)
-        key = field + str(value)
-        if self._conversions.has_key(key):
-            value = self._conversions[key]
+        #FIXME this is commented out because we often need severity as a
+        # number (like in ZEvent.getCssClass) and sorting.  Need to have
+        # both fields at some point
+        #if field == self.severityField:
+        #    idx = len(self.severityConversions) - value
+        #    value = self.severityConversions[idx][0]
         if self.isDate(field):
             value = self.dateString(value)
         return value
@@ -800,14 +801,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def getSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 
         """
-        if not self._conversions: 
-            raise ZenEventError("no converstions found run refresh")
-        sevs = [] 
-        list = range(self.severityCount)
-        list.reverse()
-        for i in list:
-            sevs.append((self._conversions['Severity'+str(i)], i))
-        return sevs
+        return self.severityConversions
 
    
     def getStatusCssClass(self, status):
@@ -833,6 +827,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def dateString(self, value):
         """Convert a date from database format to string.
         """
+        if isinstance(value, DateTime.DateTime): 
+            value = value.timeTime() 
         # assume value is GMT, so shove it into our timezone
         value -= time.timezone
         # get seconds as floating point
@@ -973,22 +969,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     security.declareProtected('Manage EventManager','manage_refreshConversions')
     def manage_refreshConversions(self, REQUEST=None):
         """get the conversion information from the omnibus server"""
-        conversions = {}
         db = self.connect()
-        curs = db.cursor()
-        sql = "select KeyField, Conversion, Value from conversions;"
-        curs.execute(sql)
-        sevcount = 0
-        for row in curs.fetchall():
-            key = self.cleanstring(row[0])
-            conv = self.cleanstring(row[1])
-            value = row[2]
-            if key.startswith("Severity") and value > -1: 
-                sevcount += 1
-            conversions[key] = conv
-        if conversions: 
-            self._conversions = conversions
-            self.severityCount = sevcount
         self.loadSchema(db)
         db.close()
         if REQUEST:

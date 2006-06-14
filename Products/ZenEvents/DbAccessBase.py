@@ -32,7 +32,6 @@ class DbAccessBase(object):
 
     def cleanstring(self, value):
         """Remove the trailing \x00 off the end of a string."""
-        if (value and type(value) == types.StringType
-            and value[-1] == struct.pack('x')):
-            value = value[:-1]
+        if type(value) in types.StringTypes:
+            return value.rstrip("\x00")
         return value

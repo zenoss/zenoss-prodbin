@@ -147,24 +147,3 @@ CREATE TABLE IF NOT EXISTS detail
     PRIMARY KEY ( evid, name ),
     Index evididx (evid)
 ) ENGINE=INNODB;
-
-
-CREATE TABLE IF NOT EXISTS conversions
-(
-    KeyField    varchar(255) not null,
-    Colname     varchar(255),
-    Value       int,
-    Conversion  varchar(255),
-    primary key  ( KeyField )
-) ENGINE=INNODB;
-
-CREATE TABLE IF NOT EXISTS col_visuals
-(
-    Colname         varchar(255) not null,
-    Title           varchar(255),
-    DefWidth        int,
-    MaxWidth        int,
-    TitleJustify    int,
-    DataJustify     int,
-    PRIMARY KEY ( Colname )
-) ENGINE=INNODB;
