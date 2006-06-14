@@ -16,7 +16,3 @@ fi
 
 mysql -u $1 --password=$2 < zenevents.sql
 mysql -u $1 --password=$2 < zenprocs.sql
-for f in *.dat
-do
-    mysql -u $1 --password=$2 < $f
-done
