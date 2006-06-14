@@ -14,6 +14,8 @@ monitoring.
 
 __version__ = "$Revision$"[11:-2]
 
+import os
+
 from Acquisition import aq_base
 
 import Migrate
@@ -79,5 +81,14 @@ class KillCricket(Migrate.Step):
 
         if not hasattr(dmd.Devices, 'zProdStateThreshold'):
             dmd.Devices._setProperty("zProdStateThreshold", 500, type="int")
+
+        if getattr(dmd.Devices.rrdTemplates, 'Device', None) is None:
+            from Products.ZenRelations.ImportRM import ImportRM
+            imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
+            imp.options.noCommit = True
+            imp.options.infile = os.path.join(os.environ['ZENHOME'],
+                'Products', 'ZenModel', 'data', 'rrdconfig.update')
+            imp.loadDatabase()
+
 
 KillCricket()
