@@ -12,28 +12,18 @@
       </th>
     </tr>
     <tr tal:condition="batch">
-        <th class="tableheader" align="center">
-        O
-        </th>
-        <th class="tableheader" align="center">
-        A
-        </th>
+        <th class="tableheader" align="center">O</th>
+        <th class="tableheader" align="center">A</th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'primarySortKey','Name')">Name
-        </th>
+                            tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getIpSortKey','IP Address','cmp')">Name
-        </th>
-        <th class="tableheader" align="left">
-          Network
-        </th>
+                            tableName,'getIpSortKey','IP Address','cmp')"/>
+        <th class="tableheader">Network</th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'macaddress','MAC')">Name
-        </th>
+                            tableName,'macaddress','MAC')"/>
         <th tal:condition="here/zIfDescription"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'description','Descr')">Name
-        </th>
+                            tableName,'description','Descr')"/>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
