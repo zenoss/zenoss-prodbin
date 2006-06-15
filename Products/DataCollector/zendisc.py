@@ -184,7 +184,8 @@ class ZenDisc(ZenModeler):
             self.log.info("only routers discovered, skiping ping sweep.")
         else:
             ips = self.discoverIps()
-            self.discoverDevices(ips)
+            if not self.options.nosnmp: 
+                self.discoverDevices(ips)
         self.stop()
 
 
@@ -218,6 +219,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--reset-ptr', dest='resetPtr',
                     action="store_true", default=False,
                     help="Reset all ip PTR records")
+        self.parser.add_option('--no-snmp', dest='nosnmp',
+                    action="store_true", default=False,
+                    help="Perform snmp discovery on found IP addresses")
 
 if __name__ == "__main__":
     try:
