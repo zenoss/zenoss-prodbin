@@ -27,9 +27,12 @@ class InterfaceNameConvert(Migrate.Step):
         for dev in dmd.Devices.getSubDevices():
             for int in dev.os.interfaces():
                 interfaceName = getattr(aq_base(int), 'name', None)
-                if interfaceName is not None:
+                if interfaceName is not None and not callable(interfaceName):
                     int.interfaceName = interfaceName
                     delattr(int, 'name')
+        dmd.Devices.reIndex()
+        if hasattr(aq_base(dmd.Devices, "interfaceSearch"):
+            dmd.Devices._delObject("interfaceSearch")
 
 
 InterfaceNameConvert()

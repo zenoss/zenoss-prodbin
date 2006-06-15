@@ -158,7 +158,8 @@ class ZenDisc(ZenModeler):
                         raise SystemExit("network %s not found in dmd",net)
                     for ip in self.discoverIps((netobj,)):
                         self.dmd._p_jar.sync()
-                        self.discoverDevice(ip, self.options.deviceclass)
+                        if not self.options.nosnmp: 
+                            self.discoverDevice(ip, self.options.deviceclass)
                 except Exception, ex:
                     self.log.exception("Error performing net descovery on %s",
                                        ex)
