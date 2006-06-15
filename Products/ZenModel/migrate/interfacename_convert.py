@@ -31,7 +31,7 @@ class InterfaceNameConvert(Migrate.Step):
                     int.interfaceName = interfaceName
                     delattr(int, 'name')
         dmd.Devices.reIndex()
-        if hasattr(aq_base(dmd.Devices, "interfaceSearch"):
+        if hasattr(aq_base(dmd.Devices), "interfaceSearch"):
             dmd.Devices._delObject("interfaceSearch")
 
 
