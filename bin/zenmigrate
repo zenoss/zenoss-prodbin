@@ -7,5 +7,9 @@ PRGNAME=zenmigrate.py
 CFGFILE=$CFGDIR/zenmigrate.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-generic "$@"
+# silly to run zenmigrate as a daemon
+start() {
+    run "$@"
+}
 
+generic "$@"
