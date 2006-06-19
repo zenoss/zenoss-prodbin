@@ -22,6 +22,8 @@ TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
 
 SMI_MIB_DIR = os.path.join(os.environ['ZENHOME'], 'share/mibs')
 MIBS = glob.glob(SMI_MIB_DIR + '/*/*-MIB*')
+#MIBS = glob.glob(SMI_MIB_DIR + '/*/NETSCREE*')
+#MIBS.extend(glob.glob(SMI_MIB_DIR + '/*/SNMPv2-MIB*'))
 
 def grind(obj):
     '''Chase an object down to its value.
@@ -85,43 +87,53 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         self.work.insert(0, (data, addr, time.time()) )
         reactor.callLater(0, self.doHandleTrap)
 
-    def doHandleTrap(self):
-        if not self.work: return
-        data, addr, ts = self.work.pop()
-        self.log.debug('Received %r from %r, %d more work', data, addr, len(self.work))
+    def _findDevice(self, addr):
+        device = None
         ipObject = findIpAddress(self.dmd, addr[0])
         if ipObject:
             device = ipObject.device()
+        if not device:
+            device = self.dmd.Devices.findDevice(addr[0])
+        return device
 
+    def doHandleTrap(self):
+        if not self.work: return
+        data, addr, ts = self.work.pop()
+        # self.log.debug('Received %r from %r, %d more work', data, addr, len(self.work))
+        device = self._findDevice(addr)
+
+        eventType = 'unknown'
+        result = {}
         if data['version'].get() == 1:
             for binding in data['pdu']['snmpV2_trap']['variable_bindings']:
-                name = grind(binding['name'])
+                oid = grind(binding['name'])
                 value = grind(binding['value'])
-                print oid2name(name), value
+                # SNMPv2-MIB/snmpTrapOID
+                if oid.lstrip('.') == '1.3.6.1.6.3.1.1.4.1.0':
+                    eventType = oid2name(value)
+                result[oid2name(oid)] = value
 
         else:
             addr = grind(data['pdu']['trap']['agent_addr']), addr[1]
-            eventType = oid2name(data['pdu']['trap']['enterprise'])
-            ipObject = findIpAddress(self.dmd, addr[0])
-            if ipObject:
-                device = ipObject.device()
-            result = []
+            
+            eventType = oid2name(grind(data['pdu']['trap']['enterprise']))
+            device = self._findDevice(addr)
             for binding in data['pdu']['trap']['variable_bindings']:
-                name = grind(binding['name'])
+                oid = grind(binding['name'])
                 value = grind(binding['value'])
-                result.append("%s: %s" % (oid2name(name), value))
-            result = ', '.join(result)
+                result[oid2name(oid)] = value
 
         if device:
             ev = Event(rcvtime=ts,
                        ipAddress = addr[0],
                        device = device.id,
-                       eventClass = SnmpStatus,
-                       severity=3,
-                       summary = result)
+                       severity = 3,
+                       eventClass = '%s' % eventType,
+                       summary = 'snmp trap %s from %s' % (eventType, addr[0]),
+                       **result)
             self.sendEvent(ev)
 
-        if not ipObject or not device:
+        if not device:
             self.log.warning("Trap for unknown IP address (%s): %s" %
                              (addr[0], result))
         reactor.callLater(0, self.doHandleTrap)
