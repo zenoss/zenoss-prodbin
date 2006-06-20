@@ -190,7 +190,8 @@ class StatusMonitorConf(Monitor, StatusColor):
         devices = []
         for dev in self.devices.objectValuesAll():
             dev = dev.primaryAq()
-            if dev.monitorDevice(): devices.append(dev)
+            if dev.monitorDevice() and not dev.zPingMonitorIgnore: 
+                devices.append(dev)
         return devices
 
 
