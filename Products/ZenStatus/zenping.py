@@ -271,7 +271,7 @@ class ZenPing(ZCmdBase):
         def recurse(node):
             if routers: return
             if node.pj == pj:
-                routers.append(pj)
+                routers.append(node)
             for c in node.children:
                 recurse(c)
         recurse(self.pingtree)
