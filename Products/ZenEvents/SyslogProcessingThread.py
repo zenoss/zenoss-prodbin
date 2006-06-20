@@ -13,8 +13,8 @@ from syslog_h import *
 # Regular expressions that parse syslog tags from different sources
 parsers = (
 
-# evtsys windows msg
-r"^evtsys: (?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
+# ntsyslog windows msg
+r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
 # cisco msg with card inicator
 r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
