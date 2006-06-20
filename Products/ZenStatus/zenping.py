@@ -124,8 +124,7 @@ class ZenPing(ZCmdBase):
         for device in devices:
             status = device.getStatus(PingStatus, state=2)
             self.failed[device.getManageIp()] = status
-            if device.monitorDevice() and not device.zPingMonitorIgnore:
-                self.pingtree.addDevice(device)
+            self.pingtree.addDevice(device)
         reconfigured = True
 
 
