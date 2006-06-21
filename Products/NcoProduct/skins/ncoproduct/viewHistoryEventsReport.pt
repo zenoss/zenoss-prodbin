@@ -1,1 +1,0 @@
-<span metal:use-macro="here/viewHistoryEvents/macros/body" />

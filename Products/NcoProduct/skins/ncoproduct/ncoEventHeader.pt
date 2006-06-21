@@ -1,6 +1,0 @@
-<head metal:define-macro=ncoEventHeader>
-<title>
-Netcool Event 
-<span tal:replace="python: 'Serial %s Server %s'%(serverserial,servername)"/>
-</title>
-</head>
