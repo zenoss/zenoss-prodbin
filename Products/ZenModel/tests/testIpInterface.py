@@ -63,7 +63,6 @@ class TestIpInterface(unittest.TestCase):
 
     def testGetIpAddressObjs(self):
         from Products.ZenModel.IpAddress import IpAddress
-        self.iface.removeIpAddress('127.0.0.1')#start empty
         add = IpAddress('1.2.3.4')
         self.iface.ipaddresses._setObject('1.2.3.4',add)
         self.assert_(self.iface.getIpAddressObj().getIp() == add.getIp())
@@ -81,7 +80,24 @@ class TestIpInterface(unittest.TestCase):
     def testGetNetworkName(self):
         self.iface.addIpAddress('1.2.3.4')
         self.assert_(self.iface.getNetworkName() == '1.2.3.0/24')
+        
 
+    def testSetIpAddresses(self):
+        self.iface.setIpAddresses('1.2.3.4/24')
+        self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
+        self.iface.setIpAddresses(['1.2.3.4/24', '2.3.4.5/24'])
+        self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
+        self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
+        self.iface.setIpAddresses(['2.3.4.5/24', '3.4.5.6/24'])
+        self.assert_('1.2.3.4/24' not in self.iface.getIpAddresses())
+        self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
+        self.assert_('3.4.5.6/24' in self.iface.getIpAddresses())
+        self.iface.setIpAddresses(['4.5.6.7/24'])
+        self.assert_('2.3.4.5/24' not in self.iface.getIpAddresses())
+        self.assert_('3.4.5.6/24' not in self.iface.getIpAddresses())
+        self.assert_('4.5.6.7/24' in self.iface.getIpAddresses())
+        self.iface.setIpAddresses([])
+        self.assert_(self.iface.getIpAddresses() == [])
 
 
 def main():

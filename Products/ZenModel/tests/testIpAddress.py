@@ -35,7 +35,11 @@ class TestDevice(unittest.TestCase):
         self.dmd = None
 
 
-    def test
+    def testGetIp(self):
+        self.assert_(self.addr.getIp() == '1.2.3.4')
+        self.assert_(self.addr.getIpAddress() == '1.2.3.4/24')
+
+
 
 
 
