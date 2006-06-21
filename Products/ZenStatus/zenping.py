@@ -253,15 +253,6 @@ class ZenPing(ZCmdBase):
         self.pinger = Ping(self.tries, self.timeOut)
         self.pingCycle()
 
-    def stop(self):
-        "Support keyboard interrupt "
-        self.log.info("stopping...")
-        self.sendEvent(Event(device=getfqdn(), 
-                               eventClass=AppStop, 
-                               summary="zenping stopped",
-                               severity=4, component="zenping"))
-        reactor.stop()
-
     def markChildrenDown(self, pj):
         """If this is a router PingJob, mark all Nodes
         away from the ping monitor as down"""
@@ -325,4 +316,9 @@ if __name__=='__main__':
     import logging
     logging.getLogger('zen.Events').setLevel(20)
     reactor.run(installSignalHandlers=False)
+    pm.log.info("stopping...")
+    pm.sendEvent(Event(device=getfqdn(), 
+                       eventClass=AppStop, 
+                       summary="zenping stopped",
+                       severity=4, component="zenping"))
     pm.log.info("stopped")
