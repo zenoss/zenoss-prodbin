@@ -56,7 +56,6 @@ class ZenPing(ZCmdBase):
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
             self.configpath = self.configpath[1:]
-        self.configCycleInterval = 0
 
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=getfqdn(), 
@@ -87,8 +86,6 @@ class ZenPing(ZCmdBase):
 
     def loadConfig(self):
         "get the config data"
-        reactor.callLater(self.configCycleInterval, self.loadConfig)
-
         self.dmd._p_jar.sync()
         changed = False
         smc = self.dmd.unrestrictedTraverse(self.configpath)
@@ -101,6 +98,9 @@ class ZenPing(ZCmdBase):
             if not changed:
                 changed = before != after
         self.configCycleInterval *= 60
+        
+        reactor.callLater(self.configCycleInterval, self.loadConfig)
+
         me = None
         if self.options.name:
             me = self.dmd.Devices.findDevice(self.options.name)
