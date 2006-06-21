@@ -248,8 +248,10 @@ class IpInterface(OSComponent):
     def removeIpAddress(self, ip):
         """Remove an ipaddress from this interface.
         """
-        ipobj = getattr(self.ipaddresses, ip, None)
-        self.removeRelation('ipaddresses', ipobj)
+        for ipobj in self.ipaddresses():
+            if ipobj.id == ip:
+                self.ipaddresses.removeRelation(ipobj)
+                return
 
     
     def getIp(self):

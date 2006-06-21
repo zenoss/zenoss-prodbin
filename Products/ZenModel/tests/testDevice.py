@@ -79,11 +79,19 @@ class TestDevice(unittest.TestCase):
     def testSetOSProductKey(self):
         self.dev.setOSProductKey('testKey')
         self.assert_(self.dev.getOSProductKey() == 'testKey')
+        
+        self.dev.manage_editDevice(osManufacturer='Apple',
+                                   osProductName='Macos 10.4.1')
+        self.assert_(self.dev.getOSProductKey() == 'Darwin 8.1.0')
 
 
     def testSetHWProductKey(self):
         self.dev.setHWProductKey('testKey')
         self.assert_(self.dev.getHWProductKey() == 'testKey')
+
+        self.dev.manage_editDevice(hwManufacturer='HP',
+                                   hwProductName='ProLient 800')
+        self.assert_(self.dev.getHWProductKey() == 'ProLient 800')
 
 
     def testSetLastChange(self):
@@ -149,29 +157,132 @@ class TestDevice(unittest.TestCase):
 
 
     def testAddManufacturer(self):
-        self.dev.addManufacturer('testHWMfr')
+        self.dev.addManufacturer(newHWManufacturerName='testHWMfr')
         self.assert_('testHWMfr' in self.dev.getDmdRoot("Manufacturers").getManufacturerNames())
+        self.dev.addManufacturer(newSWManufacturerName='testSWMfr')
+        self.assert_('testSWMfr' in self.dev.getDmdRoot("Manufacturers").getManufacturerNames())
 
 
-    def testGetOsVersion(self):
-        self.assert_(self.dev.getOsVersion() == "GET_OS_VERSION_HERE")
+   #def testGetOsVersion(self):
+   #    self.assert_(self.dev.getOsVersion() == "GET_OS_VERSION_HERE")
 
 
     def testGetOSProductName(self):
-        self.assert_(self.dev.getOSProductName() == "GET_OS_PRODUCT_NAME_HERE")
+        self.dev.manage_editDevice(osManufacturer='Apple',
+                                   osProductName='Macos 10.4.1')
+        self.assert_(self.dev.getOSProductName() == "Macos 10.4.1")
         
 
     def testSnmpAgeCheck(self):
+        import time
         self.dev.setSnmpLastCollection()
+        time.sleep(0.1)  #because computers are too fast...
         self.assert_(self.dev.snmpAgeCheck(0) == 1)
         self.assert_(self.dev.snmpAgeCheck(5) == None)
 
 
-    def testSetTerminalServer(self):
-        self.dev.setTerminalServer('iDontExist')
+   #def testSetTerminalServer(self):
+   #    self.dev.setTerminalServer('iDontExist')
+
+
+    def testSetGroups(self):
+        self.dev.setGroups(['/First/Test/Group','/Second/Test/Group'])
+        groupNames = self.dev.getDeviceGroupNames()
+        self.assert_('/First/Test/Group' in groupNames)
+        self.assert_('/Second/Test/Group' in groupNames)
+        self.dev.setGroups(['/First/Test/Group'])
+        groupNames = self.dev.getDeviceGroupNames()
+        self.assert_('/First/Test/Group' in groupNames)
+        self.assert_('/Second/Test/Group' not in groupNames)
+        self.dev.setGroups(['/Third/Test/Group'])
+        groupNames = self.dev.getDeviceGroupNames()
+        self.assert_('/Third/Test/Group' in groupNames)
+        self.assert_('/First/Test/Group' not in groupNames)
+        self.dev.setGroups([])
+        groupNames = self.dev.getDeviceGroupNames()
+        self.assert_('/Third/Test/Group' not in groupNames)
         
 
+    def testSetPerformanceMonitor(self):
+        self.dev.setPerformanceMonitor('perfMon')
+        self.assert_(self.dev.getPerformanceServerName() == 'perfMon')
+        self.dev.setPerformanceMonitor('perfMon', 'nextMon')
+        self.assert_(self.dev.getPerformanceServerName() == 'nextMon')
+
+
+    def testMonitorDevice(self):
+        self.dev.setProdState(1000)
+        self.assert_(self.dev.monitorDevice())
+        self.dev.setProdState(250)
+        self.assert_(not self.dev.monitorDevice())
+
+
+    def testSetManageIp(self):
+        self.dev.setManageIp('1.2.3.4')
+        self.assert_(self.dev.getManageIp() == '1.2.3.4')
+        d = self.dmd.Devices.createInstance('localhost')
+        d.setManageIp()
+        self.assert_(d.getManageIp() == '127.0.0.1')
+
+
+    def testManage_editDevice(self):
+        self.dev.manage_editDevice()
+
+        self.assert_(self.dev.hw.tag == '')
+        self.assert_(self.dev.hw.serialNumber == '')
+        self.assert_(self.dev.zSnmpCommunity == '') 
+        self.assert_(self.dev.zSnmpPort == 161)
+        self.assert_(self.dev.zSnmpVer == 'v1')
+        self.assert_(self.dev.rackSlot == 0)
+        self.assert_(self.dev.productionState == 1000)
+        self.assert_(self.dev.comments == "")
+        self.assert_(self.dev.getHWManufacturerName() == "")
+        self.assert_(self.dev.getHWProductName() == "")
+        self.assert_(self.dev.getOSManufacturerName() == "")
+        self.assert_(self.dev.getOSProductName() == "")
+        self.assert_(self.dev.getLocationLink() == "")
+        self.assert_(self.dev.getLocationName() == "")
+        self.assert_(self.dev.getDeviceGroupNames() == [])
+        self.assert_(self.dev.getSystemNames() == [])
+        self.assert_('localhost' in self.dev.getStatusMonitorNames())
+        self.assert_(self.dev.getPerformanceServerName() == "localhost")
+
+        self.dev.manage_editDevice(tag='tag', serialNumber='SN123',
+                        zSnmpCommunity='theHood', zSnmpPort=121, zSnmpVer='v2',
+                        rackSlot=1, productionState=1000,
+                        comments="cross your fingers", hwManufacturer="HP",
+                        hwProductName="hwProd", osManufacturer="Apple",
+                        osProductName="osProd", locationPath='/test/loc',
+                        groupPaths=['/group/path1','/group/path2'],
+                        systemPaths=['/sys/path1','/sys/path2'],
+                        statusMonitors=['statMon1','statMon2'],
+                        performanceMonitor='perfMon')
+                        
+        self.assert_(self.dev.hw.tag == 'tag')
+        self.assert_(self.dev.hw.serialNumber == 'SN123')
+        self.assert_(self.dev.zSnmpCommunity == 'theHood') 
+        self.assert_(self.dev.zSnmpPort == 121)
+        self.assert_(self.dev.zSnmpVer == 'v2')
+        self.assert_(self.dev.rackSlot == 1)
+        self.assert_(self.dev.productionState == 1000)
+        self.assert_(self.dev.comments == "cross your fingers")
+        self.assert_(self.dev.getHWManufacturerName() == "HP")
+        self.assert_(self.dev.getHWProductName() == "hwProd")
+        self.assert_(self.dev.getOSManufacturerName() == "Apple")
+        self.assert_(self.dev.getOSProductName() == "osProd")
+        self.assert_(self.dev.getLocationLink() == "<a href='/zport/dmd/Locations/test/loc'>/test/loc</a>")
+        self.assert_(self.dev.getLocationName() == '/test/loc')
+        self.assert_('/group/path1' in self.dev.getDeviceGroupNames())
+        self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
+        self.assert_('/sys/path1' in self.dev.getSystemNames())
+        self.assert_('/sys/path2' in self.dev.getSystemNames())
+        self.assert_('statMon1' in self.dev.getStatusMonitorNames())
+        self.assert_('statMon2' in self.dev.getStatusMonitorNames())
+        self.assert_(self.dev.getPerformanceServerName() == "perfMon")
+
+
 def main():
+
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
