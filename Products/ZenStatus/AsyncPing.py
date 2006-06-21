@@ -111,8 +111,8 @@ class Ping(object):
             buf = pkt.assemble()
             pingJob.start = time.time()
             plog.debug("send icmp to '%s'", pingJob.ipaddr)
-            reactor.callLater(self.timeout, self.checkTimeout, pingJob)
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
+            reactor.callLater(self.timeout, self.checkTimeout, pingJob)
             pingJob.sent += 1
             self.jobqueue[pingJob.ipaddr] = pingJob
         except (SystemExit, KeyboardInterrupt): raise
@@ -184,11 +184,13 @@ class Ping(object):
             del self.jobqueue[pj.ipaddr]
         except KeyError:
             pass
-        if not pj.deferred.called:
+        if pj.deferred:
             if pj.rtt < 0:
                 pj.deferred.errback(pj)
             else:
                 pj.deferred.callback(pj)
+            # free the deferred from further reporting
+            pj.deferred = None
         else:
             plog.debug("duplicate ping packet received for %s" % pj.ipaddr)
 
