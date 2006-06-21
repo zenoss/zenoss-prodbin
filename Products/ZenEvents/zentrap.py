@@ -22,7 +22,7 @@ TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
 
 SMI_MIB_DIR = os.path.join(os.environ['ZENHOME'], 'share/mibs')
 MIBS = glob.glob(SMI_MIB_DIR + '/*/*-MIB*')
-#MIBS = glob.glob(SMI_MIB_DIR + '/*/NETSCREE*')
+#MIBS = glob.glob(SMI_MIB_DIR + '/site/*')
 #MIBS.extend(glob.glob(SMI_MIB_DIR + '/*/SNMPv2-MIB*'))
 
 def grind(obj):
@@ -70,6 +70,8 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                 if mib:
                     for name, values in mib['nodes'].items():
                         Oids[values['oid']] = name
+                    for name, values in mib['notifications'].items():
+                        Oids[values['oid']] = name
             except Exception, ex:
                 self.log.warning("Unable to load mib %s", m)
         self.log.debug("Loaded %d oid names", len(Oids))
@@ -94,13 +96,12 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
             device = ipObject.device()
         if not device:
             device = self.dmd.Devices.findDevice(addr[0])
-        return device
+        return addr
 
     def doHandleTrap(self):
         if not self.work: return
         data, addr, ts = self.work.pop()
         # self.log.debug('Received %r from %r, %d more work', data, addr, len(self.work))
-        device = self._findDevice(addr)
 
         eventType = 'unknown'
         result = {}
@@ -115,27 +116,34 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
 
         else:
             addr = grind(data['pdu']['trap']['agent_addr']), addr[1]
-            
-            eventType = oid2name(grind(data['pdu']['trap']['enterprise']))
-            device = self._findDevice(addr)
+            enterprise = grind(data['pdu']['trap']['enterprise'])
+            eventType = oid2name(enterprise)
+            generic = grind(data['pdu']['trap']['generic_trap'])
+            specific = grind(data['pdu']['trap']['specific_trap'])
+            eventType = { 0 : 'snmp_coldStart',
+                          1 : 'snmp_warmStart',
+                          2 : 'snmp_linkDown',
+                          3 : 'snmp_linkUp',
+                          4 : 'snmp_authenticationFailure',
+                          5 : 'snmp_egpNeighorLoss',
+                          6 : oid2name('%s.0.%d' % (enterprise, specific) )
+                          }.get(generic, eventType + "_%d" % specific)
             for binding in data['pdu']['trap']['variable_bindings']:
                 oid = grind(binding['name'])
                 value = grind(binding['value'])
                 result[oid2name(oid)] = value
 
-        if device:
-            ev = Event(rcvtime=ts,
-                       ipAddress = addr[0],
-                       device = device.id,
-                       severity = 3,
-                       eventClass = '%s' % eventType,
-                       summary = 'snmp trap %s from %s' % (eventType, addr[0]),
-                       **result)
-            self.sendEvent(ev)
+        summary = 'snmp trap %s from %s' % (eventType, addr[0])
+        ev = Event(rcvtime=ts,
+                   ipAddress=addr[0],
+                   severity=3,
+                   device=self._findDevice(addr[0]),
+                   component='',
+                   eventClassKey=eventType,
+                   summary=summary,
+                   **result)
+        self.sendEvent(ev)
 
-        if not device:
-            self.log.warning("Trap for unknown IP address (%s): %s" %
-                             (addr[0], result))
         reactor.callLater(0, self.doHandleTrap)
 
 
@@ -148,6 +156,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         """Since we don't do anything on a regular basis,
         just send heartbeats regularly"""
         seconds = 10
+        self.dmd._p_jar.sync()
         evt = EventHeartbeat(socket.getfqdn(), "zentrap", 3*seconds)
         self.sendEvent(evt)
         reactor.callLater(self.heartbeat, seconds)

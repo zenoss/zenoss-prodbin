@@ -62,6 +62,17 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" colspan="2">Transform</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows=3 cols=65
+            tal:attributes="style here/testTransformStyle"
+            name="transform:text" tal:content="here/transform">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader" colspan="2">Explanation</td>
     </tr>
     <tr>

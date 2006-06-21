@@ -121,7 +121,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         return insts
 
     
-    def lookup(self, evt):
+    def lookup(self, evt, device):
         evtcls = []
         if getattr(evt, "eventClass", False):
             try:
@@ -135,7 +135,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
             evtcls = self.find("defaultmapping")
         recdict = {}
         for evtcl in evtcls:
-            m = evtcl.match(evt)
+            m = evtcl.match(evt, device)
             if m: 
                 log.debug("EventClass:%s matched", evtcl.getOrganizerName())
                 break

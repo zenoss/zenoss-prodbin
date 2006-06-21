@@ -53,18 +53,25 @@
       <td class="tablevalues" colspan="6" tal:content="here/example">examp</td>
     </tr>
     <tr>
+      <td class="tableheader" colspan="6">Transform</td>
+    </tr>
+    <tr>
+      <td class="tablevalues" colspan="6" tal:content="here/transform">
+        code</td>
+    </tr>
+    <tr>
       <td class="tableheader" colspan="6">Explanation</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/explanation">
-        regex</td>
+        text</td>
     </tr>
     <tr>
       <td class="tableheader" colspan="6">Resolution</td>
     </tr>
     <tr>
       <td class="tablevalues" colspan="6" tal:content="here/resolution">
-        regex</td>
+        text</td>
     </tr>
     <!--
     <tr>

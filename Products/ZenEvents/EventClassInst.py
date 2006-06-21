@@ -42,7 +42,8 @@ class EventClassPropertyMixin(object):
             evt.severity = sev
         return evt
 
-
+    def applyTransform(self, evt, device):
+        return evt
 
         
 class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
@@ -58,6 +59,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
 
     actions = ("status", "history", "heartbeat", "drop")
 
+    transform = ''
+
     _properties = (
         {'id':'eventClassKey', 'type':'string', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
@@ -65,6 +68,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'example', 'type':'string', 'mode':'w'},
         {'id':'explanation', 'type':'text', 'mode':'w'},
+        {'id':'transform', 'type':'text', 'mode':'w'},
         {'id':'resolution', 'type':'text', 'mode':'w'},
         )
 
@@ -178,6 +182,15 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         evt.eventClass = self.getEventClass()
         return EventClassPropertyMixin.applyValues(self, evt)
 
+    def applyTransform(self, evt, device):
+        if not self.transform: return evt
+        try:
+            variables = {'evt':evt, 'device':device}
+            exec(self.transform, variables)
+        except Exception, ex:
+            log.error("Error transforming EventClassInst %s (%s)", self.id, ex)
+        return variables['evt']
+
 
     def ruleOrRegex(self, limit=None):
         """Return the rule if it exists else return the regex.
@@ -190,7 +203,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         return value
 
 
-    def match(self, evt):
+    def match(self, evt, device):
         """Match an event summary against our regex.
         """
         value = False
@@ -198,7 +211,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         if self.rule:
             try:
                 log.debug("eval rule:%s", self.rule)
-                value = eval(self.rule, {'evt':evt})
+                value = eval(self.rule, {'evt':evt, 'device': device})
             except Exception, e:
                 logging.warn("EventClassInst: %s rule failure: %s",
                             self.getDmdKey(), e)
@@ -227,6 +240,16 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         try:
             if self.rule:
                 compile(self.rule, "<string>", "eval")
+        except:
+            return "color:#FF0000;"
+
+
+    def testTransformStyle(self):
+        """Test our transform by compiling it.
+        """
+        try:
+            if self.transform:
+                compile(self.transform, "<string>", "exec")
         except:
             return "color:#FF0000;"
 
@@ -290,7 +313,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
 
     security.declareProtected('Manage DMD', 'manage_editEventClassInst')
     def manage_editEventClassInst(self, name="", eventClassKey='',
-                                regex='', rule='', example='', 
+                                regex='', rule='', example='',
+                                transform='',
                                 explanation='', resolution='', REQUEST=None):
         """Edit a EventClassInst from a web page.
         """
@@ -303,6 +327,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         self.regex = regex
         self.rule = rule
         self.example = example
+        self.transform = transform
         self.explanation = explanation
         self.resolution = resolution
         if REQUEST:
