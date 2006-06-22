@@ -12,3 +12,5 @@ fi
 
 zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl restart
+
+echo $ZOPEPASSWORD | passwd --stdin zenoss
