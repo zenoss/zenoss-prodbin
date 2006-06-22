@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd $ZENHOME
+
+if [ -z "$ZOPEPASSWORD" ] ; then
+   echo -n 'Password for the Zenoss "admin" user: '
+   stty -echo
+   read ZOPEPASSWORD
+   echo
+   stty echo
+fi
+
+zpasswd.py -u admin -p $ZOPEPASSWORD inituser
+zopectl restart
