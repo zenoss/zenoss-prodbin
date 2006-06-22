@@ -12,9 +12,8 @@ fi
 
 zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl restart
-
-echo $ZOPEPASSWORD | passwd --stdin
-
+sleep 2
 sed -e "s/zopepassword.*/zopepassword $ZOPEPASSWORD/" < \
     $ZENHOME/etc/zenperfsnmp.conf > /tmp/zenperfsnmp.conf
 mv /tmp/zenperfsnmp.conf $ZENHOME/etc
+zenperfsnmp restart
