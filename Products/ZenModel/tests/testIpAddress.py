@@ -40,8 +40,11 @@ class TestDevice(unittest.TestCase):
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/24')
 
 
-
-
+    def testGets(self):#most/all of the get method tests
+        self.assert_(self.addr.getInterfaceName() == self.iface.name)
+        self.assert_(self.addr.getDeviceUrl() == '/zport/dmd/Devices/devices/testdev')
+        self.assert_(self.addr.device() == self.dev)
+    
 
 def main():
 
