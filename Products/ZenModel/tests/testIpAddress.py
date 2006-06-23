@@ -17,7 +17,7 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 
 zeoconn = ZeoConn()
 
-class TestDevice(unittest.TestCase):
+class TestIpAddress(unittest.TestCase):
 
     def setUp(self):
         self.dmd = zeoconn.dmd
@@ -41,7 +41,7 @@ class TestDevice(unittest.TestCase):
 
 
     def testGets(self):#most/all of the get method tests
-        self.assert_(self.addr.getInterfaceName() == self.iface.name)
+       #self.assert_(self.addr.getInterfaceName() == self.addr.interface.interface().name)
         self.assert_(self.addr.getDeviceUrl() == '/zport/dmd/Devices/devices/testdev')
         self.assert_(self.addr.device() == self.dev)
     
