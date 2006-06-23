@@ -26,6 +26,7 @@ from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
 import SshClient
 import TelnetClient
 import SnmpClient
+import PortscanClient
 
 from Exceptions import *
 
@@ -81,6 +82,9 @@ class ZenModeler(ZCmdBase):
                     if plugin.transport == "command":
                         self.collectorPlugins[plugin.command] = plugin
                     elif plugin.transport == "snmp":
+                        self.collectorPlugins[plugin.name()] = plugin
+                    # XXX double-check this, once the implementation is in place
+                    elif plugin.transport == "portscan":
                         self.collectorPlugins[plugin.name()] = plugin
                     else:
                         self.log.warn("skipped:%s unknown transport:%s", 
@@ -165,6 +169,8 @@ class ZenModeler(ZCmdBase):
                 ip = device.setManageIp()
         cmdclient = self.cmdCollect(device, ip)
         snmpclient = self.snmpCollect(device, ip)
+        # XXX double-check this, once the implementation is in place
+        portscanclient = self.portscanCollect(device, ip)
         if cmdclient: 
             try:
                 cmdclient.run()
@@ -176,7 +182,12 @@ class ZenModeler(ZCmdBase):
             snmpclient.run()
             snmpclient.timeout = clientTimeout + time.time()
             self.clients.append(snmpclient)
-        if self.single and (cmdclient or snmpclient):
+        # XXX double-check this, once the implementation is in place
+        if portscanclient:
+            portscanclient.run()
+            portscanclient.timeout = clientTimeout + time.time()
+            self.clients.append(portscanclient)
+        if self.single and (cmdclient or snmpclient or portscanclient):
             self.log.debug("reactor start single-device")
             self.reactorLoop()
 
@@ -246,6 +257,33 @@ class ZenModeler(ZCmdBase):
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening snmpclient")
+        return client
+
+    # XXX double-check this, once the implementation is in place
+    def portscanCollect(self, device, ip):
+        """
+        Start portscan collection client.
+        """
+        client = None
+        try:
+            plugins = []
+            hostname = device.id
+            plugins = self.selectPlugins(device, "portscan")
+            if not plugins:
+                self.log.warn("no portscan plugins found for %s" % hostname)
+                return
+            if self.checkCollection(device):
+                self.log.info('portscan collection device %s' % hostname)
+                self.log.info("plugins: %s",
+                    ", ".join(map(lambda p: p.name(), plugins)))
+                client = PortscanClient.PortscanClient(device.id, ip,
+                    self.options, device, self, plugins)
+            if not client or not plugins:
+                self.log.warn("portscan client creation failed")
+                return
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.exception("error opening portscanclient")
         return client
 
 

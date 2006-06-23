@@ -51,6 +51,7 @@
                 <select class="tablevalues" name="discoverProto">
                     <option value="snmp">snmp</option>
                     <option value="ssh">ssh</option>
+                    <option value="portscan">portscan</option>
                     <option value="none">none</option> 
                 </select>
             </td>

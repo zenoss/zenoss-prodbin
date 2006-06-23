@@ -173,7 +173,7 @@ addDevice = DTMLFile('dtml/addDevice',globals())
 class Device(ManagedEntity):
     """
     Device is a key class within zenoss.  It represents the combination of
-    compute hardware running an operating system.
+    computer hardware running an operating system.
     """
 
     event_key = portal_type = meta_type = 'Device'

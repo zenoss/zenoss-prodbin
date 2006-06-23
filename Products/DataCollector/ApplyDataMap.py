@@ -63,7 +63,8 @@ class ApplyDataMap(object):
             trans.setUser("datacoll")
             trans.note("data applied from automated collection")
             trans.commit()
-        except (SystemExit, KeyboardInterrupt): raise
+        except (SystemExit, KeyboardInterrupt): 
+            raise
         except:
             transaction.abort()
             log.exception("plugin %s device %s", pname, device.getId())
