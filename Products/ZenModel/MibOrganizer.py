@@ -5,11 +5,13 @@
 #################################################################
 
 import types
+from weakref import WeakValueDictionary
 
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
 
@@ -69,8 +71,32 @@ class MibOrganizer(Organizer):
         super(MibOrganizer, self).__init__(id)
         if self.id == self.dmdRootName:
             self.createCatalog()
-   
+            self._mibmodules = WeakValueDictionary()
+  
 
+    def oid2name(self, oid):
+        """Return a name in for and oid.
+        """
+        brains = self.getDmdRoot("Mibs").mibSearch({'oid': oid})
+        if len(brains) == 1: return brains[0].id
+        return ""
+
+     
+    def name2oid(self, name):
+        """Return an oid based on a name in the form MIB::name.
+        """
+        brains = self.getDmdRoot("Mibs").mibSearch({'getFullName': name})
+        if len(brains) == 1: return brains[0].oid
+        return ""
+
+
+    def findMibModule(self, name):
+        """Return mib module matching name.
+        """
+        mod = self._mibmodules.get(name, None)
+        if mod is not None: return mod.primaryAq()
+
+        
     def countClasses(self):
         """Count all mibs with in a MibOrganizer.
         """
@@ -84,13 +110,13 @@ class MibOrganizer(Organizer):
         """Create a MibModule 
         """
         mibs = self.getDmdRoot(self.dmdRootName)
-        #mod = mibs.findMibModule(name)
+        #mod = mibs._mibmodules.get(name,None)
         mod = None
         if not mod: 
             modorg = mibs.createOrganizer(path)
             mod = MibModule(name) 
             modorg.mibs._setObject(mod.id, mod)
-            modcl = modorg.mibs._getOb(mod.id)
+            mod = modorg.mibs._getOb(mod.id)
         return mod
 
     
@@ -134,16 +160,17 @@ class MibOrganizer(Organizer):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
-        for srv in self.getSubOrganizers():
-            for inst in srv.mibs(): 
-                inst.index_object()
+        for mibmod in self.mibs(): 
+            mibmod.index_object()
+        for miborg in self.getSubOrganizers():
+            for mibmod in miborg.mibs(): 
+                mibmod.index_object()
 
 
     def createCatalog(self):
         """Create a catalog for mibs searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog, 
-                            self.default_catalog)
+        manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('oids', 'KeywordIndex')
         zcat.addIndex('summary', 'KeywordIndex')

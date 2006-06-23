@@ -7,9 +7,6 @@ import Globals
 import transaction
 
 
-SMI_MIB_DIR = os.path.join(os.environ['ZENHOME'], 'share/mibs')
-MIBS = glob.glob(SMI_MIB_DIR + '/*/*-MIB*')
-
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 
@@ -17,27 +14,53 @@ class zenmib(ZCmdBase):
     
     MIB_MOD_ATTS = ('language', 'contact', 'description')
 
-    def load(self, name):
-        #for m in MIBS:
-        mibs = self.dmd.Mibs
-        result = {}
-        self.log.debug("%s", name.split('/')[-1])
-        exec os.popen('smidump -fpython %s 2>/dev/null' % name) in result
-        mib = result.get('MIB', None)
-        #pprint.pprint(mib)
-        if mib:
-            modname = mib['moduleName']
-            mod = mibs.createMibModule(modname) #, path)
-            for key, val in mib[modname].items():
-                if key in self.MIB_MOD_ATTS:
-                    setattr(mod, key, val)
-            for name, values in mib['nodes'].items():
-                mod.createMibNode(name, **values) 
-            for name, values in mib['notifications'].items():
-                mod.createMibNotification(name, **values) 
-        #self.log.debug("Loaded %d oid names", len(Oids))
-        transaction.commit() 
+    def load(self):
 
+        if len(sys.argv) > 1:
+            mibnames = sys.argv[1:]
+        else:
+            smimibdir = os.path.join(os.environ['ZENHOME'], 'share/mibs')
+            mibnames = glob.glob(smimibdir + '/*/*')
+            
+        mibs = self.dmd.Mibs
+        for mibname in mibnames:
+            try:
+                result = {}
+                self.log.debug("%s", mibname.split('/')[-1])
+                exec os.popen('smidump -fpython %s 2>/dev/null' % mibname) in result
+                mib = result.get('MIB', None)
+                if mib:
+                    modname = mib['moduleName']
+                    #mod = mibs.findMibModule(modname)
+                    mod = None
+                    if mod:
+                        self.log.warn("skipping %s already loaded", modname)
+                        continue
+                    mod = mibs.createMibModule(modname, self.options.path)
+                    for key, val in mib[modname].items():
+                        if key in self.MIB_MOD_ATTS:
+                            setattr(mod, key, val)
+                    if mib.has_key('nodes'):
+                        for name, values in mib['nodes'].items():
+                            mod.createMibNode(name, **values) 
+                    if mib.has_key('notifications'):
+                        for name, values in mib['notifications'].items():
+                            mod.createMibNotification(name, **values) 
+                    self.log.info("Loaded mib %s oid names", modname)
+                    if not self.options.nocommit: transaction.commit() 
+            except (SystemExit, KeyboardInterrupt): raise
+            except Exception:
+                self.log.exception("Failed to load: %s", mibname)
+
+        
+    def buildOptions(self):
+        ZCmdBase.buildOptions(self)
+        self.parser.add_option('--path', 
+                               dest='path',default="/",
+                               help="path to load mib into")
+        self.parser.add_option('--nocommit', action='store_true',
+                               dest='nocommit',default=False,
+                               help="don't commit after loading")
 if __name__ == '__main__':
     zm = zenmib()
-    zm.load(sys.argv[1])
+    zm.load()

@@ -33,11 +33,16 @@ class MibModule(ZenModelRM):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'immediate_view' : 'editMibModule',
+            'immediate_view' : 'viewMibModule',
             'actions'        :
             ( 
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
+                , 'action'        : 'viewMibModule'
+                , 'permissions'   : ( Permissions.view, )
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
                 , 'action'        : 'editMibModule'
                 , 'permissions'   : ( Permissions.view, )
                 },
@@ -52,6 +57,10 @@ class MibModule(ZenModelRM):
 
     security = ClassSecurityInfo()
 
+    def getModuleName(self): 
+        return self.id
+
+    
     def nodeCount(self):
         return self.nodes.countObjects()
 
@@ -66,7 +75,9 @@ class MibModule(ZenModelRM):
         from MibNode import MibNode
         node = MibNode(id, **kwargs) 
         self.nodes._setObject(node.id, node)
-        return self.nodes._getOb(node.id)
+        node = self.nodes._getOb(node.id)
+        node.index_object()
+        return node 
 
 
     def createMibNotification(self, id, **kwargs):
@@ -75,7 +86,37 @@ class MibModule(ZenModelRM):
         from MibNotification import MibNotification
         node = MibNotification(id, **kwargs) 
         self.notifications._setObject(node.id, node)
-        return self.notifications._getOb(node.id)
+        node = self.notifications._getOb(node.id)
+        node.index_object()
+        return node 
         
+    
+    def manage_afterAdd(self, item, container):
+        self.index_object()
+
+
+    def manage_afterClone(self, item):
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        self.unindex_object()
+
+
+    def index_object(self):
+        """index nodes and notifications.
+        """
+        [ n.index_object() for n in self.nodes() ]
+        [ n.index_object() for n in self.notifications() ]
+        if getattr(self, self.default_catalog, None) is not None:
+            self.mibSearch.catalog_object(self, self.getModuleName())
+
+
+    def unindex_object(self):
+        """use MIB::name as index key.
+        """
+        if getattr(self, self.default_catalog, None) is not None:
+            self.mibSearch.uncatalog_object(self.getModuleName())
+
 
 InitializeClass(MibModule)

@@ -10,12 +10,14 @@ class MibBase(ZenModelRM):
     
     default_catalog = 'mibSearch'
 
+    moduleName = ""
     nodetype = ""
     oid = ""
     status = ""
     description = ""
 
     _properties = (
+        {'id':'moduleName', 'type':'string', 'mode':'w'},
         {'id':'nodetype', 'type':'string', 'mode':'w'},
         {'id':'oid', 'type':'string', 'mode':'w'},
         {'id':'status', 'type':'string', 'mode':'w'},
@@ -29,18 +31,22 @@ class MibBase(ZenModelRM):
         for key, val in kwargs.items():
             if key in atts: setattr(self, key, val)
 
-        
+
+    def getFullName(self):
+        """Return full value name in form MODULE::attribute.
+        """
+        return "%s::%s" % (self.moduleName, self.id)
+
         
     def summary(self):
         """Return summary string for Mib objects.
         """
-        return [str(getattr(self, p)) for p in self.propertyIds()]
+        return [str(getattr(self, p)) for p in self.propertyIds() \
+                if str(getattr(self, p))]
     
     
     def manage_afterAdd(self, item, container):
-        """setup relationshipmanager add object to index and build relations """
-        if item == self: 
-            self.index_object()
+        self.index_object()
 
 
     def manage_afterClone(self, item):
@@ -48,22 +54,20 @@ class MibBase(ZenModelRM):
 
 
     def manage_beforeDelete(self, item, container):
-        if item == self or getattr(item, "_operation", -1) < 1: 
-            ManagedEntity.manage_beforeDelete(self, item, container)
-            self.unindex_object()
+        self.unindex_object()
 
 
     def index_object(self):
-        """interfaces use hostname + interface name as uid"""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.catalog_object(self, self.getId())
+        """use MIB::name as index key.
+        """
+        if getattr(self, self.default_catalog, None) is not None:
+            self.mibSearch.catalog_object(self, self.getFullName())
             
                                                 
     def unindex_object(self):
-        """interfaces use hostname + interface name as uid"""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.uncatalog_object(self.getId())
+        """use MIB::name as index key.
+        """
+        if getattr(self, self.default_catalog, None) is not None:
+            self.mibSearch.uncatalog_object(self.getFullName())
 
 

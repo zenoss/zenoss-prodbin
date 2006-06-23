@@ -4,6 +4,10 @@
 #
 #################################################################
 
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
+from AccessControl import Permissions
+
 from Products.ZenRelations.RelSchema import *
 
 from MibBase import MibBase
@@ -20,3 +24,25 @@ class MibNode(MibBase):
     _relations = (
         ("module", ToOne(ToManyCont, "MibModule", "nodes")),
     )
+    
+    # Screen action bindings (and tab definitions)
+    factory_type_information = ( 
+        { 
+            'immediate_view' : 'viewMibNode',
+            'actions'        :
+            ( 
+                { 'id'            : 'overview'
+                , 'name'          : 'Overview'
+                , 'action'        : 'viewMibNode'
+                , 'permissions'   : ( Permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ( Permissions.view, )
+                },
+            )
+         },
+        )
+
+
