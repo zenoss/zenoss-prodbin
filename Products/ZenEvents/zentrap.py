@@ -1,8 +1,24 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2003 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''zentrap
+
+Creates events from SNMP Traps.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
+from twisted.python import threadable
+threadable.init()
 
 import time
-import socket 
-import os
-import glob
+import socket
 
 import Globals
 
@@ -20,11 +36,6 @@ from twistedsnmp import snmpprotocol
 
 TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
 
-SMI_MIB_DIR = os.path.join(os.environ['ZENHOME'], 'share/mibs')
-MIBS = glob.glob(SMI_MIB_DIR + '/*/*-MIB*')
-#MIBS = glob.glob(SMI_MIB_DIR + '/site/*')
-#MIBS.extend(glob.glob(SMI_MIB_DIR + '/*/SNMPv2-MIB*'))
-
 def grind(obj):
     '''Chase an object down to its value.
 
@@ -41,40 +52,16 @@ def grind(obj):
         return grind(obj.values()[0])
     return obj.get()
 
-Oids = {}
-
-def oid2name(oid):
-    oid = oid.lstrip('.')
-    name = Oids.get(oid, None)
-    if name:
-        return name
-    name = Oids.get('.'.join(oid.split('.')[:-1]), None)
-    if name:
-        return name
-    return oid
-
 class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
+    'Listen for SNMP traps and turn them into events'
 
+    totalTime = 0.
+    totalEvents = 0
+    maxTime = 0.
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
         snmpprotocol.SNMPProtocol.__init__(self, self.options.trapport)
-        self.work = []
-        self.log.debug("loading mibs")
-        for m in MIBS:
-            result = {}
-            self.log.debug("%s", m.split('/')[-1])
-            try:
-                exec os.popen('smidump -fpython %s 2>/dev/null' % m) in result
-                mib = result.get('MIB', None)
-                if mib:
-                    for name, values in mib['nodes'].items():
-                        Oids[values['oid']] = name
-                    for name, values in mib['notifications'].items():
-                        Oids[values['oid']] = name
-            except Exception, ex:
-                self.log.warning("Unable to load mib %s", m)
-        self.log.debug("Loaded %d oid names", len(Oids))
         
         reactor.listenUDP(self.port, self)
         self.zem = self.dmd.ZenEventManager
@@ -86,10 +73,11 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         self.log.info("started")
 
     def handleTrap(self, data, addr):
-        self.work.insert(0, (data, addr, time.time()) )
-        reactor.callLater(0, self.doHandleTrap)
+        'Traps are processed asynchronously in a thread'
+        reactor.callInThread(self.doHandleTrap, data, addr, time.time() )
 
     def _findDevice(self, addr):
+        'Find a device by its IP address'
         device = None
         ipObject = findIpAddress(self.dmd, addr[0])
         if ipObject:
@@ -98,26 +86,39 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
             device = self.dmd.Devices.findDevice(addr[0])
         return addr
 
-    def doHandleTrap(self):
-        if not self.work: return
-        data, addr, ts = self.work.pop()
-        # self.log.debug('Received %r from %r, %d more work', data, addr, len(self.work))
+    def _oid2name(self, oid):
+        'short hand to get names from oids'
+        return self.dmd.Mibs.oid2name(oid)
+  
+    def oid2name(self, oid):
+        "get oids, even if we're handed slightly wrong values"
+        oid = oid.lstrip('.')
+        name = self._oid2name(oid)
+        if not name:
+            name = self._oid2name('.'.join(oid.split('.')[:-1]))
+        if not name:
+            return oid
+        return name
 
+    def doHandleTrap(self, data, addr, ts):
+        'method to process traps in a thread'
         eventType = 'unknown'
         result = {}
         if data['version'].get() == 1:
+            # SNMP v2
             for binding in data['pdu']['snmpV2_trap']['variable_bindings']:
                 oid = grind(binding['name'])
                 value = grind(binding['value'])
                 # SNMPv2-MIB/snmpTrapOID
                 if oid.lstrip('.') == '1.3.6.1.6.3.1.1.4.1.0':
-                    eventType = oid2name(value)
-                result[oid2name(oid)] = value
+                    eventType = self.oid2name(value)
+                result[self.oid2name(oid)] = value
 
         else:
+            # SNMP v1
             addr = grind(data['pdu']['trap']['agent_addr']), addr[1]
             enterprise = grind(data['pdu']['trap']['enterprise'])
-            eventType = oid2name(enterprise)
+            eventType = self.oid2name(enterprise)
             generic = grind(data['pdu']['trap']['generic_trap'])
             specific = grind(data['pdu']['trap']['specific_trap'])
             eventType = { 0 : 'snmp_coldStart',
@@ -126,12 +127,12 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                           3 : 'snmp_linkUp',
                           4 : 'snmp_authenticationFailure',
                           5 : 'snmp_egpNeighorLoss',
-                          6 : oid2name('%s.0.%d' % (enterprise, specific) )
+                          6 : self.oid2name('%s.0.%d' % (enterprise, specific))
                           }.get(generic, eventType + "_%d" % specific)
             for binding in data['pdu']['trap']['variable_bindings']:
                 oid = grind(binding['name'])
                 value = grind(binding['value'])
-                result[oid2name(oid)] = value
+                result[self.oid2name(oid)] = value
 
         summary = 'snmp trap %s from %s' % (eventType, addr[0])
         ev = Event(rcvtime=ts,
@@ -144,7 +145,10 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                    **result)
         self.sendEvent(ev)
 
-        reactor.callLater(0, self.doHandleTrap)
+        diff = time.time() - ts
+        self.totalTime += diff
+        self.totalEvents += 1
+        self.maxTime = max(diff, self.maxTime)
 
 
     def sendEvent(self, evt):
@@ -156,7 +160,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         """Since we don't do anything on a regular basis,
         just send heartbeats regularly"""
         seconds = 10
-        self.dmd._p_jar.sync()
+        self.syncdb()
         evt = EventHeartbeat(socket.getfqdn(), "zentrap", 3*seconds)
         self.sendEvent(evt)
         reactor.callLater(self.heartbeat, seconds)
@@ -174,6 +178,30 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         except SystemExit:
             reactor.stop()
 
+
+    def report(self):
+        'report some simple diagnostics at shutdown'
+        self.log.info("%d events processed in %.2f seconds",
+                   self.totalEvents,
+                   self.totalTime)
+        if self.totalEvents > 0:
+            self.log.info("%.5f average seconds per event",
+                       (self.totalTime / self.totalEvents))
+            self.log.info("Maximum processing time for one event was %.5f",
+                          self.maxTime)
+
+
+    def stop(self):
+        'things to do at shutdown: logs and events'
+        self.report()
+        self.sendEvent(Event(device=socket.getfqdn(), 
+                             eventClass=AppStop, 
+                             summary="zentrap stopped",
+                             severity=4,
+                             component="zentrap"))
+        
+
 if __name__ == '__main__':
     z = ZenTrap()
     reactor.run(installSignalHandlers=False)
+    z.stop()
