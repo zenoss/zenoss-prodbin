@@ -170,7 +170,8 @@ class MibOrganizer(Organizer):
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
         manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        zcat.addIndex('oids', 'KeywordIndex')
+        zcat.addIndex('oid', 'KeywordIndex')
+        zcat.addIndex('getFullName', 'KeywordIndex')
         zcat.addIndex('summary', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
 
