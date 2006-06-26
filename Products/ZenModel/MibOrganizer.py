@@ -5,7 +5,6 @@
 #################################################################
 
 import types
-from weakref import WeakValueDictionary
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -71,7 +70,6 @@ class MibOrganizer(Organizer):
         super(MibOrganizer, self).__init__(id)
         if self.id == self.dmdRootName:
             self.createCatalog()
-            self._mibmodules = WeakValueDictionary()
   
 
     def oid2name(self, oid):
