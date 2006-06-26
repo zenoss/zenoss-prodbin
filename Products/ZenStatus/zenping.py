@@ -122,8 +122,9 @@ class ZenPing(ZCmdBase):
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
         for device in devices:
-            status = device.getStatus(PingStatus, state=2)
-            self.failed[device.getManageIp()] = status
+            stored = device.getStatus(PingStatus, state=2)
+            current = self.failed.get(device.getManageIp(), 0)
+            self.failed[device.getManageIp()] = max(stored, current)
             self.pingtree.addDevice(device)
         reconfigured = True
 
