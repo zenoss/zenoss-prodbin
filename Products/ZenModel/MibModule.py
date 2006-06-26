@@ -91,16 +91,16 @@ class MibModule(ZenModelRM):
         return node 
         
     
-    def manage_afterAdd(self, item, container):
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        self.unindex_object()
+#    def manage_afterAdd(self, item, container):
+#        self.index_object()
+#
+#
+#    def manage_afterClone(self, item):
+#        self.index_object()
+#
+#
+#    def manage_beforeDelete(self, item, container):
+#        self.unindex_object()
 
 
     def index_object(self):
@@ -112,11 +112,11 @@ class MibModule(ZenModelRM):
             self.mibSearch.catalog_object(self, self.getModuleName())
 
 
-    def unindex_object(self):
-        """use MIB::name as index key.
-        """
-        if getattr(self, self.default_catalog, None) is not None:
-            self.mibSearch.uncatalog_object(self.getModuleName())
+#    def unindex_object(self):
+#        """use MIB::name as index key.
+#        """
+#        if getattr(self, self.default_catalog, None) is not None:
+#            self.mibSearch.uncatalog_object(self.getModuleName())
 
 
 InitializeClass(MibModule)
