@@ -88,11 +88,11 @@ class MibOrganizer(Organizer):
         return ""
 
 
-    def findMibModule(self, name):
-        """Return mib module matching name.
-        """
-        mod = self._mibmodules.get(name, None)
-        if mod is not None: return mod.primaryAq()
+#     def findMibModule(self, name):
+#         """Return mib module matching name.
+#         """
+#         mod = self._mibmodules.get(name, None)
+#         if mod is not None: return mod.primaryAq()
 
         
     def countClasses(self):
@@ -174,6 +174,8 @@ class MibOrganizer(Organizer):
         zcat.addIndex('getFullName', 'KeywordIndex')
         zcat.addIndex('summary', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
+        zcat.addColumn('id')
+        zcat.addColumn('oid')
 
 
 
