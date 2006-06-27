@@ -36,7 +36,7 @@ class ZCmdBase(ZenDaemon):
 
 
     def getConnection(self):
-        """Return a wapped app connection from the connection pool.
+        """Return a wrapped app connection from the connection pool.
         """
         if not self.db:
             raise ZentinelException(
