@@ -54,6 +54,16 @@ def grind(obj):
         return grind(obj.values()[0])
     return obj.get()
 
+def extract(obj, path, default = None):
+    parts = path.split('/')
+    for p in parts:
+        try:
+            obj = obj[p]
+        except KeyError:
+            return default
+    return obj
+
+
 class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
     'Listen for SNMP traps and turn them into events'
 
@@ -120,21 +130,24 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         result = {}
         if data['version'].get() == 1:
             # SNMP v2
-            for binding in data['pdu']['snmpV2_trap']['variable_bindings']:
+            pdu = data['pdu']
+            bindings = extract(data, 'pdu/snmpV2_trap/variable_bindings', [])
+            bindings = extract(data, 'pdu/inform_request/variable_bindings',
+                               bindings)
+            for binding in bindings:
                 oid = grind(binding['name'])
                 value = grind(binding['value'])
                 # SNMPv2-MIB/snmpTrapOID
                 if oid.lstrip('.') == '1.3.6.1.6.3.1.1.4.1.0':
                     eventType = self.oid2name(value)
                 result[self.oid2name(oid)] = value
-
         else:
             # SNMP v1
-            addr = grind(data['pdu']['trap']['agent_addr']), addr[1]
-            enterprise = grind(data['pdu']['trap']['enterprise'])
+            addr = grind(extract(data, 'pdu/trap/agent_addr')), addr[1]
+            enterprise = grind(extract(data, 'pdu/trap/enterprise'))
             eventType = self.oid2name(enterprise)
-            generic = grind(data['pdu']['trap']['generic_trap'])
-            specific = grind(data['pdu']['trap']['specific_trap'])
+            generic = grind(extract(data, 'pdu/trap/generic_trap'))
+            specific = grind(extract(data, 'pdu/trap/specific_trap'))
             eventType = { 0 : 'snmp_coldStart',
                           1 : 'snmp_warmStart',
                           2 : 'snmp_linkDown',
@@ -143,9 +156,9 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                           5 : 'snmp_egpNeighorLoss',
                           6 : self.oid2name('%s.0.%d' % (enterprise, specific))
                           }.get(generic, eventType + "_%d" % specific)
-            for binding in data['pdu']['trap']['variable_bindings']:
-                oid = grind(binding['name'])
-                value = grind(binding['value'])
+            for binding in extract(data, 'pdu/trap/variable_bindings'):
+                oid = binding['name'].get()
+                value = binding['value'].get()
                 result[self.oid2name(oid)] = value
 
         summary = 'snmp trap %s from %s' % (eventType, addr[0])
@@ -163,6 +176,17 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         self.totalTime += diff
         self.totalEvents += 1
         self.maxTime = max(diff, self.maxTime)
+
+        if data['pdu'].has_key('inform_request'):
+            r = snmpprotocol.v2c.Response()
+            extract(r, 'pdu/response/request_id').set(
+                extract(data, 'pdu/inform_request/request_id').get())
+            r['community'].set(data['community'].get())
+            reactor.callFromThread(self.informResponse, r.berEncode(), addr)
+
+
+    def informResponse(self, data, addr):
+        self.transport.socket.sendto(data, addr)
 
 
     def sendEvent(self, evt):
