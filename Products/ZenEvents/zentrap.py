@@ -121,6 +121,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
             args = self.q.get()
             if args is None: break
             if isinstance(args, Event):
+                self.syncdb()
                 self.sendEvent(args)
             else:
                 self.doHandleTrap(*args)
@@ -198,7 +199,6 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
         seconds = 10
-        self.syncdb()
         evt = EventHeartbeat(socket.getfqdn(), "zentrap", 3*seconds)
         self.q.put(evt)
         reactor.callLater(seconds, self.heartbeat)
