@@ -73,10 +73,11 @@ class MibModule(ZenModelRM):
         """Create a MibModule 
         """
         from MibNode import MibNode
+        if self.oid2name(kwargs['oid']):
+            return None
         node = MibNode(id, **kwargs) 
         self.nodes._setObject(node.id, node)
         node = self.nodes._getOb(node.id)
-        node.index_object()
         return node 
 
 
@@ -84,10 +85,11 @@ class MibModule(ZenModelRM):
         """Create a MibModule 
         """
         from MibNotification import MibNotification
+        if self.oid2name(kwargs['oid']):
+            return None
         node = MibNotification(id, **kwargs) 
         self.notifications._setObject(node.id, node)
         node = self.notifications._getOb(node.id)
-        node.index_object()
         return node 
         
     

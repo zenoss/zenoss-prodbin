@@ -61,13 +61,13 @@ class MibBase(ZenModelRM):
         """use MIB::name as index key.
         """
         if getattr(self, self.default_catalog, None) is not None:
-            self.mibSearch.catalog_object(self, self.getFullName())
+            self.mibSearch.catalog_object(self, self.getPrimaryId())
             
                                                 
     def unindex_object(self):
         """use MIB::name as index key.
         """
         if getattr(self, self.default_catalog, None) is not None:
-            self.mibSearch.uncatalog_object(self.getFullName())
+            self.mibSearch.uncatalog_object(self.getPrimaryId())
 
 

@@ -76,15 +76,15 @@ class MibOrganizer(Organizer):
         """Return a name in for and oid.
         """
         brains = self.getDmdRoot("Mibs").mibSearch({'oid': oid})
-        if len(brains) == 1: return brains[0].id
+        if len(brains) > 0: return brains[0].id
         return ""
 
      
     def name2oid(self, name):
         """Return an oid based on a name in the form MIB::name.
         """
-        brains = self.getDmdRoot("Mibs").mibSearch({'getFullName': name})
-        if len(brains) == 1: return brains[0].oid
+        brains = self.getDmdRoot("Mibs").mibSearch({'id': name})
+        if len(brains) > 0: return brains[0].oid
         return ""
 
 
@@ -108,7 +108,6 @@ class MibOrganizer(Organizer):
         """Create a MibModule 
         """
         mibs = self.getDmdRoot(self.dmdRootName)
-        #mod = mibs._mibmodules.get(name,None)
         mod = None
         if not mod: 
             modorg = mibs.createOrganizer(path)
@@ -171,7 +170,7 @@ class MibOrganizer(Organizer):
         manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('oid', 'KeywordIndex')
-        zcat.addIndex('getFullName', 'KeywordIndex')
+        zcat.addIndex('id', 'KeywordIndex')
         zcat.addIndex('summary', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
