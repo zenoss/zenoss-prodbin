@@ -16,11 +16,12 @@ class zenmib(ZCmdBase):
 
     def load(self):
 
-        if len(sys.argv) > 1:
-            mibnames = sys.argv[1:]
+        if len(self.args) > 0:
+            mibnames = self.args
         else:
             smimibdir = os.path.join(os.environ['ZENHOME'], 'share/mibs')
-            mibnames = glob.glob(smimibdir + '/*/*')
+            mibnames = glob.glob(smimibdir + '/site/*')
+
             
         mibs = self.dmd.Mibs
         for mibname in mibnames:
@@ -48,9 +49,11 @@ class zenmib(ZCmdBase):
                             mod.createMibNotification(name, **values) 
                     self.log.info("Loaded mib %s oid names", modname)
                     if not self.options.nocommit: transaction.commit() 
+                else:
+                    self.log.error("Failed to load mib: %s", mibname)
             except (SystemExit, KeyboardInterrupt): raise
             except Exception:
-                self.log.exception("Failed to load: %s", mibname)
+                self.log.exception("Failed to load mib: %s", mibname)
 
         
     def buildOptions(self):
@@ -61,6 +64,8 @@ class zenmib(ZCmdBase):
         self.parser.add_option('--nocommit', action='store_true',
                                dest='nocommit',default=False,
                                help="don't commit after loading")
+
+
 if __name__ == '__main__':
     zm = zenmib()
     zm.load()
