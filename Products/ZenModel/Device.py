@@ -371,8 +371,8 @@ class Device(ManagedEntity):
         cmps = []
         cmps.extend([c for c in self.os.ipservices() if c.monitored()])
         cmps.extend([c for c in self.os.winservices() if c.monitored()])
-        cmps.extend([c for c in self.os.interfaces() if c.monitoried()])
-        cmps.extend([c for c in self.hw.harddisks() if c.monitoried()])
+        cmps.extend([c for c in self.os.interfaces() if c.monitored()])
+        cmps.extend([c for c in self.hw.harddisks() if c.monitored()])
         return cmps
 
 

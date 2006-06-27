@@ -144,7 +144,7 @@ class IpAddress(ManagedEntity):
             ip = iparray[0]
             self._netmask = maskToBits(iparray[1])
         checkip(ip)
-        aqself = self.aq_primary() #set aq path
+        aqself = self.primaryAq() #set aq path
         network = aqself.aq_parent
         netip = getnetstr(ip, network.netmask)
         if netip == network.id:

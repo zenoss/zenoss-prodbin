@@ -35,16 +35,23 @@ class TestIpAddress(unittest.TestCase):
         self.dmd = None
 
 
-    def testGetIp(self):
+    def testGets(self):#most/all of the get method tests
         self.assert_(self.addr.getIp() == '1.2.3.4')
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/24')
-
-
-    def testGets(self):#most/all of the get method tests
-       #self.assert_(self.addr.getInterfaceName() == self.addr.interface.interface().name)
+        self.assert_(self.addr.getInterfaceName()() == self.addr.interface().name())
         self.assert_(self.addr.getDeviceUrl() == '/zport/dmd/Devices/devices/testdev')
         self.assert_(self.addr.device() == self.dev)
     
+    
+    def testSetNetmask(self):
+        self.addr.setNetmask(8)
+        self.assert_(self.addr.getIpAddress() == '1.2.3.4/8')
+
+
+#    def testSetIpAddress(self):
+#        self.addr.setIpAddress('2.3.4.5/16')
+#        self.assert_(self.addr.getIpAddress() == '2.3.4.5/16')
+
 
 def main():
 

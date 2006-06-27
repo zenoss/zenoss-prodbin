@@ -19,7 +19,7 @@ zeoconn = ZeoConn()
 class TestWinService(unittest.TestCase):
 
     def setUp(self):
-        pdb.set_trace()
+        #pdb.set_trace()
         self.dmd = zeoconn.dmd
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = WinService('wsvc')
@@ -35,6 +35,7 @@ class TestWinService(unittest.TestCase):
 
     def testSetServiceClass(self):
         self.wsvc.setServiceClass({'name':'ALG','description':'testsvc'})
+        self.assert_(self.wsvc.name() == 'ALG')
         self.assert_(self.wsvc.caption() == 'Application Layer Gateway Service')
         self.assert_(self.wsvc.getInstDescription() == \
                      "'%s' StartMode: StartName:" % (self.wsvc.caption())\
@@ -45,6 +46,15 @@ class TestWinService(unittest.TestCase):
         self.wsvc.setManageIp('1.2.3.4/24')
         self.assert_(self.wsvc.getManageIp() == '1.2.3.4/24')
         self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        self.dev.setManageIp('2.3.4.5/24')
+        self.assert_(self.wsvc.getManageIp() == '2.3.4.5/24')
+
+
+    def testGets(self):
+        self.assert_(self.wsvc.hostname() == 'testdev')
+        self.assert_(self.wsvc.getParentDeviceName() == 'testdev')
+        self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
+        
 
 def main():
 
