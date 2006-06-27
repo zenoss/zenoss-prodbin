@@ -1,0 +1,143 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="objects here/children;
+        tableName string:children;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr>
+      <th class=tabletitle align=left colspan="6">
+        Sub-Folders
+      </th>
+    </tr>
+    <span tal:condition="objects" tal:omit-tag="">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countChildren','Sub-Folders')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countClasses','Processes')"/>
+    </tr>
+    <tr tal:repeat="svcorg batch">
+        <td class="tablevalues" width="50%">
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="organizerPaths:list" 
+                tal:attributes="value svcorg/getId"/>
+            <a href="_" 
+            tal:attributes="href svcorg/getPrimaryUrlPath"
+            tal:content="svcorg/id">Name</a>
+        </td>
+        <td class="tablevalues" align=center 
+            tal:content="svcorg/countChildren"/>
+        <td class="tablevalues" align=center tal:content="svcorg/countClasses"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
+    </span>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="6">
+    <span metal:define-macro="editor" tal:omit-tag="">
+        <input class="tableheader" type="text" name="newPath"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addOrganizer:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" name="moveOrganizer:method"
+                value="Move To" />
+        <select class="tableheader" name="moveTarget"
+        tal:define="targets here/childMoveTargets">
+            <option value=""></option>
+            <option tal:repeat="target targets" 
+                tal:content="target">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteOrganizers:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </span>
+    </td>
+    </tr>
+</table>
+</form>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="objects here/osProcessClasses;
+        tableName string:osprocessclasseslist;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
+    <tr>
+      <th class="tabletitle" align="left" colspan="5">Processes</th>
+    </tr>
+    <span tal:condition="objects" tal:omit-tag="">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'regex','Regex')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'zMonitor','Monitor')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'count','Count')"/>
+    </tr>
+    <tr tal:repeat="svcinst batch">
+        <td class="tablevalues">
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value svcinst/getId"/>
+            <a tal:attributes="href svcinst/getPrimaryUrlPath"
+            tal:content="svcinst/name">Name</a>
+        </td>
+        <td class="tablevalues" tal:content="svcinst/regex"/>
+        <td class="tablevalues" tal:content="svcinst/zMonitor"/>
+        <td class="tablevalues" tal:content="svcinst/count"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
+    </span>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="5">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addOSProcessClass:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="moveOSProcessClasses:method" value="Move To" />
+        <select class="tableheader" name="moveTarget"
+        tal:define="targets here/childMoveTargets">
+            <option value=""></option>
+            <option tal:repeat="target targets" 
+                tal:content="target">/Server/Linux</option>
+        </select> 
+        |
+        <input class="tableheader" type="submit" 
+            name="removeOSProcessClasses:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
+
+</tal:block>
+</tal:block>
+

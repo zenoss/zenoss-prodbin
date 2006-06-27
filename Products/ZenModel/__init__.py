@@ -66,6 +66,8 @@ productNames = (
     "MonitorClass",
     "OperatingSystem",
     "OSProcess",
+    "OSProcessClass",
+    "OSProcessOrganizer",
     "ProductClass",
     "Report",
     "ReportClass",
