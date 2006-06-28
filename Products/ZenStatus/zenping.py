@@ -51,7 +51,6 @@ class ZenPing(ZCmdBase):
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
-        self.failed = {}
         self.hostname = getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
@@ -122,10 +121,8 @@ class ZenPing(ZCmdBase):
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
         for device in devices:
-            stored = device.getStatus(PingStatus, state=2)
-            current = self.failed.get(device.getManageIp(), 0)
-            self.failed[device.getManageIp()] = max(stored, current)
-            self.pingtree.addDevice(device)
+            if not self.pingtree.hasDev(device):
+                self.pingtree.addDevice(device)
         self.reconfigured = True
 
 
@@ -163,8 +160,7 @@ class ZenPing(ZCmdBase):
         while 1:
             try:
                 pj = self.pingTreeIter.next()
-                failures = self.failed.get(pj.ipaddr, 0)
-                if failures < self.maxFailures or self.reconfigured:
+                if pj.status < self.maxFailures or self.reconfigured:
                     self.ping(pj)
                     return True
             except StopIteration:
@@ -205,12 +201,10 @@ class ZenPing(ZCmdBase):
     def pingSuccess(self, pj):
         "Callback for a good ping response"
         pj.deferred = None
-        if self.failed.get(pj.ipaddr, 0) > 1:
+        if pj.status > 1:
             pj.severity = 0
             self.sendPingEvent(pj)
-        self.log.debug('success %s', pj.ipaddr)
-        self.failed[pj.ipaddr] = 0
-        self.log.debug("Success %s %s", pj.ipaddr, self.failed[pj.ipaddr])
+        self.log.debug("Success %s", pj.ipaddr)
         self.status = 0
         self.next()
 
@@ -218,12 +212,9 @@ class ZenPing(ZCmdBase):
         "Callback for a bad (no) ping response"
         pj = err.value
         pj.deferred = None
-        self.log.debug('failure %s', pj.ipaddr)
-        self.failed.setdefault(pj.ipaddr, 0)
-        self.log.debug("Failed %s %s", pj.ipaddr, self.failed[pj.ipaddr])
-        self.failed[pj.ipaddr] += 1
-        status = self.failed[pj.ipaddr]
-        if status == 1:         
+        pj.status += 1
+        self.log.debug("Failed %s %s", pj.ipaddr, pj.status)
+        if pj.status == 1:         
             self.log.debug("first failure '%s'", pj.hostname)
             # if our path back is currently clear add our parent
             # to the ping list again to see if path is really clear
