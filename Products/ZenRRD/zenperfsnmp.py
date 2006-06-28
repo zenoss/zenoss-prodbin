@@ -1,7 +1,7 @@
 #! /usr/bin/env python 
 #################################################################
 #
-#   Copyright (c) 2003 Zenoss, Inc. All rights reserved.
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
