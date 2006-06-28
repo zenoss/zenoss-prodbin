@@ -121,9 +121,6 @@ class ZenPing(ZCmdBase):
 
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
-        import pdb, os
-        if os.path.exists('/tmp/stop'):
-            pdb.set_trace()
         for device in devices:
             stored = device.getStatus(PingStatus, state=2)
             current = self.failed.get(device.getManageIp(), 0)
