@@ -120,6 +120,47 @@
 </table>
 
 <table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:osprocesslist;
+    objects here/os/processes/objectValuesAll;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='name');"
+    tal:condition="objects">
+    <tr>
+      <th class="tabletitle" align="left" colspan="6">
+        OS Processes
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getOSProcessClass','Class')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'countProcs','Count Procs')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'alertOnRestart','Restarts')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getStatus','Status','cmp')"/>
+    </tr>
+    <tr tal:repeat="proc batch" class="tablevalues">
+        <td><a class="tablevalues" tal:content="proc/name"
+                tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
+        </td>
+        <td tal:content="structure proc/getOSProcessClassLink"/>
+        <td tal:content="proc/countProcs"/>
+        <td tal:content="proc/alertOnRestart"/>
+        <td tal:define="status proc/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+
+<table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
     objects here/os/ipservices/objectValuesAll;

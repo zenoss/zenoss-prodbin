@@ -14,6 +14,7 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from Acquisition import aq_base
 
 
 class DeviceComponent(object):
@@ -87,6 +88,45 @@ class DeviceComponent(object):
         if templ is None:
             templ = super(DeviceComponent, self).getRRDTemplate(name)
         return templ
+
+
+    def getAqProperty(self, prop):
+        """Get a property from ourself if it exsits then try serviceclass path.
+        """
+        if getattr(aq_base(self), prop, None) is not None:
+            return getattr(self, prop)
+        classObj = self.getClassObject()
+        if classObj: 
+            classObj = classObj.primaryAq()
+            return getattr(classObj, prop)
+
+
+    def setAqProperty(self, prop, value, type):
+        """Set a local prop if nessesaary on this service.
+        """
+        classObj = self.getClassObject()
+        if not classObj: return
+        classObj = classObj.primaryAq()
+        svcval = getattr(classObj, prop)
+        locval = getattr(aq_base(self),prop,None)
+        msg = ""
+        if svcval == value and locval is not None:
+            self._delProperty(prop)
+            msg = "Removed local %s" % prop
+        elif svcval != value and locval is None:
+            self._setProperty(prop, value, type=type)
+            msg = "Set local %s" % prop
+        elif locval is not None and locval != value:
+            setattr(self, prop, value)
+            msg = "Update local %s" % prop
+        return msg
+
+    
+    def getClassObject(self):
+        """If you are going to use acquisition up different class path
+        override this.
+        """
+        return self.device()
 
 
     def manage_afterAdd(self, item, container):

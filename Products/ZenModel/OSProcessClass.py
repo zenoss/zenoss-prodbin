@@ -92,8 +92,14 @@ class OSProcessClass(ZenModelRM):
     def __init__(self, id):
         id = self.prepId(id)
         super(OSProcessClass, self).__init__(id)
-        self.name = id
+        self.name = self.regex = id
+
   
+    def getOSProcessClassName(self):
+        """Return the full name of this process class.
+        """
+        return self.getPrimaryDmdId("Processes", "osProcessClasses")
+
 
     def match(self, procKey):
         """match procKey against our regex.
@@ -117,15 +123,6 @@ class OSProcessClass(ZenModelRM):
         """
         self.name = name
         id = self.prepId(name)
-        if self.zMonitor != zMonitor:
-            self.setZenProperty("zMonitor", zMonitor)
-            for inst in self.instances(): 
-                inst = inst.primaryAq()
-                inst.index_object()
-        if self.zCountProcs != zCountProcs:
-            self.setZenProperty("zCountProcs", zCountProcs)
-        if self.zAlertOnRestart != zAlertOnRestart:
-            self.setZenProperty("zAlertOnRestart", zAlertOnRestart)
         redirect = self.rename(id)
         self.regex = regex        
         self.description = description        

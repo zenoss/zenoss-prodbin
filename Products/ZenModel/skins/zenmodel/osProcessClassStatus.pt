@@ -45,15 +45,15 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
-    <tr tal:repeat="srv batch">
+    <tr tal:repeat="proccl batch">
       <td class="tablevalues" 
-        tal:content="structure python:srv.getDeviceLink('deviceOsDetail')"/>
+        tal:content="structure python:proccl.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
-        <a tal:attributes="href srv/getPrimaryUrlPath" 
-            tal:content="srv/id">tcp-00514</a>
+        <a tal:attributes="href proccl/getPrimaryUrlPath" 
+            tal:content="proccl/name">tcp-00514</a>
       </td>      
-      <td class="tablevalues" tal:content="srv/monitored"/>
-      <td tal:define="status srv/getStatus"
+      <td class="tablevalues" tal:content="proccl/monitored"/>
+      <td tal:define="status proccl/getStatus"
         tal:attributes="class python:here.getStatusCssClass(status)"
         tal:content="python:here.convertStatus(status)"/>
     </tr>

@@ -44,12 +44,13 @@ class HRSWRunMap(SnmpPlugin):
         rm = self.relMap()
         for proc in fstable.values():
             om = self.objectMap(proc)
+            fullname = om.procName + " " + om.parameters
             for f in filters:
-                if f(om.procName + ' ' + om.parameters):
+                if f(fullname):
                     break
             else:
                 continue
-            om.id = self.prepId(om.procName)
+            om.id = self.prepId(fullname)
             om.setOSProcessClass = om.procName + om.parameters
             rm.append(om)
         return rm

@@ -48,13 +48,13 @@ class Service(OSComponent):
     def monitored(self):
         """Should this service be monitored or not. Use ServiceClass aq path. 
         """
-        return self._aqprop("zMonitor")
+        return self.getAqProperty("zMonitor")
 
 
     def getFailSeverity(self):
         """Return the severity for this service when it fails.
         """
-        return self._aqprop("zFailSeverity")
+        return self.getAqProperty("zFailSeverity")
 
 
     def setServiceClass(self, name="", description=""):
@@ -75,36 +75,8 @@ class Service(OSComponent):
         return ""
 
 
-    def _aqprop(self, prop):
-        """Get a property from ourself if it exsits then try serviceclass path.
-        """
-        if getattr(aq_base(self), prop, None) is not None:
-            return getattr(self, prop)
-        svccl = self.serviceclass()
-        if svccl: 
-            svccl = svccl.primaryAq()
-            return getattr(svccl, prop)
-
-
-    def _aqsetprop(self, prop, value, type):
-        """Set a local prop if nessesaary on this service.
-        """
-        svccl = self.serviceclass()
-        if not svccl: return
-        svccl = svccl.primaryAq()
-        svcval = getattr(svccl, prop)
-        locval = getattr(aq_base(self),prop,None)
-        msg = ""
-        if svcval == value and locval is not None:
-            self._delProperty(prop)
-            msg = "Removed local %s" % prop
-        elif svcval != value and locval is None:
-            self._setProperty(prop, value, type=type)
-            msg = "Set local %s" % prop
-        elif locval is not None and locval != value:
-            setattr(self, prop, value)
-            msg = "Update local %s" % prop
-        return msg
+    def getClassObject(self):
+        return self.serviceclass()
 
 
     security.declareProtected('Manage DMD', 'manage_editService')
@@ -112,8 +84,8 @@ class Service(OSComponent):
         """Edit a Service from a web page.
         """
         if msg is None: msg=[]
-        msg.append(self._aqsetprop("zMonitor", monitor, "boolean"))
-        msg.append(self._aqsetprop("zFailSeverity", severity, "int"))
+        msg.append(self.setAqProperty("zMonitor", monitor, "boolean"))
+        msg.append(self.setAqProperty("zFailSeverity", severity, "int"))
         msg = [ m for m in msg if m ]
         self.index_object()
         if not msg: msg.append("No action needed")
