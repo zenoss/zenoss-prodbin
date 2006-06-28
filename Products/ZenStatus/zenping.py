@@ -121,12 +121,15 @@ class ZenPing(ZCmdBase):
 
     def prepDevices(self, devices):
         """resolve dns names and make StatusTest objects"""
+        import pdb, os
+        if os.path.exists('/tmp/stop'):
+            pdb.set_trace()
         for device in devices:
             stored = device.getStatus(PingStatus, state=2)
             current = self.failed.get(device.getManageIp(), 0)
             self.failed[device.getManageIp()] = max(stored, current)
             self.pingtree.addDevice(device)
-        reconfigured = True
+        self.reconfigured = True
 
 
     def buildOptions(self):
@@ -204,17 +207,20 @@ class ZenPing(ZCmdBase):
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
+        pj.deferred = None
         if self.failed.get(pj.ipaddr, 0) > 1:
             pj.severity = 0
             self.sendPingEvent(pj)
         self.log.debug('success %s', pj.ipaddr)
         self.failed[pj.ipaddr] = 0
         self.log.debug("Success %s %s", pj.ipaddr, self.failed[pj.ipaddr])
+        self.status = 0
         self.next()
 
     def pingFailed(self, err):
         "Callback for a bad (no) ping response"
         pj = err.value
+        pj.deferred = None
         self.log.debug('failure %s', pj.ipaddr)
         self.failed.setdefault(pj.ipaddr, 0)
         self.log.debug("Failed %s %s", pj.ipaddr, self.failed[pj.ipaddr])
