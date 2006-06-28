@@ -45,6 +45,14 @@ class TestIpService(unittest.TestCase):
         self.assert_(self.ipsvc.getInstDescription() == 'tcp-121 ips:')
 
 
+    def testSetManageIp(self):
+        self.ipsvc.setManageIp('1.2.3.4/24')
+        self.assert_(self.ipsvc.getManageIp() == '1.2.3.4/24')
+        self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        self.dev.setManageIp('2.3.4.5/24')
+        self.assert_(self.ipsvc.getManageIp() == '2.3.4.5/24')
+
+
 def main():
 
        unittest.TextTestRunner().run(test_suite())
