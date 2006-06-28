@@ -25,9 +25,6 @@ from CustomEventView import CustomEventView, addCustomEventView, \
     manage_addCustomEventView
     
 
-from EventPopulator import EventPopulator
-from MaintenanceThread import MaintenanceThread
-
 registerDirectory('skins', globals())
 
 zeneventpopulator = None
@@ -60,11 +57,3 @@ def initialize(registrar):
         permission="Add DMD Objects",
         constructors = (addCustomEventView, manage_addCustomEventView,)
         )
-#    global zeneventpopulator
-#    if not zeneventpopulator:
-#        zeneventpopulator = EventPopulator()
-#        zeneventpopulator.start()
-#    global zeneventmaintenance
-#    if not zeneventmaintenance:
-#        zeneventmaintenance = MaintenanceThread()
-#        zeneventmaintenance.start()

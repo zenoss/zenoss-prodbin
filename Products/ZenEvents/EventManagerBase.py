@@ -106,7 +106,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     maintenanceRunning = True
     maintenanceCycle = 10
-    maintenanceProcedures = ("close_events", "clean_old_events")
+    maintenanceProcedures = ("clean_old_events",)
 
     defaultResultFields = ("device", "component", "eventClass", "summary", 
                            "firstTime", "lastTime", "count" )

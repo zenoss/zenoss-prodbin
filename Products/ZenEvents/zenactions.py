@@ -5,7 +5,7 @@ import time
 import Globals
 
 from ZODB.POSException import POSError
-from _mysql_exceptions import OperationalError 
+from _mysql_exceptions import OperationalError, ProgrammingError 
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Event import Event
@@ -123,6 +123,21 @@ class ZenActions(ZCmdBase):
         db.close()
 
 
+    def maintenance(self):
+        """Run stored procedures that maintain the events database.
+        """
+        zem = self.dmd.ZenEventManager
+        db = zem.connect()
+        curs = db.cursor()
+        for proc in zem.maintenanceProcedures:
+            try:
+                curs.execute("call %s();" % proc)
+            except ProgrammingError:
+                self.log.exception("problem with proc: '%s'", proc)
+        db.close()
+
+
+    
     def run(self):
         if not self.options.cycle: return self.processRules()
         while 1:
@@ -131,6 +146,7 @@ class ZenActions(ZCmdBase):
                 self.syncdb()
                 self.loadActionRules()
                 self.processRules()
+                self.maintenance()
                 self.log.info("processed %s rules in %.2f secs", 
                                len(self.actions), time.time()-start)
                 self.sendHeartbeat()
