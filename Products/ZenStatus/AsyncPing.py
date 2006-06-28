@@ -184,15 +184,11 @@ class Ping(object):
             del self.jobqueue[pj.ipaddr]
         except KeyError:
             pass
-        if pj.deferred:
-            if pj.rtt < 0:
-                pj.deferred.errback(pj)
-            else:
-                pj.deferred.callback(pj)
-            # free the deferred from further reporting
-            pj.deferred = None
+        # also free the deferred from further reporting
+        if pj.rtt < 0:
+            pj.deferred.errback(pj)
         else:
-            plog.debug("duplicate ping packet received for %s" % pj.ipaddr)
+            pj.deferred.callback(pj)
 
 
     def checkTimeout(self, pj):
