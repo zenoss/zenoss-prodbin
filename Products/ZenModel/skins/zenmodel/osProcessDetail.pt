@@ -1,0 +1,78 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="editable here/isManager">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="2"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Status</td>
+        <td tal:define="status here/getStatus"
+            tal:attributes="class python:here.getStatusCssClass(status)"
+            tal:content="python:here.convertStatus(status)"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Process Class</td>
+        <td class="tablevalues"
+            tal:content="structure here/getOSProcessClassLink"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:content="here/name"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Monitor</td>
+        <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="zMonitor:boolean"
+            tal:condition="editable">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.monitored()"/>
+            </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/monitored"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Count Procs</td>
+        <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="zCountProcs:boolean"
+            tal:condition="editable">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.countProcs()"/>
+            </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/countProcs"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Alert On Restart</td>
+        <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="zAlertOnRestart:boolean"
+            tal:condition="editable">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.alertOnRestart()"/>
+            </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/alertOnRestart"/>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editOSProcess:method" />
+        </td>
+    </tr>
+</table>
+</form>
+<br/>
+<tal:block tal:condition="here/monitored" >
+<table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+</tal:block>
+</tal:block>
+</tal:block>
