@@ -158,8 +158,8 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                           6 : self.oid2name('%s.0.%d' % (enterprise, specific))
                           }.get(generic, eventType + "_%d" % specific)
             for binding in extract(data, 'pdu/trap/variable_bindings'):
-                oid = binding['name'].get()
-                value = binding['value'].get()
+                oid = grind(binding['name'])
+                value = grind(binding['value'])
                 result[self.oid2name(oid)] = value
 
         summary = 'snmp trap %s from %s' % (eventType, addr[0])
