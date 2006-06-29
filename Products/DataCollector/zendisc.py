@@ -89,7 +89,7 @@ class ZenDisc(ZenModeler):
         if dev: 
             devname = dev.id
             comp = ipobj.interface().id
-            sev = 4
+            sev = 2
         else: 
             devname = comp = ip
             sev = 2
