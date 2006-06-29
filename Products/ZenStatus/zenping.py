@@ -201,11 +201,12 @@ class ZenPing(ZCmdBase):
     def pingSuccess(self, pj):
         "Callback for a good ping response"
         pj.deferred = None
-        if pj.status > 1:
+        status = pj.status
+        pj.status = 0
+        if status > 1:
             pj.severity = 0
             self.sendPingEvent(pj)
         self.log.debug("Success %s", pj.ipaddr)
-        self.status = 0
         self.next()
 
     def pingFailed(self, err):
