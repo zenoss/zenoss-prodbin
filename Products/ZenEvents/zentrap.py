@@ -84,7 +84,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                                component="zentrap"))
         self.q = Queue()
         self.log.info("started")
-        self.heartbeat()
+        #self.heartbeat()
 
     def handleTrap(self, data, addr):
         'Traps are processed asynchronously in a thread'
@@ -163,11 +163,14 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                 result[self.oid2name(oid)] = value
 
         summary = 'snmp trap %s from %s' % (eventType, addr[0])
+        self.log.debug(summary)
         ev = Event(rcvtime=ts,
                    ipAddress=addr[0],
                    severity=3,
                    device=self._findDevice(addr[0]),
                    component='',
+                   agent='zentrap',
+                   eventGroup='trap',
                    eventClassKey=eventType,
                    summary=summary,
                    **result)

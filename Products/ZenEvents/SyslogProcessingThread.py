@@ -38,8 +38,8 @@ for regex in parsers:
 
 class SyslogEvent(Event):
 
-    agent="ZenSyslog"
-    eventGroup="Syslog" 
+    agent="zensyslog"
+    eventGroup="syslog" 
 
     def getDedupFields(self, default):
         """Return list of dedupid fields.
