@@ -668,10 +668,10 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         returns a start and end date as a proper database element.
         """
         if type(enddate) == types.StringType:
-            enddate = DateTime.DateTime(enddate)
+            enddate = DateTime.DateTime(enddate, datefmt='us')
         enddate = enddate.latestTime()
         if type(startdate) == types.StringType:
-            startdate = DateTime.DateTime(startdate)
+            startdate = DateTime.DateTime(startdate, datefmt='us')
         startdate = startdate.earliestTime()
         startdate = self.dateDB(startdate)
         enddate = self.dateDB(enddate)
