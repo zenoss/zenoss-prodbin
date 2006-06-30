@@ -15,51 +15,35 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 import os
-import errno
-import socket
 import time
 import logging
 log = logging.getLogger("zen.zenperfsnmp")
 
 from sets import Set
 
-import Globals
-
 from twisted.internet import reactor, defer
+from twistedsnmp.agentproxy import AgentProxy
 
-from Products.ZenUtils.ZenDaemon import ZenDaemon
-from Products.ZenUtils.Utils import basicAuthUrl
-from Products.ZenUtils.TwistedAuth import AuthProxy
+import Globals
 from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
-import RRDUtil
-
-from twistedsnmp.agentproxy import AgentProxy
-from twistedsnmp import snmpprotocol
+from RRDUtil import RRDUtil
+from RRDDaemon import RRDDaemon
 
 from FileCleanup import FileCleanup
 
-BASE_URL = 'http://localhost:8080/zport/dmd'
-DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 30
-BAD_SEVERITY=Event.Warning
-
-COMMON_EVENT_INFO = {
-    'agent': 'zenperfsnmp',
-    'manager': socket.getfqdn(),
-    }
-
 
 def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 try:
-    sorted = sorted
+    sorted = sorted                     # added in python 2.4
 except NameError:
     def sorted(lst, *args, **kw):
         lst.sort(*args, **kw)
@@ -162,7 +146,7 @@ class SnmpStatus:
             summary='snmp agent down on device ' + deviceName
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
-                    severity=BAD_SEVERITY)
+                    severity=Event.Warning)
             log.warn(summary)
             self.count += 1
 
@@ -229,46 +213,24 @@ class OidData:
         self.thresholds = thresholds
 
 
-class zenperfsnmp(ZenDaemon):
+
+class zenperfsnmp(RRDDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
-    startevt = {'device':socket.getfqdn(), 'eventClass':'/App/Start', 
-                'component':'zenperfsnmp', 'summary': 'started',
-                'severity': Event.Clear}
-    stopevt = {'device':socket.getfqdn(), 'eventClass':'/App/Stop', 
-               'component':'zenperfsnmp', 'summary': 'stopped',
-               'severity': BAD_SEVERITY}
-    heartbeat = {'device':socket.getfqdn(), 'component':'zenperfsnmp',
-                    'eventClass':'/Heartbeat'}
-
     # these names need to match the property values in StatusMonitorConf
-    configCycleInterval = 20            # minutes
-    snmpCycleInterval = 5*60            # seconds
     maxRrdFileAge = 30 * (24*60*60)     # seconds
     status = Status()
-    rrd = None
 
     def __init__(self):
-        ZenDaemon.__init__(self)
-        self.model = self.buildProxy(self.options.zopeurl)
+        RRDDaemon.__init__(self, 'zenperfsnmp')
         self.proxies = {}
-        self.snmpPort = snmpprotocol.port()
         self.queryWorkList = Set()
-        baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
-        if not self.options.zem:
-            self.options.zem = baseURL + '/ZenEventManager'
-        self.zem = self.buildProxy(self.options.zem)
         self.unresponsiveDevices = Set()
         self.cycleComplete = False
         self.snmpOidsRequested = 0
-        self.events = []
         perfRoot = performancePath('')
-	try:
+        if not os.path.exists(perfRoot):
 	    os.makedirs(perfRoot)
-        except OSError, ex:
-	    err, msg = ex.args
-	    if err != errno.EEXIST:
-		raise
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$')
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
@@ -281,52 +243,9 @@ class zenperfsnmp(ZenDaemon):
             self.log.error("Unable to delete old RRD file: %s", fullPath)
 
     def buildOptions(self):
-        ZenDaemon.buildOptions(self)
-
+        RRDDaemon.buildOptions(self)
         self.parser.add_option('--device', dest='device', default="",
                                help='gather performance for a single device')
-
-        self.parser.add_option(
-            "-z", "--zopeurl",
-            dest="zopeurl",
-            help="XMLRPC url path for performance configuration server",
-            default=DEFAULT_URL)
-        self.parser.add_option(
-            "-u", "--zopeusername",
-            dest="zopeusername", help="username for zope server",
-            default='admin')
-        self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
-        self.parser.add_option("--debug", dest="debug", action='store_true',
-                                default=False)
-        self.parser.add_option(
-            '--zem', dest='zem',
-            help="XMLRPC path to an ZenEventManager instance")
-
-        
-    def buildProxy(self, url):
-        "create AuthProxy objects with our config and the given url"
-        url = basicAuthUrl(self.options.zopeusername,
-                           self.options.zopepassword,
-                           url)
-        return AuthProxy(url)
-
-
-    def sendEvent(self, event, now=False, **kw):
-        'convenience function for pushing events to the Zope server'
-        ev = event.copy()
-        ev.update(COMMON_EVENT_INFO)
-        ev.update(kw)
-        self.events.append(ev)
-	if now:
-	    self.sendEvents()
-
-
-    def sendEvents(self):
-        if self.events:
-            d = self.zem.callRemote('sendEvents', self.events)
-            d.addErrback(self.log.error)
-            self.events = []
-
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
@@ -343,18 +262,12 @@ class zenperfsnmp(ZenDaemon):
         self.updateDeviceList(driver.next())
 
         yield self.model.callRemote('propertyItems')
-        table = dict(driver.next())
-        for name in ('configCycleInterval', 'snmpCycleInterval'):
-            value = table.get(name, None)
-            if value is not None:
-                if getattr(self, name) != value:
-                    self.log.debug('Updated %s config to %s' % (name, value))
-                setattr(self, name, value)
+        self.setPropertyItems(driver.next())
         
         yield self.model.callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
-        self.rrd = RRDUtil.RRDUtil(createCommand, self.snmpCycleInterval)
+        self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
 
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
@@ -431,7 +344,7 @@ class zenperfsnmp(ZenDaemon):
         self.proxies[deviceName] = p
 
 
-    def scanCycle(self, *args):
+    def scanCycle(self, *unused):
         self.log.debug("getting device ping issues")
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getDevicePingIssues')
@@ -479,10 +392,7 @@ class zenperfsnmp(ZenDaemon):
                       (success, total, runtime))
         self.log.debug("Sent %d SNMP OID requests", self.snmpOidsRequested)
         self.snmpOidsRequested = 0
-        self.sendEvent(self.heartbeat, timeout=self.snmpCycleInterval * 3)
-        self.cycleComplete = True
-        self.sendEvents()
-        self.maybeQuit()
+        self.heartbeat()
 
 
     def startReadDevice(self, deviceName):
@@ -584,25 +494,11 @@ class zenperfsnmp(ZenDaemon):
             threshold.check(device, oidData.name, oid, value, self.sendEvent)
 
 
-    def quit(self, error):
-        'stop the reactor if an error occured on the first config load'
-        self.log.error(error)
-        reactor.stop()
-
-
-    def sigTerm(self, signum, frame):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZenDaemon.sigTerm(self, signum, frame)
-        except SystemExit, ex:
-            reactor.stop()
-
-
     def main(self):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
-        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle, self.quit)
+        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle, self.error)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 

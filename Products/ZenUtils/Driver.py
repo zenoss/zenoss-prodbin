@@ -17,7 +17,7 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.python import failure
 
 class Driver:
@@ -67,6 +67,14 @@ def drive(callable):
     '''
     d = Driver()
     return d.drive(callable(d))
+
+
+def driveLater(secs, callable):
+    "Drive the callable at a later time"
+    def driveAgain():
+        drive(callable)
+    reactor.callLater(secs, driveAgain)
+
 
 def test():
     lst = []

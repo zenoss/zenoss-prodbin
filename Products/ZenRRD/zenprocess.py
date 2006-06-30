@@ -16,7 +16,6 @@ __version__ = "$Revision$"[11:-2]
 
 import re
 import logging
-import socket
 from sets import Set
 
 log = logging.getLogger("zen.zenprocess")
@@ -25,20 +24,14 @@ from twisted.internet import reactor, defer
 
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp.tableretriever import TableRetriever
-from twistedsnmp import snmpprotocol
 
 import Globals
-from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
-from Products.ZenUtils.Utils import basicAuthUrl
-from Products.ZenUtils.TwistedAuth import AuthProxy
-from Products.ZenEvents import Event
 from Products.ZenModel.PerformanceConf import performancePath
 
-import RRDUtil
-
-BAD_SEVERITY=Event.Warning
+from RRDUtil import RRDUtil
+from RRDDaemon import RRDDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
@@ -48,19 +41,11 @@ PERFROOT  = HOSTROOT + '.5'
 CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
 MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
-BASE_URL = 'http://localhost:8080/zport/dmd'
-DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
-
 PARALLEL_JOBS = 10
 MAX_OIDS_PER_REQUEST = 40
 
-COMMON_EVENT_INFO = {
-    'agent': 'zenprocess',
-    'manager': socket.getfqdn(),
-    }
-
 try:
-    sorted = sorted
+    sorted = sorted                     # added in python 2.4
 except NameError:
     def sorted(x, *args, **kw):
         x.sort(*args, **kw)
@@ -122,55 +107,12 @@ config = [
 
 devices = [ ('eros', ('192.168.1.120', 161), 'public', config) ]
 
-class zenprocess(ZenDaemon):
-    startevt = {'device':socket.getfqdn(), 'eventClass':'/App/Start', 
-                'component':'zenperfsnmp', 'summary': 'started',
-                'severity': Event.Clear}
-    stopevt = {'device':socket.getfqdn(), 'eventClass':'/App/Stop', 
-               'component':'zenperfsnmp', 'summary': 'stopped',
-               'severity': BAD_SEVERITY}
-    heartbeat = {'device':socket.getfqdn(), 'component':'zenperfsnmp',
-                    'eventClass':'/Heartbeat'}
-
-    snmpCycleInterval = 5*60
-    configCycleInterval = 20
-    rrd = None
+class zenprocess(RRDDaemon):
 
     def __init__(self):
-        ZenDaemon.__init__(self)
+        RRDDaemon.__init__(self, 'zenprocess')
         self.devices = {}
-        self.snmpPort = snmpprotocol.port()
         self.periodicJob = None
-        self.model = self.buildProxy(self.options.zopeurl)
-        baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
-        if not self.options.zem:
-            self.options.zem = baseURL + '/ZenEventManager'
-        self.zem = self.buildProxy(self.options.zem)
-        self.events = []
-
-    def buildProxy(self, url):
-        "create AuthProxy objects with our config and the given url"
-        url = basicAuthUrl(self.options.zopeusername,
-                           self.options.zopepassword,
-                           url)
-        return AuthProxy(url)
-
-
-    def sendEvent(self, event, now=False, **kw):
-        'convenience function for pushing events to the Zope server'
-        ev = event.copy()
-        ev.update(COMMON_EVENT_INFO)
-        ev.update(kw)
-        self.events.append(ev)
-	if now:
-	    self.sendEvents()
-
-
-    def sendEvents(self):
-        if self.events:
-            d = self.zem.callRemote('sendEvents', self.events)
-            d.addErrback(self.log.error)
-            self.events = []
 
     def fetchConfig(self):
         'Get configuration values from the Zope server'
@@ -179,15 +121,10 @@ class zenprocess(ZenDaemon):
             createCommand = driver.next()
 
             yield self.model.callRemote('propertyItems')
-            table = dict(driver.next())
-            for name in ('configCycleInterval', 'snmpCycleInterval'):
-                if table.has_key(name):
-                    value = table[name]
-                    if getattr(self, name) != value:
-                        self.log.debug('Updated %s config to %s' % (name, value))
-                    setattr(self, name, value)
-            self.rrd = RRDUtil.RRDUtil(createCommand, self.snmpCycleInterval)
-
+            self.setPropertyItems(driver.next())
+            
+            self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
+            
             yield defer.succeed(devices)
             driver.next()
         
@@ -259,7 +196,7 @@ class zenprocess(ZenDaemon):
             log.debug("Process %s pid %d now gone on %s" % (name, p, device.name))
         device.pids = after
         
-    def periodic(self, ignored=None):
+    def periodic(self, unused=None):
         if self.periodicJob:
             running, unstarted, finished = self.periodicJob.status()
             log.error("periodic job not finishing: "
@@ -292,32 +229,17 @@ class zenprocess(ZenDaemon):
                 self.save(device.name, pidName, 'mem', mem, pid, 'GAUGE')
 
     def save(self, deviceName, pidName, statName, value, pid, rrdType):
-        path = '%s/processes/%s/%s/%d.rrd' % (deviceName, pidName, statName, pid)
+        path = '%s/processes/%s/%s/%d' % (deviceName, pidName, statName, pid)
         value = self.rrd.save(path, value, rrdType)
         # fixme: add threshold checking
             
 
     def heartbeat(self, *unused):
-        if not self.options.cycle:
-            reactor.stop()
-            return
         self.periodicJob = None
         pids = sum(map(lambda x: len(x.pids), self.devices.values()))
-        log.debug("Pulled config for %d devices and %d processes",
+        log.debug("Pulled process status for %d devices and %d processes",
                   len(self.devices), pids)
-
-    def error(self, err):
-        print err.printTraceback()
-        import traceback
-        traceback.print_exc(err.value)
-        reactor.callLater(0, reactor.stop)
-
-    def sigTerm(self, *unused):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZenDaemon.sigTerm(self, *unused)
-        except SystemExit, ex:
-            reactor.stop()
+        RRDDaemon.heartbeat(self)
 
     def main(self):
         self.sendEvent(self.startevt)
@@ -325,21 +247,6 @@ class zenprocess(ZenDaemon):
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 
-    def buildOptions(self):
-        ZenDaemon.buildOptions(self)
-        self.parser.add_option(
-            "-z", "--zopeurl",
-            dest="zopeurl",
-            help="XMLRPC url path for performance configuration server",
-            default=DEFAULT_URL)
-        self.parser.add_option(
-            "-u", "--zopeusername",
-            dest="zopeusername", help="username for zope server",
-            default='admin')
-        self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
-        self.parser.add_option(
-            '--zem', dest='zem',
-            help="XMLRPC path to an ZenEventManager instance")
 
 if __name__ == '__main__':
     z = zenprocess()
