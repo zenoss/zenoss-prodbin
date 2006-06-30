@@ -68,7 +68,7 @@ class Device:
     name = ''
     address = ('', 0)
     community = 'public'
-    version = '2'
+    version = '1'
     port = 161
     proxy = None
     timeout = 2.5
@@ -192,8 +192,10 @@ class zenprocess(RRDDaemon):
         return d
 
     def deviceFailure(self, value, device):
-        value.printTraceback()
-        log.error('Error: %s %s', value, device)
+        from StringIO import StringIO
+        s = StringIO()
+        value.printTraceback(s)
+        log.error('Error on device %s: %s', device, s.getvalue())
 
     def storeProcessNames(self, results, device):
         procs = []
@@ -209,7 +211,6 @@ class zenprocess(RRDDaemon):
         before = Set(device.pids.keys())
         after = {}
         for p in device.processes.values():
-            print
             for pid, running in procs:
                 if p.match(running):
                     log.debug("Found process %d on %s" % (pid, p.name))
@@ -236,27 +237,27 @@ class zenprocess(RRDDaemon):
         # in M-parallel, for each device
         # fetch the process status
         self.periodicJob = NJobs(MAX_OIDS_PER_REQUEST,
-                                 self.fetchDevice, self.devices.values())
+                                 self.fetchDevicePerf, self.devices.values())
         self.periodicJob.start().addCallback(self.heartbeat)
         reactor.callLater(self.snmpCycleInterval, self.periodic)
 
-    def fetchDevice(self, device):
+    def fetchDevicePerf(self, device):
         oids = []
         for p in device.pids.keys():
             oids.extend([CPU + str(p), MEM + str(p)])
         d = device.get(oids)
-        d.addCallback(self.storeStats, device)
+        d.addCallback(self.storePerfStats, device)
         d.addErrback(self.error)
         return d
 
-    def storeStats(self, results, device):
+    def storePerfStats(self, results, device):
         for pid, pidConf in device.pids.items():
             pidName = pidConf.name
             cpu = results.get(CPU + str(pid), None)
             mem = results.get(MEM + str(pid), None)
             if cpu is not None and mem is not None:
                 self.save(device.name, pidName, 'cpu', cpu, 'COUNTER')
-                self.save(device.name, pidName, 'mem', mem, 'GAUGE')
+                self.save(device.name, pidName, 'mem', mem * 1024, 'GAUGE')
 
     def save(self, deviceName, pidName, statName, value, rrdType):
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
