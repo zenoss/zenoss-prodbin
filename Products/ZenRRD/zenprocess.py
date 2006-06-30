@@ -35,7 +35,7 @@ from RRDDaemon import RRDDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
-NAMETABLE = RUNROOT + '.2.1.4'
+NAMETABLE = RUNROOT + '.2.1.2'
 ARGSTABLE = RUNROOT + '.2.1.5'
 PERFROOT  = HOSTROOT + '.5'
 CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
@@ -54,12 +54,14 @@ except NameError:
 class Process:
     'track process-specific configuration data'
     name = None
-    pattern = None
+    value = None
+    count = None
+    restart = None
 
     def match(self, name):
         if self.name is None:
             return False
-        return re.match(self.pattern, name)
+        return self.value == name
 
 class Device:
     'track device data'
@@ -69,6 +71,9 @@ class Device:
     version = '2'
     port = 161
     proxy = None
+    timeout = 2.5
+    tries = 2
+    protocol = None
 
     def __init__(self):
         # map process name to Process object above
@@ -76,7 +81,7 @@ class Device:
         # map pid number to Process object
         self.pids = {}
 
-    def makeProxy(self, protocol):
+    def _makeProxy(self):
         p = self.proxy
         if (p is None or 
             (p.ip, p.port) != self.address or
@@ -86,19 +91,37 @@ class Device:
                                     port=self.address[1],
                                     community=self.community,
                                     snmpVersion=self.version,
-                                    protocol=protocol,
+                                    protocol=self.protocol,
                                     allowCache=True)
 
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, pattern in processes:
+        for name, value, count, restart in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
-            p.pattern = pattern
+            p.value = value
+            p.count = count
+            p.restart = restart
         for name in unused:
             del self.processes[name]
+
+    def get(self, oids):
+        self._makeProxy()
+        return self.proxy.get(oids,
+                              timeout=self.timeout,
+                              retryCount=self.tries)
+
+
+    def getTables(self, oids):
+        self._makeProxy()
+        t = TableRetriever(self.proxy, oids,
+                           timeout=self.timeout,
+                           retryCount=self.tries,
+                           maxRepetitions=MAX_OIDS_PER_REQUEST / len(oids))
+        return t()
+    
 
 config = [
     ('mysql', '.*/mysqld_safe.*'),
@@ -122,33 +145,40 @@ class zenprocess(RRDDaemon):
 
             yield self.model.callRemote('propertyItems')
             self.setPropertyItems(driver.next())
-            
+
             self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
-            
-            yield defer.succeed(devices)
+
+            yield self.model.callRemote('getOSProcessConf')
             driver.next()
-        
+
         return drive(doFetchConfig)
 
     def start(self, driver):
+      try:
         # read config, find changes
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
-        for name, addr, community, cfg in n:
+        for (name, _, addr, (community, version, timeout, tries)), procs in n:
             removed.discard(name)
             d = self.devices.setdefault(name, Device())
             d.name = name
             d.address = addr
             d.community = community
-            d.updateConfig(cfg)
-            d.makeProxy(self.snmpPort.protocol)
+            d.version = version
+            d.timeout = timeout
+            d.tries = tries
+            d.updateConfig(procs)
+            d.protocol = self.snmpPort.protocol
         for r in removed:
             del self.devices[r]
 
         # fetch pids with an SNMP scan
         yield self.findPids(); driver.next()
         driveLater(self.configCycleInterval * 60, self.start)
+      except Exception, ex:
+          import traceback
+          traceback.print_exc(ex)
 
     def findPids(self):
         jobs = NJobs(PARALLEL_JOBS, self.scanDevice, self.devices.values())
@@ -156,9 +186,7 @@ class zenprocess(RRDDaemon):
 
     def scanDevice(self, device):
         tables = [NAMETABLE, ARGSTABLE]
-        t = TableRetriever(device.proxy, tables,
-                           maxRepetitions=MAX_OIDS_PER_REQUEST / len(tables))
-        d = t()
+        d = device.getTables(tables)
         d.addCallback(self.storeProcessNames, device)
         d.addErrback(self.deviceFailure, device)
         return d
@@ -181,8 +209,10 @@ class zenprocess(RRDDaemon):
         before = Set(device.pids.keys())
         after = {}
         for p in device.processes.values():
+            print
             for pid, running in procs:
                 if p.match(running):
+                    log.debug("Found process %d on %s" % (pid, p.name))
                     after[pid] = p
         afterSet = Set(after.keys())
         new =  afterSet - before
@@ -214,7 +244,7 @@ class zenprocess(RRDDaemon):
         oids = []
         for p in device.pids.keys():
             oids.extend([CPU + str(p), MEM + str(p)])
-        d = device.proxy.get(oids)
+        d = device.get(oids)
         d.addCallback(self.storeStats, device)
         d.addErrback(self.error)
         return d
@@ -225,11 +255,11 @@ class zenprocess(RRDDaemon):
             cpu = results.get(CPU + str(pid), None)
             mem = results.get(CPU + str(pid), None)
             if cpu is not None and mem is not None:
-                self.save(device.name, pidName, 'cpu', cpu, pid, 'COUNTER')
-                self.save(device.name, pidName, 'mem', mem, pid, 'GAUGE')
+                self.save(device.name, pidName, 'cpu', cpu, 'COUNTER')
+                self.save(device.name, pidName, 'mem', mem, 'GAUGE')
 
-    def save(self, deviceName, pidName, statName, value, pid, rrdType):
-        path = '%s/processes/%s/%s/%d' % (deviceName, pidName, statName, pid)
+    def save(self, deviceName, pidName, statName, value, rrdType):
+        path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType)
         # fixme: add threshold checking
             
