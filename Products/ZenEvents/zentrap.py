@@ -84,7 +84,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                                component="zentrap"))
         self.q = Queue()
         self.log.info("started")
-        #self.heartbeat()
+        self.heartbeat()
 
     def handleTrap(self, data, addr):
         'Traps are processed asynchronously in a thread'
