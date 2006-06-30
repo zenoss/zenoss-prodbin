@@ -16,6 +16,7 @@ __version__ = "$Revision$"[11:-2]
 
 import re
 import logging
+import time
 from sets import Set
 
 log = logging.getLogger("zen.zenprocess")
@@ -74,6 +75,7 @@ class Device:
     timeout = 2.5
     tries = 2
     protocol = None
+    lastScan = 0.
 
     def __init__(self):
         # map process name to Process object above
@@ -121,21 +123,21 @@ class Device:
                            retryCount=self.tries,
                            maxRepetitions=MAX_OIDS_PER_REQUEST / len(oids))
         return t()
+
+    def hasCountedProcess(self):
+        for p in self.processes:
+            if p.count:
+                return True
+        return False
     
-
-config = [
-    ('mysql', '.*/mysqld_safe.*'),
-    ('zenoss', '.*python.*zdrun.py.*runzope'),
-    ]
-
-devices = [ ('eros', ('192.168.1.120', 161), 'public', config) ]
 
 class zenprocess(RRDDaemon):
 
     def __init__(self):
         RRDDaemon.__init__(self, 'zenprocess')
         self.devices = {}
-        self.periodicJob = None
+        self.perfScanJob = None
+
 
     def fetchConfig(self):
         'Get configuration values from the Zope server'
@@ -153,9 +155,9 @@ class zenprocess(RRDDaemon):
 
         return drive(doFetchConfig)
 
+
     def start(self, driver):
-      try:
-        # read config, find changes
+        'Read the basic config needed to do anything'
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
@@ -174,30 +176,42 @@ class zenprocess(RRDDaemon):
             del self.devices[r]
 
         # fetch pids with an SNMP scan
-        yield self.findPids(); driver.next()
+        yield self.findPids(self.devices.values()); driver.next()
         driveLater(self.configCycleInterval * 60, self.start)
-      except Exception, ex:
-          import traceback
-          traceback.print_exc(ex)
 
-    def findPids(self):
-        jobs = NJobs(PARALLEL_JOBS, self.scanDevice, self.devices.values())
+
+    def findPids(self, devices):
+        "Scan all devices for process names and args"
+        jobs = NJobs(PARALLEL_JOBS, self.scanDevice, devices)
         return jobs.start()
 
+
     def scanDevice(self, device):
+        """Fetch all the process info, but not too often:
+        
+        Both 'counted' and 'config' cycles scan devices.
+
+        """
+        if time.time() - device.lastScan < self.snmpCycleInterval:
+            return defer.succeed(None)
         tables = [NAMETABLE, ARGSTABLE]
         d = device.getTables(tables)
         d.addCallback(self.storeProcessNames, device)
         d.addErrback(self.deviceFailure, device)
         return d
 
+
     def deviceFailure(self, value, device):
+        "Log an exception"
         from StringIO import StringIO
         s = StringIO()
         value.printTraceback(s)
         log.error('Error on device %s: %s', device, s.getvalue())
 
+
     def storeProcessNames(self, results, device):
+        "Parse the process tables and figure what pids are on the device"
+        device.lastScan = time.time()
         procs = []
         for namePart, argsPart in zip(sorted(results[NAMETABLE].items()),
                                       sorted(results[ARGSTABLE].items())):
@@ -219,6 +233,7 @@ class zenprocess(RRDDaemon):
         new =  afterSet - before
         dead = before - afterSet
         # report changes
+        # FIXME: send restart events for those flagged
         for p in new:
             name = after[p].name
             log.debug("Found new %s pid %d on %s" % (name, p, device.name))
@@ -227,30 +242,60 @@ class zenprocess(RRDDaemon):
             log.debug("Process %s pid %d now gone on %s" % (name, p, device.name))
         device.pids = after
         
+        # store counts
+        pidCounts = dict([(p, 0) for p in device.processes])
+        for pids, pidConfig in device.pids.items():
+            if pidConfig.count:
+                pidCounts[pidConfig.name] += 1
+        for name, count in pidCounts.items():
+            self.save(device.name, name, 'count', count, 'GAUGE')
+
+
     def periodic(self, unused=None):
-        if self.periodicJob:
-            running, unstarted, finished = self.periodicJob.status()
-            log.error("periodic job not finishing: "
+        "Basic SNMP scan loop"
+        d = defer.DeferredList([self.perfScan(), self.countScan()],
+                               consumeErrors=True)
+        d.addCallback(self.heartbeat)
+        reactor.callLater(self.snmpCycleInterval, self.periodic)
+
+
+    def perfScan(self):
+        "Read performance data for non-counted Processes"
+        if self.perfScanJob:
+            running, unstarted, finished = self.perfScanJob.status()
+            log.error("performance scan job not finishing: "
                       "%d jobs running %d jobs waiting %d jobs finished",
                       running, unstarted, finished)
             return
         # in M-parallel, for each device
         # fetch the process status
-        self.periodicJob = NJobs(MAX_OIDS_PER_REQUEST,
+        self.perfScanJob = NJobs(MAX_OIDS_PER_REQUEST,
                                  self.fetchDevicePerf, self.devices.values())
-        self.periodicJob.start().addCallback(self.heartbeat)
-        reactor.callLater(self.snmpCycleInterval, self.periodic)
+        return self.perfScanJob.start()
+
+
+    def countScan(self):
+        "Read counts for counted Processes"
+        devices = [d for d in self.devices.values() if d.hasCountedProcess()]
+        return self.findPids(devices)
+
 
     def fetchDevicePerf(self, device):
+        "Get performance data for all the monitored Processes on a device"
         oids = []
-        for p in device.pids.keys():
-            oids.extend([CPU + str(p), MEM + str(p)])
+        for pid, pidConf in device.pids.items():
+            if not pidConf.count:
+                oids.extend([CPU + str(pid), MEM + str(pid)])
+        if not oids:
+            return defer.succeed(([], device))
         d = device.get(oids)
         d.addCallback(self.storePerfStats, device)
         d.addErrback(self.error)
         return d
 
+
     def storePerfStats(self, results, device):
+        "Save the performance data in RRD files"
         for pid, pidConf in device.pids.items():
             pidName = pidConf.name
             cpu = results.get(CPU + str(pid), None)
@@ -259,18 +304,21 @@ class zenprocess(RRDDaemon):
                 self.save(device.name, pidName, 'cpu', cpu, 'COUNTER')
                 self.save(device.name, pidName, 'mem', mem * 1024, 'GAUGE')
 
+
     def save(self, deviceName, pidName, statName, value, rrdType):
+        "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType)
         # fixme: add threshold checking
             
 
     def heartbeat(self, *unused):
-        self.periodicJob = None
+        self.perfScanJob = None
         pids = sum(map(lambda x: len(x.pids), self.devices.values()))
         log.debug("Pulled process status for %d devices and %d processes",
                   len(self.devices), pids)
         RRDDaemon.heartbeat(self)
+
 
     def main(self):
         self.sendEvent(self.startevt)
