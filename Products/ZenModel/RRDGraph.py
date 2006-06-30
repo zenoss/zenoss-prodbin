@@ -164,7 +164,7 @@ class RRDGraph(ZenModelRM):
         """
         for dsname in self.dsnames:
             myfile = os.path.join(rrdfile, dsname) + ".rrd"
-            gopts.append('DEF:%s=%s:ds0:%s' % (dsname, myfile, "AVERAGE"))
+            gopts.append('DEF:%s=%s:ds0:AVERAGE' % (dsname, myfile))
         return gopts
             
 

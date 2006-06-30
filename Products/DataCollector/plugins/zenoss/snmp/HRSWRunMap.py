@@ -44,6 +44,7 @@ class HRSWRunMap(SnmpPlugin):
         rm = self.relMap()
         for proc in fstable.values():
             om = self.objectMap(proc)
+            if not hasattr(om, 'procName'): continue
             fullname = om.procName + " " + om.parameters
             for f in filters:
                 if f(fullname):

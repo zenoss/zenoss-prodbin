@@ -53,6 +53,11 @@ class OSProcess(OSComponent):
     
     security = ClassSecurityInfo()
 
+    def getOSProcessConf(self):
+        """Return information used to monitor this process.
+        """
+        return (self.id, self.name())
+
 
     def setOSProcessClass(self, procKey):
         """Set the OSProcessClass based on procKey which is the proc + args.
@@ -69,9 +74,10 @@ class OSProcess(OSComponent):
         return self._procKey
        
 
-    def getDefaultGraphs(drange=18000):
+    def getPerformanceTargetType():
         """Return list of graph urls.
         """
+        return "OSProcess"
 
 
     def getOSProcessClassLink(self):
@@ -105,7 +111,7 @@ class OSProcess(OSComponent):
         return self.osProcessClass()
 
 
-    security.declareProtected('Manage DMD', 'manage_editService')
+    security.declareProtected('Manage DMD', 'manage_editOSProcess')
     def manage_editOSProcess(self, zMonitor=False, zCountProcs=False,
                             zAlertOnRestart=False, msg=None,REQUEST=None):
         """Edit a Service from a web page.

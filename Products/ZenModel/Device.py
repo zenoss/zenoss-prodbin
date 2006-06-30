@@ -387,6 +387,21 @@ class Device(ManagedEntity):
         return cmps
 
 
+    def getSnmpConnInfo(self):
+        return (self.id, self.getSnmpStatus(),
+                (self.manageIp, self.zSnmpPort),
+                (self.zSnmpCommunity, self.zSnmpVer,
+                 self.zSnmpTimeout, self.zSnmpTries))
+                
+
+    def getOSProcessConf(self):
+        """Return process monitoring configuration.
+        """
+        procs = [ o.getOSProcessConf() for o in self.os.processes() \
+                                            if o.monitored() ]
+        return (self.getSnmpConnInfo(), procs)
+
+
     def getSnmpOidTargets(self):
         """Return information for snmp collection on this device in the form
         (devname,
@@ -401,11 +416,7 @@ class Device(ManagedEntity):
             if o.monitored(): oids.extend(o.getSnmpOidTargets())
         for o in self.hw.harddisks(): 
             if o.monitored(): oids.extend(o.getSnmpOidTargets())
-        return (self.id, self.getSnmpStatus(),
-                (self.manageIp, self.zSnmpPort),
-                (self.zSnmpCommunity, self.zSnmpVer,
-                 self.zSnmpTimeout, self.zSnmpTries),
-                oids)
+        return (self.getSnmpConnInfo(), oids)
 
 
     def getRRDTemplate(self, name=None):

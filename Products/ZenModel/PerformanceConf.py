@@ -133,6 +133,20 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
+    def getOSProcessConf(self, devname=None):
+        result = []
+        for dev in self.devices():
+            if devname and dev.id != devname: continue
+            dev = dev.primaryAq()
+            if dev.monitorDevice() and dev.getSnmpStatus() != -1:
+                try:
+                    result.append(dev.getOSProcessConf())
+                except POSError: raise
+                except:
+                    log.exception("device %s", dev.id)
+        return result
+
+
     security.declareProtected('View','getDefaultRRDCreateCommand')
     def getDefaultRRDCreateCommand(self):
         """Get the default RRD Create Command, as a string.
