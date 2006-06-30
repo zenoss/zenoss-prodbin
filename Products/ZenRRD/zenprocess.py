@@ -253,7 +253,7 @@ class zenprocess(RRDDaemon):
         for pid, pidConf in device.pids.items():
             pidName = pidConf.name
             cpu = results.get(CPU + str(pid), None)
-            mem = results.get(CPU + str(pid), None)
+            mem = results.get(MEM + str(pid), None)
             if cpu is not None and mem is not None:
                 self.save(device.name, pidName, 'cpu', cpu, 'COUNTER')
                 self.save(device.name, pidName, 'mem', mem, 'GAUGE')
