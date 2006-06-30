@@ -36,6 +36,7 @@ from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.IpNetwork import manage_addIpNetwork
 from Products.ZenModel.ManufacturerRoot import ManufacturerRoot
 from Products.ZenModel.MibOrganizer import MibOrganizer
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
@@ -60,6 +61,7 @@ classifications = {
     'Services':     ServiceOrganizer,
     'Manufacturers':    ManufacturerRoot,
     'Mibs':         MibOrganizer,
+    'Processes':         OSProcessOrganizer,
     'Monitors':     MonitorClass,
     'Reports':      ReportClass,
 }
@@ -73,6 +75,7 @@ class DmdBuilder:
         'Locations', 
         'Systems', 
         'Services',
+        'Processes',
         'Manufacturers',
         'Mibs',
         'Monitors', 

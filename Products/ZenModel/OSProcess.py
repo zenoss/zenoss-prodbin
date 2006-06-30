@@ -74,7 +74,7 @@ class OSProcess(OSComponent):
         return self._procKey
        
 
-    def getPerformanceTargetType(self):
+    def getRRDTemplateName(self):
         """Return list of graph urls.
         """
         return self.countProcs() and "OSProcessCount" or "OSProcess"
