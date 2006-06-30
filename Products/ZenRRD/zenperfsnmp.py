@@ -31,6 +31,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Chain import Chain
+from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
@@ -39,7 +40,6 @@ import RRDUtil
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
 
-import CountedProxy
 from FileCleanup import FileCleanup
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
@@ -242,7 +242,6 @@ class zenperfsnmp(ZenDaemon):
                     'eventClass':'/Heartbeat'}
 
     # these names need to match the property values in StatusMonitorConf
-    defaultRRDCreateCommand = None
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
     maxRrdFileAge = 30 * (24*60*60)     # seconds
@@ -251,7 +250,6 @@ class zenperfsnmp(ZenDaemon):
 
     def __init__(self):
         ZenDaemon.__init__(self)
-        CountedProxy.setCallback(self.maybeQuit)
         self.model = self.buildProxy(self.options.zopeurl)
         self.proxies = {}
         self.snmpPort = snmpprotocol.port()
@@ -260,8 +258,6 @@ class zenperfsnmp(ZenDaemon):
         if not self.options.zem:
             self.options.zem = baseURL + '/ZenEventManager'
         self.zem = self.buildProxy(self.options.zem)
-        self.configLoaded = defer.Deferred()
-        self.configLoaded.addCallbacks(self.scanCycle, self.quit)
         self.unresponsiveDevices = Set()
         self.cycleComplete = False
         self.snmpOidsRequested = 0
@@ -312,7 +308,7 @@ class zenperfsnmp(ZenDaemon):
         url = basicAuthUrl(self.options.zopeusername,
                            self.options.zopepassword,
                            url)
-        return CountedProxy.CountedProxy(AuthProxy(url))
+        return AuthProxy(url)
 
 
     def sendEvent(self, event, now=False, **kw):
@@ -320,7 +316,6 @@ class zenperfsnmp(ZenDaemon):
         ev = event.copy()
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
-        #self.log.debug(ev)
         self.events.append(ev)
 	if now:
 	    self.sendEvents()
@@ -335,50 +330,33 @@ class zenperfsnmp(ZenDaemon):
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
-        if self.cycleComplete and CountedProxy.allFinished():
-            if not self.options.daemon and not self.options.cycle:
-                reactor.stop()
+        if self.cycleComplete and \
+           not self.options.daemon and \
+           not self.options.cycle:
+            reactor.stop()
 
 
-    def cycle(self, seconds, callable):
-        "callLater if we should be cycling"
-        if self.options.debug:
-            seconds /= 60
-        reactor.callLater(seconds, callable)
-
-
-    def startUpdateConfig(self):
+    def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
-        lst = []
-        deferred = self.model.callRemote('getDevices', self.options.device)
-        deferred.addCallback(self.updateDeviceList)
-        lst.append(deferred)
+        
+        yield self.model.callRemote('getDevices', self.options.device)
+        self.updateDeviceList(driver.next())
 
-        deferred = self.model.callRemote('getDefaultRRDCreateCommand')
-        deferred.addCallback(self.setRRDCreateCommand)
-        lst.append(deferred)
-
-        deferred = self.model.callRemote('propertyItems')
-        deferred.addCallback(self.monitorConfigDefaults)
-        lst.append(deferred)
-
-        if not self.configLoaded.called:
-            deferred = defer.DeferredList(lst, consumeErrors=True)
-            deferred.chainDeferred(self.configLoaded)
-
-
-    def monitorConfigDefaults(self, items):
-        'Unpack config defaults for this monitor'
-
-        table = dict(items)
+        yield self.model.callRemote('propertyItems')
+        table = dict(driver.next())
         for name in ('configCycleInterval', 'snmpCycleInterval'):
-            if table.has_key(name):
-                value = table[name]
+            value = table.get(name, None)
+            if value is not None:
                 if getattr(self, name) != value:
                     self.log.debug('Updated %s config to %s' % (name, value))
                 setattr(self, name, value)
+        
+        yield self.model.callRemote('getDefaultRRDCreateCommand')
+        createCommand = driver.next()
 
-        self.cycle(self.configCycleInterval * 60, self.startUpdateConfig)
+        self.rrd = RRDUtil.RRDUtil(createCommand, self.snmpCycleInterval)
+
+        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
 
     def updateDeviceList(self, deviceList):
@@ -403,10 +381,6 @@ class zenperfsnmp(ZenDaemon):
             self.log.debug('removing device %s' % name)
             del self.proxies[name]
             # we could delete the RRD files, too
-
-
-    def setRRDCreateCommand(self, command):
-        self.defaultRRDCreateCommand = command
 
 
     def updateAgentProxy(self,
@@ -457,25 +431,12 @@ class zenperfsnmp(ZenDaemon):
         self.proxies[deviceName] = p
 
 
-    def scanCycle(self, configStatus=None):
-        if not self.rrd:
-            self.rrd = RRDUtil.RRDUtil(self.defaultRRDCreateCommand,
-                                       self.snmpCycleInterval)
-        if configStatus:
-          for success, result in configStatus:
-            if not success:
-                msg = 'Unable to fetch config %s' % result
-                self.log.error(msg)
-                self.sendEvent(component='zenperfsnmp',
-                               severity=BAD_SEVERITY,
-                               summary=msg,
-                               eventClass='/Status/Snmp')
-                break
+    def scanCycle(self, *args):
         self.log.debug("getting device ping issues")
         proxy = self.buildProxy(self.options.zem)
         d = proxy.callRemote('getDevicePingIssues')
         d.addBoth(self.setUnresponsiveDevices)
-        self.cycle(self.snmpCycleInterval, self.scanCycle)
+        reactor.callLater(self.snmpCycleInterval, self.scanCycle)
 
 
     def setUnresponsiveDevices(self, arg):
@@ -600,9 +561,9 @@ class zenperfsnmp(ZenDaemon):
         if successCount:
             successPercent = successCount * 100 / len(updates)
             if successPercent not in (0, 100):
-                log.debug("Successful request ratio for %s is %2d%%",
-                          deviceName,
-                          successPercent)
+                self.log.debug("Successful request ratio for %s is %2d%%",
+                               deviceName,
+                               successPercent)
         success = True
         if updates:
             success = successCount > 0
@@ -641,7 +602,7 @@ class zenperfsnmp(ZenDaemon):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
-        zpf.startUpdateConfig()
+        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle, self.quit)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 
