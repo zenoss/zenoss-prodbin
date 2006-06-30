@@ -43,14 +43,8 @@ RUNROOT   = HOSTROOT + '.4'
 NAMETABLE = RUNROOT + '.2.1.4'
 ARGSTABLE = RUNROOT + '.2.1.5'
 PERFROOT  = HOSTROOT + '.5'
-CPU       = PERFROOT + '.1.1.1.'
-MEM       = PERFROOT + '.1.1.2.'
-
-rrdCommand = """RRA:AVERAGE:0.5:1:1800
-RRA:AVERAGE:0.5:6:1800
-RRA:AVERAGE:0.5:24:1800
-RRA:AVERAGE:0.5:288:1800
-RRA:MAX:0.5:288:1800"""
+CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
+MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
 DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
@@ -63,10 +57,12 @@ COMMON_EVENT_INFO = {
     'manager': socket.getfqdn(),
     }
 
-def sort(x):
-    x.sort()
-    return x
-
+try:
+    sorted = sorted
+except NameError:
+    def sorted(x, *args, **kw):
+        x.sort(*args, **kw)
+        return x
 
 class Process:
     'track process-specific configuration data'
@@ -88,7 +84,9 @@ class Device:
     proxy = None
 
     def __init__(self):
+        # map process name to Process object above
         self.processes = {}
+        # map pid number to Process object
         self.pids = {}
 
     def makeProxy(self, protocol):
@@ -234,8 +232,8 @@ class zenprocess(ZenDaemon):
 
     def storeProcessNames(self, results, device):
         procs = []
-        for namePart, argsPart in zip(sort(results[NAMETABLE].items()),
-                                      sort(results[ARGSTABLE].items())):
+        for namePart, argsPart in zip(sorted(results[NAMETABLE].items()),
+                                      sorted(results[ARGSTABLE].items())):
             oid, name = namePart
             namepid = int(oid.split('.')[-1])
             oid, args = argsPart
@@ -295,8 +293,8 @@ class zenprocess(ZenDaemon):
 
     def save(self, deviceName, pidName, statName, value, pid, rrdType):
         import rrdtool, os
-        filename = performancePath('%s/%s/%s/%d.rrd' %
-                                   (deviceName, pidName, statName, pid))
+        path = '%s/%s/%s/%d.rrd' % (deviceName, pidName, statName, pid)
+        filename = performancePath(path)
         rrdCommand = self.defaultRRDCreateCommand
         if not rrdCommand:
             log.error('No RRD create command configured for %s', deviceName)
@@ -315,7 +313,7 @@ class zenprocess(ZenDaemon):
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
-            self.log.error('rrd error %s %s', err, oidData.path)
+            self.log.error('rrd error %s %s', err, path)
         
         # fixme: add threshold checking
             
@@ -335,10 +333,10 @@ class zenprocess(ZenDaemon):
         traceback.print_exc(err.value)
         reactor.callLater(0, reactor.stop)
 
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, *unused):
         'controlled shutdown of main loop on interrupt'
         try:
-            ZenDaemon.sigTerm(self, signum, frame)
+            ZenDaemon.sigTerm(self, *unused)
         except SystemExit, ex:
             reactor.stop()
 
