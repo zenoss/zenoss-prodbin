@@ -34,6 +34,8 @@ from Products.ZenUtils.Chain import Chain
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
+import RRDUtil
+
 from twistedsnmp.agentproxy import AgentProxy
 from twistedsnmp import snmpprotocol
 
@@ -56,16 +58,12 @@ def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
-
-def sort(lst):
-    lst.sort()
-    return lst
-
-
-def rrdPath(branch):
-    'compute where the RDD perf files should go'
-    return performancePath(branch[1:] + '.rrd')
-
+try:
+    sorted = sorted
+except NameError:
+    def sorted(lst, *args, **kw):
+        lst.sort(*args, **kw)
+        return lst
 
 def firsts(lst):
     'the first element of every item in a sequence'
@@ -249,7 +247,7 @@ class zenperfsnmp(ZenDaemon):
     snmpCycleInterval = 5*60            # seconds
     maxRrdFileAge = 30 * (24*60*60)     # seconds
     status = Status()
-
+    rrd = None
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -460,6 +458,9 @@ class zenperfsnmp(ZenDaemon):
 
 
     def scanCycle(self, configStatus=None):
+        if not self.rrd:
+            self.rrd = RRDUtil.RRDUtil(self.defaultRRDCreateCommand,
+                                       self.snmpCycleInterval)
         if configStatus:
           for success, result in configStatus:
             if not success:
@@ -535,7 +536,7 @@ class zenperfsnmp(ZenDaemon):
             n = 1
         def getLater(oids):
             return proxy.get(oids, proxy.timeout, proxy.tries)
-        chain = Chain(getLater, iter(chunk(sort(proxy.oidMap.keys()), n)))
+        chain = Chain(getLater, iter(chunk(sorted(proxy.oidMap.keys()), n)))
         d = chain.run()
         d.addCallback(self.storeValues, deviceName)
         self.snmpOidsRequested += len(proxy.oidMap)
@@ -612,41 +613,12 @@ class zenperfsnmp(ZenDaemon):
     def storeRRD(self, device, oid, value):
         'store a value into an RRD file'
         oidData = self.proxies[device].oidMap[oid]
-        
-        import rrdtool
-        filename = rrdPath(oidData.path)
-        if not os.path.exists(filename):
-            self.log.debug("create new rrd %s", filename)
-            dirname = os.path.dirname(filename)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0',
-                                              oidData.dataStorageType,
-                                              3*self.snmpCycleInterval)
-            rrdCommand = oidData.rrdCreateCommand
-            if not rrdCommand:
-                rrdCommand = self.defaultRRDCreateCommand
-            if rrdCommand:
-                rrdtool.create(filename,
-                               "--step",  str(self.snmpCycleInterval),
-                               dataSource, *rrdCommand.split())
-            else:
-                self.log.error('No default RRD create command configured')
-                return
 
-        try:
-            #self.log.debug("%s %s", filename, value)
-            rrdtool.update(filename, 'N:%s' % value)
-        except rrdtool.error, err:
-            # may get update errors when updating too quickly
-            self.log.error('rrd error %s %s', err, oidData.path)
+        value = self.rrd.save(oidData.path[1:],
+                              value,
+                              oidData.dataStorageType,
+                              oidData.rrdCreateCommand)
 
-        if oidData.dataStorageType == 'COUNTER':
-            range, names, values = \
-                   rrdtool.fetch(filename, 'AVERAGE',
-                                 '-s', 'now-%d' % self.snmpCycleInterval*2,
-                                 '-e', 'now')
-            value = values[0][0]
         for threshold in oidData.thresholds:
             threshold.check(device, oidData.name, oid, value, self.sendEvent)
 

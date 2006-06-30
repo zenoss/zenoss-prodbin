@@ -36,6 +36,8 @@ from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenEvents import Event
 from Products.ZenModel.PerformanceConf import performancePath
 
+import RRDUtil
+
 BAD_SEVERITY=Event.Warning
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
@@ -130,9 +132,9 @@ class zenprocess(ZenDaemon):
     heartbeat = {'device':socket.getfqdn(), 'component':'zenperfsnmp',
                     'eventClass':'/Heartbeat'}
 
-    defaultRRDCreateCommand = None
     snmpCycleInterval = 5*60
     configCycleInterval = 20
+    rrd = None
 
     def __init__(self):
         ZenDaemon.__init__(self)
@@ -159,7 +161,6 @@ class zenprocess(ZenDaemon):
         ev = event.copy()
         ev.update(COMMON_EVENT_INFO)
         ev.update(kw)
-        #self.log.debug(ev)
         self.events.append(ev)
 	if now:
 	    self.sendEvents()
@@ -172,9 +173,10 @@ class zenprocess(ZenDaemon):
             self.events = []
 
     def fetchConfig(self):
+        'Get configuration values from the Zope server'
         def doFetchConfig(driver):
             yield self.model.callRemote('getDefaultRRDCreateCommand')
-            self.defaultRRDCreateCommand = driver.next()
+            createCommand = driver.next()
 
             yield self.model.callRemote('propertyItems')
             table = dict(driver.next())
@@ -184,6 +186,7 @@ class zenprocess(ZenDaemon):
                     if getattr(self, name) != value:
                         self.log.debug('Updated %s config to %s' % (name, value))
                     setattr(self, name, value)
+            self.rrd = RRDUtil.RRDUtil(createCommand, self.snmpCycleInterval)
 
             yield defer.succeed(devices)
             driver.next()
@@ -292,29 +295,8 @@ class zenprocess(ZenDaemon):
                 self.save(device.name, pidName, 'mem', mem, pid, 'GAUGE')
 
     def save(self, deviceName, pidName, statName, value, pid, rrdType):
-        import rrdtool, os
         path = '%s/%s/%s/%d.rrd' % (deviceName, pidName, statName, pid)
-        filename = performancePath(path)
-        rrdCommand = self.defaultRRDCreateCommand
-        if not rrdCommand:
-            log.error('No RRD create command configured for %s', deviceName)
-        elif not os.path.exists(filename):
-            self.log.debug("create new rrd %s", filename)
-            dirname = os.path.dirname(filename)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0', rrdType,
-                                              3*self.snmpCycleInterval)
-            rrdtool.create(filename,
-                           "--step",  str(self.snmpCycleInterval),
-                           dataSource, *rrdCommand.split())
-        try:
-            #self.log.debug("%s %s", filename, value)
-            rrdtool.update(filename, 'N:%s' % value)
-        except rrdtool.error, err:
-            # may get update errors when updating too quickly
-            self.log.error('rrd error %s %s', err, path)
-        
+        value = self.rrd.save(path, value, rrdType)
         # fixme: add threshold checking
             
 
