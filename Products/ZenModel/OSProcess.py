@@ -56,7 +56,7 @@ class OSProcess(OSComponent):
     def getOSProcessConf(self):
         """Return information used to monitor this process.
         """
-        return (self.id, self.name())
+        return (self.id, self.name(), self.countProcs(), self.alertOnRestart())
 
 
     def setOSProcessClass(self, procKey):
@@ -74,10 +74,10 @@ class OSProcess(OSComponent):
         return self._procKey
        
 
-    def getPerformanceTargetType():
+    def getPerformanceTargetType(self):
         """Return list of graph urls.
         """
-        return "OSProcess"
+        return self.countProcs() and "OSProcessCount" or "OSProcess"
 
 
     def getOSProcessClassLink(self):
