@@ -134,6 +134,8 @@ class PerformanceConf(Monitor, StatusColor):
 
 
     def getOSProcessConf(self, devname=None):
+        '''Get the OS Process configuration for all devices.
+        '''
         result = []
         for dev in self.devices():
             if devname and dev.id != devname: continue
