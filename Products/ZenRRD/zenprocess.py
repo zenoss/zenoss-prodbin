@@ -29,7 +29,7 @@ from twistedsnmp import snmpprotocol
 
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
-from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.TwistedAuth import AuthProxy
@@ -211,10 +211,7 @@ class zenprocess(ZenDaemon):
 
         # fetch pids with an SNMP scan
         yield self.findPids(); driver.next()
-        reactor.callLater(self.configCycleInterval * 60, self.restart)
-
-    def restart(self):
-        drive(self.start)
+        driveLater(self.configCycleInterval * 60, self.start)
 
     def findPids(self):
         jobs = NJobs(PARALLEL_JOBS, self.scanDevice, self.devices.values())
@@ -295,7 +292,7 @@ class zenprocess(ZenDaemon):
                 self.save(device.name, pidName, 'mem', mem, pid, 'GAUGE')
 
     def save(self, deviceName, pidName, statName, value, pid, rrdType):
-        path = '%s/%s/%s/%d.rrd' % (deviceName, pidName, statName, pid)
+        path = '%s/processes/%s/%s/%d.rrd' % (deviceName, pidName, statName, pid)
         value = self.rrd.save(path, value, rrdType)
         # fixme: add threshold checking
             
