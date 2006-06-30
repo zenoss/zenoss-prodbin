@@ -8,6 +8,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 
 from twistedsnmp import snmpprotocol
 from twisted.internet import reactor
+from twisted.python import failure
 
 BAD_SEVERITY=Event.Warning
 
@@ -111,6 +112,12 @@ class RRDDaemon(ZenDaemon):
             help="XMLRPC path to an ZenEventManager instance")
 
     def error(self, error):
-        self.log.error(error)
+        if isinstance(error, failure.Failure):
+            from StringIO import StringIO
+            s = StringIO()
+            error.printTraceback(s)
+            self.log.error(s.getvalue())
+        else:
+            self.log.error(error)
         reactor.callLater(0, reactor.stop)
 
