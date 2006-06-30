@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenRRD
+PRGNAME=zenprocess.py
+CFGFILE=$CFGDIR/zenprocess.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
+
