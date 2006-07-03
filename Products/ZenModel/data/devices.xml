@@ -158,6 +158,9 @@ True
 </tomanycont>
 <tomanycont id='graphs'>
 <object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['cpu']
+</property>
 <property type='int' id='sequence' mode='w' >
 0
 </property>
@@ -196,6 +199,9 @@ True
 </property>
 </object>
 <object id='Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['mem']
+</property>
 <property type='int' id='sequence' mode='w' >
 1
 </property>
@@ -206,7 +212,7 @@ True
 500
 </property>
 <property type='string' id='units' mode='w' >
-Bytes
+bytes
 </property>
 <property type='int' id='linewidth' mode='w' >
 1

@@ -122,11 +122,11 @@ class IpService(Service):
 
 
     def getSendString(self):
-        return self._aqprop("sendString")
+        return self.getAqProperty("sendString")
 
 
     def getExpectRegex(self):
-        return self._aqprop("expectRegex")
+        return self.getAqProperty("expectRegex")
 
 
     def getServiceClass(self):
