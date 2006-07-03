@@ -1,3 +1,19 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''RRDDaemon
+
+Common performance monitoring daemon code for zenperfsnmp and zenprocess.
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
 import socket
 
 import Globals
@@ -22,6 +38,7 @@ COMMON_EVENT_INFO = {
     }
 
 class RRDDaemon(ZenDaemon):
+    'Holds the code common between zenperfsnmp and zenprocess.'
 
     startevt = {'eventClass':'/App/Start', 
                 'summary': 'started',
@@ -57,6 +74,7 @@ class RRDDaemon(ZenDaemon):
 
 
     def setPropertyItems(self, items):
+        'extract configuration elements used by this server'
         table = dict(items)
         for name in ('configCycleInterval', 'snmpCycleInterval'):
             value = table.get(name, None)
@@ -67,7 +85,7 @@ class RRDDaemon(ZenDaemon):
 
 
     def sendEvent(self, event, now=False, **kw):
-        'convenience function for pushing events to the Zope server'
+        'convenience function for pushing an event to the Zope server'
         ev = COMMON_EVENT_INFO.copy()
         ev.update(event)
         ev.update(kw)
@@ -77,6 +95,7 @@ class RRDDaemon(ZenDaemon):
 
 
     def sendEvents(self):
+        'convenience function for flushing events to the Zope server'
         if self.events:
             d = self.zem.callRemote('sendEvents', self.events)
             d.addErrback(self.log.error)
@@ -90,6 +109,7 @@ class RRDDaemon(ZenDaemon):
             reactor.stop()
 
     def heartbeat(self, *unused):
+        'if cycling, send a heartbeat, else, shutdown'
         if not self.options.cycle:
             reactor.stop()
             return
@@ -112,6 +132,7 @@ class RRDDaemon(ZenDaemon):
             help="XMLRPC path to an ZenEventManager instance")
 
     def error(self, error):
+        'Log an error, including any traceback data for a failure Exception'
         if isinstance(error, failure.Failure):
             from StringIO import StringIO
             s = StringIO()
