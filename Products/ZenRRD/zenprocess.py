@@ -29,6 +29,7 @@ import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenModel.PerformanceConf import performancePath
+from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
 from RRDDaemon import RRDDaemon
@@ -51,17 +52,30 @@ except NameError:
         x.sort(*args, **kw)
         return x
 
+def reverseDict(d):
+    """return a dictionary with keys and values swapped:
+    all values are lists to handle the different keys mapping to the same value
+    """
+    result = {}
+    for a, v in d.items():
+        result.setdefault(v, []).append(a)
+    return result
+
 class Process:
     'track process-specific configuration data'
     name = None
-    value = None
+    originalName = None
     count = None
     restart = None
 
     def match(self, name):
         if self.name is None:
             return False
-        return self.value == name
+        return self.originalName == name
+
+    def __str__(self):
+        return str(self.name)
+    __repr__ = __str__
 
 class Device:
     'track device data'
@@ -98,11 +112,11 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, value, count, restart in processes:
+        for name, originalName, count, restart in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
-            p.value = value
+            p.originalName = originalName
             p.count = count
             p.restart = restart
         for name in unused:
@@ -131,6 +145,8 @@ class Device:
     
 
 class zenprocess(RRDDaemon):
+    statusEvent = { 'eventClass' : '/Status/Proc',
+                    'eventGroup' : 'Process' }
 
     def __init__(self):
         RRDDaemon.__init__(self, 'zenprocess')
@@ -226,16 +242,40 @@ class zenprocess(RRDDaemon):
                     log.debug("Found process %d on %s" % (pid, p.name))
                     after[pid] = p
         afterSet = Set(after.keys())
+        afterByConfig = reverseDict(after)
         new =  afterSet - before
         dead = before - afterSet
+
+        # report pid restarts
+        restarted = Set()
+        for p in dead:
+            config = device.pids[p]
+            if not config.count and afterByConfig.has_key(config):
+                restarted.add(p)
+                if config.restart:
+                    summary = 'Process restarted: %s' % config.originalName
+                    self.sendEvent(self.statusEvent,
+                                   device=device.name,
+                                   summary=summary,
+                                   component=config.name,
+                                   severity=Event.Warning)
+                    log.info(summary)
+        dead -= restarted
+            
         # report changes
         # FIXME: send restart events for those flagged
         for p in new:
-            name = after[p].name
-            log.debug("Found new %s pid %d on %s" % (name, p, device.name))
+            log.debug("Found new %s pid %d on %s" % (
+                after[p].originalName, p, device.name))
         for p in dead:
-            name = device.pids[p].name
-            log.debug("Process %s pid %d now gone on %s" % (name, p, device.name))
+            config = device.pids[p]
+            summary = "Process died %s" % config.name
+            self.sendEvent(self.statusEvent,
+                           device=device.name,
+                           summary=summary,
+                           component=config.name,
+                           severity=Event.Error)
+            log.error("%s on %s", summary, device.name)
         device.pids = after
         
         # store counts
@@ -262,7 +302,7 @@ class zenprocess(RRDDaemon):
             log.error("performance scan job not finishing: "
                       "%d jobs running %d jobs waiting %d jobs finished",
                       running, unstarted, finished)
-            return
+            return defer.fail()
         # in M-parallel, for each device
         # fetch the process status
         self.perfScanJob = NJobs(MAX_OIDS_PER_REQUEST,
@@ -292,7 +332,12 @@ class zenprocess(RRDDaemon):
 
     def storePerfStats(self, results, device):
         "Save the performance data in RRD files"
-        for pid, pidConf in device.pids.items():
+        byConf = reverseDict(device.pids)
+        for pidConf, pids in byConf.items():
+            if len(pids) != 1:
+                log.warning("There are %d pids by the name %s",
+                            len(pids), pidConf.name)
+            pid = pids[0]
             pidName = pidConf.name
             cpu = results.get(CPU + str(pid), None)
             mem = results.get(MEM + str(pid), None)
@@ -305,7 +350,7 @@ class zenprocess(RRDDaemon):
         "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType)
-        # fixme: add threshold checking
+        # FIXME: add threshold checking
             
 
     def heartbeat(self, *unused):
