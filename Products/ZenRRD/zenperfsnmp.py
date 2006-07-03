@@ -94,7 +94,8 @@ class Status:
         'determine the stopping point'
         if self.finished():
             self._stopTime = time.time()
-            self._deferred.callback(self)
+            if not self._deferred.called:
+                self._deferred.callback(self)
 
 
     def finished(self):
@@ -288,7 +289,7 @@ class zenperfsnmp(RRDDaemon):
             self.updateDeviceConfig(snmpTargets)
             
         # stop collecting those no longer in the list
-        deviceNames = Set(firsts(deviceList))
+        deviceNames = Set([d[0][0] for d in deviceList])
         doomed = Set(self.proxies.keys()) - deviceNames
         for name in doomed:
             self.log.debug('removing device %s' % name)
@@ -324,7 +325,7 @@ class zenperfsnmp(RRDDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        (deviceName, snmpStatus, hostPort, snmpConfig, oidData) = snmpTargets
+        (deviceName, snmpStatus, hostPort, snmpConfig), oidData = snmpTargets
         if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
