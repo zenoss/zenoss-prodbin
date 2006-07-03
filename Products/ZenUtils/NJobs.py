@@ -40,7 +40,7 @@ class NJobs:
             self.running += 1
             d = self.callable(self.workQueue.pop())
             d.addBoth(self._finished)
-        if self.running == 0 and not self.workQueue:
+        if self.running == 0 and not self.workQueue and not self.defer.called:
             self.defer.callback(self.results)
 
     def _finished(self, result):

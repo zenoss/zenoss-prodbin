@@ -31,7 +31,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import RRDDaemon
+from RRDDaemon import RRDDaemon, Threshold
 
 from FileCleanup import FileCleanup
 
@@ -150,58 +150,6 @@ class SnmpStatus:
                     severity=Event.Warning)
             log.warn(summary)
             self.count += 1
-
-
-class Threshold:
-    'Hold threshold config and send events based on the current value'
-    count = 0
-    label = ''
-    minimum = None
-    maximum = None
-    severity = Event.Notice
-    escalateCount = 0
-    threshevt = {'eventClass':'/Perf/Snmp', 'agent': 'ZenPerfSnmp'}
-
-
-    def __init__(self, label, minimum, maximum, severity, count):
-        self.label = label
-        self.minimum = minimum
-        self.maximum = maximum
-        self.severity = severity
-        self.escalateCount = count
-
-
-    def check(self, device, cname, oid, value, eventCb):
-        'Check the value for min/max thresholds, and post events'
-        thresh = None
-        if self.maximum is not None and value >= self.maximum:
-            thresh = self.maximum
-        if self.minimum is not None and value <= self.minimum:
-            thresh = self.maximum
-        if thresh is not None:
-            self.count += 1
-            severity = self.severity
-            if self.escalateCount and self.count >= self.escalateCount:
-                severity += 1
-            summary = '%s %s threshold of %s exceeded: current value %.2f' % (
-                device, self.label, thresh, value)
-            eventCb(self.threshevt,
-                    device=device,
-                    summary=summary,
-                    eventKey=oid,
-                    component=cname,
-                    severity=severity)
-        else:
-            if self.count:
-                summary = '%s %s threshold restored current value: %.2f' % (
-                    device, self.label, value)
-                eventCb(self.threshevt,
-                        device=device,
-                        summary=summary,
-                        eventKey=oid,
-                        component=cname,
-                        severity=Event.Clear)
-            self.count = 0
 
 
 class OidData:
@@ -492,7 +440,8 @@ class zenperfsnmp(RRDDaemon):
                               oidData.rrdCreateCommand)
 
         for threshold in oidData.thresholds:
-            threshold.check(device, oidData.name, oid, value, self.sendEvent)
+            threshold.check(device, oidData.name, oid, value,
+                            self.sendThresholdEvent)
 
 
     def main(self):

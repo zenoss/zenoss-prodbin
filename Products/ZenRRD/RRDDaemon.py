@@ -37,6 +37,55 @@ COMMON_EVENT_INFO = {
     'manager': socket.getfqdn(),
     }
 
+class Threshold:
+    'Hold threshold config and send events based on the current value'
+    count = 0
+    label = ''
+    minimum = None
+    maximum = None
+    severity = Event.Notice
+    escalateCount = 0
+
+
+    def __init__(self, label, minimum, maximum, severity, count):
+        self.label = label
+        self.minimum = minimum
+        self.maximum = maximum
+        self.severity = severity
+        self.escalateCount = count
+
+
+    def check(self, device, cname, oid, value, eventCb):
+        'Check the value for min/max thresholds, and post events'
+        thresh = None
+        if self.maximum is not None and value >= self.maximum:
+            thresh = self.maximum
+        if self.minimum is not None and value <= self.minimum:
+            thresh = self.maximum
+        if thresh is not None:
+            self.count += 1
+            severity = self.severity
+            if self.escalateCount and self.count >= self.escalateCount:
+                severity += 1
+            summary = '%s %s threshold of %s exceeded: current value %.2f' % (
+                device, self.label, thresh, value)
+            eventCb(device=device,
+                    summary=summary,
+                    eventKey=oid,
+                    component=cname,
+                    severity=severity)
+        else:
+            if self.count:
+                summary = '%s %s threshold restored current value: %.2f' % (
+                    device, self.label, value)
+                eventCb(device=device,
+                        summary=summary,
+                        eventKey=oid,
+                        component=cname,
+                        severity=Event.Clear)
+            self.count = 0
+
+
 class RRDDaemon(ZenDaemon):
     'Holds the code common between zenperfsnmp and zenprocess.'
 
@@ -84,6 +133,12 @@ class RRDDaemon(ZenDaemon):
                 setattr(self, name, value)
 
 
+    def sendThresholdEvent(self, **kw):
+        "Send the right event class for threshhold events"
+        kw.setdefault('eventClass', '/Perf/Snmp')
+        self.sendEvent({}, **kw)
+
+
     def sendEvent(self, event, now=False, **kw):
         'convenience function for pushing an event to the Zope server'
         ev = COMMON_EVENT_INFO.copy()
@@ -113,7 +168,8 @@ class RRDDaemon(ZenDaemon):
         if not self.options.cycle:
             reactor.stop()
             return
-        self.sendEvent(self.heartbeatevt)
+        self.sendEvent(self.heartbeatevt, timeout=self.snmpCycleInterval*3)
+        self.sendEvents()
 
     def buildOptions(self):
         ZenDaemon.buildOptions(self)

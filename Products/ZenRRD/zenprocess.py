@@ -32,7 +32,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import RRDDaemon
+from RRDDaemon import RRDDaemon, Threshold
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
@@ -112,13 +112,14 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, count, restart in processes:
+        for name, originalName, count, restart, thresholds in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
             p.originalName = originalName
             p.count = count
             p.restart = restart
+            p.thresholds = [Threshold(*t) for t in thresholds]
         for name in unused:
             del self.processes[name]
 
@@ -175,6 +176,8 @@ class zenprocess(RRDDaemon):
         'Read the basic config needed to do anything'
         yield self.fetchConfig();
         n = driver.next()
+        import pprint
+        pprint.pprint(n)
         removed = Set(self.devices.keys())
         for (name, _, addr, (community, version, timeout, tries)), procs in n:
             removed.discard(name)
@@ -350,7 +353,11 @@ class zenprocess(RRDDaemon):
         "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType)
-        # FIXME: add threshold checking
+
+        thresholds = self.devices[deviceName].processes[pidName].thresholds
+        for t in thresholds:
+            t.check(deviceName, pidName, statName, value,
+                    self.sendThresholdEvent)
             
 
     def heartbeat(self, *unused):

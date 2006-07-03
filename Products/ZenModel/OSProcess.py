@@ -56,7 +56,18 @@ class OSProcess(OSComponent):
     def getOSProcessConf(self):
         """Return information used to monitor this process.
         """
-        return (self.id, self.name(), self.countProcs(), self.alertOnRestart())
+
+        thresholds = []
+        try:
+            templ = self.getRRDTemplate(self.getRRDTemplateName())
+            if templ:
+                threshs = self.getThresholds(templ)
+                for ds in templ.getRRDDataSources():
+                    thresholds.extend(threshs.get(ds.id,[]))
+        except RRDObjectNotFound, e:
+            log.warn(e)
+        return (self.id, self.name(), self.countProcs(),
+                self.alertOnRestart(), thresholds)
 
 
     def setOSProcessClass(self, procKey):
