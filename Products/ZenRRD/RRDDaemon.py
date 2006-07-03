@@ -105,7 +105,7 @@ class RRDDaemon(ZenDaemon):
         'controlled shutdown of main loop on interrupt'
         try:
             ZenDaemon.sigTerm(self, *unused)
-        except SystemExit, ex:
+        except SystemExit:
             reactor.stop()
 
     def heartbeat(self, *unused):
@@ -131,14 +131,17 @@ class RRDDaemon(ZenDaemon):
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance")
 
-    def error(self, error):
-        'Log an error, including any traceback data for a failure Exception'
+    def logError(self, msg, error):
         if isinstance(error, failure.Failure):
             from StringIO import StringIO
             s = StringIO()
             error.printTraceback(s)
-            self.log.error(s.getvalue())
+            self.log.error('%s: %s', msg, s.getvalue())
         else:
             self.log.error(error)
+
+    def error(self, 'Error', error):
+        'Log an error, including any traceback data for a failure Exception'
+        self.logError(error)
         reactor.callLater(0, reactor.stop)
 
