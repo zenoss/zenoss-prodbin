@@ -140,8 +140,8 @@ class RRDDaemon(ZenDaemon):
         else:
             self.log.error(error)
 
-    def error(self, 'Error', error):
+    def error(self, error):
         'Log an error, including any traceback data for a failure Exception'
-        self.logError(error)
+        self.logError('Error', error)
         reactor.callLater(0, reactor.stop)
 
