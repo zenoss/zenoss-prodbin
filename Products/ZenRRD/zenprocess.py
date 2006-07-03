@@ -14,7 +14,6 @@ $Id$
 
 __version__ = "$Revision$"[11:-2]
 
-import re
 import logging
 import time
 from sets import Set
@@ -201,12 +200,9 @@ class zenprocess(RRDDaemon):
         return d
 
 
-    def deviceFailure(self, value, device):
-        "Log an exception"
-        from StringIO import StringIO
-        s = StringIO()
-        value.printTraceback(s)
-        log.error('Error on device %s: %s', device, s.getvalue())
+    def deviceFailure(self, error, device):
+        "Log exception for a single device"
+        self.logError('Error on device %s' % device, error)
 
 
     def storeProcessNames(self, results, device):
