@@ -57,6 +57,8 @@ class Threshold:
 
     def check(self, device, cname, oid, value, eventCb):
         'Check the value for min/max thresholds, and post events'
+        if value is None:
+            return
         thresh = None
         if self.maximum is not None and value >= self.maximum:
             thresh = self.maximum
