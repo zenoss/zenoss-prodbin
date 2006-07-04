@@ -264,13 +264,22 @@ class zenprocess(RRDDaemon):
         dead -= restarted
             
         # report changes
-        # FIXME: send restart events for those flagged
         for p in new:
+            config = after[p]
+            if not config.count:
+                summary = "Process up: %s" % config.originalName
+                self.sendEvent(self.statusEvent,
+                               device=device.name,
+                               summary=summary,
+                               component=config.name,
+                               severity=Event.Clear)
             log.debug("Found new %s pid %d on %s" % (
                 after[p].originalName, p, device.name))
+
+        # process was alive, but now is dead
         for p in dead:
             config = device.pids[p]
-            summary = "Process died %s" % config.name
+            summary = "Process died: %s" % config.originalName
             self.sendEvent(self.statusEvent,
                            device=device.name,
                            summary=summary,
@@ -278,6 +287,17 @@ class zenprocess(RRDDaemon):
                            severity=Event.Error)
             log.error("%s on %s", summary, device.name)
         device.pids = after
+
+        # no pids for a config
+        for config in device.processes.values():
+            if not afterByConfig.has_key(config):
+                summary = 'Process not running: %s' % config.originalName
+                self.sendEvent(self.statusEvent,
+                               device=device.name,
+                               summary=summary,
+                               component=config.name,
+                               severity=Event.Error)
+                log.error(summary)
         
         # store counts
         pidCounts = dict([(p, 0) for p in device.processes])
@@ -365,9 +385,14 @@ class zenprocess(RRDDaemon):
                   len(self.devices), pids)
         RRDDaemon.heartbeat(self)
 
+    def flushEvents(self):
+        self.sendEvents()
+        reactor.callLater(5, self.flushEvents)
+
 
     def main(self):
         self.sendEvent(self.startevt)
+        self.flushEvents()
         drive(self.start).addCallbacks(self.periodic, self.error)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
