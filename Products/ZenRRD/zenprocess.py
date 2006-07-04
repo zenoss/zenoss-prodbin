@@ -176,8 +176,6 @@ class zenprocess(RRDDaemon):
         'Read the basic config needed to do anything'
         yield self.fetchConfig();
         n = driver.next()
-        import pprint
-        pprint.pprint(n)
         removed = Set(self.devices.keys())
         for (name, _, addr, (community, version, timeout, tries)), procs in n:
             removed.discard(name)
