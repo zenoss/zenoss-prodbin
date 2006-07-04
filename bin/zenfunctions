@@ -29,9 +29,19 @@ fi
 
 ARGS=`echo "$*" | sed 's/run//' | sed 's/restart//' | sed 's/start//'`
 
+running() {
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+	kill -0 $PID 2>/dev/null 
+    fi
+    false
+}
+
 
 start() {
-    if [ ! -f $PIDFILE ]; then    
+    if running; then    
+        echo is already running
+    else
         echo starting...
         if [ ${CFGFILE:-""} = "" ]; then
             eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
@@ -39,8 +49,6 @@ start() {
             eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
                 --cycle --daemon $ARGS
         fi
-    else
-        echo is already running
     fi
 }
 
@@ -53,7 +61,7 @@ run() {
 }
 
 stop() {
-    if [ -f $PIDFILE ]; then
+    if running; then
         PID=`cat $PIDFILE`
         echo stopping...
         `${SUDO:-} kill $PID` 
@@ -73,18 +81,11 @@ restart() {
 }
 
 status() {
-    if [ -f $PIDFILE ]; then
-        PID=`cat $PIDFILE`
-        RPID=`$PS | grep $PID`
-        if [ ${RPID:-""} = $PID ]; then
+    if running; then
             echo program running\; pid=$PID
             exit 109
-        else
-            echo \(pid $PID\) not running
-            rm -f $PIDFILE
-            exit 100
-        fi
     else
+        rm -f $PIDFILE
         echo not running
         exit 100
     fi
@@ -116,6 +117,24 @@ generic() {
 	    ;;
       *)
 	    echo $"Usage: $0 {run|start|stop|restart|status|help}"
+	    exit 1
+    esac
+    exit $?
+}
+
+notdaemon() {
+    case "$1" in
+      run)
+	    run
+	    ;;
+      start)
+	    run
+	    ;;
+      help)
+	    help
+	    ;;
+      *)
+	    echo $"Usage: $0 {run|help}"
 	    exit 1
     esac
     exit $?
