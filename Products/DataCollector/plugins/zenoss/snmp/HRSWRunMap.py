@@ -16,6 +16,7 @@ import re
 
 from CollectorPlugin import SnmpPlugin, GetTableMap
 from DataMaps import ObjectMap
+import md5
 
 class HRSWRunMap(SnmpPlugin):
 
@@ -51,8 +52,9 @@ class HRSWRunMap(SnmpPlugin):
                     break
             else:
                 continue
-            om.id = self.prepId(fullname)
-            om.setOSProcessClass = om.procName + om.parameters
+            idName = om.procName + " " + md5.md5(om.parameters).hexdigest()
+            om.id = self.prepId(idName)
+            om.setOSProcessClass = fullname
             rm.append(om)
         return rm
 
