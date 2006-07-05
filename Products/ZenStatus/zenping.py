@@ -77,6 +77,7 @@ class ZenPing(ZCmdBase):
                     eventClass=PingStatus,
                     eventGroup=self.eventGroup, 
                     agent=self.agent, 
+                    component='',
                     manager=self.hostname)
         evstate = getattr(pj, 'eventState', None)
         if evstate is not None: evt.eventState = evstate
@@ -183,13 +184,14 @@ class ZenPing(ZCmdBase):
     
     def endCycle(self, *unused):
         "Note the end of the ping list with a successful status message"
-        self.sendHeartbeat()
         runtime = time.time() - self.start
         self.log.info("Finished pinging %d jobs in %.2f seconds",
                       self.jobs, runtime)
         self.reconfigured = False
         if not self.options.cycle:
-            self.stop()
+            reactor.stop()
+        else:
+            self.sendHeartbeat()
 
     def sendHeartbeat(self):
         'Send a heartbeat event for this monitor.'
@@ -209,6 +211,16 @@ class ZenPing(ZCmdBase):
         self.next()
 
     def pingFailed(self, err):
+        try:
+            self.doPingFailed(err)
+        except Exception, ex:
+            import traceback
+            from StringIO import StringIO
+            out = StringIO()
+            traceback.print_exc(ex, out)
+            self.log.error("Exception: %s", out.getvalue())
+
+    def doPingFailed(self, err):
         "Callback for a bad (no) ping response"
         pj = err.value
         pj.deferred = None
@@ -235,10 +247,10 @@ class ZenPing(ZCmdBase):
         
         self.next()
 
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, *unused):
         'controlled shutdown of main loop on interrupt'
         try:
-            ZCmdBase.sigTerm(self, signum, frame)
+            ZCmdBase.sigTerm(self, *unused)
         except SystemExit:
             reactor.stop()
 
