@@ -265,11 +265,9 @@ class zenprocess(RRDDaemon):
         dead = before - afterSet
 
         # report pid restarts
-        restarted = Set()
         for p in dead:
             config = device.pids[p]
             if not config.count and afterByConfig.has_key(config):
-                restarted.add(p)
                 if config.restart:
                     summary = 'Process restarted: %s' % config.originalName
                     self.sendEvent(self.statusEvent,
@@ -278,13 +276,12 @@ class zenprocess(RRDDaemon):
                                    component=config.originalName,
                                    severity=Event.Warning)
                     log.info(summary)
-        dead -= restarted
             
         # report alive processes
         for p, config in after.items():
             config = after[p]
             print config.name, config.status
-            if not config.count and config.status > 0:
+            if config.status > 0:
                 summary = "Process up: %s" % config.originalName
                 self.sendEvent(self.statusEvent,
                                device=device.name,
@@ -295,17 +292,6 @@ class zenprocess(RRDDaemon):
         for p in new:
             log.debug("Found new %s pid %d on %s" % (
                 after[p].originalName, p, device.name))
-
-        # process was alive, but now is dead
-        for p in dead:
-            config = device.pids[p]
-            summary = "Process died: %s" % config.originalName
-            self.sendEvent(self.statusEvent,
-                           device=device.name,
-                           summary=summary,
-                           component=config.originalName,
-                           severity=Event.Error)
-            log.error("%s on %s", summary, device.name)
         device.pids = after
 
         # no pids for a config
