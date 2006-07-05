@@ -224,6 +224,15 @@ class zenprocess(RRDDaemon):
 
     def storeProcessNames(self, results, device):
         "Parse the process tables and figure what pids are on the device"
+        if not results:
+            summary = 'Device %s does not publish HOST-RESOURCES-MIB' % device.name
+            self.sendEvent(self.statusEvent,
+                           device=device.name,
+                           summary=summary,
+                           severity=Event.Error)
+            log.info(summary)
+            return
+            
         device.lastScan = time.time()
         procs = []
         for namePart, argsPart in zip(sorted(results[NAMETABLE].items()),
@@ -385,14 +394,9 @@ class zenprocess(RRDDaemon):
                   len(self.devices), pids)
         RRDDaemon.heartbeat(self)
 
-    def flushEvents(self):
-        self.sendEvents()
-        reactor.callLater(5, self.flushEvents)
-
 
     def main(self):
         self.sendEvent(self.startevt)
-        self.flushEvents()
         drive(self.start).addCallbacks(self.periodic, self.error)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
