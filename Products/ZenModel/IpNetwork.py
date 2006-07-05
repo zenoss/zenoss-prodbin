@@ -285,10 +285,10 @@ class IpNetwork(DeviceOrganizer):
 
 
     security.declareProtected('View', 'countIpAddresses')
-    def countIpAddresses(self, inuse=False):
+    def countIpAddresses(self, inuse=True):
         """get an ip on this network"""
         if inuse:
-            count = len(filter(lambda x: x.getDevice(), self.ipaddresses()))
+            count = len(filter(lambda x: x.getStatus() == 0, self.ipaddresses()))
         else:
             count = self.ipaddresses.countObjects()
         for net in self.children():
