@@ -38,8 +38,12 @@ class NJobs:
     def _runSome(self):
         while self.running < self.max and self.workQueue:
             self.running += 1
-            d = self.callable(self.workQueue.pop())
-            d.addBoth(self._finished)
+            try:
+                d = self.callable(self.workQueue.pop())
+            except Exception, ex:
+                self._finished(ex)
+            else:
+                d.addBoth(self._finished)
         if self.running == 0 and not self.workQueue and not self.defer.called:
             self.defer.callback(self.results)
 
