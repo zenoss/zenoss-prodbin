@@ -102,6 +102,7 @@ class RRDDaemon(ZenDaemon):
     configCycleInterval = 20            # minutes
     snmpCycleInterval = 5*60            # seconds
     rrd = None
+    shutdown = False
 
     def __init__(self, name):
         ZenDaemon.__init__(self)
@@ -162,18 +163,25 @@ class RRDDaemon(ZenDaemon):
 
     def eventsSent(self, unused, count):
         self.events = self.events[count:]
+        if self.shutdown:
+            self._shutdown()
 
     def sigTerm(self, *unused):
         'controlled shutdown of main loop on interrupt'
         try:
             ZenDaemon.sigTerm(self, *unused)
         except SystemExit:
+            self._shutdown()
+
+    def _shutdown(self):
+        self.shutdown = True
+        if not self.events:
             reactor.stop()
 
     def heartbeat(self, *unused):
         'if cycling, send a heartbeat, else, shutdown'
         if not self.options.cycle:
-            reactor.stop()
+            self._shutdown()
             return
         self.sendEvent(self.heartbeatevt, timeout=self.snmpCycleInterval*3)
         self.sendEvents()
