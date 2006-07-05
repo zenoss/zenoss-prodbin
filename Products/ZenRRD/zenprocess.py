@@ -219,7 +219,7 @@ class zenprocess(RRDDaemon):
 
     def deviceFailure(self, error, device):
         "Log exception for a single device"
-        self.logError('Error on device %s' % device, error)
+        self.logError('Error on device %s' % device.name, error)
 
 
     def storeProcessNames(self, results, device):
