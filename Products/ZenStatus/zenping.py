@@ -71,7 +71,6 @@ class ZenPing(ZCmdBase):
     def sendPingEvent(self, pj):
         "Send an event based on a ping job to the event backend."
         evt = Event(device=pj.hostname, 
-                    component="icmp", 
                     ipAddress=pj.ipaddr, 
                     summary=pj.message, 
                     severity=pj.severity,
