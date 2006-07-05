@@ -61,12 +61,15 @@ def reverseDict(d):
         result.setdefault(v, []).append(a)
     return result
 
+class ScanFailure(Exception): pass
+
 class Process:
     'track process-specific configuration data'
     name = None
     originalName = None
     count = None
     restart = None
+    status = 0
 
     def match(self, name):
         if self.name is None:
@@ -89,6 +92,7 @@ class Device:
     tries = 2
     protocol = None
     lastScan = 0.
+    snmpStatus = 0
 
     def __init__(self):
         # map process name to Process object above
@@ -112,7 +116,7 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, count, restart, thresholds in processes:
+        for name, originalName, count, restart, status, thresholds in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
@@ -120,6 +124,7 @@ class Device:
             p.count = count
             p.restart = restart
             p.thresholds = [Threshold(*t) for t in thresholds]
+            p.status = status
         for name in unused:
             del self.processes[name]
 
@@ -146,7 +151,7 @@ class Device:
     
 
 class zenprocess(RRDDaemon):
-    statusEvent = { 'eventClass' : '/Status/Proc',
+    statusEvent = { 'eventClass' : '/Status/OSProcess',
                     'eventGroup' : 'Process' }
 
     def __init__(self):
@@ -177,7 +182,8 @@ class zenprocess(RRDDaemon):
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
-        for (name, _, addr, (community, version, timeout, tries)), procs in n:
+        for (name, snmpStatus, addr, snmpConf), procs in n:
+            community, version, timeout, tries = snmpConf
             removed.discard(name)
             d = self.devices.setdefault(name, Device())
             d.name = name
@@ -188,6 +194,7 @@ class zenprocess(RRDDaemon):
             d.tries = tries
             d.updateConfig(procs)
             d.protocol = self.snmpPort.protocol
+            d.snmpStatus = snmpStatus
         for r in removed:
             del self.devices[r]
 
@@ -198,6 +205,7 @@ class zenprocess(RRDDaemon):
 
     def findPids(self, devices):
         "Scan all devices for process names and args"
+        devices = [d for d in devices if d.snmpStatus <= 1]
         jobs = NJobs(PARALLEL_JOBS, self.scanDevice, devices)
         return jobs.start()
 
@@ -267,21 +275,24 @@ class zenprocess(RRDDaemon):
                     self.sendEvent(self.statusEvent,
                                    device=device.name,
                                    summary=summary,
-                                   component=config.name,
+                                   component=config.originalName,
                                    severity=Event.Warning)
                     log.info(summary)
         dead -= restarted
             
-        # report changes
-        for p in new:
+        # report alive processes
+        for p, config in after.items():
             config = after[p]
-            if not config.count:
+            print config.name, config.status
+            if not config.count and config.status > 0:
                 summary = "Process up: %s" % config.originalName
                 self.sendEvent(self.statusEvent,
                                device=device.name,
                                summary=summary,
-                               component=config.name,
+                               component=config.originalName,
                                severity=Event.Clear)
+                config.status = 0
+        for p in new:
             log.debug("Found new %s pid %d on %s" % (
                 after[p].originalName, p, device.name))
 
@@ -292,7 +303,7 @@ class zenprocess(RRDDaemon):
             self.sendEvent(self.statusEvent,
                            device=device.name,
                            summary=summary,
-                           component=config.name,
+                           component=config.originalName,
                            severity=Event.Error)
             log.error("%s on %s", summary, device.name)
         device.pids = after
@@ -304,7 +315,7 @@ class zenprocess(RRDDaemon):
                 self.sendEvent(self.statusEvent,
                                device=device.name,
                                summary=summary,
-                               component=config.name,
+                               component=config.originalName,
                                severity=Event.Error)
                 log.error(summary)
         
@@ -329,10 +340,11 @@ class zenprocess(RRDDaemon):
         "Read performance data for non-counted Processes"
         if self.perfScanJob:
             running, unstarted, finished = self.perfScanJob.status()
-            log.error("performance scan job not finishing: "
-                      "%d jobs running %d jobs waiting %d jobs finished",
-                      running, unstarted, finished)
-            return defer.fail()
+            msg = "performance scan job not finishing: " \
+                  "%d jobs running %d jobs waiting %d jobs finished" % \
+                  (running, unstarted, finished)
+            log.error(msg)
+            return defer.fail(ScanFailure(msg))
         # in M-parallel, for each device
         # fetch the process status
         self.perfScanJob = NJobs(MAX_OIDS_PER_REQUEST,

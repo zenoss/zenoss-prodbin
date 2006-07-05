@@ -67,7 +67,8 @@ class OSProcess(OSComponent):
         except RRDObjectNotFound, e:
             log.warn(e)
         return (self.id, self.name(), self.countProcs(),
-                self.alertOnRestart(), thresholds)
+                self.alertOnRestart(), self.getStatus(),
+                thresholds)
 
 
     def setOSProcessClass(self, procKey):
