@@ -171,7 +171,7 @@ class zenprocess(RRDDaemon):
 
             self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
 
-            yield self.model.callRemote('getOSProcessConf')
+            yield self.model.callRemote('getOSProcessConf', self.options.device)
             driver.next()
 
         return drive(doFetchConfig)

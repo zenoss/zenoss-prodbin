@@ -191,11 +191,6 @@ class zenperfsnmp(RRDDaemon):
         except OSError:
             self.log.error("Unable to delete old RRD file: %s", fullPath)
 
-    def buildOptions(self):
-        RRDDaemon.buildOptions(self)
-        self.parser.add_option('--device', dest='device', default="",
-                               help='gather performance for a single device')
-
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
         if self.cycleComplete and \

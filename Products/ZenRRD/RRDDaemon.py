@@ -193,6 +193,10 @@ class RRDDaemon(ZenDaemon):
         self.parser.add_option(
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance")
+        self.parser.add_option('-d',
+            '--device', dest='device',
+            help="Specify a specific device to monitor",
+            default='')
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
