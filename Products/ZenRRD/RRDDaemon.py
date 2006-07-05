@@ -149,6 +149,8 @@ class RRDDaemon(ZenDaemon):
         self.events.append(ev)
 	if now:
 	    self.sendEvents()
+        else:
+            reactor.callLater(1, self.sendEvents)
 
 
     def sendEvents(self):
