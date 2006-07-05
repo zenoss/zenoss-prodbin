@@ -32,9 +32,10 @@ ARGS=`echo "$*" | sed 's/run//' | sed 's/restart//' | sed 's/start//'`
 running() {
     if [ -f $PIDFILE ]; then
         PID=`cat $PIDFILE`
-	kill -0 $PID 2>/dev/null 
+	kill -0 $PID 2>/dev/null
+	return $?
     fi
-    false
+    return 1
 }
 
 
