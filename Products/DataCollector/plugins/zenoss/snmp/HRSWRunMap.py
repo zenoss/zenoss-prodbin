@@ -43,10 +43,20 @@ class HRSWRunMap(SnmpPlugin):
         fstable = tabledata.get("hrSWRunEntry")
         filters = device.getDmdRoot("Processes").getProcFilters()
         rm = self.relMap()
+        procmap = {}
         for proc in fstable.values():
             om = self.objectMap(proc)
-            if not hasattr(om, 'procName'): continue
+            if not hasattr(om, 'procName'): 
+                log.warn("Your hrSWRun table is broken, "
+                        " zenoss can't do process monitoring")
+                return rm
             fullname = om.procName + " " + om.parameters
+            fullname = fullname.rstrip()
+            if procmap.has_key(fullname): 
+                print "skip dupe"
+                continue
+            else:
+                procmap[fullname] = True
             for f in filters:
                 if f(fullname):
                     break
