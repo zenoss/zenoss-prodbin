@@ -373,7 +373,7 @@ class zenperfsnmp(RRDDaemon):
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
                        device=deviceName, summary=summary,
                        component=name,
-                       severity=Event.Notice)
+                       severity=Event.Info)
         self.log.warn(summary)
         del proxy.oidMap[oid]
         

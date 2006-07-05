@@ -43,7 +43,7 @@ class Threshold:
     label = ''
     minimum = None
     maximum = None
-    severity = Event.Notice
+    severity = Event.Info
     escalateCount = 0
 
 
