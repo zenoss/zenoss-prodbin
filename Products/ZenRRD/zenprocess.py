@@ -278,9 +278,7 @@ class zenprocess(RRDDaemon):
                     log.info(summary)
             
         # report alive processes
-        for p, config in after.items():
-            config = after[p]
-            print config.name, config.status
+        for config, pids in afterByConfig.items():
             if config.status > 0:
                 summary = "Process up: %s" % config.originalName
                 self.sendEvent(self.statusEvent,
@@ -289,6 +287,8 @@ class zenprocess(RRDDaemon):
                                component=config.originalName,
                                severity=Event.Clear)
                 config.status = 0
+                log.debug(summary)
+
         for p in new:
             log.debug("Found new %s pid %d on %s" % (
                 after[p].originalName, p, device.name))
