@@ -24,12 +24,10 @@ class Mibs(Migrate.Step):
         if hasattr(dmd, 'Mibs'):
             return
 
-        import Zope2
-        Zope2.configure(os.path.join(os.environ['ZENHOME'], "etc/zope.conf"))
-        app = Zope2.app()
-        zdmd = app.zport.dmd
+	from Testing.ZopeTestCase.ZopeLite import installProduct
+	installProduct('PluginIndexes', 1)
 
         from Products.ZenModel.MibOrganizer import manage_addMibOrganizer
-        manage_addMibOrganizer(zdmd, 'Mibs')
+        manage_addMibOrganizer(dmd, 'Mibs')
 
 Mibs()

@@ -24,14 +24,9 @@ class Processes(Migrate.Step):
         if hasattr(dmd, 'Processes'):
             return
 
-        import Zope2
-        Zope2.configure(os.path.join(os.environ['ZENHOME'], "etc/zope.conf"))
-        app = Zope2.app()
-        zdmd = app.zport.dmd
-
         from Products.ZenModel.OSProcessOrganizer \
              import manage_addOSProcessOrganizer
-        manage_addOSProcessOrganizer(zdmd, 'Processes')
+        manage_addOSProcessOrganizer(dmd, 'Processes')
 
         if getattr(dmd.Devices.rrdTemplates, 'OSProcess', None) is None:
             from Products.ZenRelations.ImportRM import ImportRM
