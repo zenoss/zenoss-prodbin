@@ -42,6 +42,11 @@ class OSProcess(OSComponent):
                 , 'action'        : 'osProcessDetail'
                 , 'permissions'   : ( Permissions.view, )
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'PerfConf'
+                , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
+                },                
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
