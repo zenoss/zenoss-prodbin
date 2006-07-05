@@ -541,7 +541,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return statusCache.get(device, 0)
 
 
-    def getHeartbeat(self, failures=True, simple=False, limit=0):
+    def getHeartbeat(self, failures=True, simple=False, limit=0, db=None):
         """Return all heartbeat issues list of tuples (device, component, secs)
         """
         sel = """select device, component, lastTime from heartbeat """
@@ -551,7 +551,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         statusCache = self.checkCache(sel)
         if not statusCache:
             statusCache = []
-            db = self.connect()
+            if db is None:
+                db = self.connect()
             curs = db.cursor()
             curs.execute(sel)
             res = list(curs.fetchall())

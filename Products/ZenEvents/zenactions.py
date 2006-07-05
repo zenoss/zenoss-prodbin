@@ -8,9 +8,8 @@ from ZODB.POSException import POSError
 from _mysql_exceptions import OperationalError, ProgrammingError 
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Event import Event
-from ZenEventClasses import AppStart, AppStop
-from Products.ZenEvents.Event import EventHeartbeat
+from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
+import Event
 
 
 class ZenActions(ZCmdBase):
@@ -43,7 +42,7 @@ class ZenActions(ZCmdBase):
         self.loadActionRules()
         if not self.options.fromaddr:
             self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
-        self.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event.Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenactions started",
                         severity=0, component="zenactions"))
@@ -62,11 +61,9 @@ class ZenActions(ZCmdBase):
                 self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
                 
 
-    def processRules(self):
+    def processRules(self, db, zem):
         """Run through all rules matching them against events.
         """
-        zem = self.dmd.ZenEventManager
-        db = zem.connect()
         curs = db.cursor()
         for ar in self.actions:
             cursql = ""
@@ -120,33 +117,69 @@ class ZenActions(ZCmdBase):
             except:
                 if cursql: self.log.warn(cursql)
                 self.log.exception("action:%s",ar.getId())
-        db.close()
 
 
-    def maintenance(self):
+    def maintenance(self, db, zem):
         """Run stored procedures that maintain the events database.
         """
-        zem = self.dmd.ZenEventManager
-        db = zem.connect()
         curs = db.cursor()
         for proc in zem.maintenanceProcedures:
             try:
                 curs.execute("call %s();" % proc)
             except ProgrammingError:
                 self.log.exception("problem with proc: '%s'", proc)
+
+
+    def heartbeatEvents(self, db, zem):
+        """Create events for failed heartbeats.
+        """
+        # build cache of existing heartbeat issues
+        heartbeatState = {}
+        curs = db.cursor()
+        curs.execute("select device, component from status where "
+                     "eventClass = '%s'" % HeartbeatStatus)
+        for device, comp in curs.fetchall():
+            heartbeatState[device, comp] = 1 
+           
+        # find current heartbeat failures
+        for device, comp, secs in zem.getHeartbeat(failures=True, db=db):
+            self.sendEvent(
+                Event.Event(device=device, component=comp,
+                    eventClass=HeartbeatStatus, 
+                    summary="%s %s heartbeat failure" % (device,comp),
+                    severity=Event.Error))
+            if heartbeatState.has_key((device, comp)):
+                del heartbeatState[device, comp]
+
+        # clear heartbeats
+        for (device, comp), val in heartbeatState.items():
+            self.sendEvent(Event.Event(device=device, component=comp, 
+                eventClass=HeartbeatStatus, 
+                summary="%s %s heartbeat clear" % (device, comp),
+                severity=Event.Clear))
+                
+            
+
+    def mainbody(self):
+        """main loop to run actions.
+        """
+        self.loadActionRules()
+        zem = self.dmd.ZenEventManager
+        db = zem.connect()
+        self.processRules(db, zem)
+        self.maintenance(db, zem)
+        self.heartbeatEvents(db, zem)
         db.close()
-
-
+        
     
     def run(self):
-        if not self.options.cycle: return self.processRules()
+        if not self.options.cycle: 
+            return self.mainbody()
         while 1:
             try:
                 start = time.time()
                 self.syncdb()
-                self.loadActionRules()
-                self.processRules()
-                self.maintenance()
+                self.mainbody()
                 self.log.info("processed %s rules in %.2f secs", 
                                len(self.actions), time.time()-start)
                 self.sendHeartbeat()
@@ -166,14 +199,14 @@ class ZenActions(ZCmdBase):
         """Send a heartbeat event for this monitor.
         """
         timeout = self.options.cycletime*3
-        evt = EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
+        evt = Event.EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
         self.sendEvent(evt)
 
 
     def stop(self):
         self.running = False
         self.log.info("stopping")
-        self.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event.Event(device=socket.getfqdn(), 
                         eventClass=AppStop, 
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))

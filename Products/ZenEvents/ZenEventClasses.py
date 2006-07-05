@@ -1,5 +1,6 @@
 PingStatus = "/Status/Ping"
 SnmpStatus = "/Status/Snmp"
+HeartbeatStatus = "/Status/Heartbeat"
 AppStart = "/App/Start"
 AppStop = "/App/Stop"
 DNSFail = "/App/DNS/Fail"
