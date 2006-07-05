@@ -142,6 +142,8 @@ class PerformanceConf(Monitor, StatusColor):
             dev = dev.primaryAq()
             if dev.monitorDevice() and dev.getSnmpStatus() != -1:
                 try:
+                    procinfo = dev.getOSProcessConf()
+                    if procinfo is None: continue
                     result.append(dev.getOSProcessConf())
                 except POSError: raise
                 except:

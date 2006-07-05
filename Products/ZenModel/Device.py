@@ -399,6 +399,7 @@ class Device(ManagedEntity):
         """
         procs = [ o.getOSProcessConf() for o in self.os.processes() \
                                             if o.monitored() ]
+        if not procs: return None
         return (self.getSnmpConnInfo(), procs)
 
 
