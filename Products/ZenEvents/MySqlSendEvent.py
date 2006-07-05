@@ -82,11 +82,11 @@ class MySqlSendEventMixin:
             curs = db.cursor()
             if event.severity == 0:
                 event._action = "history"
-            clearcls = event.clearClasses()
-            if clearcls:
-                delete = self.buildClearDelete(event, clearcls)
-                log.debug(delete)
-                curs.execute(delete)
+                clearcls = event.clearClasses()
+                if clearcls:
+                    delete = self.buildClearDelete(event, clearcls)
+                    log.debug(delete)
+                    curs.execute(delete)
             evid = guid.generate()
             insert = self.buildStatusInsert(statusdata, event._action, evid)
             log.debug(insert)
