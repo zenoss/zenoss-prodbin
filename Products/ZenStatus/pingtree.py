@@ -22,6 +22,13 @@ def initglobals(devname):
 
 log = logging.getLogger("zen.ZenStatus")
 
+def getStatus(device):
+    # if there's a down event in the database, it must have failed twice
+    status = device.getStatus(PingStatus)
+    if status == 1:
+        status += 2
+    return status
+
 class Rnode(object):
     """Rnode is a router node in the tree map.
     """
@@ -109,7 +116,7 @@ class Rnode(object):
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
-        pj = PingJob(ip, device.id, device.getStatus(PingStatus))
+        pj = PingJob(ip, device.id, getStatus(device))
         net.addPingJob(pj)
         pj.parent = net
 
@@ -207,7 +214,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
         ipaddr = root.getManageIp()
         if not ipaddr:
             raise ValueError("zenping host %s has no manage ip"%root.id)
-        rootnode = Rnode(ipaddr, root.id, root.getStatus(PingStatus))
+        rootnode = Rnode(ipaddr, root.id, getStatus(root))
         devs = [(root,rootnode)]
     nextdevs = []
     for dev, rnode in devs:
@@ -227,7 +234,7 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
                 if ndev: 
                     if rootnode.hasDev(ndev.id): continue
                     nrnode = rnode.addRouter(route.getNextHopIp(),ndev.id,
-                                                ndev.getStatus(PingStatus))
+                                                getStatus(ndev))
                     log.debug("create rnode: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
     if nextdevs: buildTree(root, rootnode, nextdevs, memo)
