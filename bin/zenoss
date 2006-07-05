@@ -8,7 +8,7 @@
 
 . $ZENHOME/bin/zenfunctions
 ZOPECMDS="zeoctl zopectl"
-ZENCMDS="zenmodeler zenperfsnmp zenping zensyslog zenstatus zenactions"
+ZENCMDS="zenmodeler zenperfsnmp zenprocess zenping zensyslog zenstatus zenactions"
 
 FUNC=$1
 
