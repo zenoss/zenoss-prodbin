@@ -33,5 +33,12 @@ class Processes(Migrate.Step):
              import manage_addOSProcessOrganizer
         manage_addOSProcessOrganizer(zdmd, 'Processes')
 
+        if getattr(dmd.Devices.rrdTemplates, 'OSProcess', None) is None:
+            from Products.ZenRelations.ImportRM import ImportRM
+            imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
+            imp.options.noCommit = True
+            imp.options.infile = os.path.join(os.environ['ZENHOME'],
+                'Products', 'ZenModel', 'data', 'osproc.update')
+            imp.loadDatabase()
 
 Processes()
