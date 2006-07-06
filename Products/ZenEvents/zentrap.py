@@ -98,7 +98,11 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
             device = ipObject.device()
         if not device:
             device = self.dmd.Devices.findDevice(addr[0])
-        return addr
+        try:
+            return socket.gethostbyaddr(addr[0])[0]
+        except socket.herror:
+            pass
+        return addr[0]
 
     def _oid2name(self, oid):
         'short hand to get names from oids'
@@ -162,12 +166,13 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
                 value = grind(binding['value'])
                 result[self.oid2name(oid)] = value
 
-        summary = 'snmp trap %s from %s' % (eventType, addr[0])
+        device = self._findDevice(addr)
+        summary = 'snmp trap %s from %s' % (eventType, device)
         self.log.debug(summary)
         ev = Event(rcvtime=ts,
                    ipAddress=addr[0],
                    severity=3,
-                   device=self._findDevice(addr[0]),
+                   device=device,
                    component='',
                    agent='zentrap',
                    eventGroup='trap',
