@@ -62,8 +62,12 @@ class HRSWRunMap(SnmpPlugin):
                     break
             else:
                 continue
-            idName = om.procName + " " + md5.md5(om.parameters).hexdigest()
-            om.id = self.prepId(idName)
+            procName = om.procName
+            parameters = om.parameters.strip()
+            if parameters:
+                parameters = md5.md5(parameters).hexdigest()
+                procName += ' ' + parameters
+            om.id = self.prepId(procName)
             om.setOSProcessClass = fullname
             rm.append(om)
         return rm
