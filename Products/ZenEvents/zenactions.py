@@ -142,7 +142,10 @@ class ZenActions(ZCmdBase):
             heartbeatState[device, comp] = 1 
            
         # find current heartbeat failures
-        for device, comp, secs in zem.getHeartbeat(failures=True, db=db):
+        sel = """select device, component from heartbeat """
+        sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
+        curs.execute(sel)
+        for device, comp in curs.fetchall():
             self.sendEvent(
                 Event.Event(device=device, component=comp,
                     eventClass=HeartbeatStatus, 
