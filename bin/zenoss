@@ -27,7 +27,11 @@ issue() {
     for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
-        $ZENHOME/bin/$cmd "$FUNC"
+        if  echo $cmd | grep -q ctl; then
+            sudo $ZENHOME/bin/$cmd "$FUNC"
+        else
+            $ZENHOME/bin/$cmd "$FUNC"
+        fi
     done
 }
 
