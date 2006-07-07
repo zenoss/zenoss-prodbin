@@ -25,6 +25,7 @@ class OSProcess(OSComponent):
         {'id':'parameters', 'type':'string', 'mode':'w'},
         {'id':'zCountProcs', 'type':'boolean', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
+        {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
     )
 
     _relations = OSComponent._relations + (
@@ -72,8 +73,8 @@ class OSProcess(OSComponent):
         except RRDObjectNotFound, e:
             log.warn(e)
         return (self.id, self.name(), self.countProcs(),
-                self.alertOnRestart(), self.getStatus(),
-                thresholds)
+                self.alertOnRestart(), self.failSeverity(),
+                self.getStatus(), thresholds)
 
 
     def setOSProcessClass(self, procKey):
@@ -124,19 +125,27 @@ class OSProcess(OSComponent):
         return self.getAqProperty("zAlertOnRestart")
 
 
+    def failSeverity(self):
+        """Return the severity for this service when it fails.
+        """
+        return self.getAqProperty("zFailSeverity")
+
+
     def getClassObject(self):
         return self.osProcessClass()
 
 
     security.declareProtected('Manage DMD', 'manage_editOSProcess')
     def manage_editOSProcess(self, zMonitor=False, zCountProcs=False,
-                            zAlertOnRestart=False, msg=None,REQUEST=None):
+                             zAlertOnRestart=False,
+                             zFailSeverity=3, msg=None,REQUEST=None):
         """Edit a Service from a web page.
         """
         if msg is None: msg=[]
         msg.append(self.setAqProperty("zMonitor", zMonitor, "boolean"))
         msg.append(self.setAqProperty("zCountProcs", zCountProcs, "int"))
         msg.append(self.setAqProperty("zAlertOnRestart",zAlertOnRestart,"int"))
+        msg.append(self.setAqProperty("zFailSeverity",zFailSeverity,"int"))
         msg = [ m for m in msg if m ]
         self.index_object()
         if not msg: msg.append("No action needed")

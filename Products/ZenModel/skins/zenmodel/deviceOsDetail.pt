@@ -140,6 +140,8 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'alertOnRestart','Restarts')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'failSeverity','Fail Severity')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
     <tr tal:repeat="proc batch" class="tablevalues">
@@ -149,6 +151,7 @@
         <td tal:content="structure proc/getOSProcessClassLink"/>
         <td tal:content="proc/countProcs"/>
         <td tal:content="proc/alertOnRestart"/>
+        <td tal:content="proc/failSeverity"/>
         <td tal:define="status proc/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>

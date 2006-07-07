@@ -69,6 +69,7 @@ class Process:
     originalName = None
     count = None
     restart = None
+    severity = Event.Warning
     status = 0
 
     def match(self, name):
@@ -116,13 +117,15 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, count, restart, status, thresholds in processes:
+        for name, originalName, count, restart, severity, status, thresholds \
+                in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
             p.originalName = originalName
             p.count = count
             p.restart = restart
+            p.severity = severity
             p.thresholds = [Threshold(*t) for t in thresholds]
             p.status = status
         for name in unused:
@@ -274,7 +277,7 @@ class zenprocess(RRDDaemon):
                                    device=device.name,
                                    summary=summary,
                                    component=config.originalName,
-                                   severity=Event.Warning)
+                                   severity=config.severity)
                     log.info(summary)
             
         # report alive processes
@@ -302,7 +305,7 @@ class zenprocess(RRDDaemon):
                                device=device.name,
                                summary=summary,
                                component=config.originalName,
-                               severity=Event.Error)
+                               severity=config.severity)
                 log.error(summary)
         
         # store counts

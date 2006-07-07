@@ -17,6 +17,10 @@
       <td class="tablevalues" tal:content="here/zAlertOnRestart"/>
     </tr>
     <tr>
+      <th class="tableheader">Fail Severity</th>
+      <td class="tablevalues" colspan="3" tal:content="here/zFailSeverity"/>
+    </tr>
+    <tr>
       <th class="tableheader">Regex</th>
       <td class="tablevalues" colspan="3" tal:content="here/regex"/>
     </tr>

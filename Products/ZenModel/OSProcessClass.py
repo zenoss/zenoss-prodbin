@@ -116,6 +116,7 @@ class OSProcessClass(ZenModelRM):
     security.declareProtected('Manage DMD', 'manage_editOSProcessClass')
     def manage_editOSProcessClass(self, name="", zMonitor=True, 
                                 zCountProcs=False, zAlertOnRestart=False,
+                                zFailSeverity=3,
                                 regex="", description="", REQUEST=None):
                                  
         """

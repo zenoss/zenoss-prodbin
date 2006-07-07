@@ -169,6 +169,7 @@ class OSProcessOrganizer(Organizer):
         self._setProperty("zCountProcs", False, type="boolean")
         self._setProperty("zAlertOnRestart", False, type="boolean")
         self._setProperty("zMonitor", True, type="boolean")
+        self._setProperty("zFailSeverity", 3, type="int")
 
 
 InitializeClass(OSProcessOrganizer)
