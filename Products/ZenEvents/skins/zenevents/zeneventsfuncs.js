@@ -60,6 +60,11 @@ var resetLoadStatus = function() {
 //load the event list
 var getTablePage = function(form) {
     log("getTablePage url=", form.url.value);
+
+    var rate = parseInt(form.refreshRate.value)
+    if (rate < 1) {
+	rate = 30;
+    }
     if (refreshControl) { refreshControl.cancel(); }
     if (loadStatusDefered) { // Oops! We are already resubmiting!
         log("resubmit while query pending!!") 
@@ -67,15 +72,15 @@ var getTablePage = function(form) {
         loadStatusDefered = loadStatus()
 	var d = doSimpleXMLHttpRequest(form.url.value + "?" + 
 				       queryString(form));
-	d = cancelWithTimeout(d, 30);
+	d = cancelWithTimeout(d, rate);
 	d.addCallbacks(processData, errorHandler);
 	d.addErrback(printError);
-    }
 
+    }
     if (autoRefresh) {
-	var rate = parseInt(form.refreshRate.value)
         refreshControl = callLater(rate,getTablePage,form);
     }
+
 };
 
 //set the sortedHeader and sence and submit form
