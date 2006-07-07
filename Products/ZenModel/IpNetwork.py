@@ -350,7 +350,7 @@ class IpNetwork(DeviceOrganizer):
     def buildZProperties(self):
         nets = self.getDmdRoot("Networks")
         if getattr(aq_base(nets), "zDefaultNetworkTree", False): return
-        nets._setProperty("zDefaultNetworkTree", (16,24,32), type="lines")
+        nets._setProperty("zDefaultNetworkTree", (24,32), type="lines")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
                           
