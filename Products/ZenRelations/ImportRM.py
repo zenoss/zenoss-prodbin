@@ -50,7 +50,8 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.log.debug("tag %s, context %s", name, self.context().id)
         if name == 'object':
             obj = self.createObject(attrs)
-            if len(self.objstack) == 1 and hasattr(aq_base(obj), 'reIndex'):
+            if (not self.options.noindex and len(self.objstack) == 1 
+                and hasattr(aq_base(obj), 'reIndex')):
                 self.rootobj = obj
             self.objstack.append(obj)
         elif name == 'tomanycont' or name == 'tomany':
@@ -178,6 +179,10 @@ class ImportRM(ZCmdBase, ContentHandler):
                     default=20,
                     type="int",
                     help='how many lines should be loaded before commit')
+
+        self.parser.add_option('--noindex',
+                    dest='noindex',action="store_true",default=False,
+                    help='Do not try to index data that was just loaded')
 
         self.parser.add_option('-n', '--noCommit',
                     dest='noCommit',

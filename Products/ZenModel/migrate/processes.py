@@ -30,6 +30,7 @@ class Processes(Migrate.Step):
             from Products.ZenRelations.ImportRM import ImportRM
             imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
             imp.options.noCommit = True
+            imp.options.noindex = True
             imp.options.infile = os.path.join(os.environ['ZENHOME'],
                 'Products', 'ZenModel', 'data', 'osproc.update')
             imp.loadDatabase()
