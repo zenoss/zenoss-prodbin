@@ -239,7 +239,7 @@ class MySqlSendEventMixin:
         insert = "insert into %s set " % table
         fields = []
         for name, value in datadict.items():
-            if type(value) == types.StringType:
+            if type(value) in types.StringTypes:
                 fields.append("%s='%s'" % (name, self.escape(value)))
             elif type(value) == types.FloatType:
                 fields.append("%s=%.3f" % (name, value))
