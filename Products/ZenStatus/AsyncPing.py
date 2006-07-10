@@ -23,6 +23,9 @@ from sets import Set
 class PermissionError(Exception):
     """Not permitted to access resource."""
 
+class IpConflict(Exception):
+    """Pinging two jobs simultaneously with different hostnames but the same IP"""
+
 
 class PingJob:
     """
@@ -114,6 +117,13 @@ class Ping(object):
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
             reactor.callLater(self.timeout, self.checkTimeout, pingJob)
             pingJob.sent += 1
+            current = self.jobqueue.get(pingJob.ipaddr, None)
+            if current:
+                if pingJob.hostname != current.hostname:
+                    raise IpConflict("Host %s and %s are both using ip %s" %
+                                     (pingJob.hostname,
+                                      current.hostname,
+                                      pingJob.ipaddr))
             self.jobqueue[pingJob.ipaddr] = pingJob
         except (SystemExit, KeyboardInterrupt): raise
         except Exception, e:
