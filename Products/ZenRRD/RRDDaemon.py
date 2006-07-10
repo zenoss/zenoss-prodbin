@@ -218,5 +218,5 @@ class RRDDaemon(ZenDaemon):
     def error(self, error):
         'Log an error, including any traceback data for a failure Exception'
         self.logError('Error', error)
-        reactor.callLater(0, reactor.stop)
-
+        if not self.options.cycle:
+            self._shutdown()
