@@ -24,12 +24,10 @@ import socket
 
 import Globals
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-
+from EventServer import EventServer
 from Event import Event, EventHeartbeat
 
-from ZenEventClasses import AppStart, AppStop, SnmpStatus
-from Products.ZenEvents.Exceptions import ZenBackendFailure
+from ZenEventClasses import SnmpStatus
 from Products.ZenModel.IpAddress import findIpAddress
 
 from twisted.internet import reactor
@@ -64,31 +62,25 @@ def extract(obj, path, default = None):
     return obj
 
 
-class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
+class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
     'Listen for SNMP traps and turn them into events'
 
     totalTime = 0.
     totalEvents = 0
     maxTime = 0.
 
+    name = 'zentrap'
+
     def __init__(self):
-        ZCmdBase.__init__(self, keeproot=True)
+        EventServer.__init__(self)
         snmpprotocol.SNMPProtocol.__init__(self, self.options.trapport)
-        
         reactor.listenUDP(self.port, self)
-        self.zem = self.dmd.ZenEventManager
-        self.sendEvent(Event(device=socket.getfqdn(), 
-                               eventClass=AppStart, 
-                               summary="zentrap started",
-                               severity=0,
-                               component="zentrap"))
-        self.q = Queue()
-        self.log.info("started")
-        self.heartbeat()
+
 
     def handleTrap(self, data, addr):
         'Traps are processed asynchronously in a thread'
         self.q.put( (data, addr, time.time()) )
+
 
     def _findDevice(self, addr):
         'Find a device by its IP address'
@@ -118,19 +110,7 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
             return oid
         return name
 
-    def run(self):
-        'method to process traps in a thread'
-        while 1:
-            self.syncdb()
-            args = self.q.get()
-            if args is None: break
-            if isinstance(args, Event):
-                self.syncdb()
-                self.sendEvent(args)
-            else:
-                self.doHandleTrap(*args)
-
-    def doHandleTrap(self, data, addr, ts):
+    def doHandleRequest(self, data, addr, ts):
         eventType = 'unknown'
         result = {}
         if data['version'].get() == 1:
@@ -198,55 +178,12 @@ class ZenTrap(ZCmdBase, snmpprotocol.SNMPProtocol):
         self.transport.socket.sendto(data, addr)
 
 
-    def sendEvent(self, evt):
-        "wrapper for sending an event"
-        self.zem.sendEvent(evt)
-
-
-    def heartbeat(self):
-        """Since we don't do anything on a regular basis, just
-        push heartbeats regularly"""
-        seconds = 10
-        evt = EventHeartbeat(socket.getfqdn(), "zentrap", 3*seconds)
-        self.q.put(evt)
-        reactor.callLater(seconds, self.heartbeat)
-
-        
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
                                dest='trapport', type='int', default=TRAP_PORT)
-        
-    def sigTerm(self, signum, frame):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZCmdBase.sigTerm(self, signum, frame)
-        except SystemExit:
-            reactor.stop()
 
-    def report(self):
-        'report some simple diagnostics at shutdown'
-        self.log.info("%d events processed in %.2f seconds",
-                   self.totalEvents,
-                   self.totalTime)
-        if self.totalEvents > 0:
-            self.log.info("%.5f average seconds per event",
-                       (self.totalTime / self.totalEvents))
-            self.log.info("Maximum processing time for one event was %.5f",
-                          self.maxTime)
-
-    def finish(self):
-        'things to do at shutdown: thread cleanup, logs and events'
-        self.q.put(None)
-        self.report()
-        self.sendEvent(Event(device=socket.getfqdn(), 
-                             eventClass=AppStop, 
-                             summary="zentrap stopped",
-                             severity=4,
-                             component="zentrap"))
 
 if __name__ == '__main__':
     z = ZenTrap()
-    reactor.callInThread(z.run)
-    reactor.addSystemEventTrigger('before', 'shutdown', z.finish)
-    reactor.run(installSignalHandlers=False)
+    z.main()
