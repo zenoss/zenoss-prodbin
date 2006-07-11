@@ -40,21 +40,34 @@ class ZenXEvent(EventServer, xmlrpc.XMLRPC):
         reactor.listenTCP(self.options.xmlrpcport, server.Site(self))
 
 
-    def xmlrpc_sendEvent(self, data):
-        'XMLRPC requests are processed asynchronously in a thread'
+    def execute(self, method, data):
         try:
             d = defer.Deferred()
-            self.q.put( (data, d, time.time()) )
+            self.q.put( (method, data, d, time.time()) )
             return d
         except Exception, ex:
             self.log.exception(ex)
 
+    def xmlrpc_sendEvent(self, data):
+        'XMLRPC requests are processed asynchronously in a thread'
+        return self.execute(self.zem.sendEvent, Event(**data))
+
+    def xmlrpc_sendEvents(self, data):
+        return self.execute(self.zem.sendEvents, ([Event(**e) for e in data],))
+
+    def xmlrpc_getDevicePingIssues(self, *unused):
+        return self.execute(self.zem.getDevicePingIssues, ())
+    
     def doHandleRequest(self, *args):
-        data, result, ts = args
+        method, data, result, ts = args
+        print 'data', `data`
         try:
-            self.sendEvent(Event(**data))
-            reactor.callFromThread(result.callback, '')
+            retval = method(*data)
+            if retval is None:
+                retval = ''
+            reactor.callFromThread(result.callback, retval)
         except Exception, ex:
+            self.log.exception(ex)
             reactor.callFromThread(result.errback,
                                    xmlrpc.Fault(self.FAILURE, str(ex)))
 
