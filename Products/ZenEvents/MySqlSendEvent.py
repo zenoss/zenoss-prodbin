@@ -210,10 +210,12 @@ class MySqlSendEventMixin:
         insert += ","+",".join(fields)
         if table == self.statusTable:
             insert += " on duplicate key update "
+            if statusdata.has_key('prodState'):
+                insert += "prodState=%d," % statusdata['prodState']
             insert += "summary='%s',%s=%s+1,%s=%.3f" % (
-                                self.escape(statusdata['summary']), 
-                                self.countField, self.countField, 
-                                self.lastTimeField,statusdata['lastTime'])
+                        self.escape(statusdata['summary']), 
+                        self.countField, self.countField, 
+                        self.lastTimeField,statusdata['lastTime'])
         return insert
 
 
