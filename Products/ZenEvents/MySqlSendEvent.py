@@ -14,6 +14,16 @@ from Event import Event, EventHeartbeat, buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
 
+def execute(cursor, statement):
+    try:
+        result = cursor.execute(statement)
+        log.debug("%s: --> %d" % (statement, result) )
+    except Exception, ex:
+        log.debug(statement)
+        log.exception(ex)
+        raise ex
+    return result
+
 class MySqlSendEventMixin:
     """
     Mix-in class that takes a mysql db connection and builds inserts that
@@ -45,10 +55,6 @@ class MySqlSendEventMixin:
                 raise ZenBackendFailure(str(e))
         if not event: return
         
-        #FIXME - ungly hack to make sure severity is an int
-        # Don't think this is needed anymore
-        #event.severity = int(event.severity)
-       
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
             return self._sendHeartbeat(event, db)
@@ -72,37 +78,40 @@ class MySqlSendEventMixin:
             event.message = event.summary
             event.summary = event.summary[:128]
 
-        insert = ""
+        cleanup = lambda : None
         try:
-            close = False
-            if db == None:  
-                db = self.connect()
-                close = True
-            statusdata, detaildata = self.eventDataMaps(event)
-            curs = db.cursor()
-            if event.severity == 0:
-                event._action = "history"
-                clearcls = event.clearClasses()
-                if clearcls:
-                    delete = self.buildClearDelete(event, clearcls)
-                    log.debug(delete)
-                    curs.execute(delete)
-            evid = guid.generate()
-            insert = self.buildStatusInsert(statusdata, event._action, evid)
-            log.debug(insert)
-            rescount = curs.execute(insert)
-            if detaildata and rescount == 1:
-                insert = self.buildDetailInsert(evid, detaildata)
-                log.debug(insert)
-                curs.execute(insert)
-            if close: db.close()
-            #return event
-        except ProgrammingError, e:
-            log.error(insert)
-            log.exception(e)
-        except OperationalError, e:
-            log.error(e)
-            raise ZenBackendFailure(str(e))
+            try:
+                if db == None:  
+                    db = self.connect()
+                    cleanup = db.close
+                self.doSendEvent(event, db)
+            except ProgrammingError, e:
+                log.exception(e)
+            except OperationalError, e:
+                log.exception(e)
+                raise ZenBackendFailure(str(e))
+        finally:
+            cleanup()
+
+
+    def doSendEvent(self, event, db):
+        insert = ""
+        statusdata, detaildata = self.eventDataMaps(event)
+        curs = db.cursor()
+        evid = guid.generate()
+        event.evid = evid
+        if event.severity == 0:
+            event._action = "history"
+            clearcls = event.clearClasses()
+            if clearcls:
+                execute(curs, self.buildClearUpdate(event, clearcls))
+        stmt = self.buildStatusInsert(statusdata, event._action, evid)
+        rescount = execute(curs, stmt)
+        if detaildata and rescount == 1:
+            execute(curs, self.buildDetailInsert(evid, detaildata))
+        delete = ('DELETE FROM %s WHERE clearid IS NOT NULL' %
+                  self.statusTable)
+        execute(curs, delete)
             
 
     def applyEventContext(self, evt):
@@ -186,8 +195,7 @@ class MySqlSendEventMixin:
                 db = self.connect()
                 close = True
             curs = db.cursor()
-            log.debug(insert)
-            curs.execute(insert)
+            execute(curs, insert)
             if close: db.close()
         except ProgrammingError, e:
             log.error(insert)
@@ -251,21 +259,22 @@ class MySqlSendEventMixin:
         return insert
 
 
-    def buildClearDelete(self, evt, clearcls):
-        """Build a delete statement that will clear related events.
+    def buildClearUpdate(self, evt, clearcls):
+        """Build an update statement that will clear related events.
         """
-        delete = "delete from %s where " % self.statusTable
+        update = "update %s " % self.statusTable
+        update += "set clearid = '%s' where " % evt.evid
         w = []
         w.append("%s='%s'" % (self.deviceField, evt.device))
         w.append("%s='%s'" % (self.componentField, evt.component))
         w.append("eventKey='%s'" % evt.eventKey)
-        delete += " and ".join(w)
+        update += " and ".join(w)
         w = []
         for cls in clearcls:
             w.append("%s='%s'" % (self.eventClassField, cls)) 
         if w:
-            delete += " and (" + " or ".join(w) + ")"
-        return delete
+            update += " and (" + " or ".join(w) + ")"
+        return update
 
     
     def eventDataMaps(self, event):
@@ -359,7 +368,6 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
             except Empty: pass
             except OperationalError:
                 log.warn(e)
-                #db =self.reconnect()
             except Exception, e: 
                 log.exception(e) 
         db.close()
@@ -372,18 +380,3 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         log.info("stopping...")
         self.running = False
         self.join(3)
-
-
-    #FIXME this doesn't work properly
-    def reconnect(self):
-        while self.running:
-            try:
-                db = self.connect()
-                curs = db.cursor()
-                curs.execute("select count(*) from status")
-                curs.close()
-                return db
-            except MySqlError, e:
-                log.warn(e)
-                time.sleep(2)
-            log.info("reconnected to database: %s", self.database)

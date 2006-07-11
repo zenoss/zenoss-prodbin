@@ -20,3 +20,4 @@ import hoist_perf_data
 import interfacename_convert
 import processes
 import mibs
+import clearid
