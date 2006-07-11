@@ -44,8 +44,11 @@ class Driver:
 
     def next(self):
         "Provide the result of the iterable as a value or exception"
-        if isinstance(self.result, Exception):
-            raise self.result
+        ex = self.result
+        if isinstance(self.result, failure.Failure):
+            ex = self.result.value
+        if isinstance(ex, Exception):
+            raise ex
         return self.result
 
     def _finish(self, result):
