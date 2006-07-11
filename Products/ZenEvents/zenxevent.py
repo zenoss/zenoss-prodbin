@@ -50,7 +50,7 @@ class ZenXEvent(EventServer, xmlrpc.XMLRPC):
 
     def xmlrpc_sendEvent(self, data):
         'XMLRPC requests are processed asynchronously in a thread'
-        return self.execute(self.zem.sendEvent, Event(**data))
+        return self.execute(self.zem.sendEvent, (Event(**data),))
 
     def xmlrpc_sendEvents(self, data):
         return self.execute(self.zem.sendEvents, ([Event(**e) for e in data],))

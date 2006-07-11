@@ -7,5 +7,11 @@ ev = {  'device':'eros',
         'severity':2,
         'component':'',
         }
-for i in range(100):
-    s.sendEvents([ev, ev])
+s.sendEvent(ev)
+ev2 = ev.copy()
+ev2['severity'] = 0
+for i in range(10):
+    s.sendEvents([ev, ev2])
+issues = s.getDevicePingIssues()
+for i in issues:
+    print i
