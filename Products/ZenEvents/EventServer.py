@@ -18,7 +18,7 @@ from twisted.python import threadable
 threadable.init()
 
 from Queue import Queue
-
+from threading import Lock
 import time
 import socket
 
@@ -31,17 +31,36 @@ from Event import Event, EventHeartbeat
 from ZenEventClasses import AppStart, AppStop
 from twisted.internet import reactor, defer
 
-class EventServer(ZCmdBase):
-    'Listen for xmlrpc requests and turn them into events'
-
+class Stats:
     totalTime = 0.
     totalEvents = 0
     maxTime = 0.
-    name = 'EventServer'
+    
+    def __init__(self):
+        self.lock = Lock()
+    
+    def add(self, moreTime):
+        self.lock.acquire()
+        self.totalEvents += 1
+        self.totalTime += moreTime
+        self.maxTime = max(self.maxTime, moreTime)
+        self.lock.release()
 
+    def report(self):
+        try:
+            self.lock.acquire()
+            return self.totalTime, self.totalEvents, self.maxTime
+        finally:
+            self.lock.release()
+
+class EventServer(ZCmdBase):
+    'Listen for xmlrpc requests and turn them into events'
+
+    name = 'EventServer'
+    
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
-        
+        self.stats = Stats()
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=socket.getfqdn(), 
                                eventClass=AppStart, 
@@ -51,7 +70,12 @@ class EventServer(ZCmdBase):
         self.q = Queue()
         self.log.info("started")
         self.heartbeat()
+        self.reportCycle()
 
+    def reportCycle(self):
+        if self.options.statcycle:
+            self.report()
+            reactor.callLater(self.options.statcycle, self.reportCycle)
 
     def run(self):
         'method to process events in a thread'
@@ -64,9 +88,7 @@ class EventServer(ZCmdBase):
             else:
                 self.doHandleRequest(*args)
                 diff = time.time() - args[-1]
-                self.totalTime += diff
-                self.totalEvents += 1
-                self.maxTime = max(diff, self.maxTime)
+                self.stats.add(diff)
             self.syncdb()
 
     def sendEvent(self, evt):
@@ -92,14 +114,15 @@ class EventServer(ZCmdBase):
 
     def report(self):
         'report some simple diagnostics at shutdown'
+        totalTime, totalEvents, maxTime = self.stats.report()
         self.log.info("%d events processed in %.2f seconds",
-                   self.totalEvents,
-                   self.totalTime)
+                      totalEvents,
+                      totalTime)
         if self.totalEvents > 0:
             self.log.info("%.5f average seconds per event",
-                       (self.totalTime / self.totalEvents))
+                       (totalTime / totalEvents))
             self.log.info("Maximum processing time for one event was %.5f",
-                          self.maxTime)
+                          maxTime)
 
     def finish(self):
         'things to do at shutdown: thread cleanup, logs and events'
@@ -111,6 +134,13 @@ class EventServer(ZCmdBase):
                              severity=4,
                              component=self.name))
 
+    def buildOptions(self):
+        ZCmdBase.buildOptions(self)
+        self.parser.add_option('--statcycle',
+                               dest='statcycle',
+                               type='int',
+                               default=0)
+        
     def main(self):
         reactor.callInThread(self.run)
         reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
