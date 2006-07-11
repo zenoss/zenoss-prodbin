@@ -1,0 +1,10 @@
+#!/bin/sh
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenEvents
+PRGNAME=zenxevent.py
+CFGFILE=$CFGDIR/zenxevent.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
