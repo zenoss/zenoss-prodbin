@@ -48,4 +48,4 @@ if __name__ == '__main__':
 
 
     print "Welcome to zenoss dmd command shell!"
-    print "use zhelp() to list commnads"
+    print "use zhelp() to list commands"
