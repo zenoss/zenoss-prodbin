@@ -60,7 +60,6 @@ class ZenXEvent(EventServer, xmlrpc.XMLRPC):
     
     def doHandleRequest(self, *args):
         method, data, result, ts = args
-        print 'data', `data`
         try:
             retval = method(*data)
             if retval is None:
