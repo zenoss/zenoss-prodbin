@@ -54,8 +54,25 @@ class IpNetworkTest(unittest.TestCase):
 
 
     def testAddIp(self):
-        return
+        net = self.dmd.Networks.createNet('1.2.3.0/24')
+        ipobj0 = self.dmd.Networks.addIp('1.2.3.4')
+        self.assert_(self.dmd.Networks.findIp('1.2.3.4') == ipobj0)
+        self.assert_(self.dmd.Networks.findIp('1.2.3.5') == None)
+        net = self.dmd.Networks.createNet('2.3.4.0/24')
+        ipobj1 = self.dmd.Networks.addIp('2.3.4.5')
+        self.assert_(self.dmd.Networks.findIp('2.3.4.5') == ipobj1)
+        self.assert_(net.findIp('2.3.4.5') == ipobj1)
+        self.assert_(net.findIp('1.2.3.4') == ipobj0)
+
+
+    def testMisc(self):
+        net = self.dmd.Networks.createNet('1.2.3.0/24')
+        self.dmd.Networks.addIp('1.2.3.4')
+        self.assert_(net.freeIps() == 253)
+        self.assert_(net.hasIp('1.2.3.4'))
+
         
+
     
 def main():
     unittest.TextTestRunner().run(test_suite())
