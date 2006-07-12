@@ -166,8 +166,8 @@ class IpService(Service):
         """Edit a Service from a web page.
         """
         msg = []
-        msg.append(self._aqsetprop("sendString", sendString, "string"))
-        msg.append(self._aqsetprop("expectRegex", expectRegex, "string"))
+        msg.append(self.setAqProperty("sendString", sendString, "string"))
+        msg.append(self.setAqProperty("expectRegex", expectRegex, "string"))
         self.index_object()
         return super(IpService, self).manage_editService(monitor, severity, 
                                         msg=msg,REQUEST=REQUEST)
