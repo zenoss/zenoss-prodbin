@@ -830,11 +830,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         """
         if isinstance(value, DateTime.DateTime): 
             value = value.timeTime() 
-        # assume value is GMT, so shove it into our timezone
-        value -= time.timezone
         # get seconds as floating point
-        secs = value % 100
-        return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.gmtime(value)) % secs
+        secs = value % 60
+        return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.localtime(value)) % secs
         
 
 
