@@ -4,6 +4,7 @@
 #
 #################################################################
 import re
+from sets import Set
 import logging
 log = logging.getLogger("zen.ActionRule")
 
@@ -14,6 +15,9 @@ from AccessControl import Permissions as permissions
 from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
+
+def _downcase(s):
+    return s[0:1].lower() + s[1:]
 
 def manage_addActionRule(context, id, REQUEST=None):
     """Create an aciton rule"""
@@ -99,11 +103,16 @@ class ActionRule(ZenModelRM):
         crumbs.insert(-1,(url,'Alerting Rules'))
         return crumbs
 
-
     def getEventFields(self):
         """Return list of fields used in format.
         """
-        return re.findall("%\((\S+)\)s", self.format)
+        result = Set()
+        result.update(re.findall("%\((\S+)\)s", self.format))
+        result.update(re.findall("%\((\S+)\)s", self.body))
+        result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
+        result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
+        result.discard('eventUrl')
+        return list(result)
 
 
     def checkFormat(self):

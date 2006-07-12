@@ -11,6 +11,9 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 
+def _capitalize(s):
+    return s[0:1].upper() + s[1:]
+
 class ZenActions(ZCmdBase):
     """
     Take actions based on events in the event manager.
@@ -83,6 +86,11 @@ class ZenActions(ZCmdBase):
         return curs.fetchall()
 
 
+    def getUrl(self, evid):
+        return '%s/zport/dmd/ZenEventHistory/viewEventFields?evid=%s' % (
+            self.options.zopeurl, evid)
+
+
     def processRules(self, db, zem):
         """Run through all rules matching them against events.
         """
@@ -97,11 +105,9 @@ class ZenActions(ZCmdBase):
                     self.log.warning(self.lastCommand)
                 self.log.exception("action:%s",ar.getId())
 
-
     def processActionRule(self, db, zem, ar):
         fields = ar.getEventFields()
         userid = ar.getUserid()
-        addr = ar.getAddress()
         actfunc = getattr(self, "send"+ar.action.title())
         # get new events
         nwhere = ar.where
@@ -111,8 +117,9 @@ class ZenActions(ZCmdBase):
         for result in self.query(db, q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            data['eventUrl'] = self.getUrl(evid)
             actfunc = getattr(self, "send"+ar.action.title())
-            actfunc(ar.format % data, addr)
+            actfunc(ar, data, False)
             addcmd = self.addstate % (evid, userid, ar.getId())
             self.execute(db, addcmd)
 
@@ -121,14 +128,25 @@ class ZenActions(ZCmdBase):
         for result in self.query(db, q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
-            cldata = {}
-            cfields = map(lambda x: 'clear.%s' % x, fields)
+            
+            # get clear columns
+            cfields = [('clear.%s' % x) for x in fields]
             q = self.clearEventSelect % (",".join(cfields), evid)
+            
+            # convert clear columns to clear names
+            cfields = [('clear%s' % _capitalize(x)) for x in fields]
+
+            # there might not be a clear event, so set empty defaults
+            data.update({}.fromkeys(cfields, ""))
+
+            # pull in the clear event data
             for values in self.query(db, q):
-                cldata.update(dict(zip(fields, values)))
-            # FIXME: provide cleared data in cldata
-            data.update(cldata)
-            actfunc(ar.format % data, addr)
+                values = map(zem.convert, fields, values)
+                data.update(dict(zip(cfields, values)))
+
+            # add in the link to the url
+            data['eventUrl'] = self.getUrl(evid)
+            actfunc(ar, data, True)
             delcmd = self.clearstate % (evid, userid, ar.getId())
             self.execute(db, delcmd)
 
@@ -222,33 +240,44 @@ class ZenActions(ZCmdBase):
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))
 
+    def format(self, action, data, clear):
+        fmt = action.format
+        body = action.body
+        if clear:
+            fmt = action.clearFormat
+            body = action.clearBody
+        return fmt % data, body % data
 
-    def sendPage(self, msg, addr):
+
+    def sendPage(self, action, data, clear = None):
         """Send and event to a pager.
         """
         import Pager
-        rcpt = Pager.Recipient(addr)
-        pmsg = Pager.Message(msg)
-        #pmsg.callerid = "zenoss"
-        page = Pager.Pager((rcpt,), pmsg, self.options.snpphost, 
-                                         self.options.snppport)
+        fmt, body = self.format(action, data, clear)
+        rcpt = Pager.Recipient(action.getAddress())
+        pmsg = Pager.Message(fmt % data)
+        page = Pager.Pager((rcpt,), pmsg,
+                           self.options.snpphost, 
+                           self.options.snppport)
         page.send()
-        self.log.info("sent page:%s to:%s", msg, addr)
+        self.log.info("sent page:%s to:%s", msg, action.getAddress())
         
 
-    def sendEmail(self, msg, addr):
+    def sendEmail(self, action, data, clear = None):
         """Send an event to an email address.
         """
         import smtplib
         from email.MIMEText import MIMEText
-        emsg = MIMEText(msg)
-        emsg['Subject'] = "[zenoss] %s" % msg[:128]
+        addr = action.getAddress()
+        fmt, body = self.format(action, data, clear)
+        emsg = MIMEText(body)
+        emsg['Subject'] = "[zenoss] %s" % fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
         server = smtplib.SMTP(self.options.smtphost, self.options.smtpport)
         server.sendmail(self.options.fromaddr, (addr,), emsg.as_string())
         server.quit()
-        self.log.info("sent email:%s to:%s", msg, addr)
+        self.log.info("sent email:%s to:%s", fmt, addr)
 
 
     def buildOptions(self):
@@ -271,6 +300,10 @@ class ZenActions(ZCmdBase):
         self.parser.add_option('--smtpport',
             dest='smtpport', default=25, type="int",
             help="smtp port used when sending pages")
+        self.parser.add_option(
+            '--zopeurl', dest='zopeurl',
+            default='http://%s:%d' % (socket.getfqdn(), 8080),
+            help="http path to the root of the zope server")
 
 if __name__ == "__main__":
     za = ZenActions()
