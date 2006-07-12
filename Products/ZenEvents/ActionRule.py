@@ -34,7 +34,22 @@ class ActionRule(ZenModelRM):
     where = "severity >= 4 and eventState = 0 and prodState = 1000"
     delay = 0
     action = "email"
-    format = "%(device)s %(summary)s at %(firstTime)s"
+    format = "%(device)s %(summary)s"
+    body =  "Device: %(device)s\n" \
+            "Component: %(component)s\n" \
+            "Severity: %(severity)s\n" \
+            "Time: %(firstTime)s:\n" \
+            "Message:\n%(message)s\n" \
+            "Event: %(eventUrl)s\n" 
+    clearFormat = "CLEAR: %(device)s %(clearSummary)s"
+    clearBody =  \
+            "Event: '%(summary)s'\n" \
+            "Cleared by: '%(clearSummary)s'\n" \
+            "At: %(clearFirstTime)s\n" \
+            "Device: %(device)s\n" \
+            "Component: %(component)s\n" \
+            "Severity: %(severity)s\n" \
+            "Message:\n%(message)s\n"
     enabled = False
     actionTypes = ("page", "email") 
     targetAddr = ""
@@ -42,6 +57,9 @@ class ActionRule(ZenModelRM):
     _properties = ZenModelRM._properties + (
         {'id':'where', 'type':'text', 'mode':'w'},
         {'id':'format', 'type':'text', 'mode':'w'},
+        {'id':'body', 'type':'text', 'mode':'w'},
+        {'id':'clearFormat', 'type':'text', 'mode':'w'},
+        {'id':'clearBody', 'type':'text', 'mode':'w'},
         {'id':'delay', 'type':'int', 'mode':'w'},
         {'id':'action', 'type':'selection', 'mode':'w',
             'select_variable': 'actionTypes',},
@@ -116,21 +134,12 @@ class ActionRule(ZenModelRM):
 
     
     security.declareProtected('Change Settings', 'manage_editActionRule')
-    def manage_editActionRule(self,  where="", delay=0, enabled=True, 
-                          action="", format="", targetAddr="", REQUEST=None):
+    def manage_editActionRule(self, REQUEST=None):
         """Update user settings.
         """
-        self.where = where
-        self.delay = delay
-        self.format = format
-        self.enabled = enabled
         if not self.enabled:
             self._clearAlertState()
-        self.action = action
-        self.targetAddr = targetAddr
-        if REQUEST:
-            REQUEST['message'] = "User saved at time:"
-            return self.callZenScreen(REQUEST)
+        return self.zmanage_editProperties(REQUEST)
 
 
     def manage_beforeDelete(self, item, container):
