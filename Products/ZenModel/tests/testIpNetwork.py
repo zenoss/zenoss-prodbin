@@ -9,7 +9,7 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 
 zeoconn = ZeoConn()
 
-class IpNetworkTest(unittest.TestCase):
+class TestIpNetwork(unittest.TestCase):
 
     def setUp(self):
         self.dmd = zeoconn.dmd
@@ -69,8 +69,29 @@ class IpNetworkTest(unittest.TestCase):
         net = self.dmd.Networks.createNet('1.2.3.0/24')
         self.dmd.Networks.addIp('1.2.3.4')
         self.assert_(net.freeIps() == 253)
-        self.assert_(net.hasIp('1.2.3.4'))
+        self.assert_(net.getNetworkName() == '1.2.3.0/24')
+        self.assert_(not net.getIpAddress('1.2.3.4') == None)
+        self.assert_(net.getIpAddress('1.2.3.5') == None)
+        self.assert_(self.dmd.Networks.getIpAddress('1.2.3.4') == None)
+        self.assert_(net.defaultRouterIp() == '1.2.3.1')
+        ipobj = net.addIpAddress('1.2.3.5')
+        self.assert_(ipobj in net.ipaddresses())
 
+    
+    def testSubNetworks(self):
+        dmdNet = self.dmd.Networks
+        dmdNet.createNet('1.2.3.0/24')
+        net = dmdNet.getSubNetwork('1.2.0.0')
+        self.assert_(net in dmdNet.getSubNetworks())
+        
+        subNet = net.getSubNetwork('1.2.3.0')
+        self.assert_(subNet in net.getSubNetworks())
+        
+        subNet = net.getSubNetwork('1.2.4.0')
+        self.assert_(subNet not in net.getSubNetworks())
+
+        subNet = net.addSubNetwork('1.2.4.0',24)
+        self.assert_(subNet in net.getSubNetworks())
         
 
     
