@@ -1,7 +1,7 @@
 import os
-import re
 import socket
 import time
+from sets import Set
 import Globals
 
 from ZODB.POSException import POSError
@@ -11,29 +11,37 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 
-
 class ZenActions(ZCmdBase):
     """
     Take actions based on events in the event manager.
     Start off by sending emails and pages.
     """
 
+    lastCommand = None
 
-    addstate = "insert into alert_state values ('%s', '%s', '%s')"
+    addstate = "INSERT INTO alert_state VALUES ('%s', '%s', '%s')"
 
-    clearstate = """delete from alert_state where evid='%s' 
-                    and userid='%s' and rule='%s'"""
+    clearstate = ("DELETE FROM alert_state "
+                  " WHERE evid='%s' "
+                  "   AND userid='%s' "
+                  "   AND rule='%s'")
 
 #FIXME attempt to convert subquery to left join that doesn't work 
 #    newsel = """select %s, evid from status s left join alert_state a
 #                on s.evid=a.evid where a.evid is null and  
 #                a.userid='%s' and a.rule='%s'""" 
 
-    newsel = """select %s, evid from status where %s and evid not in 
-             (select evid from alert_state where userid='%s' and rule='%s')""" 
+    newsel = ("SELECT %s, evid FROM status WHERE %s AND evid NOT IN " 
+              " (SELECT evid FROM alert_state "
+              "  WHERE userid='%s' AND rule='%s')")
             
-    clearsel = """select %s, h.evid from history h, alert_state a 
-                  where h.evid=a.evid and a.userid='%s' and a.rule='%s'"""
+    clearsel = ("SELECT %s, h.evid FROM history h, alert_state a "
+                " WHERE h.evid=a.evid AND a.userid='%s' AND a.rule='%s'")
+
+    clearEventSelect = ("SELECT %s "
+                        "  FROM history clear, history event "
+                        " WHERE clear.evid = event.clearid "
+                        "   AND event.evid = '%s'")
 
 
     def __init__(self):
@@ -54,113 +62,113 @@ class ZenActions(ZCmdBase):
         self.actions = []
         for us in self.dmd.ZenUsers.getAllUserSettings():
             userid = us.getId()
-            self.log.debug("loading aciton rules for:%s", userid)
+            self.log.debug("loading action rules for:%s", userid)
             for ar in us.objectValues(spec="ActionRule"):
                 if not ar.enabled: continue
                 self.actions.append(ar)
                 self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
-                
+
+
+    def execute(self, db, stmt):
+        self.lastCommand = stmt
+        self.log.debug(stmt)
+        return db.cursor().execute(stmt)
+
+
+    def query(self, db, stmt):
+        self.lastCommand = stmt
+        self.log.debug(stmt)
+        curs = db.cursor()
+        curs.execute(stmt)
+        return curs.fetchall()
+
 
     def processRules(self, db, zem):
         """Run through all rules matching them against events.
         """
-        curs = db.cursor()
         for ar in self.actions:
-            cursql = ""
             try:
-                fields = ar.getEventFields()
-                userid = ar.getUserid()
-                addr = ar.getAddress()
-                data = {}
-                data = data.fromkeys(fields,"")
-                # get new events
-                nwhere = ar.where
-                if ar.delay > 0:
-                    nwhere += """ and firstTime + %s < UNIX_TIMESTAMP()"""%(
-                                ar.delay)
-                newsel = self.newsel % (",".join(fields), nwhere,
-                                        userid, ar.getId())
-                self.log.debug(newsel)
-                cursql = newsel
-                curs.execute(newsel)
-                for result in curs.fetchall():
-                    evid = result[-1]
-                    result = map(zem.convert, fields, result[:-1])
-                    for k, v in zip(fields, result): data[k]=v
-                    msg = ar.format % data
-                    actfunc = getattr(self, "send"+ar.action.title())
-                    actfunc(msg, addr)
-                    addcmd = self.addstate%(evid, userid, ar.getId())
-                    self.log.debug(addcmd)
-                    cursql = addcmd
-                    curs.execute(addcmd)
-                     
-                # get clear events
-                clearsel = self.clearsel % (",".join(fields),userid,ar.getId())
-                self.log.debug(clearsel)
-                cursql = clearsel
-                curs.execute(clearsel)
-                format = "CLEAR: " + ar.format
-                for result in curs.fetchall():
-                    evid = result[-1]
-                    result = map(zem.convert, fields, result[:-1])
-                    for k, v in zip(fields, result): data[k]=v
-                    msg = format % data
-                    actfunc = getattr(self, "send"+ar.action.title())
-                    actfunc(msg, addr)
-                    delcmd = self.clearstate%(evid, userid, ar.getId())
-                    self.log.debug(delcmd)
-                    cursql = delcmd
-                    curs.execute(delcmd)
-            except (SystemExit, KeyboardInterrupt, OperationalError, POSError): 
+                self.lastCommand = None
+                self.processActionRule(db, zem, ar)
+            except (SystemExit, KeyboardInterrupt, OperationalError, POSError):
                 raise
             except:
-                if cursql: self.log.warn(cursql)
+                if self.lastCommand:
+                    self.log.warning(self.lastCommand)
                 self.log.exception("action:%s",ar.getId())
+
+
+    def processActionRule(self, db, zem, ar):
+        fields = ar.getEventFields()
+        userid = ar.getUserid()
+        addr = ar.getAddress()
+        actfunc = getattr(self, "send"+ar.action.title())
+        # get new events
+        nwhere = ar.where
+        if ar.delay > 0:
+            nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % ar.delay
+        q = self.newsel % (",".join(fields), nwhere, userid, ar.getId())
+        for result in self.query(db, q):
+            evid = result[-1]
+            data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            actfunc = getattr(self, "send"+ar.action.title())
+            actfunc(ar.format % data, addr)
+            addcmd = self.addstate % (evid, userid, ar.getId())
+            self.execute(db, addcmd)
+
+        # get clear events
+        q = self.clearsel % (",".join(fields),userid,ar.getId())
+        for result in self.query(db, q):
+            evid = result[-1]
+            data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            cldata = {}
+            cfields = map(lambda x: 'clear.%s' % x, fields)
+            q = self.clearEventSelect % (",".join(cfields), evid)
+            for values in self.query(db, q):
+                cldata.update(dict(zip(fields, values)))
+            # FIXME: provide cleared data in cldata
+            data.update(cldata)
+            actfunc(ar.format % data, addr)
+            delcmd = self.clearstate % (evid, userid, ar.getId())
+            self.execute(db, delcmd)
 
 
     def maintenance(self, db, zem):
         """Run stored procedures that maintain the events database.
         """
-        curs = db.cursor()
         for proc in zem.maintenanceProcedures:
             try:
-                curs.execute("call %s();" % proc)
+                self.execute(db, "call %s();" % proc)
             except ProgrammingError:
                 self.log.exception("problem with proc: '%s'", proc)
 
 
-    def heartbeatEvents(self, db, zem):
+    def heartbeatEvents(self, db):
         """Create events for failed heartbeats.
         """
         # build cache of existing heartbeat issues
-        heartbeatState = {}
-        curs = db.cursor()
-        curs.execute("select device, component from status where "
-                     "eventClass = '%s'" % HeartbeatStatus)
-        for device, comp in curs.fetchall():
-            heartbeatState[device, comp] = 1 
+        q = ("SELECT device, component "
+             "FROM status WHERE eventClass = '%s'" % HeartbeatStatus)
+        heartbeatState = Set(self.query(db, q))
            
         # find current heartbeat failures
-        sel = """select device, component from heartbeat """
-        sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
-        curs.execute(sel)
-        for device, comp in curs.fetchall():
+        sel = "SELECT device, component FROM heartbeat "
+        sel += "WHERE DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
+        for device, comp in self.query(db, sel):
             self.sendEvent(
                 Event.Event(device=device, component=comp,
-                    eventClass=HeartbeatStatus, 
-                    summary="%s %s heartbeat failure" % (device,comp),
-                    severity=Event.Error))
-            if heartbeatState.has_key((device, comp)):
-                del heartbeatState[device, comp]
+                            eventClass=HeartbeatStatus, 
+                            summary="%s %s heartbeat failure" % (device, comp),
+                            severity=Event.Error))
+            heartbeatState.discard((device, comp))
 
         # clear heartbeats
-        for (device, comp), val in heartbeatState.items():
-            self.sendEvent(Event.Event(device=device, component=comp, 
-                eventClass=HeartbeatStatus, 
-                summary="%s %s heartbeat clear" % (device, comp),
-                severity=Event.Clear))
-                
+        for device, comp in heartbeatState:
+            self.sendEvent(
+                Event.Event(device=device, component=comp, 
+                            eventClass=HeartbeatStatus, 
+                            summary="%s %s heartbeat clear" % (device, comp),
+                            severity=Event.Clear))
             
 
     def mainbody(self):
@@ -171,7 +179,7 @@ class ZenActions(ZCmdBase):
         db = zem.connect()
         self.processRules(db, zem)
         self.maintenance(db, zem)
-        self.heartbeatEvents(db, zem)
+        self.heartbeatEvents(db)
         db.close()
         
     
@@ -266,4 +274,6 @@ class ZenActions(ZCmdBase):
 
 if __name__ == "__main__":
     za = ZenActions()
+    import logging
+    logging.getLogger('zen.Events').setLevel(20)
     za.run()
