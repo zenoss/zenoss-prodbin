@@ -68,8 +68,7 @@ class OSProcess(OSComponent):
             templ = self.getRRDTemplate(self.getRRDTemplateName())
             if templ:
                 threshs = self.getThresholds(templ)
-                for ds in templ.getRRDDataSources():
-                    thresholds.extend(threshs.get(ds.id,[]))
+                thresholds = threshs.items()
         except RRDObjectNotFound, e:
             log.warn(e)
         return (self.id, self.name(), self.countProcs(),
