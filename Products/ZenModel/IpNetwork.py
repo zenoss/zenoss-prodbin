@@ -314,12 +314,12 @@ class IpNetwork(DeviceOrganizer):
 
     
     def pingStatus(self):
-        """aggrigate ping status for all devices in this group and below"""
+        """aggregate ping status for all devices in this group and below"""
         return DeviceOrganizer.pingStatus(self, "ipaddresses")
 
     
     def snmpStatus(self):
-        """aggrigate snmp status for all devices in this group and below"""
+        """aggregate snmp status for all devices in this group and below"""
         return DeviceOrganizer.snmpStatus(self, "ipaddresses")
 
 

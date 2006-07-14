@@ -19,7 +19,6 @@ zeoconn = ZeoConn()
 class TestWinService(unittest.TestCase):
 
     def setUp(self):
-        #pdb.set_trace()
         self.dmd = zeoconn.dmd
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = WinService('wsvc')

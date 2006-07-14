@@ -43,6 +43,7 @@ class TestIpService(unittest.TestCase):
         self.assert_(self.ipsvc.getDescription() == self.ipsvc.serviceclass().description)
         self.assert_(self.ipsvc.primarySortKey() == 'tcp-00121')
         self.assert_(self.ipsvc.getInstDescription() == 'tcp-121 ips:')
+        self.assert_(self.ipsvc.hostname() == 'testdev')
 
 
     def testSetManageIp(self):
