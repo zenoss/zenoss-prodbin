@@ -58,6 +58,9 @@ class ZenXEvent(EventServer, xmlrpc.XMLRPC):
     def xmlrpc_getDevicePingIssues(self, *unused):
         return self.execute(self.zem.getDevicePingIssues, ())
     
+    def xmlrpc_getWmiConnIssues(self, *args):
+        return self.execute(self.zem.getDevicePingIssues, args)
+    
     def doHandleRequest(self, *args):
         method, data, result, ts = args
         try:
