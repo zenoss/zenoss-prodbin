@@ -126,7 +126,11 @@ class Device:
             p.count = count
             p.restart = restart
             p.severity = severity
-            p.thresholds = [Threshold(*t) for t in thresholds]
+            for t in thresholds:
+                print 'threshold for ', name, t
+            p.thresholds = dict(
+               [(name, Threshold(*t)) for name, t in thresholds]
+            )
             p.status = status
         for name in unused:
             del self.processes[name]
@@ -383,7 +387,7 @@ class zenprocess(RRDDaemon):
         value = self.rrd.save(path, value, rrdType)
 
         thresholds = self.devices[deviceName].processes[pidName].thresholds
-        for t in thresholds:
+        for t in thresholds.get(statName,[]):
             t.check(deviceName, pidName, statName, value,
                     self.sendThresholdEvent)
             
