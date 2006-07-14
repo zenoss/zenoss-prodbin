@@ -295,7 +295,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             raise
 
 
-    def getEventSummary(self, where=None, acked=None):
+    def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
         Return a list of tuples with number of events
         and the color of the severity that the number represents.

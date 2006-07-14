@@ -119,6 +119,12 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'deviceOrganizerManage'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

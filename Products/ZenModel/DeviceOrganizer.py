@@ -29,12 +29,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
-            'id'             : 'DeviceGroup',
-            'meta_type'      : 'DeviceGroup',
-            'description'    : """Base class for all devices""",
-            'icon'           : 'DeviceGroup.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addDeviceGroup',
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             ( 
@@ -53,6 +47,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'deviceOrganizerManage'
                 , 'permissions'   : (
                   permissions.view, )
                 },
@@ -140,6 +140,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         for group in self.children():
             status += group.snmpStatus()
         return status
+
+
+    def setProdState(self, state):
+        """Set production state of all devices in this Organizer.
+        """
+        [ d.setProdState(state) for d in self.getSubDevices() ]
 
     
     def _status(self, type, devrel="devices"):

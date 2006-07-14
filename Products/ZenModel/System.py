@@ -56,8 +56,6 @@ class System(DeviceOrganizer):
     
     _properties = (
         {'id':'systemClass', 'type':'string', 'mode':'w'},
-        {'id':'productionState', 'type':'keyedselection', 
-            'mode':'w', 'select_variable':'getProdStateConversions'},
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
     _relations = DeviceOrganizer._relations + (
@@ -100,6 +98,12 @@ class System(DeviceOrganizer):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'deviceOrganizerManage'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -112,14 +116,6 @@ class System(DeviceOrganizer):
 
 
     security = ClassSecurityInfo()
-
-    def __init__(self, id,
-                description = '',
-                systemClass = '',
-                productionState = 1000):
-        DeviceOrganizer.__init__(self, id, description)
-        self.productionState = productionState
-        self.systemClass = systemClass
 
 
     security.declareProtected('View', 'omniPingStatus')

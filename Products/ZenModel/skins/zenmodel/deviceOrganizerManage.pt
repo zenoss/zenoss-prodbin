@@ -1,0 +1,34 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+<input type="hidden" name="zenScreenName" 
+    tal:attributes="value template/id" /> 
+<table class="zentable" border=0 cellpadding=3 cellspacing=1>
+  <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
+    <tr>
+        <td class="tableheader">
+            Set the Production State of all Devices within this Organizer
+        </td>
+        <td class="tableheader">
+                <select class="tablevalues" name="state:int"
+                tal:define="
+                pstates here/getProdStateConversions;
+                curstate device/productionState | 
+                        request/productionState | python:1000"
+                >
+                    <option tal:repeat="pstate pstates" 
+                        tal:attributes="value python:pstate[1]; 
+                            selected python:curstate == pstate[1]"
+                        tal:content="python:pstate[0]">localhost</option>
+                </select>
+          <input class="tableheader" type="submit" name="setProdState:method"
+              value="Change" />
+        </td>
+    </tr>
+  <tr>  
+  </table>
+</form>
+
+</tal:block>
+</tal:block>

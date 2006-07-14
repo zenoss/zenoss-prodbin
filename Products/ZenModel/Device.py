@@ -21,6 +21,8 @@ import socket
 import logging
 log = logging.getLogger("zen.Device")
 
+from _mysql_exceptions import OperationalError
+
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
@@ -681,7 +683,7 @@ class Device(ManagedEntity):
             self.setZenProperty("zSnmpVer", zSnmpVer)
 
         self.rackSlot = rackSlot
-        self.productionState = productionState
+        self.setProdState(productionState)
         self.comments = comments
 
         if hwManufacturer and hwProductName:
@@ -739,6 +741,13 @@ class Device(ManagedEntity):
         """Set a device's production state as an integer.
         """
         self.productionState = int(state)
+        try:
+            db = self.ZenEventManager.connect()
+            curs = db.cursor()
+            curs.execute("update status set prodState=%d"%self.productionState)
+            db.close()
+        except OperationalError:
+            log.exception("failed to update events with new prodState")
 
 
     security.declareProtected('Change Device', 'setLastChange')
