@@ -6,17 +6,17 @@
 
 import pdb
 import unittest
-
+   
 import Globals
-
+  
 from ZenModelBaseTest import ZenModelBaseTest
-
+  
 from Products.ZenModel.Exceptions import *
-
+  
 from Products.ZenModel.Organizer import *
-
+  
 class OrganizerTest(ZenModelBaseTest):
-
+  
     def testOrganizer(self):
         org = self.create(self.dmd, Organizer, "org")
         org.dmdRootName = "org"
@@ -28,8 +28,8 @@ class OrganizerTest(ZenModelBaseTest):
         self.assert_(org.unrestrictedTraverse("foo/bar") == bar)
         self.assert_(org.getOrganizer("/foo/bar") == bar)
         self.assert_(bar.getOrganizerName() == "/foo/bar")
-        self.assert_(org.getOrganizerNames() == ["/foo", "/foo/bar"])
-
+        self.assert_('/foo' in org.getOrganizerNames())
+        self.assert_('/foo/bar' in org.getOrganizerNames())
 
 def main():
     unittest.TextTestRunner().run(test_suite())
