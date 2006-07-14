@@ -126,11 +126,8 @@ class Device:
             p.count = count
             p.restart = restart
             p.severity = severity
-            for t in thresholds:
-                print 'threshold for ', name, t
-            p.thresholds = dict(
-               [(name, Threshold(*t)) for name, t in thresholds]
-            )
+            name, thresholds = thresholds
+            p.thresholds = dict([(name, Threshold(*t)) for t in thresholds])
             p.status = status
         for name in unused:
             del self.processes[name]
