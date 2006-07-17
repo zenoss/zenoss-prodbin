@@ -14,6 +14,36 @@ class zenmib(ZCmdBase):
     
     MIB_MOD_ATTS = ('language', 'contact', 'description')
 
+    def load1(self, mibname):
+        result = {}
+        self.log.debug("%s", mibname.split('/')[-1])
+        exec os.popen('smidump -fpython %s 2>/dev/null' % mibname) in result
+        mib = result.get('MIB', None)
+        if mib:
+            modname = mib['moduleName']
+            #mod = mibs.findMibModule(modname)
+            mod = None
+            if mod:
+                self.log.warn("skipping %s already loaded", modname)
+                return
+            mod = mibs.createMibModule(modname, self.options.path)
+            for key, val in mib[modname].items():
+                if key in self.MIB_MOD_ATTS:
+                    setattr(mod, key, val)
+            if mib.has_key('nodes'):
+                for name, values in mib['nodes'].items():
+                    mod.createMibNode(name, **values) 
+            if mib.has_key('notifications'):
+                for name, values in mib['notifications'].items():
+                    mod.createMibNotification(name, **values) 
+            self.log.info("Loaded mib %s oid names", modname)
+            if not self.options.nocommit: transaction.commit() 
+        else:
+            self.log.error("Failed to load mib: %s", mibname)
+            if self.options.debug:
+                msg = os.popen('smidump -fpython %s 2>&1' % mibname).read()
+                self.log.error("Error: %s", msg)
+
     def load(self):
 
         if len(self.args) > 0:
@@ -22,38 +52,10 @@ class zenmib(ZCmdBase):
             smimibdir = os.path.join(os.environ['ZENHOME'], 'share/mibs')
             mibnames = glob.glob(smimibdir + '/site/*')
 
-            
         mibs = self.dmd.Mibs
         for mibname in mibnames:
             try:
-                result = {}
-                self.log.debug("%s", mibname.split('/')[-1])
-                exec os.popen('smidump -fpython %s 2>/dev/null' % mibname) in result
-                mib = result.get('MIB', None)
-                if mib:
-                    modname = mib['moduleName']
-                    #mod = mibs.findMibModule(modname)
-                    mod = None
-                    if mod:
-                        self.log.warn("skipping %s already loaded", modname)
-                        continue
-                    mod = mibs.createMibModule(modname, self.options.path)
-                    for key, val in mib[modname].items():
-                        if key in self.MIB_MOD_ATTS:
-                            setattr(mod, key, val)
-                    if mib.has_key('nodes'):
-                        for name, values in mib['nodes'].items():
-                            mod.createMibNode(name, **values) 
-                    if mib.has_key('notifications'):
-                        for name, values in mib['notifications'].items():
-                            mod.createMibNotification(name, **values) 
-                    self.log.info("Loaded mib %s oid names", modname)
-                    if not self.options.nocommit: transaction.commit() 
-                else:
-                    self.log.error("Failed to load mib: %s", mibname)
-                    if self.options.debug:
-                        self.log.error("Error: %s",
-                                       os.popen('smidump -fpython %s 2>&1' % mibname).read())
+                self.load1(mibname)
             except (SystemExit, KeyboardInterrupt): raise
             except Exception, ex:
                 self.log.exception("Failed to load mib: %s", mibname)
