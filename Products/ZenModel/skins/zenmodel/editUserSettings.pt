@@ -46,15 +46,23 @@
             tal:attributes="value here/defaultPageSize" />
       </td>
     </tr>
-    <!--
     <tr>
-      <td class="tableheader" align="left">Default Event Page Size</td>
+      <td class="tableheader" align="left">Default Admin Role</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="defaultEventPageSize:int" 
-            tal:attributes="value here/defaultEventPageSize" />
+        <select class="tablevalues" name="defaultAdminRole"
+            tal:define="roles here/administrativeRoles">
+            <option tal:repeat="role roles" tal:content="role"
+                tal:attributes="selected python:here.defaultAdminRole==role"/>
+        </select>
       </td>
     </tr>
-    -->
+    <tr>
+      <td class="tableheader" align="left">Default Admin Level</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="defaultAdminLevel:int" 
+            tal:attributes="value here/defaultAdminLevel" />
+      </td>
+    </tr>
     <tr>
         <td class=tableheader align="left" >
         </td>

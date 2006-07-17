@@ -46,6 +46,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
 from MaintenanceWindow import MaintenanceWindow
+from AdministrativeRole import AdministrativeRole
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -222,7 +223,8 @@ class Device(ManagedEntity):
         ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
-        ("maintenanceWindows", ToManyCont(ToOne, "MaintenanceWindow", "device")),
+        ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "device")),
+        ("adminRoles", ToManyCont(ToOne, "AdministrativeRole", "device")),
         #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
@@ -725,7 +727,7 @@ class Device(ManagedEntity):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Add Maintenance Window', 'manage_addMaintenanceWindow')
+    security.declareProtected('Change Device', 'manage_addMaintenanceWindow')
     def manage_addMaintenanceWindow(self, newId, REQUEST=None):
         "Add a Maintenance Window to this device"
         mw = MaintenanceWindow(newId)
@@ -735,7 +737,7 @@ class Device(ManagedEntity):
             REQUEST['message'] = "Maintenace Window Added"
             return self.callZenScreen(REQUEST)
                           
-    security.declareProtected('Delete Maintenance Window', 'manage_deleteMaintenanceWindow')
+    security.declareProtected('Change Device', 'manage_deleteMaintenanceWindow')
     def manage_deleteMaintenanceWindow(self, maintenanceIds, REQUEST=None):
         "Delete a Maintenance Window to this device"
         import types
@@ -746,6 +748,36 @@ class Device(ManagedEntity):
         self.setLastChange()
         if REQUEST: 
             REQUEST['message'] = "Maintenace Window Deleted"
+            return self.callZenScreen(REQUEST)
+                          
+
+    security.declareProtected('Change Device', 'manage_addAdministrativeRole')
+    def manage_addAdministrativeRole(self, newId, REQUEST=None):
+        "Add a Admin Role to this device"
+        us = self.ZenUsers.getUserSettings(newId)
+        if us:
+            mw = AdministrativeRole(newId)
+            if us.defaultAdminRole:
+                mw.role = us.defaultAdminRole
+                mw.level = us.defaultAdminLevel
+            self.adminRoles._setObject(newId, mw)
+            mw = self.adminRoles._getOb(newId)
+            mw.userSetting.addRelation(us)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Role Added"
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Device','manage_deleteAdministrativeRole')
+    def manage_deleteAdministrativeRole(self, ids, REQUEST=None):
+        "Delete a admin role to this device"
+        import types
+        if type(ids) in types.StringTypes:
+            ids = [ids]
+        for id in ids:
+            self.adminRoles._delObject(id)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
 

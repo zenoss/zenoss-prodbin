@@ -9,12 +9,13 @@ from random import choice
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
-from AccessControl import Permissions as permissions
+from AccessControl import Permissions
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
+from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
@@ -55,8 +56,7 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'manageUserFolder'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ( Permissions.view, )
                 },
             )
          },
@@ -69,6 +69,13 @@ class UserSettingsManager(ZenModelRM):
         return filter(lambda u: u.id != "admin", 
                     self.objectValues(spec="UserSettings"))
             
+
+    def getAllUserSettingsNames(self, filtNames):
+        """Return list of all zenoss usernames. 
+        """
+        filt = lambda x: x not in filtNames
+        return [ u.id for u in self.getAllUserSettings() if filt(u.id) ]
+
 
     def getUsers(self):
         """Return list of Users wrapped in their settings folder.
@@ -226,6 +233,8 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
+    defaultAdminRole = "Administrator"
+    defaultAdminLevel = 1
     oncallStart = 0
     oncallEnd = 0
     escalationMinutes = 0
@@ -235,13 +244,19 @@ class UserSettings(ZenModelRM):
         {'id':'pager', 'type':'string', 'mode':'w'},
         {'id':'defaultPageSize', 'type':'int', 'mode':'w'},
         {'id':'defaultEventPageSize', 'type':'int', 'mode':'w'},
+        {'id':'defaultAdminRole', 'type':'string', 'mode':'w'},
+        {'id':'defaultAdminLevel', 'type':'int', 'mode':'w'},
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
     )
  
 
-    # Screen action bindings (and tab definitions)
+    _relations =  (
+        ("adminRoles", ToMany(ToOne, "AdministrativeRole", "userSetting")),
+    )
+
+   # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 
             'immediate_view' : 'editUserSettings',
@@ -250,6 +265,10 @@ class UserSettings(ZenModelRM):
                 {'name'          : 'Edit',
                 'action'        : 'editUserSettings',
                 'permissions'   : ("Change Settings",),
+                },
+                {'name'          : 'Administered Devices'
+                , 'action'        : 'manageUserFolder'
+                , 'permissions'   : ( "Change Settings", )
                 },
                 {'name'          : 'Event Views',
                 'action'        : 'editEventViews',

@@ -56,6 +56,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'prodStateConversions','type':'lines','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
         {'id':'interfaceStateConversions','type':'lines','mode':'w'},
+        {'id':'administrativeRoles','type':'lines','mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)
@@ -114,6 +115,11 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 'lowerLayerDown:7',
                 ]
 
+    administrativeRoles = (
+        "Administrator",
+        "Analyist",
+        "Tester",
+    )
 
     defaultDateRange = 18000
     performanceDateRanges = [ 

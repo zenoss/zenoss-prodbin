@@ -140,7 +140,6 @@
   </tr>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="6">
-    <span metal:define-macro="editor" tal:omit-tag="">
         <input type="hidden" name="id" tal:attributes="value here/getId"/>
         <input class="tableheader" type="text" name="newId"/>
         <input class="tableheader" type="submit" 
@@ -152,11 +151,82 @@
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
-    </span>
     </td>
     </tr>
 </table>
 </form>
-
+<br/>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="objects here/adminRoles/objectValuesAll;
+    editable here/isManager;
+    tableName string:deviceadminroles;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class="tabletitle" colspan="5">
+        Adminitrators
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Role')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'level','Level')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'email','Email')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'pager','Pager')"/>
+  </tr>
+  <tr tal:repeat="mw batch">
+    <td class="tablevalues" align="left">
+       <input type="checkbox" name="ids" 
+              tal:attributes="value mw/getId"/>
+        <a href="_" 
+        tal:attributes="href mw/userLink"
+        tal:content="mw/getId">somename</a>
+    </td>
+    <td class="tablevalues">
+    <select class="tablevalues" name="role"
+        tal:define="roles here/administrativeRoles">
+        <option tal:repeat="role roles" tal:content="role"
+            tal:attributes="selected python:mw.role==role"/>
+    </select>
+    </td>
+    <td class="tablevalues">
+    <input class="tablevalues" type='text' name="level:int" size="2"
+        tal:attributes="value mw/level">
+    </td>    
+    <td class="tablevalues" tal:content="mw/email"/>
+    <td class="tablevalues" tal:content="mw/pager"/>
+  </tr>
+  <tr>
+    <td colspan="5" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="5">
+        <select class="tableheader" name="newId" 
+            tal:define="us python:here.ZenUsers.getAllUserSettingsNames(
+                        here.adminRoles.objectIds())">
+            <option tal:repeat="u us" tal:content="u"/>
+        </select>
+        <input class="tableheader" type="submit" 
+            name="manage_addAdministrativeRole:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteAdministrativeRole:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
 </tal:block>
 </tal:block>
