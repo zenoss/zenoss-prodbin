@@ -1,3 +1,15 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''Bench-test script for zenxevents
+
+$Id$
+'''
+
 import xmlrpclib
 import time
 

@@ -1,3 +1,20 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''zenactions
+
+Turn events into notifications (pages, emails).
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
+
 import os
 import socket
 import time

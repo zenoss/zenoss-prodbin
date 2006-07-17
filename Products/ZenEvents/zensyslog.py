@@ -1,3 +1,17 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''zensyslog
+
+Turn syslog messages into events.
+
+$Id$
+'''
+
 import sys
 import time
 import socket 
