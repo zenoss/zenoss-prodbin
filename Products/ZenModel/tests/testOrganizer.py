@@ -46,6 +46,24 @@ class TestOrganizer(ZenModelBaseTest):
         self.assert_(org.getChildMoveTarget('/foo/bar') == bar)
 
 
+    def testManageOrganizer(self):
+        org = self.create(self.dmd,Organizer,'org')
+        org.dmdRootName = "org"
+        org.manage_addOrganizer('/foo/bar')
+        org.manage_addOrganizer('/test/loc')
+        org.manage_addOrganizer('/number/three')
+        foo = org.getOrganizer('/foo')
+        test = org.getOrganizer('/test')
+        number = org.getOrganizer('/number')
+        self.assert_(foo in org.children())
+        self.assert_(test in org.children())
+        self.assert_(number in org.children())
+        org.manage_deleteOrganizer('/foo')
+        self.assert_(foo not in org.children())
+        org.manage_deleteOrganizers(['/test','/number'])
+        self.assert_(org.children() == [])
+
+
 def main():
     unittest.TextTestRunner().run(test_suite())
 

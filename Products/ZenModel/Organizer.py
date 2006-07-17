@@ -96,7 +96,7 @@ class Organizer(ZenModelRM, EventView):
         if orgname.startswith("/"):
             try:
                 orgroot = self.getDmdRoot(self.dmdRootName)
-                organizer = orgroot.getOrganizer(organizerName)
+                organizer = orgroot.getOrganizer(orgname)
                 parent = aq_parent(organizer)
                 parent._delObject(organizer.getId())
             except KeyError:
