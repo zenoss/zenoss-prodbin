@@ -78,5 +78,85 @@
   </table>
 </form>
 
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="objects here/maintenanceWindows/objectValuesAll;
+    tableName string:devicemaintenancewindow;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class="tabletitle" align="left" colspan="6">
+	Maintenance Windows
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name','cmp')">
+            Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'start','Start')">
+            Start
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'duration','Duration')">
+            Duration
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'repeat','Repeat')">
+            Repeat
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'startProductionState','Start State')">
+            Start State
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'stopProductionState','Stop State')">
+            Stop State
+        </th>
+  </tr>
+  <tr tal:repeat="mw batch">
+    <td class="tablevalues" align="left">
+       <input type="checkbox" name="maintenanceIds" 
+              tal:attributes="value mw/getId"/>
+        <a href="_" 
+        tal:attributes="href mw/absolute_url"
+        tal:content="mw/getId">somename</a>
+    </td>
+    <td class="tablevalues" 
+	tal:content="python: mw.start.strftime('%Y/%m/%d %H:%M:%S')"/>
+    <td class="tablevalues" tal:content="mw/niceDuration"/>
+    <td class="tablevalues" tal:content="mw/repeat"/>
+    <td class="tablevalues" tal:content="mw/niceStartProductionState"/>
+    <td class="tablevalues" tal:content="mw/niceStopProductionState"/>
+  </tr>
+  <tr>
+    <td colspan="6" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="6">
+    <span metal:define-macro="editor" tal:omit-tag="">
+        <input type="hidden" name="id" tal:attributes="value here/getId"/>
+        <input class="tableheader" type="text" name="newId"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addMaintenanceWindow:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteMaintenanceWindow:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </span>
+    </td>
+    </tr>
+</table>
+</form>
+
 </tal:block>
 </tal:block>

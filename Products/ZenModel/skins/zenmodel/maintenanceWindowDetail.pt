@@ -1,0 +1,117 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
+</script>
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="editable here/isManager">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="2"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+	<td colspan=2 tal:content="here/breadCrumbs"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:content="here/getId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Start</td>
+        <td class="tablevalues" tal:condition="not:editable" 
+            tal:content="here/niceStart"/>
+        <td class="tablevalues" tal:condition="editable">
+	    <input type="text" name="startdate" 
+		   readonly="true"
+		   tal:attributes="
+                       value python:here.start.strftime('%m/%d/%Y')"/>
+	    <input type="button" value="select" 
+		   onclick="displayDatePicker('startdate');"/>
+            <select name="startHours">
+                <option tal:repeat="e python:range(24)"
+                        tal:content="python:'%02d'%e"
+			tal:attributes="value e; 
+                                        selected python:e==here.start.hour()"/>
+	    </select>
+            <select name="startMinutes">
+                <option tal:repeat="e python:range(0, 60, 5)"
+	                tal:content="python:'%02d'%e"
+                        tal:attributes="
+			    value e; 
+			    selected python:abs(e-here.start.minute())<5"/>
+	    </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Duration</td>
+        <td class="tablevalues" 
+	    tal:condition="not:editable"
+	    tal:content="here/niceDuration"/>
+        <td class="tablevalues" tal:condition="editable"
+	    tal:define="days python:here.duration//(24*60*60);
+                        hours python:'%02d' % (here.duration%3600//60);
+                        mins  python:'%02d' % (here.duration%60)">
+            <input name='durationDays'   
+		   tal:attributes="value days" size=4/> 
+	    Days
+            <input name='durationHours' 
+		   tal:attributes="value hours" size=2/> 
+            :
+            <input name='durationMinutes' 
+		   tal:attributes="value mins" size=2/> 
+	</td>
+    </tr>
+    <tr>
+        <td class="tableheader">Repeat</td>
+        <td class="tablevalues" tal:condition="not:editable"
+				tal:content="here/repeat"/>
+        <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="zMonitor:boolean"
+            tal:condition="editable">
+            <option tal:repeat="e here/repeatOptions" tal:content="e"
+                tal:attributes="value e; selected python:e==here.repeat"/>
+            </select>
+        </td>
+    </tr>
+    <tr>
+	<td class="tableheader" align="left">Start Production State</td>
+	<td class="tablevalues" align="left">
+	    <select class="tablevalues" name="startProductionState:int"
+		    tal:define="
+		    pstates here/getProdStateConversions;
+		    curstate here/startProductionState | python:1000">
+		<option tal:repeat="pstate pstates" 
+		    tal:attributes="value python:pstate[1]; 
+			selected python:curstate == pstate[1]"
+		    tal:content="python:pstate[0]">Production</option>
+	    </select>
+	</td>
+    </tr>
+    <tr>
+	<td class="tableheader" align="left">Stop Production State</td>
+	<td class="tablevalues" align="left">
+	    <select class="tablevalues" name="stopProductionState:int"
+		    tal:define="
+		    pstates here/getProdStateConversions;
+		    curstate here/stopProductionState | python:1000">
+		<option tal:repeat="pstate pstates" 
+		    tal:attributes="value python:pstate[1]; 
+			selected python:curstate == pstate[1]"
+		    tal:content="python:pstate[0]">Production</option>
+	    </select>
+	</td>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan=2>
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editMaintenanceWindow:method"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

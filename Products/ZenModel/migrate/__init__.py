@@ -21,3 +21,4 @@ import interfacename_convert
 import processes
 import mibs
 import clearid
+import mwrelations

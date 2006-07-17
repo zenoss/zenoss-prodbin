@@ -45,6 +45,7 @@ from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
+from MaintenanceWindow import MaintenanceWindow
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -213,7 +214,6 @@ class Device(ManagedEntity):
         {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
         ) 
 
-
     _relations = ManagedEntity._relations + (
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
         ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
@@ -222,6 +222,7 @@ class Device(ManagedEntity):
         ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
+        ("maintenanceWindows", ToManyCont(ToOne, "MaintenanceWindow", "device")),
         #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
@@ -724,6 +725,30 @@ class Device(ManagedEntity):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Add Maintenance Window', 'manage_addMaintenanceWindow')
+    def manage_addMaintenanceWindow(self, newId, REQUEST=None):
+        "Add a Maintenance Window to this device"
+        mw = MaintenanceWindow(newId)
+        self.maintenanceWindows._setObject(newId, mw)
+        self.setLastChange()
+        if REQUEST: 
+            REQUEST['message'] = "Maintenace Window Added"
+            return self.callZenScreen(REQUEST)
+                          
+    security.declareProtected('Delete Maintenance Window', 'manage_deleteMaintenanceWindow')
+    def manage_deleteMaintenanceWindow(self, maintenanceIds, REQUEST=None):
+        "Delete a Maintenance Window to this device"
+        import types
+        if type(maintenanceIds) in types.StringTypes:
+            maintenanceIds = [maintenanceIds]
+        for id in maintenanceIds:
+            self.maintenanceWindows._delObject(id)
+        self.setLastChange()
+        if REQUEST: 
+            REQUEST['message'] = "Maintenace Window Deleted"
+            return self.callZenScreen(REQUEST)
+                          
+
     def monitorDevice(self):
         """Is device production state >= zProdStateThreshold.
         """
@@ -1026,7 +1051,7 @@ class Device(ManagedEntity):
 
     security.declareProtected('Change Device', 'renameDevice')
     def renameDevice(self, newId, REQUEST=None):
-        """Delete device from the DMD"""
+        """Rename device from the DMD"""
         parent = self.getPrimaryParent()
         parent.manage_renameObject(self.getId(), newId)
         self.setLastChange()
