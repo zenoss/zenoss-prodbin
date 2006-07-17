@@ -51,8 +51,11 @@ class zenmib(ZCmdBase):
                     if not self.options.nocommit: transaction.commit() 
                 else:
                     self.log.error("Failed to load mib: %s", mibname)
+                    if self.options.debug:
+                        self.log.error("Error: %s",
+                                       os.popen('smidump -fpython %s 2>&1' % mibname).read())
             except (SystemExit, KeyboardInterrupt): raise
-            except Exception:
+            except Exception, ex:
                 self.log.exception("Failed to load mib: %s", mibname)
 
         
@@ -64,6 +67,9 @@ class zenmib(ZCmdBase):
         self.parser.add_option('--nocommit', action='store_true',
                                dest='nocommit',default=False,
                                help="don't commit after loading")
+        self.parser.add_option('--debug', action='store_true',
+                               dest='debug',default=False,
+                               help="print diagnostic information")
 
 
 if __name__ == '__main__':
