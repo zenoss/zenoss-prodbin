@@ -21,9 +21,10 @@ class AdministrativeRole(ZenModelRM):
     role = "Administrator"
 
 
-    def getAdminRoles(self):
-        """Return list of role names.
-        """
+    def deleteAdminRole(self):
+        self.device.removeRelation()
+        self.userSetting.removeRelation()
+
 
     def email(self):
         return self.userSetting().email
@@ -35,3 +36,19 @@ class AdministrativeRole(ZenModelRM):
    
     def userLink(self):
         return self.userSetting().getPrimaryUrlPath()
+
+
+    def deviceName(self):
+        return self.device().id
+
+
+    def deviceLink(self):
+        return self.device().getPrimaryUrlPath()
+
+
+    def deviceClass(self):
+        return self.device().getDeviceClassPath()
+
+
+    def deviceProdState(self):
+        return self.device().getProductionStateString()

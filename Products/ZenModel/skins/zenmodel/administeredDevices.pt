@@ -1,0 +1,81 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="objects here/adminRoles/objectValuesAll;
+    editable here/isManager;
+    tableName string:deviceadminroles;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class="tabletitle" colspan="5">Administered Devices</th>
+    </tr>
+    <tr tal:define="message request/message | string:">
+        <td class=tableheader colspan=5 tal:content="message" />
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'deviceName','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'deviceClass','Class')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'deviceProdState','Prod State')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Role')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'level','Level')"/>
+  </tr>
+  <tr tal:repeat="ur batch">
+    <td class="tablevalues" align="left">
+       <input type="hidden" name="ids" 
+              tal:attributes="value ur/deviceName"/>
+       <input type="checkbox" name="delids" tal:condition="editable"
+              tal:attributes="value ur/deviceName"/>
+        <a tal:attributes="href ur/deviceLink"
+            tal:content="ur/deviceName">somename</a>
+    </td>
+    <td class="tablevalues" tal:content="ur/deviceClass"/>
+    <td class="tablevalues" tal:content="ur/deviceProdState"/>
+    <td class="tablevalues">
+    <select class="tablevalues" name="role" tal:condition="editable"
+        tal:define="roles here/administrativeRoles">
+        <option tal:repeat="role roles" tal:content="role"
+            tal:attributes="selected python:ur.role==role"/>
+    </select>
+    <tal:block tal:content="ur/role" tal:condition="not:editable"/>
+    </td>
+    <td class="tablevalues">
+    <input class="tablevalues" type='text' name="level:int" size="2"
+    onkeypress="return submitViaEnter(event,'manage_editAdministrativeRoles');"
+        tal:condition="editable" tal:attributes="value ur/level">
+    <tal:block tal:content="ur/level" tal:condition="not:editable"/>
+    </td>    
+  </tr>
+  <tr>
+    <td colspan="5" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+    <tr tal:condition="editable">
+    <td class="tableheader" colspan="5">
+        <input class="tableheader" type='text' name="deviceName"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addAdministrativeRole:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_editAdministrativeRoles:method" value=" Save " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteAdministrativeRole:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

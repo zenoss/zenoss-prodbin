@@ -4,6 +4,8 @@
 #
 #################################################################
 
+import types
+
 from random import choice
 
 from Globals import DTMLFile
@@ -18,6 +20,7 @@ from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
+from AdministrativeRole import AdministrativeRole
 
 UserSettingsId = "ZenUsers"
 
@@ -267,7 +270,7 @@ class UserSettings(ZenModelRM):
                 'permissions'   : ("Change Settings",),
                 },
                 {'name'          : 'Administered Devices'
-                , 'action'        : 'manageUserFolder'
+                , 'action'        : 'administeredDevices'
                 , 'permissions'   : ( "Change Settings", )
                 },
                 {'name'          : 'Event Views',
@@ -373,6 +376,68 @@ class UserSettings(ZenModelRM):
             ar.manage_setLocalRoles(userid, ("Owner",))
         if REQUEST:
             return self.callZenScreen(REQUEST)
+
+    
+    #security.declareProtected('Change Settings', 'manage_addAdministrativeRole')
+    def manage_addAdministrativeRole(self, deviceName, REQUEST=None):
+        "Add a Admin Role to this device"
+        dev =self.getDmdRoot("Devices").findDevice(deviceName)
+        if not dev:
+            if REQUEST: 
+                REQUEST['message'] = "Device %s not found" % deviceName
+                return self.callZenScreen(REQUEST)
+            else: return
+        roleNames = [ r.id for r in dev.adminRoles() ]
+        if self.id in roleNames:
+            if REQUEST: 
+                REQUEST['message'] = "Role exists on device %s" % deviceName
+                return self.callZenScreen(REQUEST)
+            else: return
+        mw = AdministrativeRole(self.id)
+        if self.defaultAdminRole:
+            mw.role = self.defaultAdminRole
+            mw.level = self.defaultAdminLevel
+        dev.adminRoles._setObject(self.id, mw)
+        mw = dev.adminRoles._getOb(self.id)
+        mw.userSetting.addRelation(self)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Role Added for %s" % deviceName
+            return self.callZenScreen(REQUEST)
+
+
+    #security.declareProtected('Change Settings','manage_editAdministrativeRoles')
+    def manage_editAdministrativeRoles(self, ids, role, level, REQUEST=None):
+        """Edit list of admin roles.
+        """
+        if type(ids) in types.StringTypes:
+            ids = [ids]
+            level = [level]
+            role = [role]
+        for ar in self.adminRoles():
+            try: i = ids.index(ar.deviceName())
+            except ValueError: continue
+            if ar.role != role[i]: ar.role = role[i]
+            if ar.level != level[i]: ar.level = level[i]
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Updated"
+            return self.callZenScreen(REQUEST)
+        
+
+    #security.declareProtected('Change Settings','manage_deleteAdministrativeRole')
+    def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
+        "Delete a admin role to this device"
+        import types
+        if type(delids) in types.StringTypes:
+            delids = [delids]
+        for ar in self.adminRoles():
+            if ar.deviceName() in delids:
+                ar.userSetting.removeRelation()
+                dev = ar.device().primaryAq()
+                dev.adminRoles._delObject(ar.id)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Deleted"
+            return self.callZenScreen(REQUEST)
+                          
 
 
 InitializeClass(UserSettingsManager)

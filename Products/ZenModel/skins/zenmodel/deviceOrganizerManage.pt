@@ -11,7 +11,7 @@
             Set the Production State of all Devices within this Organizer
         </td>
         <td class="tableheader">
-                <select class="tablevalues" name="state:int"
+                <select class="tableheader" name="state:int"
                 tal:define="
                 pstates here/getProdStateConversions;
                 curstate device/productionState | 

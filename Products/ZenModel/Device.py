@@ -17,6 +17,7 @@ __version__ = "$Revision: 1.121 $"[11:-2]
 import sys
 import re
 import time
+import types
 import socket
 import logging
 log = logging.getLogger("zen.Device")
@@ -771,6 +772,10 @@ class Device(ManagedEntity):
     def manage_editAdministrativeRoles(self, ids, role, level, REQUEST=None):
         """Edit list of admin roles.
         """
+        if type(ids) in types.StringTypes:
+            ids = [ids]
+            role = [role]
+            level = [level]
         for i, id in enumerate(ids):
             ar = self.adminRoles._getOb(id)
             if ar.role != role[i]: ar.role = role[i]
