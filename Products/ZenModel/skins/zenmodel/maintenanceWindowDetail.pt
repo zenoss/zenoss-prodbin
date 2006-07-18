@@ -54,12 +54,13 @@
                         mins  python:'%02d' % (here.duration%60)">
             <input name='durationDays'   
 		   tal:attributes="value days" size=4/> 
-	    Days,&nbsp;
+	    Days
             <input name='durationHours' 
 		   tal:attributes="value hours" size=2/> 
-            :
+            Hours
             <input name='durationMinutes' 
 		   tal:attributes="value mins" size=2/> 
+	    Minutes
 	</td>
     </tr>
     <tr>
