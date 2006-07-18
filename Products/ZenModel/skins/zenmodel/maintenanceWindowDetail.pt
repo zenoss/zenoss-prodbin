@@ -11,10 +11,7 @@
         tal:define="editable here/isManager">
     <tr tal:define="message request/message | string:State at time:">
         <th class=tabletitle colspan="2"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
-    <tr>
-	<td colspan=2 tal:content="here/breadCrumbs"/>
+            tal:content="string: ${message} ${here/getNowString}"/>
     </tr>
     <tr>
         <td class="tableheader">Name</td>
@@ -25,24 +22,24 @@
         <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/niceStart"/>
         <td class="tablevalues" tal:condition="editable">
-	    <input type="text" name="startdate" 
+	    <input type="text" name="startDate" 
 		   readonly="true"
 		   tal:attributes="
-                       value python:here.start.strftime('%m/%d/%Y')"/>
+                       value python:here.niceStartDate()"/>
 	    <input type="button" value="select" 
-		   onclick="displayDatePicker('startdate');"/>
+		   onclick="displayDatePicker('startDate');"/>
             <select name="startHours">
                 <option tal:repeat="e python:range(24)"
                         tal:content="python:'%02d'%e"
 			tal:attributes="value e; 
-                                        selected python:e==here.start.hour()"/>
+                                        selected python:e==here.niceStartHour()"/>
 	    </select>
             <select name="startMinutes">
                 <option tal:repeat="e python:range(0, 60, 5)"
 	                tal:content="python:'%02d'%e"
                         tal:attributes="
 			    value e; 
-			    selected python:abs(e-here.start.minute())<5"/>
+			    selected python:abs(e-here.niceStartMinute())<5"/>
 	    </select>
         </td>
     </tr>
@@ -52,12 +49,12 @@
 	    tal:condition="not:editable"
 	    tal:content="here/niceDuration"/>
         <td class="tablevalues" tal:condition="editable"
-	    tal:define="days python:here.duration//(24*60*60);
-                        hours python:'%02d' % (here.duration%3600//60);
+	    tal:define="days python:here.duration//(24*60);
+                        hours python:'%02d' % (here.duration//60%24);
                         mins  python:'%02d' % (here.duration%60)">
             <input name='durationDays'   
 		   tal:attributes="value days" size=4/> 
-	    Days
+	    Days,&nbsp;
             <input name='durationHours' 
 		   tal:attributes="value hours" size=2/> 
             :
@@ -70,7 +67,7 @@
         <td class="tablevalues" tal:condition="not:editable"
 				tal:content="here/repeat"/>
         <td class="tablevalues" tal:condition="editable">
-            <select class="tablevalues"  name="zMonitor:boolean"
+            <select class="tablevalues"  name="repeat"
             tal:condition="editable">
             <option tal:repeat="e here/repeatOptions" tal:content="e"
                 tal:attributes="value e; selected python:e==here.repeat"/>

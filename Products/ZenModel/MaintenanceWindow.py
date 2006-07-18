@@ -18,7 +18,6 @@ import time
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
-from DateTime import DateTime
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 
@@ -53,6 +52,22 @@ def addMonth(secs):
     if base[1] != month:
         return lastDayPreviousMonth(time.mktime(base))
     return time.mktime(base)
+
+def minmax(value, minValue, maxValue, label, msgs):
+    "add a message to msgs if not minValue <= value <= maxValue"
+    if not minValue <= value < maxValue:
+        msgs.append("Bad value for %s: "
+                    "must be between %s and %s, inclusive" %
+                    (label, minValue, maxValue))
+
+def makeInts(values, msgs):
+    result = []
+    try:
+        for v in values:
+            result.append(int(v))
+    except ValueError:
+        msgs.append("Bad number: " + v)
+    return result
     
 class MaintenanceWindow(ZenModelRM):
     
@@ -99,11 +114,11 @@ class MaintenanceWindow(ZenModelRM):
 
 
     REPEAT = "Never/Daily/Every Weekday/Weekly/Monthly/First Sunday of the Month".split('/')
-    NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, FSOTM = range(len(REPEAT))
+    NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, FSOTM = REPEAT
 
     def __init__(self, id):
         ZenModelRM.__init__(self, id)
-        self.start = DateTime(time.time() + DAY_SECONDS)
+        self.start = time.time() + DAY_SECONDS
 
     def set(self, start, duration, repeat):
         self.start = start
@@ -111,9 +126,13 @@ class MaintenanceWindow(ZenModelRM):
         self.repeat = repeat
 
     def repeatOptions(self):
+        "Provide the list of REPEAT options"
         return self.REPEAT
 
+    # Nice methods used by the GUI for presentation purposes
     def niceDuration(self):
+        """Return a human readable version of the duration in
+        days, hours, minutes"""
         duration = self.duration
         if duration < 60:
             return ":%02d" % duration
@@ -123,32 +142,110 @@ class MaintenanceWindow(ZenModelRM):
                                       (duration // 60) % 24,
                                       duration % 60)
 
+    def niceStartDate(self):
+        "Return a date in the format use by the calendar javascript"
+        return time.strftime('%m/%d/%Y', time.localtime(self.start))
+
+    def niceStartDateTime(self):
+        "Return start time as a string with nice sort qualities"
+        return time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.start))
+
     def niceStartProductionState(self):
+        "Return a string version of the startProductionState"
         return self.convertProdState(self.startProductionState)
 
     def niceStopProductionState(self):
+        "Return a string version of the stopProductionState"
         return self.convertProdState(self.stopProductionState)
 
+    def niceStartHour(self):
+        return time.localtime(self.start)[3]
+
+    def niceStartMinute(self):
+        return time.localtime(self.start)[4]
 
     security.declareProtected('Change Maintenance Window',
                               'manage_editMaintenanceWindow')
-    def manage_editMaintenanceWindow(self, *args, **kw):
-        "Update the maintenance window"
+    def manage_editMaintenanceWindow(self,
+                                     startDate='',
+                                     startHours='',
+                                     startMinutes='00',
+                                     durationDays='0',
+                                     durationHours='00',
+                                     durationMinutes='00',
+                                     repeat='Never',
+                                     startProductionState=1000,
+                                     stopProductionState=300,
+                                     REQUEST=None,
+                                     **kw):
+        "Update the maintenance window from GUI elements"
+        msgs = []
+        startHours, startMinutes = makeInts((startHours, startMinutes), msgs)
+        import re
+        try:
+            month, day, year = re.split('[^ 0-9]', startDate)
+        except ValueError:
+            msgs.append("Date needs three number fields")
+        minmax(startMinutes, 0, 59, 'minute', msgs)
+        minmax(startHours, 0, 59, 'hour', msgs)
+        day, month, year = makeInts((day, month, year), msgs)
+        minmax(day, 0, 31, 'day', msgs)
+        minmax(month, 1, 12, 'month', msgs)
+        minmax(year, 2000, 2037, 'year', msgs)
+        if not msgs:
+            t = time.mktime((year, month, day, startHours, startMinutes,
+                             0, 0, 0, -1))
+        if not msgs:
+            durationDays, durationHours, durationMinutes = \
+                makeInts((durationDays, durationHours, durationMinutes), msgs)
+        minmax(durationHours, 0, 23, 'hours', msgs)
+        minmax(durationMinutes, 0, 59, 'minutes', msgs)
+        if not msgs:
+            duration = (durationDays * (60*24) +
+                        durationHours * 60 +
+                        durationMinutes)
+            if duration < 1:
+                msgs.append('Maintenance Window must be at least 1')
+        if msgs:
+            if REQUEST:
+                REQUEST['message'] = '; '.join(msgs)
+            return self.callZenScreen(REQUEST)
+        else:
+            self.start = t
+            self.duration = duration
+            self.repeat = repeat
+            self.startProductionState = startProductionState
+            self.stopProductionState = stopProductionState
+            now = time.time()
+            if self.started and self.nextEvent(now) < now:
+                self.end()
+
+
+    def nextEvent(self, now):
+        "Return the time of the next begin() or end()"
+        if self.started:
+            return self.started + self.duration * 60
+        # ok, so maybe "now" is a little late: start anything that
+        # should have been started by now
+        return self.next(now - self.duration * 60)
+
 
     security.declareProtected('View', 'breadCrumbs')
     def breadCrumbs(self, terminator='dmd'):
-        "fix up breadCrumbs to go back to the Manage tab"
+        "fix up breadCrumbs to add a link back to the Manage tab"
         bc = super(MaintenanceWindow, self).breadCrumbs(terminator)
         url, display = bc[-2]
         url += "/deviceManagement"
-        bc[-2] = (url, display)
+        bc.insert(-1, (url, 'manage'))
         return bc
 
 
     def next(self, now = None):
-        "from Unix time_t now value, return next time_t value for the window, or None"
+        """From Unix time_t now value, return next time_t value
+        for the window to start, or None"""
         if now is None:
             now = time.time()
+
         if self.repeat == self.NEVER:
             if now > self.start:
                 return None
@@ -196,7 +293,29 @@ class MaintenanceWindow(ZenModelRM):
                     break
                 base += DAY_SECONDS
             return base
-        raise ValueError('bad value for MaintenanceWindow repeat')
+        raise ValueError('bad value for MaintenanceWindow repeat: %r' %self.repeat)
+
+    def begin(self, now = None):
+        "hook for entering the Maintenance Window: call if you override"
+        self.device().primaryAq().productionState = self.startProductionState
+        if not now:
+            now = time.time()
+        self.started = now
+
+
+    def end(self):
+        "hook for leaving the Maintenance Window: call if you override"
+        self.started = None
+        self.device().primaryAq().productionState = self.stopProductionState
+
+
+    def execute(self, now = None):
+        "Take the next step: either start or stop the Maintenance Window"
+        if self.started:
+            self.end()
+        else:
+            self.begin(now)
+        
 
 if __name__=='__main__':
     m = MaintenanceWindow('tester')
@@ -224,3 +343,25 @@ if __name__=='__main__':
     c = time.mktime( (2006, 2, 5, 10, 45, 12, 0, 0, 0) )
     m.set(t, 60*60*2, m.FSOTM)
     assert m.next(t+1) == c
+
+    r = {'test':None}
+    m.manage_editMaintenanceWindow(
+                                     startDate='01/29/2006',
+                                     startHours='10',
+                                     startMinutes='45',
+                                     durationDays='1',
+                                     durationHours='1',
+                                     durationMinutes='1',
+                                     repeat='Weekly',
+                                     startProductionState=1000,
+                                     stopProductionState=300,
+                                     REQUEST=r)
+
+    if r:
+        print r['message']
+    assert not r.has_key('message')
+    assert m.start == t - 12
+    assert m.duration == 24*60+61
+    assert m.repeat == 'Weekly'
+    assert m.startProductionState == 1000
+    assert m.stopProductionState == 300

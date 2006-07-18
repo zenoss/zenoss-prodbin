@@ -27,6 +27,9 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
+from Schedule import Schedule
+
+from twisted.internet import reactor
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -66,6 +69,7 @@ class ZenActions(ZCmdBase):
 
     def __init__(self):
         ZCmdBase.__init__(self)
+        self.schedule = Schedule(self.options, self.dmd)
         self.actions = []
         self.loadActionRules()
         if not self.options.fromaddr:
@@ -74,7 +78,6 @@ class ZenActions(ZCmdBase):
                         eventClass=AppStart, 
                         summary="zenactions started",
                         severity=0, component="zenactions"))
-        
 
     def loadActionRules(self):
         """Load the ActionRules into the system.
@@ -216,23 +219,28 @@ class ZenActions(ZCmdBase):
         self.maintenance(db, zem)
         self.heartbeatEvents(db)
         db.close()
+
+
+    def runCycle(self):
+        try:
+            start = time.time()
+            self.syncdb()
+            self.mainbody()
+            self.log.info("processed %s rules in %.2f secs", 
+                           len(self.actions), time.time()-start)
+            self.sendHeartbeat()
+        except:
+            self.log.exception("unexpected exception")
+        reactor.callLater(self.options.cycletime, self.runCycle)
         
     
     def run(self):
-        if not self.options.cycle: 
+        if not self.options.cycle:
+            self.schedule.run()
             return self.mainbody()
-        while 1:
-            try:
-                start = time.time()
-                self.syncdb()
-                self.mainbody()
-                self.log.info("processed %s rules in %.2f secs", 
-                               len(self.actions), time.time()-start)
-                self.sendHeartbeat()
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("unexpected exception")
-            time.sleep(self.options.cycletime)
+        self.schedule.start()
+        self.runCycle()
+        reactor.run()
 
 
     def sendEvent(self, evt):
@@ -321,6 +329,14 @@ class ZenActions(ZCmdBase):
             '--zopeurl', dest='zopeurl',
             default='http://%s:%d' % (socket.getfqdn(), 8080),
             help="http path to the root of the zope server")
+
+
+    def sigTerm(self, signum, frame):
+        'controlled shutdown of main loop on interrupt'
+        try:
+            ZCmdBase.sigTerm(self, signum, frame)
+        except SystemExit:
+            reactor.stop()
 
 if __name__ == "__main__":
     za = ZenActions()

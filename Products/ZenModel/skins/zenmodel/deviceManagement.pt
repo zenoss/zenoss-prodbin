@@ -126,8 +126,7 @@
         tal:attributes="href mw/absolute_url"
         tal:content="mw/getId">somename</a>
     </td>
-    <td class="tablevalues" 
-	tal:content="python: mw.start.strftime('%Y/%m/%d %H:%M:%S')"/>
+    <td class="tablevalues" tal:content="mw/niceStartDateTime"/>
     <td class="tablevalues" tal:content="mw/niceDuration"/>
     <td class="tablevalues" tal:content="mw/repeat"/>
     <td class="tablevalues" tal:content="mw/niceStartProductionState"/>
