@@ -14,7 +14,7 @@ class zenmib(ZCmdBase):
     
     MIB_MOD_ATTS = ('language', 'contact', 'description')
 
-    def load1(self, mibname):
+    def load1(self, mibs, mibname):
         result = {}
         self.log.debug("%s", mibname.split('/')[-1])
         exec os.popen('smidump -fpython %s 2>/dev/null' % mibname) in result
@@ -55,7 +55,7 @@ class zenmib(ZCmdBase):
         mibs = self.dmd.Mibs
         for mibname in mibnames:
             try:
-                self.load1(mibname)
+                self.load1(mibs, mibname)
             except (SystemExit, KeyboardInterrupt): raise
             except Exception, ex:
                 self.log.exception("Failed to load mib: %s", mibname)
