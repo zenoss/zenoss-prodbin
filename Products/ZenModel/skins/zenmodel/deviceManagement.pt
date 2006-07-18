@@ -183,7 +183,9 @@
   </tr>
   <tr tal:repeat="mw batch">
     <td class="tablevalues" align="left">
-       <input type="checkbox" name="ids" 
+       <input type="hidden" name="ids" 
+              tal:attributes="value mw/getId"/>
+       <input type="checkbox" name="delids" 
               tal:attributes="value mw/getId"/>
         <a href="_" 
         tal:attributes="href mw/userLink"
@@ -198,6 +200,7 @@
     </td>
     <td class="tablevalues">
     <input class="tablevalues" type='text' name="level:int" size="2"
+    onkeypress="return submitViaEnter(event,'manage_editAdministrativeRoles');"
         tal:attributes="value mw/level">
     </td>    
     <td class="tablevalues" tal:content="mw/email"/>
@@ -217,6 +220,9 @@
         </select>
         <input class="tableheader" type="submit" 
             name="manage_addAdministrativeRole:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_editAdministrativeRoles:method" value=" Save " /> 
         |
         <input class="tableheader" type="submit" 
             name="manage_deleteAdministrativeRole:method" value=" Delete " />

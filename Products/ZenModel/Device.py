@@ -768,13 +768,25 @@ class Device(ManagedEntity):
             return self.callZenScreen(REQUEST)
 
 
+    def manage_editAdministrativeRoles(self, ids, role, level, REQUEST=None):
+        """Edit list of admin roles.
+        """
+        for i, id in enumerate(ids):
+            ar = self.adminRoles._getOb(id)
+            if ar.role != role[i]: ar.role = role[i]
+            if ar.level != level[i]: ar.level = level[i]
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Updated"
+            return self.callZenScreen(REQUEST)
+        
+
     security.declareProtected('Change Device','manage_deleteAdministrativeRole')
-    def manage_deleteAdministrativeRole(self, ids, REQUEST=None):
+    def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
         "Delete a admin role to this device"
         import types
-        if type(ids) in types.StringTypes:
-            ids = [ids]
-        for id in ids:
+        if type(delids) in types.StringTypes:
+            delids = [delids]
+        for id in delids:
             self.adminRoles._delObject(id)
         if REQUEST: 
             REQUEST['message'] = "Administrative Roles Deleted"
