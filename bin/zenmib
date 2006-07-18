@@ -2,7 +2,6 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO=sudo
 PRGHOME=$ZENHOME/Products/ZenModel
 PRGNAME=zenmib.py
 CFGFILE=$CFGDIR/zenmib.conf
