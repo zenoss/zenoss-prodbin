@@ -21,19 +21,21 @@ from Testing.ZopeTestCase import ZopeLite
 from Testing.ZopeTestCase.ZopeTestCase import ZopeTestCase, user_role, \
                                     folder_name, standard_permissions
 
-class DeviceClassTest(ZenModelBaseTest):
+class TestDeviceClass(ZenModelBaseTest):
 
 
-    def testcreateInstanceDevice(self):
+    def testCreateInstanceDevice(self):
         devices = self.create(self.dmd, DeviceClass, "Devices")
         devices.createCatalog()#necessary, don't know why
         dev = devices.createInstance("testdev")
         self.assert_(isinstance(dev, Device))
         self.assert_(dev.deviceClass() == devices)
         self.assert_(dev.getDeviceClassName() == "/")
+        self.assert_(devices.countDevices() == 1)
+        self.assert_(dev in devices.getSubDevices())
 
     
-    def testcreateInstanceDeviceAndIndex(self):
+    def testCreateInstanceDeviceAndIndex(self):
         devices = self.create(self.dmd, DeviceClass, "Devices")
         devices.createCatalog()
         dev = devices.createInstance("testdev")
@@ -73,12 +75,20 @@ class DeviceClassTest(ZenModelBaseTest):
         devices.createCatalog()
         dev = routers.createInstance("testrouter")
         dcnames = dev.getPeerDeviceClassNames()
+        
         self.assert_("/NetworkDevice/Router" in dcnames)
         self.assert_("/NetworkDevice/Router/Firewall" in dcnames)
         self.assert_("/NetworkDevice/Router/RSM" in dcnames)
-        #self.assert_("/Server" not in dcnames)
-        self.assert_('/Server' in dcnames)
+        #self.assert_("/Server" not in dcnames)FIXME: should it be in here or
+        #                                             not?
+
+        routers.moveDevices('/','testrouter')
+
+        self.assert_(dev in self.dmd.Devices.getSubDevices())
+        self.assert_(dev not in self.dmd.Devices.NetworkDevice.Router.getSubDevices())
                         
+
+    
                             
 
 def main():
