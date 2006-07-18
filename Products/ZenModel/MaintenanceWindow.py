@@ -297,7 +297,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
-        self.device().primaryAq().productionState = self.startProductionState
+        self.device().primaryAq().setProdState(self.startProductionState)
         if not now:
             now = time.time()
         self.started = now
@@ -306,7 +306,7 @@ class MaintenanceWindow(ZenModelRM):
     def end(self):
         "hook for leaving the Maintenance Window: call if you override"
         self.started = None
-        self.device().primaryAq().productionState = self.stopProductionState
+        self.device().primaryAq().setProdState(self.stopProductionState)
 
 
     def execute(self, now = None):
