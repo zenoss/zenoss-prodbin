@@ -47,7 +47,7 @@ trigger = """
             OLD.ntevid,
             OLD.ownerid,
             NULL,
-            OLD.clearid,
+            OLD.clearid
             )"""
             
 
@@ -70,5 +70,6 @@ class ClearId(Migrate.Step):
         self.execute(s, cmd % 'status')
         self.execute(s, cmd % 'history')
         self.execute(s, 'DROP TRIGGER status_delete')
+        self.execute(s, trigger)
 
 ClearId()
