@@ -158,13 +158,16 @@ class RRDDaemon(ZenDaemon):
         'convenience function for flushing events to the Zope server'
         if self.events:
             d = self.zem.callRemote('sendEvents', self.events)
-            d.addCallback(self.eventsSent, len(self.events))
-            d.addErrback(self.log.error)
+            d.addBoth(self.eventsSent, self.events)
+            self.events = []
 
-    def eventsSent(self, unused, count):
-        self.events = self.events[count:]
-        if self.shutdown:
-            self._shutdown()
+    def eventsSent(self, result, events):
+        if isinstance(result, failure.Failure):
+            self.events.extend(events)
+        else:
+            self.events = self.events[len(events):]
+            if self.shutdown:
+                self._shutdown()
 
     def sigTerm(self, *unused):
         'controlled shutdown of main loop on interrupt'
