@@ -54,6 +54,12 @@ class Schedule:
         self.workList = []
         for dev in self.dmd.Devices.getSubDevices():
             self.workList.extend(dev.maintenanceWindows())
+        for name in 'Systems', 'Locations', 'Groups', 'Devices':
+            organizer = getattr(self.dmd, name)
+            for c in organizer.getSubOrganizers():
+                self.workList.extend(c.maintenanceWindows())
+            self.workList.extend(organizer.maintenanceWindows())
+        print self.workList
         self.runEvents()
 
     def makeWorkList(self, now, workList):
@@ -64,8 +70,8 @@ class Schedule:
             t, mw = work[0]
             if t: break
             self.log.debug("Never going to run Maintenance "
-                           "Window %s for device %s again",
-                           mw.getId(), mw.device().getId())
+                           "Window %s for %s again",
+                           mw.getId(), mw.productionState().getId())
             if mw.started:
                 mw.end()
             work.pop(0)
@@ -88,7 +94,7 @@ class Schedule:
                 how = {True:'stopping', False:'starting'}[bool(mw.started)]
                 self.log.debug("Maintenance window "
                                "%s %s for %s",
-                               how, mw.getId(), mw.device().getId())
+                               how, mw.getId(), mw.productionState().getId())
                 mw.execute(next)
             else:
                 break
