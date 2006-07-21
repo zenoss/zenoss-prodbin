@@ -70,7 +70,7 @@ class MibModule(ZenModelRM):
 
     
     def createMibNode(self, id, **kwargs):
-        """Create a MibModule 
+        """Create a MibNode 
         """
         from MibNode import MibNode
         if self.oid2name(kwargs['oid']):
@@ -82,7 +82,7 @@ class MibModule(ZenModelRM):
 
 
     def createMibNotification(self, id, **kwargs):
-        """Create a MibModule 
+        """Create a MibNotification 
         """
         from MibNotification import MibNotification
         if self.oid2name(kwargs['oid']):

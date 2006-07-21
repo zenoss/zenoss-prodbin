@@ -88,13 +88,6 @@ class MibOrganizer(Organizer):
         return ""
 
 
-#     def findMibModule(self, name):
-#         """Return mib module matching name.
-#         """
-#         mod = self._mibmodules.get(name, None)
-#         if mod is not None: return mod.primaryAq()
-
-        
     def countClasses(self):
         """Count all mibs with in a MibOrganizer.
         """
