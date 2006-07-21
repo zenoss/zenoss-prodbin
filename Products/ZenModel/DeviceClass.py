@@ -255,7 +255,8 @@ class DeviceClass(DeviceOrganizer):
             if not dev.monitorDevice(): continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
-            devinfo.append((dev.id,user,passwd,dev.absolute_url()))
+            sev = getattr(dev, 'zWinEventlogMinSeverity', '')
+            devinfo.append((dev.id,user,passwd,sev,dev.absolute_url()))
         return starttime, devinfo
     
     
@@ -559,6 +560,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zWinUser", "")
         devs._setProperty("zWinPassword", "")
         #devs._setProperty("zWinServices", "")
+        devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
 
 

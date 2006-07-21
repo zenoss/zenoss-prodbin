@@ -23,3 +23,4 @@ import mibs
 import clearid
 import mwrelations
 import rrdmin
+import winminseverity

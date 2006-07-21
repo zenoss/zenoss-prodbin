@@ -1,3 +1,9 @@
+__doc__='''
+
+Add relations for maintenance windows and admin roles.
+
+'''
+
 import Migrate
 class MaintenanceWindowRelations(Migrate.Step):
     version = 22.0
