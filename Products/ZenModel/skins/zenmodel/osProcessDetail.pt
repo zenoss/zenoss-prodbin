@@ -65,7 +65,7 @@
     <tr>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues" tal:condition="editable">
-            <input class="tablevalues" type="text" name="severity:int" 
+            <input class="tablevalues" type="text" name="zFailSeverity:int" 
                 tal:attributes="value here/failSeverity"/>
         </td>
         <td class="tablevalues" tal:condition="not:editable"
