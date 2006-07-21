@@ -20,7 +20,8 @@ from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
-from AdministrativeRole import AdministrativeRole
+from AdministrativeRole import DeviceAdministrativeRole, \
+                               DevOrgAdministrativeRole
 
 UserSettingsId = "ZenUsers"
 
@@ -189,6 +190,11 @@ class UserSettingsManager(ZenModelRM):
         self.acl_users._doDelUsers(userids)
         for userid in userids:
             if getattr(aq_base(self), userid, False):
+                us = self._getOb(userid)
+                for ar in us.adminRoles():
+                    ar.userSetting.removeRelation()
+                    mobj = ar.managedObject().primaryAq()
+                    mobj.adminRoles._delObject(ar.id)
                 self._delObject(userid)
         if REQUEST:
             REQUEST['message'] = "User saved at time:"
@@ -269,7 +275,7 @@ class UserSettings(ZenModelRM):
                 'action'        : 'editUserSettings',
                 'permissions'   : ("Change Settings",),
                 },
-                {'name'          : 'Administered Devices'
+                {'name'          : 'Administered Objects'
                 , 'action'        : 'administeredDevices'
                 , 'permissions'   : ( "Change Settings", )
                 },
@@ -379,29 +385,39 @@ class UserSettings(ZenModelRM):
 
     
     #security.declareProtected('Change Settings', 'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, deviceName, REQUEST=None):
+    def manage_addAdministrativeRole(self, name, type='device', REQUEST=None):
         "Add a Admin Role to this device"
-        dev =self.getDmdRoot("Devices").findDevice(deviceName)
-        if not dev:
+        mobj = None
+        if type == 'device':
+            mobj =self.getDmdRoot("Devices").findDevice(name)
+        else:
+            try:
+                root = type.capitalize()+'s'
+                mobj = self.getDmdRoot(root).getOrganizer(name)
+            except KeyError: pass        
+        if not mobj:
             if REQUEST: 
-                REQUEST['message'] = "Device %s not found" % deviceName
+                REQUEST['message'] = "%s %s not found"%(type.capitalize(),name)
                 return self.callZenScreen(REQUEST)
             else: return
-        roleNames = [ r.id for r in dev.adminRoles() ]
+        roleNames = [ r.id for r in mobj.adminRoles() ]
         if self.id in roleNames:
             if REQUEST: 
-                REQUEST['message'] = "Role exists on device %s" % deviceName
+                REQUEST['message'] = "Role exists on %s %s" % (type, name)
                 return self.callZenScreen(REQUEST)
             else: return
-        mw = AdministrativeRole(self.id)
+        if name.startswith('/'): 
+            ar = DevOrgAdministrativeRole(self.id)
+        else:
+            ar = DeviceAdministrativeRole(self.id)
         if self.defaultAdminRole:
-            mw.role = self.defaultAdminRole
-            mw.level = self.defaultAdminLevel
-        dev.adminRoles._setObject(self.id, mw)
-        mw = dev.adminRoles._getOb(self.id)
-        mw.userSetting.addRelation(self)
+            ar.role = self.defaultAdminRole
+            ar.level = self.defaultAdminLevel
+        mobj.adminRoles._setObject(self.id, ar)
+        ar = mobj.adminRoles._getOb(self.id)
+        ar.userSetting.addRelation(self)
         if REQUEST: 
-            REQUEST['message'] = "Administrative Role Added for %s" % deviceName
+            REQUEST['message'] = "Administrative Role Added for %s" % name
             return self.callZenScreen(REQUEST)
 
 
@@ -414,7 +430,7 @@ class UserSettings(ZenModelRM):
             level = [level]
             role = [role]
         for ar in self.adminRoles():
-            try: i = ids.index(ar.deviceName())
+            try: i = ids.index(ar.managedObjectName())
             except ValueError: continue
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
@@ -430,10 +446,10 @@ class UserSettings(ZenModelRM):
         if type(delids) in types.StringTypes:
             delids = [delids]
         for ar in self.adminRoles():
-            if ar.deviceName() in delids:
+            if ar.managedObjectName() in delids:
                 ar.userSetting.removeRelation()
-                dev = ar.device().primaryAq()
-                dev.adminRoles._delObject(ar.id)
+                mobj = ar.managedObject().primaryAq()
+                mobj.adminRoles._delObject(ar.id)
         if REQUEST: 
             REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)

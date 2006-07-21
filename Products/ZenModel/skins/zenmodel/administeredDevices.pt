@@ -17,27 +17,22 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'deviceName','Name')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'deviceClass','Class')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'deviceProdState','Prod State')"/>
+                    tableName,'managedObjectName','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Role')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'level','Level')"/>
+        <th class="tableheader">Events</th>
   </tr>
   <tr tal:repeat="ur batch">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
-              tal:attributes="value ur/deviceName"/>
+              tal:attributes="value ur/managedObjectName"/>
        <input type="checkbox" name="delids" tal:condition="editable"
-              tal:attributes="value ur/deviceName"/>
-        <a tal:attributes="href ur/deviceLink"
-            tal:content="ur/deviceName">somename</a>
+              tal:attributes="value ur/managedObjectName"/>
+        <a tal:attributes="href ur/managedObjectLink"
+            tal:content="ur/managedObjectName">somename</a>
     </td>
-    <td class="tablevalues" tal:content="ur/deviceClass"/>
-    <td class="tablevalues" tal:content="ur/deviceProdState"/>
     <td class="tablevalues">
     <select class="tablevalues" name="role" tal:condition="editable"
         tal:define="roles here/administrativeRoles">
@@ -52,6 +47,19 @@
         tal:condition="editable" tal:attributes="value ur/level">
     <tal:block tal:content="ur/level" tal:condition="not:editable"/>
     </td>    
+  <td class="tablevalues" align="left">
+        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+            tal:on-error="structure string:
+                <span class='errorvalues'>Events unavailable</span>">
+            <tr>
+                <td align=center width=16%
+                tal:repeat="evt ur/getEventSummary"
+                tal:attributes="class python:evt[0]">
+                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
+                </td>
+          </tr>
+        </table>
+  </td>
   </tr>
   <tr>
     <td colspan="5" class="tableheader">
@@ -60,7 +68,13 @@
   </tr>
     <tr tal:condition="editable">
     <td class="tableheader" colspan="5">
-        <input class="tableheader" type='text' name="deviceName"/>
+        <input class="tableheader" type='text' name="name"/>
+        <select class='tableheader' name='type'>
+            <option value='device'>Device</option>
+            <option value='system'>System</option>
+            <option value='group'>Group</option>
+            <option value='location'>Location</option>
+        </select>
         <input class="tableheader" type="submit" 
             name="manage_addAdministrativeRole:method" value=" Add " /> 
         |

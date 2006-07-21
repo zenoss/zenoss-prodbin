@@ -47,7 +47,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
 from MaintenanceWindow import DeviceMaintenanceWindow
-from AdministrativeRole import AdministrativeRole
+from AdministrativeRole import DeviceAdministrativeRole
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -225,7 +225,7 @@ class Device(ManagedEntity):
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
         ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
-        ("adminRoles", ToManyCont(ToOne, "AdministrativeRole", "device")),
+        ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
         #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
@@ -757,13 +757,13 @@ class Device(ManagedEntity):
         "Add a Admin Role to this device"
         us = self.ZenUsers.getUserSettings(newId)
         if us:
-            mw = AdministrativeRole(newId)
+            ar = DeviceAdministrativeRole(newId)
             if us.defaultAdminRole:
-                mw.role = us.defaultAdminRole
-                mw.level = us.defaultAdminLevel
-            self.adminRoles._setObject(newId, mw)
-            mw = self.adminRoles._getOb(newId)
-            mw.userSetting.addRelation(us)
+                ar.role = us.defaultAdminRole
+                ar.level = us.defaultAdminLevel
+            self.adminRoles._setObject(newId, ar)
+            ar = self.adminRoles._getOb(newId)
+            ar.userSetting.addRelation(us)
         if REQUEST: 
             REQUEST['message'] = "Administrative Role Added"
             return self.callZenScreen(REQUEST)
@@ -788,7 +788,6 @@ class Device(ManagedEntity):
     security.declareProtected('Change Device','manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
         "Delete a admin role to this device"
-        import types
         if type(delids) in types.StringTypes:
             delids = [delids]
         for id in delids:

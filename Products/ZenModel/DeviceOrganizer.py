@@ -10,6 +10,8 @@ $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
+import types
+
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from AccessControl import Permissions as permissions
@@ -57,8 +59,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
                 { 'id'            : 'manage'
                 , 'name'          : 'Manage'
                 , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ('Manage DMD',)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
@@ -73,6 +74,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
     _relations =  (
         ("maintenanceWindows",
          ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
+        ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
        )
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
@@ -193,6 +195,66 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             REQUEST['message'] = "Maintenace Window Added"
             return self.callZenScreen(REQUEST)
                           
+
+    security.declareProtected('Change Device', 'manage_deleteMaintenanceWindow')
+    def manage_deleteMaintenanceWindow(self, maintenanceIds, REQUEST=None):
+        "Delete a Maintenance Window to this device"
+        import types
+        if type(maintenanceIds) in types.StringTypes:
+            maintenanceIds = [maintenanceIds]
+        for id in maintenanceIds:
+            self.maintenanceWindows._delObject(id)
+        if REQUEST: 
+            REQUEST['message'] = "Maintenace Window Deleted"
+            return self.callZenScreen(REQUEST)
+                          
+
+    security.declareProtected('Change Device', 'manage_addAdministrativeRole')
+    def manage_addAdministrativeRole(self, newId, REQUEST=None):
+        "Add a Admin Role to this device"
+        from AdministrativeRole import DevOrgAdministrativeRole
+        us = self.ZenUsers.getUserSettings(newId)
+        if us:
+            ar = DevOrgAdministrativeRole(newId)
+            if us.defaultAdminRole:
+                ar.role = us.defaultAdminRole
+                ar.level = us.defaultAdminLevel
+            self.adminRoles._setObject(newId, ar)
+            ar = self.adminRoles._getOb(newId)
+            ar.userSetting.addRelation(us)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Role Added"
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_editAdministrativeRoles(self, ids, role, level, REQUEST=None):
+        """Edit list of admin roles.
+        """
+        if type(ids) in types.StringTypes:
+            ids = [ids]
+            role = [role]
+            level = [level]
+        for i, id in enumerate(ids):
+            ar = self.adminRoles._getOb(id)
+            if ar.role != role[i]: ar.role = role[i]
+            if ar.level != level[i]: ar.level = level[i]
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Updated"
+            return self.callZenScreen(REQUEST)
+        
+
+    security.declareProtected('Change Device','manage_deleteAdministrativeRole')
+    def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
+        "Delete a admin role to this device"
+        if type(delids) in types.StringTypes:
+            delids = [delids]
+        for id in delids:
+            self.adminRoles._delObject(id)
+        if REQUEST: 
+            REQUEST['message'] = "Administrative Roles Deleted"
+            return self.callZenScreen(REQUEST)
+                          
+        
 
 InitializeClass(DeviceOrganizer)
 

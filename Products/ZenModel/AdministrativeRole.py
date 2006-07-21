@@ -14,7 +14,6 @@ class AdministrativeRole(ZenModelRM):
 
     _relations = (
         ("userSetting", ToOne(ToMany, "UserSettings", "adminRoles")),
-        ("device", ToOne(ToManyCont, "UserSettings", "adminRoles")),
     )
 
     level = 1
@@ -22,7 +21,7 @@ class AdministrativeRole(ZenModelRM):
 
 
     def deleteAdminRole(self):
-        self.device.removeRelation()
+        self.managedObject.removeRelation()
         self.userSetting.removeRelation()
 
 
@@ -38,17 +37,37 @@ class AdministrativeRole(ZenModelRM):
         return self.userSetting().getPrimaryUrlPath()
 
 
-    def deviceName(self):
-        return self.device().id
+    def managedObjectName(self):
+        return self.managedObject().id
 
 
-    def deviceLink(self):
-        return self.device().getPrimaryUrlPath()
+    def managedObjectLink(self):
+        return self.managedObject().getPrimaryUrlPath()
 
 
-    def deviceClass(self):
-        return self.device().getDeviceClassPath()
+    def getEventSummary(self):
+        return self.managedObject().getEventSummary()
 
 
-    def deviceProdState(self):
-        return self.device().getProductionStateString()
+
+class DeviceAdministrativeRole(AdministrativeRole):
+
+    meta_type = "DeviceAdministrativeRole"
+
+    _relations = AdministrativeRole._relations + (
+        ("managedObject", ToOne(ToManyCont, "Device", "adminRoles")),
+    )
+
+
+class DevOrgAdministrativeRole(AdministrativeRole):
+
+    meta_type = "DevOrgAdministrativeRole"
+
+    _relations = AdministrativeRole._relations + (
+        ("managedObject", ToOne(ToManyCont, "DeviceOrganizer", "adminRoles")),
+    )
+
+    def managedObjectName(self):
+        return self.managedObject().getOrganizerName()
+
+

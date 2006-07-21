@@ -29,8 +29,10 @@
   <tr>  
   </table>
 </form>
-
+<br/>
 <span metal:use-macro="here/maintenanceWindowsMacro/macros/maintenanceWindows"/>
+<br/>
+<span metal:use-macro="here/deviceManagement/macros/adminRolesTable"/>
 
 
 </tal:block>

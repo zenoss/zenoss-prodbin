@@ -101,8 +101,7 @@ class System(DeviceOrganizer):
                 { 'id'            : 'manage'
                 , 'name'          : 'Manage'
                 , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ('Manage DMD',)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
@@ -182,5 +181,5 @@ class System(DeviceOrganizer):
                     return sev
         return "Unknown"
 
-        
+
 InitializeClass(System)
