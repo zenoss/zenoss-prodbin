@@ -39,11 +39,46 @@ class TestMibOrganizer(ZenModelBaseTest):
     def testMibModule(self):
         mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
         mod = mibOrg.createMibModule('mod')
-        mod.createMibNode(id = 'node', moduleName = 'mod', nodetype = 'MibNode',                          oid = '1', status = 'ok', description = 'my mib')
+
+        self.assert_(mod.getModuleName() == 'mod')
+
+        mod.createMibNode(id = 'node', moduleName = 'mod', nodetype = 'MibNode'\
+                          , oid = '1', status = 'ok', description = 'my mib'\
+                         )
+                         
+        self.assert_(mod.nodeCount() == 1)
         self.assert_(mibOrg.name2oid('node') == '1')
         self.assert_(mibOrg.oid2name('1') == 'node')
-        self.assert_(mod.getModuleName() == 'mod')
-        self.assert_(mod.nodeCount() == 1)
+        
+        mod.createMibNotification(id = 'notification', moduleName = 'mod',\
+                                  nodetype = 'MibNotification', oid = '2',\
+                                  status = 'ok', description = 'my note'\
+                                 )
+        
+        self.assert_(mod.notificationCount() == 1)
+        self.assert_(mibOrg.name2oid('notification') == '2')
+        self.assert_(mibOrg.oid2name('2') == 'notification')
+
+
+    def testOrganizer(self):
+        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
+        subOrg = mibOrg.createOrganizer('/sub')
+        mod = mibOrg.createMibModule('mod', '/modLoc')
+        modLoc = mibOrg.getOrganizer('modLoc')
+        moveMe = mibOrg.createOrganizer('/mobile')
+        self.assert_(mibOrg.countChildren() == 2)
+        self.assert_(subOrg in mibOrg.getSubOrganizers())
+        self.assert_(modLoc in mibOrg.getSubOrganizers())
+        self.assert_('/sub' in mibOrg.getOrganizerNames())
+        self.assert_('/modLoc' in mibOrg.getOrganizerNames())
+        mibOrg.moveOrganizer('/sub', ['mobile'])
+        self.assert_(moveMe not in mibOrg.children())
+        self.assert_(moveMe in subOrg.children())
+        mibOrg.manage_deleteOrganizers(['sub','modLoc'])
+        self.assert_(sub not in mibOrg.getSubOrganizers())
+        self.assert_(modLoc not in mibOrg.getSubOrganizers())
+        self.assert_(moveMe not in mibOrg.getSubOrganizers())
+        self.assert_(mibOrg.countClasses() == 0)
         
 
 def main():
