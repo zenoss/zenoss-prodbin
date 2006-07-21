@@ -85,10 +85,6 @@ class MaintenanceWindow(ZenModelRM):
         {'id':'repeat', 'type':'string', 'mode':'w'},
         ) 
 
-    _relations = (
-        ("device", ToOne(ToManyCont, "Device", "maintenanceWindows")),
-        )
-
     factory_type_information = ( 
         { 
             'immediate_view' : 'maintenanceWindowDetail',
@@ -297,7 +293,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
-        self.device().primaryAq().setProdState(self.startProductionState)
+        self.productionState().primaryAq().setProdState(self.startProductionState)
         if not now:
             now = time.time()
         self.started = now
@@ -306,7 +302,7 @@ class MaintenanceWindow(ZenModelRM):
     def end(self):
         "hook for leaving the Maintenance Window: call if you override"
         self.started = None
-        self.device().primaryAq().setProdState(self.stopProductionState)
+        self.productionState().primaryAq().setProdState(self.stopProductionState)
 
 
     def execute(self, now = None):
@@ -315,6 +311,16 @@ class MaintenanceWindow(ZenModelRM):
             self.end()
         else:
             self.begin(now)
+
+class DeviceMaintenanceWindow(MaintenanceWindow):
+    _relations = (
+        ("productionState", ToOne(ToManyCont, "Device", "maintenanceWindows")),
+        )
+
+class OrganizerMaintenanceWindow(MaintenanceWindow):
+    _relations = (
+        ("productionState", ToOne(ToManyCont, "DeviceOrganizer", "maintenanceWindows")),
+        )
         
 
 if __name__=='__main__':
@@ -357,7 +363,7 @@ if __name__=='__main__':
                                      stopProductionState=300,
                                      REQUEST=r)
 
-    if r:
+    if r.has_key('message'):
         print r['message']
     assert not r.has_key('message')
     assert m.start == t - 12
@@ -365,3 +371,4 @@ if __name__=='__main__':
     assert m.repeat == 'Weekly'
     assert m.startProductionState == 1000
     assert m.stopProductionState == 300
+

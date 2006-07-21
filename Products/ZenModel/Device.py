@@ -46,7 +46,7 @@ from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
-from MaintenanceWindow import MaintenanceWindow
+from MaintenanceWindow import DeviceMaintenanceWindow
 from AdministrativeRole import AdministrativeRole
 
 from OperatingSystem import OperatingSystem
@@ -224,7 +224,7 @@ class Device(ManagedEntity):
         ("location", ToOne(ToMany, "Location", "devices")),
         ("systems", ToMany(ToMany, "System", "devices")),
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
-        ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "device")),
+        ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne, "AdministrativeRole", "device")),
         #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
@@ -731,7 +731,7 @@ class Device(ManagedEntity):
     security.declareProtected('Change Device', 'manage_addMaintenanceWindow')
     def manage_addMaintenanceWindow(self, newId, REQUEST=None):
         "Add a Maintenance Window to this device"
-        mw = MaintenanceWindow(newId)
+        mw = DeviceMaintenanceWindow(newId)
         self.maintenanceWindows._setObject(newId, mw)
         self.setLastChange()
         if REQUEST: 

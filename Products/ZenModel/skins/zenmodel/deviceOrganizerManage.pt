@@ -30,5 +30,8 @@
   </table>
 </form>
 
+<span metal:use-macro="here/maintenanceWindowsMacro/macros/maintenanceWindows"/>
+
+
 </tal:block>
 </tal:block>

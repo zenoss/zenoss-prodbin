@@ -17,6 +17,10 @@ from AccessControl import Permissions as permissions
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
 
+from MaintenanceWindow import OrganizerMaintenanceWindow
+
+from Products.ZenRelations.RelSchema import *
+
 class DeviceOrganizer(Organizer, DeviceManagerBase):
     """
     DeviceOrganizer is the base class for device organizers.
@@ -66,6 +70,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
          },
         )
 
+    _relations =  (
+        ("maintenanceWindows",
+         ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
+       )
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under an instance of a DeviceGroup"""
@@ -174,6 +182,17 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             retval = '#ff0000'
         return retval
 
+
+    security.declareProtected('Change Organizer',
+                              'manage_addMaintenanceWindow')
+    def manage_addMaintenanceWindow(self, newId, REQUEST=None):
+        "Add a Maintenance Window to this device"
+        mw = OrganizerMaintenanceWindow(newId)
+        self.maintenanceWindows._setObject(newId, mw)
+        if REQUEST: 
+            REQUEST['message'] = "Maintenace Window Added"
+            return self.callZenScreen(REQUEST)
+                          
 
 InitializeClass(DeviceOrganizer)
 
