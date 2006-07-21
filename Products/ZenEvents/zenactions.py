@@ -164,6 +164,9 @@ class ZenActions(ZCmdBase):
                 values = map(zem.convert, fields, values)
                 data.update(dict(zip(cfields, values)))
 
+            data['clearOrEventSummary'] = (
+                data['clearSummary'] or data['summary'])
+                
             # add in the link to the url
             data['eventUrl'] = self.getUrl(evid)
             actfunc(ar, data, True)

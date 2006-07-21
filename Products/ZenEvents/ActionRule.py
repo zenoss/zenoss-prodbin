@@ -45,7 +45,7 @@ class ActionRule(ZenModelRM):
             "Time: %(firstTime)s:\n" \
             "Message:\n%(message)s\n" \
             "Event: %(eventUrl)s\n" 
-    clearFormat = "CLEAR: %(device)s %(clearSummary)s"
+    clearFormat = "CLEAR: %(device)s %(clearOrEventSummary)s"
     clearBody =  \
             "Event: '%(summary)s'\n" \
             "Cleared by: '%(clearSummary)s'\n" \
