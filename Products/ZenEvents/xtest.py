@@ -13,18 +13,20 @@ $Id$
 import xmlrpclib
 import time
 
-s = xmlrpclib.ServerProxy('http://localhost:8081')
+# s = xmlrpclib.ServerProxy('http://localhost:8081/')
+s = xmlrpclib.ServerProxy('http://admin:not2much@localhost:8080/zport/dmd/ZenEventManager')
 
 event = dict(device='eros', 
-             eventClass='/Unknown',
-             summary='This is a test event: %d' % time.time(), 
-             severity=3,
+	     eventClassKey = 'test',
+	     eventClass = '/App',
+             summary='This is a new test event: %d' % time.time(), 
+             severity=4,
              component='xyzzy')
-clear = ev.copy()
+clear = event.copy()
 clear.update(dict(severity=0, summary="All better now!"))
 
 def main():
-    "perormance test"
+    "performance test"
     for i in range(100):
         s.sendEvents([event, clear])
 
@@ -37,7 +39,7 @@ def coverage():
 
 def simple():
     s.sendEvent(event)
-    time.sleep(10)
+    time.sleep(30)
     s.sendEvent(clear)
 
 simple()
