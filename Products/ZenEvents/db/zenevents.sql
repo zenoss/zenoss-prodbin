@@ -107,8 +107,8 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.priority,
             OLD.ntevid,
             OLD.ownerid,
-            OLD.clearid,
-            NULL
+            NULL,
+            OLD.clearid
             );
 
 
