@@ -19,7 +19,7 @@ class RRDUtil:
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:0:U' % ('ds0', rrdType,
+            dataSource = 'DS:%s:%s:%d:U:U' % ('ds0', rrdType,
                                               3*self.cycleTime)
             rrdtool.create(filename,
                            "--step",  str(self.cycleTime),
