@@ -8,9 +8,9 @@
     </tr>
     <tr>
         <td class="tableheader">Memory</td>
-        <td class="tablevalues" tal:content="here/hw/totalMemory"/>
+        <td class="tablevalues" tal:content="here/hw/totalMemoryString"/>
         <td class="tableheader">Swap</td>
-        <td class="tablevalues" tal:content="here/os/totalSwap"/>
+        <td class="tablevalues" tal:content="here/os/totalSwapString"/>
     </tr>
 </table>
 <table class="zentable" cellpadding="3" cellspacing="1"

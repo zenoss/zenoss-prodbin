@@ -15,6 +15,7 @@ from DateTime import DateTime
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
 from Exceptions import *
@@ -49,6 +50,8 @@ class DeviceHW(Hardware):
         if not screen: return pp()
         return screen()
 
+    def totalMemoryString(self):
+        return self.totalMemory and convToUnits(self.totalMemory) or 'unknown' 
 
     def device(self):
         """Return our Device object for DeviceResultInt.

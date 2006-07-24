@@ -16,6 +16,7 @@ from DateTime import DateTime
 
 from AccessControl import Permissions as permissions
 
+from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
 from ZenStatus import ZenStatus
@@ -56,6 +57,8 @@ class OperatingSystem(Software):
         if not screen: return pp()
         return screen()
 
+    def totalSwapString(self):
+        return self.totalSwap and convToUnits(self.totalSwap) or 'unknown'
 
     def traceRoute(self, target, ippath):
         """Trace the route to target using our routing table.

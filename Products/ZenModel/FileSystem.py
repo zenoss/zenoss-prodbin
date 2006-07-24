@@ -17,6 +17,7 @@ import locale
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
@@ -99,19 +100,29 @@ class FileSystem(OSComponent):
         return self.blockSize * self.totalBlocks
 
     def totalBytesString(self):
-        return locale.format("%d", self.totalBytes(), True)
+        return convToUnits(self.totalBytes())
 
     def usedBytes(self):
         blocks = self.usedBlocks()
         if blocks is not None:
             return self.blockSize * blocks
         return None
+    
+    def usedBytesString(self):
+        ub = self.usedBytes()
+        return ub is None and "unknown" or convToUnits(ub)
+        
 
     def availBytes(self):
         blocks = self.usedBlocks()
         if blocks is not None:
             return self.blockSize * (self.totalBlocks - self.usedBlocks())
-        return 'Unknown'
+        return None
+
+    def availBytesString(self):
+        ab = self.availBytes()
+        return ab is None and "unknown" or convToUnits(ab)
+        
 
     def availFiles(self):
         return 0
@@ -120,7 +131,7 @@ class FileSystem(OSComponent):
         usedBytes = self.usedBytes()
         if usedBytes is not None:
             return int(100.0 * self.usedBytes() / self.totalBytes())
-        return 'Unknown'
+        return 'unknown'
 
     def inodeCapacity(self):
         return 0
@@ -130,6 +141,11 @@ class FileSystem(OSComponent):
         if blocks is not None:
             return long(blocks)
         return None
+
+    def usedBlocksString(self):
+        ub = self.usedBlocks()
+        return ub is None and "unknown" or convToUnits(ub)
+        
 
     def getRRDNames(self):
         return ['usedBlocks']

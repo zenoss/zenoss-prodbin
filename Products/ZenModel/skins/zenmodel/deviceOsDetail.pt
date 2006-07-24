@@ -262,13 +262,13 @@
             tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
       </td>
       <td class="tablevalues"
-        tal:content="fsys/totalBytes">vol
+        tal:content="fsys/totalBytesString">vol
       </td>
       <td class="tablevalues"
-        tal:content="fsys/usedBytes">vol
+        tal:content="fsys/usedBytesString">vol
       </td>
       <td class="tablevalues"
-        tal:content="fsys/availBytes">vol
+        tal:content="fsys/availBytesString">vol
       </td>
       <td class="tablevalues"
         tal:content="fsys/capacity">vol

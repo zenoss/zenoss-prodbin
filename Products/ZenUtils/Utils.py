@@ -57,6 +57,17 @@ def clearWebLoggingStream(handler):
     rlog.removeHandler(handler)
 
 
+def convToUnits(numb, divby=1024.0):
+    """Convert a number to its human readable form. ie: 4GB, 4MB, etc.
+    """
+    units = ('B','KB','MB','GB','TB','PB')
+    numb = float(numb)
+    for i in range(6):
+        if numb < divby: break
+        numb /= divby
+    return "%.1f%s" % (numb, units[i])
+        
+
 def travAndColl(obj, toonerel, collect, collectname):
     """walk a series of to one rels collecting collectname into collect"""
     #from Acquisition import aq_base
