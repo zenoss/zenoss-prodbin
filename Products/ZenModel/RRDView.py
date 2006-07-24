@@ -135,6 +135,7 @@ class RRDView(object):
         """
         result = {}
         for thresh in templ.thresholds():
+            if not thresh.enabled: continue
             for dsname in thresh.dsnames:
                 threshdef = result.setdefault(dsname, [])
                 threshdef.append(thresh.getConfig(self))

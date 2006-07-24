@@ -51,6 +51,7 @@ class RRDThreshold(ZenModelRM):
     maxval = ""
     severity = 3
     escalateCount = 0
+    enabled = True
 
     _properties = (
                  {'id':'dsnames', 'type':'lines', 'mode':'w'},
@@ -58,6 +59,7 @@ class RRDThreshold(ZenModelRM):
                  {'id':'maxval', 'type':'string', 'mode':'w'},
                  {'id':'severity', 'type':'int', 'mode':'w'},
                  {'id':'escalateCount', 'type':'int', 'mode':'w'},
+                 {'id':'enabled', 'type':'boolean', 'mode':'w'},
                 )
 
     _relations =  (

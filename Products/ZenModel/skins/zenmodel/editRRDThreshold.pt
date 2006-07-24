@@ -68,6 +68,17 @@
             tal:content="here/escalateCount"/>
     </tr>
     <tr>
+        <td class="tableheader">Enabled</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="enabled:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                    tal:attributes="value e; selected python:e==here.enabled"/>
+        </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/enabled"/>
+    </tr>
+    <tr>
         <td class="tableheader">
         </td>
         <td class="tableheader" colspan="3">
