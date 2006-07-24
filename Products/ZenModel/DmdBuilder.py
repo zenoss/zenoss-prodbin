@@ -109,12 +109,6 @@ class DmdBuilder:
         manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
 
-    def buildServices(self):
-        srvs = self.dmd.Services
-        srvRoots = ('IpServices',)
-        self.addroots(srvs, srvRoots, "Services")
-
-
     def addroots(self, base, rlist, classType=None, isInTree=False):
         for rname in rlist:
             ctype = classType or rname
@@ -130,7 +124,6 @@ class DmdBuilder:
     def build(self):
         self.buildRoots()
         self.buildMonitors()
-        self.buildServices()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addPerformanceReport(self.dmd)

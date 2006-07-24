@@ -82,7 +82,6 @@ productNames = (
     "SoftwareClass",
     "StatusMonitorConf",
     "System",
-    "TerminalServer",
     "UserSettings",
     "WinService",
     "ZDeviceLoader",
