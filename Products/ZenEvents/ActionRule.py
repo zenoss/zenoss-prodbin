@@ -28,6 +28,144 @@ def manage_addActionRule(context, id, REQUEST=None):
 
 addActionRule = DTMLFile('dtml/addActionRule',globals())
 
+class Text:
+    type = 'text'
+    def __init__(self, label):
+        self.label = label
+    def toJS(self, operator, value):
+        if mode == 'like':
+            if value.startswith('%') and not value.endswith('%'):
+                return '$', [value[1]]
+            elif not value.startswith('%') and value.endswith('%'):
+                return '^', [value[-1]]
+            elif value.startswith('%') and value.endswith('%'):
+                return '~', [value[1:-1]]
+        if mode == 'not like':
+            return '!~', [value[1:-1]]
+        if mode == '=':
+            return '', [value]
+        if mode == '!=':
+            return '!', [value]
+    def genProperties(self, name):
+        return '%s:{type:"%s",label:"%s"}' % (name, self.type, self.label)
+    def buildClause(self, name, value, mode):
+        result = []
+        for v in value:
+            if mode == '~':
+                result.append("%s like '%%%s%%'" % (name, v))
+            if mode == '^':
+                result.append("%s like '%s%%'" % (name, v))
+            if mode == '$':
+                result.append("%s like '%%%s'" % (name, v))
+            if mode == '!=':
+                result.append("%s not like '%%%s%%'" % (name, v))
+            if mode == '':
+                result.append("%s = '%s%'" % (name, v))
+            if mode == '!':
+                result.append("%s != '%s%'" % (name, v))
+        if not result:
+            return None
+        return ' or '.join(result)
+        
+
+class Select:
+    type = 'select'
+    def __init__(self, label, options):
+        self.label = label
+        if type(options[0]) != type(()):
+            options = zip(range(len(options)), options)
+        self.options = options
+    def labelFromValue(self, value):
+        return dict(self.options).get(value, 'Unknown')
+    def valueFromLabel(self, value):
+        return dict([(v, l) for l, v in self.options]).get(value, -1)
+    def toJS(self, operator, value):
+        if operator == '=':
+            return ('', [self.labelFromValue(value)])
+        if operator == '!=':
+            return ('!', [self.labelFromValue(value)])
+        result = []
+        if operator in ('<', '>', '<=', '>='):
+            for i, name in self.options:
+                if eval('%d %s %d' % (i, operator, value)):
+                    result.append(name)
+        return ('', result)
+    def genProperties(self, name):
+        return '%s:{type:"%s",label:"%s", options:%r}' % (
+            name, self.type, self.label, [s[1] for s in self.options])
+    def buildClause(self, name, value, mode):
+        result = []
+        for v in value:
+            v = self.valueFromLabel(v)
+            if mode == '':
+                result.append("%s = %d" % (name, mode, v))
+            else:
+                result.append("%s != %d" % (name, mode, v))
+        return ' or '.join(result)
+
+class Compare(Text):
+    type = 'compare'
+    def toJS(self, operator, value):
+        return operator, [value]
+    def buildClause(self, name, value, mode):
+        result = []
+        for v in value:
+            result.append("%s %s %s" % (name, mode, v))
+        return ' or '.join(result)
+
+class CSelect(Select):
+    type='cselect'
+    def toJS(self, operator, value):
+        return operator, [self.labelFromValue(value)]
+    def buildClause(self, name, value, mode):
+        result = []
+        for v in value:
+            result.append("%s %s %s" % (name, mode, self.valueFromLabel(v)))
+        return ' or '.join(result)
+
+
+from Products.ZenModel.DataRoot import DataRoot
+prodStateConversions = [d.split(':') for d in DataRoot.prodStateConversions]
+prodStateConversions = [(int(b), a) for a, b in prodStateConversions]
+
+meta = dict(
+   summary=Text("Summary"),
+   prodState=CSelect("Production State",prodStateConversions),
+   severity=CSelect("Severity",[
+    "Clear", "Debug", "Info", "Warning", "Error", "Critical"
+    ]),
+   eventState=CSelect("Event State",["New", "Acknowledged", "Supressed"]),
+   device=Text("Device"),
+   deviceClass=Text("Device Class"),
+   eventClass=Text("Event Class"),
+   eventClassKey=Text("Event Class Key"),
+   count=Compare("Count"),
+   lastAge=Compare("Time since last update"),
+   firstAge=Compare("Time since first event"),
+   manager=Text("Manager"),
+   agent=Select("Agent",[
+    "zentrap", "zenprocess", "zenstatus", "zenperfsnmp", "zensyslog"]),
+   facility=Select("Facility",[
+    "auth","authpriv","cron","daemon","kern","lpr","mail",
+    "mark","news","security","syslog","user","uucp",
+    "local0","local1","local2","local3","local4",
+    "local05","local6","local7"
+    ]),
+   priority=Select("Priority",[
+    "debug","info","notice","warning","error","critical",
+    "alert","emergency"]),
+   component=Text("Component"),
+   message=Text("Message"),
+   changeAge=Compare("Time since last state change"),
+   ntevid=Text("ntevid"),
+   ipAddress=Text("IP Address"),
+   location=Text("Location"),
+   systems=Text("Systems"),
+   deviceGroups=Text("Device Groups"),
+   ownerId=Text("Owner Id")
+   )
+
+
 class ActionRule(ZenModelRM):
     """
     Rule applied to events that then executes an action on matching events.
@@ -148,6 +286,8 @@ class ActionRule(ZenModelRM):
         """
         if not self.enabled:
             self._clearAlertState()
+        import WhereClause
+        REQUEST.form['where'] = WhereClause.fromFormVariables(REQUEST.form)
         return self.zmanage_editProperties(REQUEST)
 
 
@@ -172,6 +312,44 @@ class ActionRule(ZenModelRM):
         """Return sql where to select alert_state data for this event.
         """
         return "userid = '%s' and rule = '%s'" % (self.getUserid(), self.id)
+
+    def _whereClauseAsJavaScript(self):
+        import WhereClause
+        return WhereClause.toJavaScript(meta, self.where)
+
+    def getWhereClauseAsJavaScript(self):
+        s = meta.items()
+        s.sort()
+        result = ['var properties={']
+        for name, attrType in s:
+            result.append('   %s,\n' % attrType.genProperties(name))
+        result.append('};\n')
+        result.append((Modes + 'var current = %s \n') %
+                       self._whereClauseAsJavaScript())
+        result.append('initializeFilters(current)\n')
+        return ''.join(result)
+
+Modes = """
+ var modes = {
+   text:[{text:"contains",value:"~"},
+         {text:"doesn't contain",value:"!~"},
+         {text:"begins with",value:"^"},
+         {text:"ends with",value:"$"},
+         {text:"is",value:""},
+         {text:"is not",value:"!"}],
+   select:[{text:"is",value:""},
+           {text:"is not",value:"!"}],
+   compare:[{text:"<",value:"<"},
+            {text:"<=",value:"<="},
+            {text:"=",value:"="},
+            {text:">",value:">"},
+            {text:">=",value:">"}],
+   cselect:[{text:"<",value:"<"},
+            {text:"<=",value:"<="},
+            {text:"=",value:"="},
+            {text:">",value:">"},
+            {text:">=",value:">="}]};
+"""
 
 
 InitializeClass(ActionRule)

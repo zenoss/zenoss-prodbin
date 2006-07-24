@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form id="actionRule" method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable"  cellpadding="3" cellspacing="1">
 <tr tal:define="message request/message | string:State at time:">
@@ -40,10 +40,56 @@
 </tr>
 <tr>
 <td class="tablevalues" colspan="6">
-    <textarea class="tablevalues" rows="3" cols="75" name="where:text"
-        tal:content="here/where">
-    </textarea>
+
+
+<script type="text/javascript" src="/zport/js/query.js"></script>
+
+<span id="query">
+  <span id="filters">
+    <table summary="Action filters">
+      <tbody>
+	<tr><td colspan='4'>
+	   <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
+	   <select name="add_filter" id="add_filter" class="tablevalues">
+	     <option></option>
+	     <option value="severity">Severity</option>
+	     <option value="eventState">Event State</option>
+	     <option value="prodState">Production State</option>
+	     <option value="count">Count</option>
+	     <option value="summary">Summary</option>
+	     <option value="device">Device</option>
+	     <option value="deviceClass">Device Class</option>
+	     <option value="eventClass">Event Class</option>
+	     <option value="eventClassKey">Event Class Key</option>
+	     <option value="lastAge">Time since last update</option>
+	     <option value="firstAge">Time since event creation</option>
+	     <option value="changeAge">Time since last state change</option>
+	     <option value="manager">Manager</option>
+	     <option value="agent">Agent</option>
+	     <option value="location">Location</option>
+	     <option value="facility">Facility</option>
+	     <option value="priority">Priority</option>
+	     <option value="component">Component</option>
+	     <option value="message">Message</option>
+	     <option value="ipAddress">IP Address</option>
+	     <option value="location">Location</option>
+	     <option value="systems">Systems</option>
+	     <option value="deviceGroups">Device Groups</option>
+	     <option value="ownerId">Owner Id</option>
+	     <option value="ntevid">ntevid</option>
+ 	   </select>	      
+	   <input type="submit" name="add" value="+" class="tablevalues"/>
+         </td></tr>
+       </tbody>
+    </table>
+  </span>
+</span>
+
+
 </td>
+</tr>
+<tr>
+<td class="tablevalues" colspan="6" tal:content="here/where"/>
 </tr>
 <tr>
 <td class="tableheader" colspan="6">Message (or Subject)</td>
@@ -101,5 +147,8 @@ fields available in the event database is:
 <span tal:content="python: ', '.join(here.ZenEventManager.getFieldList())"/>.
 </p>
 </form>
+
+<script tal:content="structure here/getWhereClauseAsJavaScript" type="text/javascript"/>
+
 </tal:block>
 </tal:block>
