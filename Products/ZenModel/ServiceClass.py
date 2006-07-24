@@ -102,9 +102,9 @@ class ServiceClass(ZenModelRM):
    
 
     def __init__(self, id, serviceKeys=(), description=""):
+        self.name = id
         id = self.prepId(id)
         super(ServiceClass, self).__init__(id)
-        self.name = id
         self.serviceKeys = serviceKeys
         self.description = description
   
