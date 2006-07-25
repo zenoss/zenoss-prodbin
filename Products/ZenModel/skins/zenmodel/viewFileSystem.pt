@@ -36,13 +36,13 @@
       <td class=tableheader align=left>Block Size</td>
       <td class=tablevalues tal:content="here/blockSize">1</td>
       <td class=tableheader align=left>Total Bytes</td>
-      <td class=tablevalues tal:content="here/totalBytes">/usr</td>
+      <td class=tablevalues tal:content="here/totalBytesString">/usr</td>
     </tr>
     <tr>
       <td class=tableheader align=left>Used Bytes</td>
-      <td class=tablevalues tal:content="here/usedBytes">1</td>
+      <td class=tablevalues tal:content="here/usedBytesString">1</td>
       <td class=tableheader align=left>Available Bytes</td>
-      <td class=tablevalues colspan="3" tal:content="here/availBytes">/usr</td>
+      <td class=tablevalues colspan="3" tal:content="here/availBytesString"/>
     </tr>
     <tr>
       <td class=tableheader align=left>Total Files</td>
