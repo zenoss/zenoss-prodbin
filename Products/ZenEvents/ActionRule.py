@@ -111,7 +111,7 @@ class ActionRule(ZenModelRM):
         result.update(re.findall("%\((\S+)\)s", self.body))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
-        result.discard('clearOrEventSummary')
+        result.discard('orEventSummary')
         result.discard('eventUrl')
         return list(result)
 
