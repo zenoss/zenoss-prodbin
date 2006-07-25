@@ -143,20 +143,20 @@ class ActionRule(ZenModelRM):
 
     
     def genMeta(self):
-        from WhereClause import Text, Select, Compare, Enumerated
+        from WhereClause import Text, Select, Compare, Enumerated, DeviceGroup
         from Products.ZenModel.DataRoot import DataRoot
         from EventManagerBase import EventManagerBase
         kw = {}
         def addDevices(name, label, column):
             devices = self.dmd.getDmdRoot(name).getOrganizerNames()
-            devices = [('|%s' % n) for n in devices]
-            kw[column] = Select(label, devices)
+            kw[column] = DeviceGroup(label, devices)
         addDevices('Systems', 'Systems', 'systems')
         addDevices('Groups', 'Device Groups', 'deviceGroups')
         esconv = [(b, a) for a, b in EventManagerBase.eventStateConversions]
         sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
         pconv = [d.split(':') for d in DataRoot.prodStateConversions]
         pconv = [(int(b), a) for a, b in pconv]
+        owners = [(n, n) for n in self.dmd.ZenUsers.getAllUserSettingsNames()]
         return dict(
             summary=Text("Summary"),
             prodState=Enumerated("Production State",pconv),
@@ -182,7 +182,7 @@ class ActionRule(ZenModelRM):
             message=Text("Message"),
             ntevid=Text("ntevid"),
             ipAddress=Text("IP Address"),
-            ownerId=Text("Owner Id"),
+            ownerId=Select("Owner Id", owners),
             **kw)
 
 

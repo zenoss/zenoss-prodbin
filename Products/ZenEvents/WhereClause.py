@@ -1,5 +1,15 @@
 import types
 
+def q(s):
+    # turn string "fo'o" -> "'fo''o'"
+    return "'%s'" % "''".join(s.split("'"))
+                             
+def u(s):
+    # turn string "'fo''o'" -> "fo'o"
+    c = s[0]
+    s = c.join(s.split(c+c))
+    return s[1:-1]
+
 class WhereJavaScript:
     "Base class for converting to/from javascript"
     type = 'unknown'
@@ -7,13 +17,19 @@ class WhereJavaScript:
         self.label = label
     def genProperties(self, name):
         return '%s:{type:"%s",label:"%s"}' % (name, self.type, self.label)
+    def buildClause(self, name, value, mode):
+        result = []
+        for v in value:
+            result.append(self.buildClause1(name, v, mode))
+        if not result:
+            return None
+        return ' or '.join(result)
 
 class Text(WhereJavaScript):
     "Convert to/from javascript for text entries"
     type = 'text'
     def toJS(self, mode, value):
-        # FIXME: SQL string quoting 'foo''bar' -> "foo'bar"
-        value = eval(value)             # turn string "'%foo%'" -> "%foo%"
+        value = u(value)
         if mode == 'like':
             if value.startswith('%') and not value.endswith('%'):
                 return '$', [value[1:]]
@@ -27,24 +43,19 @@ class Text(WhereJavaScript):
             return '', [value]
         if mode == '!=':
             return '!', [value]
-    def buildClause(self, name, value, mode):
-        result = []
-        for v in value:
-            if mode == '~':
-                result.append("%s like '%%%s%%'" % (name, v))
-            if mode == '^':
-                result.append("%s like '%s%%'" % (name, v))
-            if mode == '$':
-                result.append("%s like '%%%s'" % (name, v))
-            if mode == '!~':
-                result.append("%s not like '%%%s%%'" % (name, v))
-            if mode == '':
-                result.append("%s = '%s'" % (name, v))
-            if mode == '!':
-                result.append("%s != '%s'" % (name, v))
-        if not result:
-            return None
-        return ' or '.join(result)
+    def buildClause1(self, name, v, mode):
+        if mode == '~':
+            return "%s like %s" % (name, q('%' + v + '%'))
+        if mode == '^':
+            return "%s like %s" % (name, q(v + '%'))
+        if mode == '$':
+            return "%s like %s" % (name, q('%' + v))
+        if mode == '!~':
+            return "%s not like %s" % (name, q('%' + v + '%'))
+        if mode == '':
+            return "%s = %s" % (name, q(v))
+        if mode == '!':
+            return "%s != %s" % (name, q(v))
         
 
 class Select(WhereJavaScript):
@@ -73,37 +84,44 @@ class Select(WhereJavaScript):
     def genProperties(self, name):
         return '%s:{type:"%s",label:"%s", options:%r}' % (
             name, self.type, self.label, [s[1] for s in self.options])
-    def buildClause(self, name, value, mode):
-        result = []
-        for v in value:
-            v = self.valueFromLabel(v)
-            if mode == '':
-                result.append("%s = %d" % (name, v))
-            else:
-                result.append("%s != %d" % (name, v))
-        return ' or '.join(result)
+    def buildClause1(self, name, v, mode):
+        v = self.valueFromLabel(v)
+        if type(v) in types.StringTypes:
+            v = q(v)
+        if mode == '':
+            return "%s = %s" % (name, v)
+        else:
+            return "%s != %s" % (name, v)
 
 class Compare(WhereJavaScript):
     "Convert to/from javascript and where clause elements for numeric comparisons"
     type = 'compare'
     def toJS(self, operator, value):
         return operator, [value]
-    def buildClause(self, name, value, mode):
-        result = []
-        for v in value:
-            result.append("%s %s %s" % (name, mode, v))
-        return ' or '.join(result)
+    def buildClause1(self, name, v, mode):
+        return "%s %s %s" % (name, mode, v)
+
+class DeviceGroup(Select):
+    def toJS(self, operator, value):
+        value = u(value)
+        if operator == 'like':
+            return ['', [value[2:-1]]]
+        if operator == 'not like':
+            return ['!', [value[2:-1]]]
+    def buildClause1(self, name, v, mode):
+        if mode == '':
+            return "%s like %s" % (name, q('%|' + v + '%'))
+        else:
+            return "%s not like %s" % (name, q('%|' + v + '%'))
+    
 
 class Enumerated(Select):
     "Convert to/from javascript and where clause elements for enumerated types"
     type='cselect'
     def toJS(self, operator, value):
         return operator, [self.labelFromValue(value)]
-    def buildClause(self, name, value, mode):
-        result = []
-        for v in value:
-            result.append("%s %s %s" % (name, mode, self.valueFromLabel(v)))
-        return ' or '.join(result)
+    def buildClause1(self, name, v, mode):
+        return "%s %s %s" % (name, mode, self.valueFromLabel(v))
 
 _ParseSpec = r'''
 parser WhereClause:
@@ -115,7 +133,7 @@ parser WhereClause:
     token STR: r'"([^\\"]+|\\.)*"'
     token STR2: r"'([^\\']+|\\.)*'"
 
-    rule goal:    andexp END         {{ return andexp }}
+    rule goal:    andexp ? END       {{ return locals().get('andexp', None) }}
 
     rule andexp:  orexp              {{ e = orexp }}
                   ( "and" orexp      {{ e = ('and', e, orexp) }}
@@ -169,6 +187,7 @@ def toJavaScript(meta, clause):
                 result.append([name, op, value])
     result = []
     recurse(tree, result)
+    result.sort()
     return result
 
 def fromFormVariables(meta, form):
