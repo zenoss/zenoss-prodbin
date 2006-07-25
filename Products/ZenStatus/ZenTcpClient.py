@@ -30,6 +30,8 @@ class ZenTcpTest(protocol.Protocol):
         if self.factory.sendString:
             log.debug("sending: %s" % self.factory.sendString)
             self.transport.write(self.factory.sendString)
+            reactor.callLater(self.factory.timeout,
+                              self.transport.loseConnection)
         else:
             self.transport.loseConnection()
 
