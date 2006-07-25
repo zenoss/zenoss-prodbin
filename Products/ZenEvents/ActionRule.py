@@ -28,46 +28,6 @@ def manage_addActionRule(context, id, REQUEST=None):
 
 addActionRule = DTMLFile('dtml/addActionRule',globals())
 
-def _genMeta():
-    from WhereClause import Text, Select, Compare, Enumerated
-    from Products.ZenModel.DataRoot import DataRoot
-    conv = [d.split(':') for d in DataRoot.prodStateConversions]
-    conv = [(int(b), a) for a, b in conv]
-    return dict(
-        summary=Text("Summary"),
-        prodState=Enumerated("Production State",conv),
-        severity=Enumerated("Severity",[
-        "Clear", "Debug", "Info", "Warning", "Error", "Critical"]),
-        eventState=Enumerated("Event State",[
-        "New", "Acknowledged", "Supressed"]),
-        device=Text("Device"),
-        deviceClass=Text("Device Class"),
-        eventClass=Text("Event Class"),
-        eventClassKey=Text("Event Class Key"),
-        count=Compare("Count"),
-        manager=Text("Manager"),
-        agent=Select("Agent",[
-        "zentrap", "zenprocess", "zenstatus", "zenperfsnmp", "zensyslog"]),
-        facility=Select("Facility",[
-        "auth","authpriv","cron","daemon","kern","lpr","mail",
-        "mark","news","security","syslog","user","uucp",
-        "local0","local1","local2","local3","local4",
-        "local05","local6","local7"]),
-        priority=Select("Priority",[
-        "debug","info","notice","warning","error","critical",
-        "alert","emergency"]),
-        component=Text("Component"),
-        message=Text("Message"),
-        ntevid=Text("ntevid"),
-        ipAddress=Text("IP Address"),
-        location=Text("Location"),
-        systems=Text("Systems"),
-        deviceGroups=Text("Device Groups"),
-        ownerId=Text("Owner Id")
-        )
-Meta = _genMeta()    
-
-
 class ActionRule(ZenModelRM):
     """
     Rule applied to events that then executes an action on matching events.
@@ -182,6 +142,50 @@ class ActionRule(ZenModelRM):
         return self.getPrimaryParent().getId()
 
     
+    def genMeta(self):
+        from WhereClause import Text, Select, Compare, Enumerated
+        from Products.ZenModel.DataRoot import DataRoot
+        from EventManagerBase import EventManagerBase
+        kw = {}
+        def addDevices(name, label, column):
+            devices = self.dmd.getDmdRoot(name).getOrganizerNames()
+            devices = [('|%s' % n) for n in devices]
+            kw[column] = Select(label, devices)
+        addDevices('Systems', 'Systems', 'systems')
+        addDevices('Groups', 'Device Groups', 'deviceGroups')
+        esconv = [(b, a) for a, b in EventManagerBase.eventStateConversions]
+        sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
+        pconv = [d.split(':') for d in DataRoot.prodStateConversions]
+        pconv = [(int(b), a) for a, b in pconv]
+        return dict(
+            summary=Text("Summary"),
+            prodState=Enumerated("Production State",pconv),
+            severity=Enumerated("Severity",sconv),
+            eventState=Enumerated("Event State",esconv),
+            device=Text("Device"),
+            deviceClass=Text("Device Class"),
+            eventClass=Text("Event Class"),
+            eventClassKey=Text("Event Class Key"),
+            count=Compare("Count"),
+            manager=Text("Manager"),
+            agent=Select("Agent",[
+            "zentrap", "zenprocess", "zenstatus", "zenperfsnmp", "zensyslog"]),
+            facility=Select("Facility",[
+            "auth","authpriv","cron","daemon","kern","lpr","mail",
+            "mark","news","security","syslog","user","uucp",
+            "local0","local1","local2","local3","local4",
+            "local05","local6","local7"]),
+            priority=Select("Priority",[
+            "debug","info","notice","warning","error","critical",
+            "alert","emergency"]),
+            component=Text("Component"),
+            message=Text("Message"),
+            ntevid=Text("ntevid"),
+            ipAddress=Text("IP Address"),
+            ownerId=Text("Owner Id"),
+            **kw)
+
+
     security.declareProtected('Change Settings', 'manage_editActionRule')
     def manage_editActionRule(self, REQUEST=None):
         """Update user settings.
@@ -189,7 +193,8 @@ class ActionRule(ZenModelRM):
         if not self.enabled:
             self._clearAlertState()
         import WhereClause
-        REQUEST.form['where'] = WhereClause.fromFormVariables(Meta, REQUEST.form)
+        REQUEST.form['where'] = WhereClause.fromFormVariables(self.genMeta(),
+                                                              REQUEST.form)
         return self.zmanage_editProperties(REQUEST)
 
 
@@ -217,10 +222,10 @@ class ActionRule(ZenModelRM):
 
     def _whereClauseAsJavaScript(self):
         import WhereClause
-        return WhereClause.toJavaScript(Meta, self.where)
+        return WhereClause.toJavaScript(self.genMeta(), self.where)
 
     def getQueryElements(self):
-        s = Meta.items()
+        s = self.genMeta().items()
         s.sort()
         result = ['<option/>']
         for name, attrType in s:
@@ -229,7 +234,7 @@ class ActionRule(ZenModelRM):
         return '\n'.join(result)
 
     def getWhereClauseAsJavaScript(self):
-        s = Meta.items()
+        s = self.genMeta().items()
         s.sort()
         result = ['var properties={']
         for name, attrType in s:
