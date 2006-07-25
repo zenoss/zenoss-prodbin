@@ -74,7 +74,7 @@ class UserSettingsManager(ZenModelRM):
                     self.objectValues(spec="UserSettings"))
             
 
-    def getAllUserSettingsNames(self, filtNames):
+    def getAllUserSettingsNames(self, filtNames=()):
         """Return list of all zenoss usernames. 
         """
         filt = lambda x: x not in filtNames
