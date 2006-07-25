@@ -29,4 +29,9 @@ class NoCountProcs(Migrate.Step):
                    p._delProperty('zCountProcs')
                except ValueError, ex:
                    pass
+       try:
+           dmd.Devices.rrdTemplates._delObject('OSProcessCount')
+       except AttributeError, ex:
+           pass
+
 NoCountProcs()
