@@ -23,7 +23,6 @@ class OSProcess(OSComponent):
     _properties = OSComponent._properties + (
         {'id':'procName', 'type':'string', 'mode':'w'},
         {'id':'parameters', 'type':'string', 'mode':'w'},
-        {'id':'zCountProcs', 'type':'boolean', 'mode':'w'},
         {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
     )
@@ -71,7 +70,7 @@ class OSProcess(OSComponent):
                 thresholds = threshs.items()
         except RRDObjectNotFound, e:
             log.warn(e)
-        return (self.id, self.name(), self.countProcs(),
+        return (self.id, self.name(), 
                 self.alertOnRestart(), self.failSeverity(),
                 self.getStatus(), thresholds)
 
@@ -94,7 +93,7 @@ class OSProcess(OSComponent):
     def getRRDTemplateName(self):
         """Return list of graph urls.
         """
-        return self.countProcs() and "OSProcessCount" or "OSProcess"
+        return "OSProcess"
 
 
     def getOSProcessClassLink(self):
@@ -116,10 +115,6 @@ class OSProcess(OSComponent):
         return self.getAqProperty("zMonitor")
 
 
-    def countProcs(self):
-        return self.getAqProperty("zCountProcs")
-
-
     def alertOnRestart(self):
         return self.getAqProperty("zAlertOnRestart")
 
@@ -135,14 +130,12 @@ class OSProcess(OSComponent):
 
 
     security.declareProtected('Manage DMD', 'manage_editOSProcess')
-    def manage_editOSProcess(self, zMonitor=False, zCountProcs=False,
-                             zAlertOnRestart=False,
+    def manage_editOSProcess(self, zMonitor=False, zAlertOnRestart=False,
                              zFailSeverity=3, msg=None,REQUEST=None):
         """Edit a Service from a web page.
         """
         if msg is None: msg=[]
         msg.append(self.setAqProperty("zMonitor", zMonitor, "boolean"))
-        msg.append(self.setAqProperty("zCountProcs", zCountProcs, "int"))
         msg.append(self.setAqProperty("zAlertOnRestart",zAlertOnRestart,"int"))
         msg.append(self.setAqProperty("zFailSeverity",zFailSeverity,"int"))
         msg = [ m for m in msg if m ]

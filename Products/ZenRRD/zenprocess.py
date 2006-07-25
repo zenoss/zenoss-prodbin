@@ -45,6 +45,8 @@ MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 PARALLEL_JOBS = 10
 MAX_OIDS_PER_REQUEST = 40
 
+WRAP=0xffffffff
+
 try:
     sorted = sorted                     # added in python 2.4
 except NameError:
@@ -63,14 +65,41 @@ def reverseDict(d):
 
 class ScanFailure(Exception): pass
 
+class Pid:
+    cpu = None
+    memory = None
+
+    def updateCpu(self, n):
+        if self.cpu is None:
+            self.cpu = n
+            return None
+        if n is None:
+            return None
+        diff = n - self.cpu
+        if diff < 0:
+            diff = WRAP - self.cpu + n
+        self.cpu = n
+        return diff
+
+    def updateMemory(self, n):
+        self.memory = n
+
+    def __str__(self):
+        return '<Pid> memory: %s cpu: %s' % (self.memory, self.cpu)
+    __repr__ = __str__
+
+
 class Process:
     'track process-specific configuration data'
     name = None
     originalName = None
-    count = None
     restart = None
     severity = Event.Warning
     status = 0
+    cpu = 0
+
+    def __init__(self):
+        self.pids = {}
 
     def match(self, name):
         if self.name is None:
@@ -80,6 +109,27 @@ class Process:
     def __str__(self):
         return str(self.name)
     __repr__ = __str__
+
+    def updateCpu(self, pid, value):
+        p = self.pids.setdefault(pid, Pid())
+        cpu = p.updateCpu(value)
+        if cpu is not None:
+            self.cpu += cpu
+            self.cpu %= WRAP
+
+    def getCpu(self):
+        return self.cpu
+
+    def updateMemory(self, pid, value):
+        self.pids.setdefault(pid, Pid()).memory = value
+
+    def getMemory(self):
+        return sum([x.memory for x in self.pids.values()
+                    if x.memory is not None])
+
+    def discardPid(self, pid):
+        if self.pids.has_key(pid):
+            del self.pids[pid]
 
 class Device:
     'track device data'
@@ -117,13 +167,12 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, count, restart, severity, status, thresholds \
+        for name, originalName, restart, severity, status, thresholds \
                 in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
             p.originalName = originalName
-            p.count = count
             p.restart = restart
             p.severity = severity
             p.thresholds = {}
@@ -148,12 +197,6 @@ class Device:
                            maxRepetitions=MAX_OIDS_PER_REQUEST / len(oids))
         return t()
 
-    def hasCountedProcess(self):
-        for p in self.processes:
-            if p.count:
-                return True
-        return False
-    
 
 class zenprocess(RRDDaemon):
     statusEvent = { 'eventClass' : '/Status/OSProcess',
@@ -272,7 +315,8 @@ class zenprocess(RRDDaemon):
         # report pid restarts
         for p in dead:
             config = device.pids[p]
-            if not config.count and afterByConfig.has_key(config):
+            config.discardPid(p)
+            if afterByConfig.has_key(config):
                 if config.restart:
                     summary = 'Process restarted: %s' % config.originalName
                     self.sendEvent(self.statusEvent,
@@ -313,15 +357,14 @@ class zenprocess(RRDDaemon):
         # store counts
         pidCounts = dict([(p, 0) for p in device.processes])
         for pids, pidConfig in device.pids.items():
-            if pidConfig.count:
-                pidCounts[pidConfig.name] += 1
+            pidCounts[pidConfig.name] += 1
         for name, count in pidCounts.items():
             self.save(device.name, name, 'count', count, 'GAUGE')
 
 
     def periodic(self, unused=None):
         "Basic SNMP scan loop"
-        d = defer.DeferredList([self.perfScan(), self.countScan()],
+        d = defer.DeferredList([self.countScan(), self.perfScan()],
                                consumeErrors=True)
         d.addCallback(self.heartbeat)
         reactor.callLater(self.snmpCycleInterval, self.periodic)
@@ -345,16 +388,14 @@ class zenprocess(RRDDaemon):
 
     def countScan(self):
         "Read counts for counted Processes"
-        devices = [d for d in self.devices.values() if d.hasCountedProcess()]
-        return self.findPids(devices)
+        return self.findPids(self.devices.values())
 
 
     def fetchDevicePerf(self, device):
         "Get performance data for all the monitored Processes on a device"
         oids = []
         for pid, pidConf in device.pids.items():
-            if not pidConf.count:
-                oids.extend([CPU + str(pid), MEM + str(pid)])
+            oids.extend([CPU + str(pid), MEM + str(pid)])
         if not oids:
             return defer.succeed(([], device))
         d = device.get(oids)
@@ -370,13 +411,16 @@ class zenprocess(RRDDaemon):
             if len(pids) != 1:
                 log.warning("There are %d pids by the name %s",
                             len(pids), pidConf.name)
-            pid = pids[0]
             pidName = pidConf.name
-            cpu = results.get(CPU + str(pid), None)
-            mem = results.get(MEM + str(pid), None)
-            if cpu is not None and mem is not None:
-                self.save(device.name, pidName, 'cpu', cpu, 'COUNTER')
-                self.save(device.name, pidName, 'mem', mem * 1024, 'GAUGE')
+            for pid in pids:
+                cpu = results.get(CPU + str(pid), None)
+                mem = results.get(MEM + str(pid), None)
+                pidConf.updateCpu(pid, cpu)
+                pidConf.updateMemory(pid, mem)
+            self.save(device.name, pidName, 'cpu', pidConf.getCpu(),
+                      'COUNTER')
+            self.save(device.name, pidName, 'mem', pidConf.getMemory() * 1024,
+                      'GAUGE')
 
 
     def save(self, deviceName, pidName, statName, value, rrdType):

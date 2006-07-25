@@ -43,7 +43,6 @@ class OSProcessClass(ZenModelRM):
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
 #        {'id':'zMonitor', 'type':'boolean', 'mode':'w'},
-#        {'id':'zCountProcs', 'type':'boolean', 'mode':'w'},
 #        {'id':'zAlertOnRestart', 'type':'boolean', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
@@ -115,7 +114,7 @@ class OSProcessClass(ZenModelRM):
 
     security.declareProtected('Manage DMD', 'manage_editOSProcessClass')
     def manage_editOSProcessClass(self, name="", zMonitor=True, 
-                                zCountProcs=False, zAlertOnRestart=False,
+                                zAlertOnRestart=False,
                                 zFailSeverity=3,
                                 regex="", description="", REQUEST=None):
                                  
