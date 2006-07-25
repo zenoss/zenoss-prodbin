@@ -136,8 +136,6 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getOSProcessClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'countProcs','Count Procs')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'alertOnRestart','Restarts')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'failSeverity','Fail Severity')"/>
@@ -149,7 +147,6 @@
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
         </td>
         <td tal:content="structure proc/getOSProcessClassLink"/>
-        <td tal:content="proc/countProcs"/>
         <td tal:content="proc/alertOnRestart"/>
         <td tal:content="proc/failSeverity"/>
         <td tal:define="status proc/getStatus"

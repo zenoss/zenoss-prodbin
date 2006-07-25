@@ -39,18 +39,6 @@
             tal:content="here/monitored"/>
     </tr>
     <tr>
-        <td class="tableheader">Count Procs</td>
-        <td class="tablevalues" tal:condition="editable">
-            <select class="tablevalues"  name="zCountProcs:boolean"
-            tal:condition="editable">
-            <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; selected python:e==here.countProcs()"/>
-            </select>
-        </td>
-        <td class="tablevalues" tal:condition="not:editable"
-            tal:content="here/countProcs"/>
-    </tr>
-    <tr>
         <td class="tableheader">Alert On Restart</td>
         <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues"  name="zAlertOnRestart:boolean"

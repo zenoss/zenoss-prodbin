@@ -11,12 +11,6 @@
       <td class="tablevalues" tal:content="here/zMonitor"/>
     </tr>
     <tr>
-      <td class="tableheader">Count Procs</td>
-      <td class="tablevalues" tal:content="here/zCountProcs"/>
-      <td class="tableheader">Alert on Restart</td>
-      <td class="tablevalues" tal:content="here/zAlertOnRestart"/>
-    </tr>
-    <tr>
       <th class="tableheader">Fail Severity</th>
       <td class="tablevalues" colspan="3" tal:content="here/zFailSeverity"/>
     </tr>

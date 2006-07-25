@@ -34,14 +34,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Count Procs</td>
-        <td class="tablevalues">
-        <select class="tablevalues" name="zCountProcs:boolean">
-        <option tal:repeat="e python:(True,False)" tal:content="e"
-            tal:attributes="value e; selected python:e==here.zCountProcs"/>
-        </td>
-    </tr>
-    <tr>
         <td class="tableheader">Alert on Restart</td>
         <td class="tablevalues">
         <select class="tablevalues" name="zAlertOnRestart:boolean">
