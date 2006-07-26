@@ -4,12 +4,6 @@ def q(s):
     # turn string "fo'o" -> "'fo''o'"
     return "'%s'" % "''".join(s.split("'"))
                              
-def u(s):
-    # turn string "'fo''o'" -> "fo'o"
-    c = s[0]
-    s = c.join(s.split(c+c))
-    return s[1:-1]
-
 class WhereJavaScript:
     "Base class for converting to/from javascript"
     type = 'unknown'
@@ -29,7 +23,6 @@ class Text(WhereJavaScript):
     "Convert to/from javascript for text entries"
     type = 'text'
     def toJS(self, mode, value):
-        value = u(value)
         if mode == 'like':
             if value.startswith('%') and not value.endswith('%'):
                 return '$', [value[1:]]
@@ -103,7 +96,6 @@ class Compare(WhereJavaScript):
 
 class DeviceGroup(Select):
     def toJS(self, operator, value):
-        value = u(value)
         if operator == 'like':
             return ['', [value[2:-1]]]
         if operator == 'not like':
@@ -122,6 +114,15 @@ class Enumerated(Select):
         return operator, [self.labelFromValue(value)]
     def buildClause1(self, name, v, mode):
         return "%s %s %s" % (name, mode, self.valueFromLabel(v))
+
+_Definitions = r'''
+def u(s):
+    # turn string "'fo''o'" -> "fo'o"
+    c = s[0]
+    s = c.join(s.split(c+c))
+    return s[1:-1]
+
+'''
 
 _ParseSpec = r'''
 parser WhereClause:
@@ -152,8 +153,8 @@ parser WhereClause:
 
     rule term:    NUM                {{ return int(NUM) }}
                   | VAR              {{ return VAR }}
-                  | STR              {{ return STR }}
-                  | STR2             {{ return STR2 }}
+                  | STR              {{ return u(STR) }}
+                  | STR2             {{ return u(STR2) }}
                   | "\\(" andexp "\\)" {{ return andexp }}
 '''
 
@@ -165,6 +166,7 @@ class _Parser:
         scanner = grammar.ParserDescriptionScanner(spec)
         parser = grammar.ParserDescription(scanner)
         parser = yappsrt.wrap_error_reporter(parser, 'Parser')
+        parser.preparser = _Definitions
         parser.output = StringIO()
         parser.generate_output()
         exec parser.output.getvalue() in self.__dict__
