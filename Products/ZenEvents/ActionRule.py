@@ -169,7 +169,7 @@ class ActionRule(ZenModelRM):
             eventClassKey=Text("Event Class Key"),
             count=Compare("Count"),
             manager=Text("Manager"),
-            agent=Select("Agent",[
+            agent=Select("Agent",[(x, x) for x in
             "zentrap", "zenprocess", "zenstatus", "zenperfsnmp", "zensyslog"]),
             facility=Select("Facility",[
             "auth","authpriv","cron","daemon","kern","lpr","mail",
