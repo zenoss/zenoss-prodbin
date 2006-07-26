@@ -28,6 +28,7 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
 from ManagedEntity import ManagedEntity
+from NagiosConfig import NagiosTarget
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -175,7 +176,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity):
+class Device(ManagedEntity, NagiosTarget):
     """
     Device is a key class within zenoss.  It represents the combination of
     computer hardware running an operating system.
@@ -279,6 +280,11 @@ class Device(ManagedEntity):
                 { 'id'            : 'perfConf'
                 , 'name'          : 'PerfConf'
                 , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
+                },                
+                { 'id'            : 'NagConf'
+                , 'name'          : 'NagConf'
+                , 'action'        : 'objNagiosTemplate'
                 , 'permissions'   : ("Change Device", )
                 },                
                 { 'id'            : 'edit'
@@ -426,6 +432,20 @@ class Device(ManagedEntity):
         return (self.getSnmpConnInfo(), oids)
 
 
+    def getNagiosCmds(self):
+        """Return list of nagios commands definitions in the form.
+        (device, user, pass [(cmdinfo,),...])
+        """
+        cmds = (super(Device, self).getNagiosCmds())
+        for o in self.os.interfaces(): 
+            if o.monitored(): cmds.extend(o.getNagiosCmds())
+        for o in self.os.filesystems(): 
+            if o.monitored(): cmds.extend(o.getNagiosCmds())
+        for o in self.hw.harddisks(): 
+            if o.monitored(): cmds.extend(o.getNagiosCmds())
+        return (self.id, self.zCommandUsername, self.zCommandPassword, cmds)
+        
+
     def getRRDTemplate(self, name=None):
         """Return the closest RRDTemplate named name by walking our aq chain.
         """
@@ -433,6 +453,14 @@ class Device(ManagedEntity):
         templ = getattr(self, name, None)
         if templ is None:
             templ = super(Device, self).getRRDTemplate(name)
+        return templ
+
+    
+    def getNagiosTemplate(self, name=None):
+        if not name: name = self.getNagiosTemplateName()
+        templ = getattr(self, name+"_Nagios", None)
+        if templ is None:
+            templ = super(Device, self).getNagiosTemplate(name)
         return templ
 
 

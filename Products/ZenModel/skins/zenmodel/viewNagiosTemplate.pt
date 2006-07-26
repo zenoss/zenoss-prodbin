@@ -1,0 +1,102 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane" tal:define="editable here/isManager">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan="3"
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="editable">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+    <td class="tableheader" colspan="2">Description</td>
+    </tr>
+    <tr>
+    <td class="tablevalues" colspan="2">
+        <textarea class="tablevalues" rows="2" cols="60" name="description:text"
+            tal:content="here/description">
+        </textarea>
+    </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value="Save"
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+<table>
+</form>
+<br/>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdtempdslist; 
+        objects here/nagiosCmds;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tal:block metal:define-macro="dsbody">
+    <tr>
+      <th class="tabletitle" colspan="3">Nagios Commands</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'component','Component')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'commandTemplate','Template')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="ds batch">
+        <td>
+            <input tal:condition="editable" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value ds/getId"/>
+            <a tal:condition="editable"
+                tal:attributes="href ds/getPrimaryUrlPath" 
+                tal:content="ds/getId">name</a>
+            <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
+        </td>
+        <td tal:content="ds/component"/>
+        <td tal:content="ds/commandTemplate"/>
+    </tr>
+    <tr>
+        <td colspan="3" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="editable">
+        <td colspan="3">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+          onkeypress="return submitViaEnter(event,'manage_addNagiosCmd');" 
+          name="manage_addNagiosCmd:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" value="Copy"
+            name="manage_copyNagiosCmds:method"/>
+        <tal:block tal:condition="here/cb_dataValid">
+        |
+        <input class="tableheader" type="submit" value="Paste"
+            name="manage_pasteNagiosCmds:method"/>
+        </tal:block>
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteNagiosCmds:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+    </tal:block>
+</table>
+</form>
+</tal:block>
+</tal:block>

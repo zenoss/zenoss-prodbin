@@ -1,0 +1,70 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:nagiostemplatelist;
+    objects here/getNagiosTemplates;
+    batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <input type='hidden' name='tableName' 
+        tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id"/>
+    <tr>
+      <th class="tabletitle" align="left" colspan="6">Nagios Plugins</th>
+    </tr>
+    <tr>
+        <th class="tableheader" width="5px"></th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getNagiosTemplatePath','Definition Path')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'description','Description')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="tmpl batch"
+        tal:define="lnames here/nagiosTemplates/objectIds">
+        <td>
+            <input tal:condition="python: here.isManager() 
+                                    and tmpl.id in lnames" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value tmpl/getId"/>
+        </td>
+        <td>
+            <a tal:attributes="href tmpl/getPrimaryUrlPath" 
+                tal:content="tmpl/getId">name</a>
+        </td>
+        <td tal:content="structure tmpl/getNagiosTemplatePathLink"/>
+        <td tal:content="tmpl/description"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="6">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+          onkeypress="return submitViaEnter(event,'manage_addNagiosTemplate');" 
+          name="manage_addNagiosTemplate:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" value="Copy"
+            name="manage_copyNagiosTemplates:method"/>
+        <tal:block tal:condition="here/cb_dataValid">
+        |
+        <input class="tableheader" type="submit" value="Paste"
+            name="manage_pasteNagiosTemplates:method"/>
+        </tal:block>
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteNagiosTemplates:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

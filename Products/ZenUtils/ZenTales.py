@@ -11,14 +11,14 @@ _compiled = {}
 def talesEval(express, context):
     """Perform a TALES eval on the express using context.
     """
-    compiled = talesCompile(express, context)    
+    compiled = talesCompile(express)    
     res = compiled(getEngine().getContext(
         {'here':context, 'nothing':None, 'now': DateTime() }))
     if isinstance(res, Exception):
         raise res
     return res
 
-def talesCompile(express, context):
+def talesCompile(express):
     compiled = _compiled.get(express, None)
     if not compiled:
         _compiled[express] = compiled = getEngine().compile(express)

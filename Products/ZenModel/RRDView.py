@@ -104,6 +104,14 @@ class RRDView(object):
         """
         return self.meta_type
 
+
+    def getNagiosTemplateName(self):
+        """Return the nagios temlate name of this component. 
+        By default meta_type. Override to create custom type selection.
+        """
+        return self.meta_type
+
+
     def getRRDFileName(self, dsname):
         return os.path.join(self.rrdPath(), dsname) + ".rrd"
 
@@ -120,14 +128,23 @@ class RRDView(object):
 
 
     def getRRDTemplate(self, name=None):
+        if not name: name =  self.getRRDTemplateName()
+        return self._lookupTemplate(name, 'rrdTemplates')
+
+
+    def getNagiosTemplate(self, name=None):
+        if not name: name =  self.getRRDTemplateName()
+        return self._lookupTemplate(name, 'nagiosTemplates')
+       
+
+    def _lookupTemplate(self, name, relname):
         """Return the closest RRDTemplate named name by walking our aq chain.
         """
-        if not name: name = self.getRRDTemplateName()
         mychain = aq_chain(self)
         for obj in mychain:
-            if not getattr(aq_base(obj), 'rrdTemplates', False): continue
-            if getattr(aq_base(obj.rrdTemplates), name, False):
-                return obj.rrdTemplates._getOb(name)
+            if not getattr(aq_base(obj), relname, False): continue
+            if getattr(aq_base(getattr(obj, relname)), name, False):
+                return getattr(obj, relname)._getOb(name)
 
 
     def getThresholds(self, templ):
@@ -174,6 +191,16 @@ class RRDView(object):
         return oids
 
 
+    def getNagiosCmds(self):
+        """Return list of nagios commands definitions in the form.
+        [(name,compname,eventClass,eventKey,severity,commnad),...]
+        """
+        templ = self.getNagiosTemplate()
+        if not templ: return ()
+        return [ c.getCmdInfo(self) for c in templ.nagiosCmds() ]
+            
+
+    
     def copyRRDTemplate(self, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.
         """

@@ -90,6 +90,14 @@ class DeviceComponent(object):
         return templ
 
 
+    def getNagiosTemplate(self, name=None):
+        if not name: name = self.getNagiosTemplateName()
+        templ = getattr(self, name+"_Nagios", None)
+        if templ is None:
+            templ = super(DeviceComponent, self).getNagiosTemplate(name)
+        return templ
+
+
     def getAqProperty(self, prop):
         """Get a property from ourself if it exsits then try serviceclass path.
         """

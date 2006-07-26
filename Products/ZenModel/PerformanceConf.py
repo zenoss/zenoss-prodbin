@@ -63,17 +63,24 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
+#    snmpCycleInterval = 300
     snmpCycleInterval = 60
-    configCycleInterval = 20
+    configCycleInterval = 30
     renderurl = ''
     renderuser = ''
     renderpass = ''
+#    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:600\n' \
+#                              'RRA:AVERAGE:0.5:6:600\n' \
+#                              'RRA:AVERAGE:0.5:24:600\n' \
+#                              'RRA:MAX:0.5:24:600\n' \
+#                              'RRA:AVERAGE:0.5:288:600\n' \
+#                              'RRA:MAX:0.5:288:600'
+#                              #'RRA:HWPREDICT:1440:0.5:0.5:1440',
     defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:1800\n' \
                               'RRA:AVERAGE:0.5:6:1800\n' \
                               'RRA:AVERAGE:0.5:24:1800\n' \
                               'RRA:AVERAGE:0.5:288:1800\n' \
                               'RRA:MAX:0.5:288:1800'
-                              #'RRA:HWPREDICT:1440:0.5:0.5:1440',
 
 
     _properties = (
@@ -144,13 +151,31 @@ class PerformanceConf(Monitor, StatusColor):
                 try:
                     procinfo = dev.getOSProcessConf()
                     if procinfo is None: continue
-                    result.append(dev.getOSProcessConf())
+                    result.append(procinfo)
                 except POSError: raise
                 except:
                     log.exception("device %s", dev.id)
         return result
 
 
+    def getNagiosCmds(self, devname=None):
+        '''Get the Nagios command configuration for all devices.
+        '''
+        result = []
+        for dev in self.devices():
+            if devname and dev.id != devname: continue
+            dev = dev.primaryAq()
+            if dev.monitorDevice():
+                try:
+                    cmdinfo = dev.getNagiosCmds()
+                    if not cmdinfo: continue
+                    result.append(cmdinfo)
+                except POSError: raise
+                except:
+                    log.exception("device %s", dev.id)
+        return result
+
+        
     security.declareProtected('View','getDefaultRRDCreateCommand')
     def getDefaultRRDCreateCommand(self):
         """Get the default RRD Create Command, as a string.

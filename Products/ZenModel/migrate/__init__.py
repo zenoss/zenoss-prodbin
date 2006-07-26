@@ -25,3 +25,4 @@ import mwrelations
 import rrdmin
 import winminseverity
 import nocountprocs
+import nagios

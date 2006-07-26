@@ -64,6 +64,7 @@ productNames = (
     "MibNotification",
     "MibOrganizer",
     "MonitorClass",
+    "NagiosTemplate",
     "OperatingSystem",
     "OSProcess",
     "OSProcessClass",

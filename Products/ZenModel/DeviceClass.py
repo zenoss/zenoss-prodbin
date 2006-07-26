@@ -33,6 +33,7 @@ from RRDTemplate import RRDTemplate
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 
 from DeviceOrganizer import DeviceOrganizer
+from NagiosTemplate import NagiosTemplate
 
 _marker = "__MARKER___"
 
@@ -80,6 +81,7 @@ class DeviceClass(DeviceOrganizer):
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
         ("rrdTemplates", ToManyCont(ToOne,"RRDTemplate","deviceClass")),
+        ("nagiosTemplates", ToManyCont(ToOne,"NagiosTemplate","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -110,8 +112,13 @@ class DeviceClass(DeviceOrganizer):
                 , 'permissions'   : (  permissions.view, )
                 },
                 { 'id'            : 'perfConfig'
-                , 'name'          : 'PerfConfig'
+                , 'name'          : 'PerfConf'
                 , 'action'        : 'perfConfig'
+                , 'permissions'   : ("Change Device",)
+                },
+                { 'id'            : 'nagConf'
+                , 'name'          : 'NagConf'
+                , 'action'        : 'nagiosConfig'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'config'
@@ -427,6 +434,72 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('View', 'getNagiosTemplates')
+    def getNagiosTemplates(self, context=None):
+        """Return the actual NagiosTemplates instances.
+        """
+        templates = {}
+        if not context: context = self
+        mychain = aq_chain(context)
+        mychain.reverse()
+        for obj in mychain:
+            if not getattr(aq_base(obj), 'nagiosTemplates', False): continue
+            for t in obj.nagiosTemplates():
+                templates[t.id] = t
+        return templates.values()         
+            
+
+    security.declareProtected('Add DMD Objects', 'manage_addNagiosTemplate')
+    def manage_addNagiosTemplate(self, id, REQUEST=None):
+        """Add an NagiosTemplate to this DeviceClass.
+        """
+        if not id: return self.callZenScreen(REQUEST)
+        org = NagiosTemplate(id)
+        self.nagiosTemplates._setObject(org.id, org)
+        if REQUEST: return self.callZenScreen(REQUEST)
+            
+
+    def manage_copyNagiosTemplates(self, ids=(), REQUEST=None):
+        """Put a reference to the objects named in ids in the clip board"""
+        if not ids: return self.callZenScreen(REQUEST)
+        ids = [ id for id in ids if self.nagiosTemplates._getOb(id, None) != None]
+        if not ids: return self.callZenScreen(REQUEST)
+        cp = self.nagiosTemplates.manage_copyObjects(ids)
+        if REQUEST: 
+            resp=REQUEST['RESPONSE']
+            resp.setCookie('__cp', cp, path='/zport/dmd')
+            REQUEST['__cp'] = cp
+            return self.callZenScreen(REQUEST)
+        return cp
+
+
+    def manage_pasteNagiosTemplates(self, cb_copy_data=None, REQUEST=None):
+        """Paste NagiosTemplates that have been copied before.
+        """
+        cp = None
+        if cb_copy_data: cp = cb_copy_data
+        elif REQUEST:
+            cp = REQUEST.get("__cp",None)
+        if cp: self.nagiosTemplates.manage_pasteObjects(cp)
+        if REQUEST: 
+            REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
+                            expires='Wed, 31-Dec-97 23:59:59 GMT')
+            REQUEST['__cp'] = None
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_deleteNagiosTemplates(self, ids=(), REQUEST=None):
+        """Delete NagiosTemplates from this DeviceClass 
+        (skips ones in other Classes)
+        """
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids:
+            if (getattr(aq_base(self), 'nagiosTemplates', False) 
+                and getattr(aq_base(self.nagiosTemplates),id,False)):
+                self.nagiosTemplates._delObject(id)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     def createCatalog(self):
         """make the catalog for device searching
         """
@@ -562,6 +635,8 @@ class DeviceClass(DeviceOrganizer):
         #devs._setProperty("zWinServices", "")
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
+        
+        devs._setProperty("zNagiosPath", "/usr/local/nagios/libexec")
 
 
 InitializeClass(DeviceClass)
