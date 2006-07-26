@@ -231,7 +231,7 @@ class MaintenanceWindow(ZenModelRM):
         "fix up breadCrumbs to add a link back to the Manage tab"
         bc = super(MaintenanceWindow, self).breadCrumbs(terminator)
         url, display = bc[-2]
-        url += "/deviceManagement"
+        url += "/" + self.backCrumb
         bc.insert(-1, (url, 'manage'))
         return bc
 
@@ -313,11 +313,13 @@ class MaintenanceWindow(ZenModelRM):
             self.begin(now)
 
 class DeviceMaintenanceWindow(MaintenanceWindow):
+    backCrumb = 'deviceManagement'
     _relations = (
         ("productionState", ToOne(ToManyCont, "Device", "maintenanceWindows")),
         )
 
 class OrganizerMaintenanceWindow(MaintenanceWindow):
+    backCrumb = 'deviceOrganizerManage'
     _relations = (
         ("productionState", ToOne(ToManyCont, "DeviceOrganizer", "maintenanceWindows")),
         )
