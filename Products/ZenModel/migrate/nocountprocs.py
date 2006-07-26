@@ -29,7 +29,6 @@ class NoCountProcs(Migrate.Step):
        for d in dmd.Devices.getSubDevices():
            for p in d.os.processes():
                delProperty(p, 'zCountProcs')
-       if dmd.Devices.rrdTemplates.hasProperty('OSProcessCount'):
-           delProperty(dmd.Devices.rrdTemplates, 'OSProcessCount')
+       delProperty(dmd.Devices.rrdTemplates, 'OSProcessCount')
 
 NoCountProcs()
