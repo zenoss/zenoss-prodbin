@@ -19,19 +19,13 @@ class NoCountProcs(Migrate.Step):
 
     def cutover(self, dmd):
        for p in dmd.Processes.getSubOSProcessClassesGen():
-           try:
+           if p.hasProperty('zCountProcs'):
                p._delProperty('zCountProcs')
-           except ValueError, ex:       # property does not exist
-               pass
        for d in dmd.Devices.getSubDevices():
            for p in d.os.processes():
-               try:
+               if p.hasProperty('zCountProcs'):
                    p._delProperty('zCountProcs')
-               except ValueError, ex:
-                   pass
-       try:
+       if dmd.Devices.rrdTemplates.hasProperty('OSProcessCount'):
            dmd.Devices.rrdTemplates._delObject('OSProcessCount')
-       except AttributeError, ex:
-           pass
 
 NoCountProcs()
