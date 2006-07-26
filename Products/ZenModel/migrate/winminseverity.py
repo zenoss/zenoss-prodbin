@@ -8,7 +8,8 @@ class WinMinSeverity(Migrate.Step):
     version = 22.0
 
     def cutover(self, dmd):
-        dmd.Devices._setProperty("zWinEventlogMinSeverity", 2, type="int")
+	if dmd.Devices._getOb("zWinEventlogMinSeverity",None) is None:
+            dmd.Devices._setProperty("zWinEventlogMinSeverity", 2, type="int")
 
 
 WinMinSeverity()
