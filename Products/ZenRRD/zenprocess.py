@@ -45,7 +45,7 @@ MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 PARALLEL_JOBS = 10
 MAX_OIDS_PER_REQUEST = 40
 
-WRAP=0xffffffff
+WRAP=0xffffffffL
 
 try:
     sorted = sorted                     # added in python 2.4
