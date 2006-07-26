@@ -14,18 +14,22 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 
+def delProperty(obj, name):
+    try:
+        obj._delProperty(name)
+    except ValueError, AttributeError:
+        pass
+
 class NoCountProcs(Migrate.Step):
     version = 22.0
 
     def cutover(self, dmd):
        for p in dmd.Processes.getSubOSProcessClassesGen():
-           if p.hasProperty('zCountProcs'):
-               p._delProperty('zCountProcs')
+           delProperty(p, 'zCountProcs')
        for d in dmd.Devices.getSubDevices():
            for p in d.os.processes():
-               if p.hasProperty('zCountProcs'):
-                   p._delProperty('zCountProcs')
+               delProperty(p, 'zCountProcs')
        if dmd.Devices.rrdTemplates.hasProperty('OSProcessCount'):
-           dmd.Devices.rrdTemplates._delObject('OSProcessCount')
+           delProperty(dmd.Devices.rrdTemplates, 'OSProcessCount')
 
 NoCountProcs()
