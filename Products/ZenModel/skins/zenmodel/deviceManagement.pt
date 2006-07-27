@@ -94,7 +94,7 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
       <th class="tabletitle" colspan="5">
-        Adminitrators
+        Administrators
       </th>
     </tr>
     <tr>

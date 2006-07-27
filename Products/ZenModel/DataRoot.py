@@ -117,7 +117,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     administrativeRoles = (
         "Administrator",
-        "Analyist",
+        "Analyst",
+        "Engineer",
         "Tester",
     )
 
