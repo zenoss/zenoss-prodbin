@@ -42,7 +42,7 @@ class ActionRule(ZenModelRM):
     body =  "Device: %(device)s\n" \
             "Component: %(component)s\n" \
             "Severity: %(severity)s\n" \
-            "Time: %(firstTime)s:\n" \
+            "Time: %(firstTime)s\n" \
             "Message:\n%(message)s\n" \
             "Event: %(eventUrl)s\n" 
     clearFormat = "CLEAR: %(device)s %(clearOrEventSummary)s"
