@@ -174,6 +174,8 @@ class _Parser:
 where = _Parser(_ParseSpec)
 
 def toJavaScript(meta, clause):
+    # sql is case insensitive, map column names to lower-case versions
+    lmeta = dict([(n.lower(), n) for n in meta.keys()])
     tree = where.parse('goal', clause)
     def recurse(root, result):
         if type(root) == types.TupleType:
@@ -184,9 +186,11 @@ def toJavaScript(meta, clause):
             if op in ('and', 'or'):
                 recurse(root[1], result)
                 recurse(root[2], result)
-            if meta.has_key(name):
-                op, value = meta[name].toJS(op, value)
-                result.append([name, op, value])
+            else:
+                name = lmeta.get(name.lower(), None)
+                if name is not None:
+                    op, value = meta[name].toJS(op, value)
+                    result.append([name, op, value])
     result = []
     recurse(tree, result)
     result.sort()
