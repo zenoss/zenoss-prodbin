@@ -28,7 +28,6 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
 from ManagedEntity import ManagedEntity
-from NagiosConfig import NagiosTarget
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -176,7 +175,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity, NagiosTarget):
+class Device(ManagedEntity):
     """
     Device is a key class within zenoss.  It represents the combination of
     computer hardware running an operating system.
