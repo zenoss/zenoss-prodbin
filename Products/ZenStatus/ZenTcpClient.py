@@ -79,8 +79,9 @@ class ZenTcpClient(protocol.ClientFactory):
     def mkevent(self):
         if self.msg == "pass" and self.svc.getStatus() > 0:
             sev = 0
-            log.info("device:%s service:%s back up", 
-                     self.svc.hostname(), self.svc.name())
+            self.msg = "device:%s service:%s back up", % (
+                        self.svc.hostname(), self.svc.name())
+            log.info(self.msg)
         elif self.msg != "pass":
             sev = self.svc.getFailSeverity()
             log.warn("device:%s service:%s down", 
