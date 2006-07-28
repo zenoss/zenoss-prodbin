@@ -8,9 +8,12 @@ class Nagios(Migrate.Step):
     version = 22.0
 
     def cutover(self, dmd):
+        import os
 	if not dmd.Devices.hasProperty("zNagiosPath"):
-		dmd.Devices._setProperty("zNagiosPath",'/usr/local/nagios/libexec',)
+            path = os.path.join(os.environ['ZENHOME'], 'libexec')
+            dmd.Devices._setProperty("zNagiosPath", path)
+                                         )
 	if not dmd.Devices.hasProperty("zNagiosCycleTime"):
-		dmd.Devices._setProperty("zNagiosCycleTime",60,type='int')
+            dmd.Devices._setProperty("zNagiosCycleTime",60,type='int')
 
 Nagios()
