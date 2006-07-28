@@ -23,6 +23,8 @@ from SocketServer import UDPServer
 
 import Globals
 
+import transaction
+
 from Products.ZenUtils.ZeoPoolBase import  ZeoPoolBase
 from Products.ZenUtils.Utils import basicAuthUrl
 
@@ -156,10 +158,11 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             try:
                 zem = self.getZem()
                 zem.sendEvent(evt)
-            except ZenBackendFailure, e:
+            except Exception, e:
                 self.log.error(e)
         finally:
             if zem: 
+                transaction.abort()
                 zem._p_jar.close()
                 del zem
 
