@@ -31,7 +31,8 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import RRDDaemon, Threshold
+from RRDDaemon import Threshold
+from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
 
@@ -163,7 +164,7 @@ class OidData:
 
 
 
-class zenperfsnmp(RRDDaemon):
+class zenperfsnmp(SnmpDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
     # these names need to match the property values in StatusMonitorConf
@@ -171,7 +172,7 @@ class zenperfsnmp(RRDDaemon):
     status = Status()
 
     def __init__(self):
-        RRDDaemon.__init__(self, 'zenperfsnmp')
+        SnmpDaemon.__init__(self, 'zenperfsnmp')
         self.proxies = {}
         self.queryWorkList = Set()
         self.unresponsiveDevices = Set()

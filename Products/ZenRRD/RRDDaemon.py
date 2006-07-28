@@ -7,7 +7,7 @@
 
 __doc__='''RRDDaemon
 
-Common performance monitoring daemon code for zenperfsnmp and zenprocess.
+Common performance monitoring daemon code for performance daemons.
 
 $Id$
 '''
@@ -22,7 +22,6 @@ from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 
-from twistedsnmp import snmpprotocol
 from twisted.internet import reactor
 from twisted.python import failure
 
@@ -89,7 +88,7 @@ class Threshold:
 
 
 class RRDDaemon(ZenDaemon):
-    'Holds the code common between zenperfsnmp and zenprocess.'
+    'Holds the code common to performance gathering daemons.'
 
     startevt = {'eventClass':'/App/Start', 
                 'summary': 'started',
@@ -99,8 +98,9 @@ class RRDDaemon(ZenDaemon):
                'severity': BAD_SEVERITY}
     heartbeatevt = {'eventClass':'/Heartbeat'}
     
+    properties = ('configCycleInterval',)
+    heartBeatTimeout = 60
     configCycleInterval = 20            # minutes
-    snmpCycleInterval = 5*60            # seconds
     rrd = None
     shutdown = False
 
@@ -109,7 +109,6 @@ class RRDDaemon(ZenDaemon):
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
-        self.snmpPort = snmpprotocol.port()
         self.model = self.buildProxy(self.options.zopeurl)
         baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
         if not self.options.zem:
@@ -128,7 +127,7 @@ class RRDDaemon(ZenDaemon):
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
         table = dict(items)
-        for name in ('configCycleInterval', 'snmpCycleInterval'):
+        for name in self.properties:
             value = table.get(name, None)
             if value is not None:
                 if getattr(self, name) != value:
@@ -138,7 +137,6 @@ class RRDDaemon(ZenDaemon):
 
     def sendThresholdEvent(self, **kw):
         "Send the right event class for threshhold events"
-        kw.setdefault('eventClass', '/Perf/Snmp')
         self.sendEvent({}, **kw)
 
 
@@ -163,6 +161,7 @@ class RRDDaemon(ZenDaemon):
 
     def eventsSent(self, result, events):
         if isinstance(result, failure.Failure):
+            self.log.exception(result.value)
             self.events.extend(events)
         else:
             self.events = self.events[len(events):]
@@ -186,7 +185,7 @@ class RRDDaemon(ZenDaemon):
         if not self.options.cycle:
             self._shutdown()
             return
-        self.sendEvent(self.heartbeatevt, timeout=self.snmpCycleInterval*3)
+        self.sendEvent(self.heartbeatevt, timeout=self.heartbeatTimeout*3)
         self.sendEvents()
 
     def buildOptions(self):

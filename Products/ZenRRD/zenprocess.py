@@ -32,7 +32,8 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import RRDDaemon, Threshold
+from RRDDaemon import Threshold
+from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
@@ -198,12 +199,12 @@ class Device:
         return t()
 
 
-class zenprocess(RRDDaemon):
+class zenprocess(SnmpDaemon):
     statusEvent = { 'eventClass' : '/Status/OSProcess',
                     'eventGroup' : 'Process' }
 
     def __init__(self):
-        RRDDaemon.__init__(self, 'zenprocess')
+        SnmpDaemon.__init__(self, 'zenprocess')
         self.devices = {}
         self.perfScanJob = None
 
@@ -439,7 +440,7 @@ class zenprocess(RRDDaemon):
         pids = sum(map(lambda x: len(x.pids), self.devices.values()))
         log.debug("Pulled process status for %d devices and %d processes",
                   len(self.devices), pids)
-        RRDDaemon.heartbeat(self)
+        SnmpDaemon.heartbeat(self)
 
 
     def main(self):
