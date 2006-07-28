@@ -1,16 +1,22 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post"  metal:define-macro="objectperf"
+    tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 <table class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);"
     >
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
         <th class=tabletitle align=left>
             Range
-            <span tal:replace="structure python:here.scUrlPopup(
-                tableName, 'popupperf', 'drange:int',
-                here.performanceDateRanges)"/>
+        <select class="tableheader" name="drange:int" onchange="form.submit()">
+            <option tal:repeat="r here/performanceDateRanges" 
+                tal:content='python:r[0]' 
+                tal:attributes="value python:r[1]; 
+                                selected python:r[1]==drange"/>
+        </select>
         </th>
     </tr>
     <span tal:condition="python:here.getId()=='rh'">
@@ -46,6 +52,6 @@
         </span>
     </span>
 </table>
-
+</form>
 </tal:block>
 </tal:block>
