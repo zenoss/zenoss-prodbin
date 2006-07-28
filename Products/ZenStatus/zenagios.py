@@ -35,7 +35,38 @@ def Timeout(deferred, seconds):
     deferred.addBoth(_cb, timer)
     return deferred
 
-class Cmd(ProcessProtocol):
+class ProcessRunner(ProcessProtocol):
+    stopped = None
+    exitCode = None
+    output = []
+
+    def __init__(self, cmd):
+        self.defer = defer.Deferred()
+        self.command = cmd
+        
+    def start(self):
+        self.output = []
+        reactor.spawnProcess(self, '/bin/sh',
+                             ('/bin/sh', '-c', 'exec ' + self.command))
+        self.stopped = Timeout(defer.Deferred(), MAX)
+        self.stopped.addErrback(self.timeout)
+        return self.stopped
+
+    def timeout(self, ignored):
+        self.transport.signalProcess('KILL')
+        return ignored
+
+    def outReceived(self, data):
+        self.output.append(data)
+
+    def processEnded(self, reason):
+        self.exitCode = reason.value.exitCode
+        self.output = [s.strip() for s in ''.join(self.output).split('\n')][0]
+        if self.stopped:
+            d, self.stopped = self.stopped, None
+            d.callback(self)
+
+class Cmd:
     device = None
     username = None
     password = None
@@ -48,12 +79,13 @@ class Cmd(ProcessProtocol):
     severity = 3
     lastStart = 0
     lastStop = 0
-    stopped = None
     result = None
 
-    def __init__(self):
-        self.output = []
-        self.error = []
+    def __init__(self, sshConnections = None):
+        self.sshConnections = sshConnections
+
+    def running(self):
+        return self.lastStop < self.lastStart 
 
     def name(self):
         cmd, args = self.command.split(' ', 1)
@@ -68,43 +100,26 @@ class Cmd(ProcessProtocol):
         return self.lastStop + self.cycleTime
 
     def start(self):
-        log.debug('Process %s started' % self.name())
         self.lastStart = time.time()
-        reactor.spawnProcess(self, '/bin/sh',
-                             ('/bin/sh', '-c', 'exec ' + self.command))
-        self.stopped = Timeout(defer.Deferred(), MAX)
-        self.stopped.addErrback(self.timeout)
-        return self.stopped
-
-    def timeout(self, ignored):
-        self.transport.signalProcess('KILL')
-        return ignored
+        pr = ProcessRunner(self.command)
+        d = pr.start()
+        log.debug('Process %s started' % self.name())
+        d.addBoth(self.processEnded)
+        return d
 
     def running(self):
         return self.lastStop < self.lastStart 
 
-    def outReceived(self, data):
-        log.debug('%s got data: %s' % (self.name(), `data`))
-        self.output.append(data)
-
-    def errReceived(self, err):
-        log.debug('got error: %s' % `err`)
-        self.error.append(err)
-
-    def processEnded(self, reason):
-        log.debug('Process %s stopped (%s), %f elapsed' % (
-            self.name(),
-            reason.value.exitCode,
-            self.lastStop - self.lastStart))
-
+    def processEnded(self, pr):
+        self.result = pr
         self.lastStop = time.time()
-        self.result = reason
-        self.output = [s.strip() for s in ''.join(self.output).split('\n')][0]
-        self.error = ''.join(self.error)
-        if self.stopped:
-            d, self.stopped = self.stopped, None
-            d.callback(self)
-        self.stopped = None
+        if not isinstance(pr, failure.Failure):
+            log.debug('Process %s stopped (%s), %f elapsed' % (
+                self.name(),
+                pr.exitCode,
+                self.lastStop - self.lastStart))
+            return self
+        return pr
 
     def updateConfig(self,device,username, password, useSsh,
                      cycleTime, eventKey, eventClass, component, severity,
@@ -192,8 +207,8 @@ class zenagios(RRDDaemon):
         if isinstance(cmd, failure.Failure):
             log.exception(cmd.value)
             return
-        msg, values = cmd.output.split('|', 1)
-        exitCode = cmd.result.value.exitCode
+        msg, values = cmd.result.output.split('|', 1)
+        exitCode = cmd.result.exitCode
         severity = cmd.severity
         issueKey = cmd.device, cmd.eventClass
         if exitCode == 0:
