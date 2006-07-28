@@ -151,5 +151,7 @@ class FileSystem(OSComponent):
         return ['usedBlocks']
 
     def viewName(self): return self.mount
+    name = viewName
+
 
 InitializeClass(FileSystem)

@@ -28,7 +28,7 @@ def manage_addNagiosCmd(context, id, REQUEST = None):
 class NagiosCmd(ZenModelRM):
 
     usessh = True
-    cycletime = 0
+    cycletime = 60
     enabled = True
     component = ""
     eventClass = "/Status/Nagios"
@@ -75,7 +75,7 @@ class NagiosCmd(ZenModelRM):
         """
         from NagiosTemplate import crumbspath
         crumbs = super(NagiosCmd, self).breadCrumbs(terminator)
-        return crumbspath(self, crumbs, -2)
+        return crumbspath(self.nagiosTemplate(), crumbs, -2)
 
 
     def getCmdInfo(self, context):
@@ -99,7 +99,7 @@ class NagiosCmd(ZenModelRM):
         from DeviceComponent import DeviceComponent
         comp = self.component
         if isinstance(context, DeviceComponent):
-            comp = context.id
+            comp = context.name()
         return comp
    
 

@@ -358,7 +358,7 @@ class Device(ManagedEntity):
         else:    
             ManagedEntity._setPropValue(self, id, value)
 
-
+    
     def applyDataMap(self, datamap, relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
@@ -454,7 +454,7 @@ class Device(ManagedEntity):
             templ = super(Device, self).getRRDTemplate(name)
         return templ
 
-    
+   
     def getNagiosTemplate(self, name=None):
         if not name: name = self.getNagiosTemplateName()
         templ = getattr(self, name+"_Nagios", None)

@@ -197,27 +197,55 @@ class RRDView(object):
         """
         templ = self.getNagiosTemplate()
         if not templ: return ()
-        return [ c.getCmdInfo(self) for c in templ.nagiosCmds() ]
+        return [ c.getCmdInfo(self) for c in templ.nagiosCmds() if c.enabled ]
             
 
     
     def copyRRDTemplate(self, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.
         """
-        templ = self.getRRDTemplate()
-        if not self.isLocalName(templ.id):
+        return self._copyTemplate(self.getRRDTemplate,
+                                  self.getRRDTemplateName(), REQUEST)
+
+
+    def copyNagiosTemplate(self, REQUEST=None):
+        """Make a local copy of our Nagios Template if one doesn't exist.
+        """
+        name = self.getNagiosTemplateName() + "_Nagios"
+        return self._copyTemplate(self.getNagiosTemplate, name, REQUEST)
+
+        
+    def _copyTemplate(self, templGet, templName, REQUEST=None):
+        """Make a local copy of our RRDTemplate if one doesn't exist.
+        """
+        templ = templGet()
+        if not self.isLocalName(templName):
             ct = templ._getCopy(self)
+            ct.id = templName
             self._setObject(ct.id, ct)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
     def deleteRRDTemplate(self, REQUEST=None):
+        """Make a local delete of our RRDTemplate if one doesn't exist.
+        """
+        return self._deleteTemplate(self.getRRDTemplateName(), REQUEST)
+
+
+    def deleteNagiosTemplate(self, REQUEST=None):
+        """Make a local delete of our Nagios Template if one doesn't exist.
+        """
+        name = self.getNagiosTemplateName() + "_Nagios"
+        return self._deleteTemplate(name, REQUEST)
+
+
+    def _deleteTemplate(self, tname, REQUEST=None):
         """Delete our local RRDTemplate if it exists.
         """
-        tname = self.getRRDTemplateName()
         if self.isLocalName(tname):
             self._delObject(tname)
         if REQUEST: return self.callZenScreen(REQUEST)
+
 
 def updateCache(filenameValues):
     _cache.update(dict(filenameValues))

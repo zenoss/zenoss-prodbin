@@ -81,17 +81,24 @@ class NagiosTemplate(ZenModelRM):
         return crumbspath(self, crumbs)
 
 
+    def isEditable(self, context):
+        """Is this template editable in context.
+        """
+        return (self.isManager() and 
+                (context == self or self.id=='Device_Nagios'))
+
+    
     def getNagiosTemplatePath(self):
         """Return the path on which this template is defined.
         """
-        return self.deviceClass().getPrimaryDmdId(subrel="nagiosTemplates")
+        return self.getPrimaryParent().getPrimaryDmdId(subrel="nagiosTemplates")
    
 
     def getNagiosTemplatePathLink(self):
         """Return alink path on which this template is defined.
         """
         return "<a href='%s'>%s</a>" % (
-                self.deviceClass().getPrimaryUrlPath()+"/nagiosConfig", 
+                self.getPrimaryParent().getPrimaryUrlPath()+"/nagiosConfig", 
                 self.getNagiosTemplatePath())
     
     

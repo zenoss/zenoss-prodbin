@@ -38,14 +38,14 @@ class ActionRule(ZenModelRM):
     where = "severity >= 4 and eventState = 0 and prodState = 1000"
     delay = 0
     action = "email"
-    format = "%(device)s %(summary)s"
+    format = "[zenoss] %(device)s %(summary)s"
     body =  "Device: %(device)s\n" \
             "Component: %(component)s\n" \
             "Severity: %(severity)s\n" \
             "Time: %(firstTime)s\n" \
             "Message:\n%(message)s\n" \
             "Event: %(eventUrl)s\n" 
-    clearFormat = "CLEAR: %(device)s %(clearOrEventSummary)s"
+    clearFormat = "[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s"
     clearBody =  \
             "Event: '%(summary)s'\n" \
             "Cleared by: '%(clearSummary)s'\n" \

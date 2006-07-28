@@ -299,7 +299,7 @@ class ZenActions(ZCmdBase):
         addr = action.getAddress()
         fmt, body = self.format(action, data, clear)
         emsg = MIMEText(body)
-        emsg['Subject'] = "[zenoss] %s" % fmt
+        emsg['Subject'] = fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
         server = smtplib.SMTP(self.options.smtphost, self.options.smtpport)

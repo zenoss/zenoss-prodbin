@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane" tal:define="editable here/isManager">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" tal:attributes="action here/absolute_url_path"
+    metal:define-macro="nagiosform">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr tal:define="message request/message | string:State at time:">
@@ -42,15 +43,17 @@
         objects here/nagiosCmds;
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tal:block metal:define-macro="dsbody">
+    <tal:block metal:define-macro="cmdsbody">
     <tr>
-      <th class="tabletitle" colspan="3">Nagios Commands</th>
+      <th class="tabletitle" colspan="4">Nagios Commands</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'component','Component')"/>
+                    tableName,'enabled','Enabled')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'usessh','SSH')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'commandTemplate','Template')"/>
     </tr>
@@ -64,16 +67,17 @@
                 tal:content="ds/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
         </td>
-        <td tal:content="ds/component"/>
+        <td tal:content="ds/enabled"/>
+        <td tal:content="ds/usessh"/>
         <td tal:content="ds/commandTemplate"/>
     </tr>
     <tr>
-        <td colspan="3" class="tableheader">
+        <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="editable">
-        <td colspan="3">
+        <td colspan="4">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
           onkeypress="return submitViaEnter(event,'manage_addNagiosCmd');" 
