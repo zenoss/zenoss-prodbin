@@ -64,7 +64,7 @@ class CollectorClient(protocol.ClientFactory):
             defaultLoginTimeout = options.loginTimeout
             defaultCommandTimeout = options.commandTimeout
             defaultSearchPath = options.searchPath
-            defaultExistanceTest = options.existanceTest
+            defaultExistanceTest = options.existenceTest
             
         if device: # if we are in zope look for parameters in aq path
             self.username = getattr(device, 
@@ -80,7 +80,7 @@ class CollectorClient(protocol.ClientFactory):
             self.port = getattr(device, 'zCommandPort', self.port)
             self.searchPath = getattr(device, 
                         'zCommandSearchPath', defaultSearchPath)
-            self.existanceTest = getattr(device, 
+            self.existenceTest = getattr(device, 
                         'zCommandExistanceTest', defaultExistanceTest)
         else:
             self.username = defaultUsername
@@ -89,7 +89,7 @@ class CollectorClient(protocol.ClientFactory):
             self.loginTimeout = defaultLoginTimeout
             self.commandTimeout = defaultCommandTimeout
             self.searchPath = defaultSearchPath
-            self.existanceTest = defaultExistanceTest
+            self.existenceTest = defaultExistanceTest
 
                     
 
@@ -101,7 +101,7 @@ class CollectorClient(protocol.ClientFactory):
             self.commands.extend(command)
 
 
-    def addResult(self, command, data):
+    def addResult(self, command, data, exitCode):
         "add a result pair to the results store"
         self.results.append((command, data))
 
@@ -167,8 +167,8 @@ def buildOptions(parser=None, usage=None):
                 dest='searchPath',
                 default=defaultSearchPath,
                 help='Path to use when looking for commands')
-    parser.add_option('-e', '--existanceTest',
-                dest='existanceTest',
+    parser.add_option('-e', '--existenceTest',
+                dest='existenceTest',
                 default=defaultExistanceTest,
                 help='how to check for command')
     if not parser.has_option('-v'):

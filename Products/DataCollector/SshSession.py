@@ -9,11 +9,11 @@ from Exceptions import NoValidConnection, LoginFailed, CommandTimeout
 
 class SshSession:
 
-    def __init__(self, searchPath=[], existanceCheck='test -f %s', 
+    def __init__(self, searchPath=[], existenceCheck='test -f %s', 
                     options=None, context=None, log=None):
 
         self.searchPath = searchPath
-        self.existanceCheck = existanceCheck
+        self.existenceCheck = existenceCheck
 
         if log:
             self.log = log
@@ -68,7 +68,7 @@ class SshSession:
         basecmd = command.split()[0] #remove args
         for path in self.searchPath:
             fullcmd = os.path.join(path, basecmd)
-            self._execute(self.existanceCheck % fullcmd)
+            self._execute(self.existenceCheck % fullcmd)
             if int(self._execute("echo $?")) == 0:
                 return os.path.join(path, command)
         self.log.warn('unable to find command %s in search path %s' % 

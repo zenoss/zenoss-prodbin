@@ -114,6 +114,7 @@ class CommandChannel(channel.SSHChannel):
     def __init__(self, command, conn=None):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
+        self.exitCode = None
         
     def openFailed(self, reason):
         log.warn('open of %s failed: %s' % (self.command, reason))
@@ -121,15 +122,20 @@ class CommandChannel(channel.SSHChannel):
     def channelOpen(self, ignoredData):
         log.debug('opening command channel for %s' % self.command)
         self.data = ''
-        d = self.conn.sendRequest(self, 'exec', 
-            common.NS(self.command), wantReply = 1)
+        d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
+                                  wantReply = 1)
+
+    def request_exit_status(self, data):
+        import struct
+        self.exitCode = struct.unpack('>L', data)[0]
 
     def dataReceived(self, data):
+        print 'data'
         self.data += data
 
     def closed(self):
         log.debug('command %s data: %s' % (self.command, repr(self.data)))
-        self.conn.factory.addResult(self.command, self.data)
+        self.conn.factory.addResult(self.command, self.data, self.exitCode)
         self.loseConnection()
         if self.conn.factory.commandsFinished():
             self.conn.factory.clientFinished()

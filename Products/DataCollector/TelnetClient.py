@@ -277,7 +277,7 @@ class TelnetClientProtocol(telnet.Telnet):
         data, self.result = self.result, ''
         log.debug("command = %s" % self.curCommand())
         log.debug("data=%s" % data)
-        self.factory.addResult(self.curCommand(), data[0:-len(self.p1)])
+        self.factory.addResult(self.curCommand(), data[0:-len(self.p1)], None)
         self.factory.cmdindex += 1
         if self.factory.commandsFinished():
             self.factory.clientFinished()
