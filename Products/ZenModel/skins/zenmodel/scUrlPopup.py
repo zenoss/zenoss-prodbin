@@ -9,7 +9,7 @@ select = "<select class='tableheader' name='%s'\n" % (
                                             selectname)
 select +=" onchange='document.location.href=this[this.selectedIndex].value'"
 select += ">\n"
-if not url: url = context.REQUEST["URL"]
+if not url: url = context.absolute_url_path()
 for selname, selval in contents:
     select += "<option value='%s?tableName=%s&%s=%d'" % (
                 url, tableName, sessionname, selval)

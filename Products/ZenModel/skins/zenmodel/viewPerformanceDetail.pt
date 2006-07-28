@@ -5,7 +5,7 @@
     class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',18000);
-    url python:here.absolute_url()+'/'+template.getId()"
+    url python:here.absolute_url_path()+'/'+template.getId()"
     >
     <tr>
         <th class="tabletitle" align=left> 
@@ -33,6 +33,5 @@
         </tr>
     </span>
 </table>
-
 </tal:block>
 </tal:block>
