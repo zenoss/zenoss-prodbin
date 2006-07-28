@@ -119,6 +119,11 @@ class IpInterface(OSComponent):
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
                 },                
+                { 'id'            : 'NagConf'
+                , 'name'          : 'NagConf'
+                , 'action'        : 'objNagiosTemplate'
+                , 'permissions'   : ("Change Device", )
+                },                
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

@@ -19,15 +19,16 @@ class Processes(Migrate.Step):
     version = 22.0
 
     def cutover(self, dmd):
+        
+        if not dmd.Processes.hasProperty('zFailSeverity'):
+            dmd.Processes._setProperty("zFailSeverity", 4, type="int")
+
         if hasattr(dmd, 'Processes'):
             return
 
         from Products.ZenModel.OSProcessOrganizer \
              import manage_addOSProcessOrganizer
         manage_addOSProcessOrganizer(dmd, 'Processes')
-
-        if not dmd.Processes.hasProperty('zFailSeverity'):
-            dmd.Processes._setProperty("zFailSeverity", 4, type="int")
 
         if getattr(dmd.Devices.rrdTemplates, 'OSProcess', None) is None:
             from Products.ZenRelations.ImportRM import ImportRM

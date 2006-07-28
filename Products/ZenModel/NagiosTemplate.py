@@ -85,7 +85,7 @@ class NagiosTemplate(ZenModelRM):
         """Is this template editable in context.
         """
         return (self.isManager() and 
-                (context == self or self.id=='Device_Nagios'))
+                (context == self or self.id.endswith('_Nagios')))
 
     
     def getNagiosTemplatePath(self):
@@ -98,7 +98,7 @@ class NagiosTemplate(ZenModelRM):
         """Return alink path on which this template is defined.
         """
         return "<a href='%s'>%s</a>" % (
-                self.getPrimaryParent().getPrimaryUrlPath()+"/nagiosConfig", 
+                self.getPrimaryUrlPath(), 
                 self.getNagiosTemplatePath())
     
     

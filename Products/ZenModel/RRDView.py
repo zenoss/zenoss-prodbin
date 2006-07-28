@@ -129,12 +129,27 @@ class RRDView(object):
 
     def getRRDTemplate(self, name=None):
         if not name: name =  self.getRRDTemplateName()
-        return self._lookupTemplate(name, 'rrdTemplates')
+        templ = self._lookupTemplate(name, 'rrdTemplates')
+        if not templ:
+            from RRDTemplate import RRDTemplate
+            templ = RRDTemplate(name)
+            devs = self.getDmdRoot("Devices")
+            devs.rrdTemplates._setObject(name, templ)
+            templ = devs.rrdTemplates._getOb(name)
+        return templ
 
 
     def getNagiosTemplate(self, name=None):
         if not name: name =  self.getRRDTemplateName()
-        return self._lookupTemplate(name, 'nagiosTemplates')
+        templ = self._lookupTemplate(name, 'nagiosTemplates')
+        if not templ:
+            from NagiosTemplate import NagiosTemplate
+            templ = NagiosTemplate(name)
+            devs = self.getDmdRoot("Devices")
+            devs.nagiosTemplates._setObject(name, templ)
+            templ = devs.nagiosTemplates._getOb(name)
+        return templ
+
        
 
     def _lookupTemplate(self, name, relname):
@@ -145,6 +160,7 @@ class RRDView(object):
             if not getattr(aq_base(obj), relname, False): continue
             if getattr(aq_base(getattr(obj, relname)), name, False):
                 return getattr(obj, relname)._getOb(name)
+
 
 
     def getThresholds(self, templ):
