@@ -26,6 +26,9 @@ class Processes(Migrate.Step):
              import manage_addOSProcessOrganizer
         manage_addOSProcessOrganizer(dmd, 'Processes')
 
+        if not dmd.Processes.hasProperty('zFailSeverity'):
+            dmd.Processes._setProperty("zFailSeverity", 4, type="int")
+
         if getattr(dmd.Devices.rrdTemplates, 'OSProcess', None) is None:
             from Products.ZenRelations.ImportRM import ImportRM
             imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
