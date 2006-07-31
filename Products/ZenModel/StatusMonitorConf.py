@@ -58,7 +58,6 @@ class StatusMonitorConf(Monitor, StatusColor):
     maxFailures = 1440
     cycleFailWarn = 2
     cycleFailCritical = 3
-    #prodStateThreshold = 500
 
     _properties = (
         {'id':'chunk','type':'int','mode':'w'},
@@ -72,7 +71,6 @@ class StatusMonitorConf(Monitor, StatusColor):
         {'id':'cycleFailCritical','type':'int','mode':'w'},
         {'id':'configCycleInterval','type':'int','mode':'w'},
         {'id':'maxFailures','type':'int','mode':'w'},
-        {'id':'prodStateThreshold','type':'int','mode':'w'},
         )
     _relations = (
         ("devices", ToMany(ToMany,"Device","monitors")),
