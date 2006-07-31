@@ -59,7 +59,6 @@ class Schedule:
             for c in organizer.getSubOrganizers():
                 self.workList.extend(c.maintenanceWindows())
             self.workList.extend(organizer.maintenanceWindows())
-        print self.workList
         self.runEvents()
 
     def makeWorkList(self, now, workList):
