@@ -12,8 +12,6 @@ $Id$'''
 
 __version__ = "$Revision$"[11:-2]
 
-# FIXME: not using Cmd.loginTimeout
-
 import time
 import logging
 log = logging.getLogger("zen.zenagios")
