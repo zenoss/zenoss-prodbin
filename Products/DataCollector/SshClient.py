@@ -27,21 +27,6 @@ from Exceptions import *
 
 import CollectorClient
 
-def check(hostname, timeout=2):
-    "check to see if a device supports ssh"
-    from telnetlib import Telnet
-    import socket
-    try:
-        tn = Telnet(hostname, 22)
-        index, match, data = tn.expect(['SSH-1.99', 'SSH-2.0',], timeout)
-        tn.close()
-        if index == 0: return 1
-        return index
-    except socket.error:
-        return 0
-    
-
-
 class SshClientTransport(transport.SSHClientTransport):
 
     def verifyHostKey(self, hostKey, fingerprint):
@@ -52,10 +37,9 @@ class SshClientTransport(transport.SSHClientTransport):
     def connectionSecure(self): 
         sshconn = SshConnection(self.factory)
         self.factory.connection = sshconn
-        sshauth = SshUserAuth(self.factory.username, 
-                                sshconn, self.factory)
+        sshauth = SshUserAuth(self.factory.username, sshconn, self.factory)
         self.requestService(sshauth)
-            
+
                 
 class SshUserAuth(userauth.SSHUserAuthClient):
     lastPublicKey = False
@@ -91,6 +75,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
 class SshConnection(connection.SSHConnection):
 
     def __init__(self, factory):
+        log.debug("creating new ssh connection")
         connection.SSHConnection.__init__(self)
         self.factory = factory
 
@@ -106,6 +91,13 @@ class SshConnection(connection.SSHConnection):
         """open a new command channel for each command in queue"""
         ch = CommandChannel(cmd, conn=self)
         self.openChannel(ch)
+
+    def channelClosed(self, channel):
+        # grr.. patch SSH inherited method to deal with partially
+        # configured channels
+        self.localToRemoteChannel[channel.id] = None
+        self.channelsToRemoteChannel[channel] = None
+        connection.SSHConnection.channelClosed(self, channel)
 
 
 class CommandChannel(channel.SSHChannel):
@@ -130,7 +122,6 @@ class CommandChannel(channel.SSHChannel):
         self.exitCode = struct.unpack('>L', data)[0]
 
     def dataReceived(self, data):
-        print 'data'
         self.data += data
 
     def closed(self):
@@ -154,7 +145,8 @@ class SshClient(CollectorClient.CollectorClient):
     def run(self):
         """Start ssh collection.
         """
-        if check(self.ip):
+        # FIXME: check blocks
+        if self.check(self.ip):
             reactor.connectTCP(self.ip, self.port, self)
         else:
             raise NoServerFound, \
@@ -162,12 +154,26 @@ class SshClient(CollectorClient.CollectorClient):
                                 self.hostname, self.port)
 
 
+    def check(self, hostname, timeout=2):
+        "check to see if a device supports ssh"
+        from telnetlib import Telnet
+        import socket
+        try:
+            tn = Telnet(hostname, 22)
+            index, match, data = tn.expect(['SSH-1.99', 'SSH-2.0',], timeout)
+            tn.close()
+            if index == 0: return 1
+            return index
+        except socket.error:
+            return 0
+
     def addCommand(self, commands):
         """add command to queue and open a command channel for a command"""
         CollectorClient.CollectorClient.addCommand(self, commands)
         if type(commands) == type(''): commands = (commands,)
-        for cmd in commands:
-            self.connection.addCommand(cmd)
+        if self.connection:
+            for cmd in commands:
+                self.connection.addCommand(cmd)
    
     def loseConnection(self):
         pass
