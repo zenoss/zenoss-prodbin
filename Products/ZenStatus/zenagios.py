@@ -118,7 +118,7 @@ class MySshClient(SshClient):
             d.callback((data, code))
 
 
-    def check(self, ip):
+    def check(self, ip, timeout=2):
         "Turn off blocking SshClient.test method"
         return True
 
@@ -263,10 +263,6 @@ class Cmd:
         return d
 
 
-    def running(self):
-        return self.lastStop < self.lastStart 
-
-
     def processEnded(self, pr):
         self.result = pr
         self.lastStop = time.time()
@@ -354,7 +350,7 @@ class zenagios(RRDDaemon):
 
     def setPropertyItems(self, items):
         RRDDaemon.setPropertyItems(self, items)
-        heartbeatTimeout = self.configCycleInterval*3
+        self.heartbeatTimeout = self.configCycleInterval*3
 
 
     def processSchedule(self, *unused):
@@ -449,7 +445,7 @@ class zenagios(RRDDaemon):
     def start(self, driver):
         try:
             yield self.fetchConfig()
-            n = driver.next()
+            driver.next()
         except Exception, ex:
             log.exception(ex)
             raise
