@@ -79,7 +79,7 @@ class ZenTcpClient(protocol.ClientFactory):
     def mkevent(self):
         if self.msg == "pass" and self.svc.getStatus() > 0:
             sev = 0
-            self.msg = "device:%s service:%s back up", % (
+            self.msg = "device:%s service:%s back up" % (
                         self.svc.hostname(), self.svc.name())
             log.info(self.msg)
         elif self.msg != "pass":
