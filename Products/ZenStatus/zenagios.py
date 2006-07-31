@@ -33,23 +33,31 @@ MAX_CONNECTIONS=50
 
 class TimeoutError(Exception):
     "Error for a defered call taking too long to complete"
+
     def __init__(self, *args):
         Exception.__init__(self)
         self.args = args
 
+
 def Timeout(deferred, seconds, obj):
     "Cause an error on a deferred when it is taking too long to complete"
+
     def _timeout(deferred, obj):
         "took too long... call an errback"
         deferred.errback(failure.Failure(TimeoutError(obj)))
+
+
     def _cb(arg, timer):
         "the command finished, possibly by timing out"
         if not timer.called:
             timer.cancel()
         return arg
+
+
     timer = reactor.callLater(seconds, _timeout, deferred, obj)
     deferred.addBoth(_cb, timer)
     return deferred
+
 
 class ProcessRunner(ProcessProtocol):
     "Provide deferred process execution"
@@ -65,14 +73,17 @@ class ProcessRunner(ProcessProtocol):
         self.stopped.addErrback(self.timeout)
         return self.stopped
 
-    def timeout(self, unused):
+
+    def timeout(self, value):
         "Kill a process if it takes too long"
         self.transport.signalProcess('KILL')
-        return unused
+        return value
+
 
     def outReceived(self, data):
         "Store up the output as it arrives from the process"
         self.output += data
+
 
     def processEnded(self, reason):
         "notify the starter that their process is complete"
@@ -82,12 +93,14 @@ class ProcessRunner(ProcessProtocol):
             d, self.stopped = self.stopped, None
             d.callback(self)
 
+
 class MySshClient(SshClient):
     "Connection to SSH server at the remote device"
 
     def __init__(self, *args, **kw):
         SshClient.__init__(self, *args, **kw)
         self.defers = []
+
     
     def addCommand(self, command):
         "Run a command against the server"
@@ -96,6 +109,7 @@ class MySshClient(SshClient):
         SshClient.addCommand(self, command)
         return d
 
+
     def addResult(self, command, data, code):
         "Forward the results of the command execution to the starter"
         SshClient.addResult(self, command, data, code)
@@ -103,9 +117,11 @@ class MySshClient(SshClient):
         if not d.called:
             d.callback((data, code))
 
+
     def check(self, ip):
         "Turn off blocking SshClient.test method"
         return True
+
 
     def clientFinished(self):
         "We don't need to track commands/results when they complete"
@@ -113,10 +129,13 @@ class MySshClient(SshClient):
         self.commands = []
         self.results = []
 
+
 class SshPool:
     "Cache all the Ssh connections so they can be managed" 
+
     def __init__(self):
         self.pool = {}
+
 
     def get(self, cmd):
         "Make an ssh connection if there isn't one available"
@@ -125,10 +144,12 @@ class SshPool:
             log.debug("Creating connection to %s", cmd.device)
             options = Options(cmd.username, cmd.password,
                               cmd.loginTimeout, cmd.commandTimeout)
-            result = MySshClient(cmd.device, cmd.ipAddress, options=options)
+            result = MySshClient(cmd.device, cmd.ipAddress, cmd.port,
+                                 options=options)
             result.run()
             self.pool[cmd.device] = result
         return result
+
 
     def _close(self, device):
         "close the SSH connection to a device, if it exists"
@@ -138,10 +159,12 @@ class SshPool:
             if c.connection and c.connection.transport:
                 c.connection.transport.loseConnection()
             del self.pool[device]
+
         
     def close(self, cmd):
         "symetric close that matches get() method"
         self._close(cmd.device)
+
 
     def trimConnections(self, schedule):
         "reduce the number of connections using the schedule for guidance"
@@ -163,6 +186,7 @@ class SshRunner:
     def __init__(self, pool):
         self.pool = pool
 
+
     def start(self, cmd):
         "Initiate a command on the remote device"
         self.defer = defer.Deferred()
@@ -172,6 +196,7 @@ class SshRunner:
         d.addBoth(self.processEnded)
         return d
 
+
     def timeout(self, arg):
         "Deal with slow executing command/connection (close it)"
         cmd, = arg.value.args
@@ -180,6 +205,7 @@ class SshRunner:
         self.pool.close(cmd)
         return arg
 
+
     def processEnded(self, value):
         "Deliver ourselves to the starter with the proper attributes"
         if isinstance(value, failure.Failure):
@@ -187,10 +213,12 @@ class SshRunner:
         self.output, self.exitCode = value
         return self
 
+
 class Cmd:
     "Holds the config of every command to be run"
     device = None
     ipAddress = None
+    port = 22
     username = None
     password = None
     command = None
@@ -204,8 +232,10 @@ class Cmd:
     lastStop = 0
     result = None
 
+
     def running(self):
         return self.lastStop < self.lastStart 
+
 
     def name(self):
         cmd, args = self.command.split(' ', 1)
@@ -214,10 +244,12 @@ class Cmd:
             return '%s %s...%s' % (cmd, args[:10], args[-10:])
         return '%s %s' % (cmd, args)
 
+
     def nextRun(self):
         if self.running():
             return self.lastStart
         return self.lastStop + self.cycleTime
+
 
     def start(self, pool):
         self.lastStart = time.time()
@@ -230,8 +262,10 @@ class Cmd:
         d.addBoth(self.processEnded)
         return d
 
+
     def running(self):
         return self.lastStop < self.lastStart 
+
 
     def processEnded(self, pr):
         self.result = pr
@@ -244,13 +278,15 @@ class Cmd:
             return self
         return pr
 
+
     def updateConfig(self,device,ipAddress, username, password,
                      loginTimeout, commandTimeout,
-                     cycleTime, useSsh,
+                     cycleTime, useSsh, port,
                      eventKey, eventClass, component, severity,
                      command, **kw):
         self.device = device
         self.ipAddress = ipAddress
+        self.port = port
         self.username = username
         self.password = password
         self.loginTimeout = loginTimeout
@@ -263,19 +299,23 @@ class Cmd:
         self.severity = severity
         self.command = command
 
+
 class Options:
     loginTries=1
     searchPath=''
     existenceTest=None
+
     def __init__(self, username, password, loginTimeout, commandTimeout):
         self.username = username
         self.password = password
         self.loginTimeout=loginTimeout
         self.commandTimeout=commandTimeout
 
+
 class zenagios(RRDDaemon):
     heartbeatTimeout = RRDDaemon.configCycleInterval*3
     properties = RRDDaemon.properties + ("configCycleInterval",)
+
 
     def __init__(self):
         RRDDaemon.__init__(self, 'zenagios')
@@ -285,15 +325,17 @@ class zenagios(RRDDaemon):
         self.flushEvents()
         self.pool = SshPool()
 
+
     def flushEvents(self):
         self.sendEvents()
         reactor.callLater(1, self.flushEvents)
+
 
     def updateConfig(self, config):
         table = dict([((c.device,c.command), c) for c in self.schedule])
 
         for c in config:
-            (device, ipAddress,
+            (device, ipAddress, port,
              username, password,
              loginTimeout, commandTimeout, commandPart) = c
             if self.options.device and self.options.device != device:
@@ -309,9 +351,11 @@ class zenagios(RRDDaemon):
         if self.options.cycle:
             self.heartbeat()
 
+
     def setPropertyItems(self, items):
         RRDDaemon.setPropertyItems(self, items)
         heartbeatTimeout = self.configCycleInterval*3
+
 
     def processSchedule(self, *unused):
         """Run through the schedule and start anything that needs to be done.
@@ -350,14 +394,14 @@ class zenagios(RRDDaemon):
                                                  self.processSchedule)
         except Exception, ex:
             log.exception(ex)
+
             
     def finished(self, cmd):
         if isinstance(cmd, failure.Failure):
             if isinstance(cmd.value, TimeoutError):
                 cmd, = cmd.value.args
                 log.error("Command timed out on device %s: %s",
-                          cmd.device,
-                          cmd.command)
+                          cmd.device, cmd.command)
             else:
                 log.exception(cmd.value)
         else:
@@ -387,6 +431,7 @@ class zenagios(RRDDaemon):
                 self.deviceIssues.discard(issueKey)
         self.processSchedule()
 
+
     def fetchConfig(self):
         def doFetchConfig(driver):
             try:
@@ -409,6 +454,7 @@ class zenagios(RRDDaemon):
             log.exception(ex)
             raise
         driveLater(self.configCycleInterval * 60, self.start)
+
 
     def buildOptions(self):
         RRDDaemon.buildOptions(self)
