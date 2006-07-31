@@ -442,11 +442,12 @@ class Device(ManagedEntity):
             if o.monitored(): cmds.extend(o.getNagiosCmds())
         for o in self.hw.harddisks(): 
             if o.monitored(): cmds.extend(o.getNagiosCmds())
-        return (self.id, self.getManageIp(),
-                self.zCommandUsername, self.zCommandPassword,
-                self.zCommandLoginTimeout, self.zCommandCommandTimeout,
-                cmds)
-        
+        if cmds:
+            return (self.id, self.getManageIp(),
+                    self.zCommandUsername, self.zCommandPassword,
+                    self.zCommandLoginTimeout, self.zCommandCommandTimeout,
+                    cmds)
+
 
     def getRRDTemplate(self, name=None):
         """Return the closest RRDTemplate named name by walking our aq chain.
