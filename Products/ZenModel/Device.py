@@ -443,7 +443,7 @@ class Device(ManagedEntity):
         for o in self.hw.harddisks(): 
             if o.monitored(): cmds.extend(o.getNagiosCmds())
         if cmds:
-            return (self.id, self.getManageIp(),
+            return (self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
                     cmds)
