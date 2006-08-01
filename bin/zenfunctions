@@ -27,7 +27,8 @@ if [ $SYS = "Darwin" ]; then
     PS="ps -axo pid"
 fi
 
-ARGS=`echo "$*" | sed 's/run//' | sed 's/restart//' | sed 's/start//'`
+CMD=$1
+shift
 
 running() {
     if [ -f $PIDFILE ]; then
@@ -38,6 +39,7 @@ running() {
     return 1
 }
 
+EXEC="exec ${SUDO:-}"
 
 start() {
     if running; then    
@@ -45,19 +47,19 @@ start() {
     else
         echo starting...
         if [ ${CFGFILE:-""} = "" ]; then
-            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $ARGS
+            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon '"$@"'
         else
             eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-                --cycle --daemon $ARGS
+                --cycle --daemon '"$@"'
         fi
     fi
 }
 
 run() {
     if [ ${CFGFILE:-""} = "" ]; then
-        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME $ARGS
+        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME '"$@"'
     else        
-        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE $ARGS
+        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE '"$@"'
     fi
 }
 
@@ -78,7 +80,7 @@ stop() {
 restart() {
     stop
     sleep 2
-    start
+    start "$@"
 }
 
 status() {
@@ -97,18 +99,18 @@ help() {
 }
 
 generic() {
-    case "$1" in
+    case "$CMD" in
       run)
-	    run
+	    run "$@"
 	    ;;
       start)
-	    start
+	    start "$@"
 	    ;;
       stop)
 	    stop
 	    ;;
       restart)
-	    restart
+	    restart "$@"
 	    ;;
       status)
 	    status
@@ -124,12 +126,12 @@ generic() {
 }
 
 notdaemon() {
-    case "$1" in
+    case "$CMD" in
       run)
-	    run
+	    run "$@"
 	    ;;
       start)
-	    run
+	    run "$@"
 	    ;;
       help)
 	    help
