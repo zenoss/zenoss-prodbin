@@ -21,7 +21,7 @@ reverse() {
     echo $args
 }
 
-FUNC=$1
+FUNC=$CMD
 
 issue() {
     for cmd in $CMDS
@@ -35,7 +35,7 @@ issue() {
     done
 }
 
-case "$1" in
+case "$FUNC" in
   start)
         issue
         ;;
