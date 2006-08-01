@@ -54,7 +54,8 @@ class ZenActions(ZCmdBase):
 #                on s.evid=a.evid where a.evid is null and  
 #                a.userid='%s' and a.rule='%s'""" 
 
-    newsel = ("SELECT %s, evid FROM status WHERE %s AND evid NOT IN " 
+    newsel = ("SELECT %s, evid FROM status WHERE "
+              "%s AND evid NOT IN " 
               " (SELECT evid FROM alert_state "
               "  WHERE userid='%s' AND rule='%s')")
             
@@ -130,7 +131,7 @@ class ZenActions(ZCmdBase):
         userid = ar.getUserid()
         actfunc = getattr(self, "send"+ar.action.title())
         # get new events
-        nwhere = ar.where
+        nwhere = ar.where.strip() or '1 = 1'
         if ar.delay > 0:
             nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % ar.delay
         q = self.newsel % (",".join(fields), nwhere, userid, ar.getId())
