@@ -77,7 +77,8 @@ class MaintenanceWindow(ZenModelRM):
     repeat = 'Never'
     startProductionState = 300
     stopProductionState = 1000
-
+    enabled = True
+ 
     _properties = (
         {'id':'start', 'type':'date', 'mode':'w'},
         {'id':'started', 'type':'date', 'mode':'w'},
@@ -114,7 +115,8 @@ class MaintenanceWindow(ZenModelRM):
 
     def __init__(self, id):
         ZenModelRM.__init__(self, id)
-        self.start = time.time() + DAY_SECONDS
+        self.start = time.time()
+        self.enabled = False
 
     def set(self, start, duration, repeat):
         self.start = start
@@ -172,11 +174,13 @@ class MaintenanceWindow(ZenModelRM):
                                      repeat='Never',
                                      startProductionState=1000,
                                      stopProductionState=300,
+                                     enabled=True,
                                      REQUEST=None,
                                      **kw):
         "Update the maintenance window from GUI elements"
         msgs = []
         startHours, startMinutes = makeInts((startHours, startMinutes), msgs)
+        self.enabled = bool(enabled)
         import re
         try:
             month, day, year = re.split('[^ 0-9]', startDate)
@@ -239,6 +243,10 @@ class MaintenanceWindow(ZenModelRM):
     def next(self, now = None):
         """From Unix time_t now value, return next time_t value
         for the window to start, or None"""
+
+        if not self.enabled:
+            return None
+
         if now is None:
             now = time.time()
 
@@ -363,6 +371,7 @@ if __name__=='__main__':
                                      repeat='Weekly',
                                      startProductionState=1000,
                                      stopProductionState=300,
+                                     enabled=True,
                                      REQUEST=r)
 
     if r.has_key('message'):

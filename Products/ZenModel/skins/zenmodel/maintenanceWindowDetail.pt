@@ -18,6 +18,17 @@
         <td class="tablevalues" tal:content="here/getId"/>
     </tr>
     <tr>
+        <td class="tableheader">Enabled</td>
+        <td class="tablevalues" tal:condition="editable">
+        <select class="tablevalues" name="enabled:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                    tal:attributes="value e; selected python:e==here.enabled"/>
+        </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable" 
+            tal:content="here/enabled"/>
+    </tr>
+    <tr>
         <td class="tableheader">Start</td>
         <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/niceStart"/>
@@ -67,12 +78,13 @@
         <td class="tableheader">Repeat</td>
         <td class="tablevalues" tal:condition="not:editable"
 				tal:content="here/repeat"/>
-        <td class="tablevalues" tal:condition="editable">
-            <select class="tablevalues"  name="repeat"
-            tal:condition="editable">
-            <option tal:repeat="e here/repeatOptions" tal:content="e"
-                tal:attributes="value e; selected python:e==here.repeat"/>
-            </select>
+        <td tal:condition="editable" class="tablevalues">
+	  <select class="tablevalues" name="repeat">
+	    <option class="tablevalues" 
+		    tal:repeat="e here/repeatOptions" 
+		    tal:content="e"
+		    tal:attributes="value e; selected python:e==here.repeat"/>
+	  </select>
         </td>
     </tr>
     <tr>
