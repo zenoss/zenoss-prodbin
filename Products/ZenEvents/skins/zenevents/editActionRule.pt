@@ -40,27 +40,29 @@
 </tr>
 
 <tr>
-<td class="tablevalues" colspan="6">
-<script type="text/javascript" src="/zport/js/query.js"></script>
-<span id="query"><span id="filters">
-  <table summary="Action filters">
-    <tbody>
-      <tr><td colspan='4'>
-	 <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
-	 <select name="add_filter" id="add_filter" class="tablevalues"
-	   tal:content='structure here/getQueryElements'/>
-	 <input type="submit" name="add" value="+" class="tablevalues"/>
-       </td></tr>
-     </tbody>
-  </table>
-</span></span>
-</td>
-
+  <td class="tablevalues" colspan="6">
+  <script type="text/javascript" src="/zport/js/query.js"></script>
+    <span id="query"><span id="filters">
+      <table summary="Action filters"><tbody>
+	  <tr><td colspan='4'>
+	     <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
+	     <select name="add_filter" id="add_filter" class="tablevalues"
+	       tal:content='structure here/getQueryElements'/>
+	     <input type="submit" name="add" value="+" class="tablevalues"/>
+	   </td></tr>
+       </tbody></table>
+    </span></span>
+  </td>
 </tr>
-
-<!-- tr>
-  <td class="tablevalues" colspan="6" tal:content="here/where"/>
-</tr -->
+<noscript>
+<tr><td colspan="6"><b>Unable to use javascript:</b><td></tr>
+<tr>
+  <td class="tablevalues" colspan="6">
+    <textarea class="tablevalues" rows="6" cols="75" name="where"
+        tal:content="here/where"/>
+  </td>
+</tr>
+</noscript>
 <tr>
   <td class="tableheader" colspan="6">Message (or Subject)</td>
 </tr>
@@ -111,9 +113,8 @@
 </tr>
 </table>
 <p>
-The Where field above is a standard SQL where clause.  Message Format is a
-python format string.  Fields are specified as %(fieldname)s.  The list of 
-fields available in the event database is: 
+Message Format is a python format string.  Fields are specified 
+as %(fieldname)s.  The list of fields available in the event database is: 
 <span tal:content="python: ', '.join(here.ZenEventManager.getFieldList())"/>.
 </p>
 </form>
