@@ -237,10 +237,10 @@ class ActionRule(ZenModelRM):
     def getWhereClauseAsJavaScript(self):
         s = self.genMeta().items()
         s.sort()
-        result = ['var properties={']
+        result = []
         for name, attrType in s:
-            result.append('   %s,\n' % attrType.genProperties(name))
-        result.append('};\n')
+            result.append('   %s\n' % attrType.genProperties(name))
+        result = ['var properties={' + ',\n'.join(result) + '};\n'] 
         result.append((Modes + 'var current = %s \n') %
                        self._whereClauseAsJavaScript())
         result.append('initializeFilters(current)\n')
