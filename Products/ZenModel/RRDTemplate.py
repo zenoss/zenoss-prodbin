@@ -147,10 +147,19 @@ class RRDTemplate(ZenModelRM):
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
         """Delete RRDDataSources from this DeviceClass 
         """
+        def clean(rel, id):
+            for obj in rel():
+                if id in obj.dsnames:
+                    obj.dsnames.remove(id)
+                    if not obj.dsnames:
+                        rel._delObject(obj.id)
+            
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
             if getattr(self.datasources,id,False):
                 self.datasources._delObject(id)
+                clean(self.graphs, id)
+                clean(self.thresholds, id)
         if REQUEST: 
             return self.callZenScreen(REQUEST)
 
