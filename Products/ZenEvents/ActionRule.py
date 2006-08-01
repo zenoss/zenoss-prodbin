@@ -194,7 +194,8 @@ class ActionRule(ZenModelRM):
         if not self.enabled:
             self._clearAlertState()
         import WhereClause
-        REQUEST.form['where'] = WhereClause.fromFormVariables(self.genMeta(),
+        if not REQUEST.form.has_key('where'):
+            REQUEST.form['where'] = WhereClause.fromFormVariables(self.genMeta(),
                                                               REQUEST.form)
         return self.zmanage_editProperties(REQUEST)
 
