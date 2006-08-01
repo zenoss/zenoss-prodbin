@@ -1,10 +1,32 @@
+import os
+import atexit
 import socket
+try:
+    import readline
+    import rlcompleter
+except ImportError:
+    readline = rlcompleter = None
+
 import Globals
 import transaction
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+
+if readline:
+    # Note: the history code in this file was originally authored by
+    # Itamar Shtull-Trauring of Twisted Python. A current copy of his
+    # original code is available at http://pastebin.adytum.us/40 though
+    # the original has proven difficult to locate.
+    zenHome = os.getenv('ZENHOME')
+    historyPath = os.path.join(zenHome, '.pyhistory')
+    def save_history(historyPath=historyPath):
+        import readline
+        readline.write_history_file(historyPath)
+
+    if os.path.exists(historyPath):
+        readline.read_history_file(historyPath)
 
 class zendmd(ZCmdBase): pass
 
@@ -49,3 +71,7 @@ if __name__ == '__main__':
 
     print "Welcome to zenoss dmd command shell!"
     print "use zhelp() to list commands"
+
+if readline:
+    atexit.register(save_history)
+    del os, atexit, readline, rlcompleter, save_history, historyPath
