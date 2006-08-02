@@ -2,4 +2,5 @@
 
 . $ZENHOME/bin/zenfunctions
 
-$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py $*
+$PYTHON $ZENHOME/Products/ZenModel/zenbuild.py "$CMD" "$@"
+
