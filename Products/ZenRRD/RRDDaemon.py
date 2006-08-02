@@ -118,10 +118,9 @@ class RRDDaemon(ZenDaemon):
 
     def buildProxy(self, url):
         "create AuthProxy objects with our config and the given url"
-        url = basicAuthUrl(self.options.zopeusername,
-                           self.options.zopepassword,
-                           url)
-        return AuthProxy(url)
+        return AuthProxy(url,
+                         self.options.zopeusername,
+                         self.options.zopepassword)
 
 
     def setPropertyItems(self, items):

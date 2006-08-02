@@ -33,11 +33,11 @@ class AuthQueryFactory(xmlrpc.QueryFactory):
     deferred = None
     protocol = AuthQueryProtocol
 
-    def __init__(self, url, method, *args):
-        self.url, self.host = url.path, url.host
+    def __init__(self, url, username, password, method, *args):
+        self.url, self.host, self.user, self.password = (
+            url.path, url.host, username, password)
         if url.port:
             self.host = '%s:%d' % (url.host, url.port)
-        self.user, self.password = url.user, url.password
         self.payload = xmlrpc.payloadTemplate % (
             method, xmlrpclib.dumps(args))
         self.deferred = defer.Deferred()
@@ -73,14 +73,17 @@ class AuthProxy:
     Use proxy.callRemote('foobar', *args) to call remote method
     'foobar' with *args.
     '''
-    def __init__(self, url):
+    def __init__(self, url, username, password):
         self.url = Uri(url)
         self.host = self.url.host
         self.port = self.url.port
+        self.username = username
+        self.password = password
         self.secure = self.url.scheme == 'https'
 
     def callRemote(self, method, *args):
-        factory = AuthQueryFactory(self.url, method, *args)
+        factory = AuthQueryFactory(self.url, self.username, self.password,
+                                   method, *args)
         if self.secure:
             from twisted.internet import ssl
             reactor.connectSSL(self.host, self.port or 443,
