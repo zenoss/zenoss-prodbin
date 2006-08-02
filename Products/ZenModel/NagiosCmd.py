@@ -110,8 +110,10 @@ class NagiosCmd(ZenModelRM):
         """
         exp = "string:"+ self.commandTemplate
         compiled = talesCompile(exp)    
-        environ = {'dev' : context.device(), 'here' : context, 
-                    'comp' : self.getComponentName(context), 
+        device = context.device()
+        environ = {'dev' : device, 'devname': device.id,
+                    'here' : context, 
+                    'compname' : self.getComponentName(context), 
                     'zNagiosPath' : context.zNagiosPath,
                     'nothing' : None, 'now' : DateTime() }
         res = compiled(getEngine().getContext(environ))
