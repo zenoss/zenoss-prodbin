@@ -185,7 +185,7 @@ class RRDDaemon(ZenDaemon):
         if not self.options.cycle:
             self._shutdown()
             return
-        self.sendEvent(self.heartbeatevt, timeout=self.heartbeatTimeout*3)
+        self.sendEvent(self.heartbeatevt, timeout=self.heartBeatTimeout*3)
         self.sendEvents()
 
     def buildOptions(self):
