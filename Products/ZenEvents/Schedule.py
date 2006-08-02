@@ -68,9 +68,10 @@ class Schedule:
         while len(work):
             t, mw = work[0]
             if t: break
-            self.log.debug("Never going to run Maintenance "
-                           "Window %s for %s again",
-                           mw.getId(), mw.productionState().getId())
+            if mw.enabled:
+                self.log.debug("Never going to run Maintenance "
+                               "Window %s for %s again",
+                               mw.getId(), mw.productionState().getId())
             if mw.started:
                 mw.end()
             work.pop(0)
