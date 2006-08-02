@@ -24,6 +24,8 @@ log = logging.getLogger("zen.Device")
 
 from _mysql_exceptions import OperationalError
 
+from Products.ZenStatus import pingtree 
+from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
 # base classes for device
@@ -275,17 +277,17 @@ class Device(ManagedEntity):
                 , 'name'          : 'Perf'
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
-                },                
+                },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'PerfConf'
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
-                },                
+                },
                 { 'id'            : 'NagConf'
                 , 'name'          : 'NagConf'
                 , 'action'        : 'objNagiosTemplate'
                 , 'permissions'   : ("Change Device", )
-                },                
+                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editDevice'
@@ -355,7 +357,7 @@ class Device(ManagedEntity):
         self._wrapperCheck(value)
         if id == 'snmpLastCollection':
             self.setSnmpLastCollection(value)
-        else:    
+        else:
             ManagedEntity._setPropValue(self, id, value)
 
     
@@ -546,7 +548,6 @@ class Device(ManagedEntity):
         if loc: return loc.getOrganizerName()
         return ""
 
-
     def getLocationLink(self):
         """Return an a link to the devices location.
         """
@@ -676,7 +677,24 @@ class Device(ManagedEntity):
         dclass = self.getDmdRoot("Devices")
         return dclass.getPeerDeviceClassNames(self.__class__)
 
-        
+    security.declareProtected('View', 'getRouterGraph')
+    def getRouterGraph(self):
+        '''get a graph representing the relative routers'''
+        node = pingtree.buildTree(self)
+        g = NetworkGraph(node=node, parentName=self.id)
+        self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
+        return g.render()
+
+    security.declareProtected('View', 'getNetworkGraph')
+    def getNetworkGraph(self):
+        '''
+        get a graph representing the relative routers as well as the
+        networks
+        '''
+        node = pingtree.buildTree(self)
+        g = NetworkGraph(node=node, parentName=self.id)
+        self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
+        return g.render(withNetworks=True)
         
     ####################################################################
     # Edit functions used to manage device relations and other attributes

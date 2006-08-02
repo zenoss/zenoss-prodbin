@@ -1,0 +1,18 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro=deviceGraphNets
+    tal:define="
+        routers string:${here/absolute_url_path}/getRouterGraph;
+        networks string:${here/absolute_url_path}/getNetworkGraph">
+    <tr>
+      <th class="tabletitle" colspan=4>Graph</th>
+    </tr>
+    <tr>
+      <td class="tablevalues">
+        <img tal:attributes="src networks" />
+      </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>
