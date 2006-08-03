@@ -1,0 +1,329 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+  <head>
+    <title>AdvancedQuery</title>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+  </head>
+
+  <body>
+    <h1>AdvancedQuery</h1>
+
+<h2>Introduction</h2>
+<p><code>AdvancedQuery</code> is a Zope product aimed to overcome
+several limitations of <code>ZCatalog</code>'s native search function.</p>
+
+<p>Like <code>ZCatalog</code>'s search, it supports elementary index searches.
+While <code>ZCatalog</code> can combine such elementary searches only
+by "and", <code>AdvancedQuery</code> allows them
+to be combined arbitrary with <code>&amp;</code> (and),
+<code>|</code> (or) and <code>~</code> (not).
+</p>
+
+<p>While <code>ZCatalog</code> supports an efficient sorting
+via an index on one level, <code>AdvancedQuery</code>
+supports sorting via any level of (field) indexes.
+Moreover, it sorts the result
+incrementally -- only as far as you access your result.
+This can drastically speed up the time required for sorting.
+It uses Python's generators for this (and thus requires Python 2.2 or
+better).</p>
+
+
+<h2>Query Objects</h2>
+<p>Queries are specified by (full blown) Python objects.
+They are constructed in the following way:</p>
+
+<table cellpadding=4 border=1>
+<tr><th>Expression</th><th>printed as<th>Meaning</th></tr>
+<tr>
+  <td><code>Eq(<var>index</var>, <var>value</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> = <var>value</var></code></td>
+  <td>the documents indexed by <var>index</var> under <var>value</var></td>
+</tr>
+<tr>
+  <td><code>Le(<var>index</var>, <var>value</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> &lt;= <var>value</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value less or equal <var>value</var></td>
+</tr>
+<tr>
+  <td><code>Ge(<var>index</var>, <var>value</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> >= <var>value</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value greater or equal <var>value</var></td>
+</tr>
+<tr>
+  <td><code>MatchGlob(<var>index</var>, <var>pattern</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> =~ <var>pattern</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value matching the glob <var>pattern</var>. A glob pattern can contain wildcards <code>*</code> (matches any sequence of characters) and <code>?</code> (matches any single character).<br>
+  This query type is only supported by most string or unicode based
+  <code>ManagableIndex</code>es (exception: <code>RangeIndex</code>).
+  Many <code>TextIndex</code>es support glob matching via the <code>Eq</code>
+  query.
+  </td>
+</tr>
+<tr>
+  <td><code>MatchRegexp(<var>index</var>, <var>regexp</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> =~~ <var>regexp</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value matching
+  the regular expression <var>regexp</var>.
+  See the <code>re</code> module documentation in the Python Library Reference,
+  for a description of regular expressions.<br>
+  This query type is only supported by most string or unicode based
+  <code>ManagableIndex</code>es (exception: <code>RangeIndex</code>).
+  </td>
+</tr>
+<tr>
+  <td><code>Between(<var>index</var>, <var>low</var>, <var>high</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>low</var> &lt;= <var>index</var> <= <var>high</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value between
+  <var>low</var> and <var>high</var></td>
+</tr>
+<tr>
+  <td><code>In(<var>index</var>, <var>sequence</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> in <var>sequence</var></code></td>
+  <td>the documents indexed by <var>index</var> under a value in
+  <var>sequence</var></td>
+</tr>
+<tr>
+  <td><code>Generic(<var>index</var>, <var>value</var>, <var>filter</var>=False)</code></td>
+  <td><code><var>index</var> ~~ <var>value</var></code></td>
+  <td>this query type is used to pass any search expression to
+  <var>index</var> as understood by it. Such search expressions
+  usually take the form of a dictionary with <code>query</code>
+  as the most essential key. <code>Generic</code> is necessary
+  to use the full power of specialized indexes, such as the
+  <code>level</code> argument for PathIndex searches.</td>
+</tr>
+<tr>
+  <td><code>Indexed(<var>index</var>)</code></td>
+  <td><code>Indexed(<var>index</var>)</code></td>
+  <td>the documents that are indexed by <var>index</var>. This does not
+  work for all index types.</td>
+</tr>
+<tr>
+  <td><code>LiteralResultSet(<var>set</var>)</code></td>
+  <td><code>LiteralResultSet(<var>set</var>)</code></td>
+  <td>the documents specified by <var>set</var>.<br>
+  <var>set</var> must be an <code>IISet</code>, <code>IITreeSet</code>
+  or sequence of catalog "data_record_id_"s.<br>
+  This can e.g. be used to further restrict the document set previously
+  obtained through a query.
+</tr>
+<tr>
+  <td><code>~ query</code></td>
+  <td><code>~ query</code></td>
+  <td>Not: the documents that do not satisfy <var>query</var></td>
+</tr>
+<tr>
+  <td><code><var>query1</var> &amp; <var>query2</var></code></td>
+  <td><code>(<var>query1</var> &amp; <var>query2</var>)</code></td>
+  <td>And: the documents satisfying both <var>query1</var> and <var>query2</var></td>
+</tr>
+<tr>
+  <td><code>And(*<var>queries</var>)</code></td>
+  <td><code>(<var>query1</var> &amp; ... &amp; <var>queryn</var>)</code></td>
+  <td>And: the documents satisfying all <var>queries</var>; if <var>queries</var> is empty, any document satisfies this <code>And</code> query</td>
+</tr>
+<tr>
+  <td><code><var>query1</var> | <var>query2</var></code></td>
+  <td><code>(<var>query1</var> | <var>query2</var>)</code></td>
+  <td>Or: the documents satisfying either <var>query1</var> or <var>query2</var> (or both)</td>
+</tr>
+<tr>
+  <td><code>Or(*<var>queries</var>)</code></td>
+  <td><code>(<var>query1</var> | ... | <var>queryn</var>)</code></td>
+  <td>Or: the documents satisfying (at least) one of <var>queries</var>; if <var>queries</var> is empty, no document satisfies this <code>Or</code> query</td>
+</tr>
+
+</table>
+
+<p><code>And</code> and <code>Or</code> queries are so called
+<em>CompositeQuery</em>s. They possess a method
+<code>addSubquery(<var>query</var>)</code> to add an additional subquery.</p>
+
+<p>The constructors are imported from <code>Products.AdvancedQuery</code>.</p>
+
+<p><code>AdvancedQuery</code> uses so called <em>Monkey Patching</em>
+to give <code>ZCatalog</code> the new method
+<code>makeAdvancedQuery(<var>catalogSearchSpec</var>)</code>.
+A <var>catalogSearchSpec</var> is a search specification as
+described in the Zope Book for <code>ZCatalog</code> searches
+(essentially a dictionary mapping index names to search specifications).
+<code>makeAdvancedQuery</code> returns the equivalent
+<code>AdvancedQuery</code> search object.</p>
+
+
+<h2>Query evaluation</h2>
+<p><code>AdvancedQuery</code> uses so called <em>Monkey Patching</em>
+to give <code>ZCatalog</code> and (if available) the CMF <code>CatalogTool</code>
+the new method <code>evalAdvancedQuery(<var>query</var>, <var>sortSpecs</var>=(), <var>withSortValues</var>=_notPassed)</code>.
+<code>evalAdvancedQuery</code> evaluates <var>query</var> and then
+sorts the document result set according to <var>sortSpecs</var>.<br>
+If <var>withSortValues</var> is not passed in, it is set to <code>True</code>
+if <var>sortSpecs</var> contains a ranking specification (as you
+are probably interested in the rank) and to <code>False</code> otherwise.<br>
+If <var>withSortValues</var>, then the <code>data_record_score_</code>
+attribute of the returned proxies is abused to hold the sort value.
+It is a tuple with one component per component in <var>sortSpecs</var>.
+The attribute <code>data_record_normalized_score_</code> is set to
+<code>None</code>.
+</p>
+
+<p>The <code>CatalogTool</code>'s <code>evalAdvancedQuery</code>
+uses a new <code>ValidityRange</code> index (if present) in preference
+to the <code>effective</code> and <code>expires</code> indexes
+to restrict searches to valid objects. <code>ValidityRange</code>
+is expected to be a <code>ManagableIndex RangeIndex</code>.
+Searches via such a range index are considerably more efficient
+than those via the individual indexes.</p>
+
+<h2>Sorting</h2>
+<p><code>AdvancedQuery</code> supports incremental multi-level
+lexicographic sorting via field index like indexes.
+If an index used for sorting is not
+field index like (i.e. does not index an object under at most one value),
+you may get funny (and partly non determistic) results.</p>
+
+<p>Sorting is specified by a sequence of sort specifications, each for
+a single level. Such a specification is either an index name,
+a pair index name and direction or a ranking specification (see below).
+A direction is
+<code>'asc'</code> (ascending) or <code>'desc'</code> (descending);
+if the direction is not specified, <code>'asc'</code> is assumed.</p>
+
+<p>When the result contains documents not indexed by a sorting index,
+such documents are delivered after indexed documents.
+This happens always, independant of search direction.</p>
+
+<h2>Incremental Filtering</h2>
+<p>From version 1.1 on, <code>AdvancedQuery</code> supports incremental
+filtering. Incremental filtering can be very promissing for an
+unspecific subquery inside an otherwise specific And query,
+especially for large <code>Le</code>, <code>Ge</code>,
+<code>Between</code> and range subqueries. If we use the index in the normal
+way a huge Or query is constructed for such subqueries. Even
+<code>IncrementalSearch2</code> cannot fully optimize the search against
+this huge Or query. Whith incremental filtering the index is not used
+in the normal way. Instead, the remaining And subqueries are
+used to produce a set of document candidates. These are then
+filtered by the filtering subquery, discarding documents not matching
+the subquery. Provided that the other And subqueries already have
+reduced the document set sufficiently, incremental filtering can
+save a lot of time.</p>
+
+<p>You request incremental filtering for an (elementary) subquery
+with the <code>filter</code> keyword argument. Usually,
+you use it only for some subqueries of specific And queries.
+Otherwise, incremental filtering may not reduce but increase the
+query time (even considerably).</p>
+
+<p>If you have more than a single filtering subquery in an
+And query, their order might be relevant for efficiency.
+You should put filtering subqueries that are likely to reduce
+the document set more before other filtering subqueries.</p>
+
+<p>Incremental filtering requires that you have version 1.0 of
+<code>IncrementalSearch</code> or <code>IncrementalSearch2</code> 
+installed. Furthermore, incremental filtering is only effective,
+if the index supports it.
+This is true for most version 1.3 <code>ManagableIndex</code>
+index types. If some condition for incremental filtering is
+not met, the <code>filter</code> keyword is simply ignored.</p>
+
+<h2>Ranking</h2>
+<p>From version 2.0 on, <code>AdvancedQuery</code> supports
+incremental ranking. Ranking is a form of sorting.
+Therefore, you specify it as a sort spec. Ranking can be
+combined with other sort specs in the usual way (leading to multi-level
+sorting).</p>
+
+<p>Like sorting in general, ranking is performed incrementally -- just
+as far as you have looked at the result. Therefore, although ranking
+in general is very expensive, its effect can be small if you only
+look at the first few (hundred) result objects (rather than the several
+hundred thousands).
+
+<p>Currently, the ranking specifications <code>RankByQueries_Sum</code>,
+and <code>RankByQueries_Max</code> are supported.
+In both cases, you call the constructors with one
+or more pairs (<var>q</var>,
+<var>v<sub>q</sub></var>), i.e. with a sequence of weighted queries.<br>
+The rank of a document is the sum or the maximum of the
+weights for queries matching the document, respectively.
+<br>
+Note that the runtime
+behaviour for <code>RankByQueries_Sum</code> is exponential, that
+of <code>RankByQueries_Sum</code> linear in the number of queries
+involved in the ranking.<br>
+Note that you probably want to normalize the document ranks.
+The ranking classes above have methods <code>getQueryValueSum()</code>
+and <code>getQueryValueMax()</code>, respectively, that can help with
+this.
+</p>
+
+
+<h2>Examples</h2>
+
+<pre class="python-code">
+from Products.AdvancedQuery import Eq, Between, Le
+
+# search for objects below 'a/b/c' with ids between 'a' and 'z~'
+query = Eq('path','a/b/c') &amp; Between('id', 'a', 'z~')
+
+# evaluate and sort descending by 'modified' and ascending by 'Creator'
+context.Catalog.evalAdvancedQuery(query, (('modified','desc'), 'Creator',))
+
+# search 'News' not yet archived and 'File's not yet expired.
+now = context.ZopeTime()
+query = Eq('portal_type', 'News') &amp; ~ Le('ArchivalDate', now)
+	| Eq('portal_type', 'File') &amp; ~ Le('expires', now)
+context.Catalog.evalAdvancedQuery(query)
+
+# search 'News' containing 'AdvancedQuery' and filter out
+# not yet effective or still expired documents.
+query = Eq('portal_type', 'News') &amp; Eq('SearchableText', 'AdvancedQuery') \
+  &amp; Ge('expires', now, filter=True) &amp; Le('effective', now, filter=True)
+context.Catalog.evalAdvancedQuery(query)
+
+# search for 'ranking' in 'SearchableText' and rank very high
+# when the term is in 'Subject' and high when it is in 'Title'.
+# print the id and the normalized rank
+from Products.AdvancedQuery import RankByQueries_Sum
+term = 'ranking'
+rs = RankByQueries_Sum((Eq('Subject', term),16), (Eq('Title', term),8))
+norm = 1 + rs.getQueryValueSum()
+for r in context.Catalog.evalAdvancedQuery(
+    Eq('SearchableText', term), (rs,)
+    ):
+    print r.getId, (1 + r.data_record_score_) / norm
+</pre>
+
+<h2>Important note about caching</h2>
+<p>You must not cache the result of an <code>AdvancedQuery</code>
+unless you have ensured that sorting has finished (e.g. by
+accessing the last element in the result). This is because
+<code>AdvancedQuery</code> uses incremental sorting with
+<code>BTrees</code> iterators. Like any iterator, they do not
+like when the base object changes during iteration. Nasty types
+of (apparently) non-deterministic errors can happen when
+the index changes during sorting.</p>
+
+<h2>Download and installation</h2>
+<p>Download the most recent version via my
+<a href="http://www.dieter.handshake.de/pyprojects/zope#AdvancedQuery">Zope Page</a>.</p>
+
+<p>Install by unpacking the tar archive into your <code>Products</code> folder
+and restart your Zope.</p>
+
+<h2>License</h2>
+<p>This software is open source and licensed under a BSD style license.
+See the license file in the distribution for details.</p>
+
+
+    <hr>
+    <address><a href="mailto:dieter@handshake.de">Dieter Maurer</a></address>
+<!-- Created: Wed May 12 19:27:07 CEST 2004 -->
+<!-- hhmts start -->
+Last modified: Sun Jun 25 21:13:29 CEST 2006
+<!-- hhmts end -->
+  </body>
+</html>

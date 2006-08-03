@@ -1,0 +1,31 @@
+Copyright (C) 2003-2006 by Dr. Dieter Maurer <dieter@handshake.de>
+D-66386 St. Ingbert, Eichendorffstr. 23, Germany
+
+		All Rights Reserved
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice and this permission
+notice appear in all copies, modified copies and in
+supporting documentation.
+
+Dieter Maurer DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL Dieter Maurer
+BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
+DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+
+IMPORTANT NOTE: I consider to forbid institutions of the
+European Union (Commission, Council of Ministers, Parliament, ...)
+to use software developped by me.
+This is in protest against plans of the Council of Ministers to make
+logic (general ideas outside of a concrete technical system)
+and especially software patentable in Europe.
+Note that with such a restriction, this software will cease to be
+compatible with the GPL (GNU Public License).
+This version does not yet have the restriction but a future version
+may.
