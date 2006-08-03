@@ -39,7 +39,7 @@
     </tr>
     <tr>
         <td colspan="5" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>
 </table>

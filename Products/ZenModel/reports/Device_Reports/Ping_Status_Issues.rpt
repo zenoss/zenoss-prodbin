@@ -11,7 +11,7 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                     sortedHeader='getPingStatusHeader', sortedSence='desc');
     ">
-    <tal:block metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+    <tal:block metal:use-macro="here/deviceListMacro/macros/devListReportBody"/>
 </table>
 </tal:block>
 </tal:block>
