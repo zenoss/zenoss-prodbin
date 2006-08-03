@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html tal:define="
+  type options/type;
+  action options/action;
+  description options/description;
+  title string: Add $type;
+  "
+>
+  <head>
+    <title tal:content="title">Title</title>
+  </head>
+
+  <body>
+    <h2 tal:content="title">Title</h2>
+
+    <p tal:content="description">Description</p>
+
+    <form action="action" method="post"
+      tal:attributes="action action">
+      <table cellpadding=5>
+      <tr>
+        <th>Id</th><td><input name="id"></td>
+      </tr>
+      <tr>
+        <td colspan=2>
+	  <input type="hidden" name="type" tal:attributes="value type">
+	  <input type="submit" name="add">
+	</td>
+      </tr>
+      </table>
+    </form>
+  </body>
+</html>

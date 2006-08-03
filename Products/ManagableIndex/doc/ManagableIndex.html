@@ -1,0 +1,417 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+  <head>
+    <title>ManagableIndex</title>
+    <style type="text/css">
+      .warning {
+      	color: red;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>ManagableIndex</h1>
+
+<h2>Introduction</h2>
+<p><code>ManagableIndex</code> can mean different things for different
+people. For a content manager, it brings flexible field, keyword
+and efficient range indexes managable via the ZMI to</p>
+<ul>
+<li>combine values from different sources, ignoring irrelevant values
+  and transforming values in an inadequate form,<br>
+  Example: index an object via title if it is non-empty but use
+  id otherwise<br>
+  Example: add <code>portal_type</code> to the <code>Subject</code> index
+  transforming it into a sequence (as required by a keyword index).
+<li>control acquisition<br>
+  and prevent acquired values to be indexed
+<li>ignore stop-terms, normalize terms and check types<br>
+  Example: when you do not want that an object is indexed under
+    a meaningless default value, you can define this value
+    as a stop-term.<br>
+  Example: when you want case insensitive searches, you
+    can perform case folding during normalization.<br>
+  Example: the BTrees underlying Zope indexes require its
+    keys to have a persistently consistent ordering.
+    When this is not the case, they become corrupt.
+    While modern Python versions (at least Python 2.3)
+    compare values from different elementary types
+    persistently consistent, the result can be quite
+    unintuitive. Therefore, it is best when all terms
+    in an index belong to the same types. Normalizing
+    and type checking helps to ensure this.
+</ul>
+
+<p>For a developer, <code>ManagableIndex</code> provides
+a framework for index definition, improving on <code>PluginIndexes</code>.
+It provides for managability,
+automatically and intelligently handles unindexing when an object
+is reindexed and implements <em>and</em>, <em>or</em> and
+<em>range</em> queries (for not too complex indexes).</p>
+
+<h2>Concepts</h2>
+<p>The main tasks of an index are to index objects under
+a set of index terms derived from the object and efficiently locate
+all objects indexed under a given term.</p>
+
+<p>Indexing consists of 3 stages: evaluation of the object
+to obtain the object's value (with respect to the index),
+deriving index terms from the value and storing the association
+term/object in a way such that
+the objects associated with a term can quickly be retrieved.</p>
+
+
+<h3>ValueProvider</h3>
+<p>Evaluation is specified by a sequence of <em>ValueProvider</em>s
+associated with the index. 
+A ValueProvider is a device that returns a value for an object.
+If the return value is not <code>None</code>,
+then it is interpreted as the
+object's value with respect to this ValueProvider.</p>
+
+<p>A <code>ValueProvider</code> can have an associated
+<em>IgnorePredicate</em>, a TALES expression.
+When the <code>IgnorePredicate</code> yields true for
+a value, then it is ignored. You may e.g. specify that
+empty strings should be ignored.</p>
+
+<p>A <code>ValueProvider</code> can have an associated
+<em>Normalizer</em>, a TALES expression.
+The <code>Normalizer</code> is applied to not ignored values
+to transform them in a standard form, e.g. the normalizer
+for a keyword index can transform a string into a one element
+tuple containing the string as a keyword index requires a sequence
+value.</p>
+
+
+<p>The most essential ValueProviders are <em>AttributeLookup</em>s.
+An AttributeLookup determines the object's value through
+the lookup of an attribute. The AttributeLookup's configuration
+determines whether acquisition can be used, whether a callable value
+should be called and whether exceptions should be ignored.
+</p>
+
+<p><em>ExpressionEvaluator</em>s are another type of ValueProviders.
+These are TALES expressions defining an objects value.
+<code>ExpressionEvaluator</code>s often avoid to define
+simple scripts just for indexing purposes.<br>
+<span class="warning">Warning: </span>Until Zope 2.7, TALES
+expressions have been trusted when used outside of Zope; from
+Zope 2.8 on, TALES expression evaluation is always subject
+to Zope's security restrictions even when used outside of Zope.
+This may have strange consequences when you perform index management
+(e.g. mass reindexing) in an external script (run outside of Zope).
+In such cases, you should probably let the script login as a Zope user
+with sufficient priviledges.
+</p>
+
+<h3>Value Combination</h3>
+<p>When an index has several ValueProviders, their values
+must be combined to define the object's value.</p>
+
+<p><code>None</code> and ignored values are always ignored
+and are not combined.</p>
+
+<p>Currently, there are three combiners:</p>
+<dl>
+<dt><code>useFirst</code><dd>use the first non-ignored value<br>
+  This is available for all kinds of indexes.</dd>
+<dt><code>union</code><dd>combine all non-ignored values in a union like way.<br>
+  This is only available for indexes that split the object's value
+  into a set of index terms (such as keyword or text indexes).</dd>
+<dt><code>aggregate</code><dd>combine all values into a list.<br>
+  This is only available for index types that expect aggregate values
+  such as e.g. a <code>RangeIndex</code>.</dd>
+</dl>
+
+<h3>Term Standardization</h3>
+<p>Once the object's value (with respect to the index) has been
+determined, the value is split into a set of index terms
+in an index specific way (e.g. a <code>FieldIndex</code>
+uses the value directly, a <code>KeyWordIndex</code>
+requires the value to be a sequence and uses its elements as
+index terms and a <code>TextIndex</code> splits the value into
+words and uses the words).
+The terms are then standardized.</p>
+
+<p>Standardization consists of serveral steps:
+prenormalization such as case normalization, stemming,
+phonetic normalization, ...
+elimination of
+stop terms, normalization such as type conversion,
+type checking and copying.</p>
+
+
+<h4>Prenormalization</h4>
+<p>A index can define a term prenormalizer, a TALES expression.
+The prenormalizer is applied to terms before term expansion
+in queries and always as the first step of normalization during
+indexing. It can be used e.g. for case normalization, stemming,
+phonetic normalization, synonym normalization, ...</p>
+
+<h4>Stop Terms</h4>
+<p>An index can define a <em>StopTermPredicate</em>, a TALES
+expression. When the predicate yields true for a term, the term
+is ignored.</p>
+
+<h4>Term Normalization</h4>
+<p>An index can define a <em>NormalizeTerm</em> TALES expression.
+The expression can be used to transform the term into some standard
+form, e.g.
+convert a descriptive string or complex object into a code
+used for efficient indexing.</p>
+
+<h3>Type Restriction</h3>
+<p>The BTrees used in index implementation require that any index term must be
+persistently comparable to any other index term in this index
+(otherwise, the index gets corrupted). To help observing this
+essential property, the index term's type can be restricted.</p>
+
+<p>The following type restrictions are defined:</p>
+<dl>
+<dt><code>not checked</code><dd>the type is not restricted at all,</dd>
+<dt><code>numeric</code><dd>the type must be a numeric type (<code>int</code>,
+<code>float</code> or <code>long</code>),</dd>
+<dt><code>string</code><dd>the type must be a string,</dd>
+<dt><code>ustring</code><dd>the type must be a unicode string; <code>TermTypeExtra</code> can specify an encoding used for conversion.</dd>
+<dt><code>integer</code><dd>the type must be an integer,</dd>
+<dt><code>DateTime</code><dd>the type must be a <code>DateTime</code> object or float --
+the index stores the date as a float (seconds since epoch),</dd>
+<dt><code>DateTimeInteger</code><dd>the type must be a <code>DateTime</code> object or integer -- the index stores the date as an integer (seconds since epoch; truncated, if necessary),</dd>
+<dt><code>DateInteger</code><dd>the type must be a <code>DateTime</code> object or integer -- the index stores an integer representing the date
+(<code>400 * <var>year</var> + 31 * (<var>month</var>-1) + (<var>day</var>-1)</code>,</dd>
+<dt><code>tuple</code> with <var>tuplespec</var> in <code>TermTypeExtra</code><dd>The value must be a tuple
+  of the structure given by <var>tuplespec</var>. Each
+  tuple component is specified by a letter or by a parenthesized
+  <var>tuplespec</var> (for "subtuples"). Recognized
+  letters are <code>n</code> (numeric), <code>s</code> (string),
+  <code>u</code> (unicode string),
+  <code>d</code> (datetime).
+  An encoding for unicode conversion can be specified after <var>tuplespec</var>,
+  separated by <code>;</code>.
+  </dd>
+<dt><code>instance</code> with <var>fullClassName</var> in <code>TermTypeExtra</code><dd>the type must be an instance of the given class and the class must define an <code>__cmp__</code> method.
+It is assumed without check, that this <code>__cmp__</code>
+implements a persistent comparison.
+</dd>
+<dt><code>expression checked</code> with <code>TermTypeExtra</code> specifying checking TALES expression<dd>the expression may try to transform the
+value into something acceptable. If it yields <code>None</code> or
+raises an exception, the type is considered inacceptable, otherwise
+the value is used instead of the original term.
+ </dd>
+</dl>
+
+<p>All checkers try to convert a term into an acceptable type.
+Only when this fails, an exception is raised.</p>
+
+<p>If you choose one of the integer types, i.e. <code>integer</code>,
+<code>DateTimeInteger</code> or <code>DateInteger</code>,
+an especially efficient index type is build.
+You must clear and reindex the index when the index type is changed.
+You must clear the index even when it is already empty (because the data
+structures may need to be changed).</p>
+
+
+<h4>Copying</h4>
+<p>It is dangerous to index mutable types. If a indexed mutable object
+is later changed, its ordering with respect to other indexed
+objects may change, corrupting the index. Corruption of this
+kind can be avoided when the mutable object is copied before it
+is stored in the index.</p>
+
+<p><code>TermCopy</code>
+  specifies whether the value should be directly used,
+  shallow copied or deep copied.</p>
+
+
+<h2>Index Types</h2>
+<p>Currently, <code>ManagableIndexes</code> supports 3 types of
+indexes: <code>FieldIndex</code>, <code>KeywordIndex</code> and
+<code>RangeIndex</code>. Further types can easily be implemented.</p>
+
+<h3><code>FieldIndex</code></h3>
+<p>A <code>FieldIndex</code> indexes an object under a single term,
+the object's value with respect to the index.</p>
+
+<p>You get efficient DateTime and Date indexes by selecting
+<code>DateTime</code> (stored as float),
+<code>DateTimeInteger</code> (stored as integer) or
+<code>DateInteger</code> (stored as integer) as
+<code>TermType</code>. You must clear and reindex when you
+change the type.</p>
+
+<p>You can very efficiently sort search results via a <code>FieldIndex</code>.
+The <code>ZCatalog</code>'s method <code>searchResults</code>
+(aka <code>__call__</code>) supports this via its <code>sort_on</code>
+argument. My
+<a href="http://www.dieter.handshake.de/pyprojects/zope/AdvancedQuery.html"
+> AdvancedQuery</a> product supports arbitrary levels of sorting
+via <code>FieldIndex</code>es.</p>
+
+<p><code>AdvancedQuery</code>'s <code>FieldIndex</code> based ascending sorting
+is much more efficient than descending sorting. To make descending sorting
+more efficient, you can tell your <code>FieldIndex</code> to
+maintain the sort keys (also) in reverse order. This will slow indexing down
+a bit but make descending sorts much faster. When you change this
+attribute, you must clear and reindex the index (otherwise, the
+reverse order is not consistent).</p>
+
+<h3><code>KeywordIndex</code></h3>
+<p>A <code>KeywordIndex</code> expects the value of an object to
+be a sequence. It indexes the object under each element of this sequence.</p>
+
+<h3><code>RangeIndex</code></h3>
+<p>A <code>RangeIndex</code> expects an object's value
+to be a pair specifying an interval <var>low</var> to <var>high</var>.
+The index can efficiently locate documents for which a given term
+<var>t</var> lies within the document's <var>low</var> and <var>high</var>
+bounds.</p>
+
+<p>The object's value can either by constructed by a single
+attribute or with an <code>aggregate</code> combiner.</p>
+
+<p>To provide for a partial plugin replacement for CMF's
+<code>effective</code> and <code>expires</code> indexes,
+<code>RangeIndex</code> supports a <code>Boundary names</code>
+property. If set, it should be a pair of two names
+<var>low</var> and <var>high</var>. The index will then
+execute queries of the form <code><var>low</var> <= <var>val</var> <= <var>high</var></code>.
+To be compatible with <a href="AdvancedQuery"><code>AdvancedQuery</code></a>,
+the index replacing <code>effective</code> and <code>expires</code>
+should have the name <code>ValidityRange</code>.</p>
+
+<p><code>RangeIndex</code> efficiently supports improper ranges,
+i.e. those where at least one boundary is unlimited. You
+use its <code>Mininal value</code> and <code>Maximal value</code>
+properties to define which values should be considered as
+unlimited. These properties are TALES valued and are evaluated
+when the index is cleared. All values at or below (the value of)
+<code>Minimal value</code> are identified and interpreted
+as no lower limit; similarly, all values at or above (the value of)
+<code>Maximal value</code> are identified and interpreted as no
+upper limit.</p>
+
+<p>The boolean property <code>Organisation 'high-then-low'</code>
+controls the index organisation. With <code>high-then-low</code>
+organisation, the <code>high</code> index is primary and
+the <code>low</code> index is subordinate; <code>low-then-high</code>
+indicates the opposite organisation. You should use <code>high-then-low</code>
+when <code><var>val</var> <= <var>high</var></code>
+is less likely than <code><var>low</var> <= <var>val</var></code>.
+This is to be expected for date ranges and typical queries against them.</p>
+
+<h3><code>WordIndex</code></h3>
+<p>A <code>WordIndex</code> indexes an object under a set of words.
+It uses a <code>ZCTextIndex.PLexicon</code> for splitting a
+text into a sequence of words.</p>
+
+<p>A <code>WordIndex</code> lies between a <code>KeywordIndex</code> and a <code>TextIndex</code>.
+Like a <code>TextIndex</code>, it uses a <code>Lexicon</code> to split values into
+a sequence of words, stores integer word ids in its index
+and does not support range queries.
+Like a <code>KeywordIndex</code>, it indexes an object under a set of words --
+no near or phrase queries and no relevancy ranking.
+Due to these restrictions, a <code>WordIndex</code> is very efficient with respect
+to transaction and load size.</p>
+
+<p>The motivation to implement a
+<code>WordIndex</code> came from my observation, that almost all our ZEO loads
+above 100ms were caused by loading large word frequency
+IOBuckets used by <code>TextIndex</code>es for relevancy ranking -- a feature
+we do not need and use. Many of these loads transfered buckets
+of several 10 kB and a considerable portion of them took more
+than a second. As word frequency information is necessary for
+each document in a hit, you can imagine how fast our queries
+were.</p>
+
+<p>On the other hand, a <code>WordIndex</code> is only useful when you
+use a flexible query framework, such as e.g. <code>AdvancedQuery</code>
+or <code>CatalogQuery</code>.
+The standard <code>ZCatalog</code> framework is too weak as it does not
+allow to have several subqueries against the same index
+in a query. That's the reason why <code>TextIndex</code>es come with
+their own query parser. I live in Germany and therefore
+the standard query parser is useless for us (we use <code>und</code>, <code>oder</code>,
+<code>nicht</code> instead of <code>and</code>, <code>or</code> and <code>not</code>) and I have <code>AdvancedQuery</code> --
+thus I did not care to give the new <code>WordIndex</code> a query parser.
+You could easily provide one -- should you feel a need for it.</p>
+
+<h3><code>PathIndex</code></h3>
+<p>A <code>PathIndex</code> indexes an object under a path. A path is
+is either a tuple or a '/' separated string. The index supports
+path queries. For a given path, it locates objects that contain
+this path as subpath in its path value. Two search parameters
+<var>level</var> and <var>depth</var> control where in the
+object's path the given path may occur.</p>
+
+<p><var>level</var> and <var>depth</var> can be either <code>None</code>
+or an integer. When <var>level</var> and <var>depth</var> are
+both greater or equal 0, then an object with path <var>op</var>
+matches path <var>p</var> with respect to <var>level</var>
+and <var>depth</var>, iff <code><var>op</var> = <var>p1</var> <var>p</var> <var>p2</var></code> and
+<code>len(<var>p1</var>) = <var>level</var></code> and
+<code>len(<var>p2</var>) = <var>depth</var></code>.
+This means that <var>level</var> controls <var>p</var>'s distance
+from the beginning
+and <var>depth</var> that from the end of <var>op</var>.
+A <code>None</code> value means
+that there is no restriction for the respective side.
+A negative value means that the distance from the respective side
+may be up to (including) the negated value. E.g. a "-2" allows
+up to 2 segments.</p>
+
+<p>The default value for <var>level</var> is <code>0</code>,
+that for <var>depth</var> is <code>None</code>.</p>
+
+<p>Note, that <code>getPhysicalPath</code> requires acquisition
+to work properly. You must not set the acquisition type for
+such a value provider to <code>none</code>.</p>
+
+
+<h2>Matching</h2>
+<p>Most string and unicode based indexes (exception <code>RangeIndex</code>)
+support regular expression and glob matching. You use
+the query option <code>match</code> with a value of <code>'glob'</code>
+or <code>'regexp'</code> to call for this feature.</p>
+
+<p>Note that for large indexes, the match term should begin with
+an (easily recognizable) plain text string. Otherwise, this
+query type can be very inefficient.</p>
+
+
+
+<h2>TALES Expressions</h2>
+<p><code>ManagableIndex</code> uses TALES expressions at many places.
+They always can use the predefined variables:</p>
+<dl>
+<dt><code>index</code><dd>the index</dd>
+<dt><code>catalog</code><dd>the catalog</dd>
+<dt><code>root</code><dd>the zope root object</dd>
+<dt><code>modules</code><dd>the modules importer</dd>
+<dt><code>nothing</code><dd><code>None</code></dd>
+<dt><code>value</code><dd>the value to be checked</dd>
+<dt><code>object</code><dd>the object currently indexed</dd>
+</dl>
+
+<p>If the TALES expression evaluates to a callable object, then
+this is called on the value and the result used; otherwise, the
+evaluation result is used directly.</p>
+
+<h2>Utilities</h2>
+<p>The module <code>Utils</code> contains some useful functions:
+<code>convertToDateTime(value)</code>,
+<code>convertToDateTimeInteger(value, exc=0)</code>
+and 
+<code>convertToDateInteger(value, round_dir=-1)</code>.
+Please see the source documentation, for details.</p>
+
+
+    <hr>
+    <address><a href="mailto:dieter@handshake.de">Dieter Maurer</a></address>
+<!-- Created: Tue Sep  2 21:02:52 CEST 2003 -->
+<!-- hhmts start -->
+Last modified: Sat Sep 17 10:43:21 CEST 2005
+<!-- hhmts end -->
+  </body>
+</html>
