@@ -162,5 +162,29 @@
     </tr>
 </table>
 </form>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    metal:define-macro="graphLinks"
+    tal:define="
+        routers string:${here/absolute_url_path}/deviceGraphRouters;
+        networks string:${here/absolute_url_path}/deviceGraphNets">
+    <tr>
+      <th class="tabletitle" colspan="4">
+       Graphs
+      </th>
+    </tr>
+    <tr>
+      <td class="tableheader">Relative Network Graph</td>
+      <td class="tablevalues" colspan="3"><a tal:attributes="href
+routers">Image Link</a> (routers only)</td>
+    </tr>
+    <tr>
+      <td class="tableheader">Detailed Relative Network Graph</td>
+      <td class="tablevalues" colspan="3"><a tal:attributes="href
+networks">Image Link</a> (routers and networks)</td>
+    </tr>
+</table>
+
 </tal:block>
 </tal:block>

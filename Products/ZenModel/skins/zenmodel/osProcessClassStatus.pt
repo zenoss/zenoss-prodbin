@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
-      <th class="tabletitle" colspan="4">Service Class</th>
+      <th class="tabletitle" colspan="4">Process Class</th>
     </tr>
     <tr>
       <td class="tableheader">Name</td>

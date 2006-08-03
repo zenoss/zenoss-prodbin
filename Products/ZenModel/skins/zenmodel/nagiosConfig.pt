@@ -10,7 +10,7 @@
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id"/>
     <tr>
-      <th class="tabletitle" align="left" colspan="6">Nagios Plugins</th>
+      <th class="tabletitle" align="left" colspan="6">Nagios Templates</th>
     </tr>
     <tr>
         <th class="tableheader" width="5px"></th>

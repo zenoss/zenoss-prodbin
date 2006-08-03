@@ -682,6 +682,7 @@ class Device(ManagedEntity):
         '''get a graph representing the relative routers'''
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
+        #g.format = 'svg'
         self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
         return g.render()
 
@@ -693,6 +694,7 @@ class Device(ManagedEntity):
         '''
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
+        #g.format = 'svg'
         self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
         return g.render(withNetworks=True)
         
