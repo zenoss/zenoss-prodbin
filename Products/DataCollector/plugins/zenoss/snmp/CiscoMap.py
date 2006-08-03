@@ -21,11 +21,11 @@ class CiscoMap(SnmpPlugin):
     maptype = "CiscoDeviceMap" 
 
     snmpGetMap = GetMap({ 
-             '.1.3.6.1.4.1.9.5.1.2.19.0':'serialNumber',
+             '.1.3.6.1.4.1.9.5.1.2.19.0':'setHWSerialNumber',
              })
    
     #Cisco model names that support serial number collection
-    modelcheck = re.compile(r'UBR|12\d16|720\d').search
+    modelcheck = re.compile(r'3550|UBR|12\d16|720\d').search
     
     def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
