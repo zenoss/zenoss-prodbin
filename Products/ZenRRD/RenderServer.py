@@ -21,7 +21,10 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from OFS.Image import manage_addFile
 
-#import rrdtool
+try:
+    import rrdtool
+except ImportError:
+    pass
 
 from Products.ZenUtils.PObjectCache import PObjectCache
 from Products.ZenUtils.PObjectCache import CacheObj
