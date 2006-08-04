@@ -7,7 +7,7 @@ ccomps
 cftp
 check_catalog.py
 checkbtrees.py
-circo -> dot
+circo
 ckeygen
 compilezpy.py
 conch
@@ -16,12 +16,12 @@ copyzopeskel.pyc
 decompilezpy.py
 dijkstra
 dot
-dot2gxl -> gxl2dot
+dot2gxl
 dot_static
 dotty
 epydoc
 epydocgui
-fdp -> dot
+fdp
 fsdump.py
 fsrefs.py
 fstail.py
@@ -42,7 +42,7 @@ migrate.py
 mktap
 mkzeoinstance.py
 mkzopeinstance.py
-neato -> dot
+neato
 netspace.py
 nop
 parsezeolog.py
@@ -74,7 +74,7 @@ tkmktap
 tred
 trial
 twistd
-twopi -> dot
+twopi
 unflatten
 websetroot
 yapps2
