@@ -1,23 +1,39 @@
-python
 README.txt
+acyclic
 analyze.py
+bcomps
 bookify
+ccomps
 cftp
 check_catalog.py
 checkbtrees.py
+circo -> dot
 ckeygen
 compilezpy.py
 conch
 copyzopeskel.py
 copyzopeskel.pyc
 decompilezpy.py
+dijkstra
+dot
+dot2gxl -> gxl2dot
+dot_static
+dotty
 epydoc
 epydocgui
+fdp -> dot
 fsdump.py
 fsrefs.py
 fstail.py
 fstest.py
+gc
+gvcolor
+gvpack
+gvpr
+gxl2dot
 im
+lefty
+lneato
 load_site.py
 lore
 mailmail
@@ -26,16 +42,21 @@ migrate.py
 mktap
 mkzeoinstance.py
 mkzopeinstance.py
+neato -> dot
 netspace.py
+nop
 parsezeolog.py
+prune
+python
 reindex_catalog.py
 repozo.py
 requestprofiler.py
 rrdtool
 rrdupdate
 runzeo
-runzope.bat
 runzope
+runzope.bat
+sccmap
 smicache
 smidiff
 smidump
@@ -50,8 +71,11 @@ test.py
 timeout.py
 tkconch
 tkmktap
+tred
 trial
 twistd
+twopi -> dot
+unflatten
 websetroot
 yapps2
 zenoss.bak
