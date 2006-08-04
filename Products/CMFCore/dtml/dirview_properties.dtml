@@ -1,0 +1,31 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<h2> Directory View Properties </h2>
+
+<form action="manage_properties" method="POST">
+<table>
+
+ <tr>
+  <th> ID: </th>
+  <td> &dtml-getId; </td>
+ </tr>
+
+ <tr>
+  <th> Filesystem path: </th>
+  <td>
+   <input type="text" name="dirpath" size="40" value="&dtml-getDirPath;">
+  </td>
+ </tr>
+
+ <tr>
+  <td> <br> </td>
+  <td>
+   <input type="submit" value=" Update ">
+  </td>
+ </tr>
+
+</table>
+</form>
+
+<dtml-var manage_page_footer>

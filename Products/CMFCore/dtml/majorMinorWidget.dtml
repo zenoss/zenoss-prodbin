@@ -1,0 +1,19 @@
+<dtml-comment>
+   This snippet is designed to be included in a larger method;  it
+   provides input elements for a predicate which is based on major/minor
+   content type patterns.
+</dtml-comment>
+<strong> Content type: </strong
+<input type="hidden"
+       name="predicate.id:record"
+       value="&dtml-getId;">
+<input type="text"
+       name="predicate.major:record"
+       value="&dtml-getMajorType;"
+       size="8">
+&nbsp;/&nbsp;
+<input type="text"
+       name="predicate.minor:record"
+       value="&dtml-getMinorType;"
+       size="8">
+<em> Major/minor content type (blank for all). </em>

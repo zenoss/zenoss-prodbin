@@ -1,0 +1,1 @@
+""" CMFCore.interfaces package """

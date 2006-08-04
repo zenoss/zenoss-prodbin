@@ -1,0 +1,12 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<h3> <code>portal_workflow</code> Tool </h3>
+
+<p> This tool associates objects of a given content type with a "workflow";
+    workflows are "state machines", each representing the life cycle of a
+    given family of content types, and specifying the "workflow actions"
+    which are possible in any phase of the life cycle.
+</p>
+
+<dtml-var manage_page_footer>

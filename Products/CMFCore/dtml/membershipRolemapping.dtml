@@ -1,0 +1,66 @@
+<dtml-let form_title="'Membership Tool Role Mappings'">
+<dtml-if manage_page_header>
+ <dtml-var manage_page_header>
+<dtml-else>
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+ <html lang="en">
+ <head>
+ <title>&dtml-form_title;</title>
+ </head>
+ <body bgcolor="#FFFFFF" link="#000099" vlink="#555555">
+ <h3>&dtml-form_title;</h3>
+</dtml-if>
+</dtml-let>
+
+<dtml-var name="manage_tabs">
+  
+<h2>Membership role mappings</h2>
+
+<p>Use this screen if you are using a userfolder other than the built-in folder to map 
+existing role names to roles understood by the CMF.</p>
+
+<dtml-in expr="getPortalRoles()">
+  <dtml-if name="sequence-start">
+    <table border="1" cellpadding="3">
+      <tr>
+        <td class="form-label"><b>Portal Role</b></td>
+        <td class="form-label"><b>User Folder-defined Role</b></td>
+        <td>&nbsp;</td>
+      </tr>
+  </dtml-if>
+
+  <tr>
+    <form method="post" action="setRoleMapping">
+    <td class="form-label"><dtml-var name="sequence-item"><input type="hidden" name="portal_role" value="&dtml-sequence-item;"></td>
+    <td class="form-element"><input type="text" size="30" name="userfolder_role" 
+              value="<dtml-var expr="getMappedRole(_['sequence-item'])">"></td>
+    <td><input type="submit" value="Set Mapping"></td>
+    </form>
+  </tr>
+
+  <dtml-if name="sequence-end">
+    </table>
+  </dtml-if>
+</dtml-in>
+
+<p><hr></p>
+
+<h2>Control creation of member areas</h2>
+
+<p>This feature controls whether users coming from an outside user source (such as an underlying 
+user folder) will have their own folder created upon first login or not</p>
+
+<form method="post" action="setMemberareaCreationFlag">
+
+<dtml-if expr="getMemberareaCreationFlag() == 1">
+  <p><b>Folders are created upon first login.</b> 
+  <input type="submit" value=" Turn folder creation off ">
+<dtml-else>
+  <p><b>No Folders are created.</b> 
+  <input type="submit" value=" Turn folder creation on ">
+</dtml-if>
+
+</form>
+
+</body>
+</html>

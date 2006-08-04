@@ -1,0 +1,18 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<h3> <code>portal_types</code> Tool </h3>
+
+<p> This tool manages the set of policies related to the content types
+    which can be created on the CMFSite.  These policies include:
+
+    <ul>
+      <li> the construction mechanism; </li>
+      <li> whether discussion is allowed for the type; </li>
+      <li> what types can be added
+           (significant only for "folderish" types); </li>
+      <li> the "actions" which can be performed on objects of the type; </li>
+    </ul>
+</p>
+
+<dtml-var manage_page_footer>

@@ -1,0 +1,111 @@
+<dtml-let form_title="'Properties'">
+<dtml-if manage_page_header>
+ <dtml-var manage_page_header>
+<dtml-else>
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+ <html lang="en">
+ <head>
+ <title>&dtml-form_title;</title>
+ </head>
+ <body bgcolor="#FFFFFF" link="#000099" vlink="#555555">
+ <h3>&dtml-form_title;</h3>
+</dtml-if>
+</dtml-let>
+<dtml-var manage_tabs>
+
+<form action="manage_skinLayers" method="POST">
+<table>
+  <tr>
+     <th valign="top" align="left">Skin selections</th>
+  </tr>
+  <tr>
+     <td colspan="2">
+       <table>
+         <tr>
+           <th align="left">Name</th>
+           <th align="left">Layers (in order of precedence)</th>
+         </tr>
+         <dtml-in getSkinPaths>
+         <tr>
+           <td class="form-label">
+             <input type="checkbox" name="chosen:list"
+              value="&dtml-sequence-key;">
+             &dtml-sequence-key;
+           </td>
+           <td class="form-element">
+             <textarea cols="30" rows="8" name="skinpath_&dtml-sequence-key;:lines"><dtml-var expr="'\n'.join([s.strip() for s in _['sequence-item'].split(',')])"></textarea>
+           </td>
+         </tr>
+         </dtml-in>
+
+         <tr>
+           <td colspan="2">
+             <input type="submit" name="del_skin" value="Delete">
+             <input type="submit" name="submit" value="Save">
+           </td>
+         </tr>
+         
+         <tr><th colspan="2" align="left">Add a new skin</th><tr>
+         <tr>
+            <th align="left">Name</th>
+            <th align="left">Layers</th>
+         </tr>
+         <tr>
+           <td valign="top">
+             <input type="text" name="skinname" value="" size="20">
+           </td>
+           <td>
+             <textarea cols="30" rows="3" name="skinpath:lines"></textarea>
+           </td>
+         </tr>
+
+         <tr>
+           <td colspan="2">
+             <input type="submit" name="add_skin" value="Add">
+           </td>
+         </tr>
+
+       </table>
+     </td>
+  </tr>
+  <tr>
+</table>
+</form>
+<hr />
+<form action="manage_properties" method="POST">
+<table>
+  </tr>
+  <tr>
+     <td class="form-label" valign="top" align="left">Default skin</td>
+     <td class="form-element"><select name="default_skin" size="1">
+       <dtml-in getSkinSelections>
+         <option value="&dtml-sequence-item;" <dtml-if
+          expr="_['sequence-item'] == getDefaultSkin()"
+          >selected="selected"</dtml-if>>&dtml-sequence-item;</option>
+       </dtml-in>
+     </select></td>
+  </tr>
+  <tr>
+     <td class="form-label" valign="top" align="left">REQUEST variable name</td>
+     <td class="form-element"><input type="text" name="request_varname"
+          value="&dtml-getRequestVarname;" size="25"></td>
+  </tr>
+  <tr>
+     <td class="form-label" valign="top" align="left">Skin flexibility</td>
+     <td class="form-element"><input type="checkbox" name="allow_any" id="cb_allowany"
+          <dtml-if getAllowAny>checked="checked"</dtml-if> />
+         <label for="cb_allowany">Allow arbitrary skins to be
+	 selected</label></td>
+  </tr>
+  <tr>
+    <td class="form-label" valign="top" align="left">Skin Cookie persistence</td>
+    <td class="form-element"><input type="checkbox" name="cookie_persistence" id="cb_cookiep"
+         <dtml-if getCookiePersistence>checked="checked"</dtml-if> />
+        <label for="cb_cookiep">Make skin cookie persist indefinitely
+        </label></td>
+  </tr>
+</table>
+<input type="submit" name="submit" value="Save">
+</form>
+</body>
+</html>

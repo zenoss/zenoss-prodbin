@@ -96,7 +96,7 @@ class Report(ZopePageTemplate, ZenModelItem):
     security.declareProtected('Change Page Templates','pt_editAction')
     def pt_editAction(self, REQUEST, title, text, 
                         content_type, expand, description):
-        
+        "add description to editing" 
         self.description = description
         return ZopePageTemplate.pt_editAction(self, REQUEST, title, text,
                                             content_type, expand)

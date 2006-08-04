@@ -1,0 +1,54 @@
+Cache Policy Manager - Policies
+
+  A cache policy represent a single class of cachable objects:
+
+    - class membership is defined by 'predicate', a TALES expression
+      with access to the following top-level names:
+
+      'object' -- the object itself
+
+      'view' -- the name of the view method
+
+      'keywords' -- keywords passed to the request
+
+      'request' -- the REQUEST object itself
+
+      'member' -- the authenticated member, or None if anonymous
+
+      'modules' -- usual TALES access-with-import
+
+      'nothing' -- None
+
+      'time' -- A DateTime object for the current date and time
+
+    - The "Last-modified" HTTP response header will be set using
+      'mtime_func', which is another TALES expression evaluated
+      against the same namespace.  If not specified explicitly,
+      uses 'object/modified'.
+
+    - The "Expires" HTTP response header and the "max-age" token of
+      the "Cache-control" header will be set using 'max_age_secs',
+      if passed;  it should be an integer value in seconds.
+
+    - The "Vary" HTTP response headers will be set if a value is
+      provided. The Vary header is described in RFC 2616. In essence,
+      it instructs caches that respect this header (such as Squid
+      after version 2.4) to distinguish between requests not just by
+      the request URL, but also by values found in the headers showing
+      in the Vary tag. "Vary: Cookie" would force Squid to also take
+      Cookie headers into account when deciding what cached object to
+      choose and serve in response to a request.
+
+    - The "ETag" HTTP response header will be set if a value is
+      provided. The value is a TALES expression and the result
+      after evaluation will be used as the ETag header value.
+
+    - Other tokens will be added to the "Cache-control" HTTP response
+      header as follows:
+
+       'no_cache=1' argument => "no-cache" token
+
+       'no_store=1' argument => "no-store" token
+
+       'must_revalidate=1' argument => "must-revalidate" token
+ 

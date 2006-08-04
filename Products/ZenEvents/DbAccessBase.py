@@ -21,7 +21,8 @@ class DbAccessBase(object):
             # FIXME for some reason it thinks my int is a long -EAD
             mysqlconv[FIELD_TYPE.LONG] = int
             db = MySQLdb.connect(host=self.database, user=self.username,
-                            passwd=self.password, db="events",conv=mysqlconv)
+                                port=self.port, passwd=self.password, 
+                                db="events",conv=mysqlconv)
             db.autocommit(1)
         elif self.backend == "oracle":
             import DCOracle2

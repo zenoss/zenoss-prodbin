@@ -1,0 +1,58 @@
+<dtml-let form_title="'Workflows by Type'">
+<dtml-if manage_page_header>
+ <dtml-var manage_page_header>
+<dtml-else>
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+ <html lang="en">
+ <head>
+ <title>&dtml-form_title;</title>
+ </head>
+ <body bgcolor="#FFFFFF" link="#000099" vlink="#555555">
+ <h3>&dtml-form_title;</h3>
+</dtml-if>
+</dtml-let>
+
+<dtml-var manage_tabs>
+
+<h3>Workflows by type</h3>
+
+<form action="manage_changeWorkflows" method="POST">
+<table>
+
+<dtml-in types_info mapping sort=id>
+<tr>
+<td class="form-label">
+ <a href="../portal_types/&dtml.url_quote-id;/manage_workspace"
+  >&dtml-id;<dtml-if title> (&dtml-title;)</dtml-if></a>
+</td>
+<td class="form-element">
+ <input type="text" name="chain_&dtml-id;" value="&dtml-chain;" size="70" />
+</td>
+</tr>
+</dtml-in>
+
+<tr>
+<td class="form-label" align="left">(Default)</td>
+<td class="form-element">
+ <input type="text" name="default_chain" value="&dtml-default_chain;" size="70" />
+</td>
+</tr>
+
+</table>
+
+<input type="submit" name="submit" value="Change" />
+
+</form>
+
+<hr />
+
+<p>
+Click the button below to update the security settings of all
+workflow-aware objects in this portal.
+
+<form action="updateRoleMappings" method="GET">
+<input type="submit" name="submit" value="Update security settings" />
+</form>
+</p>
+
+<dtml-var manage_page_footer>

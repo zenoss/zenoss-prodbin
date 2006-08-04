@@ -1,0 +1,2 @@
+<div tal:define="dummy python: request.RESPONSE.setHeader('content-type', 'text/html;; charset=utf-8')"
+     tal:content="request/SERVER_NAME">This is only a test</div>

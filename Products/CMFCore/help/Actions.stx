@@ -1,0 +1,52 @@
+CMFCore - Actions
+
+  Actions generate links to views of content, or to specific methods
+  of the site.  They can be filtered via their conditions.
+
+  The 'Actions' tab is the place to add or modify actions. The following
+  fields are available to describe an action:
+
+    - 'Title' -- The freely selectable title will show up as the link
+      text for the linked action in the portal.
+
+    - 'Id' -- An ID uniquely identifies an action in its action category
+      (see below) and thus should be unique among the other action IDs in
+      the same category.
+
+    - 'URL (Expression)' -- A TALES expression that is used to construct
+      the link target for the action. The following bound names are
+      available to your expression:
+
+        - 'object' -- The current object
+
+        - 'object_url' -- The URL for the current object
+
+        - 'folder' -- The current object's containing folder
+
+        - 'folder_url' -- The URL for the current object's containing folder
+
+        - 'portal' -- The portal object
+
+        - 'portal_url' -- The URL for the portal
+
+        - 'isAnonymous' -- A boolean evaluating to a truth value if the
+          current user is an anonymous site visitor and false if the user is
+          authenticated
+
+        - 'user_id' -- The current user's ID
+
+    - 'Condition (Expression)' -- A TALES expression that determines whether
+      the described action should be shown or not. The expression namespace 
+      contains the same members as described under 'URL (Expression)'
+
+    - 'Permission' -- Select a permission to limit the action to visitors who
+      have the selected permission
+
+    - 'Category' -- The action category, which is used to subdivide the
+      available actions into logical groups. The category can be arbitrary or
+      one of the commonly-used categories, such as 'object' or 'folder' etc.
+
+    - 'Visible' -- Toggle to enable or disable showing the action link in case
+      the Permission and Condition restrictions are met, but the action is not
+      supposed to show up at all.
+

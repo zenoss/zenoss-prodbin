@@ -1,0 +1,72 @@
+<h1 tal:replace="structure context/manage_page_header">Header</h1>
+<h2 tal:define="manage_tabs_message options/manage_tabs_message | nothing"
+    tal:replace="structure context/manage_tabs">Tabs</h2>
+
+<h3>Method Aliases Chart</h3>
+
+<p>Method Aliases are Type Information properties. This chart is for
+ convenience to set aliases for all types simultaneously.</p>
+
+<form action="manage_setTIMethodAliases" method="post">
+<table cellspacing="0" cellpadding="2" border="0">
+ <tr class="list-header">
+  <th align="left">Alias</th>
+  <th tal:repeat="key context/listMethodAliasKeys">
+   <input type="text" name="" size="18" value=""
+     tal:attributes="name string:aliases.${repeat/key/index}:record;
+                     value key" />
+  </th>
+  <th>
+   <input type="text" name="aliases.new:record" size="18" value="" />
+  </th>
+ </tr>
+ <span tal:define="tis python:sequence.sort( context.listTypeInfo(),
+                                             ( ('getId',), ) )"
+   tal:repeat="ti tis" tal:omit-tag=""><tr class=""
+   tal:attributes="class python:repeat['ti'].odd() and 'row-normal'
+                                                    or 'row-hilite'">
+  <th align="left">
+     <a href=""
+        tal:attributes="href string:${ti/absolute_url}/manage_aliases"
+        tal:content="ti/getId">id</a>
+  </th>
+  <td tal:repeat="key context/listMethodAliasKeys">
+   <input type="text" name="" size="18" value=""
+     tal:attributes="name string:${ti/getId}.${repeat/key/index}:record;
+                     value python:ti.queryMethodID(key, '')" />
+  </td>
+  <td>
+   <input type="text" name="" size="18" value=""
+     tal:attributes="name string:${ti/getId}.new:record;" />
+  </td>
+ </tr></span>
+ <tr>
+  <td>&nbsp;</td>
+  <td>
+   <br />
+   <input type="submit" name="submit" value="Save Changes" />
+  </td>
+ </tr>
+</table>
+</form>
+
+<p>Special Values:</p>
+<dl>
+ <dt>empty field:</dt>
+ <dd>no alias defined</dd>
+ <dt>'<tt>(Default)</tt>' alias:</dt>
+ <dd><tt>path/to/object</tt> or <tt>path/to/object/</tt></dd>
+ <dt>'<tt>mkdir</tt>' alias:</dt>
+ <dd>customization hook for manage_addFolder, used by some folderish types
+  (WebDAV/FTP)</dd>
+ <dt>'<tt>gethtml</tt>' alias:</dt>
+ <dd>customization hook for manage_FTPget, used by some contentish types
+  (WebDAV/FTP)</dd>
+ <dt>For backwards compatibility there is also a '<tt>(Default)</tt>'
+  method:</dt>
+ <dd>Calls <tt>index_html</tt> or <tt>__call__</tt>, depending on the class.
+  <br />It's recommended to use explicit method values like <tt>index_html</tt>
+  instead.</dd>
+</dl>
+
+<h1 tal:replace="structure context/manage_page_footer">Footer</h1>

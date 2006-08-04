@@ -1,0 +1,6 @@
+[default]
+title=Test file
+
+[security]
+Access contents information = 1:Manager,Anonymous
+View management screens = 0:Manager

@@ -1,0 +1,1 @@
+<dtml-var expr="REQUEST.get('SERVER_NAME')">

@@ -1,0 +1,62 @@
+<dtml-let form_title="'Configure'">
+  <dtml-if manage_page_header>
+    <dtml-var manage_page_header>
+  <dtml-else>
+    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+    <html lang="en">
+      <head>
+        <title>&dtml-form_title;</title>
+      </head>
+      <body bgcolor="#FFFFFF" link="#000099" vlink="#555555">
+        <h3>&dtml-form_title;</h3>
+  </dtml-if>
+</dtml-let>
+<dtml-var manage_tabs>
+
+    <p class="help-text">
+      Configure registration policies here.
+    </p>
+
+    <form action="manage_editIDPattern" method="POST">
+
+      <table width="98%" align="center">
+        <tr class="list-header">
+          <td class="form-label"> Member ID pattern </td>
+        </tr>
+        <tr>
+          <td>
+            <p class="form-help">
+              The member ID pattern is a regular expression against which member IDs
+              are checked during the portal registration. It is necessary to limit
+              the kinds of characters that can be used as a member ID because the ID
+              can show up as part of a URL. Web URLs are restricted. Only change
+              this setting if you really know what you are doing.
+            </p>
+            <p class="form-help">
+              In order to use a pattern different from the shown default pattern
+              simply fill in the text field and submit the form. To revert back to
+              the default policy leave the text field empty.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="form-label"> Default member ID pattern </span>
+            <span class="form-label"> &dtml-getDefaultIDPattern; </span>
+          </td>
+        </tr>
+          <td>
+            <span class="form-label"> Custom member ID pattern </span>
+            <input type="text" size="30" name="pattern" 
+                   value="&dtml-getIDPattern;" />
+          </td>
+        </tr>
+        <tr>
+          <td> <input type="submit" value=" Change " /> </td>
+        </tr>
+      </table>
+
+    </form>
+
+  </body>
+</html>

@@ -1,0 +1,1 @@
+<div tal:replace="request/SERVER_NAME" />

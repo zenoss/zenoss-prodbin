@@ -1,0 +1,183 @@
+<configure
+    xmlns="http://namespaces.zope.org/five"
+    >
+
+  <!-- ActionInformation -->
+
+  <implements
+      class=".ActionInformation.ActionInfo"
+      interface=".interfaces.IActionInfo"
+      />
+
+  <!-- ActionProviderBase -->
+
+  <implements
+      class=".ActionProviderBase.ActionProviderBase"
+      interface=".interfaces.IActionProvider"
+      />
+
+  <!-- ActionsTool -->
+
+  <implements
+      class=".ActionsTool.ActionsTool"
+      interface=".interfaces.IActionsTool"
+      />
+
+  <!-- CachingPolicyManager -->
+
+  <implements
+      class=".CachingPolicyManager.CachingPolicyManager"
+      interface=".interfaces.ICachingPolicyManager"
+      />
+
+  <!-- CatalogTool -->
+
+  <implements
+      class=".CatalogTool.IndexableObjectWrapper"
+      interface=".interfaces.IIndexableObjectWrapper"
+      />
+
+  <implements
+      class=".CatalogTool.CatalogTool"
+      interface=".interfaces.ICatalogTool"
+      />
+
+  <!-- ContentTypeRegistry -->
+
+  <implements
+      class=".ContentTypeRegistry.MajorMinorPredicate"
+      interface=".interfaces.IContentTypeRegistryPredicate"
+      />
+
+  <implements
+      class=".ContentTypeRegistry.ExtensionPredicate"
+      interface=".interfaces.IContentTypeRegistryPredicate"
+      />
+
+  <implements
+      class=".ContentTypeRegistry.MimeTypeRegexPredicate"
+      interface=".interfaces.IContentTypeRegistryPredicate"
+      />
+
+  <implements
+      class=".ContentTypeRegistry.NameRegexPredicate"
+      interface=".interfaces.IContentTypeRegistryPredicate"
+      />
+
+  <implements
+      class=".ContentTypeRegistry.ContentTypeRegistry"
+      interface=".interfaces.IContentTypeRegistry"
+      />
+
+  <!-- DiscussionTool -->
+
+  <implements
+      class=".DiscussionTool.OldDiscussable"
+      interface=".interfaces.IOldstyleDiscussable"
+      />
+
+  <implements
+      class=".DiscussionTool.DiscussionTool"
+      interface=".interfaces.IOldstyleDiscussionTool"
+      />
+
+  <!-- DynamicType -->
+
+  <implements
+      class=".DynamicType.DynamicType"
+      interface=".interfaces.IDynamicType"
+      />
+
+  <!-- MemberDataTool -->
+
+  <implements
+      class=".MemberDataTool.MemberDataTool"
+      interface=".interfaces.IMemberDataTool"
+      />
+
+  <implements
+      class=".MemberDataTool.MemberData"
+      interface=".interfaces.IMemberData"
+      />
+
+  <!-- MembershipTool -->
+
+  <implements
+      class=".MembershipTool.MembershipTool"
+      interface=".interfaces.IMembershipTool"
+      />
+
+  <!-- PortalContent -->
+
+  <implements
+      class=".PortalContent.PortalContent"
+      interface=".interfaces.IContentish"
+      />
+
+  <!-- PortalFolder -->
+
+  <implements
+      class=".PortalFolder.PortalFolder"
+      interface=".interfaces.IFolderish"
+      />
+
+  <!-- RegistrationTool -->
+
+  <implements
+      class=".RegistrationTool.RegistrationTool"
+      interface=".interfaces.IRegistrationTool"
+      />
+
+  <!-- SkinsContainer -->
+
+  <implements
+      class=".SkinsContainer.SkinsContainer"
+      interface=".interfaces.ISkinsContainer"
+      />
+
+  <!-- SkinsTool -->
+
+  <implements
+      class=".SkinsTool.SkinsTool"
+      interface=".interfaces.ISkinsTool"
+      />
+
+  <!-- TypesTool -->
+
+  <implements
+      class=".TypesTool.FactoryTypeInformation"
+      interface=".interfaces.ITypeInformation"
+      />
+
+  <implements
+      class=".TypesTool.ScriptableTypeInformation"
+      interface=".interfaces.ITypeInformation"
+      />
+
+  <implements
+      class=".TypesTool.TypesTool"
+      interface=".interfaces.ITypesTool"
+      />
+
+  <!-- UndoTool -->
+
+  <implements
+      class=".UndoTool.UndoTool"
+      interface=".interfaces.IUndoTool"
+      />
+
+  <!-- URLTool -->
+
+  <implements
+      class=".URLTool.URLTool"
+      interface=".interfaces.IURLTool"
+      />
+
+  <!-- WorkflowTool -->
+
+  <implements
+      class=".WorkflowTool.WorkflowTool"
+      interface=".interfaces.IWorkflowTool"
+      />
+
+</configure>

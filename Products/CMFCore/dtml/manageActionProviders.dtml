@@ -1,0 +1,49 @@
+<dtml-let form_title="'Manage Action Providers'">
+<dtml-if manage_page_header>
+ <dtml-var manage_page_header>
+<dtml-else>
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+ <html lang="en">
+ <head>
+ <title>&dtml-form_title;</title>
+ </head>
+ <body bgcolor="#FFFFFF" link="#000099" vlink="#555555">
+ <h3>&dtml-form_title;</h3>
+</dtml-if>
+</dtml-let>
+<dtml-var manage_tabs>
+
+<p>The list of action providers queried by this tool is configurable here.</p>
+
+<form action="manage_aproviders" method="POST">
+<table>
+  <tr>
+    <th>Name</th>
+  </tr>
+  <dtml-in listActionProviders>
+    <tr>
+      <td class="form-element">
+        <input type="checkbox" name="chosen:list"
+               value="&dtml-sequence-item;" />
+        <a href="../&dtml-sequence-item;/manage_workspace">
+          &dtml-sequence-item;
+        </a>
+      </td>
+    </tr>
+  </dtml-in>
+
+         <tr>
+           <td><input type="text" name="apname" value="" size="20"></td>
+         </tr>
+
+         <tr>
+           <td>
+             <input type="submit" name="add_provider" value=" Add ">
+             <input type="submit" name="del_provider" value=" Delete ">
+           </td>
+         </tr>
+
+</table>
+</form>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<dtml-let form_title="'Add %s' % add_meta_type">
+<dtml-if manage_page_header>
+  <dtml-var manage_page_header>
+  <dtml-var manage_form_title>
+<dtml-else>
+  <html><head><title>&dtml-form_title;</title></head>
+  <body>
+  <h2>&dtml-form_title;</h2>
+</dtml-if>
+</dtml-let>
+
+<form action="&dtml.url-portal_types;/manage_addTypeInformation" method="POST">
+<input type="hidden" name="add_meta_type" value="&dtml-add_meta_type;" />
+<table cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Id
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="id" size="40" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Use default type information
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <select name="typeinfo_name">
+      <option value="">(None)</option>
+      <dtml-in types sort>
+        <option value="&dtml-sequence-key;">&dtml-sequence-key;</option>
+      </dtml-in>
+    </select>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    </td>
+    <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="submit" 
+     value=" Add " /> 
+    </div>
+    </td>
+  </tr>
+</table>
+</form>
+
+<dtml-if manage_page_footer>
+  <dtml-var manage_page_footer>
+<dtml-else>
+  </body></html>
+</dtml-if>

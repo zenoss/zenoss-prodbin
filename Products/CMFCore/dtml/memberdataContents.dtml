@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML lang="en">
+<head><title>Membership data tool contents</title></head>
+<body bgcolor="#ffffff">
+<dtml-var name="manage_tabs">
+<h2>Membership data tool contents</h2>
+
+<dtml-if name="button_pressed">
+
+  <dtml-call expr="pruneMemberDataContents()">
+  <dtml-in expr="getMemberDataContents()" mapping>
+    <p><b>Number of members stored: <dtml-var name="member_count"></b></p>
+    <p><b>Number of "orphaned" members without user record: <dtml-var name="orphan_count"></b></p>
+  </dtml-in>
+ 
+  <form action="<dtml-var name="URL0">" method="post">
+    <input type="submit" name="button_pressed" value=" Prune orphaned member records ">
+  </form>
+
+<dtml-else>
+
+  <dtml-in expr="getMemberDataContents()" mapping>
+
+    <p><b>Number of members stored: <dtml-var name="member_count"></b></p>
+    <p><b>Number of "orphaned" members without user record: <dtml-var name="orphan_count"></b></p>
+
+    <dtml-if expr="_.int(orphan_count) > 0">
+      <form action="<dtml-var name="URL0">" method="post">
+        <input type="submit" name="button_pressed" value=" Prune orphaned member records ">
+      </form>
+    <dtml-else>
+      <p><b>No pruning needed</b></p>
+    </dtml-if>
+
+  </dtml-in>
+
+</dtml-if>
+
+</body>
+</html>
