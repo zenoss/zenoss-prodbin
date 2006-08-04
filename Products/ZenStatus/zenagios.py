@@ -368,7 +368,7 @@ class zenagios(RRDDaemon):
             if self.timeout and not self.timeout.called:
                 self.timeout.cancel()
                 self.timeout = None
-            self.schedule.sort(key=Cmd.nextRun)
+            self.schedule.sort(Cmd.nextRun)
             self.pool.trimConnections(self.schedule)
             earliest = None
             running = 0
