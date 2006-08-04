@@ -7,9 +7,20 @@
 
 
 . $ZENHOME/bin/zenfunctions
-ZOPECMDS="zeoctl zopectl"
-ZENCMDS="zenxevent zenmodeler zenperfsnmp zenprocess zenping zensyslog zenstatus zenactions zentrap zenagios"
-CMDS="$ZOPECMDS $ZENCMDS"
+C=
+C="$C zeoctl"
+C="$C zopectl"
+C="$C zenxevent"
+C="$C zenmodeler"
+C="$C zenperfsnmp"
+C="$C zenprocess"
+C="$C zenping"
+C="$C zensyslog"
+C="$C zenstatus"
+C="$C zenactions"
+C="$C zentrap"
+C="$C zenagios"
+CMDS=$C
 
 reverse() {
     args=
@@ -44,6 +55,11 @@ case "$FUNC" in
         issue
         ;;
   restart)
+        CMDS=`reverse $CMDS`
+	FUNC=stop
+	issue
+        CMDS=`reverse $CMDS`
+	FUNC=start
         issue
         ;;
   status)
