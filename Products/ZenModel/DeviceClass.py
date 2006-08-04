@@ -24,7 +24,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
 from zExceptions import Redirect
 
-from Products.AdvancedQuery import MatchGlob
+#from Products.AdvancedQuery import MatchGlob
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions as permissions
@@ -299,9 +299,10 @@ class DeviceClass(DeviceOrganizer):
         try:
             ips = self.Networks.ipSearch({'id':query})
         except AttributeError: pass
+        names = zcatalog({'id':query})
         # now setup the query for AdvancedQuery
-        query = MatchGlob('id',query)
-        names = zcatalog.evalAdvancedQuery(query)
+        #query = MatchGlob('id',query)
+        #names = zcatalog.evalAdvancedQuery(query)
         if ips: names += ips
         if len(names) == 1:
             raise Redirect(names[0].getPrimaryId)
@@ -346,8 +347,8 @@ class DeviceClass(DeviceOrganizer):
         """look up device in catalog and return it"""
         ret = self._getCatalog()({'id': devicename})
         if ret:
-            #devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
-            devobj = ret[0].getObject()
+            devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
+            #devobj = ret[0].getObject()
             return devobj
 
 
