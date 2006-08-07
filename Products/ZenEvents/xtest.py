@@ -13,13 +13,13 @@ $Id$
 import xmlrpclib
 import time
 
-# s = xmlrpclib.ServerProxy('http://localhost:8081/')
-s = xmlrpclib.ServerProxy('http://admin:not2much@localhost:8080/zport/dmd/ZenEventManager')
+s = xmlrpclib.ServerProxy('http://localhost:8081/', encoding='iso-8859-1')
+# s = xmlrpclib.ServerProxy('http://admin:not2much@localhost:8080/zport/dmd/ZenEventManager')
 
 event = dict(device='eros', 
 	     eventClassKey = 'test',
 	     eventClass = '/App',
-             summary='This is a new test event: %d' % time.time(), 
+             summary='This is \xfc new test event: %d' % time.time(),
              severity=4,
              component='xyzzy')
 clear = event.copy()
