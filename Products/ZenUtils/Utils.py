@@ -127,7 +127,7 @@ def parseconfig(options):
     lines = open(options.configfile).readlines()
     for line in lines:
         if line.lstrip().startswith('#'): continue
-        key, value = line.split()
+        key, value = line.split(None, 1)
         key = key.lower()
         defval = getattr(options, key, None)
         if defval: value = type(defval)(value)
