@@ -1,4 +1,3 @@
-import pydot
 
 class NetworkGraph(object):
     '''
@@ -46,6 +45,7 @@ class NetworkGraph(object):
         raise NotImplemented
 
     def setGraphFromEdges(self, edges, directed=True):
+        import pydot
         graph = pydot.graph_from_edges(edges, directed=directed)
         graph.ranksep = '1.5'
         graph.format = self.format

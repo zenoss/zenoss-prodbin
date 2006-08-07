@@ -868,7 +868,8 @@ class Device(ManagedEntity):
         try:
             db = self.ZenEventManager.connect()
             curs = db.cursor()
-            curs.execute("update status set prodState=%d"%self.productionState)
+            curs.execute("update status set prodState=%d where device='%s'" % (
+                            self.productionState, self.id))
             db.close()
         except OperationalError:
             log.exception("failed to update events with new prodState")
