@@ -69,7 +69,7 @@ class MySqlSendEventMixin:
                 dedupfields.append("summary")
             for field in dedupfields:
                 value = getattr(event, field, "")
-                dedupid.append(str(value))
+                dedupid.append('%s' % value)
             event.dedupid = "|".join(dedupid)
 
         if getattr(event, "message", False):
@@ -256,7 +256,7 @@ class MySqlSendEventMixin:
                 fields.append("%s=%.3f" % (name, value))
             else:
                 fields.append("%s=%s" % (name, value))
-        insert += ",".join(fields)
+        insert = str(insert) + str(','.join(fields))
         return insert
 
 
@@ -296,7 +296,7 @@ class MySqlSendEventMixin:
     def escape(self, value):
         """Prepare string values for db by escaping special characters."""
         import _mysql
-        return _mysql.escape_string(value)
+        return _mysql.escape_string(value.encode('iso-8859-1'))
 
 
 
