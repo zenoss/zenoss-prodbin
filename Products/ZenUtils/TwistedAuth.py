@@ -24,6 +24,8 @@ class AuthQueryProtocol(xmlrpc.QueryProtocol):
         self.endHeaders()
         self.transport.write(self.factory.payload)
 
+payloadTemplate = xmlrpc.payloadTemplate.replace('?>',
+                                                 ' encoding="iso8859-1"?>')
 class AuthQueryFactory(xmlrpc.QueryFactory):
     '''
     We're using a Uri object here for the url, diverging pretty
@@ -38,7 +40,7 @@ class AuthQueryFactory(xmlrpc.QueryFactory):
             url.path, url.host, username, password)
         if url.port:
             self.host = '%s:%d' % (url.host, url.port)
-        self.payload = xmlrpc.payloadTemplate % (
+        self.payload = payloadTemplate % (
             method, xmlrpclib.dumps(args))
         self.deferred = defer.Deferred()
 
