@@ -128,6 +128,7 @@ def parseconfig(options):
     for line in lines:
         if line.lstrip().startswith('#'): continue
         key, value = line.split(None, 1)
+        value = value.rstrip('\r\n')
         key = key.lower()
         defval = getattr(options, key, None)
         if defval: value = type(defval)(value)
