@@ -47,18 +47,21 @@ class Schedule:
         "Synch with the database"
         self.dmd._p_jar.sync()    
 
-
-    def run(self):
-        "Re-read work list from the database"
-        self.sync()
-        self.workList = []
+    def getWindows(self):
+        result = []
         for dev in self.dmd.Devices.getSubDevices():
-            self.workList.extend(dev.maintenanceWindows())
+            result.extend(dev.maintenanceWindows())
         for name in 'Systems', 'Locations', 'Groups', 'Devices':
             organizer = getattr(self.dmd, name)
             for c in organizer.getSubOrganizers():
-                self.workList.extend(c.maintenanceWindows())
-            self.workList.extend(organizer.maintenanceWindows())
+                result.extend(c.maintenanceWindows())
+            result.extend(organizer.maintenanceWindows())
+        return result
+        
+    def run(self):
+        "Re-read work list from the database"
+        self.sync()
+        self.workList = self.getWindows()
         self.runEvents()
 
     def makeWorkList(self, now, workList):
@@ -77,6 +80,9 @@ class Schedule:
             work.pop(0)
         return work
 
+    def now(self):
+        return time.time()
+
     def runEvents(self):
         "Execute all the maintanance windows at the proper time"
 
@@ -84,7 +90,7 @@ class Schedule:
             self.timer.cancel()
 
         # sort events by the next occurance of something to do
-        now = time.time()
+        now = self.now()
         work = self.makeWorkList(now, self.workList)
         self.workList = [mw for t, mw in work]
 
@@ -95,7 +101,7 @@ class Schedule:
                 self.log.debug("Maintenance window "
                                "%s %s for %s",
                                how, mw.getId(), mw.productionState().getId())
-                mw.execute(next)
+                self.executeMaintenanceWindow(mw, next)
             else:
                 break
 
@@ -103,5 +109,45 @@ class Schedule:
         if work:
             wait = work[0][0] - now
             self.log.debug("Waiting %f seconds", wait)
-            self.timer = reactor.callLater(wait, self.runEvents)
+            self.timer = self.callLater(wait)
+        self.commit()
+
+    def commit(self):
         transaction.commit()
+
+    def callLater(self, seconds):
+        return reactor.callLater(seconds, self.runEvents)
+
+    def executeMaintenanceWindow(self, mw, timestamp):
+        mw.execute(timestamp)
+
+if __name__ == "__main__":
+    class MySchedule(Schedule):
+        currentTime = time.time()
+        objs = None
+        def now(self):
+            return self.currentTime
+        def callLater(self, seconds):
+            self.currentTime += seconds
+        def executeMaintenanceWindow(self, mw, timestamp):
+            print 'executing', mw.id, time.ctime(timestamp)
+            mw.execute(timestamp)
+        def getWindows(self):
+            if self.workList:
+                return self.workList
+            return Schedule.getWindows(self)
+        def commit(self):
+            pass
+        sync = commit
+
+    import Globals
+    from Products.ZenUtils.ZCmdBase import ZCmdBase
+
+    cmd = ZCmdBase()
+    class Options: pass
+    s = MySchedule(Options(), cmd.dmd)
+    # compute the schedule for 30 days
+    end = s.currentTime + 60*60*24*30
+    while s.currentTime < end:
+        s.run()
+
