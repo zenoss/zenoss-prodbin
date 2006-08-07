@@ -118,10 +118,11 @@ class MaintenanceWindow(ZenModelRM):
         self.start = time.time()
         self.enabled = False
 
-    def set(self, start, duration, repeat):
+    def set(self, start, duration, repeat, enabled=True):
         self.start = start
         self.duration = duration
         self.repeat = repeat
+        self.enabled = enabled
 
     def repeatOptions(self):
         "Provide the list of REPEAT options"
@@ -227,7 +228,7 @@ class MaintenanceWindow(ZenModelRM):
             return self.started + self.duration * 60
         # ok, so maybe "now" is a little late: start anything that
         # should have been started by now
-        return self.next(now - self.duration * 60)
+        return self.next(now - self.duration * 60 + 1)
 
 
     security.declareProtected('View', 'breadCrumbs')
@@ -339,8 +340,8 @@ if __name__=='__main__':
     m.set(t, 60*60*2, m.NEVER)
     assert m.next() == None
     m.set(t, 60*60*2, m.DAILY)
-    c = time.mktime( (2006, 1, 30, 10, 45, 12, 0, 30, 0) )
-    assert m.next(t + 1) == c
+    c = time.mktime( (2006, 1, 30, 10, 45, 12, 6, 29, 0) )
+    assert m.next(t + 60*60*2 + 1) == c
     m.set(t, 60*60*2, m.WEEKLY)
     c = time.mktime( (2006, 2, 5, 10, 45, 12, 6, 36, 0) )
     assert m.next(t + 1) == c
