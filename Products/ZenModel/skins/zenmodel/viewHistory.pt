@@ -19,7 +19,7 @@
     </tr>
     <tr tal:repeat="hist here/manage_change_history">
         <td class="tablevalues"
-            tal:content="python:hist['time'].toZone('US/Eastern')">
+            tal:content="python:hist['time']">
         </td>
         <td class="tablevalues" tal:content="hist/user_name">
         </td>
