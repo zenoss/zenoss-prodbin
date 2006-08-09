@@ -88,6 +88,7 @@ class ProcessRunner(ProcessProtocol):
     def processEnded(self, reason):
         "notify the starter that their process is complete"
         self.exitCode = reason.value.exitCode
+        self.debug('Received exit code %s for: %s' % (self.exitCode, self.output))
         self.output = [s.strip() for s in self.output.split('\n')][0]
         if self.stopped:
             d, self.stopped = self.stopped, None
