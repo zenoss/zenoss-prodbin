@@ -67,6 +67,7 @@ class ProcessRunner(ProcessProtocol):
 
     def start(self, cmd):
         "Kick off the process: run it local"
+        log.debug('running %r' % cmd.command)
         reactor.spawnProcess(self, '/bin/sh',
                              ('/bin/sh', '-c', 'exec ' + cmd.command))
         self.stopped = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
@@ -88,7 +89,7 @@ class ProcessRunner(ProcessProtocol):
     def processEnded(self, reason):
         "notify the starter that their process is complete"
         self.exitCode = reason.value.exitCode
-        self.debug('Received exit code %s for: %s' % (self.exitCode, self.output))
+        log.debug('Received exit code %s for: %r' % (self.exitCode, self.output))
         self.output = [s.strip() for s in self.output.split('\n')][0]
         if self.stopped:
             d, self.stopped = self.stopped, None
