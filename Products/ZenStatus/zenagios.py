@@ -238,7 +238,7 @@ class Cmd:
 
 
     def name(self):
-        cmd, args = self.command.split(' ', 1)
+        cmd, args = (self.command + ' ').split(' ', 1)
         cmd = cmd.split('/')[-1]
         if len(args) > 10:
             return '%s %s...%s' % (cmd, args[:10], args[-10:])
@@ -407,7 +407,7 @@ class zenagios(RRDDaemon):
             if output.find('|') >= 0:
                 msg, values = output.split('|', 1)
             else:
-                msg, values = 'unparsable response', ''
+                msg, values = output, ''
             exitCode = cmd.result.exitCode
             severity = cmd.severity
             issueKey = cmd.device, cmd.eventClass
