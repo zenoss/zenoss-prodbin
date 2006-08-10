@@ -413,6 +413,7 @@ class zenagios(RRDDaemon):
             exitCode = cmd.result.exitCode
             severity = cmd.severity
             issueKey = cmd.device, cmd.eventClass
+            msg = msg.strip() or ('exit code: %d' % exitCode)
             if exitCode == 0:
                 severity = 0
             elif exitCode == 2:
