@@ -312,7 +312,7 @@ class Options:
 
 
 class zenagios(RRDDaemon):
-    heartbeatTimeout = RRDDaemon.configCycleInterval*3
+    heartbeatTimeout = RRDDaemon.configCycleInterval*3*60
     properties = RRDDaemon.properties + ("configCycleInterval",)
 
 
