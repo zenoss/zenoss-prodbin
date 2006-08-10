@@ -11,8 +11,13 @@ export INSTANCE_HOME
 SYBASE=$ZENHOME/sybase
 export SYBASE
 
-PYTHON=$ZENHOME/bin/python
-PYTHONPATH=$ZENHOME/lib/python:$ZENHOME
+ZOPEHOME=$ZENHOME
+if [ -d /usr/lib/zope ] ; then
+   ZOPEHOME=/usr/lib/zope
+fi
+
+PYTHON=$ZOPEHOME/bin/python
+PYTHONPATH=$ZOPEHOME/lib/python:$ZENHOME
 export PYTHONPATH
 
 VARDIR=$ZENHOME/var
