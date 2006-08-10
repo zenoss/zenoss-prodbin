@@ -93,7 +93,8 @@ class ProcessRunner(ProcessProtocol):
         self.output = [s.strip() for s in self.output.split('\n')][0]
         if self.stopped:
             d, self.stopped = self.stopped, None
-            d.callback(self)
+            if not d.called:
+                d.callback(self)
 
 
 class MySshClient(SshClient):
