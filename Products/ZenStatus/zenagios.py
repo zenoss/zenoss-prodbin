@@ -68,12 +68,12 @@ class ProcessRunner(ProcessProtocol):
     def start(self, cmd):
         "Kick off the process: run it local"
         log.debug('running %r' % cmd.command)
+        d = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
+        self.stopped = d
+        self.stopped.addErrback(self.timeout)
         reactor.spawnProcess(self, '/bin/sh',
                              ('/bin/sh', '-c', 'exec ' + cmd.command))
-        self.stopped = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
-        self.stopped.addErrback(self.timeout)
-        return self.stopped
-
+        return d
 
     def timeout(self, value):
         "Kill a process if it takes too long"
