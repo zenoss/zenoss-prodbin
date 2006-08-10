@@ -340,7 +340,7 @@ class zenagios(RRDDaemon):
                 continue
             for cmd in commandPart:
                 (useSsh, cycleTime,
-                 eventKey, eventClass, component, severity, command) = cmd
+                 component, eventClass, eventKey, severity, command) = cmd
                 obj = table.setdefault((device,command), Cmd())
                 args = locals().copy()
                 del args['self']
@@ -466,7 +466,7 @@ class zenagios(RRDDaemon):
     def main(self):
         self.sendEvent(self.startevt)
         drive(self.start).addCallbacks(self.processSchedule, self.error)
-        reactor.run(installSignalHandlers=False)
+        reactor.run()
         self.sendEvent(self.stopevt, now=True)
 
 
