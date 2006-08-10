@@ -80,7 +80,7 @@ class ZenModeler(ZCmdBase):
                     const = importClass(modpath)
                     plugin = const()
                     if plugin.transport == "command":
-                        self.collectorPlugins[plugin.command] = plugin
+                        self.collectorPlugins[modpath+plugin.command] = plugin
                     elif plugin.transport == "snmp":
                         self.collectorPlugins[plugin.name()] = plugin
                     # XXX double-check this, once the implementation is in place
