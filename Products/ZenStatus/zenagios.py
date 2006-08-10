@@ -353,7 +353,7 @@ class zenagios(RRDDaemon):
 
     def setPropertyItems(self, items):
         RRDDaemon.setPropertyItems(self, items)
-        self.heartbeatTimeout = self.configCycleInterval*3
+        self.heartbeatTimeout = self.configCycleInterval*3*60
 
 
     def processSchedule(self, *unused):
