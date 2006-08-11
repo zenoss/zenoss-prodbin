@@ -58,19 +58,30 @@ class SshUserAuth(userauth.SSHUserAuthClient):
 
     def getPublicKey(self):
         log.debug("getting public key")
-        path = os.path.expanduser('~/.ssh/id_dsa') 
+        dsa = os.path.expanduser('~/.ssh/id_dsa')
+        rsa = os.path.expanduser('~/.ssh/id_rsa')
         # this works with rsa too
         # just change the name here and in getPrivateKey
-        if not os.path.exists(path) or self.lastPublicKey:
+        path = None
+        if os.path.exists(dsa):
+            path = dsa
+        elif os.path.exists(rsa):
+            path = rsa
+        if not path or self.lastPublicKey:
             # the file doesn't exist, or we've tried a public key
             return
         return keys.getPublicKeyString(path+'.pub')
 
     def getPrivateKey(self):
         log.debug("getting private key")
-        path = os.path.expanduser('~/.ssh/id_dsa')
+        dsa = os.path.expanduser('~/.ssh/id_dsa')
+        rsa = os.path.expanduser('~/.ssh/id_rsa')
+        path = None
+        if os.path.exists(dsa):
+            path = dsa
+        elif os.path.exists(rsa):
+            path = rsa
         return defer.succeed(keys.getPrivateKeyObject(path))
-
 
 class SshConnection(connection.SSHConnection):
 
