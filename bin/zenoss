@@ -5,6 +5,18 @@
 # chkconfig: 2345 80 30
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
 
+if [ -z "$ZENHOME" ] ; then
+  for d in $HOME /home/zenoss ; do 
+    for f in .bash_login .bash_profile .profile .bashrc ; do
+       if [ -z "$ZENHOME" ] ; then
+          [ -f $d/$f ] && . $d/$f
+       fi
+    done
+  done
+fi
+if [ -z "$ZENHOME" ] ; then
+  ZENHOME=/usr/local
+fi
 
 . $ZENHOME/bin/zenfunctions
 C=
