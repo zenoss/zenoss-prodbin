@@ -15,7 +15,7 @@ if [ -z "$ZENHOME" ] ; then
   done
 fi
 if [ -z "$ZENHOME" ] ; then
-  ZENHOME=/usr/local
+  ZENHOME=/usr/local/zenoss
 fi
 
 . $ZENHOME/bin/zenfunctions
