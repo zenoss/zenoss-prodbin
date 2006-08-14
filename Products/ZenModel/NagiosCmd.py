@@ -41,6 +41,7 @@ class NagiosCmd(ZenModelRM):
         {'id':'usessh', 'type':'boolean', 'mode':'w'},
         {'id':'component', 'type':'string', 'mode':'w'},
         {'id':'eventClass', 'type':'string', 'mode':'w'},
+        {'id':'eventKey', 'type':'string', 'mode':'w'},
         {'id':'severity', 'type':'int', 'mode':'w'},
         {'id':'commandTemplate', 'type':'string', 'mode':'w'},
     )
