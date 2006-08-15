@@ -37,7 +37,6 @@ class SnmpClient(object):
         self.tries = int(getattr(device,'zSnmpTries', defaultTries))
         self.timeout = float(getattr(device,'zSnmpTimeout', defaultTimeout))
 
-        #ipaddr = socket.gethostbyname(hostname)
         srcport = snmpprotocol.port()
         self.proxy = agentproxy.AgentProxy(ipaddr, port, community, snmpver,
                                            protocol=srcport.protocol)
@@ -49,7 +48,38 @@ class SnmpClient(object):
         log.debug("timeout=%s, tries=%s", self.timeout, self.tries)
         drive(self.doRun).addBoth(self.clientFinished)
 
+
+    def checkCiscoChange(self, driver):
+        """Check to see if a cisco box has changed.
+        """
+        yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'],
+                             timeout=self.timeout,
+                             retryCount=self.tries)
+        lastpolluptime = device.getLastPollSnmpUpTime()
+        self.log.debug("lastpolluptime = %s", lastpolluptime)
+        try:
+            lastchange = driver.next().values()[0]
+            self.log.debug("lastchange = %s", lastchange)
+            if lastchange == lastpolluptime: 
+                self.log.info("skipping cisco device %s no change detected",
+                              device.id)
+                yield defer.success(False)
+            else:
+                device.setLastPollSnmpUpTime(lastchange)
+        except (ZenSnmpError, PySnmpError): pass
+        yield defer.success(False)
+
+
     def doRun(self, driver):
+        changed = True
+        if not self.options.force and self.device.snmpOid.startswith(".1.3.6.1.4.1.9"):
+            yield drive(self.checkCiscoChange)
+            changed = driver.next()
+        if changed:
+            yield drive(self.collect)
+
+
+    def collect(self, driver):
         for plugin in self.plugins:
             try:
                 log.debug('running %s', plugin)

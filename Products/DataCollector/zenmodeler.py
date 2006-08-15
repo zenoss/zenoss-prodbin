@@ -45,6 +45,8 @@ class ZenModeler(ZCmdBase):
                 threaded=True,keeproot=False):
         ZCmdBase.__init__(self, noopts, app, keeproot)
         self.single = single
+        if self.options.device:
+            self.single = True
         self.threaded = threaded
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
@@ -141,10 +143,8 @@ class ZenModeler(ZCmdBase):
         for i, device in enumerate(self.devicegen):
             if i >= self.options.parallel: break
             client = self.collectDevice(device)
-        if len(self.clients) > 0: 
-            self.log.debug("reactor start multi-device")
-            self.reactorLoop()
-        else: self.log.warn("no valid clients found")
+        if len(self.clients) == 0: 
+            self.log.warn("no valid clients found")
             
   
     def resolveDevice(self, device):
@@ -167,32 +167,13 @@ class ZenModeler(ZCmdBase):
             ip = device.getManageIp()
             if not ip:
                 ip = device.setManageIp()
-        cmdclient = self.cmdCollect(device, ip)
-        snmpclient = self.snmpCollect(device, ip)
-        # XXX double-check this, once the implementation is in place
-        portscanclient = self.portscanCollect(device, ip)
-        if cmdclient: 
-            try:
-                cmdclient.run()
-                cmdclient.timeout = clientTimeout + time.time()
-                self.clients.append(cmdclient)
-            except NoServerFound,e:
-                self.log.warn(e)
-        if snmpclient: 
-            snmpclient.run()
-            snmpclient.timeout = clientTimeout + time.time()
-            self.clients.append(snmpclient)
-        # XXX double-check this, once the implementation is in place
-        if portscanclient:
-            portscanclient.run()
-            portscanclient.timeout = clientTimeout + time.time()
-            self.clients.append(portscanclient)
-        if self.single and (cmdclient or snmpclient or portscanclient):
-            self.log.debug("reactor start single-device")
-            self.reactorLoop()
+        timeout = clientTimeout + time.time()
+        self.cmdCollect(device, ip, timeout)
+        self.snmpCollect(device, ip, timeout)
+        self.portscanCollect(device, ip, timeout)
+        
 
-
-    def cmdCollect(self, device, ip):
+    def cmdCollect(self, device, ip, timeout):
         """Start command collection client.
         """
         client = None
@@ -229,10 +210,10 @@ class ZenModeler(ZCmdBase):
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening cmdclient")
-        return client
+        self.addClient(client, timeout, 'snmp', device.id)
 
     
-    def snmpCollect(self, device, ip):
+    def snmpCollect(self, device, ip, timeout):
         """Start snmp collection client.
         """
         client = None
@@ -243,24 +224,38 @@ class ZenModeler(ZCmdBase):
             if not plugins:
                 self.log.warn("no snmp plugins found for %s" % hostname)
                 return 
-            #if (self.checkCollection(device) or 
-            #    self.checkCiscoChange(device, community, port)):
             if self.checkCollection(device):
-                self.log.info('snmp collection device %s' % hostname)
-                self.log.info("plugins: %s", 
-                    ", ".join(map(lambda p: p.name(), plugins)))
-                client = SnmpClient.SnmpClient(device.id, ip, self.options, 
-                                                device, self, plugins)
+                # yield self.checkCiscoChange(device, community, port)
+                if True:
+                    self.log.info('snmp collection device %s' % hostname)
+                    self.log.info("plugins: %s", 
+                                  ", ".join(map(lambda p: p.name(), plugins)))
+                    client = SnmpClient.SnmpClient(device.id,
+                                                   ip,
+                                                   self.options, 
+                                                   device,
+                                                   self,
+                                                   plugins)
             if not client or not plugins: 
                 self.log.warn("snmp client creation failed")
                 return
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening snmpclient")
-        return client
+        self.addClient(client, timeout, 'snmp', device.id)
+
+    def addClient(self, obj, timeout, clientType, name):
+        if obj:
+            obj.timeout = timeout
+            self.clients.append(obj)
+            obj.run()
+        else:
+            self.log.warn('Unable to create a %s client for %s',
+                          clientType, name)
+            
 
     # XXX double-check this, once the implementation is in place
-    def portscanCollect(self, device, ip):
+    def portscanCollect(self, device, ip, timeout):
         """
         Start portscan collection client.
         """
@@ -284,7 +279,7 @@ class ZenModeler(ZCmdBase):
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening portscanclient")
-        return client
+        self.addClient(client, timeout, 'snmp', device.id)
 
 
     def checkCollection(self, device):
@@ -292,27 +287,6 @@ class ZenModeler(ZCmdBase):
         if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
             self.log.info("skipped collection of %s" % device.getId())
             return False
-        return True
-
-
-    def checkCiscoChange(self, device, community, port):
-        """Check to see if a cisco box has changed.
-        """
-        if self.options.force: return True
-        snmpsess = SnmpSession(device.id, community=community, port=port)
-        if not device.snmpOid.startswith(".1.3.6.1.4.1.9"): return True
-        lastpolluptime = device.getLastPollSnmpUpTime()
-        self.log.debug("lastpolluptime = %s", lastpolluptime)
-        try:
-            lastchange = snmpsess.get('.1.3.6.1.4.1.9.9.43.1.1.1.0').values()[0]
-            self.log.debug("lastchange = %s", lastchange)
-            if lastchange == lastpolluptime: 
-                self.log.info(
-                    "skipping cisco device %s no change detected", device.id)
-                return False
-            else:
-                device.setLastPollSnmpUpTime(lastchange)
-        except (ZenSnmpError, PySnmpError): pass
         return True
 
 
@@ -443,12 +417,13 @@ class ZenModeler(ZCmdBase):
 
     def main(self):
         if self.options.device:
-            self.single = True
             self.collectDevice(self.options.device)
-        elif not self.options.cycle:
-            self.collectDevices(self.options.path)
-        else:
+        elif self.options.cycle:
             self.mainLoop()
+        else:
+            self.collectDevices(self.options.path)
+        if self.clients:
+            self.reactorLoop()
         self.stop()
                     
 
