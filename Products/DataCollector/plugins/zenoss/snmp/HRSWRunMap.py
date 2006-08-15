@@ -53,7 +53,6 @@ class HRSWRunMap(SnmpPlugin):
             fullname = om.procName + " " + om.parameters
             fullname = fullname.rstrip()
             if procmap.has_key(fullname): 
-                print "skip dupe"
                 continue
             else:
                 procmap[fullname] = True
