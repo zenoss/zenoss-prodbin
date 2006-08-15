@@ -156,27 +156,8 @@ class SshClient(CollectorClient.CollectorClient):
     def run(self):
         """Start ssh collection.
         """
-        # FIXME: check blocks
-        if self.check(self.ip):
-            reactor.connectTCP(self.ip, self.port, self)
-        else:
-            raise NoServerFound, \
-                "Ssh server not found on %s port %s" % (
-                                self.hostname, self.port)
+        reactor.connectTCP(self.ip, self.port, self)
 
-
-    def check(self, hostname, timeout=2):
-        "check to see if a device supports ssh"
-        from telnetlib import Telnet
-        import socket
-        try:
-            tn = Telnet(hostname, 22)
-            index, match, data = tn.expect(['SSH-1.99', 'SSH-2.0',], timeout)
-            tn.close()
-            if index == 0: return 1
-            return index
-        except socket.error:
-            return 0
 
     def addCommand(self, commands):
         """add command to queue and open a command channel for a command"""
