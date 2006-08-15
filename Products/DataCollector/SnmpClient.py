@@ -47,12 +47,12 @@ class SnmpClient(object):
         """Start snmp collection.
         """
         log.debug("timeout=%s, tries=%s", self.timeout, self.tries)
-	jobs = NJobs(1, self.runOne, list(self.plugins))
-	jobs.start().addBoth(self.clientFinished)
+        jobs = NJobs(1, self.runOne, list(self.plugins))
+        jobs.start().addBoth(self.clientFinished)
 
     def runOne(self, plugin):
         result = []
-	log.debug('running %s', plugin)
+        log.debug('running %s', plugin)
         pname = plugin.name()
         self._tabledata[pname] = {}
         log.debug("sending queries for plugin %s", pname)
@@ -61,7 +61,7 @@ class SnmpClient(object):
                                timeout=self.timeout, retryCount=self.tries)
             d.addCallback(self._snmpGetCallback, pname)
             d.addErrback(self._handleError, pname)
-	    result.append(d)
+            result.append(d)
         for tmap in plugin.snmpGetTableMaps:
             rowSize = len(tmap.getoids())
             maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
@@ -70,7 +70,7 @@ class SnmpClient(object):
                        maxRepetitions=maxRepetitions)
             d.addCallback(self._snmpGetTableCallback, pname, tmap)
             d.addErrback( self._handleError, pname)
- 	    result.append(d)
+            result.append(d)
         return defer.DeferredList(result, consumeErrors=1)
 
 
