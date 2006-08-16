@@ -22,6 +22,7 @@ import sys
 import Globals # make zope imports work
 
 from AsyncPing import Ping
+from TestPing import Ping as TestPing
 import pingtree
 
 from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
@@ -139,6 +140,13 @@ class ZenPing(ZCmdBase):
                                      "record in the dmd "
                                      "defaults to our fqdn as returned "
                                      "by getfqdn"))
+        self.parser.add_option('--test',
+                               dest='test',
+                               default=False,
+                               action="store_true",
+                               help="Run in test mode: doesn't really ping,"
+                               " but reads the list of IP Addresses that "
+                               " are up from /tmp/testping")
 
 
     def pingCycle(self):
@@ -257,8 +265,12 @@ class ZenPing(ZCmdBase):
     def start(self):
         "Get things going"
         self.loadConfig()
-        self.pinger = Ping(self.tries, self.timeOut)
+        if self.options.test:
+            self.pinger = TestPing(self.tries, self.timeOut)
+        else:
+            self.pinger = Ping(self.tries, self.timeOut)
         self.pingCycle()
+
 
     def markChildrenDown(self, pj):
         """If this is a router PingJob, mark all Nodes
