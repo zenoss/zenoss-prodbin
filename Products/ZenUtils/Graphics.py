@@ -44,7 +44,10 @@ class NetworkGraph(object):
         '''
         raise NotImplemented
 
+
     def setGraphFromEdges(self, edges, directed=True):
+        import os
+        os.system("$ZENHOME/bin/dot -c")
         import pydot
         graph = pydot.graph_from_edges(edges, directed=directed)
         graph.ranksep = '1.5'
