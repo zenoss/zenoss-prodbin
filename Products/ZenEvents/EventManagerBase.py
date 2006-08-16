@@ -754,10 +754,16 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     def sendEvents(self, events):
         """Send a group of events to the backend.
         """
+        count = 0
         db = self.connect()
         for event in events:
-            self.sendEvent(event, db)
+            try:
+                self.sendEvent(event, db)
+                count += 1
+            except Exception, ex:
+                log.exception(ex)
         db.close()
+        return count
 
 
     security.declareProtected('Send Events', 'sendEvent')
