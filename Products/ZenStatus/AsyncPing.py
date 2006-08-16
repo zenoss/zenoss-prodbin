@@ -32,6 +32,7 @@ class PingJob:
     Class representing a single target to be pinged.
     """
     def __init__(self, ipaddr, hostname="", status=0, unused_cycle=60):
+        self.parent = False
         self.ipaddr = ipaddr 
         self.hostname = hostname
         self.status = status
@@ -40,7 +41,6 @@ class PingJob:
 
     def reset(self):
         self.deferred = defer.Deferred()
-        self.parent = False
         self.rrt = 0
         self.start = 0
         self.sent = 0
