@@ -51,7 +51,7 @@ class ZenModeler(ZCmdBase):
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = []
-        self.collectorPlugins = {} 
+        self.collectorPlugins = {}
         self.devicegen = None
         self.loadPlugins()
         if self.threaded and not self.single:
@@ -89,7 +89,7 @@ class ZenModeler(ZCmdBase):
                     elif plugin.transport == "portscan":
                         self.collectorPlugins[plugin.name()] = plugin
                     else:
-                        self.log.warn("skipped:%s unknown transport:%s", 
+                        self.log.warn("skipped:%s unknown transport:%s",
                                        plugin.name(), plugin.transport)
                 except ImportError, e:
                     self.log.exception("problem loading plugin:%s",modpath)

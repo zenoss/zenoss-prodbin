@@ -129,6 +129,9 @@ class RenderServer(RRDToolItem):
                 values = map(float, values)
             else:
                 values = []
+        except NameError:
+            log.warn("It appears that the rrdtool bindings are not installed properly.")
+            values = []
         except:
             log.exception("failed generating summary")
             log.warn(" ".join(gopts))
@@ -136,7 +139,7 @@ class RenderServer(RRDToolItem):
         return values
         
 
-    def rrdcmd(self, gopts, ftype='PNG'): 
+    def rrdcmd(self, gopts, ftype='PNG'):
         filename, gopts = self._setfile(gopts, ftype)
         return "rrdtool graph " + " ".join(gopts)
 

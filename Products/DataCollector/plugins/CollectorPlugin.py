@@ -24,7 +24,7 @@ class CollectorPlugin:
     modname = ""
     classname = ""
 
-    isip = iputil.isip    
+    isip = iputil.isip
 
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
     _cleanend = re.compile(r"_+$").sub
@@ -121,10 +121,10 @@ class SnmpPlugin(CollectorPlugin):
     def preprocess(self, results, log):
         getdata, tabledatas = results
         if self.snmpGetMap:
-            getdata = self.snmpGetMap.mapdata(getdata) 
+            getdata = self.snmpGetMap.mapdata(getdata)
         tdata = {}
         for tmap, tabledata in tabledatas.items():
-           tdata[tmap.name] = tmap.mapdata(tabledata) 
+           tdata[tmap.name] = tmap.mapdata(tabledata)
         return (getdata, tdata)
 
 
@@ -154,7 +154,7 @@ class SnmpPlugin(CollectorPlugin):
         try:
             datear = struct.unpack("!h5B", val[0:7])
         except: pass
-        if datear[0] == 0: 
+        if datear[0] == 0:
             datear = (1968,1,8,10,15,00)
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 

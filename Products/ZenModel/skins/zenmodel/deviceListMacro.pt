@@ -120,3 +120,76 @@
     </td>
 </tr>
 </span>
+
+
+<form method="post" tal:attributes="action here/absolute_url_path" 
+    name="deviceListForm" metal:define-macro="fullDevList">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="objects here/devices/getSubComponents;
+        tableName string:devicelistmacro;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    tal:condition="python: batch or
+                    here.ZenTableManager.getTableState(tableName, 'filter')"
+    >
+    <tr>
+      <th class="tabletitle" align="left" colspan="5">
+       Devices 
+      </th>
+    </tr>
+    <span metal:define-macro="fullDevListBody" tal:omit-tag="">
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navfilterdevice"></form>
+        </td>
+    </tr>
+    <tr>
+        <th 
+            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'manageIp','IP')">IP
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDeviceClassPath','Class')">Class
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getProdState','State','cmp')">State
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getSnmpStatusNumber','Critical/Error','cmp')">Critical/Error
+        </th>
+	</tr>
+	<tr tal:repeat="device batch">
+		<td class="tablevalues" align="left">
+            <a class="tablevalues" href="_" 
+                tal:attributes="href device/getDeviceUrl"
+                tal:content="device/id">device
+            </a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/manageIp">ip
+        </td>
+		<td class="tablevalues" align="left"
+            tal:define="path device/getDeviceClassPath">
+            <a href="" 
+                tal:attributes="href string:/zport/dmd/Devices${path}"
+                tal:content="path">type</a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getProdState">prodstate
+        </td >
+        <td tal:define="severity python:4">
+            <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navpagedevice"></form>
+        </td>
+    </tr>
+
+
+    </span>
+</table>
+</form>

@@ -44,7 +44,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
     dc = DeviceClass(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 
@@ -87,8 +87,8 @@ class DeviceClass(DeviceOrganizer):
         )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'DeviceClass',
             'meta_type'      : 'DeviceClass',
             'description'    : """Base class for all devices""",
@@ -97,10 +97,15 @@ class DeviceClass(DeviceOrganizer):
             'factory'        : 'manage_addDeviceClass',
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
+                , 'permissions'   : ( permissions.view, )
+                },
+                { 'id'            : 'devicelist'
+                , 'name'          : 'Devices'
+                , 'action'        : 'deviceList'
                 , 'permissions'   : ( permissions.view, )
                 },
                 { 'id'            : 'events'
@@ -386,7 +391,7 @@ class DeviceClass(DeviceOrganizer):
             if not getattr(aq_base(obj), 'rrdTemplates', False): continue
             for t in obj.rrdTemplates():
                 templates[t.id] = t
-        return templates.values()         
+        return templates.values()
             
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')

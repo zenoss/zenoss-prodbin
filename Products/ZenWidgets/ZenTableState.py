@@ -23,26 +23,26 @@ from AccessControl import ClassSecurityInfo
 class ZenTableState:
 
     changesThatResetStart = [
-        "batchSize", 
-        "filter", 
-        "sortedHeader", 
-        "sortedSence", 
+        "batchSize",
+        "filter",
+        "sortedHeader",
+        "sortedSence",
         ]
 
-    requestAtts = [ 
-        "batchSize", 
+    requestAtts = [
+        "batchSize",
         "filter",
-        "filterFields", 
-        "sortedHeader", 
+        "filterFields",
+        "sortedHeader",
         "sortedSence",
-        "sortRule", 
+        "sortRule",
         "start",
         "URL",
         ]
 
     security = ClassSecurityInfo()
     #this session info isn't anything worth protecting
-    security.setDefaultAccess('allow') 
+    security.setDefaultAccess('allow')
 
     def __init__(self, request, tableName, defaultBatchSize, **keys):
         self.URL = request.URL
@@ -64,6 +64,7 @@ class ZenTableState:
                         self.abbrEndLabel + self.abbrPadding
         self.tableClass = "tableheader"
         self.resetStart = False
+        self.showAll = False
         self.setTableStateFromKeys(keys)
 
 
@@ -82,11 +83,11 @@ class ZenTableState:
         for attname in self.requestAtts:
             if request.has_key(attname):
                 self.setTableState(attname, request[attname])
-        if request.get("first",False): 
+        if request.get("first",False):
             self.resetStart = True
-        elif request.get("last", False): 
+        elif request.get("last", False):
             self.start=self.lastindex
-        elif request.get("next", False): 
+        elif request.get("next", False):
             np = self.start + self.batchSize
             if np > self.lastindex: self.start = self.lastindex
             else: self.start = np
@@ -94,6 +95,11 @@ class ZenTableState:
             pp = self.start - self.batchSize
             if pp < 0: self.start = 0
             else: self.start = pp
+        elif request.get("showAll", False):
+            self.showAll = True
+            # the batch size needs to be set to the total object/result count.
+            # we don't have the objects here, so we will set the batchSize
+            # where we do have the objects -- see buildPageNavigation() below.
         ourl = "/".join((request.URL,request.get("zenScreenName","")))
         if self.resetStart or (self.URL != request.URL and self.URL != ourl):
             self.start = 0
@@ -106,7 +112,13 @@ class ZenTableState:
 
     def buildPageNavigation(self, objects):
         self.pagenav = []
-        if self.batchSize == 0: return self.pagenav
+        # this conditional is for setting the batchSize on a "showAll"
+        if self.showAll:
+            self.batchSize = len(objects)
+            self.start = 0
+            self.showAll = False
+        if self.batchSize == 0:
+            return self.pagenav
         lastindex=0
         for index in range(0, self.totalobjs, self.batchSize):
             pg = {}
@@ -145,14 +157,14 @@ class ZenTableState:
         if not hasattr(self, attname) and default != None:
             setattr(self, attname, default)
             if reset and attname not in self.changesThatResetStart:
-                self.changesThatResetStart.append(attname) 
+                self.changesThatResetStart.append(attname)
             if attname not in self.requestAtts:
                 self.requestAtts.append(attname)
         if value != None and getattr(self,attname, None) != value:
             setattr(self, attname, value)
-            if attname in self.changesThatResetStart: 
+            if attname in self.changesThatResetStart:
                 self.resetStart = True
-        return getattr(self,attname) 
+        return getattr(self,attname)
 
 
     def addFilterField(self, fieldName):

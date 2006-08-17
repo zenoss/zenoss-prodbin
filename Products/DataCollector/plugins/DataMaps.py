@@ -37,7 +37,7 @@ class ObjectMap(object):
 
 
     def __setattr__(self, name, value):
-        if name not in self._attrs and not name.startswith("_"): 
+        if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
         self.__dict__[name] = value
 

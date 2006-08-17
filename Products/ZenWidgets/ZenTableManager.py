@@ -149,7 +149,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         if tableState.batchSize > 0:
             objects = ZTUtils.Batch(objects, tableState.batchSize,
                         start=tableState.start, orphan=0)
-        return objects   
+        return objects
             
    
     def getBatchForm(self, objects, request):
@@ -176,7 +176,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         if batchSize > 0:
             objects = ZTUtils.Batch(objects, batchSize,
                         start=request.start, orphan=0)
-        return objects   
+        return objects
        
 
     def filterObjects(self, objects, regex, filterFields):
@@ -196,7 +196,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 target.append(value)
             targetstring = " ".join(target)
             if search(targetstring): filteredObjects.append(obj)
-        return filteredObjects  
+        return filteredObjects
 
 
     def sortObjects(self, objects, request):

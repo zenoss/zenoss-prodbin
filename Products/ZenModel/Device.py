@@ -24,7 +24,7 @@ log = logging.getLogger("zen.Device")
 
 from _mysql_exceptions import OperationalError
 
-from Products.ZenStatus import pingtree 
+from Products.ZenStatus import pingtree
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 
@@ -58,12 +58,12 @@ from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 from Exceptions import *
 
-def manage_createDevice(context, deviceName, devicePath="/Discovered", 
+def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
             rackSlot=0, productionState=1000, comments="",
-            hwManufacturer="", hwProductName="", 
-            osManufacturer="", osProductName="", 
+            hwManufacturer="", hwProductName="",
+            osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], performanceMonitor="localhost",
             discoverProto="snmp"):
@@ -78,7 +78,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         ipobj = context.getDmdRoot('Networks').findIp(ip)
         if ipobj:
             dev = ipobj.device()
-            if dev: 
+            if dev:
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, deviceName))
     else:
         deviceName = context.prepId(deviceName)
@@ -99,7 +99,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                     deviceName = snmpname
             except socket.error: pass
             try:
-                if (not deviceName and ipobj and ipobj.ptrName 
+                if (not deviceName and ipobj and ipobj.ptrName
                     and socket.gethostbyname(ipobj.ptrName)):
                     deviceName = ipobj.ptrName
             except socket.error: pass
@@ -121,8 +121,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
                 rackSlot, productionState, comments,
-                hwManufacturer, hwProductName, 
-                osManufacturer, osProductName, 
+                hwManufacturer, hwProductName,
+                osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, performanceMonitor)
     return device
@@ -136,7 +136,7 @@ def findCommunity(context, ip, devicePath, community="", port=161):
     if community: communities.append(community)
     communities.extend(getattr(devroot, "zSnmpCommunities", []))
     port = getattr(devroot, "zSnmpPort", port)
-    timeout = getattr(devroot, "zSnmpTimeout", 2)    
+    timeout = getattr(devroot, "zSnmpTimeout", 2)
     session = SnmpSession(ip, timeout=timeout, port=port)
     sysTableOid = '.1.3.6.1.2.1.1'
     oid = '.1.3.6.1.2.1.1.5.0'
@@ -171,7 +171,7 @@ def manage_addDevice(context, id, REQUEST = None):
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
 addDevice = DTMLFile('dtml/addDevice',globals())
@@ -203,7 +203,7 @@ class Device(ManagedEntity):
 
     _properties = ManagedEntity._properties + (
         {'id':'manageIp', 'type':'string', 'mode':'w'},
-        {'id':'productionState', 'type':'keyedselection', 'mode':'w', 
+        {'id':'productionState', 'type':'keyedselection', 'mode':'w',
            'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
@@ -216,7 +216,7 @@ class Device(ManagedEntity):
         {'id':'rackSlot', 'type':'int', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
         {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
-        ) 
+        )
 
     _relations = ManagedEntity._relations + (
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
@@ -232,8 +232,8 @@ class Device(ManagedEntity):
         )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'Device',
             'meta_type'      : 'Device',
             'description'    : """Base class for all devices""",
@@ -242,7 +242,7 @@ class Device(ManagedEntity):
             'factory'        : 'manage_addDevice',
             'immediate_view' : 'deviceStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceStatus'
@@ -365,13 +365,13 @@ class Device(ManagedEntity):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
         adm = ApplyDataMap()
-        adm.applyDataMap(self, datamap, relname=relname, 
+        adm.applyDataMap(self, datamap, relname=relname,
                          compname=compname, modname=modname)
 
     
     def traceRoute(self, target, ippath=None):
         if ippath is None: ippath=[]
-        if not isip(target): 
+        if not isip(target):
             target = self.findDevice(target)
             if not target: raise ValueError("target %s not found in dmd",target)
             target = target.getManageIp()
@@ -424,11 +424,11 @@ class Device(ManagedEntity):
          [(name, oid, path, type, createCmd, thresholds),])
         """
         oids = (super(Device, self).getSnmpOidTargets())
-        for o in self.os.interfaces(): 
+        for o in self.os.interfaces():
             if o.monitored(): oids.extend(o.getSnmpOidTargets())
-        for o in self.os.filesystems(): 
+        for o in self.os.filesystems():
             if o.monitored(): oids.extend(o.getSnmpOidTargets())
-        for o in self.hw.harddisks(): 
+        for o in self.hw.harddisks():
             if o.monitored(): oids.extend(o.getSnmpOidTargets())
         return (self.getSnmpConnInfo(), oids)
 
@@ -438,11 +438,11 @@ class Device(ManagedEntity):
         (device, user, pass [(cmdinfo,),...])
         """
         cmds = (super(Device, self).getNagiosCmds())
-        for o in self.os.interfaces(): 
+        for o in self.os.interfaces():
             if o.monitored(): cmds.extend(o.getNagiosCmds())
-        for o in self.os.filesystems(): 
+        for o in self.os.filesystems():
             if o.monitored(): cmds.extend(o.getNagiosCmds())
-        for o in self.hw.harddisks(): 
+        for o in self.hw.harddisks():
             if o.monitored(): cmds.extend(o.getNagiosCmds())
         if cmds:
             return (self.id, self.getManageIp(), self.zCommandPort,
@@ -718,12 +718,12 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'manage_editDevice')
-    def manage_editDevice(self, 
+    def manage_editDevice(self,
                 tag="", serialNumber="",
                 zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
                 rackSlot=0, productionState=1000, comments="",
-                hwManufacturer="", hwProductName="", 
-                osManufacturer="", osProductName="", 
+                hwManufacturer="", hwProductName="",
+                osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
                 statusMonitors=["localhost"], performanceMonitor="localhost",
                 REQUEST=None):
@@ -755,15 +755,15 @@ class Device(ManagedEntity):
         else:
             self.os.productClass.removeRelation()
 
-        if locationPath: 
+        if locationPath:
             log.info("setting location to %s" % locationPath)
             self.setLocation(locationPath)
 
-        if groupPaths: 
+        if groupPaths:
             log.info("setting group %s" % groupPaths)
             self.setGroups(groupPaths)
 
-        if systemPaths: 
+        if systemPaths:
             log.info("setting system %s" % systemPaths)
             self.setSystems(systemPaths)
 
@@ -774,7 +774,7 @@ class Device(ManagedEntity):
         self.setPerformanceMonitor(performanceMonitor)
        
         self.setLastChange()
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Device Saved at time:"
             return self.callZenScreen(REQUEST)
 
@@ -785,7 +785,7 @@ class Device(ManagedEntity):
         mw = DeviceMaintenanceWindow(newId)
         self.maintenanceWindows._setObject(newId, mw)
         self.setLastChange()
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Maintenace Window Added"
             return self.callZenScreen(REQUEST)
                           
@@ -798,7 +798,7 @@ class Device(ManagedEntity):
         for id in maintenanceIds:
             self.maintenanceWindows._delObject(id)
         self.setLastChange()
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Maintenace Window Deleted"
             return self.callZenScreen(REQUEST)
                           
@@ -815,7 +815,7 @@ class Device(ManagedEntity):
             self.adminRoles._setObject(newId, ar)
             ar = self.adminRoles._getOb(newId)
             ar.userSetting.addRelation(us)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Role Added"
             return self.callZenScreen(REQUEST)
 
@@ -831,7 +831,7 @@ class Device(ManagedEntity):
             ar = self.adminRoles._getOb(id)
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
         
@@ -843,7 +843,7 @@ class Device(ManagedEntity):
             delids = [delids]
         for id in delids:
             self.adminRoles._delObject(id)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
@@ -890,12 +890,12 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'addManufacturer')
-    def addManufacturer(self, newHWManufacturerName=None, 
+    def addManufacturer(self, newHWManufacturerName=None,
                         newSWManufacturerName=None, REQUEST=None):
         """Add a manufacturer to the database"""
         mname = newHWManufacturerName
         field = 'hwManufacturer'
-        if not mname: 
+        if not mname:
             mname = newSWManufacturerName
             field = 'osManufacturer'
         self.getDmdRoot("Manufacturers").createManufacturer(mname)

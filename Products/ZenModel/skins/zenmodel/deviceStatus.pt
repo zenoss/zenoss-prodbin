@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro=deviceStatusInfo>
+    metal:define-macro="deviceStatusInfo">
     <tr>
       <th class="tabletitle" colspan=4>Status</th>
     </tr>
@@ -17,10 +17,13 @@
         <table class="zentable" border=0 cellpadding=0 cellspacing=1
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
-                <span class='errorvalues'>Events unavailable</span>">
+                <span class='errorvalues'>Events unavailable</span>"
+            tal:define="
+                default  python:1;
+                severity severity | default">
             <tr>
                 <td align=center width=16%
-                tal:repeat="evt here/getEventSummary"
+                tal:repeat="evt python:here.getEventSummary(severity=severity)"
                 tal:attributes="class python:evt[0]">
                     <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                 </td>

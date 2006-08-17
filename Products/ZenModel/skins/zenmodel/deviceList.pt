@@ -1,0 +1,19 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action request/URL">
+<table class="zentable" 
+    cellpadding=3 cellspacing=1
+    tal:define="
+        tableName string:devicelist;
+        objects here/devices/getSubDevicesGen;
+        batch python: here.ZenTableManager.getBatch(tableName,objects);">
+    <tr>
+      <th class="tabletitle" colspan="5">Device List</th>
+    </tr>
+    <span metal:use-macro="here/deviceListMacro/macros/fullDevListBody"/>
+</table>
+</form>
+
+</tal:block>
+</tal:block>
