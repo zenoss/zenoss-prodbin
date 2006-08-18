@@ -82,16 +82,13 @@ class OSProcessOrganizer(Organizer):
 
 
     def getProcFilters(self):
-        return [ re.compile(p.regex).search \
+        return [ (re.compile(p.regex).search, p.getOrganizerName()) \
                 for p in self.getSubOSProcessClassesGen() ]
 
 
     def setOSProcessClass(self, proc, procKey):
-        for procclass in self.getSubOSProcessClassesGen():
-            if procclass.match(procKey): 
-                procclass.instances.addRelation(proc)
-                return procKey
-        return ''
+        procclass = self.getOrganizer(procKey)
+        procclass.instances.addRelation(proc)
 
 
     def getSubOSProcessClassesGen(self):

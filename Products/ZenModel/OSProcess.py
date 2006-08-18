@@ -79,15 +79,13 @@ class OSProcess(OSComponent):
         """Set the OSProcessClass based on procKey which is the proc + args.
         We set by matching regular expressions of each proces class.
         """
-        self._procKey = self.getDmdRoot("Processes").setOSProcessClass(
-                                self, procKey)
-        return self._procKey
+        self.getDmdRoot("Processes").setOSProcessClass(self, procKey)
     
 
     def getOSProcessClass(self):
         """Return the current procKey.
         """
-        return self._procKey
+        return self.osProcessClass.getOrganizerName()
        
 
     def getRRDTemplateName(self):

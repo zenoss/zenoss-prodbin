@@ -56,8 +56,9 @@ class HRSWRunMap(SnmpPlugin):
                 continue
             else:
                 procmap[fullname] = True
-            for f in filters:
+            for f, cpath in filters:
                 if f(fullname):
+                    om.setOSProcessClass = cpath
                     break
             else:
                 continue
@@ -67,7 +68,6 @@ class HRSWRunMap(SnmpPlugin):
                 parameters = md5.md5(parameters).hexdigest()
                 procName += ' ' + parameters
             om.id = self.prepId(procName)
-            om.setOSProcessClass = fullname
             rm.append(om)
         return rm
 
