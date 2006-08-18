@@ -24,6 +24,14 @@
             tal:attributes="value here/regex" />
         </td>
     </tr>
+    <tr>
+        <td class="tableheader">Ignore Parameters</td>
+        <td class="tablevalues">
+        <select class="tablevalues" name="ignoreParameters:boolean">
+        <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.ignoreParameters"/>
+        </td>
+    </tr>
     <!--
     <tr>
         <td class="tableheader">Monitor</td>

@@ -81,16 +81,6 @@ class OSProcessOrganizer(Organizer):
             self.buildZProperties()
 
 
-    def getProcFilters(self):
-        return [ (re.compile(p.regex).search, p.getOrganizerName()) \
-                for p in self.getSubOSProcessClassesGen() ]
-
-
-    def setOSProcessClass(self, proc, procKey):
-        procclass = self.getOrganizer(procKey)
-        procclass.instances.addRelation(proc)
-
-
     def getSubOSProcessClassesGen(self):
         """Return generator that goes through all process classes.
         """

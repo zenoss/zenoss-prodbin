@@ -70,7 +70,7 @@ class OSProcess(OSComponent):
                 thresholds = threshs.items()
         except RRDObjectNotFound, e:
             log.warn(e)
-        return (self.id, self.name(), 
+        return (self.id, self.name(), self.osProcessClass().ignoreParameters,
                 self.alertOnRestart(), self.failSeverity(),
                 self.getStatus(), thresholds)
 
@@ -79,13 +79,16 @@ class OSProcess(OSComponent):
         """Set the OSProcessClass based on procKey which is the proc + args.
         We set by matching regular expressions of each proces class.
         """
-        self.getDmdRoot("Processes").setOSProcessClass(self, procKey)
+        klass = self.getDmdObj(procKey)
+        klass.instances.addRelation(self)
     
 
     def getOSProcessClass(self):
         """Return the current procKey.
         """
-        return self.osProcessClass.getOrganizerName()
+        pClass = self.osProcessClass()
+        if pClass:
+            return pClass.getPrimaryDmdId()
        
 
     def getRRDTemplateName(self):
@@ -104,6 +107,8 @@ class OSProcess(OSComponent):
 
         
     def name(self):
+        if not self.parameters or self.osProcessClass().ignoreParameters:
+            return self.procName
         return self.procName + " " + self.parameters
 
 

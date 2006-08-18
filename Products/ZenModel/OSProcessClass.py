@@ -37,13 +37,13 @@ class OSProcessClass(ZenModelRM):
 
     name = ""
     regex = ""
+    ignoreParameters = False
     description = ""
     
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
-#        {'id':'zMonitor', 'type':'boolean', 'mode':'w'},
-#        {'id':'zAlertOnRestart', 'type':'boolean', 'mode':'w'},
+        {'id':'ignoreParameters', 'type':'boolean', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
 
@@ -113,10 +113,15 @@ class OSProcessClass(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_editOSProcessClass')
-    def manage_editOSProcessClass(self, name="", zMonitor=True, 
-                                zAlertOnRestart=False,
-                                zFailSeverity=3,
-                                regex="", description="", REQUEST=None):
+    def manage_editOSProcessClass(self,
+                                  name="",
+                                  zMonitor=True, 
+                                  zAlertOnRestart=False,
+                                  zFailSeverity=3,
+                                  regex="",
+                                  description="",
+                                  ignoreParameters=False,
+                                  REQUEST=None):
                                  
         """
         Edit a ProductClass from a web page.
@@ -125,7 +130,8 @@ class OSProcessClass(ZenModelRM):
         id = self.prepId(name)
         redirect = self.rename(id)
         self.regex = regex        
-        self.description = description        
+        self.description = description
+        self.ignoreParameters = ignoreParameters
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
             return self.callZenScreen(REQUEST, redirect)

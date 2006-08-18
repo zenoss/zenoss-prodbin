@@ -94,6 +94,7 @@ class Process:
     'track process-specific configuration data'
     name = None
     originalName = None
+    ignoreParameters = False
     restart = None
     severity = Event.Warning
     status = 0
@@ -102,10 +103,12 @@ class Process:
     def __init__(self):
         self.pids = {}
 
-    def match(self, name):
+    def match(self, name, args):
         if self.name is None:
             return False
-        return self.originalName == name
+        if self.ignoreParameters:
+            return self.originalName == name
+        return self.originalName == '%s %s' % (name, args)
 
     def __str__(self):
         return str(self.name)
@@ -168,12 +171,14 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, restart, severity, status, thresholds \
+        for name, originalName, ignoreParameters, \
+                restart, severity, status, thresholds \
                 in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
             p.name = name
             p.originalName = originalName
+            p.ignoreParameters = ignoreParameters
             p.restart = restart
             p.severity = severity
             p.thresholds = {}
@@ -299,13 +304,13 @@ class zenprocess(SnmpDaemon):
             oid, args = argsPart
             argpid = int(oid.split('.')[-1])
             if namepid == argpid:
-                procs.append( (namepid, '%s %s' % (name, args)) )
+                procs.append( (namepid, (name, args) ) )
         # look for changes in pids
         before = Set(device.pids.keys())
         after = {}
         for p in device.processes.values():
-            for pid, running in procs:
-                if p.match(running):
+            for pid, (name, args) in procs:
+                if p.match(name, args):
                     log.debug("Found process %d on %s" % (pid, p.name))
                     after[pid] = p
         afterSet = Set(after.keys())

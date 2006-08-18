@@ -16,6 +16,7 @@ import re
 
 from CollectorPlugin import SnmpPlugin, GetTableMap
 from DataMaps import ObjectMap
+from sets import Set
 import md5
 
 class HRSWRunMap(SnmpPlugin):
@@ -41,34 +42,32 @@ class HRSWRunMap(SnmpPlugin):
         log.info('processing host resources storage device %s' % device.id)
         getdata, tabledata = results
         fstable = tabledata.get("hrSWRunEntry")
-        filters = device.getDmdRoot("Processes").getProcFilters()
         rm = self.relMap()
-        procmap = {}
+        procs = Set()
         for proc in fstable.values():
             om = self.objectMap(proc)
             if not hasattr(om, 'procName'): 
                 log.warn("Your hrSWRun table is broken, "
                         " zenoss can't do process monitoring")
                 return rm
-            fullname = om.procName + " " + om.parameters
-            fullname = fullname.rstrip()
-            if procmap.has_key(fullname): 
-                continue
-            else:
-                procmap[fullname] = True
-            for f, cpath in filters:
-                if f(fullname):
-                    om.setOSProcessClass = cpath
+
+            fullname = (om.procName + " " + om.parameters).rstrip()
+
+            processes = device.getDmdRoot("Processes")
+            for pc in processes.getSubOSProcessClassesGen():
+                if pc.match(fullname):
+                    om.setOSProcessClass = pc.getPrimaryDmdId()
+                    id = om.procName
+                    parameters = om.parameters.strip()
+                    if parameters and not pc.ignoreParameters:
+                        parameters = md5.md5(parameters).hexdigest()
+                        id += ' ' + parameters
+                    om.id = self.prepId(id)
+                    if id not in procs:
+                        procs.add(id)
+                        rm.append(om)
                     break
-            else:
-                continue
-            procName = om.procName
-            parameters = om.parameters.strip()
-            if parameters:
-                parameters = md5.md5(parameters).hexdigest()
-                procName += ' ' + parameters
-            om.id = self.prepId(procName)
-            rm.append(om)
+            
         return rm
 
 

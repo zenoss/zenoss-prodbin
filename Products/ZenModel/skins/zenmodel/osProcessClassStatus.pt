@@ -11,12 +11,14 @@
       <td class="tablevalues" tal:content="here/zMonitor"/>
     </tr>
     <tr>
-      <th class="tableheader">Fail Severity</th>
-      <td class="tablevalues" colspan="3" tal:content="here/zFailSeverity"/>
+      <th class="tableheader">Regex</th>
+      <td class="tablevalues" tal:content="here/regex"/>
+      <td class="tableheader">Ignore Parameters</td>
+      <td class="tablevalues" tal:content="here/ignoreParameters"/>
     </tr>
     <tr>
-      <th class="tableheader">Regex</th>
-      <td class="tablevalues" colspan="3" tal:content="here/regex"/>
+      <th class="tableheader">Fail Severity</th>
+      <td class="tablevalues" colspan="3" tal:content="here/zFailSeverity"/>
     </tr>
     <tr>
       <th class="tableheader">Description</th>
