@@ -1125,6 +1125,7 @@ class Device(ManagedEntity):
             sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
             sc.collectDevice(self, ip=self.manageIp)
+            sc.reactorLoop()
         except:
             log.exception('exception collecting data for device %s',self.id)
             sc.stop()
