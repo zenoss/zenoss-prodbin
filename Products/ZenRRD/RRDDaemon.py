@@ -22,7 +22,7 @@ from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 
-from twisted.internet import reactor
+from twisted.internet import reactor, error
 from twisted.python import failure
 
 BAD_SEVERITY=Event.Warning
@@ -160,7 +160,10 @@ class RRDDaemon(ZenDaemon):
 
     def eventsSent(self, result, events):
         if isinstance(result, failure.Failure):
-            self.log.exception(result.value)
+            if isinstance(result.value, error.ConnectionRefusedError):
+                self.log.error("Unable to talk to zenxevents daemon")
+            else:
+                self.logError(result)
             self.events.extend(events)
         else:
             self.events = self.events[len(events):]

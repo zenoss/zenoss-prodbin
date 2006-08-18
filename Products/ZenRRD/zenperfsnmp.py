@@ -304,7 +304,7 @@ class zenperfsnmp(SnmpDaemon):
             self.log.debug('Unresponsive devices: %r' % deviceList)
             self.unresponsiveDevices = Set(firsts(deviceList))
         else:
-            self.log.error(arg)
+            self.log.error('Could not get unresponsive devices: %s', arg)
         self.readDevices()
 
         
