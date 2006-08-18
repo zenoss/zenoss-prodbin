@@ -26,3 +26,4 @@ import rrdmin
 import winminseverity
 import nocountprocs
 import nagios
+import perfxmlrpc
