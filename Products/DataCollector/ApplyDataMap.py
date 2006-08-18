@@ -148,6 +148,11 @@ class ApplyDataMap(object):
         """
         changed = False
         for attname, value in objmap.items():
+            if type(value) == type(''):
+                try:
+                    value.encode('ascii')
+                except UnicodeDecodeError:
+                    value = value.decode('latin-1')
             if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
