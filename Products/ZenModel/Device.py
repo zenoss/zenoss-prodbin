@@ -405,7 +405,7 @@ class Device(ManagedEntity):
                 (self.manageIp, self.zSnmpPort),
                 (self.zSnmpCommunity, self.zSnmpVer,
                  self.zSnmpTimeout, self.zSnmpTries))
-                
+
 
     def getOSProcessConf(self):
         """Return process monitoring configuration.
@@ -449,6 +449,15 @@ class Device(ManagedEntity):
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
                     cmds)
+
+    def getXmlRpcTargets(self):
+        """Return information for xmlrpc collection on this device in the form
+        (devname, xmlRpcStatus,
+         (url, methodName),
+         [(name, path, type, createCmd, thresholds)])
+        """
+        targets = (super(Device, self).getXmlRpcTargets())
+        return (self.id, self.getXmlRpcStatus(), targets)
 
 
     def getRRDTemplate(self, name=None):

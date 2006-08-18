@@ -12,6 +12,8 @@ status
 </object>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
+<object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 </object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

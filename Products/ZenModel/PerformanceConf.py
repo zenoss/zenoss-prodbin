@@ -175,7 +175,23 @@ class PerformanceConf(Monitor, StatusColor):
                     log.exception("device %s", dev.id)
         return result
 
-        
+
+    def getXmlRpcDevices(self, devname=None):
+        '''Get the XMLRPC configuration for all devices.
+        '''
+        result = []
+        for dev in self.devices():
+            if devname and dev.id != devname: continue
+            dev = dev.primaryAq()
+            if dev.monitorDevice() and dev.getXmlRpcStatus() != -1:
+                try:
+                    result.append(dev.getXmlRpcTargets())
+                except POSError: raise
+                except:
+                    log.exception("device %s", dev.id)
+        return result
+
+
     security.declareProtected('View','getDefaultRRDCreateCommand')
     def getDefaultRRDCreateCommand(self):
         """Get the default RRD Create Command, as a string.

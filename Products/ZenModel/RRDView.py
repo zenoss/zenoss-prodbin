@@ -191,6 +191,7 @@ class RRDView(object):
             if templ:
                 threshs = self.getThresholds(templ)
                 for ds in templ.getRRDDataSources():
+                    if ds.sourcetype != "SNMP": continue
                     oid = ds.oid
                     snmpindex = getattr(self, "ifindex", self.snmpindex)
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
@@ -216,7 +217,39 @@ class RRDView(object):
         return [ c.getCmdInfo(self) for c in templ.nagiosCmds() if c.enabled ]
             
 
-    
+    def getXmlRpcTargets(self):
+        """Return a list of XMLRPC targets in the form.
+        [(name, url, methodName, path, type, createCmd, thresholds),...]
+        """
+        targets = []
+        '''TODO this should probably be xmlrpcIgnore()'''
+        '''Either snmpIgnore always returns false or it gets overridden
+        and returns true if the device is operationally down. It is not
+        clear what needs to be done here for the xmlrpc code.'''
+        if self.snmpIgnore(): return targets
+        basepath = self.rrdPath()
+        try:
+            templ = self.getRRDTemplate(self.getRRDTemplateName())
+            if templ:
+                threshs = self.getThresholds(templ)
+                for ds in templ.getRRDDataSources():
+                    if ds.sourcetype != "XMLRPC": continue
+                    url = ds.xmlrpcURL
+                    methodName = ds.xmlrpcMethodName
+                    cname = self.meta_type != "Device" \
+                                and self.viewName() or ds.id
+                    targets.append((cname,
+                                    url,
+                                    methodName,
+                                    "/".join((basepath, ds.id)),
+                                    ds.rrdtype,
+                                    ds.createCmd,
+                                    threshs.get(ds.id,[])))
+        except RRDObjectNotFound, e:
+            log.warn(e)
+        return targets
+
+
     def copyRRDTemplate(self, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.
         """

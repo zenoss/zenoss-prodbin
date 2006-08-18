@@ -152,6 +152,17 @@ class System(DeviceOrganizer):
         return status
 
 
+    security.declareProtected('View', 'omniXmlRpcStatus')
+    def omniXmlRpcStatus(self):
+        """xmlRpcStatus() -> return the number of devices with xmlrpc problems"""
+        status = -1
+        try:
+            status = self.netcool.getXmlRpcStatus(system=self.getOrganizerName())
+            status = self.convertStatus(status)
+        except: pass
+        return status
+
+
     security.declareProtected('View', 'omniEventCount')
     def omniEventCount(self):
         """eventCount() -> return the number of devices with snmp problems"""

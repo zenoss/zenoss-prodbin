@@ -44,8 +44,12 @@ class RRDDataSource(ZenModelRM):
   
     rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
     linetypes = ('', 'AREA', 'LINE')
+    sourcetypes = ('SNMP', 'XMLRPC')
     
+    sourcetype = 'SNMP'
     oid = ''
+    xmlrpcURL = ''
+    xmlrpcMethodName = ''
     createCmd = ""
     rrdtype = 'COUNTER'
     isrow = True
@@ -57,7 +61,11 @@ class RRDDataSource(ZenModelRM):
     format = '%0.2lf%s'
 
     _properties = (
+        {'id':'sourcetype', 'type':'selection',
+        'select_variable' : 'sourcetypes', 'mode':'w'},
         {'id':'oid', 'type':'string', 'mode':'w'},
+        {'id':'xmlrpcURL', 'type':'string', 'mode':'w'},
+        {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
         {'id':'rrdtype', 'type':'selection',
         'select_variable' : 'rrdtypes', 'mode':'w'},
         {'id':'createCmd', 'type':'text', 'mode':'w'},
@@ -193,3 +201,11 @@ class RRDDataSource(ZenModelRM):
         if not hasattr(self, '_v_index'):
             self._v_index = -1
         return self._v_index
+
+
+    def getOidOrUrl(self):
+        if self.sourcetype == "SNMP":
+            return self.oid
+        if self.sourcetype == "XMLRPC":
+            return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
+        return None

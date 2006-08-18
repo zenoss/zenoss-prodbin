@@ -103,6 +103,21 @@ class DeviceResultInt:
     security.declareProtected('View', 'getSnmpStatusNumber')
 
     
+    security.declareProtected('View', 'getXmlRpcStatus')
+    def getXmlRpcStatus(self):
+        """get the xmlrpc status of the box if there is one"""
+        from Products.ZenEvents.ZenEventClasses import XmlRpcStatus
+        dev = self.device()
+        if dev:
+            dev = dev.primaryAq()
+            if (not getattr(dev, 'zXmlRpcMonitorIgnore', False)
+                and dev.monitorDevice()):
+                return dev.getStatus(XmlRpcStatus)
+        return -1
+    getXmlRpcStatusNumber = getXmlRpcStatus
+    security.declareProtected('View', 'getXmlRpcStatusNumber')
+
+
     security.declareProtected('View', 'getDeviceIp')
     def getDeviceIp(self):
         """Get the management ip (only) of a device"""

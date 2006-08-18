@@ -37,6 +37,9 @@ False
 <property type='boolean' id='zPingMonitorIgnore' >
 False
 </property>
+<property type='boolean' id='zXmlRpcMonitorIgnore' >
+False
+</property>
 <property type='string' id='zTransportPreference' >
 snmp
 </property>

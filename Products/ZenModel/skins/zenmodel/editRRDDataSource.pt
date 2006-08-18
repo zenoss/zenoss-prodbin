@@ -20,6 +20,20 @@
             tal:content="here/id"/>
     </tr>
     <tr>
+      <td class="tableheader">Source Type</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="sourcetype"
+        tal:define="curtype here/sourcetype">
+            <option tal:repeat="type here/sourcetypes" 
+                tal:attributes="value type; 
+                    selected python:curtype == type"
+                tal:content="python:type">localhost</option>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/sourcetype"/>
+    </tr>
+    <tr>
         <td class="tableheader">OID</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="oid" size="40"
@@ -27,6 +41,24 @@
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/oid"/>
+    </tr>
+    <tr>
+        <td class="tableheader">XMLRPC URL</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="xmlrpcURL" size="40"
+            tal:attributes="value here/xmlrpcURL" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/xmlrpcURL"/>
+    </tr>
+    <tr>
+        <td class="tableheader">XMLRPC Method Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="xmlrpcMethodName" size="40"
+            tal:attributes="value here/xmlrpcMethodName" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/xmlrpcMethodName"/>
     </tr>
     <tr>
       <td class="tableheader">Type</td>

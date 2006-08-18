@@ -44,13 +44,15 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="dsbody">
     <tr>
-      <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
+      <th class="tabletitle" align="left" colspan="4">RRDDataSources</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'oid','OID')"/>
+                    tableName,'oidorurl','OID or URL (Method Name)')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sourcetype','Source Type')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'rrdtype','Type')"/>
     </tr>
@@ -64,16 +66,17 @@
                 tal:content="ds/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
         </td>
-        <td tal:content="ds/oid"/>
+        <td tal:content="ds/getOidOrUrl"/>
+        <td tal:content="ds/sourcetype"/>
         <td tal:content="ds/rrdtype"/>
     </tr>
     <tr>
-        <td colspan="3" class="tableheader">
+        <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="editable">
-        <td colspan="3">
+        <td colspan="4">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
           onkeypress="return submitViaEnter(event,'manage_addRRDDataSource');" 

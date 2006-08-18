@@ -1,5 +1,6 @@
 PingStatus = "/Status/Ping"
 SnmpStatus = "/Status/Snmp"
+XmlRpcStatus = "/Status/XmlRpc"
 HeartbeatStatus = "/Status/Heartbeat"
 AppStart = "/App/Start"
 AppStop = "/App/Stop"
