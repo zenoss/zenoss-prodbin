@@ -42,14 +42,16 @@ class Threshold:
     label = ''
     minimum = None
     maximum = None
+    eventClass = "/Perf/Snmp"
     severity = Event.Info
     escalateCount = 0
 
 
-    def __init__(self, label, minimum, maximum, severity, count):
+    def __init__(self, label, minimum, maximum, eventClass, severity, count):
         self.label = label
         self.minimum = minimum
         self.maximum = maximum
+        self.eventClass = eventClass
         self.severity = severity
         self.escalateCount = count
 
@@ -72,6 +74,7 @@ class Threshold:
                 device, self.label, thresh, value)
             eventCb(device=device,
                     summary=summary,
+                    eventClass=self.eventClass,
                     eventKey=oid,
                     component=cname,
                     severity=severity)
@@ -81,6 +84,7 @@ class Threshold:
                     device, self.label, value)
                 eventCb(device=device,
                         summary=summary,
+                        eventClass=self.eventClass,
                         eventKey=oid,
                         component=cname,
                         severity=Event.Clear)

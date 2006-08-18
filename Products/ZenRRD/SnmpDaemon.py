@@ -28,12 +28,6 @@ class SnmpDaemon(RRDDaemon):
         RRDDaemon.__init__(self, name)
         self.snmpPort = snmpprotocol.port()
         
-    def sendThresholdEvent(self, **kw):
-        "Send the right event class for threshhold events"
-        kw.setdefault('eventClass', '/Perf/Snmp')
-        RRDDaemon.sendThresholdEvent(self, **kw)
-
     def setPropertyItems(self, items):
         RRDDaemon.setPropertyItems(self, items)
         self.heartBeatTimeout = self.snmpCycleInterval*3
-

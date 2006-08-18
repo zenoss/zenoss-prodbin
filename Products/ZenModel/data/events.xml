@@ -1512,5 +1512,19 @@ Power supply #2 has failed.
 </tomanycont>
 </object>
 </object>
+<object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='CPU' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Interface' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Process' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
 </object>
 </objects>

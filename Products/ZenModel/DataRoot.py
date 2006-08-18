@@ -248,6 +248,4 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return self.acl_users.getGroups()
 
 
-
-
 InitializeClass(DataRoot)

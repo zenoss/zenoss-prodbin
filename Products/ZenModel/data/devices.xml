@@ -509,6 +509,9 @@ True
 <property type='string' id='maxval' mode='w' >
 here.speed / 8 * .75
 </property>
+<property type='string' id='eventClass' mode='w' >
+/Perf/Interface
+</property>
 <property type='int' id='severity' mode='w' >
 3
 </property>
@@ -929,6 +932,9 @@ True
 <property type='string' id='minval' mode='w' >
 2
 </property>
+<property type='string' id='eventClass' mode='w' >
+/Perf/CPU
+</property>
 <property type='int' id='severity' mode='w' >
 3
 </property>
@@ -1018,6 +1024,9 @@ AREA:percent#00cc00:utilization
 </property>
 <property type='string' id='maxval' mode='w' >
 here.totalBlocks * .9
+</property>
+<property type='string' id='eventClass' mode='w' >
+/OS/Filesystem
 </property>
 <property type='int' id='severity' mode='w' >
 3

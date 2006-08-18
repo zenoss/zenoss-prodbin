@@ -51,6 +51,20 @@
             tal:content="here/maxval"/>
     </tr>
     <tr>
+        <td class="tableheader">Event Class</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="eventClass">
+            <option tal:repeat="evtcls here/Events/getOrganizerNames" 
+                    tal:content="evtcls" 
+                    tal:attributes="selected python:evtcls==here.eventClass"/>
+        </select>
+        <!--
+        <input class="tablevalues" type="text" name="eventClass" size="50"
+            tal:attributes="value here/eventClass" />
+        -->
+        </td>
+    </tr>
+    <tr>
         <td class="tableheader">Severity</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="severity:int" size="10"

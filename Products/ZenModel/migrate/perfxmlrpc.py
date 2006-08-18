@@ -11,9 +11,12 @@ class PerfXmlRpc(Migrate.Step):
         if not dmd.Devices.hasProperty("zXmlRpcMonitorIgnore"):
             dmd.Devices._setProperty("zXmlRpcMonitorIgnore", 
                                      False, type="boolean")
-        try:
-            dmd.Events.getOrganizer("/Status/XmlRpc")
-        except KeyError:
-            dmd.Events.createOrganizer("/Status/XmlRpc")
+
+        dmd.Events.createOrganizer("/Status/XmlRpc")
+        dmd.Events.createOrganizer("/Perf/Snmp")
+        dmd.Events.createOrganizer("/Perf/CPU")
+        dmd.Events.createOrganizer("/Perf/Interface")
+        dmd.Events.createOrganizer("/Perf/Memory")
+        dmd.Events.createOrganizer("/Perf/Filesystem")
 
 PerfXmlRpc()

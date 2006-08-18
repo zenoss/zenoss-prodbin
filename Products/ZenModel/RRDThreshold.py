@@ -49,6 +49,7 @@ class RRDThreshold(ZenModelRM):
     dsnames = []
     minval = ""
     maxval = ""
+    eventClass = "/Perf/Snmp"
     severity = 3
     escalateCount = 0
     enabled = True
@@ -57,6 +58,7 @@ class RRDThreshold(ZenModelRM):
                  {'id':'dsnames', 'type':'lines', 'mode':'w'},
                  {'id':'minval', 'type':'string', 'mode':'w'},
                  {'id':'maxval', 'type':'string', 'mode':'w'},
+                 {'id':'eventClass', 'type':'string', 'mode':'w'},
                  {'id':'severity', 'type':'int', 'mode':'w'},
                  {'id':'escalateCount', 'type':'int', 'mode':'w'},
                  {'id':'enabled', 'type':'boolean', 'mode':'w'},
@@ -95,7 +97,7 @@ class RRDThreshold(ZenModelRM):
         thresholds. (id, minval, maxval, severity, escalateCount)
         """
         return (self.id,self.getMinval(context),self.getMaxval(context),
-                self.severity,self.escalateCount)
+                self.eventClass, self.severity,self.escalateCount)
 
   
     def getMinval(self, context):

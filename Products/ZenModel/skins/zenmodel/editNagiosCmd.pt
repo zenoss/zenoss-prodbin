@@ -52,8 +52,11 @@
     <tr>
         <td class="tableheader">Event Class</td>
         <td class="tablevalues" tal:condition="editable">
-        <input class="tablevalues" type="text" name="eventClass" size="50"
-            tal:attributes="value here/eventClass" />
+        <select class="tablevalues" name="eventClass">
+            <option tal:repeat="evtcls here/Events/getOrganizerNames" 
+                    tal:content="evtcls"
+                    tal:attributes="selected python:evtcls==here.eventClass"/>
+        </select>
         </td>
       <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/eventClass"/>
