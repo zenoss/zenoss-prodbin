@@ -109,7 +109,8 @@
     <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
         onkeypress="getPageViaEnter(event)"
         tal:attributes="value batchSize">
-    <input class="navcontrol" type="submit" value="ok" />
+    <input class="navcontrol" type="submit" value="ok"
+         onclick="submitAction(this.form, this.name)" />
     </div>
     </div>
 </form>
