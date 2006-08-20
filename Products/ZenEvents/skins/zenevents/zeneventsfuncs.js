@@ -1,9 +1,14 @@
 var refreshControl, loadStatusDefered;
 var autoRefresh = 0;
+var refresh=30;
+var cancelSecs=10;
 
 var printError = function(err) {
     log("error: ", err);
 }
+
+// Look for stupid IE browsers
+var isie = navigator.userAgent.indexOf('MSIE') != -1;
 
 var errorHandler = function(error) {
     log("error loading events type=", error);
@@ -144,3 +149,77 @@ var eventWindow = function(manager, evid, width, height) {
     evwindow = window.open(url, evid, windowprops);
     evwindow.focus();
 }
+
+statusUpdate = function(id, data) {
+    // XXX This needs to be updated for use in the Events table
+    /* draw clear then draw the rows of the tbody */
+    //log("drawTableBody "+id);
+    var tbody = null;
+    if (isie) {
+        tbody = $(id);
+        clearTableBody(tbody);
+    } else {
+        tbody = TBODY({'id':id});
+    }
+    for (var r=0; r<data.length;r++) {
+        var tr = tbody.insertRow(tbody.rows.length);
+        setElementClass(tr, "tablevalues");
+        var row = data[r];
+        for (var j=0; j<row.length; j++) {
+            var td = tr.insertCell(tr.cells.length);
+            if (row[j].cssclass) { 
+                setElementClass(td, row[j].cssclass);
+                td.innerHTML = row[j].data;
+            } else if (typeof(row[j]) == "string") {
+                td.innerHTML = row[j]
+            }
+        }
+    }
+    if (!isie) swapDOM(id, tbody);
+}
+
+clearTableBody = function(tbody) {
+    /* remove all rows from table */
+    while (tbody.rows.length > 0) {
+        tbody.deleteRow(0);
+    }
+}
+
+var updateEventsListing = function(data) {
+    //log("got data");
+    for (var id in data) {
+        statusUpdate(id, data[id]);
+    }
+}
+
+var cancelWithTimeout = function (deferred, timeout) { 
+    var canceller = callLater(timeout, function () { 
+        // cancel the deferred after timeout seconds 
+        deferred.cancel(); 
+        //log("cancel load data")
+    }); 
+    return deferred.addCallback(function (res) { 
+        // if the deferred fires successfully, cancel the timeout 
+        canceller.cancel(); 
+        return res; 
+    }); 
+}; 
+
+var updateError = function(err) {
+    logError(err);
+    //$("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
+}
+
+var refreshData = function() {
+    //logger.debuggingBookmarklet(true)
+    //log("loading");
+    var defr = cancelWithTimeout(
+        loadJSONDoc(eventsurl), cancelSecs);
+    defr.addCallback(updateEventsListing);
+    defr.addErrback(updateError);
+    if (autoRefresh) {
+        callLater(refresh, refreshData, eventsurl);
+    }
+}
+
+addLoadEvent(refreshData)

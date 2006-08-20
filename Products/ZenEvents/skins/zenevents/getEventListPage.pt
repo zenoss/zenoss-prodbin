@@ -14,6 +14,9 @@
         objects python:ztm.sortObjects(objects,request);
         batch python:ztm.getBatchForm(objects,request);"
         tal:on-error="structure here/eventsError">
+    <script type="text/javascript">
+        var eventsurl='/zport/dmd/ZenEventManager/getJSONEventsInfo'
+    </script>
     <tal:block metal:define-macro="eventRow">
     <tr tal:repeat="event batch" 
         tal:attributes="class event/getCssClass">

@@ -12,7 +12,7 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head metal:use-macro="here/templates/macros/head1"/>
-	<body onLoad="javascript:zenPageInit();">
+	<body>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div metal:use-macro="here/templates/macros/leftPane"/>
@@ -86,9 +86,9 @@
             href="/zport/portal_skins/zenoss_ie.css" >
     <![endif]-->
     <script type="text/javascript" 
-        src="/zport/portal_skins/zenmodelfuncs.js"></script>
-    <script type="text/javascript" 
         src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodelfuncs.js"></script>
     <tal:block metal:define-slot="head-local"/>
 </head>
 

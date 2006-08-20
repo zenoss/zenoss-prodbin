@@ -694,7 +694,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
         def evtprep(evts):
             evtsdata = "%d/%d" % (evts[1],evts[2])
-            if evts[1]==evts[2] or evts[2]==0: 
+            if evts[1]==evts[2] or evts[2]==0:
                 return evtsdata
             else:
                 return {'cssclass':evts[0], 'data':evtsdata}
@@ -710,7 +710,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
                 owners = ", ".join(dev.getEventOwnerList(severity=4))
                 evtsum = dev.getEventSummary(severity=4)
-            else: 
+            else:
                 # handle event from device that isn't in dmd
                 alink = devname
                 owners = ""
@@ -726,9 +726,9 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         for sys in sysroot.children():
             if simple:
                 alink = sys.getOrganizerName()
-            else:          
+            else:
                 alink = "<a href='%s'>%s</a>" % (
-                        sys.getPrimaryUrlPath()+"/viewEvents", 
+                        sys.getPrimaryUrlPath()+"/viewEvents",
                         sys.getOrganizerName())
             evts = [ alink ]
             evts.extend(map(evtprep, sys.getEventSummary(prodState=1000)))
@@ -745,6 +745,11 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return data
 
+    security.declareProtected('View','getJSONEventsInfo')
+    def getJSONEventsInfo(self, simple=False, REQUEST=None):
+        """
+        Event data in JSON format.
+        """
         
     #==========================================================================
     # Event sending functions

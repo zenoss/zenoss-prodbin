@@ -79,3 +79,5 @@ function toggleSelect(form) {
         return isSelected;       
     }
 }
+
+addLoadEvent(zenPageInit)
