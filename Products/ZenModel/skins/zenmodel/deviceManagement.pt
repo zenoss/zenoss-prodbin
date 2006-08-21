@@ -165,7 +165,7 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 <table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="graphLinks"
+    metal:define-macro="graphLinks" tal:condition="here/havePydot"
     tal:define="
         routers string:${here/absolute_url_path}/deviceGraphRouters;
         networks string:${here/absolute_url_path}/deviceGraphNets">

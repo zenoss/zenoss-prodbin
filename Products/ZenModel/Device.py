@@ -686,6 +686,17 @@ class Device(ManagedEntity):
         dclass = self.getDmdRoot("Devices")
         return dclass.getPeerDeviceClassNames(self.__class__)
 
+
+    def havePydot(self):
+        """return true if pydot is installed.
+        """
+        try:
+            import pydot
+            return True
+        except ImportError:
+            return False
+
+
     security.declareProtected('View', 'getRouterGraph')
     def getRouterGraph(self):
         '''get a graph representing the relative routers'''
