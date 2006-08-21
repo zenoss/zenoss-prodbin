@@ -269,6 +269,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 curs = db.cursor()
                 curs.execute(select)
                 retdata = []
+                # iterate through the data results and convert to python
+                # objects
                 for row in curs.fetchall():
                     row = map(self.convert, resultFields, row)
                     evt = ZEvent(self, resultFields, row)

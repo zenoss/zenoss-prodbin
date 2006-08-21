@@ -34,19 +34,19 @@ class ZEvent(Event):
         """
         data = []
         for field in fields:
-            value = getattr(self, field) 
+            value = getattr(self, field)
             if field == "device":
                 value = "<a href='/zport/dmd/deviceSearchResults?query=%s'>"\
                         "%s</a>" % (value, value)
             elif field == 'eventClass':
                 value = "<a href='/zport/dmd/Events%s'>%s</a>" % (value,value)
-            data.append(value)    
+            data.append(value)
         return data
 
 
     def getEventDetailHref(self):
         """build an href to call the detail of this event"""
-        return "%s/viewEventFields?evid=%s" % (self._baseurl, self.evid) 
+        return "%s/viewEventFields?evid=%s" % (self._baseurl, self.evid)
 
 
     def getCssClass(self):
