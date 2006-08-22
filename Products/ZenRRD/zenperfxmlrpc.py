@@ -258,13 +258,28 @@ class zenperfxmlrpc(RRDDaemon):
             # we could delete the RRD files, too
 
 
-    def updateProxy(self, url, deviceStatus):
+    def insertBasicAuth(self, url, username, password):
+        import urlparse
+        parsed = list(urlparse.urlsplit(url))
+        parsed.insert(1, "%s:%s@%s" % (username, password, parsed[1]))
+        parsed.pop(2)
+        return urlparse.urlunsplit(parsed)
+
+
+    def updateProxy(self, url, username, password, deviceStatus):
         "create or update proxy"
-        p = deviceStatus.proxyMap.get(url, None)
+        if username and password:
+            # if supplied a username and password we need to insert these
+            # into the url key in the proxyMap so that URLs using
+            # different credentials will get different proxies
+            url_key = self.insertBasicAuth(url, username, password)
+        else:
+            url_key = url
+        p = deviceStatus.proxyMap.get(url_key, None)
         if not p:
-            p = Proxy(url)
+            p = Proxy(url, user=username, password=password)
             p.methodMap = {}
-        return p
+        return p, url_key
 
 
     def updateDeviceConfig(self, xmlRpcTargets):
@@ -278,14 +293,18 @@ class zenperfxmlrpc(RRDDaemon):
             deviceStatus = XmlRpcStatus(xmlRpcState)
             self.devices[deviceName] = deviceStatus
 
-	for name, url, methodName, path, dsType, createCmd, thresholds in xmlRpcData:
+	    for dsdef in xmlRpcData:
+            (name, url, username, password, methodName, 
+             path, dsType, createCmd, thresholds) = dsdef
             createCmd = createCmd.strip()
             url = url.strip()
+            username = username.strip()
             methodName = methodName.strip()
-            p = self.updateProxy(url, deviceStatus)
+            p, url_key = self.updateProxy(url, username, password, deviceStatus)
             thresholds = [Threshold(*t) for t in thresholds]
-            p.methodMap[methodName] = XmlRpcData(name, path, methodName, dsType, createCmd, thresholds)
-            deviceStatus.proxyMap[url] = p
+            p.methodMap[methodName] = XmlRpcData(name, path, methodName, 
+                                                 dsType, createCmd, thresholds)
+            deviceStatus.proxyMap[url_key] = p
 
 
     def scanCycle(self, *unused):

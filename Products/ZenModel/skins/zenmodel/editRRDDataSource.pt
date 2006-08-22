@@ -5,6 +5,8 @@
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
+    <input type="hidden" name="zmanage_editProperties:method"
+        value=" Save " /> 
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr tal:define="message request/message | string:State at time:">
         <th class=tabletitle colspan="2"
@@ -23,7 +25,7 @@
       <td class="tableheader">Source Type</td>
       <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="sourcetype"
-        tal:define="curtype here/sourcetype">
+        tal:define="curtype here/sourcetype" onChange="this.form.submit()">
             <option tal:repeat="type here/sourcetypes" 
                 tal:attributes="value type; 
                     selected python:curtype == type"
@@ -33,7 +35,7 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/sourcetype"/>
     </tr>
-    <tr>
+    <tr tal:condition="python:here.sourcetype=='SNMP'">
         <td class="tableheader">OID</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="oid" size="40"
@@ -42,8 +44,8 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/oid"/>
     </tr>
-    <tr>
-        <td class="tableheader">XMLRPC URL</td>
+    <tr tal:condition="python:here.sourcetype=='XMLRPC'">
+        <td class="tableheader">URL</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="xmlrpcURL" size="40"
             tal:attributes="value here/xmlrpcURL" />
@@ -51,8 +53,26 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/xmlrpcURL"/>
     </tr>
-    <tr>
-        <td class="tableheader">XMLRPC Method Name</td>
+    <tr tal:condition="python:here.sourcetype=='XMLRPC'">
+        <td class="tableheader">Username</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="xmlrpcUsername" size="40"
+            tal:attributes="value here/xmlrpcUsername" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/xmlrpcUsername"/>
+    </tr>
+    <tr tal:condition="python:here.sourcetype=='XMLRPC'">
+        <td class="tableheader">Password</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="xmlrpcPassword" size="40"
+            tal:attributes="value here/xmlrpcPassword" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/xmlrpcPassword"/>
+    </tr>
+    <tr tal:condition="python:here.sourcetype=='XMLRPC'">
+        <td class="tableheader">Method Name</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="xmlrpcMethodName" size="40"
             tal:attributes="value here/xmlrpcMethodName" />

@@ -235,11 +235,15 @@ class RRDView(object):
                 for ds in templ.getRRDDataSources():
                     if ds.sourcetype != "XMLRPC": continue
                     url = ds.xmlrpcURL
+                    username = ds.xmlrpcUsername
+                    password = ds.xmlrpcPassword
                     methodName = ds.xmlrpcMethodName
                     cname = self.meta_type != "Device" \
                                 and self.viewName() or ds.id
                     targets.append((cname,
                                     url,
+                                    username,
+                                    password,
                                     methodName,
                                     "/".join((basepath, ds.id)),
                                     ds.rrdtype,

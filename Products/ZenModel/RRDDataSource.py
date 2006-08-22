@@ -49,6 +49,8 @@ class RRDDataSource(ZenModelRM):
     sourcetype = 'SNMP'
     oid = ''
     xmlrpcURL = ''
+    xmlrpcUsername = ''
+    xmlrpcPassword = ''
     xmlrpcMethodName = ''
     createCmd = ""
     rrdtype = 'COUNTER'
@@ -65,6 +67,8 @@ class RRDDataSource(ZenModelRM):
         'select_variable' : 'sourcetypes', 'mode':'w'},
         {'id':'oid', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcURL', 'type':'string', 'mode':'w'},
+        {'id':'xmlrpcUsername', 'type':'string', 'mode':'w'},
+        {'id':'xmlrpcPassword', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
         {'id':'rrdtype', 'type':'selection',
         'select_variable' : 'rrdtypes', 'mode':'w'},
