@@ -186,7 +186,7 @@ class zenperfxmlrpc(RRDDaemon):
         self.methodsRequested = 0
         perfRoot = performancePath('')
         if not os.path.exists(perfRoot):
-	    os.makedirs(perfRoot)
+            os.makedirs(perfRoot)
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$')
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
@@ -293,8 +293,8 @@ class zenperfxmlrpc(RRDDaemon):
             deviceStatus = XmlRpcStatus(xmlRpcState)
             self.devices[deviceName] = deviceStatus
 
-	    for dsdef in xmlRpcData:
-            (name, url, username, password, methodName, 
+        for dsdef in xmlRpcData:
+            (name, url, username, password, methodName,
              path, dsType, createCmd, thresholds) = dsdef
             createCmd = createCmd.strip()
             url = url.strip()
@@ -433,11 +433,11 @@ class zenperfxmlrpc(RRDDaemon):
             if success:
                 methodName = update[0]
                 value = update[1]
-	        # should always get something back
-	        if value == '':
-		    self.badMethodName(deviceName, url, methodName)
-	        else:
-		    self.storeRRD(deviceName, url, methodName, value)
+            # should always get something back
+            if value == '':
+                self.badMethodName(deviceName, url, methodName)
+            else:
+                self.storeRRD(deviceName, url, methodName, value)
                 methods.append(methodName)
 
         # remove any targets that didn't report

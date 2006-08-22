@@ -28,7 +28,7 @@ from twisted.python import failure
 BAD_SEVERITY=Event.Warning
 
 BASE_URL = 'http://localhost:8080/zport/dmd'
-DEFAULT_URL = BASE_URL + '/Monitors/StatusMonitors/localhost'
+DEFAULT_URL = BASE_URL + '/Monitors/Performance/localhost'
 
 
 COMMON_EVENT_INFO = {
@@ -167,7 +167,7 @@ class RRDDaemon(ZenDaemon):
             if isinstance(result.value, error.ConnectionRefusedError):
                 self.log.error("Unable to talk to zenxevents daemon")
             else:
-                self.logError(result)
+                self.error(result)
             self.events.extend(events)
         else:
             self.events = self.events[len(events):]
