@@ -321,7 +321,7 @@ class ZenModeler(ZCmdBase):
                 type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
         self.parser.add_option('--cycletime',
-                dest='cycletime',default=60,type='int',
+                dest='cycletime',default=720,type='int',
                 help="run collection every x minutes")
         self.parser.add_option('--ignore',
                 dest='ignorePlugins',default="",
