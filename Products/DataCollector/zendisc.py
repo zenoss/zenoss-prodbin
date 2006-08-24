@@ -64,7 +64,7 @@ class ZenDisc(ZenModeler):
                 if not ipobj.device():
                     ips.append(ip)
                 if ipobj.getStatus(PingStatus) > 0:
-                    self.sendEvent(ipobj)
+                    self.sendEvent(ipobj, sev=0)
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
                 if self.options.addInactive:
@@ -81,21 +81,23 @@ class ZenDisc(ZenModeler):
         return ips
        
 
-    def sendEvent(self, ipobj):
+    def sendEvent(self, ipobj, sev=2):
         """Send an ip down event.  These are used to cleanup unused ips.
         """
         ip = ipobj.id
         dev = ipobj.device()
+        if sev == 0:
+            msg = "ip %s is up" % ip
+        else:
+            msg = "ip %s is down" % ip
         if dev: 
             devname = dev.id
             comp = ipobj.interface().id
-            sev = 2
         else: 
             devname = comp = ip
-            sev = 2
         evt = Event(device=devname,ipAddress=ip,eventKey=ip,
                     component=comp,eventClass=PingStatus,
-                    summary="ip %s is down"%ip, severity=sev,
+                    summary=msg, severity=sev,
                     agent="Discover")
         self.dmd.ZenEventManager.sendEvent(evt)
 
