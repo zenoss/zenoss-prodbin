@@ -111,9 +111,10 @@
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
     <tr>
-      <th class="tabletitle" align="left" colspan="4">EventClassInstances</th>
+      <th class="tabletitle" align="left" colspan="4">EventClass Mappings</th>
     </tr>
     <span tal:condition="objects" tal:omit-tag="">
+    <tal:block metal:define-macro="mapbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Id')">
@@ -133,7 +134,7 @@
         </th>
     </tr>
     <tr tal:repeat="evinst batch">
-        <td class="tablevalues" align="left" width="50%">
+        <td class="tablevalues">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value evinst/getId"/>
@@ -145,6 +146,7 @@
         <td class="tablevalues" tal:content="python:evinst.getStatus()"
             align="center">0</td>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

@@ -155,6 +155,11 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         """Return the full EventClass of this EventClassInst."""
         return self.getOrganizerName()
 
+    def getEventClassHref(self):
+        """Return href of our class.
+        """
+        return self.eventClass().getPrimaryUrlPath()
+
 
     def getDmdKey(self):
         """Return the dmd key of this mapping ie: /App/Start/zentinel

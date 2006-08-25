@@ -1,0 +1,52 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action request/URL">
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="objects here/getInstances;
+        tableName string:eventmappinglist;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <tr><th class="tabletitle" colspan="4">EventClass Mappings</th></tr>
+    <tr><td class="tableheader" colspan="4">
+    <tal:block metal:use-macro="here/zenTableNavigation/macros/navfilter"/>
+    </td></tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Id')">
+            Id 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getEventClass','EventClass')">
+            EventClass
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'ruleOrRegex','Evaluation')">
+            Evaluation 
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getStatus','Events')">
+            Snmp
+        </th>
+    </tr>
+    <tr tal:repeat="evinst batch">
+        <td class="tablevalues">
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value evinst/getId"/>
+            <a tal:attributes="href evinst/getPrimaryUrlPath"
+            tal:content="evinst/id">Name</a>
+        </td>
+        <td class="tablevalues">
+            <a tal:attributes="href string:${evinst/getEventClassHref}/eventMappingList" 
+                tal:content="evinst/getEventClass"></a>
+        </td>
+        <td class="tablevalues" tal:content="python:evinst.ruleOrRegex(60)"/>
+        <td class="tablevalues" tal:content="python:evinst.getStatus()"
+            align="center">0</td>
+    </tr>
+    <tr><td class="tableheader" colspan="4">
+    <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"/>
+    </td></tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -74,6 +74,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
+                { 'id'            : 'eventList'
+                , 'name'          : 'Mappings'
+                , 'action'        : 'eventMappingList'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'

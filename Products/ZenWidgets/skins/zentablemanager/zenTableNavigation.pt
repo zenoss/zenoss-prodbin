@@ -115,7 +115,7 @@
     </div>
 </form>
 
-<form metal:define-macro="navfilterdevice" class="tableheader"
+<form metal:define-macro="navfilter" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL">
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
@@ -136,7 +136,7 @@
     </div>
 </form>
 
-<form metal:define-macro="navpagedevice" class="tableheader"
+<form metal:define-macro="navpagenofilter2" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL">
     <!-- script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script /-->

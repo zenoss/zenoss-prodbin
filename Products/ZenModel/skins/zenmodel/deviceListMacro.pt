@@ -139,12 +139,11 @@
     <span metal:define-macro="fullDevListBody" tal:omit-tag="">
     <tr>
         <td colspan="5" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navfilterdevice"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navfilter"></form>
         </td>
     </tr>
     <tr>
-        <th 
-            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')">Name
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -185,7 +184,7 @@
     </tr>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navpagedevice"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"></form>
         </td>
     </tr>
 
