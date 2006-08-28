@@ -236,8 +236,6 @@ class zenperfsnmp(SnmpDaemon):
             self.log.warn("no devices found, keeping existing list")
             return
 
-        self.log.info('Configured %d devices' % len(deviceList))
-
         for snmpTargets in deviceList:
             self.updateDeviceConfig(snmpTargets)
             
@@ -255,6 +253,7 @@ class zenperfsnmp(SnmpDaemon):
                 log.warning("Warning: device %s has a duplicate address %s",
                             name, proxy.ip)
             ips.add(ips)
+        self.log.info('Configured %d devices' % len(deviceList))
 
 
     def updateAgentProxy(self,
