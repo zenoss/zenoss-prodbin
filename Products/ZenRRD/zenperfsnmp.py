@@ -57,22 +57,30 @@ def firsts(lst):
 
 class Status:
     'keep track of the status of many parallel requests'
-    _total = _success = _fail = 0
+    _success = _fail = 0
     _startTime = _stopTime = 0.0
     _deferred = None
 
+    def __init__(self):
+        self._allDevices = Set()
+        self._reported = Set()
     
-    def start(self, count):
+    def start(self, devices):
         'start the clock'
-        self._total = count
+        self._allDevices = Set(devices)
+        self._reported = Set()
         self._startTime = time.time()
         self._deferred = defer.Deferred()
         self._checkFinished()           # count could be zero
         return self._deferred
 
 
-    def record(self, successOrFailure):
+    def record(self, name, successOrFailure):
         'single funtion to record success or failure'
+        if name in self._reported:
+            log.error("Device %s is reporting more than once", name)
+            return
+        self._reported.add(name)
         if successOrFailure:
             self.success()
         else:
@@ -101,25 +109,26 @@ class Status:
 
     def finished(self):
         'determine if we have finished everything'
-        return self.outstanding() == 0
+        return self.outstanding() <= 0
 
 
     def stats(self):
         'provide a summary of the effort'
-        stopTime = self._stopTime
-        if not self.finished():
-            stopTime = time.time()
-        return (self._total, self._success, self._fail,
-                stopTime - self._startTime)
+        age = self._stopTime - self._startTime
+        if not self._startTime:
+            age = 0.0
+        elif not self.finished():
+            age = time.time() - self._startTime
+        return (len(self._allDevices), self._success, self._fail, age)
 
 
     def outstanding(self):
         'return the number of unfinished operations'
-        return self._total - (self._success + self._fail)
+        return len(self.outstandingNames())
 
-
-    def moreWork(self, count):
-        self._total += count
+    def outstandingNames(self):
+        'return the number of unfinished operations'
+        return self._allDevices - self._reported
 
 
 class SnmpStatus:
@@ -169,10 +178,10 @@ class zenperfsnmp(SnmpDaemon):
     
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
-    status = Status()
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenperfsnmp')
+        self.status = None
         self.proxies = {}
         self.queryWorkList = Set()
         self.unresponsiveDevices = Set()
@@ -227,7 +236,7 @@ class zenperfsnmp(SnmpDaemon):
             self.log.warn("no devices found, keeping existing list")
             return
 
-        self.log.debug('Configured %d devices' % len(deviceList))
+        self.log.info('Configured %d devices' % len(deviceList))
 
         for snmpTargets in deviceList:
             self.updateDeviceConfig(snmpTargets)
@@ -239,6 +248,13 @@ class zenperfsnmp(SnmpDaemon):
             self.log.debug('removing device %s' % name)
             del self.proxies[name]
             # we could delete the RRD files, too
+
+        ips = Set()
+        for name, proxy in self.proxies.items():
+            if proxy.ip in ips:
+                log.warning("Warning: device %s has a duplicate address %s",
+                            name, proxy.ip)
+            ips.add(ips)
 
 
     def updateAgentProxy(self,
@@ -301,7 +317,7 @@ class zenperfsnmp(SnmpDaemon):
         "remember all the unresponsive devices"
         if isinstance(arg, list):
             deviceList = arg
-            self.log.debug('Unresponsive devices: %r' % deviceList)
+            self.log.info('Unresponsive devices: %r' % deviceList)
             self.unresponsiveDevices = Set(firsts(deviceList))
         else:
             self.log.error('Could not get unresponsive devices: %s', arg)
@@ -311,19 +327,21 @@ class zenperfsnmp(SnmpDaemon):
     def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
         
-        if not self.status.finished():
+        if self.status and not self.status.finished():
             _, _, _, age = self.status.stats()
+            self.log.warning("There are still %d devices to query",
+                             self.status.outstanding())
+            self.log.warning("Problem devices: %r",
+                             list(self.status.outstandingNames()))
             if age < self.configCycleInterval * 2:
-                self.log.warning("There are still %d devices to query, "
-                                 "waiting for them to finish" %
-                                 self.status.outstanding())
+                self.log.warning("Waiting one more cycle period")
                 return
             self.log.warning("Devices status is not clearing.  Restarting.")
 
         self.queryWorkList =  Set(self.proxies.keys())
         self.queryWorkList -= self.unresponsiveDevices
         self.status = Status()
-        d = self.status.start(len(self.queryWorkList))
+        d = self.status.start(self.queryWorkList)
         d.addCallback(self.reportRate)
         for unused in range(MAX_SNMP_REQUESTS):
             if not self.queryWorkList: break
@@ -379,15 +397,14 @@ class zenperfsnmp(SnmpDaemon):
 
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
+            self.status.record(deviceName, True)
             return
 
         # Look for problems
         for success, update in updates:
             # empty update is probably a bad OID in the request somewhere
             if success and not update and not proxy.singleOidMode:
-                self.status.record(True)
                 proxy.singleOidMode = True
-                self.status.moreWork(1)
                 self.log.warn('Error collecting data on %s, recollecting',
                               deviceName)
                 self.startReadDevice(deviceName)
@@ -422,7 +439,7 @@ class zenperfsnmp(SnmpDaemon):
         success = True
         if updates:
             success = successCount > 0
-        self.status.record(success)
+        self.status.record(deviceName, success)
         proxy.snmpStatus.updateStatus(deviceName, success, self.sendEvent)
 
 
