@@ -39,9 +39,9 @@ SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 class ZenSyslog(UDPServer, ZeoPoolBase):
 
 
-    def __init__(self, addr='', port=SYSLOG_PORT):
+    def __init__(self, addr=''):
         ZeoPoolBase.__init__(self, keeproot=True)
-        UDPServer.__init__(self, (addr, port), None)
+        UDPServer.__init__(self, (addr, self.options.syslogport), None)
         self.changeUser()
         self.minpriority = self.options.minpriority
         self.phost = self.options.parsehost
@@ -199,6 +199,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.parser.add_option('--heartbeat',
             dest='heartbeat', default=60,
             help="Number of seconds between heartbeats")
+        self.parser.add_option('--syslogport',
+            dest='syslogport', default=SYSLOG_PORT, type='int',
+            help="Port number to use for syslog events")
 
 
                 
