@@ -106,7 +106,7 @@ class Process:
     def match(self, name, args):
         if self.name is None:
             return False
-        if self.ignoreParameters:
+        if self.ignoreParameters or not args:
             return self.originalName == name
         return self.originalName == '%s %s' % (name, args)
 
