@@ -36,6 +36,16 @@ def manage_addRRDDataSource(context, id, REQUEST = None):
 addRRDDataSource = DTMLFile('dtml/addRRDDataSource',globals())
 
 
+def convertMethodParameter(value, type):
+    if type == "integer":
+        return int(value)
+    elif type == "string":
+        return str(value)
+    elif type == "float":
+        return float(value)
+    else:
+        raise TypeError('Unsupported method parameter type: %s' % type)
+
 class RRDDataSourceError(Exception): pass
 
 class RRDDataSource(ZenModelRM):
@@ -45,6 +55,7 @@ class RRDDataSource(ZenModelRM):
     rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
     linetypes = ('', 'AREA', 'LINE')
     sourcetypes = ('SNMP', 'XMLRPC')
+    paramtypes = ('integer', 'string', 'float')
     
     sourcetype = 'SNMP'
     oid = ''
@@ -52,6 +63,8 @@ class RRDDataSource(ZenModelRM):
     xmlrpcUsername = ''
     xmlrpcPassword = ''
     xmlrpcMethodName = ''
+    # [[param1, int], [param2, string], ...]
+    xmlrpcMethodParameters = []
     createCmd = ""
     rrdtype = 'COUNTER'
     isrow = True
@@ -70,6 +83,7 @@ class RRDDataSource(ZenModelRM):
         {'id':'xmlrpcUsername', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcPassword', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
+        {'id':'xmlrpcMethodParameters', 'type':'lines', 'mode':'w'},
         {'id':'rrdtype', 'type':'selection',
         'select_variable' : 'rrdtypes', 'mode':'w'},
         {'id':'createCmd', 'type':'text', 'mode':'w'},
@@ -213,3 +227,13 @@ class RRDDataSource(ZenModelRM):
         if self.sourcetype == "XMLRPC":
             return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
         return None
+
+    def getXmlRpcMethodParameters(self):
+        """Return the list of all parameters as a list.
+           ["param1 (type)", "param2 (type)", ...]
+        """
+        params = []
+        for param in self.xmlrpcMethodParameters: 
+            p = "%s (%s)" % (param[0], param[1])
+            params.append(p)
+        return params

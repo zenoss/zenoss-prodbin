@@ -155,11 +155,12 @@ class XmlRpcStatus:
 
 
 class XmlRpcData:
-    def __init__(self, name, path, methodName,
+    def __init__(self, name, path, methodName, methodParameters,
                  dataStorageType, rrdCreateCommand, thresholds):
         self.name = name
         self.path = path
         self.methodName = methodName
+        self.methodParameters = methodParameters
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
         self.thresholds = thresholds
@@ -294,7 +295,7 @@ class zenperfxmlrpc(RRDDaemon):
             self.devices[deviceName] = deviceStatus
 
         for dsdef in xmlRpcData:
-            (name, url, username, password, methodName,
+            (name, url, username, password, methodName, methodParameters,
              path, dsType, createCmd, thresholds) = dsdef
             createCmd = createCmd.strip()
             url = url.strip()
@@ -302,8 +303,9 @@ class zenperfxmlrpc(RRDDaemon):
             methodName = methodName.strip()
             p, url_key = self.updateProxy(url, username, password, deviceStatus)
             thresholds = [Threshold(*t) for t in thresholds]
-            p.methodMap[methodName] = XmlRpcData(name, path, methodName, 
-                                                 dsType, createCmd, thresholds)
+            p.methodMap[methodName] = XmlRpcData(name, path, methodName,
+                                                 methodParameters, dsType,
+                                                 createCmd, thresholds)
             deviceStatus.proxyMap[url_key] = p
 
 
@@ -369,7 +371,8 @@ class zenperfxmlrpc(RRDDaemon):
         deferreds = []
         def iterAllMethods(proxy):
             for methodName in proxy.methodMap.keys():
-                yield (proxy, methodName)
+                methodParameters = proxy.methodMap[methodName].methodParameters
+                yield (proxy, methodName, methodParameters)
 
         def proxyValue(value, methodName):
             return (methodName, value)
@@ -377,7 +380,15 @@ class zenperfxmlrpc(RRDDaemon):
         def getLater(parameters):
             proxy = parameters[0]
             methodName = parameters[1]
-            d = proxy.callRemote(methodName)
+            methodParameters = parameters[2]
+            params = []
+            if methodParameters:
+                from Products.ZenModel.RRDDataSource import convertMethodParameter 
+                for p in methodParameters:
+                    # convert the parameter to the type supplied but the user
+                    converted = convertMethodParameter(p[0], p[1])    
+                    params.append(converted)
+            d = proxy.callRemote(methodName, *params)
             d.addCallback(proxyValue, methodName)
             self.methodsRequested += 1
             return d
@@ -433,12 +444,12 @@ class zenperfxmlrpc(RRDDaemon):
             if success:
                 methodName = update[0]
                 value = update[1]
-            # should always get something back
-            if value == '':
-                self.badMethodName(deviceName, url, methodName)
-            else:
-                self.storeRRD(deviceName, url, methodName, value)
-                methods.append(methodName)
+                # should always get something back
+                if value == '':
+                    self.badMethodName(deviceName, url, methodName)
+                else:
+                    self.storeRRD(deviceName, url, methodName, value)
+                    methods.append(methodName)
 
         # remove any targets that didn't report
         for doomed in Set(methodMap.keys()) - Set(methods):

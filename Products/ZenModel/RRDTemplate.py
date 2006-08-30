@@ -136,6 +136,38 @@ class RRDTemplate(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Add Method Parameter', 'manage_addMethodParameter')
+    def manage_addMethodParameter(self, newId, paramValue, paramType, REQUEST=None):
+        """Add a method parameter.
+        """
+        if not paramValue: return
+        ds = self.datasources._getOb(newId)
+        try:
+            from RRDDataSource import convertMethodParameter
+            convertMethodParameter(paramValue, paramType)
+        except ValueError:
+            REQUEST['message'] = "ERROR: %s could not be stored as type: %s" % (paramValue, paramType)
+            return ds.callZenScreen(REQUEST)
+        parameters = ds.xmlrpcMethodParameters
+        parameters.append([paramValue, paramType])
+        ds._setPropValue('xmlrpcMethodParameters', parameters)
+        ds = self.datasources._getOb(newId)
+        # save all the attributes on the page when the user clicks the add
+        # parameter button so that other changes they have made are saved
+        return ds.zmanage_editProperties(REQUEST)
+
+
+    security.declareProtected('Delete Method Parameter', 'manage_deleteMethodParameter')
+    def manage_deleteMethodParameter(self, newId, REQUEST=None):
+        """Delete the last method parameter.
+        """
+        ds = self.datasources._getOb(newId)
+        parameters = ds.xmlrpcMethodParameters
+        parameters.pop()
+        ds._setPropValue('xmlrpcMethodParameters', parameters)
+        return ds.zmanage_editProperties(REQUEST)
+
+
     def callZenScreen(self, REQUEST, redirect=False):
         """Redirect to primary parent object if this template is locally defined
         """

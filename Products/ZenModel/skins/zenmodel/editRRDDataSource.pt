@@ -5,8 +5,6 @@
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
-    <input type="hidden" name="zmanage_editProperties:method"
-        value=" Save " /> 
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr tal:define="message request/message | string:State at time:">
         <th class=tabletitle colspan="2"
@@ -25,7 +23,13 @@
       <td class="tableheader">Source Type</td>
       <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="sourcetype"
-        tal:define="curtype here/sourcetype" onChange="this.form.submit()">
+        tal:define="curtype here/sourcetype" 
+        onChange="var input = document.createElement('INPUT');
+                  input.type = 'hidden';
+                  input.name = 'zmanage_editProperties:method';
+                  input.value = ' Save ';
+                  form.appendChild(input);
+                  this.form.submit();">
             <option tal:repeat="type here/sourcetypes" 
                 tal:attributes="value type; 
                     selected python:curtype == type"
@@ -79,6 +83,30 @@
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/xmlrpcMethodName"/>
+    </tr>
+    <tr tal:condition="python:here.sourcetype=='XMLRPC'">
+        <td class="tableheader">Method Parameters</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select width="200" style="width: 200px"
+            class="tablevalues" name="xmlrpcMethodParameters:list" multiple
+            tal:define="curparams here/xmlrpcMethodParameters">
+            <option tal:repeat="ds here/getXmlRpcMethodParameters"
+                    tal:content="ds">ifInOctets</option>
+            </select>
+        <br />
+        <input class="tablevalues" type="text" name="paramValue" size="10" />
+        <select class="tablevalues" name="paramType">
+            <option tal:repeat="type here/paramtypes" 
+                tal:content="python:type">localhost</option>
+        </select>
+        <input class="tableheader" type="submit" value=" Add "
+           name="manage_addMethodParameter:method" />
+        <input class="tableheader" type="submit" value=" Delete Last "
+           name="manage_deleteMethodParameter:method" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                tal:content="python:', '.join(here.xmlrpcMethodParameters)"/>
+
     </tr>
     <tr>
       <td class="tableheader">Type</td>

@@ -219,7 +219,8 @@ class RRDView(object):
 
     def getXmlRpcTargets(self):
         """Return a list of XMLRPC targets in the form.
-        [(name, url, methodName, path, type, createCmd, thresholds),...]
+        [(name, url, methodName, methodParameters, path, type, 
+        createCmd, thresholds),...]
         """
         targets = []
         '''TODO this should probably be xmlrpcIgnore()'''
@@ -238,6 +239,7 @@ class RRDView(object):
                     username = ds.xmlrpcUsername
                     password = ds.xmlrpcPassword
                     methodName = ds.xmlrpcMethodName
+                    methodParameters = ds.xmlrpcMethodParameters
                     cname = self.meta_type != "Device" \
                                 and self.viewName() or ds.id
                     targets.append((cname,
@@ -245,6 +247,7 @@ class RRDView(object):
                                     username,
                                     password,
                                     methodName,
+                                    methodParameters,
                                     "/".join((basepath, ds.id)),
                                     ds.rrdtype,
                                     ds.createCmd,
