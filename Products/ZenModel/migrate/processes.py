@@ -20,10 +20,9 @@ class Processes(Migrate.Step):
 
     def cutover(self, dmd):
         
-        if not dmd.Processes.hasProperty('zFailSeverity'):
-            dmd.Processes._setProperty("zFailSeverity", 4, type="int")
-
         if hasattr(dmd, 'Processes'):
+            if not dmd.Processes.hasProperty('zFailSeverity'):
+                dmd.Processes._setProperty("zFailSeverity", 4, type="int")
             return
 
         from Products.ZenModel.OSProcessOrganizer \
