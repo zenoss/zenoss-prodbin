@@ -12,11 +12,11 @@ __version__ = "$Revision: 1.17 $"[11:-2]
 
 import copy
 import re
+import time
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
-from DateTime import DateTime
 
 from Products.CMFCore.utils import _verifyActionPermissions
 
@@ -203,18 +203,18 @@ class ZenModelBase(object):
 
     def getNowString(self):
         """return the current time as a string"""
-        return DateTime().strftime('%Y/%m/%d %H:%M:%S')
+        return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
 
     def todayDate(self):
         """Return today's date as a string in the format 'mm/dd/yyyy'."""
-        return DateTime().strftime("%m/%d/%Y")
+        return time.strftime("%m/%d/%Y", time.localtime())
 
 
     def yesterdayDate(self):
         """Return yesterday's date as a string in the format 'mm/dd/yyyy'."""
-        yesterday = DateTime()-1
-        return yesterday.strftime("%m/%d/%Y")
+        yesterday = time.time() - 24*3600
+        return time.strftime("%m/%d/%Y", time.localtime(yesterday))
 
 
     def all_meta_types(self, interfaces=None):

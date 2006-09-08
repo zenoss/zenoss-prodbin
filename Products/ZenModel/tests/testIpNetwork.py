@@ -7,7 +7,7 @@ import transaction
 from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = ZeoConn()
+zeoconn = None
 
 class TestIpNetwork(unittest.TestCase):
 
@@ -99,4 +99,5 @@ def main():
     unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
+    zenconn = ZenConn()
     unittest.main()

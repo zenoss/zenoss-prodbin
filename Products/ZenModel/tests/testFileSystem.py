@@ -14,7 +14,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.FileSystem import FileSystem
 
-zeoconn = ZeoConn()
+zeoconn = None
 
 class TestFileSystem(unittest.TestCase):
 
@@ -51,4 +51,5 @@ def main():
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
+    zenconn = ZenConn()
        unittest.main()

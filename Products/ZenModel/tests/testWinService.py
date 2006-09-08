@@ -14,7 +14,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.WinService import WinService
 
-zeoconn = ZeoConn()
+zeoconn = None
 
 class TestWinService(unittest.TestCase):
 
@@ -60,4 +60,5 @@ def main():
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
-       unittest.main()
+    zenconn = ZenConn()
+    unittest.main()

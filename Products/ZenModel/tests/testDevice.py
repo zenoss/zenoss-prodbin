@@ -13,7 +13,7 @@ import transaction
 from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = ZeoConn()
+zeoconn = None
 
 class TestDevice(unittest.TestCase):
 
@@ -286,4 +286,5 @@ def main():
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
-       unittest.main()
+    zeoconn = ZeoConn()
+    unittest.main()

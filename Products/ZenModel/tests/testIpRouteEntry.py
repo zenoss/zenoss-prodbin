@@ -15,7 +15,7 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
-zeoconn = ZeoConn()
+zeoconn = None
 
 class TestIpRouteEntry(unittest.TestCase):
 
@@ -112,4 +112,5 @@ def main():
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
-       unittest.main()
+    zenconn = ZenConn()
+    unittest.main()
