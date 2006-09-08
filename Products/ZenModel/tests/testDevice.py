@@ -77,8 +77,9 @@ class TestDevice(unittest.TestCase):
     
 
     def testSetOSProductKey(self):
-        self.dev.setOSProductKey('testKey')
-        self.assert_(self.dev.getOSProductKey() == 'testKey')
+        unicodeificated = 'ab\xefcd'.decode('latin1')
+        self.dev.setOSProductKey(unicodeificated)
+        self.assert_(self.dev.getOSProductKey() == 'ab_cd')
         
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
