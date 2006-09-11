@@ -159,11 +159,11 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
 
     def _getProduct(self, prodName, manufacturer, factory, **kwargs):
         prod = None
+        prodid = self.prepId(prodName)
         if not manufacturer or manufacturer == "Unknown":
-            prod = self.findProduct(prodName) 
+            prod = self.findProduct(prodid)
         if prod: return prod
         manufobj = self.getManufacturer(manufacturer)
-        prodid = self.prepId(prodName)
         prod = manufobj._getOb(prodid, None)
         if not prod:
             prod = factory(prodid, **kwargs)
