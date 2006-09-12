@@ -457,7 +457,7 @@ class DeviceClass(DeviceOrganizer):
             if not getattr(aq_base(obj), 'nagiosTemplates', False): continue
             for t in obj.nagiosTemplates():
                 templates[t.id] = t
-        return templates.values()         
+        return templates.values()
             
 
     security.declareProtected('Add DMD Objects', 'manage_addNagiosTemplate')
@@ -476,7 +476,7 @@ class DeviceClass(DeviceOrganizer):
         ids = [ id for id in ids if self.nagiosTemplates._getOb(id, None) != None]
         if not ids: return self.callZenScreen(REQUEST)
         cp = self.nagiosTemplates.manage_copyObjects(ids)
-        if REQUEST: 
+        if REQUEST:
             resp=REQUEST['RESPONSE']
             resp.setCookie('__cp', cp, path='/zport/dmd')
             REQUEST['__cp'] = cp
@@ -492,7 +492,7 @@ class DeviceClass(DeviceOrganizer):
         elif REQUEST:
             cp = REQUEST.get("__cp",None)
         if cp: self.nagiosTemplates.manage_pasteObjects(cp)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
             REQUEST['__cp'] = None
@@ -505,7 +505,7 @@ class DeviceClass(DeviceOrganizer):
         """
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
-            if (getattr(aq_base(self), 'nagiosTemplates', False) 
+            if (getattr(aq_base(self), 'nagiosTemplates', False)
                 and getattr(aq_base(self.nagiosTemplates),id,False)):
                 self.nagiosTemplates._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)

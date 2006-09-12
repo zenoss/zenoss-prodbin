@@ -33,11 +33,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
@@ -80,7 +80,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under an instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
-        if not devices: 
+        if not devices:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devices())
         for subgroup in self.children():
@@ -191,7 +191,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         "Add a Maintenance Window to this device"
         mw = OrganizerMaintenanceWindow(newId)
         self.maintenanceWindows._setObject(newId, mw)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Maintenace Window Added"
             return self.callZenScreen(REQUEST)
                           
@@ -204,7 +204,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             maintenanceIds = [maintenanceIds]
         for id in maintenanceIds:
             self.maintenanceWindows._delObject(id)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Maintenace Window Deleted"
             return self.callZenScreen(REQUEST)
                           
@@ -222,7 +222,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             self.adminRoles._setObject(newId, ar)
             ar = self.adminRoles._getOb(newId)
             ar.userSetting.addRelation(us)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Role Added"
             return self.callZenScreen(REQUEST)
 
@@ -238,7 +238,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             ar = self.adminRoles._getOb(id)
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
         
@@ -250,7 +250,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             delids = [delids]
         for id in delids:
             self.adminRoles._delObject(id)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           

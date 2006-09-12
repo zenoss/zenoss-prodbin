@@ -22,7 +22,7 @@ class XmlDataLoader(ImportRM):
         # Reindex ProductKeys and EventClassKeys after XML load
         self.dmd.Manufacturers.reIndex()
         self.dmd.Events.reIndex()
-        transaction.commit()              
+        transaction.commit()
 
 
 if __name__ == "__main__":
