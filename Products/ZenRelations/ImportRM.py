@@ -16,6 +16,7 @@ import sys
 import os
 import types
 import transaction
+from urlparse import urlparse
 
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
@@ -190,23 +191,44 @@ class ImportRM(ZCmdBase, ContentHandler):
                     default=0,
                     help='Do not store changes to the Dmd (for debugging)')
 
+    def loadObjectFromXML(self, objstack=None, xmlfile=''):
+        """This method can be used to load data for the root of Zenoss (default
+        behavior) or it can be used to operate on a specific point in the
+        Zenoss hierarchy (ZODB).
 
-    def loadDatabase(self):
-        """top level of this loader makes a parser and 
-        passes itself has a content handler"""
-        self.objstack = [self.app,]
+        Upon loading the XML file to be processed, the content of the XML file
+        is handled (processed) by the methods in this class.
+        """
+        if objstack:
+            self.objstack = [objstack]
+        else:
+            self.objstack = [self.app]
         self.links = []
         self.objectnumber = 0
         self.charvalue = ""
-        if not self.options.infile:
-            self.infile = sys.stdin
+        if xmlfile:
+            # check to see if we're getting the XML from a URL ...
+            schema, host, path, null, null, null = urlparse(xmlfile)
+            if schema and host:
+                import urllib2
+                self.infile = urllib2.urlopen(xmlfile)
+            # ... or from a file on the file system
+            else:
+                self.infile = open(xmlfile)
+        elif self.options.infile:
+            self.infile = open(self.options.infile)
         else:
-            self.infile = open(self.options.infile, 'r')
+            self.infile = sys.stdin
         parser = make_parser()
         parser.setContentHandler(self)
         parser.parse(self.infile)
         self.infile.close()
-  
+
+    def loadDatabase(self):
+        """The default behavior of loadObjectFromXML() will be to use the Zope
+        app object, and thus operatate on the whole of Zenoss.
+        """
+        self.loadObjectFromXML()
 
     def commit(self):
         trans = transaction.get()
