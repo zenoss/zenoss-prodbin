@@ -10,6 +10,7 @@ $Id: ZenModelRM.py,v 1.50 2004/05/10 20:49:09 edahl Exp $"""
 
 __version__ = "$Revision: 1.50 $"[11:-2]
 
+import os
 import time
 
 # base classes of ZenModelRM
@@ -86,6 +87,48 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+    def zmanage_exportObject(self, REQUEST=None):
+        """Export objects to specific locations.
+        """
+        redirect = False
+        dest = REQUEST.form.get('dest')
+        if dest == 'filesystem':
+            filename = '%s/export/%s_%s.xml' % (os.getenv('ZENHOME'), self.getNodeName(), self.id)
+            msg = "Item has been exported to: %s at " % filename
+        elif dest == 'zenossdotnet':
+            # create temp file
+            filename = ''
+            # get username and password from configuration
+            username = ''
+            password = ''
+            # get https URL for user space at Zenoss.net
+            url = 'https://%s:%s@zenoss.net/'
+            # build XML-RPC proxy object for publishing to Zenoss.net
+            server = xmlrpclib.ProxyServer(url)
+            msg = "Item has been exported to: %s. Note that you will need to "
+            msg += "login at Zenoss.net and publish this template in order to "
+            msg += "share it with others. Exported at " % url
+        # open file
+        exportFile = open(filename, 'w+')
+        # export object to file
+        self.exportXml(exportFile)
+        # cleanup
+        exportFile.close()
+        if dest == 'zenossdotnet':
+            # get data
+            exportFile = open(filename)
+            dataToSend = exportFile.read()
+            exportFile.close()
+            # push data up to Zenoss.net
+            server.postUserTemplate(dataToSend)
+        if REQUEST:
+            REQUEST['message'] = msg
+            return self.callZenScreen(REQUEST, redirect)
+
+    def zmanage_importObject(self, REQUEST=None):
+        """Import objects into Zenoss.
+        """
+        pass
 
     def zmanage_delProperties(self, ids=(), REQUEST=None):
         """Delete properties from an object.

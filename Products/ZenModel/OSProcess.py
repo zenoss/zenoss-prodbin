@@ -32,11 +32,11 @@ class OSProcess(OSComponent):
         ("osProcessClass", ToOne(ToMany, "OSProcessClass", "instances")),
     )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'osProcessDetail',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'osProcessDetail'
@@ -46,7 +46,7 @@ class OSProcess(OSComponent):
                 , 'name'          : 'PerfConf'
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
-                },                
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

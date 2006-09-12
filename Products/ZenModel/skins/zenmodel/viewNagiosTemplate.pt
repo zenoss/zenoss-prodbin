@@ -28,9 +28,13 @@
     </td>
     </tr>
     <tr>
-        <td class="tableheader" colspan="2">
+        <td class="tableheader" colspan="1">
             <input class="tableheader" type="submit" value="Save"
                 name="zmanage_editProperties:method" />
+        </td>
+        <td class="tableheader" colspan="1">
+            <input class="tableheader" type="submit" value="Export"
+                name="zmanage_exportObject:method" />
         </td>
     </tr>
 <table>
