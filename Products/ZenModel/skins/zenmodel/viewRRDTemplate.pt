@@ -35,6 +35,11 @@
         <td class="tableheader" colspan="1">
             <input class="tableheader" type="submit" value="Export"
                 name="zmanage_exportObject:method" />
+            to
+            <select class="tableheader" name="dest">
+                <option value="filesystem" selected="True">File System</option>
+                <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
+            </select>
         </td>
     </tr>
 </form>
