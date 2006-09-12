@@ -127,10 +127,10 @@ class ImportRM(ZCmdBase, ContentHandler):
                             % (obj.id, name, proptype, value))
         value = value.strip()
         if proptype == 'selection':
-	    try:
-	        firstElement = getattr(obj, name)[0]
-	        if type(firstElement) in types.StringTypes:
-	            proptype = 'string'
+            try:
+                firstElement = getattr(obj, name)[0]
+                if type(firstElement) in types.StringTypes:
+                    proptype = 'string'
             except IndexError:
 		proptype = 'string'
         if proptype == "date":
