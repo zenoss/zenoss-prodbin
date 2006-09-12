@@ -28,7 +28,7 @@ ZENPRODUCTS="ZenModel NcoProduct ZenUtils SiteScopeParser ZenRelations ZenStatus
 SYS=`uname`
 PS="ps -eo pid"
 
-if [ $SYS = "Darwin" ]; then
+if [ $SYS = "Darwin" -o $SYS = "FreeBSD" ]; then
     PS="ps -axo pid"
 fi
 
