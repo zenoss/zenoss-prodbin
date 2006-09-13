@@ -68,6 +68,35 @@
                 onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
+    <tr>
+      <th class="tabletitle" align="left" colspan="6">Import</th>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="6">
+            Import templates to PerfConf from the desired source
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="6">
+
+            <input class="tableheader" type="submit" value="Import"
+                name="manage_importRRDTemplate:method" />
+            from
+            <select class="tableheader" name="filenames" multiple="True" size="5">
+                <option tal:repeat="filedata here/getRRDImportFilesData"
+                    tal:attributes="value python:filedata[0]" 
+                    tal:content="python:filedata[1]" />
+            </select>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="6">
+            <input class="tableheader" type="submit" 
+              name="manage_importRRDTemplate:method" value="Browse" 
+              disabled="True" />
+            for templates on Zenoss.net
+        </td>
+    </tr>
 </table>
 </form>
 </tal:block>

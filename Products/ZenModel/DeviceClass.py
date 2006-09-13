@@ -10,30 +10,30 @@ $Id: DeviceClass.py,v 1.76 2004/04/22 19:09:53 edahl Exp $"""
 
 __version__ = "$Revision: 1.76 $"[11:-2]
 
+import os
 import types
 import time
 from sets import Set
+from glob import glob
 import transaction
-import DateTime
 
-from AccessControl import ClassSecurityInfo
-from Globals import InitializeClass
-from OFS.Folder import manage_addFolder
+import DateTime
+from zExceptions import Redirect
 from Globals import DTMLFile
 from Globals import InitializeClass
+from Globals import InitializeClass
+from OFS.Folder import manage_addFolder
 from Acquisition import aq_base, aq_parent, aq_chain
-from zExceptions import Redirect
-
-#from Products.AdvancedQuery import MatchGlob
-
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
+#from Products.AdvancedQuery import MatchGlob
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ImportRM import ImportRM
+from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+
 from RRDTemplate import RRDTemplate
-
 from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
-
 from DeviceOrganizer import DeviceOrganizer
 from NagiosTemplate import NagiosTemplate
 
@@ -214,7 +214,7 @@ class DeviceClass(DeviceOrganizer):
                 mod = sys.modules[fullpath]
                 if hasattr(mod, cname):
                     return getattr(mod, cname)
-        return Device 
+        return Device
    
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
@@ -379,6 +379,31 @@ class DeviceClass(DeviceOrganizer):
         return self.getSubComponents()
 
 
+    security.declareProtected('View', 'getImportFilesData')
+    def getImportFilesData(self):
+        """Get a list of XML filenames and basenames from the ZENHOME/import
+        directory.
+        """
+        path = os.path.join(os.getenv('ZENHOME'), 'import')
+        filedata = []
+        for filename in glob(path+os.path.sep+'*.xml'):
+            basename = os.path.basename(filename)
+            filedata.append((filename, basename))
+        filedata.sort()
+        return filedata
+
+    security.declareProtected('View', 'getNagiosImportFilesData')
+    def getNagiosImportFilesData(self):
+        """Get a list of Nagios-only import files' data.
+        """
+        return [ x for x in self.getImportFilesData() if 'Nagios' in x[1] ]
+
+    security.declareProtected('View', 'getRRDImportFilesData')
+    def getRRDImportFilesData(self):
+        """Get a list of Nagios-only import files' data.
+        """
+        return [ x for x in self.getImportFilesData() if 'RRD' in x[1] ]
+
     security.declareProtected('View', 'getRRDTemplates')
     def getRRDTemplates(self, context=None):
         """Return the actual RRDTemplate instances.
@@ -410,7 +435,7 @@ class DeviceClass(DeviceOrganizer):
         ids = [ id for id in ids if self.rrdTemplates._getOb(id, None) != None]
         if not ids: return self.callZenScreen(REQUEST)
         cp = self.rrdTemplates.manage_copyObjects(ids)
-        if REQUEST: 
+        if REQUEST:
             resp=REQUEST['RESPONSE']
             resp.setCookie('__cp', cp, path='/zport/dmd')
             REQUEST['__cp'] = cp
@@ -426,7 +451,7 @@ class DeviceClass(DeviceOrganizer):
         elif REQUEST:
             cp = REQUEST.get("__cp",None)
         if cp: self.rrdTemplates.manage_pasteObjects(cp)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
             REQUEST['__cp'] = None
@@ -439,11 +464,55 @@ class DeviceClass(DeviceOrganizer):
         """
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
-            if (getattr(aq_base(self), 'rrdTemplates', False) 
+            if (getattr(aq_base(self), 'rrdTemplates', False)
                 and getattr(aq_base(self.rrdTemplates),id,False)):
                 self.rrdTemplates._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
 
+    def importObject(self, objType='', REQUEST=None):
+        """Import an XML file as the Zenoss objects and properties it
+        represents.
+        """
+        if (not objType) or (not REQUEST):
+            REQUEST['message'] = 'Either no object type was given or ' + \
+                'the REQUEST was empty'
+            return self.callZenScreen(REQUEST)
+        if not REQUEST:
+            raise Exception, 'Empty request object!'
+        # get the submitted data
+        filenames = REQUEST.form.get('filenames')
+        urlnames = REQUEST.form.get('urlnames')
+        xmlfiles = []
+        for collection in [filenames, urlnames]:
+            if collection:
+                if isinstance(collection, list):
+                    xmlfiles.extend(collection)
+                else:
+                    xmlfiles.append(collection)
+        # get the object stack
+        if objType == 'NagiosTemplate':
+            objstack = self.nagiosTemplates
+        elif objType == 'RRDTemplate':
+            objstack = self.rrdTemplates
+        # load the objects into Zenoss
+        im = ImportRM(noopts=True)
+        for xmlfile in xmlfiles:
+            im.loadObjectFromXML(objstack, xmlfile)
+            transaction.commit()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    security.declareProtected('Add DMD Objects', 'manage_importRRDTemplate')
+    def manage_importRRDTemplate(self, REQUEST=None):
+        """Import an RRD Template.
+        """
+        return self.importObject('RRDTemplate', REQUEST)
+
+    security.declareProtected('Add DMD Objects', 'manage_importNagiosTemplate')
+    def manage_importNagiosTemplate(self, REQUEST=None):
+        """Import a Nagios Template.
+        """
+        return self.importObject('NagiosTemplate', REQUEST)
 
     security.declareProtected('View', 'getNagiosTemplates')
     def getNagiosTemplates(self, context=None):
