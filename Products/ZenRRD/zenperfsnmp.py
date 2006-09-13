@@ -190,7 +190,9 @@ class zenperfsnmp(SnmpDaemon):
         perfRoot = performancePath('')
         if not os.path.exists(perfRoot):
 	    os.makedirs(perfRoot)
-        self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$')
+        self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
+                                       self.maxRrdFileAge,
+                                       frequency=90*60)
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
 
@@ -444,7 +446,8 @@ class zenperfsnmp(SnmpDaemon):
 
     def storeRRD(self, device, oid, value):
         'store a value into an RRD file'
-        oidData = self.proxies[device].oidMap[oid]
+        oidData = self.proxies[device].oidMap.get(oid, None)
+        if not oidData: return
 
         value = self.rrd.save(oidData.path[1:],
                               value,
