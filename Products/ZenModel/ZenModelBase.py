@@ -76,7 +76,7 @@ class ZenModelBase(object):
             if len(id) > 1: id = id[1:]
             else: id = "-"
         id = self._cleanend("",id)
-        return id
+        return str(id)
 
 
     def getIdLink(self):
