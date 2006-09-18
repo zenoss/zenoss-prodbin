@@ -11,9 +11,13 @@ if [ -z "$ZOPEPASSWORD" ] ; then
 fi
 
 zpasswd.py -u admin -p $ZOPEPASSWORD inituser
-zopectl restart
+zopectl stop
+zopectl start
 sleep 2
-sed -e "s/zopepassword.*/zopepassword $ZOPEPASSWORD/" < \
-    $ZENHOME/etc/zenperfsnmp.conf > /tmp/zenperfsnmp.conf
-mv /tmp/zenperfsnmp.conf $ZENHOME/etc
-zenperfsnmp restart
+for file in zenperfsnmp zenagios zenperfxmlrpc zenprocess
+do
+    sed -e "s/zopepassword.*/zopepassword $ZOPEPASSWORD/" < \
+        $ZENHOME/etc/${file}.conf > /tmp/${file}.conf
+    mv /tmp/${file}.conf $ZENHOME/etc
+    $file restart
+done
