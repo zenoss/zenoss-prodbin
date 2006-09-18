@@ -10,7 +10,9 @@ if [ -z "$ZOPEPASSWORD" ] ; then
    stty echo
 fi
 
-zpasswd.py -u admin -p $ZOPEPASSWORD inituser
+test -z "$ZOPEHOME" || export ZOPEHOME=$ZENHOME
+
+$ZOPEHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl stop
 zopectl start
 sleep 2
