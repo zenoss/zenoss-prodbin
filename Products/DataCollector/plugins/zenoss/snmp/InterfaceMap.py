@@ -109,7 +109,7 @@ class InterfaceMap(SnmpPlugin):
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if dontCollectIntNames and re.search(dontCollectIntNames, om.name):
             return None
-        om.type = self.ifTypes.get(str(om.type), "")
+        om.type = self.ifTypes.get(str(om.type), "Unknown")
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
             return None
@@ -314,4 +314,39 @@ class InterfaceMap(SnmpPlugin):
      '195': 'Optical Channel',
      '196': 'Optical Transport',
      '197': 'Proprietary ATM',
+     '198': 'Voice Over Cable Interface',
+     '199': 'Infiniband',
+     '200': 'TE Link',
+     '201': 'Q.2931',
+     '202': 'Virtual Trunk Group',
+     '203': 'SIP Trunk Group',
+     '204': 'SIP Signaling',
+     '205': 'CATV Upstream Channel',
+     '206': 'Acorn Econet',
+     '207': 'FSAN 155Mb Symetrical PON interface',
+     '208': 'FSAN622Mb Symetrical PON interface',
+     '209': 'Transparent bridge interface',
+     '210': 'Interface common to multiple lines',
+     '211': 'voice E&M Feature Group D',
+     '212': 'voice FGD Exchange Access North American',
+     '213': 'voice Direct Inward Dialing',
+     '214': 'MPEG transport interface',
+     '215': '6to4 interface (DEPRECATED)',
+     '216': 'GTP (GPRS Tunneling Protocol)',
+     '217': 'Paradyne EtherLoop 1',
+     '218': 'Paradyne EtherLoop 2',
+     '219': 'Optical Channel Group',
+     '220': 'HomePNA ITU-T G.989',
+     '221': 'Generic Framing Procedure (GFP)',
+     '222': 'Layer 2 Virtual LAN using Cisco ISL',
+     '223': 'Acteleis proprietary MetaLOOP High Speed Link',
+     '224': 'FCIP Link',
+     '225': 'Resilient Packet Ring Interface Type',
+     '226': 'RF Qam Interface',
+     '227': 'Link Management Protocol',
+     '228': 'Cambridge Broadband Limited VectaStar',
+     '229': 'CATV Modular CMTS Downstream Interface',
+     '230': 'Asymmetric Digital Subscriber Loop Version 2',
+     '231': 'MACSecControlled',
+     '232': 'MACSecUncontrolled', 
      }
