@@ -96,8 +96,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         expDir = os.path.join(zenhome, 'export')
         fileBase = '%s_%s.xml' % (self.getNodeName(), self.id)
         if dest == 'filesystem':
-            if not os.path.exists(os.path.join(expDir):
-                os.mkdir(expDir)
             filename = os.path.join(expDir, fileBase)
             msg = "Item has been exported to: %s at " % filename
         elif dest == 'zenossdotnet':
