@@ -24,7 +24,7 @@ def convert(evt):
             if not hasattr(aq_base(evt), 'zEventSeverity'):
                 evt._setProperty('zEventSeverity', sev, type='int')
         except ValueError:
-            print sev 
+            print sev
         evt._delProperty('zEvent_severity')
     if hasattr(aq_base(evt), 'zEventProperties'):
         evt._delProperty('zEventProperties')

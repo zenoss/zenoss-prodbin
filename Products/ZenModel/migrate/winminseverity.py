@@ -4,6 +4,7 @@ Add zWinEventlogMinSeverity to DeviceClass.
 
 '''
 import Migrate
+
 class WinMinSeverity(Migrate.Step):
     version = 22.0
 

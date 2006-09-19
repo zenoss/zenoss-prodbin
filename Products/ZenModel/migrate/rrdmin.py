@@ -13,11 +13,16 @@ Re-index the event history table.
 
 __version__ = "$Revision$"[11:-2]
 
+import re
+import os
+
+try:
+    import rrdtool
+except ImportError:
+    rrdtool = None
+
 import Migrate
 
-import os
-import rrdtool
-import re
 rrd = re.compile('.*\\.rrd')
 
 class RRDMinValue(Migrate.Step):
@@ -29,6 +34,7 @@ class RRDMinValue(Migrate.Step):
                 rrdtool.tune(os.path.join(d, f), '-i', 'ds0:' + value)
 
     def cutover(self, dmd):
-        self.setMin('U')
+        if rrdtool:
+            self.setMin('U')
 
 RRDMinValue()

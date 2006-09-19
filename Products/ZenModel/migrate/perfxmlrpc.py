@@ -4,6 +4,7 @@ Add zXmlRpcMonitorIgnore to DeviceClass and XmlRpc to EventClass.
 
 '''
 import Migrate
+
 class PerfXmlRpc(Migrate.Step):
     version = 23.0
 

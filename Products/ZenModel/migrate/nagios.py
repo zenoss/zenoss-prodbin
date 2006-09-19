@@ -4,6 +4,7 @@ Add zNagiosPath and zNagiosCycleTime to DeviceClass.
 
 '''
 import Migrate
+
 class Nagios(Migrate.Step):
     version = 22.0
 
