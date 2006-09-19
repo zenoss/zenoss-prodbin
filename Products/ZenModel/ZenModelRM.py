@@ -29,7 +29,7 @@ from ZPublisher.Converters import type_converters
 from Products.ZenUtils.Utils import getSubObjects
 
 
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical): 
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
@@ -92,8 +92,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         """
         redirect = False
         dest = REQUEST.form.get('dest')
+        zenhome = os.getenv('ZENHOME')
+        expDir = os.path.join(zenhome, 'export')
+        fileBase = '%s_%s.xml' % (self.getNodeName(), self.id)
         if dest == 'filesystem':
-            filename = '%s/export/%s_%s.xml' % (os.getenv('ZENHOME'), self.getNodeName(), self.id)
+            if not os.path.exists(os.path.join(expDir):
+                os.mkdir(expDir)
+            filename = os.path.join(expDir, fileBase)
             msg = "Item has been exported to: %s at " % filename
         elif dest == 'zenossdotnet':
             # create temp file
