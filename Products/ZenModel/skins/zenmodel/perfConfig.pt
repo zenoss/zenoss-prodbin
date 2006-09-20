@@ -87,6 +87,10 @@
                     tal:attributes="value python:filedata[0]" 
                     tal:content="python:filedata[1]" />
             </select>
+            and/or from the supplied URLs:
+            <textarea class="tableheader" name="urlnames"
+                cols="50" rows="4"
+                style="overflow:scroll;"></textarea>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="here/isManager">

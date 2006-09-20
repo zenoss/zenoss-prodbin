@@ -169,7 +169,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             if start > lastindex: start = lastindex
         elif navbutton == "prev":
             start = start - batchSize
-        elif request.has_key("nextstart"): 
+        elif request.has_key("nextstart"):
             start = request.nextstart
         if 0 < start > len(objects): start = 0
         request.start = start

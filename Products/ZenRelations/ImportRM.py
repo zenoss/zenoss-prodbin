@@ -15,9 +15,9 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 import sys
 import os
 import types
+import urllib2
 import transaction
 from urlparse import urlparse
-
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
 
@@ -210,7 +210,6 @@ class ImportRM(ZCmdBase, ContentHandler):
             # check to see if we're getting the XML from a URL ...
             schema, host, path, null, null, null = urlparse(xmlfile)
             if schema and host:
-                import urllib2
                 self.infile = urllib2.urlopen(xmlfile)
             # ... or from a file on the file system
             else:
