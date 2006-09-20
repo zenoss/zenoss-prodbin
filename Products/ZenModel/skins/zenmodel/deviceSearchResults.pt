@@ -1,9 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
-
 <tal:block metal:fill-slot="breadCrumbPane">
     /<a href="#">Device Search Results</a>
 </tal:block>
-
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" tal:attributes="action request/URL">
@@ -18,10 +16,13 @@
     <tr>
       <th class="tabletitle" colspan="5">Results</th>
     </tr>
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+    <tbody metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+	<tr>
+	<td colspan="5" class="tableheader" align='center'>
+	<form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+	</td>
+	</tr>
 </table>
 </form>
-
 </tal:block>
-
 </tal:block>

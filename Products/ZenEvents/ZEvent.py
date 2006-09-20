@@ -9,6 +9,8 @@
 #
 ###############################################################################
 
+import cgi
+
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
@@ -40,6 +42,8 @@ class ZEvent(Event):
                         "%s</a>" % (value, value)
             elif field == 'eventClass':
                 value = "<a href='/zport/dmd/Events%s'>%s</a>" % (value,value)
+            elif field == 'summary' or field == 'message':
+                value = cgi.escape(value)
             data.append(value)
         return data
 

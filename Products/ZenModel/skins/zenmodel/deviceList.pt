@@ -11,7 +11,17 @@
     <tr>
       <th class="tabletitle" colspan="5">Device List</th>
     </tr>
-    <span metal:use-macro="here/deviceListMacro/macros/fullDevListBody"/>
+	<tr>
+		<td colspan="5" class="tableheader" align='center'>
+			<form metal:use-macro="here/zenTableNavigation/macros/navfilter"/>
+		</td>
+	</tr>
+    <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+	<tr>
+	<td colspan="5" class="tableheader" align='center'>
+	<form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"/>
+	</td>
+	</tr>
 </table>
 </form>
 

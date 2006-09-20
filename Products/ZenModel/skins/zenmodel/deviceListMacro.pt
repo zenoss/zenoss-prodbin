@@ -14,14 +14,16 @@
        Devices 
       </th>
     </tr>
-    <span metal:define-macro="devListBody" tal:omit-tag="">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
+    <tbody metal:define-macro="devListBody">
     <tr>
-        <th 
-            tal:replace="structure python:here.ZenTableManager.getTableHeader(
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')">Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getDeviceIp','IP')">IP
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getDeviceClassPath','Class')">Class
@@ -30,10 +32,7 @@
                     tableName,'getProdState','State','cmp')">State
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getPingStatusNumber','Ping','cmp')">Ping
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getSnmpStatusNumber','Snmp','cmp')">Snmp
+                    tableName,'getSnmpStatusNumber','Critical/Error','cmp')">Critical/Error
         </th>
 	</tr>
 	<tr tal:repeat="device batch">
@@ -47,16 +46,32 @@
             </a>
         </td>
 		<td class="tablevalues" align="left"
-            tal:content="device/getDeviceClassPath">
-            type
+            tal:content="device/getDeviceIp">ip
         </td>
 		<td class="tablevalues" align="left"
-            tal:content="device/getProdState">
-            prodstate
+            tal:define="path device/getDeviceClassPath">
+            <a href="" 
+                tal:attributes="href string:/zport/dmd/Devices${path}"
+                tal:content="path">type</a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:content="device/getProdState">prodstate
         </td >
-        <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
-        <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
+        <td class='tablevalues' tal:define="severity python:4">
+        <table width="100%" 
+            tal:on-error="structure string:
+                <span class='errorvalues'>Events unavailable</span>">
+            <tr>
+                <td align=center width=16%
+                tal:repeat="evt python:device.getEventSummary(severity)"
+                tal:attributes="class python:evt[0]">
+                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
+                </td>
+          </tr>
+        </table>
+        </td>
     </tr>
+    </tbody>
     <tr>
         <td colspan=5 class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
@@ -81,7 +96,6 @@
                     onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
-    </span>
 </table>
 </form>
 
@@ -147,7 +161,7 @@
                             tableName,'primarySortKey','Name')">Name
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'manageIp','IP')">IP
+                            tableName,'getDeviceIp','IP')">IP
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getDeviceClassPath','Class')">Class
@@ -167,7 +181,7 @@
             </a>
         </td>
 		<td class="tablevalues" align="left"
-            tal:content="device/manageIp">ip
+            tal:content="device/getDeviceIp">ip
         </td>
 		<td class="tablevalues" align="left"
             tal:define="path device/getDeviceClassPath">
@@ -179,7 +193,17 @@
             tal:content="device/getProdState">prodstate
         </td >
         <td tal:define="severity python:4">
-            <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
+        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+            tal:on-error="structure string:
+                <span class='errorvalues'>Events unavailable</span>">
+            <tr>
+                <td align=center width=16%
+                tal:repeat="evt python:device.getEventSummary(severity)"
+                tal:attributes="class python:evt[0]">
+                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
+                </td>
+          </tr>
+        </table>
         </td>
     </tr>
     <tr>

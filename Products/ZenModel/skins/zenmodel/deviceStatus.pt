@@ -6,15 +6,9 @@
       <th class="tabletitle" colspan=4>Status</th>
     </tr>
     <tr>
-      <td class="tableheader">Ping</td>
-    <td tal:define="status here/getPingStatus"
-        tal:attributes="class python:here.getStatusCssClass(status)"
-        tal:content="python:here.convertStatus(status)">
-        ping status
-    </td>
       <td class="tableheader">Events</td>
       <td class="tablevalues">
-        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+        <table width='100%'
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>"
@@ -30,13 +24,6 @@
           </tr>
         </table>
       </td>
-    </tr>
-    <tr>
-      <td class="tableheader">SNMP</td>
-      <td tal:define="status here/getSnmpStatus"
-        tal:attributes="class python: here.getStatusCssClass(status)"
-        tal:content="python:here.convertStatus(status)">
-        0</td>
         <th class="tableheader">Last Change</th>
         <td class="tablevalues" tal:content="here/getLastChangeString"/>
     </tr>

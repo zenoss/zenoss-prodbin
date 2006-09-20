@@ -42,4 +42,5 @@ def simple():
     time.sleep(30)
     s.sendEvent(clear)
 
-simple()
+if __name__ == '__main__':
+    simple()
