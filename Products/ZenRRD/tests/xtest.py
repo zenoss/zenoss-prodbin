@@ -4,7 +4,7 @@ TCPServer.allow_reuse_address = True
 TCPServer.request_queue_size = 100
 
 def load():
-    return dict(zip('load5 load10 load15'.split(),
+    return dict(zip('load1 load5 load10'.split(),
                     open('/proc/loadavg').read().split()))
 def load2():
     return tuple(open('/proc/loadavg').read().split())
