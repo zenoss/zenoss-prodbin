@@ -18,14 +18,21 @@ import Migrate
 
 from Products.ZenModel.RRDDataPoint import RRDDataPoint, SEPARATOR
 
-MOVED_PROPERTIES = 'sourcetype createCmd rrdtype isrow rpn rrdmax color linetype limit format'.split()
+MOVED_PROPERTIES = 'createCmd rrdtype isrow rpn rrdmax color linetype limit format'.split()
+NAGIOS_PROPERTIES = 'enabled usessh component eventClass eventKey severity commandTemplate cycletime'.split()
 
 def copyProperty(source, dest, name):
     try:
         s = getattr(source, name)
     except AttributeError:
         return
-    d = getattr(dest, name)
+    try:
+        d = getattr(dest, name)
+    except AttributeError:
+        import pdb
+        pdb.set_trace()
+        pass
+
     if s != d:
         setattr(dest, name, s)
     try:
@@ -60,11 +67,28 @@ class DataPoints(Migrate.Step):
                     self.renames.append( (oldname, newname) )
                     os.rename(oldname, newname)
 
+    def cutoverNagios(self, obj):
+        sourceTemplate = obj.getNagiosTemplate()
+        destTemplate = obj.getRRDTemplate(obj.getRRDTemplateName())
+        for n in sourceTemplate.nagiosCmds():
+            try:
+                ds = destTemplate.datasources._getOb(n.id)
+            except AttributeError:
+                destTemplate.manage_addRRDDataSource(n.id)
+                ds = destTemplate.datasources._getOb(n.id)
+                ds.sourcetype = 'NAGIOS'
+            if ds.sourcetype == 'NAGIOS':
+                for attr in NAGIOS_PROPERTIES:
+                    setattr(ds, attr, getattr(n, attr))
+
     def cutover(self, dmd):
         for d in dmd.Devices.getSubDevices():
             self.cutoverTemplates(d)
+            self.cutoverNagios(d)
             for o in d.getDeviceComponents():
                 self.cutoverTemplates(o)
+                self.cutoverNagios(o)
+            
 
     def revert(self):
         for oldname, newname in self.renames:
