@@ -5822,7 +5822,7 @@ http://www.hp.com
 </object>
 <object id='Intel_ Dialogic_ System Release 6.0  Redistributable Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='lines' id='productKeys' mode='w' >
-[u'Intel\xae Dialogic\xae System Release 6.0  Redistributable Edition']
+[u'Intel Dialogic System Release 6.0  Redistributable Edition']
 </property>
 </object>
 <object id='Intel Corporation PCI Bridge Hub A ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -7111,7 +7111,7 @@ http://www.microsoft.com
 </object>
 <object id='Windows Server 2003 Hotfix - KB 819696' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='lines' id='productKeys' mode='w' >
-[u'Windows Server 2003 Hotfix \x96 KB 819696']
+[u'Windows Server 2003 Hotfix KB 819696']
 </property>
 </object>
 <object id='Security Update for Windows XP (KB900725)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
