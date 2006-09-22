@@ -32,7 +32,7 @@ from sets import Set
 
 import re
 # how to parse each value response from a nagios command
-ValueParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9]+)([^;]*;?){0,5}""")
+ValueParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.]+)([^;]*;?){0,5}""")
 
 MAX_CONNECTIONS=50
 
@@ -454,6 +454,7 @@ class zenagios(RRDDaemon):
             if not parts: continue
             label = parts.group(1).replace("''", "'")
             value = float(parts.group(3))
+            print cmd.points.keys(), label, value, parts.groups()
             if cmd.points.has_key(label):
                 path, type, command, thresholds = cmd.points[label]
                 value = self.rrd.save(path, value, type, command)
