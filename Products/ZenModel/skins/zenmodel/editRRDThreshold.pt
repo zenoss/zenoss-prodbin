@@ -67,8 +67,11 @@
     <tr>
         <td class="tableheader">Severity</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="severity:int" size="10"
-            tal:attributes="value here/severity" />
+        <select class="tablevalues" name="severity:int">
+           <option tal:repeat="sev here/ZenEventManager/getSeverities"
+                   tal:content="python:sev[0]"
+                   tal:attributes="selected python:sev[1]==here.severity; value python:sev[1]"/>
+        </select>
         </td>
     </tr>
     <tr>

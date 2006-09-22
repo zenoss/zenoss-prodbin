@@ -123,11 +123,6 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'perfConfig'
                 , 'permissions'   : ("Change Device",)
                 },
-                { 'id'            : 'nagConf'
-                , 'name'          : 'NagConf'
-                , 'action'        : 'nagiosConfig'
-                , 'permissions'   : ("Change Device",)
-                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

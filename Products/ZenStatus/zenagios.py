@@ -24,12 +24,24 @@ import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenEvents import Event
 
-from Products.ZenRRD.RRDDaemon import RRDDaemon
+from Products.ZenRRD.RRDDaemon import RRDDaemon, Threshold
+from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
 from sets import Set
 
+import re
+# how to parse each value response from a nagios command
+ValueParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9]+)([^;]*;?){0,5}""")
+
 MAX_CONNECTIONS=50
+
+class CommandConfig:
+    def __init__(self, dictionary):
+        d = dictionary.copy()
+        d['self'] = self
+        self.__dict__.update(dictionary)
+    
 
 class TimeoutError(Exception):
     "Error for a defered call taking too long to complete"
@@ -278,26 +290,25 @@ class Cmd:
         return pr
 
 
-    def updateConfig(self,device,ipAddress, username, password,
-                     loginTimeout, commandTimeout,
-                     cycleTime, useSsh, port,
-                     eventKey, eventClass, component, severity,
-                     command, **kw):
-        self.device = device
-        self.ipAddress = ipAddress
-        self.port = port
-        self.username = username
-        self.password = password
-        self.loginTimeout = loginTimeout
-        self.commandTimeout = commandTimeout
-        self.useSsh = useSsh
-        self.cycleTime = max(cycleTime, 1)
-        self.eventKey = eventKey
-        self.eventClass = eventClass
-        self.component = component
-        self.severity = severity
-        self.command = command
-
+    def updateConfig(self, cfg):
+        self.device = cfg.device
+        self.ipAddress = cfg.ipAddress
+        self.port = cfg.port
+        self.username = cfg.username
+        self.password = cfg.password
+        self.loginTimeout = cfg.loginTimeout
+        self.commandTimeout = cfg.commandTimeout
+        self.useSsh = cfg.useSsh
+        self.cycleTime = max(cfg.cycleTime, 1)
+        self.eventKey = cfg.eventKey
+        self.eventClass = cfg.eventClass
+        self.component = cfg.component
+        self.severity = cfg.severity
+        self.command = cfg.command
+        self.points = {}
+        for p in cfg.points:
+            thresholds = [Thresholds(t) for t in p[-1]]
+            self.points[p[0]] = (p[1:-1] + [thresholds])
 
 class Options:
     loginTries=1
@@ -341,11 +352,9 @@ class zenagios(RRDDaemon):
                 continue
             for cmd in commandPart:
                 (useSsh, cycleTime,
-                 component, eventClass, eventKey, severity, command) = cmd
+                 component, eventClass, eventKey, severity, command, points) = cmd
                 obj = table.setdefault((device,command), Cmd())
-                args = locals().copy()
-                del args['self']
-                obj.updateConfig(**args)
+                obj.updateConfig(CommandConfig(locals()))
         self.schedule = table.values()
         if self.options.cycle:
             self.heartbeat()
@@ -399,39 +408,58 @@ class zenagios(RRDDaemon):
             
     def finished(self, cmd):
         if isinstance(cmd, failure.Failure):
-            if isinstance(cmd.value, TimeoutError):
-                cmd, = cmd.value.args
-                log.error("Command timed out on device %s: %s",
-                          cmd.device, cmd.command)
-            else:
-                log.exception(cmd.value)
+            self.error(cmd)
         else:
-            output = cmd.result.output
-            if output.find('|') >= 0:
-                msg, values = output.split('|', 1)
-            else:
-                msg, values = output, ''
-            exitCode = cmd.result.exitCode
-            severity = cmd.severity
-            issueKey = cmd.device, cmd.eventClass
-            msg = msg.strip() or ('exit code: %d' % exitCode)
-            if exitCode == 0:
-                severity = 0
-            elif exitCode == 2:
-                severity = min(severity + 1, 5)
-            if severity or issueKey in self.deviceIssues:
-                self.sendThresholdEvent(device=cmd.device,
-                                        summary=msg,
-                                        severity=severity,
-                                        message=msg,
-                                        performanceData=values,
-                                        eventKey=cmd.eventKey,
-                                        eventClass=cmd.eventClass,
-                                        component=cmd.component)
-                self.deviceIssues.add(issueKey)
-            if severity == 0:
-                self.deviceIssues.discard(issueKey)
+            self.parseResults(cmd)
         self.processSchedule()
+
+
+    def error(self, err):
+        if isinstance(err.value, TimeoutError):
+            cmd, = err.value.args
+            log.error("Command timed out on device %s: %s",
+                      cmd.device, cmd.command)
+        else:
+            log.exception(cmd.value)
+
+    def parseResults(self, cmd):
+        output = cmd.result.output
+        if output.find('|') >= 0:
+            msg, values = output.split('|', 1)
+        else:
+            msg, values = output, ''
+        exitCode = cmd.result.exitCode
+        severity = cmd.severity
+        issueKey = cmd.device, cmd.eventClass
+        msg = msg.strip() or ('exit code: %d' % exitCode)
+        if exitCode == 0:
+            severity = 0
+        elif exitCode == 2:
+            severity = min(severity + 1, 5)
+        if severity or issueKey in self.deviceIssues:
+            self.sendThresholdEvent(device=cmd.device,
+                                    summary=msg,
+                                    severity=severity,
+                                    message=msg,
+                                    performanceData=values,
+                                    eventKey=cmd.eventKey,
+                                    eventClass=cmd.eventClass,
+                                    component=cmd.component)
+            self.deviceIssues.add(issueKey)
+        if severity == 0:
+            self.deviceIssues.discard(issueKey)
+
+        for value in values.split(' '):
+            parts = ValueParser.match(value)
+            if not parts: continue
+            label = parts.group(1).replace("''", "'")
+            value = float(parts.group(3))
+            if cmd.points.has_key(label):
+                path, type, command, thresholds = cmd.points[label]
+                value = self.rrd.save(path, value, type, command)
+                for t in thresholds:
+                    t.check(cmd.device, cmd.component, cmd.eventKey, value,
+                            self.sendThresholdEvent)
 
 
     def fetchConfig(self):
@@ -440,8 +468,13 @@ class zenagios(RRDDaemon):
                 yield self.model.callRemote('propertyItems')
                 self.setPropertyItems(driver.next())
                 
+                yield self.model.callRemote('getDefaultRRDCreateCommand')
+                createCommand = driver.next()
+                
                 yield self.model.callRemote('getNagiosCmds')
                 self.updateConfig(driver.next())
+
+                self.rrd = RRDUtil(createCommand, 60)
             except Exception, ex:
                 log.exception(ex)
                 raise

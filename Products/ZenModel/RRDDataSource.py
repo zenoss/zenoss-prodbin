@@ -20,10 +20,14 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Acquisition import aq_parent
 
+from Products.PageTemplates.Expressions import getEngine
+from Products.ZenUtils.ZenTales import talesCompile
+
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
+from DateTime import DateTime
 
 def manage_addRRDDataSource(context, id, REQUEST = None):
     """make a RRDDataSource"""
@@ -52,7 +56,7 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
   
-    sourcetypes = ('SNMP', 'XMLRPC')
+    sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS')
     paramtypes = ('integer', 'string', 'float')
     
     sourcetype = 'SNMP'
@@ -64,6 +68,15 @@ class RRDDataSource(ZenModelRM):
     # [[param1, int], [param2, string], ...]
     xmlrpcMethodParameters = []
 
+    enabled = True
+    usessh = False
+    component = ''
+    eventClass = ''
+    eventKey = ''
+    severity = 3
+    commandTemplate = ""
+    cycletime = 60
+
     _properties = (
         {'id':'sourcetype', 'type':'selection',
         'select_variable' : 'sourcetypes', 'mode':'w'},
@@ -73,6 +86,16 @@ class RRDDataSource(ZenModelRM):
         {'id':'xmlrpcPassword', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodParameters', 'type':'lines', 'mode':'w'},
+
+        {'id':'enabled', 'type':'boolean', 'mode':'w'},
+        {'id':'usessh', 'type':'boolean', 'mode':'w'},
+        {'id':'component', 'type':'string', 'mode':'w'},
+        {'id':'eventClass', 'type':'string', 'mode':'w'},
+        {'id':'eventKey', 'type':'string', 'mode':'w'},
+        {'id':'severity', 'type':'int', 'mode':'w'},
+        {'id':'commandTemplate', 'type':'string', 'mode':'w'},
+        {'id':'cycletime', 'type':'int', 'mode':'w'},
+        
         )
 
 
@@ -113,6 +136,11 @@ class RRDDataSource(ZenModelRM):
             return self.oid
         if self.sourcetype == "XMLRPC":
             return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
+        if self.sourcetype == "NAGIOS":
+            if self.usessh:
+                return self.commandTemplate + " over SSH"
+            else:
+                return self.commandTemplate
         return None
 
     def getXmlRpcMethodParameters(self):
@@ -127,7 +155,7 @@ class RRDDataSource(ZenModelRM):
 
     def getRRDDataPoints(self):
         return self.datapoints()
-    
+
     def manage_addRRDDataPoint(self, id, REQUEST = None):
         """make a RRDDataPoint"""
         if not id:
@@ -158,3 +186,25 @@ class RRDDataSource(ZenModelRM):
                 self.datapoints._delObject(dp.id)
         if REQUEST: 
             return self.callZenScreen(REQUEST)
+
+    def getCommand(self, context):
+        """Return localized command target.
+        """
+        """Perform a TALES eval on the express using self
+        """
+        exp = "string:"+ self.commandTemplate
+        compiled = talesCompile(exp)    
+        d = context.device()
+        environ = {'dev' : d,
+                   'devname': d.id,
+                   'here' : self, 
+                   # 'compname' : self.getComponentName(), 
+                   'zNagiosPath' : context.zNagiosPath,
+                   'nothing' : None,
+                   'now' : DateTime() }
+        res = compiled(getEngine().getContext(environ))
+        if isinstance(res, Exception):
+            raise res
+        if not res.startswith(context.zNagiosPath):
+            res = os.path.join(context.zNagiosPath, res)
+        return res

@@ -3,7 +3,7 @@
 
 <table class="zentable"  cellpadding="3" cellspacing="1">
     <tr>
-      <th class="tabletitle" align="left" colspan="2">Cricket Configuration</th>
+      <th class="tabletitle" align="left" colspan="2">Performance Collector Configuration</th>
     </tr>
     <tr>
       <td class="tableheader">Snmp Cycle Interval (secs)</td>

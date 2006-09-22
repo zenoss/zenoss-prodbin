@@ -114,10 +114,11 @@ class RRDTemplate(ZenModelRM):
         return [p.name() for s in self.datasources() for p in s.datapoints()]
 
     
-    def getRRDDataSources(self):
+    def getRRDDataSources(self, type=None):
         """Return a list of all datapoints on this template.
         """
-        return self.datasources()
+        if type is None: return self.datasources()
+        return [ds for ds in self.datasources() if ds.sourcetype == type]
 
 
     def getRRDDataPoints(self):

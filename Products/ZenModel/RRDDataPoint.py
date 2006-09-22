@@ -49,7 +49,7 @@ class RRDDataPoint(ZenModelRM):
     linetypes = ('', 'AREA', 'LINE')
     
     createCmd = ""
-    rrdtype = 'COUNTER'
+    rrdtype = 'GAUGE'
     isrow = True
     rpn = ""
     rrdmax = -1

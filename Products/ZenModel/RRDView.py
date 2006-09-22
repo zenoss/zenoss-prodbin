@@ -192,8 +192,8 @@ class RRDView(object):
             templ = self.getRRDTemplate(self.getRRDTemplateName())
             if templ:
                 threshs = self.getThresholds(templ)
-                for ds in templ.getRRDDataSources():
-                    if ds.sourcetype != "SNMP": continue
+                for ds in templ.getRRDDataSources("SNMP"):
+                    if not ds.enabled: continue
                     oid = ds.oid
                     snmpindex = getattr(self, "ifindex", self.snmpindex)
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
@@ -213,12 +213,27 @@ class RRDView(object):
 
     def getNagiosCmds(self):
         """Return list of nagios commands definitions in the form.
-        [(name,compname,eventClass,eventKey,severity,commnad),...]
+        [(name,compname,eventClass,eventKey,severity,command),...]
         """
-        templ = self.getNagiosTemplate()
+        templ = self.getRRDTemplate(self.getRRDTemplateName())
         if not templ: return ()
-        return [ c.getCmdInfo(self) for c in templ.nagiosCmds() if c.enabled ]
-            
+        threshs = self.getThresholds(templ)
+        result = []
+        basepath = self.rrdPath()
+        for ds in templ.getRRDDataSources('NAGIOS'):
+            if not ds.enabled: continue
+            points = []
+            for dp in ds.getRRDDataPoints():
+                points.append(
+                    (dp.id,
+                     "/".join((basepath, dp.name())),
+                     dp.rrdtype,
+                     dp.createCmd,
+                     threshs.get(dp.name(),[])))
+            result.append( (ds.usessh, ds.cycletime, ds.component,
+                            ds.eventClass, ds.eventKey, ds.severity,
+                            ds.getCommand(self), points) )
+        return result
 
     def getXmlRpcTargets(self):
         """Return a list of XMLRPC targets in the form.
@@ -236,8 +251,8 @@ class RRDView(object):
             templ = self.getRRDTemplate(self.getRRDTemplateName())
             if templ:
                 threshs = self.getThresholds(templ)
-                for ds in templ.getRRDDataSources():
-                    if ds.sourcetype != "XMLRPC": continue
+                for ds in templ.getRRDDataSources("XMLRPC"):
+                    if not ds.enabled: continue
                     url = talesEval('string:' + ds.xmlrpcURL, self.device())
                     username = ds.xmlrpcUsername
                     password = ds.xmlrpcPassword
