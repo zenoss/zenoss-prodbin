@@ -283,11 +283,6 @@ class Device(ManagedEntity):
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
                 },
-                { 'id'            : 'NagConf'
-                , 'name'          : 'NagConf'
-                , 'action'        : 'objNagiosTemplate'
-                , 'permissions'   : ("Change Device", )
-                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editDevice'
@@ -424,12 +419,8 @@ class Device(ManagedEntity):
          [(name, oid, path, type, createCmd, thresholds),])
         """
         oids = (super(Device, self).getSnmpOidTargets())
-        for o in self.os.interfaces():
-            if o.monitored(): oids.extend(o.getSnmpOidTargets())
-        for o in self.os.filesystems():
-            if o.monitored(): oids.extend(o.getSnmpOidTargets())
-        for o in self.hw.harddisks():
-            if o.monitored(): oids.extend(o.getSnmpOidTargets())
+        for o in self.os.getMonitoredComponents():
+            oids.extend(o.getSnmpOidTargets())
         return (self.getSnmpConnInfo(), oids)
 
 
@@ -438,12 +429,8 @@ class Device(ManagedEntity):
         (device, user, pass [(cmdinfo,),...])
         """
         cmds = (super(Device, self).getNagiosCmds())
-        for o in self.os.interfaces():
-            if o.monitored(): cmds.extend(o.getNagiosCmds())
-        for o in self.os.filesystems():
-            if o.monitored(): cmds.extend(o.getNagiosCmds())
-        for o in self.hw.harddisks():
-            if o.monitored(): cmds.extend(o.getNagiosCmds())
+        for o in self.getMonitoredComponents():
+            cmds.extend(o.getNagiosCmds())
         if cmds:
             return (self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
@@ -470,14 +457,6 @@ class Device(ManagedEntity):
         return templ
 
    
-    def getNagiosTemplate(self, name=None):
-        if not name: name = self.getNagiosTemplateName()
-        templ = getattr(self, name+"_Nagios", None)
-        if templ is None:
-            templ = super(Device, self).getNagiosTemplate(name)
-        return templ
-
-
     def getHWManufacturerName(self):
         """Return the hardware manufacturer name of this device.
         """
