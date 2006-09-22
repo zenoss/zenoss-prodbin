@@ -2,15 +2,13 @@
 
 cd $ZENHOME
 
-if [ -z "$ZOPEPASSWORD" ] ; then
-   echo -n 'Password for the Zenoss "admin" user: '
-   stty -echo
-   read ZOPEPASSWORD
-   echo
-   stty echo
-fi
+echo -n 'Password for the Zenoss "admin" user: '
+stty -echo
+read ZOPEPASSWORD
+echo
+stty echo
 
-test -z "$ZOPEHOME" || export ZOPEHOME=$ZENHOME
+test -z "$ZOPEHOME" && export ZOPEHOME=$ZENHOME
 
 $ZOPEHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl stop
