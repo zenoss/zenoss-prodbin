@@ -144,6 +144,9 @@ class Migration(ZCmdBase):
         if self.options.commit:
             self.message('committing')
             transaction.commit()
+        else:
+            self.message('rolling back changes')
+            self.recover()
         self.message("Migration successful")
 
 

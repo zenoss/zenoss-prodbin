@@ -24,7 +24,7 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <select class="tablevalues" name="dsnames:list" multiple
                 tal:define="curdses here/dsnames">
-                <option tal:repeat="ds here/getRRDDataSourceNames" 
+                <option tal:repeat="ds here/getRRDDataPointNames" 
                     tal:attributes="value ds; selected python:ds in curdses"
                     tal:content="ds">ifInOctets</option>
             </select>

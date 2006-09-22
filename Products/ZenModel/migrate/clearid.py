@@ -6,7 +6,7 @@
 
 __doc__='''
 
-Re-index the event history table.
+Add a clearid column to the status and history tables
 
 '''
 

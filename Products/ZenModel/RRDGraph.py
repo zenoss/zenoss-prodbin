@@ -171,14 +171,12 @@ class RRDGraph(ZenModelRM):
     def buildDS(self, gopts, rrdfile, template, summary,multiid=-1):
         """Add commands to draw data sources in this graph.
         """
-        dsindex = 0
-        for dsname in self.dsnames:
-            ds = template.getRRDDataSource(dsname)
-            ds.setIndex(dsindex)
+        for dsindex, dsname in enumerate(self.dsnames):
+            dp = template.getRRDDataPoint(dsname)
+            dp.setIndex(dsindex)
             defcolor = self.colors[dsindex]
             deftype = self.gettype(dsindex)
-            gopts += ds.graphOpts(rrdfile, defcolor, deftype, summary, multiid)
-            dsindex += 1
+            gopts += dp.graphOpts(rrdfile, defcolor, deftype, summary, multiid)
         return gopts
 
 

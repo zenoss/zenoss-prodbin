@@ -16,6 +16,8 @@ from Acquisition import aq_base, aq_chain
 from Products.ZenRRD.Exceptions import RRDObjectNotFound
 from Products.ZenUtils import Map
 
+from Products.ZenUtils.ZenTales import talesEval
+
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
@@ -195,14 +197,15 @@ class RRDView(object):
                     oid = ds.oid
                     snmpindex = getattr(self, "ifindex", self.snmpindex)
                     if snmpindex: oid = "%s.%s" % (oid, snmpindex)
-                    cname = self.meta_type != "Device" \
-                                and self.viewName() or ds.id
-                    oids.append((cname,
-                                 oid,
-                                 "/".join((basepath, ds.id)),
-                                 ds.rrdtype,
-                                 ds.createCmd,
-                                 threshs.get(ds.id,[])))
+                    for dp in ds.getRRDDataPoints():
+                        cname = self.meta_type != "Device" \
+                                    and self.viewName() or dp.id
+                        oids.append((cname,
+                                     oid,
+                                     "/".join((basepath, dp.name())),
+                                     dp.rrdtype,
+                                     dp.createCmd,
+                                     threshs.get(dp.name(),[])))
         except RRDObjectNotFound, e:
             log.warn(e)
         return oids
@@ -235,23 +238,27 @@ class RRDView(object):
                 threshs = self.getThresholds(templ)
                 for ds in templ.getRRDDataSources():
                     if ds.sourcetype != "XMLRPC": continue
-                    url = ds.xmlrpcURL
+                    url = talesEval('string:' + ds.xmlrpcURL, self.device())
                     username = ds.xmlrpcUsername
                     password = ds.xmlrpcPassword
                     methodName = ds.xmlrpcMethodName
                     methodParameters = ds.xmlrpcMethodParameters
                     cname = self.meta_type != "Device" \
                                 and self.viewName() or ds.id
+                    points = []
+                    for dp in ds.getRRDDataPoints():
+                        points.append(
+                            (dp.id,
+                             "/".join((basepath, dp.name())),
+                             dp.rrdtype,
+                             dp.createCmd,
+                             threshs.get(dp.name(),[])))
                     targets.append((cname,
                                     url,
-                                    username,
-                                    password,
+                                    (username, password),
                                     methodName,
                                     methodParameters,
-                                    "/".join((basepath, ds.id)),
-                                    ds.rrdtype,
-                                    ds.createCmd,
-                                    threshs.get(ds.id,[])))
+                                    points))
         except RRDObjectNotFound, e:
             log.warn(e)
         return targets

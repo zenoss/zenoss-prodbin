@@ -62,8 +62,6 @@
                     tableName,'oidorurl','OID or URL (Method Name)')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sourcetype','Source Type')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'rrdtype','Type')"/>
     </tr>
     <tr class="tablevalues" tal:repeat="ds batch">
         <td>
@@ -77,7 +75,6 @@
         </td>
         <td tal:content="ds/getOidOrUrl"/>
         <td tal:content="ds/sourcetype"/>
-        <td tal:content="ds/rrdtype"/>
     </tr>
     <tr>
         <td colspan="4" class="tableheader">
@@ -134,7 +131,7 @@
                 tal:content="thresh/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
-        <td tal:content="python:','.join(thresh.dsnames)"/>
+        <td tal:content="python:', '.join(thresh.dsnames)"/>
         <td tal:content="thresh/severity"/>
         <td tal:content="thresh/escalateCount"/>
     </tr>

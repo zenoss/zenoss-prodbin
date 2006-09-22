@@ -1,5 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
-<tal:block metal:fill-slot="contentPane">
+<tal:block metal:fill-slot="contentPane"
+    tal:define="editable python:here.isManager">
 
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
@@ -12,16 +13,16 @@
     </tr>
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/id"/>
     </tr>
     <tr>
       <td class="tableheader">Source Type</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
         <select class="tablevalues" name="sourcetype"
         tal:define="curtype here/sourcetype" 
         onChange="var input = document.createElement('INPUT');
@@ -36,62 +37,62 @@
                 tal:content="python:type">localhost</option>
         </select>
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/sourcetype"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='SNMP'">
         <td class="tableheader">OID</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <input class="tablevalues" type="text" name="oid" size="40"
             tal:attributes="value here/oid" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/oid"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='XMLRPC'">
         <td class="tableheader">URL</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <input class="tablevalues" type="text" name="xmlrpcURL" size="40"
             tal:attributes="value here/xmlrpcURL" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/xmlrpcURL"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='XMLRPC'">
         <td class="tableheader">Username</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <input class="tablevalues" type="text" name="xmlrpcUsername" size="40"
             tal:attributes="value here/xmlrpcUsername" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/xmlrpcUsername"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='XMLRPC'">
         <td class="tableheader">Password</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <input class="tablevalues" type="text" name="xmlrpcPassword" size="40"
             tal:attributes="value here/xmlrpcPassword" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/xmlrpcPassword"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='XMLRPC'">
         <td class="tableheader">Method Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <input class="tablevalues" type="text" name="xmlrpcMethodName" size="40"
             tal:attributes="value here/xmlrpcMethodName" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/xmlrpcMethodName"/>
     </tr>
     <tr tal:condition="python:here.sourcetype=='XMLRPC'">
         <td class="tableheader">Method Parameters</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="editable">
         <select width="200" style="width: 200px"
             class="tablevalues" name="xmlrpcMethodParameters:list" multiple
             tal:define="curparams here/xmlrpcMethodParameters">
-            <option tal:repeat="ds here/getXmlRpcMethodParameters"
-                    tal:content="ds">ifInOctets</option>
+            <option tal:repeat="dp here/getXmlRpcMethodParameters"
+                    tal:content="dp">content</option>
             </select>
         <br />
         <input class="tablevalues" type="text" name="paramValue" size="10" />
@@ -104,103 +105,74 @@
         <input class="tableheader" type="submit" value=" Delete Last "
            name="manage_deleteMethodParameter:method" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                 tal:content="python:', '.join(here.xmlrpcMethodParameters)"/>
 
     </tr>
     <tr>
-      <td class="tableheader">Type</td>
-      <td class="tablevalues" tal:condition="here/isManager">
-        <select class="tablevalues" name="rrdtype"
-        tal:define="curtype here/rrdtype">
-            <option tal:repeat="type here/rrdtypes" 
-                tal:attributes="value type; 
-                    selected python:curtype == type"
-                tal:content="python:type">localhost</option>
-        </select>
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/rrdtype"/>
-    </tr>
-    <tr>
-      <td class="tableheader">Line Type</td>
-      <td class="tablevalues" tal:condition="here/isManager">
-        <select class="tablevalues" name="linetype"
-        tal:define="curtype here/linetype">
-            <option tal:repeat="type here/linetypes" 
-                tal:attributes="value type; 
-                    selected python:curtype == type"
-                tal:content="python:type">localhost</option>
-        </select>
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/linetype"/>
-    </tr>
-    <tr>
-        <td class="tableheader">RPN</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="rpn" size="40"
-            tal:attributes="value here/rpn" />
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/rpn"/>
-    </tr>
-    <tr>
-        <td class="tableheader">RRD Max</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="rrdmax" size="40"
-            tal:attributes="value here/rrdmax" />
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/rrdmax"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Limit</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="limit" size="40"
-            tal:attributes="value here/limit" />
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/limit"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Color</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="color" size="40"
-            tal:attributes="value here/color" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/color"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Format</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="format" size="40"
-            tal:attributes="value here/format" />
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/format"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Create Cmd</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <textarea class="tablevalues" rows="5" cols="50"
-            name="createCmd:text" 
-            tal:content="here/createCmd">
-        </textarea>
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/createCmd"/>
-    </tr>
-    <tr>
         <td class=tableheader align="left" >
         </td>
-        <td class="tableheader" colspan="2">
+        <td align="left"  class="tableheader" colspan=3>
             <input class="tableheader" type="submit" value=" Save "
-                name="zmanage_editProperties:method" />
+                name="zmanage_editProperties:method"/>
         </td>
     </tr>
 </table>
 </form>
+
+
+<!----------------------------------------------------------------->
+
+<form method="post" tal:attributes="action here/absolute_url_path">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="tableName string:rrdtempdplist; 
+        objects here/datapoints;
+        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+    <tr>
+      <th class="tabletitle" align="left" colspan="4">RRDDataPoints</th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'rrdtype','Type')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="dp batch">
+        <td>
+            <input tal:condition="editable" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value dp/id"/>
+            <a tal:condition="editable"
+                tal:attributes="href dp/getPrimaryUrlPath" 
+                tal:content="dp/id">name</a>
+            <tal:block tal:condition="not:editable" tal:content="dp/getId"/>
+        </td>
+        <td tal:content="dp/rrdtype"/>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    <tr class="tableheader" tal:condition="editable">
+        <td colspan="4">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+          onkeypress="return submitViaEnter(event,'manage_addRRDDataPoint');" 
+          name="manage_addRRDDataPoint:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDDataPoints:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+        </td>
+    </tr>
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+</table>
+</form>
+
+<!----------------------------------------------------------------->
 </tal:block>
 </tal:block>

@@ -130,11 +130,11 @@ class RRDThreshold(ZenModelRM):
         """when graphing use this so that rpn conversions are accounted for"""
         val = getfunc(context)
         if val is None or len(self.dsnames) == 0: return 
-        ds = self.getRRDDataSource(self.dsnames[0])
-        if ds and ds.rpn:
+        dp = self.getRRDDataPoint(self.dsnames[0])
+        if dp and dp.rpn:
             #When VDEF does full rpn
-            #val = "%s,%s" % (val, ds.rpn)
-            val = rpneval(val, ds.rpn)
+            #val = "%s,%s" % (val, dp.rpn)
+            val = rpneval(val, dp.rpn)
         return val
 
 

@@ -7,7 +7,7 @@
 
 __doc__='''
 
-Re-index the event history table.
+Allow the RRD data source to go negative. 
 
 '''
 

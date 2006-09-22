@@ -52,8 +52,6 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
   
-    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
-    linetypes = ('', 'AREA', 'LINE')
     sourcetypes = ('SNMP', 'XMLRPC')
     paramtypes = ('integer', 'string', 'float')
     
@@ -65,15 +63,6 @@ class RRDDataSource(ZenModelRM):
     xmlrpcMethodName = ''
     # [[param1, int], [param2, string], ...]
     xmlrpcMethodParameters = []
-    createCmd = ""
-    rrdtype = 'COUNTER'
-    isrow = True
-    rpn = ""
-    rrdmax = -1
-    color = ""
-    linetype = ''
-    limit = -1
-    format = '%0.2lf%s'
 
     _properties = (
         {'id':'sourcetype', 'type':'selection',
@@ -84,22 +73,12 @@ class RRDDataSource(ZenModelRM):
         {'id':'xmlrpcPassword', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
         {'id':'xmlrpcMethodParameters', 'type':'lines', 'mode':'w'},
-        {'id':'rrdtype', 'type':'selection',
-        'select_variable' : 'rrdtypes', 'mode':'w'},
-        {'id':'createCmd', 'type':'text', 'mode':'w'},
-        {'id':'isrow', 'type':'boolean', 'mode':'w'},
-        {'id':'rpn', 'type':'string', 'mode':'w'},
-        {'id':'rrdmax', 'type':'long', 'mode':'w'},
-        {'id':'limit', 'type':'long', 'mode':'w'},
-        {'id':'linetype', 'type':'selection', 
-        'select_variable' : 'linetypes', 'mode':'w'},
-        {'id':'color', 'type':'string', 'mode':'w'},
-        {'id':'format', 'type':'string', 'mode':'w'},
         )
 
 
     _relations = (
         ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate","datasources")),
+        ("datapoints", ToManyCont(ToOne,"RRDDataPoint","datasource")),
         )
     
     # Screen action bindings (and tab definitions)
@@ -129,98 +108,6 @@ class RRDDataSource(ZenModelRM):
         return crumbspath(self.rrdTemplate(), crumbs, -2)
 
 
-    def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
-        """build graph options for this datasource"""
-        
-        graph = []
-        src = "ds%d" % self.getIndex()
-        dest = src
-        if multiid != -1: dest += str(multiid)
-        file = os.path.join(file, self.getId()) + ".rrd"
-        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, 'ds0'))
-        src = dest
-
-        if self.rpn: 
-            dest = "rpn%d" % self.getIndex()
-            if multiid != -1: dest += str(multiid)
-            graph.append("CDEF:%s=%s,%s" % (dest, src, self.rpn))
-            src = dest
-
-        if self.limit > 0:
-            dest = "limit%d" % self.getIndex()
-            if multiid != -1: dest += str(multiid)
-            graph.append("CDEF:%s=%s,%s,GT,UNKN,%s,IF"%
-                        (dest,src,self.limit,src))
-            src = dest
-
-        if not self.color: src += defaultcolor
-        else: src += self.color
-        
-        if not self.linetype: type = defaulttype
-        else: type = self.linetype
-
-        if multiid != -1:
-            fname = os.path.basename(file)
-            if fname.find('.rrd') > -1: fname = fname[:-4]
-            name = "%s-%s" % (self.getId(), fname)
-        else: name = self.getId()
-
-        graph.append(":".join((type, src, name,)))
-
-        if summary:
-            src,color=src.split('#')
-            graph.extend(self._summary(src, self.format, ongraph=1))
-        return graph
-
-   
-    def summary(self, file, format="%0.2lf%s"):
-        """return only arguments to generate summary"""
-        if self.getIndex() == -1: 
-            raise "DataSourceError", "Not part of a TargetType"
-        graph = []
-        src = "ds%d" % self.getIndex()
-        dest = src
-        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, src))
-        src = dest
-
-        if self.rpn: 
-            dest = "rpn%d" % self.getIndex()
-            graph.append("CDEF:%s=%s,%s" % (dest, src, self.rpn))
-            src = dest
-
-        graph.extend(self._summary(src, self.format, ongraph=1))
-        return graph
-
-    
-    def _summary(self, src, format="%0.2lf%s", ongraph=1):
-        """Add the standard summary opts to a graph"""
-        gopts = []
-        funcs = ("LAST", "AVERAGE", "MAX")
-        tags = ("cur\:", "avg\:", "max\:")
-        for i in range(len(funcs)):
-            label = "%s%s" % (tags[i], format)
-            gopts.append(self.summElement(src, funcs[i], label, ongraph))
-        gopts[-1] += "\j"
-        return gopts
-
-    
-    def summElement(self, src, function, format="%0.2lf%s", ongraph=1):
-        """Make a single summary element"""
-        if ongraph: opt = "GPRINT"
-        else: opt = "PRINT"
-        return ":".join((opt, src, function, format))
-        
-
-    def setIndex(self, index):
-        self._v_index = index
-
-
-    def getIndex(self):
-        if not hasattr(self, '_v_index'):
-            self._v_index = -1
-        return self._v_index
-
-
     def getOidOrUrl(self):
         if self.sourcetype == "SNMP":
             return self.oid
@@ -237,3 +124,37 @@ class RRDDataSource(ZenModelRM):
             p = "%s (%s)" % (param[0], param[1])
             params.append(p)
         return params
+
+    def getRRDDataPoints(self):
+        return self.datapoints()
+    
+    def manage_addRRDDataPoint(self, id, REQUEST = None):
+        """make a RRDDataPoint"""
+        if not id:
+            return self.callZenScreen(REQUEST)
+        from Products.ZenModel.RRDDataPoint import RRDDataPoint
+        dp = RRDDataPoint(id)
+        self.datapoints._setObject(dp.id, dp)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_deleteRRDDataPoints(self, ids=(), REQUEST=None):
+        """Delete RRDDataPoints from this RRDDataSource"""
+
+        def clean(rel, id):
+            for obj in rel():
+                if id in obj.dsnames:
+                    obj.dsnames.remove(id)
+                    if not obj.dsnames:
+                        rel._delObject(obj.id)
+
+        if not ids: return self.callZenScreen(REQUEST)
+        for id in ids:
+            dp = getattr(self.datapoints,id,False)
+            if dp:
+                clean(self.graphs, dp.name())
+                clean(self.thresholds, dp.name())
+                self.datapoints._delObject(dp.id)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)

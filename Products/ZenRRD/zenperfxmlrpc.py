@@ -155,16 +155,14 @@ class XmlRpcStatus:
 
 
 class XmlRpcData:
-    def __init__(self, name, path, methodName, methodParameters,
-                 dataStorageType, rrdCreateCommand, thresholds):
+    def __init__(self, name, methodName, methodParameters, points):
         self.name = name
-        self.path = path
         self.methodName = methodName
         self.methodParameters = methodParameters
-        self.dataStorageType = dataStorageType
-        self.rrdCreateCommand = rrdCreateCommand
-        self.thresholds = thresholds
-
+        self.points = []
+        for point in points:
+            thresholdObjs = [Threshold(*t) for t in point[-1]]
+            self.points.append(point[:-1] + [thresholdObjs])
 
 class zenperfxmlrpc(RRDDaemon):
     "Periodically query all devices for XMLRPC values to archive in RRD files"
@@ -295,17 +293,15 @@ class zenperfxmlrpc(RRDDaemon):
             self.devices[deviceName] = deviceStatus
 
         for dsdef in xmlRpcData:
-            (name, url, username, password, methodName, methodParameters,
-             path, dsType, createCmd, thresholds) = dsdef
-            createCmd = createCmd.strip()
+            (name, url, creds, methodName, methodParameters, points) = dsdef
+            username, password = creds
             url = url.strip()
             username = username.strip()
             methodName = methodName.strip()
             p, url_key = self.updateProxy(url, username, password, deviceStatus)
-            thresholds = [Threshold(*t) for t in thresholds]
-            p.methodMap[methodName] = XmlRpcData(name, path, methodName,
-                                                 methodParameters, dsType,
-                                                 createCmd, thresholds)
+            p.methodMap[methodName] = XmlRpcData(name,
+                                                 methodName, methodParameters,
+                                                 points)
             deviceStatus.proxyMap[url_key] = p
 
 
@@ -471,17 +467,31 @@ class zenperfxmlrpc(RRDDaemon):
     def storeRRD(self, deviceName, url, methodName, value):
         'store a value into an RRD file'
         xmlRpcData = self.devices[deviceName].proxyMap[url].methodMap[methodName]
+        for count, parts in enumerate(xmlRpcData.points):
+            name, path, dataStorageType, rrdCreateCommand, thresholds = parts
 
-        value = self.rrd.save(xmlRpcData.path[1:],
-                              value,
-                              xmlRpcData.dataStorageType,
-                              xmlRpcData.rrdCreateCommand)
-
-        for threshold in xmlRpcData.thresholds:
-            # use url+methodName as eventKey
-            threshold.check(deviceName, xmlRpcData.name, url+methodName,
-                            value, self.sendThresholdEvent)
-
+            # Decode the response
+            vtype = type(value)
+            if vtype == type({}):
+                # dictionary response
+                v = value.get(name, None)
+            elif hasattr(value, '__getitem__'):
+                # list, tuple
+                v = value[count]
+            elif count == 0:
+                # single return value
+                v = value
+            else:
+                log.warning('Cannot decode value %r for name %s', value, name)
+                continue
+            v = self.rrd.save(path, v, dataStorageType, rrdCreateCommand)
+            for threshold in thresholds:
+                # use url+methodName+name as eventKey
+                threshold.check(deviceName,
+                                xmlRpcData.name,
+                                url+methodName+name,
+                                v,
+                                self.sendThresholdEvent)
 
     def main(self):
         "Run forever, fetching and storing"

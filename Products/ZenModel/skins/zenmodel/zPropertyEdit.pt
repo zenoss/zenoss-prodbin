@@ -73,7 +73,7 @@
             <option tal:repeat="
                 propname python:here.zenPropertyIds(False)"
                 tal:content="propname" tal:attributes="value propname">
-                    zCricketDeviceType
+                    propname
             </option>
         </select>
         <input class="tableheader" type="submit" 

@@ -13,6 +13,8 @@ from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
 
+from RRDDataPoint import SEPARATOR
+
 
 def manage_addRRDTemplate(context, id, REQUEST = None):
     """make a RRDTemplate"""
@@ -106,22 +108,35 @@ class RRDTemplate(ZenModelRM):
         return self.getPrimaryParent().getPrimaryDmdId(subrel="rrdTemplates")
    
 
-    def getRRDDataSourceNames(self):
-        """Return the list of all datasource names.
+    def getRRDDataPointNames(self):
+        """Return the list of all datapoint names.
         """
-        return self.datasources.objectIds()
+        return [p.name() for s in self.datasources() for p in s.datapoints()]
 
     
     def getRRDDataSources(self):
-        """Return a list of all datasources on this template.
+        """Return a list of all datapoints on this template.
         """
-        return self.datasources.objectValues()
+        return self.datasources()
 
 
-    def getRRDDataSource(self, name):
-        """Return a datasource based on its name.
+    def getRRDDataPoints(self):
+        """Return a list of all datapoints on this template.
         """
-        return self.datasources._getOb(name)
+        result = []
+        for s in self.datasources():
+            result.extend(s.datapoints())
+        return result
+
+
+    def getRRDDataPoint(self, name):
+        """Return a datapoint based on its name.
+        """
+        source = name
+        point = name
+        if name.find(SEPARATOR) >= 0:
+            source, point = name.split(SEPARATOR)
+        return self.datasources._getOb(source).datapoints._getOb(point)
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
