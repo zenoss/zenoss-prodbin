@@ -584,30 +584,18 @@ class DeviceClass(DeviceOrganizer):
         """make the catalog for device searching
         """
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
+
         # Make catalog for Devices
-        manage_addZCatalog(self, self.default_catalog, 
-                            self.default_catalog)
+        manage_addZCatalog(self, self.default_catalog,
+            self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         makeConfmonLexicon(zcat)
-        zcat.addIndex('id', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('id'))
-        zcat.addIndex('summary', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('summary'))
+        zcat.addIndex('id', 'ZCTextIndex',
+            extra=makeIndexExtraParams('id'))
+        zcat.addIndex('summary', 'ZCTextIndex',
+            extra=makeIndexExtraParams('summary'))
         zcat.addColumn('getPrimaryId')
     
-        # Make catalog for IpInterfaces
-        manage_addZCatalog(self, "interfaceSearch", "interfaceSearch")
-        zcat = self._getOb("interfaceSearch")
-        makeConfmonLexicon(zcat)
-        zcat.addIndex('getDeviceName', 'FieldIndex')
-        zcat.addIndex('macaddress', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('macaddress'))
-        zcat.addIndex('description', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('description'))
-        zcat.addIndex('interfaceName', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('getInterfaceName'))
-        zcat.addColumn('getPrimaryId')
-       
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
         zcat = self._getOb("componentSearch")
