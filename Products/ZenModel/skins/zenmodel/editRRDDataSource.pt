@@ -168,7 +168,6 @@
                 tal:content="here/eventKey"/>
         </tr>
         <tr tal:condition="python:here.sourcetype=='NAGIOS'">
->
             <td class="tableheader">Severity</td>
             <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="severity:int">

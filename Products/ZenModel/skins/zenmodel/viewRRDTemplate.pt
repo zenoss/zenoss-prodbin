@@ -53,15 +53,17 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="dsbody">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">RRDDataSources</th>
+      <th class="tabletitle" align="left" colspan="5">RRDDataSources</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'oidorurl','OID or URL (Method Name)')"/>
+                    tableName,'oidorurl','Source')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sourcetype','Source Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'enabled','Enabled')"/>
     </tr>
     <tr class="tablevalues" tal:repeat="ds batch">
         <td>
@@ -75,14 +77,15 @@
         </td>
         <td tal:content="ds/getOidOrUrl"/>
         <td tal:content="ds/sourcetype"/>
+        <td tal:content="ds/enabled"/>
     </tr>
     <tr>
-        <td colspan="4" class="tableheader">
+        <td colspan="5" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="editable">
-        <td colspan="4">
+        <td colspan="5">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
           onkeypress="return submitViaEnter(event,'manage_addRRDDataSource');" 
