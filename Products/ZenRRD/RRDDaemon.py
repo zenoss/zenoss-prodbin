@@ -20,7 +20,7 @@ import Globals
 from Products.ZenEvents import Event
 from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
-from Products.ZenUtils.ZenDaemon import ZenDaemon
+from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
 from twisted.internet import reactor, error
 from twisted.python import failure
@@ -92,8 +92,18 @@ class Threshold:
                         severity=Event.Clear)
             self.count = 0
 
+class FakeProxy:
 
-class RRDDaemon(ZenDaemon):
+    def __init__(self, obj):
+        self.obj = obj
+
+    def callRemote(self, name, *args, **kwargs):
+        from twisted.internet import defer
+        method = getattr(name)
+        return defer.succeed(method(*args, **kwargs))
+
+
+class RRDDaemon(Base):
     'Holds the code common to performance gathering daemons.'
 
     startevt = {'eventClass':'/App/Start', 
@@ -111,14 +121,11 @@ class RRDDaemon(ZenDaemon):
     shutdown = False
 
     def __init__(self, name):
-        ZenDaemon.__init__(self)
+        Base.__init__(self)
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
         self.model = self.buildProxy(self.options.zopeurl)
-        baseURL = '/'.join(self.options.zopeurl.rstrip('/').split('/')[:-2])
-        if not self.options.zem:
-            self.options.zem = baseURL + '/ZenEventManager'
         self.zem = self.buildProxy(self.options.zem)
         self.events = []
 
@@ -179,7 +186,7 @@ class RRDDaemon(ZenDaemon):
     def sigTerm(self, *unused):
         'controlled shutdown of main loop on interrupt'
         try:
-            ZenDaemon.sigTerm(self, *unused)
+            Base.sigTerm(self, *unused)
         except SystemExit:
             self._shutdown()
 
@@ -200,7 +207,7 @@ class RRDDaemon(ZenDaemon):
         self.sendEvents()
 
     def buildOptions(self):
-        ZenDaemon.buildOptions(self)
+        Base.buildOptions(self)
         self.parser.add_option(
             "-z", "--zopeurl",
             dest="zopeurl",
@@ -210,7 +217,7 @@ class RRDDaemon(ZenDaemon):
             "-u", "--zopeusername",
             dest="zopeusername", help="username for zope server",
             default='admin')
-        self.parser.add_option("-p", "--zopepassword", dest="zopepassword")
+        self.parser.add_option("--zopepassword", dest="zopepassword")
         self.parser.add_option(
             '--zem', dest='zem',
             help="XMLRPC path to an ZenEventManager instance")
