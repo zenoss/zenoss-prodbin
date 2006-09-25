@@ -386,7 +386,7 @@ class zenperfsnmp(SnmpDaemon):
         summary = 'Error reading value for "%s" on %s (oid %s is bad)' % (
             name, deviceName, oid)
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
-                       eventClass='/Perf/Snmp'
+                       eventClass='/Perf/Snmp',
                        device=deviceName,
                        summary=summary,
                        component=name,
