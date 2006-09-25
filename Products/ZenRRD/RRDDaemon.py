@@ -20,10 +20,15 @@ import Globals
 from Products.ZenEvents import Event
 from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
-from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
 from twisted.internet import reactor, error
 from twisted.python import failure
+
+USE_DIRECT_DATABASE=False
+if USE_DIRECT_DATABASE:
+    from Products.ZenUtils.ZCmdBase import ZCmdBase as Base
+else:
+    from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
 BAD_SEVERITY=Event.Warning
 
@@ -128,7 +133,12 @@ class RRDDaemon(Base):
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
-        self.model = self.buildProxy(self.options.zopeurl)
+        if not USE_DIRECT_DATABASE:
+            self.model = self.buildProxy(self.options.zopeurl)
+        else:
+            monitor = self.options.monitor or socket.fqdn()
+            self.model = FakeProxy(self.getDmdObj('/Monitors/Performance/'+
+                                                  monitor))
         self.zem = self.buildProxy(self.options.zem)
         self.events = []
 
@@ -228,6 +238,8 @@ class RRDDaemon(Base):
             '--device', dest='device',
             help="Specify a specific device to monitor",
             default='')
+        self.parser.add_option('--monitor', dest='monitor',
+            help="Specify a specific name of the monitor configuration")
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
