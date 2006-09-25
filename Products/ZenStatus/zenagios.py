@@ -323,7 +323,6 @@ class Options:
 
 
 class zenagios(RRDDaemon):
-    heartBeatTimeout = RRDDaemon.configCycleInterval*3*60
     properties = RRDDaemon.properties + ("configCycleInterval",)
     dataSourceType = 'NAGIOS'
 
@@ -358,13 +357,12 @@ class zenagios(RRDDaemon):
                 obj.updateConfig(CommandConfig(locals()))
         self.schedule = table.values()
         if self.options.cycle:
-            self.heartbeat()
+            self.heartbeatCycle()
 
-
-    def setPropertyItems(self, items):
-        RRDDaemon.setPropertyItems(self, items)
-        self.heartbeatTimeout = self.configCycleInterval*3*60
-
+    def heartbeatCycle(self):
+        "There is no master 'cycle' to send the hearbeat"
+        self.heartbeat()
+        reactor.callLater(self.heartBeatTimeout, self.heartbeatCycle)
 
     def processSchedule(self, *unused):
         """Run through the schedule and start anything that needs to be done.
