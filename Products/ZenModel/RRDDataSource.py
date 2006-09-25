@@ -56,7 +56,7 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
   
-    sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS')
+    sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS', 'CACTI')
     paramtypes = ('integer', 'string', 'float')
     
     sourcetype = 'SNMP'
@@ -136,7 +136,7 @@ class RRDDataSource(ZenModelRM):
             return self.oid
         if self.sourcetype == "XMLRPC":
             return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
-        if self.sourcetype == "NAGIOS":
+        if self.sourcetype in ("NAGIOS", "CACTI"):
             if self.usessh:
                 return self.commandTemplate + " over SSH"
             else:

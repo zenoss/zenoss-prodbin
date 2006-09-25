@@ -158,7 +158,7 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
-    def getNagiosCmds(self, devname=None):
+    def getDataSourceCommands(self, dsType, devname=None):
         '''Get the Nagios command configuration for all devices.
         '''
         result = []
@@ -167,7 +167,7 @@ class PerformanceConf(Monitor, StatusColor):
             dev = dev.primaryAq()
             if dev.monitorDevice():
                 try:
-                    cmdinfo = dev.getNagiosCmds()
+                    cmdinfo = dev.getDataSourceCommands(dsType)
                     if not cmdinfo: continue
                     result.append(cmdinfo)
                 except POSError: raise

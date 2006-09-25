@@ -124,7 +124,7 @@
         </tr>
     </span>
 
-    <span tal:condition="python:here.sourcetype=='NAGIOS'">
+    <span tal:condition="python:here.sourcetype in ('NAGIOS', 'CACTI')">
         <tr>
             <td class="tableheader">Use SSH</td>
             <td class="tablevalues" tal:condition="editable">
@@ -167,7 +167,8 @@
           <td class="tablevalues" tal:condition="not:editable" 
                 tal:content="here/eventKey"/>
         </tr>
-        <tr>
+        <tr tal:condition="python:here.sourcetype=='NAGIOS'">
+>
             <td class="tableheader">Severity</td>
             <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="severity:int">

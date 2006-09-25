@@ -211,7 +211,7 @@ class RRDView(object):
         return oids
 
 
-    def getNagiosCmds(self):
+    def getDataSourceCommands(self, dsType):
         """Return list of nagios commands definitions in the form.
         [(name,compname,eventClass,eventKey,severity,command),...]
         """
@@ -220,7 +220,7 @@ class RRDView(object):
         threshs = self.getThresholds(templ)
         result = []
         basepath = self.rrdPath()
-        for ds in templ.getRRDDataSources('NAGIOS'):
+        for ds in templ.getRRDDataSources(dsType):
             if not ds.enabled: continue
             points = []
             for dp in ds.getRRDDataPoints():
@@ -234,6 +234,7 @@ class RRDView(object):
                             ds.eventClass, ds.eventKey, ds.severity,
                             ds.getCommand(self), points) )
         return result
+    
 
     def getXmlRpcTargets(self):
         """Return a list of XMLRPC targets in the form.

@@ -325,6 +325,7 @@ class Options:
 class zenagios(RRDDaemon):
     heartBeatTimeout = RRDDaemon.configCycleInterval*3*60
     properties = RRDDaemon.properties + ("configCycleInterval",)
+    dataSourceType = 'NAGIOS'
 
 
     def __init__(self):
@@ -454,7 +455,6 @@ class zenagios(RRDDaemon):
             if not parts: continue
             label = parts.group(1).replace("''", "'")
             value = float(parts.group(3))
-            print cmd.points.keys(), label, value, parts.groups()
             if cmd.points.has_key(label):
                 path, type, command, thresholds = cmd.points[label]
                 value = self.rrd.save(path, value, type, command)
@@ -472,7 +472,9 @@ class zenagios(RRDDaemon):
                 yield self.model.callRemote('getDefaultRRDCreateCommand')
                 createCommand = driver.next()
                 
-                yield self.model.callRemote('getNagiosCmds')
+                yield self.model.callRemote('getDataSourceCommands',
+                                            self.dataSourceType,
+                                            self.options.device)
                 self.updateConfig(driver.next())
 
                 self.rrd = RRDUtil(createCommand, 60)
