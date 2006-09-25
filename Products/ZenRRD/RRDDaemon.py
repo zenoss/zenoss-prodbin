@@ -63,15 +63,17 @@ class Threshold:
         thresh = None
         if self.maximum is not None and value >= self.maximum:
             thresh = self.maximum
+            how = 'exceeded'
         if self.minimum is not None and value <= self.minimum:
-            thresh = self.maximum
+            thresh = self.minimum
+            how = 'is insufficient'
         if thresh is not None:
             self.count += 1
             severity = self.severity
             if self.escalateCount and self.count >= self.escalateCount:
                 severity += 1
-            summary = '%s %s threshold of %s exceeded: current value %.2f' % (
-                device, self.label, thresh, value)
+            summary = '%s %s threshold of %s %s: current value %.2f' % (
+                device, self.label, thresh, how, value)
             eventCb(device=device,
                     summary=summary,
                     eventClass=self.eventClass,
