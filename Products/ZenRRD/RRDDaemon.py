@@ -185,6 +185,9 @@ class RRDDaemon(ZenDaemon):
         self.shutdown = True
         if not self.events:
             reactor.stop()
+        else:
+            self.log.debug('waiting for events to flush')
+            reactor.callLater(5, reactor.stop)
 
     def heartbeat(self, *unused):
         'if cycling, send a heartbeat, else, shutdown'
