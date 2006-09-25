@@ -231,3 +231,8 @@ class RRDDaemon(ZenDaemon):
         self.logError('Error', error)
         if not self.options.cycle:
             self._shutdown()
+
+    def errorStop(self, why):
+        self.error(why)
+        self._shutdown()
+

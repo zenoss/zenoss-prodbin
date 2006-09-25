@@ -503,7 +503,7 @@ class zenagios(RRDDaemon):
         
     def main(self):
         self.sendEvent(self.startevt)
-        drive(self.start).addCallbacks(self.processSchedule, self.error)
+        drive(self.start).addCallbacks(self.processSchedule, self.errorStop)
         reactor.run()
         self.sendEvent(self.stopevt, now=True)
 

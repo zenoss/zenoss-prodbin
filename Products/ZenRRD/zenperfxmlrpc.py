@@ -497,7 +497,8 @@ class zenperfxmlrpc(RRDDaemon):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
-        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle, self.error)
+        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
+                                                  self.errorStop)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 

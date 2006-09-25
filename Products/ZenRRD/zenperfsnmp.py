@@ -458,12 +458,12 @@ class zenperfsnmp(SnmpDaemon):
             threshold.check(device, oidData.name, oid, value,
                             self.sendThresholdEvent)
 
-
     def main(self):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
-        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle, self.error)
+        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
+                                                  self.errorStop)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 

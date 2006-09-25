@@ -450,7 +450,7 @@ class zenprocess(SnmpDaemon):
 
     def main(self):
         self.sendEvent(self.startevt)
-        drive(self.start).addCallbacks(self.periodic, self.error)
+        drive(self.start).addCallbacks(self.periodic, self.errorStop)
         reactor.run(installSignalHandlers=False)
         self.sendEvent(self.stopevt, now=True)
 
