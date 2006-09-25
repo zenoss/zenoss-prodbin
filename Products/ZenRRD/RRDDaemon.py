@@ -99,8 +99,11 @@ class FakeProxy:
 
     def callRemote(self, name, *args, **kwargs):
         from twisted.internet import defer
-        method = getattr(name)
-        return defer.succeed(method(*args, **kwargs))
+        try:
+            method = getattr(self.obj, name)
+            return defer.succeed(method(*args, **kwargs))
+        except Exception, ex:
+            return defer.fail(ex)
 
 
 class RRDDaemon(Base):
