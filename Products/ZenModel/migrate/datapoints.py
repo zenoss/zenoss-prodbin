@@ -50,6 +50,11 @@ class DataPoints(Migrate.Step):
 
     def cutoverTemplates(self, obj):
         oldbase = os.path.join(os.getenv('ZENHOME'), 'perf')
+        for dc in dmd.Devices.getSubOrganizers():
+            for t in dc.getRRDTemplates():
+                for s in t.datasources():
+                    s.buildRelations()
+            self.convert(dc)
         for t in obj.getRRDTemplates():
             for s in t.datasources():
                 s.buildRelations()
