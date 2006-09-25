@@ -33,6 +33,7 @@ C="$C zenstatus"
 C="$C zenactions"
 C="$C zentrap"
 C="$C zenagios"
+C="$C zencacti"
 CMDS=$C
 
 reverse() {
