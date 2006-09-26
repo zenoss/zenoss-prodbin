@@ -24,11 +24,7 @@ from Products.ZenUtils.Utils import basicAuthUrl
 from twisted.internet import reactor, error
 from twisted.python import failure
 
-USE_DIRECT_DATABASE=False
-if USE_DIRECT_DATABASE:
-    from Products.ZenUtils.ZCmdBase import ZCmdBase as Base
-else:
-    from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
+from Products.ZenUtils.ZCmdBase import ZCmdBase as Base
 
 BAD_SEVERITY=Event.Warning
 
@@ -133,12 +129,14 @@ class RRDDaemon(Base):
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
-        if not USE_DIRECT_DATABASE:
-            self.model = self.buildProxy(self.options.zopeurl)
-        else:
-            monitor = self.options.monitor or socket.fqdn()
+        try:
+            monitor = self.options.monitor or socket.getfqdn()
             self.model = FakeProxy(self.getDmdObj('/Monitors/Performance/'+
                                                   monitor))
+        except KeyError, ex:
+            self.log.debug("Not directly connected (%s) using Zope access.", ex)
+            self.model = self.buildProxy(self.options.zopeurl)
+            
         self.zem = self.buildProxy(self.options.zem)
         self.events = []
 
