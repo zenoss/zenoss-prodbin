@@ -94,6 +94,19 @@ class RRDDataSource(ZenModelRM):
     cycletime = 60
 
     _properties = (
+        # bogus
+        {'id':'rrdtype', 'type':'selection',
+        'select_variable' : 'rrdtypes', 'mode':'w'},
+        {'id':'createCmd', 'type':'text', 'mode':'w'},
+        {'id':'isrow', 'type':'boolean', 'mode':'w'},
+        {'id':'rpn', 'type':'string', 'mode':'w'},
+        {'id':'rrdmax', 'type':'long', 'mode':'w'},
+        {'id':'limit', 'type':'long', 'mode':'w'},
+        {'id':'linetype', 'type':'selection', 
+        'select_variable' : 'linetypes', 'mode':'w'},
+        {'id':'color', 'type':'string', 'mode':'w'},
+        {'id':'format', 'type':'string', 'mode':'w'},
+        # end bogus
         {'id':'sourcetype', 'type':'selection',
         'select_variable' : 'sourcetypes', 'mode':'w'},
         {'id':'oid', 'type':'string', 'mode':'w'},
