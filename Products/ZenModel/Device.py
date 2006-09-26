@@ -380,6 +380,7 @@ class Device(ManagedEntity):
         cmps.extend([c for c in self.os.ipservices() if c.monitored()])
         cmps.extend([c for c in self.os.winservices() if c.monitored()])
         cmps.extend([c for c in self.os.interfaces() if c.monitored()])
+        cmps.extend([c for c in self.os.filesystems() if c.monitored()])
         cmps.extend([c for c in self.hw.harddisks() if c.monitored()])
         return cmps
 
@@ -391,6 +392,7 @@ class Device(ManagedEntity):
         cmps.extend(self.os.ipservices())
         cmps.extend(self.os.winservices())
         cmps.extend(self.os.interfaces())
+        cmps.extend(self.os.filesystems())
         cmps.extend(self.hw.harddisks())
         return cmps
 
