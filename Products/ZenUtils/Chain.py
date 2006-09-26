@@ -38,6 +38,8 @@ class Chain:
             self.callable(next).addCallbacks(self.success, self.failure)
         except StopIteration:
             self.defer.callback(self.results)
+        except Exception, ex:
+            self.failure(ex)
 
     def success(self, result):
         "gather a successful result"
