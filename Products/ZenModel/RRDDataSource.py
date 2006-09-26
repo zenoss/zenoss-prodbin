@@ -55,6 +55,22 @@ class RRDDataSourceError(Exception): pass
 class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
+
+    # bogus: to be removed later
+    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
+    linetypes = ('', 'AREA', 'LINE')
+    
+    createCmd = ""
+    rrdtype = 'GAUGE'
+    isrow = True
+    rpn = ""
+    rrdmax = -1
+    color = ""
+    linetype = ''
+    limit = -1
+    format = '%0.2lf%s'
+
+    # end bogus section
   
     sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS', 'CACTI')
     paramtypes = ('integer', 'string', 'float')
@@ -208,3 +224,17 @@ class RRDDataSource(ZenModelRM):
         if not res.startswith(context.zNagiosPath):
             res = os.path.join(context.zNagiosPath, res)
         return res
+
+    def zmanage_editProperties(self, REQUEST=None):
+        'add some validation'
+        if REQUEST:
+            import string
+            try:
+                oid = REQUEST.get['oid']
+            except KeyError:
+                pass
+            else:
+                for c in string.whitespace:
+                    oid = oid.replace(c, '')
+                REQUEST.form['oid'] = oid
+        return ZenModelRM.zmanage_editProperties(self, REQUEST)
