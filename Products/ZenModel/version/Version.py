@@ -18,13 +18,119 @@ class Version(object):
     """
     A class for obtaining and manipulating version numbers as well as creating
     the necessary version files Zenoss utilizes.
+
+    >>> v1 = Version('Zenoss', 0, 22)
+    >>> v2 = Version('Zenoss', 0, 23, 4)
+    >>> v3 = Version('Zenoss', 0, 23, 7)
+    >>> v4 = Version('Zenoss', 1)
+    >>> v5 = Version('Zenoss', 1, 0, 2)
+    >>> v6 = Version('Zenoss', 1, 0, 2)
+    >>> v7 = Version('Zenoss', 1, 0, 2, 15729)
+    >>> v8 = Version('Zenoss', 1, 0, 2, 15730)
+    >>> v9 = Version('Zenoss', 1, 0, 3, 15729)
+
+    # test the display methods
+    >>> v9.short()
+    '1.0.3'
+    >>> v9.long()
+    'Zenoss 1.0.3'
+    >>> v9.full()
+    'Zenoss 1.0.3 r15729'
+
+    # comparisons
+    >>> v1 > v2
+    False
+    >>> v3 > v2
+    True
+    >>> v4 < v3
+    False
+    >>> v4 > v5
+    False
+    >>> v6 > v5
+    False
+    >>> v6 >= v5
+    True
+    >>> v6 == v5
+    True
+
+    # comparison, one with a revision number
+    >>> v7 > v6
+    Traceback (most recent call last):
+    IncomparableVersions
+
+    # revision number comparisons
+    >>> v7 > v8
+    False
+    >>> v8 > v9
+    False
+
+    # comparing non-Version objects with Version objects
+    >>> '1.0.4' > v5
+    True
+    >>> (1,0,1) > v5
+    False
+    >>> 1 == v4
+    True
+    >>> v4 == 1.0
+    True
+    >>> '1.0' == v4
+    True
     """
-    def __init__(self, name, major, minor, micro, revision=''):
+    def __init__(self, name, major=0, minor=0, micro=0, revision=0):
         self.name = name
         self.major = major
         self.minor = minor
         self.micro = micro
         self.revision = revision
+
+    def short(self):
+        """
+        Returns a string of just the version number.
+        """
+        return '%d.%d.%d' % (self.major, self.minor, self.micro)
+
+    def long(self):
+        """
+        Returns a string with the software name and the version.
+        """
+        return "%s %s" % (self.name, self.short())
+
+    def full(self):
+        """
+        Returns a string with the software name, the version number, and the
+        subversion revision number, if defined.
+        """
+        return "%s%s" % (self.long(), self._formatSVNRevision())
+
+    def __cmp__(self, other):
+        """
+        Comparse one verion to another. If the other version supplied is not a
+        Version instance, attempt coercion.
+
+        The assumption here is that any non-Version object being compared to a
+        Version object represents a verion of the same product with the same
+        name but a different version number.
+        """
+        if isinstance(other, tuple):
+            version = '.'.join([ str(x) for x in other ])
+            other = Version.parse("%s %s" % (self.name, version))
+        elif True in [ isinstance(other, x) for x in [str, int, float, long] ]:
+            other = Version.parse("%s %s" % (self.name, str(other)))
+        if self.name != other.name:
+            raise IncomparableVersions()
+        if not self.revision:
+            if other.revision:
+                raise IncomparableVersions()
+            comparison = cmp(
+                (self.major, self.minor, self.micro),
+                (other.major, other.minor, other.micro))
+        else:
+            if not other.revision:
+                raise IncomparableVersions()
+            comparison = cmp(
+                (self.major, self.minor, self.micro, self.revision),
+                (other.major, other.minor, other.micro, other.revision))
+        return comparison
 
     def _getSVNVersion13(self):
         """
@@ -43,7 +149,7 @@ class Version(object):
     def _formatSVNRevision(self):
         svnrev = self.revision
         if svnrev:
-            svnrev = '  r%s' % svnrev
+            svnrev = ' r%s' % svnrev
         return svnrev
 
     def getSVNVersion(self):
@@ -57,7 +163,7 @@ class Version(object):
         return self.revision
 
     def __repr__(self):
-        return '%s(%s, %d, %d, %d, %s)' % (
+        return '%s(%s, %d, %d, %d,%s)' % (
             self.__class__.__name__,
             self.name,
             self.major,
@@ -79,7 +185,7 @@ class Version(object):
         the version information stored in this Version() object.
         """
 
-    def parseVersion(self, versionString):
+    def parse(self, versionString):
         """
         Parse the version info from a string. This method is usable without
         having instantiated Version, and returns an instantiation.
@@ -97,30 +203,30 @@ class Version(object):
 
         Here are some example usages:
 
-        >>> v = Version.parseVersion('Zenoss')
+        >>> v = Version.parse('Zenoss')
         >>> repr(v)
-        'Version(Zenoss, 0, 0, 0, )'
+        'Version(Zenoss, 0, 0, 0,)'
         >>> print v
         [Zenoss, version 0.0.0]
 
-        >>> v = Version.parseVersion('Zenoss 1')
+        >>> v = Version.parse('Zenoss 1')
         >>> repr(v)
-        'Version(Zenoss, 1, 0, 0, )'
+        'Version(Zenoss, 1, 0, 0,)'
         >>> print v
         [Zenoss, version 1.0.0]
 
-        >>> v = Version.parseVersion('Zenoss 0.26.4')
+        >>> v = Version.parse('Zenoss 0.26.4')
         >>> repr(v)
-        'Version(Zenoss, 0, 26, 4, )'
+        'Version(Zenoss, 0, 26, 4,)'
         >>> print v
         [Zenoss, version 0.26.4]
 
 
-        >>> v = Version.parseVersion('Zenoss 0.32.1 r13667')
+        >>> v = Version.parse('Zenoss 0.32.1 r13667')
         >>> repr(v)
-        'Version(Zenoss, 0, 32, 1,   r13667)'
+        'Version(Zenoss, 0, 32, 1, r13667)'
         >>> print v
-        [Zenoss, version 0.32.1  r13667]
+        [Zenoss, version 0.32.1 r13667]
         """
         versionParts = versionString.strip().split()
         name = versionParts.pop(0)
@@ -140,7 +246,7 @@ class Version(object):
             revision = ''
         self = Version(name, major, minor, micro, revision)
         return self
-    parseVersion = classmethod(parseVersion)
+    parse = classmethod(parse)
 
 def getOSVersion():
     pass
