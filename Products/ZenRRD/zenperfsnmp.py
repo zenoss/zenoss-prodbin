@@ -296,7 +296,7 @@ class zenperfsnmp(SnmpDaemon):
         else:
             version = '2'
         p = self.updateAgentProxy(deviceName, snmpStatus,
-                                  ip, port, community,
+                                  ip, port, str(community),
                                   version, timeout, tries)
 	for name, oid, path, dsType, createCmd, thresholds in oidData:
             createCmd = createCmd.strip()
@@ -412,6 +412,11 @@ class zenperfsnmp(SnmpDaemon):
                               deviceName)
                 self.startReadDevice(deviceName)
                 return
+            if not success:
+                self.log.debug('Failed to collect on %s (%s: %s)',
+                               deviceName,
+                               update.__class__,
+                               update)
 
         successCount = sum(firsts(updates))
         oids = []
