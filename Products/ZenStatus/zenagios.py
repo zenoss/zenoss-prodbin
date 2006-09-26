@@ -308,7 +308,7 @@ class Cmd:
         self.points = {}
         for p in cfg.points:
             thresholds = [Thresholds(t) for t in p[-1]]
-            self.points[p[0]] = (p[1:-1] + [thresholds])
+            self.points[p[0]] = (list(p[1:-1]) + [thresholds])
 
 class Options:
     loginTries=1
@@ -419,7 +419,7 @@ class zenagios(RRDDaemon):
             log.error("Command timed out on device %s: %s",
                       cmd.device, cmd.command)
         else:
-            log.exception(cmd.value)
+            log.exception(err.value)
 
     def parseResults(self, cmd):
         output = cmd.result.output
