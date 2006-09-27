@@ -69,9 +69,7 @@ class ZenPropertyManager(PropertyManager):
         if not self.valid_property_id(id):
             raise BadRequest, 'Id %s is invalid or duplicate' % id
 
-        def setprops():
-            pschema = {'id':id,'type':type, 'visible':visible,
-                'select_variable':value}
+        def setprops(**pschema):
             self._properties=self._properties+(pschema,)
             if setter: pschema['setter'] = setter
             if label: pschema['label'] = label 
@@ -79,13 +77,14 @@ class ZenPropertyManager(PropertyManager):
         if type in ('selection', 'multiple selection'):
             if not hasattr(self, value):
                 raise BadRequest, 'No select variable %s' % value
-            setprops()    
+            setprops(id=id,type=type, visible=visible,
+                     select_variable=value)    
             if type=='selection':
                 self._setPropValue(id, '')
             else:
                 self._setPropValue(id, [])
         else:
-            setprops()
+            setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
 
 
