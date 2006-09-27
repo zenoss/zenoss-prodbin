@@ -80,13 +80,13 @@ class zenbuild(CmdBase):
 
         # Load reports
         from Products.ZenModel.ReportLoader import ReportLoader
-        rl = ReportLoader(noopts=True, app=self.app) 
+        rl = ReportLoader(noopts=True, app=self.app)
         rl.loadDatabase()
 
         
         # Load XML Data
         from Products.ZenModel.XmlDataLoader import XmlDataLoader
-        dl = XmlDataLoader(noopts=True, app=self.app) 
+        dl = XmlDataLoader(noopts=True, app=self.app)
         dl.loadDatabase()
 
 

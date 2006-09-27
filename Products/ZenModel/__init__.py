@@ -78,7 +78,6 @@ productNames = (
     "RRDThreshold",
     "ServiceClass",
     "ServiceOrganizer",
-    "SnmpClassifier",
     "Software",
     "SoftwareClass",
     "StatusMonitorConf",

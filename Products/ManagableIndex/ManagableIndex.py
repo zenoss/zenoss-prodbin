@@ -704,7 +704,10 @@ def _checkUnicode(index,value,object, encode=None):
   try:
     nv= unicode(value, encode or getdefaultencoding())
   except:
-    raise TypeError("cannot convert %s to string" % str(value))
+    fh = open('/tmp/err.txt', 'w+')
+    fh.write(value)
+    fh.close()
+    raise TypeError("cannot get default encoding for the given value")
   return nv
 
 def _checkUnicode_encode(index, value, object):

@@ -13,8 +13,8 @@ Allow the RRD data source to go negative.
 
 __version__ = "$Revision$"[11:-2]
 
-import re
 import os
+import re
 
 try:
     import rrdtool

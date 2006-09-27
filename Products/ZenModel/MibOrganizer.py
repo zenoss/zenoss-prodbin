@@ -16,6 +16,7 @@ from Products.ZenRelations.RelSchema import *
 
 from Organizer import Organizer
 from MibModule import MibModule
+from SearchUtils import makeKeywordIndex
 
 def manage_addMibOrganizer(context, id, REQUEST = None):
     """make a device class"""
@@ -23,7 +24,7 @@ def manage_addMibOrganizer(context, id, REQUEST = None):
     context._setObject(id, sc)
     sc = context._getOb(id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addMibOrganizer = DTMLFile('dtml/addMibOrganizer',globals())
 
@@ -45,11 +46,11 @@ class MibOrganizer(Organizer):
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'mibOrganizerOverview',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'mibOrganizerOverview'
@@ -102,9 +103,9 @@ class MibOrganizer(Organizer):
         """
         mibs = self.getDmdRoot(self.dmdRootName)
         mod = None
-        if not mod: 
+        if not mod:
             modorg = mibs.createOrganizer(path)
-            mod = MibModule(name) 
+            mod = MibModule(name)
             modorg.mibs._setObject(mod.id, mod)
             mod = modorg.mibs._getOb(mod.id)
         return mod
@@ -150,21 +151,24 @@ class MibOrganizer(Organizer):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
-        for mibmod in self.mibs(): 
+        for mibmod in self.mibs():
             mibmod.index_object()
         for miborg in self.getSubOrganizers():
-            for mibmod in miborg.mibs(): 
+            for mibmod in miborg.mibs():
                 mibmod.index_object()
 
 
     def createCatalog(self):
         """Create a catalog for mibs searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
+
+        # XXX update to use ManagableIndex
         manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        zcat.addIndex('oid', 'KeywordIndex')
-        zcat.addIndex('id', 'KeywordIndex')
-        zcat.addIndex('summary', 'KeywordIndex')
+        cat = zcat._catalog
+        cat.addIndex('oid', makeKeywordIndex('oid'))
+        cat.addIndex('id', makeKeywordIndex('id'))
+        cat.addIndex('summary', makeKeywordIndex('summary'))
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
         zcat.addColumn('oid')

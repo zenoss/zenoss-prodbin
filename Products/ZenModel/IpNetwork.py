@@ -26,8 +26,8 @@ from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.IpUtil import *
 
-from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from IpAddress import IpAddress
+from SearchUtils import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import *
@@ -65,7 +65,7 @@ class IpNetwork(DeviceOrganizer):
     _properties = (
         {'id':'netmask', 'type':'int', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
-        ) 
+        )
     
     _relations = DeviceOrganizer._relations + (
         ("ipaddresses", ToManyCont(ToOne, "IpAddress", "network")),
@@ -74,8 +74,8 @@ class IpNetwork(DeviceOrganizer):
         )
                    
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'IpNetwork',
             'meta_type'      : 'IpNetwork',
             'description'    : """Arbitrary device grouping class""",
@@ -84,7 +84,7 @@ class IpNetwork(DeviceOrganizer):
             'factory'        : 'manage_addIpNetwork',
             'immediate_view' : 'viewNetworkOverview',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewNetworkOverview'
@@ -112,7 +112,7 @@ class IpNetwork(DeviceOrganizer):
     def __init__(self, id, netmask=24, description=''):
         if id.find("/") > -1: id, netmask = id.split("/",1)
         DeviceOrganizer.__init__(self, id, description)
-        if id != "Networks": 
+        if id != "Networks":
             checkip(id)
         self.netmask = maskToBits(netmask)
         self.description = description
@@ -124,12 +124,12 @@ class IpNetwork(DeviceOrganizer):
         Subnetworks created based on the zParameter zDefaulNetworkTree.
         """
         netroot = self.getDmdRoot("Networks")
-        if netip.find("/") > -1: 
+        if netip.find("/") > -1:
             netip, netmask = netip.split("/",1)
             netmask = int(netmask)
         netobj = netroot.getNet(netip)
         if netobj: return netobj
-        if netmask == 0: 
+        if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
         netTree = getattr(netroot, 'zDefaultNetworkTree', defaultNetworkTree)
@@ -333,7 +333,7 @@ class IpNetwork(DeviceOrganizer):
         """
         searchCatalog = self.getDmdRoot("Networks").ipSearch
         ret = searchCatalog({'id':ip})
-        if len(ret) > 1: 
+        if len(ret) > 1:
             raise IpAddressConflict, "IP address conflict for IP: %s" % ip
         if ret:
             return self.unrestrictedTraverse(ret[0].getPrimaryId)
@@ -343,13 +343,15 @@ class IpNetwork(DeviceOrganizer):
         """Return the url of an ip address.
         """
         ip = self.findIp(ip)
-        if ip: return ip.getPrimaryUrlPath()
+        if ip:
+            return ip.getPrimaryUrlPath()
         return ""
 
 
     def buildZProperties(self):
         nets = self.getDmdRoot("Networks")
-        if getattr(aq_base(nets), "zDefaultNetworkTree", False): return
+        if getattr(aq_base(nets), "zDefaultNetworkTree", False):
+            return
         nets._setProperty("zDefaultNetworkTree", (24,32), type="lines")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
@@ -362,7 +364,7 @@ class IpNetwork(DeviceOrganizer):
         zcat.manage_catalogClear()
         transaction.savepoint()
         for net in self.getSubNetworks():
-            for ip in net.ipaddresses(): 
+            for ip in net.ipaddresses():
                 ip.index_object()
             transaction.savepoint()
 
@@ -370,12 +372,13 @@ class IpNetwork(DeviceOrganizer):
     def createCatalog(self):
         """make the catalog for device searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog, 
+
+        # XXX convert to ManagableIndex
+        manage_addZCatalog(self, self.default_catalog,
                             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        makeConfmonLexicon(zcat)
-        zcat.addIndex('id', 'ZCTextIndex', 
-                        extra=makeIndexExtraParams('id'))
+        cat = zcat._catalog
+        cat.addIndex('id', makeFieldIndex('id'))
         zcat.addColumn('getPrimaryId')
     
      

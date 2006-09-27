@@ -27,13 +27,13 @@ from Acquisition import aq_base, aq_parent, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
-#from Products.AdvancedQuery import MatchGlob
+from Products.AdvancedQuery import MatchGlob
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from RRDTemplate import RRDTemplate
-from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
+from SearchUtils import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
 from NagiosTemplate import NagiosTemplate
 
@@ -162,7 +162,7 @@ class DeviceClass(DeviceOrganizer):
 
     def getPeerDeviceClassNames(self, pyclass=None):
         "Return a list of all device paths that have the python class pyclass"
-        if pyclass == None: 
+        if pyclass == None:
             pyclass = self.getPythonDeviceClass()
             dclass = self.getDmdRoot("Devices")
             return dclass.getPeerDeviceClassNames(pyclass)
@@ -289,21 +289,25 @@ class DeviceClass(DeviceOrganizer):
 
     security.declareProtected('View', 'searchDevices')
     def searchDevices(self, query=None, REQUEST=None):
-        '''Returns the concatenation of a device name,
-        ip and mac search on the list of devices'''
-        
+        """Returns the concatenation of a device name, ip and mac
+        search on the list of devices.
+        """
         zcatalog = self._getCatalog()
-        if not query or not zcatalog: return []
-        if not query.endswith("*"): query+="*"
+        if not query or not zcatalog:
+            return []
+        if not query.endswith("*"):
+            query+="*"
         ips = None 
         try:
             ips = self.Networks.ipSearch({'id':query})
-        except AttributeError: pass
-        names = zcatalog({'id':query})
+        except AttributeError:
+            pass
+        #names = zcatalog({'id':query})
         # now setup the query for AdvancedQuery
-        #query = MatchGlob('id',query)
-        #names = zcatalog.evalAdvancedQuery(query)
-        if ips: names += ips
+        query = MatchGlob('id', query)
+        names = zcatalog.evalAdvancedQuery(query)
+        if ips:
+            names += ips
         if len(names) == 1:
             raise Redirect(names[0].getPrimaryId)
         return self._convertResultsToObj(names)
@@ -362,7 +366,7 @@ class DeviceClass(DeviceOrganizer):
         """Return generator of components, by meta_type if specified.
         """
         zcat = getattr(self, "componentSearch", None)
-        if zcat: 
+        if zcat:
             res = zcat({'meta_type': meta_type, 'monitored': monitored})
             for b in res:
                 yield self.unrestrictedTraverse(b.getPrimaryId)
@@ -584,31 +588,21 @@ class DeviceClass(DeviceOrganizer):
         manage_addZCatalog(self, self.default_catalog,
             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        makeConfmonLexicon(zcat)
-        zcat.addIndex('id', 'ZCTextIndex',
-            extra=makeIndexExtraParams('id'))
-        zcat.addIndex('summary', 'ZCTextIndex',
-            extra=makeIndexExtraParams('summary'))
+        cat = zcat._catalog
+        cat.addIndex('id', makeFieldIndex('id'))
+        cat.addIndex('summary', makeFieldIndex('summary'))
         zcat.addColumn('getPrimaryId')
     
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
         zcat = self._getOb("componentSearch")
-        zcat.addIndex('meta_type', 'FieldIndex')
+        cat = zcat._catalog
+        cat.addIndex('meta_type', makeFieldIndex('meta_type'))
+        # XXX still using regular FieldIndex here for now, since this contains
+        # binary information
         zcat.addIndex('monitored', 'FieldIndex')
         zcat.addColumn('getPrimaryId')
         
-
-    def _makeLexicon(self, zcat):
-        class __R:pass
-        ws=__R()
-        ws.name='Confmon splitter'
-        ws.group='Word Splitter'
-        cn=__R()
-        cn.name='Case Normalizer'
-        cn.group='Case Normalizer'
-        manage_addLexicon(zcat, 'myLexicon', elements=(cn, ws,))
-
 
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
@@ -682,7 +676,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCommandExistanceTest", "test -f %s")
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
-        devs._setProperty("zTelnetSuccessRegexList", 
+        devs._setProperty("zTelnetSuccessRegexList",
                             ['\$.$', '\#.$'], type="lines")
         devs._setProperty("zTelnetEnable", False, type="boolean")
         devs._setProperty("zTelnetEnableRegex", "assword:")

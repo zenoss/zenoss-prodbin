@@ -13,7 +13,6 @@ conflicts with name function of DeviceClass
 
 __version__ = "$Revision$"[11:-2]
 
-
 import Migrate
 
 from Acquisition import aq_base

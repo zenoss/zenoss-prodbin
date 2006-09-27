@@ -27,6 +27,7 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
 
 from ZenModelBase import ZenModelBase
+from SearchUtils import makeKeywordIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""
@@ -34,7 +35,7 @@ def manage_addManufacturerRoot(context, REQUEST=None):
     context._setObject(m.getId(), m)
     m = context._getOb(m.dmdRootName)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 #addManufacturerRoot = DTMLFile('dtml/addManufacturerRoot',globals())
@@ -48,12 +49,12 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     """
     dmdRootName = "Manufacturers"
     meta_type = "ManufacturerRoot"
-    sub_classes = ('Manufacturer',) 
+    sub_classes = ('Manufacturer',)
     default_catalog = "productSearch"
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'Manufacturer',
             'meta_type'      : 'Manufacturer',
             'description'    : """Arbitrary device grouping class""",
@@ -62,7 +63,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
             'factory'        : 'manage_addManufacturer',
             'immediate_view' : 'viewManufacturers',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewManufacturers'
@@ -169,7 +170,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
             prod = factory(prodid, **kwargs)
             manufobj.products._setObject(prod.id, prod)
             prod = manufobj.products._getOb(prod.id)
-        return prod 
+        return prod
 
 
     def getProductsGen(self):
@@ -193,10 +194,13 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     def createCatalog(self):
         """Create a catalog for EventClassRecord searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog, 
-                            self.default_catalog)
+
+        # XXX update to use ManagableIndex
+        manage_addZCatalog(self, self.default_catalog,
+            self.default_catalog)
         zcat = self._getOb(self.default_catalog)
-        zcat.addIndex('productKeys', 'KeywordIndex')
+        cat = zcat._catalog
+        cat.addIndex('productKeys', makeKeywordIndex('productKeys'))
         zcat.addColumn('getPrimaryId')
 
 
@@ -217,7 +221,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
                     id , modname, classname)
         ofile.write(stag)
         for obj in self.objectValues():
-            if getattr(aq_base(obj), 'exportXml', False): 
+            if getattr(aq_base(obj), 'exportXml', False):
                 obj.exportXml(ofile, ignorerels)
         ofile.write("</object>\n")
 
