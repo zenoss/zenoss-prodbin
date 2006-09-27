@@ -1,24 +1,28 @@
-from Version import Version
+from Version import *
 
 # OS and Software Dependencies
-os = Version()
-mysql = Version()
-rrdtool = Version()
-python = Version()
-twisted = Version()
-pySNMP = Version()
-twistedSNMP = Version()
-zope = Version()
+os = Version(*getOSVersion())
+python = Version(*getPythonVersion())
+mysql = Version(*getMySQLVersion())
+rrdtool = Version(*getRRDToolVersion())
+twisted = Version(*getTwistedVersion())
+pysnmp = Version(*getPySNMPVersion())
+twistedsnmp = Version(*getTwistedSNMPVersion())
+zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('zenoss', 0, 23, 1)
+zenmodel = Version('Zenoss', 0, 23, 1)
 zenoss = zenmodel
-zenevent = Version()
-zenperf = Version()
-zenprocess = Version()
-zenping = Version()
-zensyslog = Version()
-zenstatus = Version()
-zenactions = Version()
-zentrap = Version()
-zenagios = Version()
+version = zenoss.full()
+
+# Utility function for display
+def getVersions():
+    vers = []
+    for v in [os, python, zope, mysql, rrdtool, twisted, pysnmp, twistedsnmp,
+        zenoss]:
+        vers.append(v.full())
+    return vers
+
+if __name__ == '__main__':
+    for v in getVersions():
+        print v

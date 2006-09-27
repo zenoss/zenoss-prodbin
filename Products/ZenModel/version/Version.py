@@ -5,6 +5,10 @@ XXX
 Note that when ZenCore or ZenBase is abstracted out, this should be moved as
 well.
 """
+import os
+import re
+import sys
+
 class VersionError(Exception):
     pass
 
@@ -13,6 +17,16 @@ class IncomparableVersions(VersionError):
 
 class ComponentVersionError(VersionError):
     pass
+
+class VersionNotSupported(VersionError):
+    pass
+
+def getVersionTupleFromString(versionString):
+    """
+    A utility function for parsing dot-delimited stings as a version tuple.
+    """
+    versions = versionString.strip().split('.')[:3]
+    return (lambda x,y=0,z=0: (int(x),int(y),int(z)))(*versions)
 
 class Version(object):
     """
@@ -36,6 +50,8 @@ class Version(object):
     'Zenoss 1.0.3'
     >>> v9.full()
     'Zenoss 1.0.3 r15729'
+    >>> v2.tuple()
+    (0, 23, 4)
 
     # comparisons
     >>> v1 > v2
@@ -102,6 +118,12 @@ class Version(object):
         """
         return "%s%s" % (self.long(), self._formatSVNRevision())
 
+    def tuple(self):
+        """
+        Return a version tuple.
+        """
+        return (self.major, self.minor, self.micro)
+
     def __cmp__(self, other):
         """
         Comparse one verion to another. If the other version supplied is not a
@@ -150,6 +172,8 @@ class Version(object):
         svnrev = self.revision
         if svnrev:
             svnrev = ' r%s' % svnrev
+        else:
+            svnrev = ''
         return svnrev
 
     def getSVNVersion(self):
@@ -232,11 +256,10 @@ class Version(object):
         name = versionParts.pop(0)
         #raise str(versionParts)
         try:
-            versions = versionParts.pop(0).split('.')
             # we want to always have a tuple of the right size returned,
-            # regardless of the number of elements in versions
-            (major, minor, micro) = (lambda x,y=0,z=0:
-                (int(x),int(y),int(z)))(*versions)
+            # regardless of the number of elements in ther 'versions' iterable
+            major, minor, micro = getVersionTupleFromString(
+                versionParts.pop(0))
             try:
                 revision = versionParts.pop(0).strip('r')
             except IndexError:
@@ -249,28 +272,130 @@ class Version(object):
     parse = classmethod(parse)
 
 def getOSVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getOSVersion())
+        v.full()
+    """
+    if os.name == 'posix':
+        sysname, nodename, version, build, arch = os.uname()
+        name = "%s (%s)" % (sysname, arch)
+        major, minor, micro = getVersionTupleFromString(version)
+    elif os.name == 'nt':
+        from win32api import GetVersionEx
+        major, minor, micro, platformID, additional = GetVersionEx()
+        name = 'Windows %s (%s)' % (os.name.upper(), additional)
+    else:
+        raise VersionNotSupported
+    return (name, major, minor, micro)
 
 def getPythonVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getPythonVersion())
+        v.full()
+    """
+    name = 'Python'
+    major, minor, micro, releaselevel, serial = sys.version_info
+    return (name, major, minor, micro)
 
 def getMySQLVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getMySQLVersion())
+        v.full()
+
+    The regex was tested against the following output strings:
+        mysql  Ver 14.12 Distrib 5.0.24, for apple-darwin8.5.1 (i686) using readline 5.0
+        mysql  Ver 12.22 Distrib 4.0.24, for pc-linux-gnu (i486)
+        mysql  Ver 14.12 Distrib 5.0.24a, for Win32 (ia32)
+    """
+    cmd = 'mysql --version'
+    stdout, stdin, stderr = os.popen3(cmd)
+    output = stdin.read().strip()
+    for o in stdout, stdin, stderr:
+        o.close()
+    regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
+    regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
+    regex = re.match(regexString, output)
+    name, version, release, info = regex.groups()
+    # the name returned in the output is all lower case, so we'll make our own
+    name = 'MySQL'
+    major, minor, micro = getVersionTupleFromString(version)
+    return (name, major, minor, micro)
 
 def getRRDToolVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getRRDToolVersion())
+        v.full()
+    """
+    cmd = 'rrdtool'
+    stdout, stdin, stderr = os.popen3(cmd)
+    output = stdin.readlines()[0].strip()
+    for o in stdout, stdin, stderr:
+        o.close()
+    name, version = output.split()[:2]
+    major, minor, micro = getVersionTupleFromString(version)
+    return (name, major, minor, micro)
 
 def getTwistedVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
 
-def getpySNMPVersion():
-    pass
+        v = Version(*getTwistedVersion())
+        v.full()
+    """
+    from twisted._version import version as v
+
+    return ('Twisted', v.major, v.minor, v.micro)
+
+def getPySNMPVersion():
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getpySNMPVersion())
+        v.full()
+    """
+    from pysnmp.version import getVersion
+
+    return ('PySNMP',) + getVersion()
 
 def getTwistedSNMPVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
 
+        v = Version(*getTwistedSNMPVersion())
+        v.full()
+    """
+    from twistedsnmp.version import version
+
+    return ('TwistedSNMP',) + version
+    
 def getZopeVersion():
-    pass
+    """
+    This function returns a Version-ready tuple. For use with the Version
+    object, use exteneded call syntax:
+
+        v = Version(*getZopeVersion())
+        v.full()
+    """
+    from App import version_txt as version
+
+    name = 'Zope'
+    major, minor, micro, status, release = version.getZopeVersion()
+    return (name, major, minor, micro)
 
 def getZenossVersion(component='ZenModel'):
     """
