@@ -14,9 +14,33 @@ moduleName = 'ZenModel'
 def getVersionTupleFromString(versionString):
     """
     A utility function for parsing dot-delimited stings as a version tuple.
+
+    # test some simple version formats
+    >>> version = '1'
+    >>> getVersionTupleFromString(version)
+    (1, 0, 0)
+    >>> version = '1.0'
+    >>> getVersionTupleFromString(version)
+    (1, 0, 0)
+    >>> version = '1.0.0'
+    >>> getVersionTupleFromString(version)
+    (1, 0, 0)
+    >>> version = '1.0.2'
+    >>> getVersionTupleFromString(version)
+    (1, 0, 2)
+
+    # here's one for Fedora
+    >>> version = '2.6.17-1.2174_FC5'
+    >>> getVersionTupleFromString(version)
+    (2, 6, 17)
+
+    # here's a bizzare one
+    >>> version = '1a.23zzX.abs'
+    >>> getVersionTupleFromString(version)
+    (1, 23, 0)
     """
-    versions = versionString.strip().split('.')[:3]
-    return (lambda x,y=0,z=0: (int(x),int(y),int(z)))(*versions)
+    versions = re.split('[^0-9]+', versionString.strip())[:3]
+    return (lambda x,y=0,z=0: (int(x),int(y or 0),int(z or 0)))(*versions)
 
 class VersionError(Exception):
     pass
