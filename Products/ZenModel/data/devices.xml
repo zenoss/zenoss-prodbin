@@ -1,95 +1,107 @@
 <?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='boolean' id='zIfDescription' >
+<property visible='True' type='int' id='zProdStateThreshold' >
+500
+</property>
+<property visible='True' type='boolean' id='zIfDescription' >
 False
 </property>
-<property type='lines' id='zSnmpCommunities' >
+<property visible='True' type='lines' id='zSnmpCommunities' >
 ['public', 'private']
 </property>
-<property type='string' id='zSnmpCommunity' >
+<property visible='True' type='string' id='zSnmpCommunity' >
 public
 </property>
-<property type='int' id='zSnmpPort' >
+<property visible='True' type='int' id='zSnmpPort' >
 161
 </property>
-<property type='string' id='zSnmpVer' >
+<property visible='True' type='string' id='zSnmpVer' >
 v1
 </property>
-<property type='int' id='zSnmpTries' >
+<property visible='True' type='int' id='zSnmpTries' >
 2
 </property>
-<property type='float' id='zSnmpTimeout' >
+<property visible='True' type='float' id='zSnmpTimeout' >
 2.5
 </property>
-<property type='boolean' id='zRouteMapCollectOnlyLocal' >
+<property visible='True' type='boolean' id='zRouteMapCollectOnlyLocal' >
 False
 </property>
-<property type='boolean' id='zRouteMapCollectOnlyIndirect' >
+<property visible='True' type='boolean' id='zRouteMapCollectOnlyIndirect' >
 False
 </property>
-<property type='int' id='zIpServiceMapMaxPort' >
+<property visible='True' type='int' id='zIpServiceMapMaxPort' >
 1024
 </property>
-<property type='boolean' id='zSnmpMonitorIgnore' >
+<property visible='True' type='boolean' id='zSnmpMonitorIgnore' >
 False
 </property>
-<property type='boolean' id='zPingMonitorIgnore' >
+<property visible='True' type='boolean' id='zPingMonitorIgnore' >
 False
 </property>
-<property type='boolean' id='zXmlRpcMonitorIgnore' >
+<property visible='True' type='boolean' id='zXmlRpcMonitorIgnore' >
 False
 </property>
-<property type='string' id='zTransportPreference' >
+<property visible='True' type='string' id='zTransportPreference' >
 snmp
 </property>
-<property type='int' id='zCollectorClientTimeout' >
+<property visible='True' type='int' id='zCollectorClientTimeout' >
 180
 </property>
-<property type='string' id='zCommandProtocol' >
+<property visible='True' type='string' id='zCommandProtocol' >
 ssh
 </property>
-<property type='int' id='zCommandPort' >
+<property visible='True' type='int' id='zCommandPort' >
 22
 </property>
-<property type='int' id='zCommandLoginTries' >
+<property visible='True' type='int' id='zCommandLoginTries' >
 1
 </property>
-<property type='float' id='zCommandLoginTimeout' >
+<property visible='True' type='float' id='zCommandLoginTimeout' >
 10.0
 </property>
-<property type='float' id='zCommandCommandTimeout' >
+<property visible='True' type='float' id='zCommandCommandTimeout' >
 10.0
 </property>
-<property type='string' id='zCommandExistanceTest' >
+<property visible='True' type='string' id='zCommandExistanceTest' >
 test -f %s
 </property>
-<property type='string' id='zTelnetLoginRegex' >
+<property visible='True' type='string' id='zTelnetLoginRegex' >
 ogin:.$
 </property>
-<property type='string' id='zTelnetPasswordRegex' >
+<property visible='True' type='string' id='zTelnetPasswordRegex' >
 assword:
 </property>
-<property type='lines' id='zTelnetSuccessRegexList' >
+<property visible='True' type='lines' id='zTelnetSuccessRegexList' >
 ['\\$.$', '\\#.$']
 </property>
-<property type='boolean' id='zTelnetEnable' >
+<property visible='True' type='boolean' id='zTelnetEnable' >
 False
 </property>
-<property type='string' id='zTelnetEnableRegex' >
+<property visible='True' type='string' id='zTelnetEnableRegex' >
 assword:
 </property>
-<property type='boolean' id='zTelnetTermLength' >
+<property visible='True' type='boolean' id='zTelnetTermLength' >
 True
 </property>
-<property type='float' id='zTelnetPromptTimeout' >
+<property visible='True' type='float' id='zTelnetPromptTimeout' >
 10.0
 </property>
-<property type='boolean' id='zWinEventlog' >
+<property visible='True' type='int' id='zWinEventlogMinSeverity' >
+2
+</property>
+<property visible='True' type='boolean' id='zWinEventlog' >
 False
 </property>
-<property type='date' id='cDateTest' >
+<property visible='True' type='string' id='zNagiosPath' >
+/usr/local/nagios/libexec
+</property>
+<property visible='True' type='date' id='cDateTest' >
 1900/01/01
+</property>
+<property visible='True' type='int' id='zNagiosCycleTime' >
+60
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -98,9 +110,26 @@ Basic template that only collects sysUpTime.
 </property>
 <tomanycont id='datasources'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.1.3.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -119,12 +148,31 @@ True
 </object>
 </tomanycont>
 </object>
+</tomanycont>
+</object>
 <object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 Monitors for OSProcess object
 </property>
 <tomanycont id='datasources'>
 <object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -141,7 +189,26 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -157,6 +224,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.2lf%s
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
@@ -250,9 +319,26 @@ Standard ethernet interface template with 75% utilization threshold
 </property>
 <tomanycont id='datasources'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.14
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -269,10 +355,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.10
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -292,10 +397,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.11
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -312,10 +436,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.20
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -332,10 +475,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.16
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -355,10 +517,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.2.2.1.17
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -374,6 +555,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.2lf%s
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
@@ -518,18 +701,21 @@ here.speed / 8 * .75
 <property type='int' id='escalateCount' mode='w' >
 0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 <object id='Discovered' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='string' id='zCollectorCollectPlugins' >
+<property visible='True' type='string' id='zCollectorCollectPlugins' >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type='string' id='zCollectorCollectPlugins' >
+<property visible='True' type='string' id='zCollectorCollectPlugins' >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
 <object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
@@ -554,9 +740,26 @@ Net-SNMP template for late vintage unix device.  Has CPU threshold.
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.10.1.5.2
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -576,10 +779,29 @@ True
 %0.2lf
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.4.6.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -596,10 +818,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.4.4.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -616,10 +857,29 @@ True
 %0.2lf
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.11.53.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -636,10 +896,29 @@ True
 %0.1lf%%
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.11.52.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -656,10 +935,29 @@ True
 %0.1lf%%
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.11.50.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -676,10 +974,29 @@ True
 %0.1lf%%
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.2021.11.54.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 COUNTER
 </property>
@@ -696,10 +1013,29 @@ True
 %0.1lf%%
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.25.1.1.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -715,6 +1051,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.2lf%s
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
@@ -941,6 +1279,9 @@ True
 <property type='int' id='escalateCount' mode='w' >
 5
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -950,9 +1291,26 @@ Filesystem template that uses HOST-RESOURCES mib.
 </property>
 <tomanycont id='datasources'>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.25.2.3.1.6
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -968,6 +1326,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.2lf%s
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
@@ -1034,6 +1394,9 @@ here.totalBlocks * .9
 <property type='int' id='escalateCount' mode='w' >
 0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -1050,9 +1413,26 @@ Windows template that requires Informant MIB
 </property>
 <tomanycont id='datasources'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.9600.1.1.5.1.5.6.95.84.111.116.97.108
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1069,10 +1449,29 @@ True
 %.0lf
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.9600.1.1.2.2.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1089,10 +1488,29 @@ True
 %0.2lf%s
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.9600.1.1.2.10.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1109,10 +1527,29 @@ True
 %0.1lf
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.2.1.1.3.0
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1128,6 +1565,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.2lf%s
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
@@ -1263,11 +1702,17 @@ True
 <property type='string' id='maxval' mode='w' >
 90
 </property>
+<property type='string' id='eventClass' mode='w' >
+/Perf/Snmp
+</property>
 <property type='int' id='severity' mode='w' >
 3
 </property>
 <property type='int' id='escalateCount' mode='w' >
 5
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
@@ -1278,9 +1723,26 @@ HardDisk I/O template that requries Informat MIB
 </property>
 <tomanycont id='datasources'>
 <object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.9600.1.1.1.1.15
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1297,10 +1759,29 @@ True
 %0.1lf%S
 </property>
 </object>
+</tomanycont>
+</object>
 <object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
 <property type='string' id='oid' mode='w' >
 1.3.6.1.4.1.9600.1.1.1.1.18
 </property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+60
+</property>
+<tomanycont id='datapoints'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
 GAUGE
 </property>
@@ -1316,6 +1797,8 @@ True
 <property type='string' id='format' mode='w' >
 %0.1lf%S
 </property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
