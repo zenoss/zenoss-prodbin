@@ -19,16 +19,10 @@ version = zenoss.full()
 
 # Utility function for display
 def getVersions():
-    vers = {
-        'OS': os.full(),
-        'Python': python.full(),
-        'Database': mysql.full(),
-        'RRD': rrdtool.full(),
-        'Twisted': twisted.full(),
-        'SNMP': "%s, %s" % (pysnmp.full(), twistedsnmp.full()),
-        'Zope': zope.full(),
-        'Zenoss': zenoss.full(),
-    }
+    vers = []
+    for v in [os, python, zope, mysql, rrdtool, twisted, pysnmp, twistedsnmp,
+        zenoss]:
+        vers.append(v.full())
     return vers
 
 if __name__ == '__main__':
