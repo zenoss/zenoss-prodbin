@@ -1,0 +1,29 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+            href string:${here/absolute_url_path}/${template/id}">About
+   </a> &nbsp;
+    <a tal:attributes="
+            href string:${here/absolute_url_path}/${template/id}"
+            style="font-weight: normal; font-size: 7pt; text-decoration: none">(refresh)
+            
+   </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+
+    <h2>Zenoss Information</h2>
+    <h3>Uptimes</h3>
+    <ul>
+        <li>Zope: </li>
+    </ul>
+    <h3>Software Component Versions</h3>
+    <ul tal:repeat="version here/ZenossInfo/getAllVersions">
+        <li tal:content="version" />
+    </ul>
+
+</tal:block>
+
+</tal:block>
+
