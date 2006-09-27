@@ -213,7 +213,7 @@ class RRDDataSource(ZenModelRM):
         if REQUEST:
             import string
             try:
-                oid = REQUEST.get['oid']
+                oid = REQUEST.get('oid')
             except KeyError:
                 pass
             else:
