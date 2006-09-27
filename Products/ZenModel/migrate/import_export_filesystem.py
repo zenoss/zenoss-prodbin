@@ -13,12 +13,9 @@ templates to and from Zenoss.
 
 __version__ = "$Revision$"[11:-2]
 
+import os
 
 import Migrate
-
-from Acquisition import aq_base
-
-import os
 
 zenhome = os.getenv('ZENHOME')
 

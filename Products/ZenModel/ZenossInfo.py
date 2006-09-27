@@ -11,7 +11,10 @@ def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
     Provide an instance of ZenossInfo for the portal.
     """
     about = ZenossInfo(id)
-    context._setObject(id, about)
+    try:
+        context._getOb(id)
+    except AttributeError:
+        context._setObject(id, about)
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(context.absolute_url() +'/manage_main')
