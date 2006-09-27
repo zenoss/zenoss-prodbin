@@ -4,7 +4,6 @@ log = logging.getLogger("zen.ZenossInfo")
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
-
 from Products.ZenModel.version import Current
 
 def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
@@ -44,8 +43,12 @@ class ZenossInfo(SimpleItem):
         """
         Return a list of daemons with their uptimes.
         """
+        app = self.getPhysicalRoot()
         uptimes = []
-        zope = {'header': 'Zope', 'data': ' '}
+        zope = {
+            'header': 'Zope',
+            'data': app.Control_Panel.process_time(),
+        }
         uptimes.append(zope)
         return uptimes
     security.declareProtected('View','getAllUptimes')
