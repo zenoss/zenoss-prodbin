@@ -57,14 +57,14 @@ class System(DeviceOrganizer):
     _properties = (
         {'id':'systemClass', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
-        ) 
+        )
     _relations = DeviceOrganizer._relations + (
         ("devices", ToMany(ToMany, "Device", "systems")),
         )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'System',
             'meta_type'      : 'System',
             'description'    : """Base class for all devices""",
@@ -73,7 +73,7 @@ class System(DeviceOrganizer):
             'factory'        : 'manage_addSystem',
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'

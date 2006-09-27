@@ -43,6 +43,7 @@ from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
+from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
@@ -54,31 +55,31 @@ from Products.CMFCore.DirectoryView import manage_addDirectoryView
 from Products.ZenModel.UserSettings import manage_addUserSettingsManager
 
 classifications = {
-    'Devices':      DeviceClass,
-    'Groups':       DeviceGroup,
-    'Locations':    Location,
-    'Systems':      System,
-    'Services':     ServiceOrganizer,
+    'Devices':          DeviceClass,
+    'Groups':           DeviceGroup,
+    'Locations':        Location,
+    'Systems':          System,
+    'Services':         ServiceOrganizer,
     'Manufacturers':    ManufacturerRoot,
-    'Mibs':         MibOrganizer,
-    'Processes':         OSProcessOrganizer,
-    'Monitors':     MonitorClass,
-    'Reports':      ReportClass,
+    'Mibs':             MibOrganizer,
+    'Processes':        OSProcessOrganizer,
+    'Monitors':         MonitorClass,
+    'Reports':          ReportClass,
 }
 
 class DmdBuilder:
    
     # Top level organizers for dmd
     dmdroots = (
-        'Devices', 
-        'Groups', 
-        'Locations', 
-        'Systems', 
+        'Devices',
+        'Groups',
+        'Locations',
+        'Systems',
         'Services',
         'Processes',
         'Manufacturers',
         'Mibs',
-        'Monitors', 
+        'Monitors',
         'Reports',
         )
    
@@ -118,7 +119,7 @@ class DmdBuilder:
                 dr = base._getOb(dr.id)
                 dr.isInTree = isInTree
                 if dr.id in ('Devices'):
-                    dr.createCatalog() 
+                    dr.createCatalog()
 
 
     def build(self):
@@ -128,9 +129,10 @@ class DmdBuilder:
         manage_addZDeviceLoader(self.dmd)
         manage_addPerformanceReport(self.dmd)
         manage_addZenTableManager(self.portal)
+        manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
-        manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser, 
+        manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                               evtpass=self.evtpass)
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                     evtpass=self.evtpass, history=True)

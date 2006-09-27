@@ -37,7 +37,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
     context._setObject(id, dr)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
                                      
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
@@ -60,8 +60,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
         )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'DataRoot',
             'meta_type'      : 'DataRoot',
             'description'    : """Arbitrary device grouping class""",
@@ -70,7 +70,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
             'factory'        : 'manage_addStatusMonitorconf',
             'immediate_view' : 'Dashboard',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'dashboard'
                 , 'name'          : 'Dashboard'
                 , 'action'        : 'Dashboard'
@@ -123,7 +123,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
     )
 
     defaultDateRange = 18000
-    performanceDateRanges = [ 
+    performanceDateRanges = [
         ('Hourly',18000,),
         ('Daily',129600,),
         ('Weekly',864000,),
@@ -219,7 +219,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return convs
 
     security.declarePublic('filterObjectsRegex')
-    def filterObjectsRegex(self, filter, objects, 
+    def filterObjectsRegex(self, filter, objects,
                             filteratt='id', negatefilter=0):
         """filter a list of objects based on a regex"""
         filter = re.compile(filter).search
@@ -231,13 +231,13 @@ class DataRoot(ZenModelRM, OrderedFolder):
             fvalue =  filter(value)
             if (fvalue and not negatefilter) or (not fvalue and negatefilter):
                 filteredObjects.append(obj)
-        return filteredObjects  
+        return filteredObjects
 
 
     security.declareProtected('View', 'myUserGroups')
     def myUserGroups(self):
         user = self.REQUEST.get('AUTHENTICATED_USER')
-        if hasattr(user, 'getGroups'): 
+        if hasattr(user, 'getGroups'):
             return user.getGroups()
         else:
             return ()

@@ -30,7 +30,7 @@ from SearchUtils import makeConfmonLexicon, makeIndexExtraParams
 from IpAddress import IpAddress
 from DeviceOrganizer import DeviceOrganizer
 
-from Products.ZenModel.Exceptions import * 
+from Products.ZenModel.Exceptions import *
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -41,7 +41,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
         net.buildZProperties()
         net.createCatalog()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
 

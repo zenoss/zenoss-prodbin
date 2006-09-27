@@ -135,7 +135,7 @@ class PortalGenerator:
     def setupSessionManager(self, p):
         """build a session manager and brower id manager for zport"""
         constructBrowserIdManager(p, cookiepath="/zport")
-        constructSessionDataManager(p, "session_data_manager", 
+        constructSessionDataManager(p, "session_data_manager",
                     title="Session Data Manager",
                     path='/temp_folder/session_data')
 
@@ -175,7 +175,7 @@ class PortalGenerator:
 manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
-def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal', 
+def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal',
                          description='',
                          create_userfolder=True,
                          email_from_address='postmaster@localhost',
@@ -192,4 +192,4 @@ def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal',
                                email_from_address, email_from_name,
                                validate_email)
     if RESPONSE is not None:
-        RESPONSE.redirect(self.absolute_url()+'/manage_main') 
+        RESPONSE.redirect(self.absolute_url()+'/manage_main')

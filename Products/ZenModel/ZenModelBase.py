@@ -20,7 +20,7 @@ from Acquisition import aq_base, aq_chain
 
 from Products.CMFCore.utils import _verifyActionPermissions
 
-from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin 
+from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
 # Custom device properties start with c
@@ -171,11 +171,11 @@ class ZenModelBase(object):
 
 
     def createHierarchyObj(self, root, name, factory, relpath="", log=None):
-        return createHierarchyObj(root, name, factory, relpath, log) 
+        return createHierarchyObj(root, name, factory, relpath, log)
 
 
     def getHierarchyObj(self, root, name, relpath):
-        return getHierarchyObj(root, name, relpath) 
+        return getHierarchyObj(root, name, relpath)
 
 
     def getDmd(self):
@@ -264,7 +264,7 @@ class ZenModelBase(object):
     def isLocalName(self, name):
         """Check to see if a name is local to our current context.
         """
-        v = getattr(aq_base(self), name, '__ZENMARKER__') 
+        v = getattr(aq_base(self), name, '__ZENMARKER__')
         return v != '__ZENMARKER__'
 
 
@@ -275,7 +275,7 @@ class ZenModelBase(object):
         className = path[-1].replace('Class','')
         product = path[-2]
        
-        path = ("", "Control_Panel", "Products", product, "Help", 
+        path = ("", "Control_Panel", "Products", product, "Help",
                 "%s.stx"%className)
 
         # check to see if we have a help screen
