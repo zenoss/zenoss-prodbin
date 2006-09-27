@@ -458,6 +458,8 @@ def createCurrentVersionModule(major=0, minor=0, micro=0, version=''):
     the version information stored in this Version() object.
     """
     moduleString = """# This file is generated automatically during packaging and installation.
+# ALL CHANGES TO THIS FILE WILL BE OVERWRITTEN!!!
+# For permanent changes, please edit Version.py.
 
 from Version import *
 
@@ -478,10 +480,16 @@ version = zenoss.full()
 
 # Utility function for display
 def getVersions():
-    vers = []
-    for v in [os, python, zope, mysql, rrdtool, twisted, pysnmp, twistedsnmp,
-        zenoss]:
-        vers.append(v.full())
+    vers = {
+        'OS': os.full(),
+        'Python': python.full(),
+        'Database': mysql.full(),
+        'RRD': rrdtool.full(),
+        'Twisted': twisted.full(),
+        'SNMP': pysnmp.full() + ', ' + twistedsnmp.full(),
+        'Zope': zope.full(),
+        'Zenoss': zenoss.full(),
+    }
     return vers
 
 if __name__ == '__main__':
