@@ -407,12 +407,9 @@ def getZenossVersion(component='ZenModel'):
     A convenience function for obtianing the current version of Zenoss and
     Zenoss components.
     """
-    try:
-        pass
-    except ImportError:
-        # try to get version from VERSION.txt
-        # instantiate Version and try to get svn version
-        pass
+    # right now, this function is not used, as the Zenoss version is updated
+    # dynamically by zenpkg.
+    pass
 
 def createCurrentVersionModule(major=0, minor=0, micro=0, version=''):
     """
@@ -470,5 +467,4 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    createCurrentVersionModule(0, 23, 0)
     _test()

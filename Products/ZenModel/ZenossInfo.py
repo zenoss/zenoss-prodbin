@@ -26,7 +26,28 @@ class ZenossInfo(SimpleItem):
         Return a list of version numbers for currently tracked component
         software.
         """
-        return Current.getVersions()
+        vers = Current.getVersions()
+        versions = [
+            {'header': 'Zenoss', 'data': vers['Zenoss']},
+            {'header': 'OS', 'data': vers['OS']},
+            {'header': 'Zope', 'data': vers['Zope']},
+            {'header': 'Python', 'data': vers['Python']},
+            {'header': 'Database', 'data': vers['Database']},
+            {'header': 'RRD', 'data': vers['RRD']},
+            {'header': 'Twisted', 'data': vers['Twisted']},
+            {'header': 'SNMP', 'data': vers['SNMP']},
+        ]
+        return versions
     security.declareProtected('View','getAllVersions')
+
+    def getAllUptimes(self):
+        """
+        Return a list of daemons with their uptimes.
+        """
+        uptimes = []
+        zope = {'header': 'Zope', 'data': ' '}
+        uptimes.append(zope)
+        return uptimes
+    security.declareProtected('View','getAllUptimes')
 
 InitializeClass(ZenossInfo)

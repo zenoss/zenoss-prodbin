@@ -1,29 +1,50 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
 
-<tal:block metal:fill-slot="breadCrumbPane">
-    /<a tal:attributes="
+    <tal:block metal:fill-slot="breadCrumbPane">
+        /<a tal:attributes="
             href string:${here/absolute_url_path}/${template/id}">About
-   </a> &nbsp;
-    <a tal:attributes="
+       </a> &nbsp;
+        <a tal:attributes="
             href string:${here/absolute_url_path}/${template/id}"
             style="font-weight: normal; font-size: 7pt; text-decoration: none">(refresh)
-            
-   </a>
-</tal:block>
+                
+       </a>
+    </tal:block>
 
-<tal:block metal:fill-slot="contentPane">
+    <tal:block metal:fill-slot="contentPane">
 
-    <h2>Zenoss Information</h2>
-    <h3>Uptimes</h3>
-    <ul>
-        <li>Zope: </li>
-    </ul>
-    <h3>Software Component Versions</h3>
-    <ul tal:repeat="version here/ZenossInfo/getAllVersions">
-        <li tal:content="version" />
-    </ul>
+        <h3>Zenoss Information</h3>
+        <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+                <tr>
+                    <th class="tabletitle" colspan="2">Uptimes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr tal:repeat="uptime here/ZenossInfo/getAllUptimes">
+                    <th class="tableheader" tal:content="uptime/header" />
+                    <td tal:content="uptime/data" />
+                </tr>
+            </tbody>
+        </table>
 
-</tal:block>
+        <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+                <tr>
+                    <th class="tabletitle" colspan="2">
+                        Software Component Versions
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr tal:repeat="version here/ZenossInfo/getAllVersions">
+                    <th class="tableheader" tal:content="version/header" />
+                    <td tal:content="version/data" />
+                </tr>
+            </tbody>
+        </table>
+
+    </tal:block>
 
 </tal:block>
 
