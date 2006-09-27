@@ -207,7 +207,21 @@ class Version(object):
         """
         For all versions of Subversion that support XML .svn/entries files.
         """
-        return ''
+        # XXX
+        # we're not going to use the .svn/entries files for now, so this method
+        # may be sufficient for all Subversion versions.
+        prod = os.path.join(os.getenv('ZENHOME'), 'Products')
+        cmd = 'cd %s;svn info .' % prod
+        stdout, stdin, stderr = os.popen3(cmd)
+        err = stderr.read()
+        if err:
+            raise Exception, err
+        # the fifth line has the revision info
+        output = stdin.readlines()[4].strip()
+        for o in stdout, stdin, stderr:
+            o.close()
+        revision = output.split()[-1]
+        return revision
 
     def _getSVNRevisionFor14(self):
         """
@@ -443,7 +457,7 @@ def getZopeVersion():
     major, minor, micro, status, release = version.getZopeVersion()
     return (name, major, minor, micro)
 
-def getZenossVersion(component='ZenModel'):
+def getZenossVersion(component='None'):
     """
     A convenience function for obtianing the current version of Zenoss and
     Zenoss components.
@@ -503,7 +517,7 @@ if __name__ == '__main__':
     vers = Version('Zenoss', major, minor, micro)
     revision = vers.getSVNRevision()
     if revision:
-        version += ", %d" % revision
+        version += ", %s" % revision
     dstFile = os.path.join(os.getenv('ZENHOME'), 'Products', moduleName,
         'version', 'Current.py')
     fh = open(dstFile, 'w+')
