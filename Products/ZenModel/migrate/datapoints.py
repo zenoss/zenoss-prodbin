@@ -48,17 +48,19 @@ class DataPoints(Migrate.Step):
         Migrate.Step.__init__(self)
         self.renames = []
 
+    def cutoverDataSource(self, s):
+        s.buildRelations()
+        if not s.datapoints():
+            p = RRDDataPoint(s.id)
+            for prop in MOVED_PROPERTIES:
+                copyProperty(s, p, prop)
+            s.datapoints._setObject(p.id, p)
+
     def cutoverTemplates(self, obj):
         oldbase = os.path.join(os.getenv('ZENHOME'), 'perf')
         for t in obj.getRRDTemplates():
             for s in t.datasources():
-                s.buildRelations()
-                if not s.datapoints():
-                    p = RRDDataPoint(s.id)
-                    for prop in MOVED_PROPERTIES:
-                        copyProperty(s, p, prop)
-                    s.datapoints._setObject(p.id, p)
-                if s.sourcetype == 'SNMP': continue
+                self.cutoverDataSource(s)
                 oldname = os.path.join(oldbase + obj.rrdPath(), s.id)
                 newname = '%s%c%s' % (oldname, SEPARATOR, s.id)
                 oldname += ".rrd"
@@ -85,7 +87,7 @@ class DataPoints(Migrate.Step):
         for org in dmd.Devices.getSubOrganizers():
             for t in org.getRRDTemplates():
                 for s in t.datasources():
-                    s.buildRelations()
+                    self.cutoverDataSource(s)
         for d in dmd.Devices.getSubDevices():
             self.cutoverTemplates(d)
             self.cutoverNagios(d)
