@@ -1,4 +1,6 @@
 # This file is generated automatically during packaging and installation.
+# ALL CHANGES TO THIS FILE WILL BE OVERWRITTEN!!!
+# For permanent changes, please edit Version.py.
 
 from Version import *
 
@@ -13,16 +15,22 @@ twistedsnmp = Version(*getTwistedSNMPVersion())
 zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('Zenoss', 0, 23, 0)
+zenmodel = Version('Zenoss', 0, 0, 0)
 zenoss = zenmodel
 version = zenoss.full()
 
 # Utility function for display
 def getVersions():
-    vers = []
-    for v in [os, python, zope, mysql, rrdtool, twisted, pysnmp, twistedsnmp,
-        zenoss]:
-        vers.append(v.full())
+    vers = { 
+        'OS': os.full(), 
+        'Python': python.full(), 
+        'Database': mysql.full(), 
+        'RRD': rrdtool.full(), 
+        'Twisted': twisted.full(), 
+        'SNMP': pysnmp.full() + ', ' + twistedsnmp.full()), 
+        'Zope': zope.full(), 
+        'Zenoss': zenoss.full(), 
+    } 
     return vers
 
 if __name__ == '__main__':
