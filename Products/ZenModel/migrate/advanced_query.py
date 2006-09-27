@@ -55,6 +55,23 @@ class AdvancedQuery(Migrate.Step):
             for catalogName, indexNames in catalogNames.items():
                 zcat = getattr(dmd.getDmdRoot(section), catalogName)
                 cat = zcat._catalog
+                # remove the lexicon, if it's there
+                delID = 'myLexicon'
+                try:
+                    zcat._getOb(delID)
+                    lexExists = True
+                except AttributeError:
+                    #print "No lexicon found at %s.%s" % (section, catalogName)
+                    lexExists = False
+                if lexExists:
+                    #print "Deleting %s.%s.%s ..." % (section, catalogName, delID)
+                    zcat._delOb(delID)
+                    newObjs = []
+                    for obj in zcat._objects:
+                        if obj.get('id') != delID:
+                            newObjs.append(obj)
+                    zcat._objects = tuple(newObjs)
+                # replace the indices
                 for indexName in indexNames:
                     if (catalogName == 'componentSearch' and 
                         indexName == 'monitored'):
