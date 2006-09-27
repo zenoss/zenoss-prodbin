@@ -1,9 +1,12 @@
 import logging
 log = logging.getLogger("zen.ZenossInfo")
 
+import transaction
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
+from OFS.PropertyManager import PropertyManager
+
 from Products.ZenModel.version import Current
 
 def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
@@ -11,6 +14,7 @@ def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
     Provide an instance of ZenossInfo for the portal.
     """
     about = ZenossInfo(id)
+    about.id = 'About'
     try:
         context._getOb(id)
     except AttributeError:
@@ -19,9 +23,14 @@ def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(context.absolute_url() +'/manage_main')
 
-class ZenossInfo(SimpleItem):
+class ZenossInfo(SimpleItem, PropertyManager):
 
     security = ClassSecurityInfo()
+
+    _properties = (
+        {'id':'id', 'type':'string'},
+        {'id':'title', 'type':'string'},
+    )
 
     def getAllVersions(self):
         """
