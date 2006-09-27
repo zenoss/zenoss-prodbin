@@ -117,13 +117,21 @@ class Version(object):
     True
     >>> '1.0' == v4
     True
+
+    # comment/additional info
+    >>> v10 = v9
+    >>> v10.setComment('A super-secret squirrel release')
+    >>> v10.full()
+    'Zenoss 1.0.3 r15729 (A super-secret squirrel release)'
     """
-    def __init__(self, name, major=0, minor=0, micro=0, revision=0):
+    def __init__(self, name, major=0, minor=0, micro=0, revision=0,
+        comment=''):
         self.name = name
         self.major = major
         self.minor = minor
         self.micro = micro
         self.revision = revision
+        self.comment = str(comment)
 
     def short(self):
         """
@@ -142,7 +150,10 @@ class Version(object):
         Returns a string with the software name, the version number, and the
         subversion revision number, if defined.
         """
-        return "%s%s" % (self.long(), self._formatSVNRevision())
+        comment = ''
+        if self.comment:
+            comment = ' (' + self.comment + ')'
+        return "%s%s%s" % (self.long(), self._formatSVNRevision(), comment)
 
     def tuple(self):
         """
@@ -158,6 +169,9 @@ class Version(object):
 
     def incrMicro(self):
         self.micro += 1
+
+    def setComment(self, comment):
+        self.comment = comment
 
     def __cmp__(self, other):
         """
@@ -312,13 +326,15 @@ def getOSVersion():
         sysname, nodename, version, build, arch = os.uname()
         name = "%s (%s)" % (sysname, arch)
         major, minor, micro = getVersionTupleFromString(version)
+        comment = ' '.join(os.uname())
     elif os.name == 'nt':
         from win32api import GetVersionEx
         major, minor, micro, platformID, additional = GetVersionEx()
         name = 'Windows %s (%s)' % (os.name.upper(), additional)
+        comment = ''
     else:
         raise VersionNotSupported
-    return (name, major, minor, micro)
+    return (name, major, minor, micro, 0, comment)
 
 def getPythonVersion():
     """
@@ -354,10 +370,11 @@ def getMySQLVersion():
     regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
     regex = re.match(regexString, output)
     name, version, release, info = regex.groups()
+    comment = 'Ver %s' % version
     # the name returned in the output is all lower case, so we'll make our own
     name = 'MySQL'
     major, minor, micro = getVersionTupleFromString(version)
-    return (name, major, minor, micro)
+    return (name, major, minor, micro, 0, comment)
 
 def getRRDToolVersion():
     """
