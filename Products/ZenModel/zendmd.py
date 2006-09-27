@@ -28,7 +28,8 @@ if readline:
     if os.path.exists(historyPath):
         readline.read_history_file(historyPath)
 
-class zendmd(ZCmdBase): pass
+class zendmd(ZCmdBase):
+    pass
 
 if __name__ == '__main__':
     zendmd = zendmd()
