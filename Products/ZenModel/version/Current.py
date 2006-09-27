@@ -1,3 +1,5 @@
+# This file is generated automatically during packaging and installation.
+
 from Version import *
 
 # OS and Software Dependencies
@@ -11,7 +13,7 @@ twistedsnmp = Version(*getTwistedSNMPVersion())
 zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('Zenoss', 0, 23, 1)
+zenmodel = Version('Zenoss', 0, 23, 0)
 zenoss = zenmodel
 version = zenoss.full()
 
@@ -26,3 +28,4 @@ def getVersions():
 if __name__ == '__main__':
     for v in getVersions():
         print v
+    

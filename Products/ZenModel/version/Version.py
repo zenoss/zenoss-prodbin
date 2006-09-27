@@ -3,11 +3,20 @@ Zenoss versioning module.
 
 XXX
 Note that when ZenCore or ZenBase is abstracted out, this should be moved as
-well.
+well. When/if this occurs, the module name needs to be renamed below.
 """
 import os
 import re
 import sys
+
+moduleName = 'ZenModel'
+
+def getVersionTupleFromString(versionString):
+    """
+    A utility function for parsing dot-delimited stings as a version tuple.
+    """
+    versions = versionString.strip().split('.')[:3]
+    return (lambda x,y=0,z=0: (int(x),int(y),int(z)))(*versions)
 
 class VersionError(Exception):
     pass
@@ -20,13 +29,6 @@ class ComponentVersionError(VersionError):
 
 class VersionNotSupported(VersionError):
     pass
-
-def getVersionTupleFromString(versionString):
-    """
-    A utility function for parsing dot-delimited stings as a version tuple.
-    """
-    versions = versionString.strip().split('.')[:3]
-    return (lambda x,y=0,z=0: (int(x),int(y),int(z)))(*versions)
 
 class Version(object):
     """
@@ -124,6 +126,15 @@ class Version(object):
         """
         return (self.major, self.minor, self.micro)
 
+    def incrMajor(self):
+        self.major += 1
+
+    def incrMinor(self):
+        self.minor += 1
+
+    def incrMicro(self):
+        self.micro += 1
+
     def __cmp__(self, other):
         """
         Comparse one verion to another. If the other version supplied is not a
@@ -154,13 +165,13 @@ class Version(object):
                 (other.major, other.minor, other.micro, other.revision))
         return comparison
 
-    def _getSVNVersion13(self):
+    def _getSVNRevisionFor13(self):
         """
         For all versions of Subversion that support XML .svn/entries files.
         """
         return ''
 
-    def _getSVNVersion14(self):
+    def _getSVNRevisionFor14(self):
         """
         As of version 1.4 of Subversion, XML .svn/entries failes are no longer
         supported. This method is for extracting revision information from SVN
@@ -176,13 +187,13 @@ class Version(object):
             svnrev = ''
         return svnrev
 
-    def getSVNVersion(self):
+    def getSVNRevision(self):
         if self.revision:
             return self.revision
         try:
-            v = self._getSVNVersion13()
+            v = self._getSVNRevisionFor13()
         except ComponentVersionError:
-            v = self._getSVNVersion14()
+            v = self._getSVNRevisionFor14()
         self.revision = v
         return self.revision
 
@@ -202,12 +213,6 @@ class Version(object):
             self.minor,
             self.micro,
             self._formatSVNRevision())
-
-    def createCurrentVersionModule(self):
-        """
-        This method creates/overwrites Products.ZenMode.version.Current with
-        the version information stored in this Version() object.
-        """
 
     def parse(self, versionString):
         """
@@ -409,17 +414,61 @@ def getZenossVersion(component='ZenModel'):
         # instantiate Version and try to get svn version
         pass
 
-def getCurrentVersions():
+def createCurrentVersionModule(major=0, minor=0, micro=0, version=''):
     """
-    This function returns a dictionary whose keys are software component names
-    and whose values are Version objects. This is the public function that
-    should be accessed for all component software.
+    This method creates/overwrites Products.ZenMode.version.Current with
+    the version information stored in this Version() object.
     """
-    pass
+    moduleString = """# This file is generated automatically during packaging and installation.
+
+from Version import *
+
+# OS and Software Dependencies
+os = Version(*getOSVersion())
+python = Version(*getPythonVersion())
+mysql = Version(*getMySQLVersion())
+rrdtool = Version(*getRRDToolVersion())
+twisted = Version(*getTwistedVersion())
+pysnmp = Version(*getPySNMPVersion())
+twistedsnmp = Version(*getTwistedSNMPVersion())
+zope = Version(*getZopeVersion())
+
+# Zenoss components
+zenmodel = Version('Zenoss', %s)
+zenoss = zenmodel
+version = zenoss.full()
+
+# Utility function for display
+def getVersions():
+    vers = []
+    for v in [os, python, zope, mysql, rrdtool, twisted, pysnmp, twistedsnmp,
+        zenoss]:
+        vers.append(v.full())
+    return vers
+
+if __name__ == '__main__':
+    for v in getVersions():
+        print v
+    """
+    if version:
+        major, minor, micro = getVersionTupleFromString(version)
+    else:
+        version = "%d, %d, %d" % (major, minor, micro)
+    vers = Version('Zenoss', major, minor, micro)
+    revision = vers.getSVNRevision()
+    if revision:
+        version += ", %d" % revision
+    dstFile = os.path.join(os.getenv('ZENHOME'), 'Products', moduleName,
+        'version', 'Current.py')
+    fh = open(dstFile, 'w+')
+    fh.write(moduleString % version)
+    fh.close()
+    return dstFile
 
 def _test():
     import doctest
     doctest.testmod()
 
 if __name__ == '__main__':
+    createCurrentVersionModule(0, 23, 0)
     _test()
