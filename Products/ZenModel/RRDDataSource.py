@@ -56,25 +56,9 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
 
-    # bogus: to be removed later
-    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
-    linetypes = ('', 'AREA', 'LINE')
-    
-    createCmd = ""
-    rrdtype = 'GAUGE'
-    isrow = True
-    rpn = ""
-    rrdmax = -1
-    color = ""
-    linetype = ''
-    limit = -1
-    format = '%0.2lf%s'
-
-    # end bogus section
-  
     sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS', 'CACTI')
     paramtypes = ('integer', 'string', 'float')
-    
+
     sourcetype = 'SNMP'
     oid = ''
     xmlrpcURL = ''
@@ -94,19 +78,6 @@ class RRDDataSource(ZenModelRM):
     cycletime = 60
 
     _properties = (
-        # bogus
-        {'id':'rrdtype', 'type':'selection',
-        'select_variable' : 'rrdtypes', 'mode':'w'},
-        {'id':'createCmd', 'type':'text', 'mode':'w'},
-        {'id':'isrow', 'type':'boolean', 'mode':'w'},
-        {'id':'rpn', 'type':'string', 'mode':'w'},
-        {'id':'rrdmax', 'type':'long', 'mode':'w'},
-        {'id':'limit', 'type':'long', 'mode':'w'},
-        {'id':'linetype', 'type':'selection', 
-        'select_variable' : 'linetypes', 'mode':'w'},
-        {'id':'color', 'type':'string', 'mode':'w'},
-        {'id':'format', 'type':'string', 'mode':'w'},
-        # end bogus
         {'id':'sourcetype', 'type':'selection',
         'select_variable' : 'sourcetypes', 'mode':'w'},
         {'id':'oid', 'type':'string', 'mode':'w'},
@@ -126,7 +97,6 @@ class RRDDataSource(ZenModelRM):
         {'id':'cycletime', 'type':'int', 'mode':'w'},
         
         )
-
 
     _relations = (
         ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate","datasources")),
