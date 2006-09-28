@@ -43,6 +43,7 @@ class HRSWInstalledMap(SnmpPlugin):
         for sw in swtable.values():
             om = self.objectMap(sw)
             om.id = self.prepId(om.setProductKey)
+            if not om.id: continue
             if hasattr(om, 'setInstallDate'):
                 om.setInstallDate = self.asdate(om.setInstallDate)
             rm.append(om)
