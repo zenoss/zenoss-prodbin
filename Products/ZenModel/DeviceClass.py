@@ -29,7 +29,6 @@ from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob
 from Products.ZenRelations.RelSchema import *
-from Products.ZenRelations.ImportRM import ImportRM
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from RRDTemplate import RRDTemplate
@@ -391,17 +390,13 @@ class DeviceClass(DeviceOrganizer):
         filedata.sort()
         return filedata
 
-    security.declareProtected('View', 'getNagiosImportFilesData')
-    def getNagiosImportFilesData(self):
-        """Get a list of Nagios-only import files' data.
-        """
-        return [ x for x in self.getImportFilesData() if 'Nagios' in x[1] ]
 
     security.declareProtected('View', 'getRRDImportFilesData')
     def getRRDImportFilesData(self):
         """Get a list of Nagios-only import files' data.
         """
         return [ x for x in self.getImportFilesData() if 'RRD' in x[1] ]
+
 
     security.declareProtected('View', 'getRRDTemplates')
     def getRRDTemplates(self, context=None):
@@ -461,122 +456,19 @@ class DeviceClass(DeviceOrganizer):
         """Delete RRDTemplates from this DeviceClass 
         (skips ones in other Classes)
         """
-        if not ids: return self.callZenScreen(REQUEST)
+        if not ids:
+            return self.callZenScreen(REQUEST)
         for id in ids:
             if (getattr(aq_base(self), 'rrdTemplates', False)
                 and getattr(aq_base(self.rrdTemplates),id,False)):
                 self.rrdTemplates._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-    def importObject(self, objType='', REQUEST=None):
-        """Import an XML file as the Zenoss objects and properties it
-        represents.
+    security.declareProtected('Add DMD Objects', 'manage_importRRDTemplates')
+    def manage_importRRDTemplates(self, REQUEST=None):
+        """Import one or more RRD Templates.
         """
-        if (not objType) or (not REQUEST):
-            REQUEST['message'] = 'Either no object type was given or ' + \
-                'the REQUEST was empty'
-            return self.callZenScreen(REQUEST)
-        if not REQUEST:
-            raise Exception, 'Empty request object!'
-        # get the submitted data
-        filenames = REQUEST.form.get('filenames')
-        urlnames = REQUEST.form.get('urlnames')
-        xmlfiles = []
-        for collection in [filenames, urlnames]:
-            if collection:
-                if isinstance(collection, list):
-                    xmlfiles.extend(collection)
-                else:
-                    xmlfiles.append(collection)
-        # get the object stack
-        if objType == 'NagiosTemplate':
-            objstack = self.nagiosTemplates
-        elif objType == 'RRDTemplate':
-            objstack = self.rrdTemplates
-        # load the objects into Zenoss
-        im = ImportRM(noopts=True)
-        for xmlfile in xmlfiles:
-            im.loadObjectFromXML(objstack, xmlfile)
-            transaction.commit()
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-    security.declareProtected('Add DMD Objects', 'manage_importRRDTemplate')
-    def manage_importRRDTemplate(self, REQUEST=None):
-        """Import an RRD Template.
-        """
-        return self.importObject('RRDTemplate', REQUEST)
-
-    security.declareProtected('Add DMD Objects', 'manage_importNagiosTemplate')
-    def manage_importNagiosTemplate(self, REQUEST=None):
-        """Import a Nagios Template.
-        """
-        return self.importObject('NagiosTemplate', REQUEST)
-
-    security.declareProtected('View', 'getNagiosTemplates')
-    def getNagiosTemplates(self, context=None):
-        """Return the actual NagiosTemplates instances.
-        """
-        templates = {}
-        if not context: context = self
-        mychain = aq_chain(context)
-        mychain.reverse()
-        for obj in mychain:
-            if not getattr(aq_base(obj), 'nagiosTemplates', False): continue
-            for t in obj.nagiosTemplates():
-                templates[t.id] = t
-        return templates.values()
-            
-
-    security.declareProtected('Add DMD Objects', 'manage_addNagiosTemplate')
-    def manage_addNagiosTemplate(self, id, REQUEST=None):
-        """Add an NagiosTemplate to this DeviceClass.
-        """
-        if not id: return self.callZenScreen(REQUEST)
-        org = NagiosTemplate(id)
-        self.nagiosTemplates._setObject(org.id, org)
-        if REQUEST: return self.callZenScreen(REQUEST)
-            
-
-    def manage_copyNagiosTemplates(self, ids=(), REQUEST=None):
-        """Put a reference to the objects named in ids in the clip board"""
-        if not ids: return self.callZenScreen(REQUEST)
-        ids = [ id for id in ids if self.nagiosTemplates._getOb(id, None) != None]
-        if not ids: return self.callZenScreen(REQUEST)
-        cp = self.nagiosTemplates.manage_copyObjects(ids)
-        if REQUEST:
-            resp=REQUEST['RESPONSE']
-            resp.setCookie('__cp', cp, path='/zport/dmd')
-            REQUEST['__cp'] = cp
-            return self.callZenScreen(REQUEST)
-        return cp
-
-
-    def manage_pasteNagiosTemplates(self, cb_copy_data=None, REQUEST=None):
-        """Paste NagiosTemplates that have been copied before.
-        """
-        cp = None
-        if cb_copy_data: cp = cb_copy_data
-        elif REQUEST:
-            cp = REQUEST.get("__cp",None)
-        if cp: self.nagiosTemplates.manage_pasteObjects(cp)
-        if REQUEST:
-            REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
-                            expires='Wed, 31-Dec-97 23:59:59 GMT')
-            REQUEST['__cp'] = None
-            return self.callZenScreen(REQUEST)
-
-
-    def manage_deleteNagiosTemplates(self, ids=(), REQUEST=None):
-        """Delete NagiosTemplates from this DeviceClass 
-        (skips ones in other Classes)
-        """
-        if not ids: return self.callZenScreen(REQUEST)
-        for id in ids:
-            if (getattr(aq_base(self), 'nagiosTemplates', False)
-                and getattr(aq_base(self.nagiosTemplates),id,False)):
-                self.nagiosTemplates._delObject(id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.zmanage_importObjects(self.rrdTemplates, REQUEST)
 
 
     def createCatalog(self):

@@ -60,7 +60,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         elif name == 'toone':
             relname = attrs.get('id')
             self.log.debug("toone %s, on object %s", relname, self.context().id)
-            rel = getattr(aq_base(self.context()),relname) 
+            rel = getattr(aq_base(self.context()),relname)
             objid = attrs.get('objid')
             self.addLink(rel, objid)
         elif name == 'link':
@@ -108,7 +108,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                 self.objstack.append(
                     self.context().unrestrictedTraverse(contextpath))
             obj = klass(id)
-            self.context()._setObject(obj.id, obj) 
+            self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             transaction.savepoint()
             self.objectnumber += 1

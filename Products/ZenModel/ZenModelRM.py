@@ -13,20 +13,19 @@ __version__ = "$Revision: 1.50 $"[11:-2]
 import os
 import time
 
-# base classes of ZenModelRM
-from ZenModelBase import ZenModelBase
-from Products.ZenRelations.RelationshipManager import RelationshipManager
-from OFS.History import Historical
-#from Products.ZCatalog.CatalogAwareness import CatalogAware
-
-from Acquisition import aq_base
-from AccessControl import ClassSecurityInfo
+from DateTime import DateTime
 from Globals import DTMLFile
 from Globals import InitializeClass
-from DateTime import DateTime
+from OFS.History import Historical
+from Acquisition import aq_base
+from AccessControl import ClassSecurityInfo
 from ZPublisher.Converters import type_converters
+#from Products.ZCatalog.CatalogAwareness import CatalogAware
 
+from ZenModelBase import ZenModelBase
 from Products.ZenUtils.Utils import getSubObjects
+from Products.ZenRelations.ImportRM import ImportRM
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 
 class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
@@ -128,6 +127,35 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
             REQUEST['message'] = msg
             return self.callZenScreen(REQUEST, redirect)
 
+
+    def zmanage_importObjects(self, context=None, REQUEST=None):
+        """Import an XML file as the Zenoss objects and properties it
+        represents.
+        """
+        # XXX
+        # for right now, we're only using this through the web, so a REQUEST is
+        # always define; when we have a use-case for imports via command line,
+        # we will add that code here
+        if not context:
+            context = self.getPhysicalRoot()
+        # get the submitted data
+        filenames = REQUEST.form.get('filenames')
+        urlnames = REQUEST.form.get('urlnames')
+        xmlfiles = []
+        for collection in [filenames, urlnames]:
+            if collection:
+                if isinstance(collection, list):
+                    xmlfiles.extend(collection)
+                else:
+                    xmlfiles.append(collection)
+        # load the objects into Zenoss
+        im = ImportRM(noopts=True)
+        for xmlfile in xmlfiles:
+            im.loadObjectFromXML(context, xmlfile)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
     def zmanage_importObject(self, REQUEST=None):
         """Import objects into Zenoss.
         """
@@ -225,7 +253,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         Return true if user has Manager role and self has a deviceList.
         """
         user = self.REQUEST.get('AUTHENTICATED_USER', None)
-        if user: 
+        if user:
             return "Manager" in user.getRoles() and \
                 getattr(aq_base(self), "deviceMoveTargets", False)
 

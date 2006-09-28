@@ -63,6 +63,11 @@
         <input class="tableheader" type="submit" 
             name="manage_deleteRRDTemplates:method" value=" Delete " />
         |
+
+        <input class="tableheader" type="submit" 
+            name="zmanage_exportObject:method" value=" Export " />
+        |
+
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
@@ -80,7 +85,7 @@
         <td colspan="6">
 
             <input class="tableheader" type="submit" value="Import"
-                name="manage_importRRDTemplate:method" />
+                name="manage_importRRDTemplates:method" />
             from
             <select class="tableheader" name="filenames" multiple="True" size="5">
                 <option tal:repeat="filedata here/getRRDImportFilesData"
@@ -96,7 +101,7 @@
     <tr class="tableheader" tal:condition="here/isManager">
         <td colspan="6">
             <input class="tableheader" type="submit" 
-              name="manage_importRRDTemplate:method" value="Browse" 
+              name="manage_importRRDTemplates:method" value="Browse" 
               disabled="True" />
             for templates on Zenoss.net
         </td>

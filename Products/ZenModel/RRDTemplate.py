@@ -148,7 +148,7 @@ class RRDTemplate(ZenModelRM):
         if not id: return self.callZenScreen(REQUEST)
         org = RRDDataSource(id)
         self.datasources._setObject(org.id, org)
-        if REQUEST: 
+        if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
@@ -208,7 +208,7 @@ class RRDTemplate(ZenModelRM):
                 self.datasources._delObject(id)
                 clean(self.graphs, id)
                 clean(self.thresholds, id)
-        if REQUEST: 
+        if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
@@ -220,7 +220,7 @@ class RRDTemplate(ZenModelRM):
         if not id: return self.callZenScreen(REQUEST)
         org = RRDThreshold(id)
         self.thresholds._setObject(org.id, org)
-        if REQUEST: 
+        if REQUEST:
             return self.callZenScreen(REQUEST)
             
 
@@ -231,7 +231,7 @@ class RRDTemplate(ZenModelRM):
         for id in ids:
             if getattr(self.thresholds,id,False):
                 self.thresholds._delObject(id)
-        if REQUEST: 
+        if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
