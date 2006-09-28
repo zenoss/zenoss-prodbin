@@ -466,6 +466,20 @@ class DeviceClass(DeviceOrganizer):
                 self.rrdTemplates._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
 
+    def manage_exportRRDTemplates(self, ids=(), REQUEST=None):
+        """Export RRDTemplates from this DeviceClass 
+        (skips ones in other Classes)
+        """
+        if not ids:
+            return self.callZenScreen(REQUEST)
+        for id in ids:
+            templates = getattr(aq_base(self), 'rrdTemplates')
+            obj = getattr(aq_base(self.rrdTemplates), id)
+            if templates and obj:
+                self.zmanage_exportObject(obj, REQUEST)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
     security.declareProtected('Add DMD Objects', 'manage_importRRDTemplates')
     def manage_importRRDTemplates(self, REQUEST=None):
         """Import one or more RRD Templates.

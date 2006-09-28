@@ -64,13 +64,20 @@
             name="manage_deleteRRDTemplates:method" value=" Delete " />
         |
 
-        <input class="tableheader" type="submit" 
-            name="zmanage_exportObject:method" value=" Export " />
-        |
-
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
+
+        |
+
+        <input class="tableheader" type="submit" 
+            name="manage_exportRRDTemplates:method" value=" Export " />
+        to 
+        <select class="tableheader" name="dest">
+            <option value="filesystem" selected="True">File System</option>
+            <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
+        </select>
+        
         </td>
     </tr>
     <tr>

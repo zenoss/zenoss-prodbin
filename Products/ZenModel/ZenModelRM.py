@@ -86,14 +86,16 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def zmanage_exportObject(self, REQUEST=None):
+    def zmanage_exportObject(self, context=None, REQUEST=None):
         """Export objects to specific locations.
         """
+        if not context:
+            context = self
         redirect = False
         dest = REQUEST.form.get('dest')
         zenhome = os.getenv('ZENHOME')
         expDir = os.path.join(zenhome, 'export')
-        fileBase = '%s_%s.xml' % (self.getNodeName(), self.id)
+        fileBase = '%s_%s.xml' % (context.getNodeName(), context.id)
         if dest == 'filesystem':
             filename = os.path.join(expDir, fileBase)
             msg = "Item has been exported to: %s at " % filename
@@ -113,7 +115,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         # open file
         exportFile = open(filename, 'w+')
         # export object to file
-        self.exportXml(exportFile)
+        context.exportXml(exportFile)
         # cleanup
         exportFile.close()
         if dest == 'zenossdotnet':
