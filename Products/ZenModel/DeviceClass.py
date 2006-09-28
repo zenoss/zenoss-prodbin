@@ -386,7 +386,9 @@ class DeviceClass(DeviceOrganizer):
         filedata = []
         for filename in glob(path+os.path.sep+'*.xml'):
             basename = os.path.basename(filename)
-            filedata.append((filename, basename))
+            filedata.append({
+                'filename': filename,
+                'display': basename})
         filedata.sort()
         return filedata
 
@@ -395,7 +397,7 @@ class DeviceClass(DeviceOrganizer):
     def getRRDImportFilesData(self):
         """Get a list of Nagios-only import files' data.
         """
-        return [ x for x in self.getImportFilesData() if 'RRD' in x[1] ]
+        return [ x for x in self.getImportFilesData() if 'RRD' in x['display'] ]
 
 
     security.declareProtected('View', 'getRRDTemplates')

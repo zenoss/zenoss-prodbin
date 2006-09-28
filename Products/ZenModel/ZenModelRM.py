@@ -141,6 +141,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         # get the submitted data
         filenames = REQUEST.form.get('filenames')
         urlnames = REQUEST.form.get('urlnames')
+        doDelete = REQUEST.form.get('dodelete')
         xmlfiles = []
         for collection in [filenames, urlnames]:
             if collection:
@@ -152,6 +153,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         im = ImportRM(noopts=True)
         for xmlfile in xmlfiles:
             im.loadObjectFromXML(context, xmlfile)
+            if doDelete and xmlfile in filenames:
+                os.unlink(xmlfile)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 

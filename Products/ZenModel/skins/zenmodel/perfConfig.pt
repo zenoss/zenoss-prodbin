@@ -89,13 +89,16 @@
             from
             <select class="tableheader" name="filenames" multiple="True" size="5">
                 <option tal:repeat="filedata here/getRRDImportFilesData"
-                    tal:attributes="value python:filedata[0]" 
-                    tal:content="python:filedata[1]" />
+                    tal:attributes="value filedata/filename" 
+                    tal:content="filedata/display" />
             </select>
             and/or from the supplied URLs:
             <textarea class="tableheader" name="urlnames"
                 cols="50" rows="4"
                 style="overflow:scroll;"></textarea>
+            <br />
+            Delete file(s) after import?
+            <input type="checkbox" name="dodelete" />
         </td>
     </tr>
     <tr class="tableheader" tal:condition="here/isManager">
