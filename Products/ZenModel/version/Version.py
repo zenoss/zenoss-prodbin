@@ -398,7 +398,7 @@ def getRRDToolVersion():
         v = Version(*getRRDToolVersion())
         v.full()
     """
-    cmd = 'rrdtool'
+    cmd = os.path.join(os.getenv('ZENHOME'), 'bin', 'rrdtool')
     stdout, stdin, stderr = os.popen3(cmd)
     output = stdin.readlines()[0].strip()
     for o in stdout, stdin, stderr:
