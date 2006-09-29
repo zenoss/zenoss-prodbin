@@ -99,7 +99,7 @@
                     tal:attributes="value filedata/filename" 
                     tal:content="filedata/display" />
             </select>
-            and/or from the supplied URLs:
+            and/or from URLs:
             <textarea class="tableheader" name="urlnames"
                 cols="50" rows="4"
                 style="overflow:scroll;"></textarea>
