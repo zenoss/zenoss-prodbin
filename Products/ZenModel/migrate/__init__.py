@@ -30,4 +30,5 @@ import perfxmlrpc
 import import_export_filesystem
 import datapoints
 import about_zenoss
+import ar_schedule
 import advanced_query
