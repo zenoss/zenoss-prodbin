@@ -62,7 +62,7 @@ class MySqlSendEventMixin:
 
         if not hasattr(event, 'dedupid'):
             dedupid = []
-            dedupfields = event.getDedupFields(self.defaultIdentifier)
+            dedupfields = event.getDedupFields(self.defaultEventId)
             if not getattr(event, "eventKey", ""):
                 if type(dedupfields) != types.ListType:
                     dedupfields = list(dedupfields)
@@ -318,7 +318,7 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
         "database",
         "port",
         "requiredEventFields",
-        "defaultIdentifier",
+        "defaultEventId",
         "statusTable",
         "deviceField",
         "componentField",

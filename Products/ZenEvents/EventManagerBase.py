@@ -100,12 +100,6 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
-    eventPopCycle = 10
-    eventPopRunning = True
-    eventPopSelect = "select device, evid from status where prodState=0"
-
-    maintenanceRunning = True
-    maintenanceCycle = 10
     maintenanceProcedures = ("clean_old_events",)
 
     defaultResultFields = ("device", "component", "eventClass", "summary", 
@@ -113,7 +107,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
 
     defaultFields = ('eventState', 'severity', 'evid')
 
-    defaultIdentifier = ('device', 'component', 'eventClass', 
+    defaultEventId = ('device', 'component', 'eventClass', 
                          'eventKey', 'severity')
 
     requiredEventFields = ('device', 'summary', 'severity')
@@ -155,37 +149,28 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
-        {'id':'eventPopRunning', 'type':'boolean', 'mode':'w'},
-        {'id':'eventPopCycle', 'type':'int', 'mode':'w'},
-        {'id':'eventPopSelect', 'type':'string', 'mode':'w'},
-        {'id':'maintenanceRunning', 'type':'boolean', 'mode':'w'},
-        {'id':'maintenanceCycle', 'type':'int', 'mode':'w'},
         {'id':'maintenanceProcedures', 'type':'lines', 'mode':'w'},
         {'id':'DeviceGroupWhere', 'type':'string', 'mode':'w'},
         {'id':'requiredEventFields', 'type':'lines', 'mode':'w'},
-        {'id':'defaultIdentifier', 'type':'lines', 'mode':'w'},
+        {'id':'defaultEventId', 'type':'lines', 'mode':'w'},
         {'id':'defaultFields', 'type':'lines', 'mode':'w'},
+        {'id':'timeout', 'type':'int', 'mode':'w'},
+        {'id':'clearthresh', 'type':'int', 'mode':'w'},
         )
     
     factory_type_information = ( 
         { 
-            'id'             : 'EventManagerBase',
-            'meta_type'      : 'EventManagerBase',
-            'description'    : """Detail view of netcool event""",
-            'icon'           : 'EventManagerBase_icon.gif',
-            'product'        : 'ZenEvents',
-            'factory'        : '',
-            'immediate_view' : 'viewEventManager',
+            'immediate_view' : 'editEventManager',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewEventManager'
-                , 'permissions'   : ( permissions.view, )
-                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editEventManager'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Fields'
+                , 'action'        : 'editEventManagerFields'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'changes'
@@ -1053,3 +1038,8 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                     "Skipping %s skin, 'zenevents' is already set up\n" % skin) 
         return out.getvalue()
 
+
+    def getPrimaryUrlPath(self):
+        """Return absolute_url_path for missing PrimaryPath.
+        """ 
+        return self.absolute_url_path()

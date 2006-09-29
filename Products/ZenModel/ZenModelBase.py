@@ -152,7 +152,17 @@ class ZenModelBase(object):
             tabs.append(a)
         return tabs
 
-    
+
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None):
+        """Edit a ZenModel object and return its proper page template
+        """
+        self.manage_changeProperties(**REQUEST.form)
+        if REQUEST:
+            REQUEST['message'] = "Saved at time:"
+            return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('View', 'getPrimaryDmdId')
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
         """get the full dmd id of this object strip off everything before dmd"""

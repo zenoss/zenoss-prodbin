@@ -1,0 +1,86 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/getPrimaryUrlPath">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+   <tr>
+        <th class="tabletitle" colspan="4">Connection Information</th>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Backend Type</td>
+        <td class="tablevalues" tal:content="here/backend"/>
+    </tr>
+    <tr>
+        <td class="tableheader">User Name</td>
+        <td class="tablevalues"> 
+            <input type='text' name='username' 
+                tal:attributes='value here/username'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Password</td>
+        <td class="tablevalues"> 
+            <input type='password' name='password' 
+                tal:attributes='value here/password'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Hostname</td>
+        <td class="tablevalues"> 
+            <input type='text' name='database' 
+                tal:attributes='value here/database'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Port</td>
+        <td class="tablevalues"> 
+            <input type='text' name='port:int' 
+                tal:attributes='value here/port'>
+        </td>
+    </tr>
+</table>
+<br>
+<table class="zentable" cellpadding="3" cellspacing="1">
+   <tr>
+        <th class="tabletitle" colspan="4">Cache</th>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Cache Timeout</td>
+        <td class="tablevalues"> 
+            <input type='text' name='timeout:int' 
+                tal:attributes='value here/timeout'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Cache Clear Count</td>
+        <td class="tablevalues"> 
+            <input type='text' name='clearthresh:int' 
+                tal:attributes='value here/clearthresh'>
+        </td>
+    </tr>
+</table>
+<br>
+<br>
+<table class="zentable" cellpadding="3" cellspacing="1">
+   <tr>
+        <th class="tabletitle" colspan="4">Maintenance</th>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Stored Procedures</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="5" cols="40"
+                name="maintenanceProcedures:lines" 
+                tal:content='python: "\n".join(here.maintenanceProcedures)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">
+            <input type='submit' value="Save"
+                name='zmanage_editProperties:method'>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -1,0 +1,54 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/getPrimaryUrlPath">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+   <tr>
+        <th class="tabletitle" colspan="4">Connection Information</th>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Default Result Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="7" cols="40"
+                name="defaultResultFields:lines" 
+                tal:content='python: "\n".join(here.defaultResultFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Device Result Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="7" cols="40"
+                name="DeviceResultFields:lines" 
+                tal:content='python: "\n".join(here.DeviceResultFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Default Event Id</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="5" cols="40"
+                name="defaultEventId:lines" 
+                tal:content='python: "\n".join(here.defaultEventId)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Required Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="5" cols="40"
+                name="requiredEventFields:lines" 
+                tal:content='python: "\n".join(here.requiredEventFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">
+            <input type='submit' value="Save"
+                name='zmanage_editProperties:method'>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>
