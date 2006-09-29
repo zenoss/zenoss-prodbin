@@ -101,6 +101,8 @@ class ZenossInfo(SimpleItem, PropertyManager):
             name = 'Z2'
         elif name == 'zeoctl':
             name = 'ZEO'
+        else:
+            name = "%s.py" % name
         pidFile = os.path.join(os.getenv('ZENHOME'), 'var', '%s.pid' % name)
         if os.path.exists(pidFile):
             pid = open(pidFile).read()
