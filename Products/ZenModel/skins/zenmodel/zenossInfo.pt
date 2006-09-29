@@ -17,7 +17,7 @@
             <tbody>
                 <tr tal:repeat="uptime here/ZenossInfo/getAllUptimes">
                     <th class="tableheader" tal:content="uptime/header" />
-                    <td tal:content="uptime/data" />
+                    <td class="tablevalues" tal:content="uptime/data" />
                 </tr>
             </tbody>
         </table>
@@ -33,11 +33,67 @@
             <tbody>
                 <tr tal:repeat="version here/ZenossInfo/getAllVersions">
                     <th class="tableheader" tal:content="version/header" />
-                    <td tal:content="version/data" />
+                    <td class="tablevalues" tal:content="version/data" />
                 </tr>
             </tbody>
         </table>
-
+        <br />
+        <table class="zentable" cellpadding="3" cellspacing="1">
+            <thead>
+                <tr>
+                    <th class="tabletitle">
+                        Zenoss Daemon
+                    </th>
+                    <th class="tabletitle">
+                        PID
+                    </th>
+                    <th class="tabletitle">
+                        State
+                    </th>
+                    <th class="tabletitle" colspan="2">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody tal:define="url string:${here/absolute_url_path}/zenossInfo">
+                <tr tal:repeat="daemon here/ZenossInfo/getZenossDaemonStates">
+                    <th class="tableheader" tal:content="daemon/name" />
+                    <td class="tablevalues" tal:content="daemon/pid" />
+                    <td class="tablevalues" tal:content="daemon/msg" tal:attributes="
+                        style string:background-color: ${daemon/color};" />
+                    <td class="tablevalues"
+                        tal:define="name daemon/buttons/button1">
+                        <form method="post"
+                            tal:attributes="action url">
+                        <input type="hidden" name="action" tal:attributes="
+                            value name" />
+                        <input type="hidden" name="daemon" tal:attributes="
+                            value daemon/name" />
+                        <input type="submit" name="manage_daemonAction:method"
+                            tal:attributes="value name;" />
+                        </form>
+                    </td>
+                    <td class="tablevalues"
+                        tal:define="name daemon/buttons/button2">
+                        <form action="" method="post"
+                            tal:attributes="action here/absolute_url_path">
+                        <input type="hidden" name="action" tal:attributes="
+                            value name" />
+                        <input type="hidden" name="daemon" tal:attributes="
+                            value daemon/name" />
+                        <tal:block condition="daemon/buttons/button2state">
+                        <input type="submit" name="manage_daemonAction:method"
+                            tal:attributes="value name;" />
+                        </tal:block>
+                        <tal:block condition="not:daemon/buttons/button2state">
+                        <input type="submit" disabled="True" 
+                            tal:attributes="value name;" />
+                        </tal:block>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </tal:block>
 
 </tal:block>
