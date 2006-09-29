@@ -15,12 +15,14 @@ from AccessControl import Permissions as permissions
 from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenRelations.RelSchema import *
 
+from ActionRuleWindow import ActionRuleWindow
 def _downcase(s):
     return s[0:1].lower() + s[1:]
 
 def manage_addActionRule(context, id, REQUEST=None):
-    """Create an aciton rule"""
+    """Create an action rule"""
     ed = ActionRule(id)
     context._setObject(id, ed)
     if REQUEST is not None:
@@ -71,6 +73,11 @@ class ActionRule(ZenModelRM):
         {'id':'targetAddr', 'type':'string', 'mode':'w'},
     )
 
+    zenRelationsBaseModule = "Products.ZenEvents"
+    _relations = (
+        ("windows", ToManyCont(ToOne,"ActionRuleWindow","actionRule")),
+        )
+
     factory_type_information = ( 
         { 
             'id'             : 'ActionRule',
@@ -85,6 +92,16 @@ class ActionRule(ZenModelRM):
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editActionRule'
+                , 'permissions'   : ("Change Settings",)
+                },
+                { 'id'            : 'message'
+                , 'name'          : 'Message'
+                , 'action'        : 'editActionRuleMessage'
+                , 'permissions'   : ("Change Settings",)
+                },
+                { 'id'            : 'schedule'
+                , 'name'          : 'Schedule'
+                , 'action'        : 'editActionRuleSchedule'
                 , 'permissions'   : ("Change Settings",)
                 },
             )
@@ -194,9 +211,10 @@ class ActionRule(ZenModelRM):
         if not self.enabled:
             self._clearAlertState()
         import WhereClause
-        if not REQUEST.form.has_key('where'):
-            REQUEST.form['where'] = WhereClause.fromFormVariables(self.genMeta(),
-                                                              REQUEST.form)
+        if REQUEST and not REQUEST.form.has_key('where'):
+            clause = WhereClause.fromFormVariables(self.genMeta(), REQUEST.form)
+            if clause:
+                REQUEST.form['where'] = clause
         return self.zmanage_editProperties(REQUEST)
 
 
@@ -246,6 +264,30 @@ class ActionRule(ZenModelRM):
                        self._whereClauseAsJavaScript())
         result.append('initializeFilters(current)\n')
         return ''.join(result)
+
+
+    security.declareProtected('Change Settings', 'manage_addActionRuleWindow')
+    def manage_addActionRuleWindow(self, newId, REQUEST=None):
+        "Add a ActionRule Window to this device"
+        mw = ActionRuleWindow(newId)
+        self.windows._setObject(newId, mw)
+        if REQUEST:
+            REQUEST['message'] = "Active Period Added"
+            return self.callZenScreen(REQUEST)
+                          
+    security.declareProtected('Change Settings', 'manage_deleteActionRuleWindow')
+    def manage_deleteActionRuleWindow(self, maintenanceIds, REQUEST=None):
+        "Delete a ActionRule Window to this device"
+        import types
+        if type(windowIds) in types.StringTypes:
+            windowIds = [windowIds]
+        for id in windowIds:
+            self.windows._delObject(id)
+        if REQUEST:
+            REQUEST['message'] = "Active Period Deleted"
+            return self.callZenScreen(REQUEST)
+                          
+
 
 Modes = """
  var modes = {

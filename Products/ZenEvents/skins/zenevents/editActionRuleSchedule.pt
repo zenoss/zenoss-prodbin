@@ -1,0 +1,75 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" tal:attributes="action here/absolute_url_path" >
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="objects here/windows/objectValuesAll;
+    tableName string:actionrulewindow;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <tr>
+      <th class="tabletitle" align="left" colspan="7">
+	Active Periods
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name','cmp')">
+            Name
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'start','Start')">
+            Start
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'duration','Duration')">
+            Duration
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'repeat','Repeat')">
+            Repeat
+        </th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'enabled','Enabled?')">
+            Stop State
+        </th>
+  </tr>
+  <tr tal:repeat="mw batch">
+    <td class="tablevalues" align="left">
+       <input type="checkbox" name="windowIds" 
+              tal:attributes="value mw/getId"/>
+        <a href="_" 
+        tal:attributes="href mw/absolute_url"
+        tal:content="mw/getId">somename</a>
+    </td>
+    <td class="tablevalues" tal:content="mw/niceStartDateTime"/>
+    <td class="tablevalues" tal:content="mw/niceDuration"/>
+    <td class="tablevalues" tal:content="mw/repeat"/>
+    <td class="tablevalues" tal:content="mw/enabled"/>
+  </tr>
+  <tr>
+    <td colspan="7" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="7">
+        <input type="hidden" name="id" tal:attributes="value here/getId"/>
+        <input class="tableheader" type="text" name="newId"/>
+        <input class="tableheader" type="submit" 
+            name="manage_addActionRuleWindow:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteActionRuleWindow:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
+
+</tal:block>
+</tal:block>

@@ -222,7 +222,7 @@ class MySqlSendEventMixin:
             if statusdata.has_key('prodState'):
                 insert += "prodState=%d," % statusdata['prodState']
             insert += "summary='%s',%s=%s+1,%s=%.3f" % (
-                        self.escape(statusdata['summary']), 
+                        self.escape(statusdata.get('summary','')), 
                         self.countField, self.countField, 
                         self.lastTimeField,statusdata['lastTime'])
         return insert

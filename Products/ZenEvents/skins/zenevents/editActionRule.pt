@@ -64,59 +64,12 @@
 </tr>
 </noscript>
 <tr>
-  <td class="tableheader" colspan="6">Message (or Subject)</td>
-</tr>
-<tr>
-<td class="tablevalues" colspan="6">
-    <input class="tablevalues" type="text" name="format" size="75"
-        tal:attributes="value here/format" />
-</td>
-</tr>
-<tal:block tal:condition="python:here.action == 'email'">
-<tr>
-<td class="tableheader" colspan="6">Body</td>
-</tr>
-<tr>
-<td class="tablevalues" colspan="6">
-    <textarea class="tablevalues" rows="6" cols="75" name="body:text"
-        tal:content="here/body">
-    </textarea>
-</td>
-</tr>
-</tal:block>
-<tr>
-<td class="tableheader" colspan="6">Clear Message (or Subject)</td>
-</tr>
-<tr>
-<td class="tablevalues" colspan="6">
-    <input class="tablevalues" type="text" name="clearFormat" size="75"
-        tal:attributes="value here/clearFormat" />
-</td>
-</tr>
-<tal:block tal:condition="python:here.action == 'email'">
-<tr>
-<td class="tableheader" colspan="6">Clear Body</td>
-</tr>
-<tr>
-<td class="tablevalues" colspan="6">
-    <textarea class="tablevalues" rows="6" cols="75" name="clearBody:text"
-        tal:content="here/clearBody">
-    </textarea>
-</td>
-</tr>
-</tal:block>
-<tr>
     <td class="tableheader" colspan="6">
         <input class="tableheader" type="submit" value=" Save "
             name="manage_editActionRule:method" />
     </td>
 </tr>
 </table>
-<p>
-Message Format is a python format string.  Fields are specified 
-as %(fieldname)s.  The list of fields available in the event database is: 
-<span tal:content="python: ', '.join(here.ZenEventManager.getFieldList())"/>.
-</p>
 </form>
 
 <script tal:content="structure here/getWhereClauseAsJavaScript" type="text/javascript"/>
