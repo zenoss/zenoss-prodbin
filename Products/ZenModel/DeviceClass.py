@@ -297,13 +297,11 @@ class DeviceClass(DeviceOrganizer):
         if not query.endswith("*"):
             query+="*"
         ips = None 
+        query = MatchGlob('id', query)
         try:
-            ips = self.Networks.ipSearch({'id':query})
+            ips = self.Networks.ipSearch.evalAdvancedQuery(query)
         except AttributeError:
             pass
-        #names = zcatalog({'id':query})
-        # now setup the query for AdvancedQuery
-        query = MatchGlob('id', query)
         names = zcatalog.evalAdvancedQuery(query)
         if ips:
             names += ips
@@ -348,10 +346,10 @@ class DeviceClass(DeviceOrganizer):
 
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
-        ret = self._getCatalog()({'id': devicename})
+        query = MatchGlob('id', devicename)
+        ret = self._getCatalog().evalAdvancedQuery(query)
         if ret:
             devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
-            #devobj = ret[0].getObject()
             return devobj
 
 
@@ -420,6 +418,7 @@ class DeviceClass(DeviceOrganizer):
         """Add an RRDTemplate to this DeviceClass.
         """
         if not id: return self.callZenScreen(REQUEST)
+        id = self.prepId(id)
         org = RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
         if REQUEST: return self.callZenScreen(REQUEST)

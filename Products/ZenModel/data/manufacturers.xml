@@ -650,11 +650,6 @@ CA
 ['Brother Firmware']
 </property>
 </object>
-<object id='.1.3.6.1.4.1.11.2.3.9.1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type='lines' id='productKeys' mode='w' >
-['.1.3.6.1.4.1.11.2.3.9.1']
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='Cisco' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
@@ -5577,6 +5572,11 @@ http://www.google.com
 http://www.hp.com
 </property>
 <tomanycont id='products'>
+<object id='.1.3.6.1.4.1.11.2.3.9.1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type='lines' id='productKeys' mode='w' >
+['.1.3.6.1.4.1.11.2.3.9.1']
+</property>
+</object>
 <object id='HP Lights-Out Online Configuration Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type='lines' id='productKeys' mode='w' >
 ['HP Lights-Out Online Configuration Utility']

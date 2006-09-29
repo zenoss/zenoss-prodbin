@@ -112,7 +112,7 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="threshbody">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">Thresholds</th>
+      <th class="tabletitle" align="left" colspan="5">Thresholds</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -123,6 +123,8 @@
                     tableName,'severity','Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'escalateCount','Escalate Count')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'enabled','Enabled')"/>
     </tr>
     <tr class="tablevalues" tal:repeat="thresh batch">
         <td>
@@ -137,14 +139,15 @@
         <td tal:content="python:', '.join(thresh.dsnames)"/>
         <td tal:content="thresh/severity"/>
         <td tal:content="thresh/escalateCount"/>
+        <td tal:content="thresh/enabled"/>
     </tr>
     <tr>
-        <td colspan="4" class="tableheader">
+        <td colspan="5" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
     <tr class="tableheader" tal:condition="editable">
-        <td colspan="4">
+        <td colspan="5">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
             onkeypress="return submitViaEnter(event,'manage_addRRDThreshold');" 
