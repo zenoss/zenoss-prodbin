@@ -86,6 +86,7 @@ productNames = (
     "WinService",
     "ZDeviceLoader",
     "ZentinelPortal",
+    "ZenossInfo",
 )
 
 # Make the skins available as DirectoryViews.

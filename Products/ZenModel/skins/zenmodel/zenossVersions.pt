@@ -1,0 +1,34 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tr>
+            <th class="tabletitle" colspan="2">Uptimes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr tal:repeat="uptime here/getAllUptimes">
+            <th class="tableheader" tal:content="uptime/header" />
+            <td class="tablevalues" tal:content="uptime/data" />
+        </tr>
+    </tbody>
+</table>
+<br />
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tr>
+            <th class="tabletitle" colspan="2">
+                Software Component Versions
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr tal:repeat="version here/getAllVersions">
+            <th class="tableheader" tal:content="version/header" />
+            <td class="tablevalues" tal:content="version/data" />
+        </tr>
+    </tbody>
+</table>
+</tal:block>
+</tal:block>
+

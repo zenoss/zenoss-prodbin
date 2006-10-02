@@ -15,8 +15,6 @@ __version__ = "$Revision$"[11:-2]
 
 import os
 
-import transaction
-
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 
 import Migrate
@@ -27,8 +25,9 @@ class AboutZenoss(Migrate.Step):
     version = 23.0
 
     def cutover(self, dmd):
-        portal = dmd.getPhysicalRoot().zport
-        manage_addZenossInfo(portal)
-        transaction.commit()
+        if hasattr(dmd.zport, 'ZenossInfo'):
+            dmd.zport._delObject('ZenossInfo')
+        if not hasattr(dmd,'About'):
+            manage_addZenossInfo(dmd)
 
 AboutZenoss()

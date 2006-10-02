@@ -38,13 +38,13 @@ from ZEvent import ZEvent
 from EventDetail import EventDetail
 from Exceptions import *
 
-from Products.ZenModel.ZenModelBase import ZenModelBase
+from Products.ZenModel.ZenModelItem import ZenModelItem
 
 from ZenEventClasses import Unknown
 
 import time
 
-class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager, 
+class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager, 
                         PropertyManager, Item):
     """
     Data connector to backend of the event management system.
@@ -1043,7 +1043,3 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
         return out.getvalue()
 
 
-    def getPrimaryUrlPath(self):
-        """Return absolute_url_path for missing PrimaryPath.
-        """ 
-        return self.absolute_url_path()

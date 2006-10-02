@@ -1,31 +1,28 @@
 import os
 import re
+import time
 import logging
 log = logging.getLogger("zen.ZenossInfo")
 
-import transaction
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
-from OFS.PropertyManager import PropertyManager
 
+from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenModel.version import Current
 
-def manage_addZenossInfo(context, id='ZenossInfo', REQUEST=None):
+def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
     Provide an instance of ZenossInfo for the portal.
     """
     about = ZenossInfo(id)
-    about.id = 'About'
-    try:
-        context._getOb(id)
-    except AttributeError:
-        context._setObject(id, about)
-
+    context._setObject(id, about)
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(context.absolute_url() +'/manage_main')
 
-class ZenossInfo(SimpleItem, PropertyManager):
+class ZenossInfo(ZenModelItem, SimpleItem):
+
+    portal_type = meta_type = 'ZenossInfo'
 
     security = ClassSecurityInfo()
 
@@ -33,6 +30,25 @@ class ZenossInfo(SimpleItem, PropertyManager):
         {'id':'id', 'type':'string'},
         {'id':'title', 'type':'string'},
     )
+
+    factory_type_information = ( 
+        { 
+            'immediate_view' : 'zenossInfo',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'zenossInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'versions'
+                , 'name'          : 'Versions'
+                , 'action'        : 'zenossVersions'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+           )
+          },
+        ) 
 
     def getAllVersions(self):
         """
@@ -122,15 +138,10 @@ class ZenossInfo(SimpleItem, PropertyManager):
                 daemons.append(match.groups()[0])
         return daemons
 
-    def manage_daemonAction(self, REQUEST=None):
+    def manage_daemonAction(self, REQUEST):
         """
         Start, stop, or restart Zenoss daemons from a web interface.
         """
-        # XXX
-        # this exception is for testing purposes only
-        raise 'Problem! :' + str(REQUEST.form)
-        if not REQUEST:
-            return self.callZenScreen(REQUEST)
         legalValues = ['start', 'restart', 'stop']
         action = (REQUEST.form.get('action') or '').lower()
         if action not in legalValues:
@@ -141,7 +152,9 @@ class ZenossInfo(SimpleItem, PropertyManager):
         # until the action has completed
         log.info("Processing a '%s' for '%s' through the web..." % (action, daemon))
         os.system("%s %s" % (daemon, action))
+        if action == 'stop': time.sleep(2)
+        return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
         
-
+    
 InitializeClass(ZenossInfo)

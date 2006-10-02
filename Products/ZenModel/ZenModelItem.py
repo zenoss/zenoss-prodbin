@@ -29,6 +29,11 @@ class ZenModelItem(ZenModelBase):
 
     security = ClassSecurityInfo()
 
+
+    def __init__(self, id):
+        self.id = id
+
+
     security.declareProtected('View', 'getPrimaryPath')
     def getPrimaryPath(self):
         return self.getPhysicalPath()

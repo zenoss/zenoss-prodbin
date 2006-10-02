@@ -53,12 +53,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     factory_type_information = ( 
         { 
-            'id'             : 'Device',
-            'meta_type'      : 'Device',
-            'description'    : """Base class for all devices""",
-            'icon'           : 'Device_icon.gif',
-            'product'        : 'ZenModel',
-            'factory'        : 'manage_addDevice',
             'immediate_view' : 'addDevice',
             'actions'        :
             ( 

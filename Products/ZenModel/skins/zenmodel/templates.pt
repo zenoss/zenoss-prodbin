@@ -110,7 +110,7 @@
     </td>
     <td id="settings">
         <span tal:content="request/AUTHENTICATED_USER"/>
-        | <a tal:attributes="href here/ZenUsers/getUserSettingsUrl">
+        | <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
         Settings</a>
         | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
     </td>
@@ -151,7 +151,7 @@
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/ZenEventManager">Live Events</a></li>
         <li><a href="/zport/dmd/ZenEventHistory">History Events</a></li>
-        <li><a href="/zport/dmd/zenossInfo">About</a></li>
+        <li><a href="/zport/dmd/About">About</a></li>
     </ul>
     </tal:block>
 
