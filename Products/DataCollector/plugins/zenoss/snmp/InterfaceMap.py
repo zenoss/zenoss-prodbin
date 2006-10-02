@@ -107,7 +107,8 @@ class InterfaceMap(SnmpPlugin):
         om.interfaceName = om.id
         om.id = self.prepId(om.id)
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
-        if dontCollectIntNames and re.search(dontCollectIntNames, om.name):
+        if (dontCollectIntNames 
+            and re.search(dontCollectIntNames, om.interfaceName)):
             return None
         om.type = self.ifTypes.get(str(om.type), "Unknown")
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
