@@ -495,6 +495,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 statusCache.reverse()
                 if limit:
                     statusCache = statusCache[:limit]
+                db.close()
             except:
                 log.exception(select)
                 raise
@@ -539,10 +540,12 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
             sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
                     
         statusCache = self.checkCache(sel)
+        cleanup = lambda : None
         if not statusCache:
             statusCache = []
             if db is None:
                 db = self.connect()
+                cleanup = db.close
             curs = db.cursor()
             curs.execute(sel)
             res = list(curs.fetchall())
@@ -558,6 +561,7 @@ class EventManagerBase(ZenModelBase, DbAccessBase, ObjectCache, ObjectManager,
                 statusCache.append([alink, comp, dtime])
             if limit:
                 statusCache = statusCache[:limit]
+            cleanup()
         return statusCache
 
         
