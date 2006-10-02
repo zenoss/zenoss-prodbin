@@ -61,7 +61,8 @@
 </table>
 <br>
 <br>
-<table class="zentable" cellpadding="3" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:condition="python: here.statusTable == 'status'">
    <tr>
         <th class="tabletitle" colspan="4">Maintenance</th>
     </tr>
