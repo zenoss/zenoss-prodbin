@@ -13,18 +13,15 @@ $Id:$"""
 __version__ = "$Revision: 1.7 $"[11:-2]
 
 DAY_SECONDS = 24*60*60
+WEEK_SECONDS = 7*DAY_SECONDS
 
 import time
+import Globals
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-
-def daytime(daySeconds, timeSeconds):
-    base = list(time.localtime(daySeconds))
-    base[3:6] = time.localtime(timeSeconds)[3:6]
-    return time.mktime(base)
 
 def lastDayPreviousMonth(seconds):
     parts = list(time.localtime(seconds))
@@ -33,7 +30,7 @@ def lastDayPreviousMonth(seconds):
     # and go back DAY_SECONDS
     return time.mktime(parts) - DAY_SECONDS
 
-def addMonth(secs):
+def addMonth(secs, dayOfMonthHint=0):
     base = list(time.localtime(secs))
     # add a month
     base[1] += 1
@@ -46,6 +43,8 @@ def addMonth(secs):
 
     # first, remember the month
     month = base[1]
+    if dayOfMonthHint:
+        base[2] = dayOfMonthHint
     # normalize
     base = list(time.localtime(time.mktime(base)))
     # if the month changed, walk back to the end of the previous month
@@ -78,12 +77,14 @@ class MaintenanceWindow(ZenModelRM):
     startProductionState = 300
     stopProductionState = 1000
     enabled = True
+    skip = 1
  
     _properties = (
         {'id':'start', 'type':'date', 'mode':'w'},
         {'id':'started', 'type':'date', 'mode':'w'},
         {'id':'duration', 'type':'int', 'mode':'w'},
         {'id':'repeat', 'type':'string', 'mode':'w'},
+        {'id':'skip', 'type':'int', 'mode':'w'},
         ) 
 
     factory_type_information = ( 
@@ -176,6 +177,7 @@ class MaintenanceWindow(ZenModelRM):
                                      startProductionState=1000,
                                      stopProductionState=300,
                                      enabled=True,
+                                     skip=1,
                                      REQUEST=None,
                                      **kw):
         "Update the maintenance window from GUI elements"
@@ -217,6 +219,7 @@ class MaintenanceWindow(ZenModelRM):
             self.repeat = repeat
             self.startProductionState = startProductionState
             self.stopProductionState = stopProductionState
+            self.skip = skip
             now = time.time()
             if self.started and self.nextEvent(now) < now:
                 self.end()
@@ -251,39 +254,47 @@ class MaintenanceWindow(ZenModelRM):
         if now is None:
             now = time.time()
 
+        if now < self.start:
+            return self.start
+
         if self.repeat == self.NEVER:
             if now > self.start:
                 return None
             return self.start
 
         elif self.repeat == self.DAILY:
-            base = daytime(now, self.start)
-            if base < now:
-                base += DAY_SECONDS
-                assert base > now
-            return base
+            skip = (DAY_SECONDS * self.skip)
+            last = self.start + ((now - self.start) // skip * skip)
+            return last + skip
 
         elif self.repeat == self.EVERY_WEEKDAY:
-            base = daytime(now, self.start)
-            while base < now or time.localtime(base).tm_wday in (5,6):
+            weeksSince = (now - self.start) // WEEK_SECONDS
+            weekdaysSince = weeksSince * 5
+            # start at the most recent week-even point from the start
+            base = self.start + weeksSince * DAY_SECONDS * 7
+            while 1:
+                dow = time.localtime(base).tm_wday
+                if dow not in (5,6):
+                    if base > now and weekdaysSince % self.skip == 0:
+                        break
+                    weekdaysSince += 1
                 base += DAY_SECONDS
-            assert base > now
+            assert base >= now
             return base
             
         elif self.repeat == self.WEEKLY:
-            base = daytime(now, self.start)
-            dow = time.localtime(self.start).tm_wday
-            while base < now or time.localtime(base).tm_wday != dow:
-                base += DAY_SECONDS
-            return base
+            skip = (WEEK_SECONDS * self.skip)
+            last = self.start + ((now - self.start) // skip * skip)
+            return last + skip
 
         elif self.repeat == self.MONTHLY:
-            base = list(time.localtime(now))
-            base[2:6] = time.localtime(self.start)[2:6]
-            secs = time.mktime(base)
-            if secs < now:
-                return addMonth(secs)
-            return secs
+            months = 0
+            m = self.start
+            dayOfMonthHint = time.localtime(self.start).tm_mday
+            while m < now or months % self.skip:
+                m = addMonth(m, dayOfMonthHint)
+                months += 1
+            return m
 
         elif self.repeat == self.FSOTM:
             base = list(time.localtime(now))
@@ -292,17 +303,23 @@ class MaintenanceWindow(ZenModelRM):
             base = time.mktime(base)
             # creep ahead by days until it's the FSOTM
             # (not the most efficient implementation)
+            count = 0
             while 1:
                 tm = time.localtime(base)
                 if base > now and 1 <= tm.tm_mday <= 7 and tm.tm_wday == 6:
-                    break
+                    count += 1
+                    if count % self.skip == 0:
+                        break
                 base += DAY_SECONDS
             return base
         raise ValueError('bad value for MaintenanceWindow repeat: %r' %self.repeat)
 
+    def target(self):
+        return self.productionState().primaryAq()
+
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
-        self.productionState().primaryAq().setProdState(self.startProductionState)
+        self.target().setProdState(self.startProductionState)
         if not now:
             now = time.time()
         self.started = now
@@ -311,7 +328,7 @@ class MaintenanceWindow(ZenModelRM):
     def end(self):
         "hook for leaving the Maintenance Window: call if you override"
         self.started = None
-        self.productionState().primaryAq().setProdState(self.stopProductionState)
+        self.target().setProdState(self.stopProductionState)
 
 
     def execute(self, now = None):
@@ -337,28 +354,51 @@ class OrganizerMaintenanceWindow(MaintenanceWindow):
 if __name__=='__main__':
     m = MaintenanceWindow('tester')
     t = time.mktime( (2006, 1, 29, 10, 45, 12, 6, 29, 0) )
-    m.set(t, 60*60*2, m.NEVER)
+    P = 60*60*2
+    m.set(t, P, m.NEVER)
     assert m.next() == None
-    m.set(t, 60*60*2, m.DAILY)
+    m.set(t, P, m.DAILY)
     c = time.mktime( (2006, 1, 30, 10, 45, 12, 6, 29, 0) )
-    assert m.next(t + 60*60*2 + 1) == c
-    m.set(t, 60*60*2, m.WEEKLY)
+    assert m.next(t + P + 1) == c
+    m.set(t, P, m.WEEKLY)
     c = time.mktime( (2006, 2, 5, 10, 45, 12, 6, 36, 0) )
     assert m.next(t + 1) == c
-    m.set(t - DAY_SECONDS, 60*60*2, m.EVERY_WEEKDAY)
+    m.set(t - DAY_SECONDS, P, m.EVERY_WEEKDAY)
     c = time.mktime( (2006, 1, 30, 10, 45, 12, 7, 30, 0) )
     assert m.next(t) == c
-    m.set(t, 60*60*2, m.MONTHLY)
+    m.set(t, P, m.MONTHLY)
     c = time.mktime( (2006, 2, 28, 10, 45, 12, 0, 0, 0) )
     assert m.next(t+1) == c
     t2 = time.mktime( (2005, 12, 31, 10, 45, 12, 0, 0, 0) )
-    m.set(t2, 60*60*2, m.MONTHLY)
+    m.set(t2, P, m.MONTHLY)
     c = time.mktime( (2006, 1, 31, 10, 45, 12, 0, 0, 0) )
     c2 = time.mktime( (2006, 2, 28, 10, 45, 12, 0, 0, 0) )
     assert m.next(t2+1) == c
     assert m.next(c+1) == c2
     c = time.mktime( (2006, 2, 5, 10, 45, 12, 0, 0, 0) )
-    m.set(t, 60*60*2, m.FSOTM)
+    m.set(t, P, m.FSOTM)
+    assert m.next(t+1) == c
+
+    # skips
+    m.skip = 2
+    m.set(t, P, m.DAILY)
+    c = time.mktime( (2006, 1, 31, 10, 45, 12, 6, 29, 0) )
+    assert m.next(t + 1) == c
+
+    m.set(t, P, m.WEEKLY)
+    c = time.mktime( (2006, 2, 12, 10, 45, 12, 6, 36, 0) )
+    assert m.next(t + 1) == c
+
+    m.set(t, P, m.MONTHLY)
+    c = time.mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
+    assert m.next(t + 1) == c
+
+    m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)
+    c = time.mktime( (2006, 1, 31, 10, 45, 12, 7, 30, 0) )
+    assert m.next(t + 1) == c
+
+    c = time.mktime( (2006, 3, 5, 10, 45, 12, 0, 0, 0) )
+    m.set(t, P, m.FSOTM)
     assert m.next(t+1) == c
 
     r = {'test':None}

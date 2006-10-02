@@ -56,6 +56,11 @@ class Schedule:
             for c in organizer.getSubOrganizers():
                 result.extend(c.maintenanceWindows())
             result.extend(organizer.maintenanceWindows())
+            
+        for us in self.dmd.ZenUsers.getAllUserSettings():
+            for ar in us.objectValues(spec="ActionRule"):
+                if not ar.enabled: continue
+                result.extend(ar.windows())
         return result
         
     def run(self):
@@ -100,7 +105,7 @@ class Schedule:
                 how = {True:'stopping', False:'starting'}[bool(mw.started)]
                 self.log.debug("Maintenance window "
                                "%s %s for %s",
-                               how, mw.getId(), mw.productionState().getId())
+                               how, mw.getId(), mw.target().getId())
                 self.executeMaintenanceWindow(mw, next)
             else:
                 break

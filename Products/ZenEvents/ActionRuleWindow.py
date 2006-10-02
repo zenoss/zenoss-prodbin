@@ -28,11 +28,6 @@ class ActionRuleWindow(MaintenanceWindow):
     backCrumb = 'editActionRuleSchedule'      # FIXME
 
     actionRule = None
-    skip = 1
-    
-    _properties = (
-        {'id':'skip', 'type':'int', 'mode':'w'},
-        )
     
     factory_type_information = ( 
         { 
@@ -58,16 +53,18 @@ class ActionRuleWindow(MaintenanceWindow):
         ("actionRule", ToOne(ToManyCont,"ActionRule","windows")),
         )
 
+    def target(self):
+        return self.actionRule._getObject()
 
     def begin(self, now = None):
-        self.actionRule()[0].enable(True)
+        self.target().enable(True)
         if not now:
             now = time.time()
         self.started = now
 
     def end(self):
         self.started = None
-        self.actionRule()[0].enable(False)
+        self.target().enable(False)
 
     def manage_editActionRuleWindow(self,
                                      startDate='',
