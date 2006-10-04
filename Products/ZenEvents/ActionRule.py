@@ -276,7 +276,7 @@ class ActionRule(ZenModelRM):
             return self.callZenScreen(REQUEST)
                           
     security.declareProtected('Change Settings', 'manage_deleteActionRuleWindow')
-    def manage_deleteActionRuleWindow(self, maintenanceIds, REQUEST=None):
+    def manage_deleteActionRuleWindow(self, windowIds, REQUEST=None):
         "Delete a ActionRule Window to this device"
         import types
         if type(windowIds) in types.StringTypes:

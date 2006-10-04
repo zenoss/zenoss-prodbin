@@ -54,17 +54,17 @@ class ActionRuleWindow(MaintenanceWindow):
         )
 
     def target(self):
-        return self.actionRule._getObject()
+        return self.actionRule()
 
     def begin(self, now = None):
-        self.target().enable(True)
+        self.target().enabled = True
         if not now:
             now = time.time()
         self.started = now
 
     def end(self):
         self.started = None
-        self.target().enable(False)
+        self.target().enabled = False
 
     def manage_editActionRuleWindow(self,
                                      startDate='',

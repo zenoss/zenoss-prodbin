@@ -59,8 +59,7 @@ class Schedule:
             
         for us in self.dmd.ZenUsers.getAllUserSettings():
             for ar in us.objectValues(spec="ActionRule"):
-                if not ar.enabled: continue
-                result.extend(ar.windows())
+                result.extend([w for w in ar.windows() if w.enabled])
         return result
         
     def run(self):
@@ -155,4 +154,3 @@ if __name__ == "__main__":
     end = s.currentTime + 60*60*24*30
     while s.currentTime < end:
         s.run()
-
