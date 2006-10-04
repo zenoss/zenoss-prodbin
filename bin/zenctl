@@ -7,21 +7,9 @@
 # environment variables
 export ZENHOME="**ZENHOME**"
 export RUNUSER="**OS_USERNAME**"
-export MYSQL_USERNAME="**MYSQL_USERNAME**"
-export MYSQL_PASSWD="**MYSQL_PASSWD**"
 
 # signature of zenoss having been installed and configured
 export FIRSTBOOT=${ZENHOME}/.installed
-
-
-# this function is called if zenoss has NEVER been run before
-firstboot() {
-    # create the zeo database
-    ${ZENHOME}/bin/zeoctl start
-    chown -R ${RUNUSER} ${ZENHOME}/var
-    sudo -u ${RUNUSER} -i ${ZENHOME}/bin/zenbuild -u ${MYSQL_USERNAME} -p "${MYSQL_PASSWD}" 
-    ${ZENHOME}/bin/zeoctl stop
-}
 
 
 #
@@ -32,7 +20,7 @@ firstboot() {
 if [ ! -f ${FIRSTBOOT} ]; then
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
-    firstboot
+    sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss_init
     touch ${FIRSTBOOT}
 
     echo "Zenoss initialization complete."
