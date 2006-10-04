@@ -48,6 +48,7 @@ class ZenDaemon(CmdBase):
         if not noopts:
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
+            signal.signal(signal.SIGHUP, self.sigTerm)
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon() 

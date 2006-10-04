@@ -112,7 +112,7 @@
         <span tal:content="request/AUTHENTICATED_USER"/>
         | <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
         Settings</a>
-        | <a href="/zport/dmd/manage_zmi_logout">Log Out</a>
+        | <a href="/zport/dmd/logged_out">Log Out</a>
     </td>
     </tr>
 </table>

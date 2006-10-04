@@ -12,11 +12,9 @@
             <th class="tabletitle">
                 State
             </th>
-            <!--
             <th class="tabletitle" colspan="2">
                 Action
             </th>
-            -->
         </tr>
     </thead>
     <tbody tal:define="url string:${here/absolute_url_path}">
@@ -25,7 +23,6 @@
             <td class="tablevalues" tal:content="daemon/pid" />
             <td class="tablevalues" tal:content="daemon/msg" tal:attributes="
                 style string:background-color: ${daemon/color};" />
-            <!-- commented out because when started from zope signals are messedup
             <td class="tablevalues"
                 tal:define="name daemon/buttons/button1">
                 <form method="post"
@@ -56,7 +53,6 @@
                 </tal:block>
                 </form>
             </td>
-            -->
         </tr>
     </tbody>
 </table>
