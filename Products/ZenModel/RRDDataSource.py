@@ -217,7 +217,8 @@ class RRDDataSource(ZenModelRM):
             except KeyError:
                 pass
             else:
-                for c in string.whitespace:
-                    oid = oid.replace(c, '')
-                REQUEST.form['oid'] = oid
+                if oid:
+                    for c in string.whitespace:
+                        oid = oid.replace(c, '')
+                    REQUEST.form['oid'] = oid
         return ZenModelRM.zmanage_editProperties(self, REQUEST)

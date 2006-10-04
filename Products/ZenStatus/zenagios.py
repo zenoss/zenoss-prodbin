@@ -24,7 +24,7 @@ import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenEvents import Event
 
-from Products.ZenRRD.RRDDaemon import RRDDaemon, Threshold
+from Products.ZenRRD.RRDDaemon import RRDDaemon, Threshold, ThresholdManager
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
@@ -248,6 +248,9 @@ class Cmd:
     result = None
 
 
+    def __init__(self):
+        self.points = {}
+
     def running(self):
         return self.lastStop < self.lastStart 
 
@@ -305,10 +308,15 @@ class Cmd:
         self.component = cfg.component
         self.severity = cfg.severity
         self.command = cfg.command
-        self.points = {}
+        self.points, before = {}, self.points
         for p in cfg.points:
-            thresholds = [Thresholds(t) for t in p[-1]]
-            self.points[p[0]] = (list(p[1:-1]) + [thresholds])
+            index = p[0]
+            threshs = p[-1]
+            middle = p[1:-1]
+            values = before.get(index, [ThresholdManager()])
+            m = values[-1]
+            m.update(threshs)
+            self.points[index] = list(middle) + [m]
 
 class Options:
     loginTries=1

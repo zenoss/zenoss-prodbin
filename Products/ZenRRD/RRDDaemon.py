@@ -50,6 +50,10 @@ class Threshold:
 
     def __init__(self, label, minimum, maximum, eventClass, severity, count):
         self.label = label
+        self.update(minimum, maximum, eventClass, severity, count)
+
+
+    def update(self, minimum, maximum, eventClass, severity, count):
         self.minimum = minimum
         self.maximum = maximum
         self.eventClass = eventClass
@@ -92,6 +96,26 @@ class Threshold:
                         component=cname,
                         severity=Event.Clear)
             self.count = 0
+
+class ThresholdManager:
+    "manage a collection of thresholds"
+    
+    def __init__(self):
+        self.thresholds = {}
+
+    def update(self, config):
+        before = self.thresholds
+        self.thresholds = {}
+        for label, minimum, maximum, eventClass, severity, count in config:
+            t = before.get(label, None)
+            if t:
+                t.update(minimum, maximum, eventClass, severity, count)
+            else:
+                t = Threshold(label, minimum, maximum, eventClass, severity, count)
+            self.thresholds[label] = t
+
+    def __iter__(self):
+        return iter(self.thresholds.values())
 
 class FakeProxy:
 
@@ -257,4 +281,5 @@ class RRDDaemon(Base):
     def errorStop(self, why):
         self.error(why)
         self._shutdown()
+
 

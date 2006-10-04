@@ -32,7 +32,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import Threshold
+from RRDDaemon import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
@@ -102,6 +102,7 @@ class Process:
 
     def __init__(self):
         self.pids = {}
+        self.thresholds = {}
 
     def match(self, name, args):
         if self.name is None:
@@ -181,9 +182,11 @@ class Device:
             p.ignoreParameters = ignoreParameters
             p.restart = restart
             p.severity = severity
-            p.thresholds = {}
+            p.thresholds, before = {}, p.thresholds
             for name, threshes in thresholds:
-                p.thresholds[name] = [Threshold(*t) for t in threshes]
+                m = before.get(name, ThresholdManager())
+                m.update(threshes)
+                p.thresholds[name] = m
             p.status = status
         for name in unused:
             del self.processes[name]
@@ -233,6 +236,7 @@ class zenprocess(SnmpDaemon):
 
     def start(self, driver):
         'Read the basic config needed to do anything'
+        log.debug("fetching config")
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
@@ -435,6 +439,7 @@ class zenprocess(SnmpDaemon):
         value = self.rrd.save(path, value, rrdType)
 
         thresholds = self.devices[deviceName].processes[pidName].thresholds
+        print thresholds.get(statName, [])
         for t in thresholds.get(statName,[]):
             t.check(deviceName, pidName, statName, value,
                     self.sendThresholdEvent)

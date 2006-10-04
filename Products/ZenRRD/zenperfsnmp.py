@@ -31,7 +31,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 
 from RRDUtil import RRDUtil
-from RRDDaemon import Threshold
+from RRDDaemon import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
@@ -163,14 +163,15 @@ class SnmpStatus:
 
 
 class OidData:
-    def __init__(self, name, path,
-                 dataStorageType, rrdCreateCommand, thresholds):
+    def __init__(self):
+        self.thresholds = ThresholdManager()
+
+    def update(self, name, path, dataStorageType, rrdCreateCommand, thresholds):
         self.name = name
         self.path = path
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
-        self.thresholds = thresholds
-
+        self.thresholds.update(thresholds)
 
 
 class zenperfsnmp(SnmpDaemon):
@@ -301,8 +302,8 @@ class zenperfsnmp(SnmpDaemon):
 	for name, oid, path, dsType, createCmd, thresholds in oidData:
             createCmd = createCmd.strip()
             oid = '.'+oid.lstrip('.')
-            thresholds = [Threshold(*t) for t in thresholds]
-            p.oidMap[oid] = OidData(name, path, dsType, createCmd, thresholds)
+            d = p.oidMap.setdefault(oid, OidData())
+            d.update(name, path, dsType, createCmd, thresholds)
         self.proxies[deviceName] = p
 
 
