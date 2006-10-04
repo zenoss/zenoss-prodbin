@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+#
+# zenctl        init.d script for starting/stopping the zenoss processes
+#               
+# description: Zenoss is a monitoring program written by Zenoss, Inc.
+
+
+RUNUSER="%%OS_USERNAME%%"
+sudo -u ${RUNUSER} %%ZENHOME%%/bin/zenoss $@
