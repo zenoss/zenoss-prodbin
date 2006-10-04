@@ -1,10 +1,42 @@
-#!/usr/bin/env bash
-#
-#
-# zenctl        init.d script for starting/stopping the zenoss processes
+#!/bin/sh
+
+# zenctl        This init.d script starts and stops Zenoss
 #               
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
 
+# environment variables
+export ZENHOME="**ZENHOME**"
+export RUNUSER="**OS_USERNAME**"
+export MYSQL_USERNAME="**MYSQL_USERNAME**"
+export MYSQL_PASSWORD="**MYSQL_PASSWD**"
 
-RUNUSER="**OS_USERNAME**"
-sudo -u ${RUNUSER} **ZENHOME**/bin/zenoss $@
+# signature of zenoss having been installed and configured
+export FIRSTBOOT=${ZENHOME}/.installed
+
+
+# this function is called if zenoss has NEVER been run before
+firstboot() {
+    # create the zeo database
+    ${ZENHOME}/bin/zeoctl start
+    chown -R ${RUNUSER} ${ZENHOME}/var
+    sudo -u ${RUNUSER} -i ${ZENHOME}/bin/zenbuild -u ${MYSQL_USERNAME} -p "${MYSQL_PASSWD}" 
+    ${ZENHOME}/bin/zeoctl stop
+}
+
+
+#
+# main script starts here
+#
+
+# run the firstboot if this is the first time zenoss was started
+if [ ! -f ${FIRSTBOOT} ]; then
+    echo "Zenoss not initialized.  Performing first-boot initialization..."
+
+    firstboot
+    touch ${FIRSTBOOT}
+
+    echo "Zenoss initialization complete."
+fi
+
+# delegate to the main zenoss script for control functions
+sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss $@
