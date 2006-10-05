@@ -19,18 +19,6 @@
         </select>
         </th>
     </tr>
-    <span tal:condition="python:here.getId()=='rh'">
-        <tr class=tabletitle>
-        <td>Headend Uplink ifOctets</td>
-        </tr>
-        <tr class=tablevalues>
-        <td>
-        <img src="_"
-            tal:attributes="src python:here.CVHeadendGraphs.generateUrl(here,drange)"
-            >
-        </td>
-        </tr>
-    </span>
     <span 
         tal:define="
             objects here/devices;
@@ -42,7 +30,7 @@
                 tal:content="device/viewName">name
         </th>
         </tr>
-        <span tal:repeat="graph python:device.getDefaultGraphs(drange=drange)">
+        <span tal:repeat="graph python:device.primaryAq().getDefaultGraphs(drange=drange)">
             <tr><td class=tableheader tal:content="graph/title">title</td></tr>
             <tr><td class=tablevalues>
                 <img src="_" tal:attributes="src graph/url">
