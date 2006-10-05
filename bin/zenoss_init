@@ -35,6 +35,9 @@ if [ ! -d ${SNMPD_CONF_DIR} ]; then
 fi
 sudo cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
 
+# create the log directory
+mkdir -p ${ZENHOME}/log
+
 # grant permissions to the events database
 if mysql -u root </dev/null >/dev/null 2>/dev/null
 then
@@ -45,9 +48,6 @@ then
 	flush privileges;
 EOF
 fi
-
-# create the log directory
-mkdir -p ${ZENHOME}/log
 
 # create the events database in mysql
 if mysql events -u ${MYSQL_USERNAME} -p"${MYSQL_PASSWD}" -e 'quit' 2>/dev/null ; 
