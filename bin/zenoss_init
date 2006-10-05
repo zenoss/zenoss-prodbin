@@ -10,10 +10,9 @@ export RUNUSER="**OS_USERNAME**"
 export ZENHOME="**ZENHOME**"
 export MYSQL_USERNAME="**MYSQL_USERNAME**"
 export MYSQL_PASSWD="**MYSQL_PASSWD**"
-export ZOPE_PASSWD='**ZOPE_PASSWD**'
-
-export SNMPD_CONF=/etc/snmp/snmpd.conf
-
+export ZOPE_PASSWD="**ZOPE_PASSWD**"
+export SNMPD_CONF="**SNMPD_CONF**"
+export SUDOERS="**SUDOERS**"
 
 
 # location of where we copy configuration items to
