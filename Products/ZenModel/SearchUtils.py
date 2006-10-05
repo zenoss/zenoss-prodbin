@@ -24,5 +24,6 @@ def makeKeywordIndex(indexName):
     index = KeywordIndex(indexName)
     index.PrenormalizeTerm = 'value/lower'
     index.TermType = 'ustring'
+    index.TermTypeExtra = 'latin-1'
     return index
 

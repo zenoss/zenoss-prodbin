@@ -79,12 +79,11 @@ class AdvancedQuery(Migrate.Step):
                         # going to mess with it
                         continue
                     # get rid of the old index
-                    cat.delIndex(indexName)
+                    if cat.getIndex(indexName) is not None:
+                        cat.delIndex(indexName)
                     # add the new one
                     cat.addIndex(indexName, makeIndex(indexName))
-                    transaction.commit()
             # reindex the sections
             dmd.getDmdRoot(section).reIndex()
-            transaction.commit()
 
 AdvancedQuery()
