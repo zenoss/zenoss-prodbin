@@ -81,16 +81,7 @@ class ZenModeler(ZCmdBase):
                 try:
                     const = importClass(modpath)
                     plugin = const()
-                    if plugin.transport == "command":
-                        self.collectorPlugins[modpath+plugin.command] = plugin
-                    elif plugin.transport == "snmp":
-                        self.collectorPlugins[plugin.name()] = plugin
-                    # XXX double-check this, once the implementation is in place
-                    elif plugin.transport == "portscan":
-                        self.collectorPlugins[plugin.name()] = plugin
-                    else:
-                        self.log.warn("skipped:%s unknown transport:%s",
-                                       plugin.name(), plugin.transport)
+                    self.collectorPlugins[plugin.name()] = plugin
                 except ImportError, e:
                     self.log.exception("problem loading plugin:%s",modpath)
 
@@ -180,7 +171,7 @@ class ZenModeler(ZCmdBase):
         hostname = device.id
         try:
             plugins = self.selectPlugins(device,"command")
-            commands = map(lambda x: x.command, plugins)
+            commands = map(lambda x: (x.name(), x.command), plugins)
             if not commands:
                 self.log.warn("no cmd plugins found for %s" % hostname)
                 return 

@@ -18,8 +18,7 @@ class netstat_an(CommandPlugin):
 
 
     def condition(self, device, log):
-        osver = device.os.getProductName()
-        return osver.find("Linux") > -1
+        return device.os.uname == 'Linux'
 
 
     def process(self, device, results, log):

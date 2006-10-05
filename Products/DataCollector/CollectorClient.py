@@ -51,7 +51,12 @@ class CollectorClient(protocol.ClientFactory):
         self.hostname = hostname
         self.ip = ip
         self.port = port
-        self.commands = commands or []
+        commands = commands or []
+        self.cmdmap = {}
+        self._commands = []
+        for pname, cmd in commands:
+            self.cmdmap[cmd] = pname
+            self._commands.append(cmd)
         self.device = device
         self.results = []
         self.protocol = None
@@ -96,18 +101,19 @@ class CollectorClient(protocol.ClientFactory):
     
     def addCommand(self, command):
         if type(command) == type(''):
-            self.commands.append(command)
+            self._commands.append(command)
         else:
-            self.commands.extend(command)
+            self._commands.extend(command)
 
 
     def addResult(self, command, data, exitCode):
         "add a result pair to the results store"
-        self.results.append((command, data))
+        pname = self.cmdmap[command]
+        self.results.append((pname, data))
 
   
     def getCommands(self):
-        return self.commands
+        return self._commands
 
 
     def getResults(self):
@@ -116,7 +122,7 @@ class CollectorClient(protocol.ClientFactory):
 
     def commandsFinished(self):
         """called by protocol to see if all commands have been run"""
-        return len(self.results) == len(self.commands)
+        return len(self.results) == len(self._commands)
 
 
     def clientFinished(self):

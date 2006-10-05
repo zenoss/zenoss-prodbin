@@ -27,9 +27,11 @@ from Exceptions import *
 class OperatingSystem(Software):
 
     totalSwap = 0L
+    uname = ""
 
     _properties = Software._properties + (
         {'id':'totalSwap', 'type':'long', 'mode':'w'},
+        {'id':'uname', 'type':'string', 'mode':''},
     )
 
     _relations = Software._relations + (

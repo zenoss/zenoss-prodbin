@@ -64,7 +64,7 @@ class CollectorPlugin:
     def condition(self, device, log):
         """Test to see if this CollectorPlugin is valid for this device.
         """
-        raise NotImplementedError
+        return True 
 
     
     def preprocess(self, results, log):
