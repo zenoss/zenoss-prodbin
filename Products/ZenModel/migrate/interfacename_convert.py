@@ -29,7 +29,10 @@ class InterfaceNameConvert(Migrate.Step):
                 if interfaceName is not None and not callable(interfaceName):
                     int.interfaceName = interfaceName
                     delattr(int, 'name')
-        dmd.Devices.reIndex()
+        try:
+            dmd.Devices.reIndex()
+        except AttributeError:
+            pass
         if hasattr(aq_base(dmd.Devices), "interfaceSearch"):
             dmd.Devices._delObject("interfaceSearch")
 
