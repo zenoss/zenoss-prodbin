@@ -109,6 +109,16 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 'buttons': buttons})
         return states
 
+    def _pidRunning(self, pid):
+        try:
+            os.kill(pid, 0)
+            return pid
+        except OSError, ex:
+            import errno
+            errnum, msg = ex.args
+            if errnum == errno.EPERM:
+                return pid
+
     def _getDaemonPID(self, name):
         """
         For a given daemon name, return its PID from a .pid file.
@@ -122,6 +132,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         pidFile = os.path.join(os.getenv('ZENHOME'), 'var', '%s.pid' % name)
         if os.path.exists(pidFile):
             pid = open(pidFile).read()
+            try:
+                pid = int(pid)
+            except ValueError:
+                pid = None
+            return self._pidRunning(int(pid))
         else:
             pid = None
         return pid
