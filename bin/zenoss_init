@@ -35,6 +35,11 @@ if [ ! -d ${SNMPD_CONF_DIR} ]; then
 fi
 sudo cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
 
+# chown the files to be owned by zenoss
+sudo chown -R ${RUNUSER} ${ZENHOME}
+sudo chgrp -R wheel ${ZENHOME}
+sudo chmod -R 775 ${ZENHOME}
+
 # create the log directory
 mkdir -p ${ZENHOME}/log
 
@@ -61,12 +66,6 @@ python ${ZENHOME}/bin/mkzopeinstance.py \
     --user="admin:${ZOPE_PASSWD}"
 mv ${ZENHOME}/etc/zenoss.conf $ZENHOME/etc/zope.conf
 python ${ZENHOME}/bin/mkzeoinstance.py $ZENHOME
-
-# chown the files to be owned by zenoss
-sudo chown -R ${RUNUSER} ${ZENHOME}
-sudo chgrp -R wheel ${ZENHOME}
-sudo chmod -R 775 ${ZENHOME}
-
 
 # create the zeo database
 ${ZENHOME}/bin/zeoctl start
