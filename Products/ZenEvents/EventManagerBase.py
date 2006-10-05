@@ -976,10 +976,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         db = self.connect()
         self.loadSchema(db)
         db.close()
-        if REQUEST:
-            message = "Refreshed Conversions"
-            return self.refreshConversionsForm(self, REQUEST, 
-                        manage_tabs_message=message)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage EventManager','manage_editCache')
@@ -996,9 +993,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     def manage_clearCache(self, REQUEST=None):
         """Reset cache values"""
         self.cleanCache(force=1)
-        if REQUEST:
-            message = "Cache cleared"
-            return self.editCache(self, REQUEST, manage_tabs_message=message)
+        if REQUEST: return self.callZenScreen(REQUEST)
   
     
     #==========================================================================

@@ -60,23 +60,43 @@
     </tr>
 </table>
 <br>
-<br>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:condition="python: here.statusTable == 'status'">
+<table class="zentable" cellpadding="3" cellspacing="1">
    <tr>
         <th class="tabletitle" colspan="4">Maintenance</th>
     </tr>
-    <tr>
+    <tr tal:condition="python: here.statusTable == 'status'">
         <td class="tableheader" width="25%">Stored Procedures</td>
         <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="40"
+            <textarea class="tablevalues" rows="5" cols="30"
                 name="maintenanceProcedures:lines" 
                 tal:content='python: "\n".join(here.maintenanceProcedures)'>
             </textarea>
         </td>
     </tr>
-    <tr>
+    <tr class='tableheader'>
+        <td class="tableheader" width='25%'>
+            Refresh Event Schema
+        </td>
         <td class="tableheader" colspan="2">
+            <input type='submit' value="Refresh"
+                name='manage_refreshConversions:method'>
+        </td>
+    </tr>
+    <tr class='tableheader'>
+        <td class="tableheader">
+            Clear Event Cache
+        </td>
+        <td class="tableheader" colspan="2">
+            <input type='submit' value="Clear"
+                name='manage_clearCache:method'>
+        </td>
+    </tr>
+</table>
+<br>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+        <td class="tableheader" width='25%'>Save Changes</td>
+        <td class="tableheader">
             <input type='submit' value="Save"
                 name='zmanage_editProperties:method'>
         </td>
