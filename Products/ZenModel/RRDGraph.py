@@ -113,7 +113,7 @@ class RRDGraph(ZenModelRM):
         """build the graph opts for a single rrdfile"""
         gopts = self.graphsetup()
         if self.custom:
-            gopts = self.buildCustomDS(gopts, rrdfile)
+            gopts = self.buildCustomDS(gopts, rrdfile, template)
             res = talesEval("string:"+self.custom, context)
             gopts.extend(res.split("\n"))
             gopts = self.addSummary(gopts)
@@ -157,14 +157,15 @@ class RRDGraph(ZenModelRM):
         return gopts
        
 
-    def buildCustomDS(self, gopts, rrdfile):
+    def buildCustomDS(self, gopts, rrdfile, template):
         """Build a list of DEF statements for the dsnames in this graph.
         Their variable name will be dsname.  These can then be used in a 
         custom statement.
         """
         for dsname in self.dsnames:
-            myfile = os.path.join(rrdfile, dsname) + ".rrd"
-            gopts.append('DEF:%s=%s:ds0:AVERAGE' % (dsname, myfile))
+            dp = template.getRRDDataPoint(dsname)
+            myfile = os.path.join(rrdfile, dp.name()) + ".rrd"
+            gopts.append('DEF:%s=%s:ds0:AVERAGE' % (dp.name(), myfile))
         return gopts
             
 

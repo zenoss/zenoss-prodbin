@@ -71,7 +71,7 @@ class Threshold:
             how = 'exceeded'
         if self.minimum is not None and value <= self.minimum:
             thresh = self.minimum
-            how = 'is insufficient'
+            how = 'not met'
         if thresh is not None:
             self.count += 1
             severity = self.severity

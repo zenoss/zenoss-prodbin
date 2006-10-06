@@ -439,7 +439,6 @@ class zenprocess(SnmpDaemon):
         value = self.rrd.save(path, value, rrdType)
 
         thresholds = self.devices[deviceName].processes[pidName].thresholds
-        print thresholds.get(statName, [])
         for t in thresholds.get(statName,[]):
             t.check(deviceName, pidName, statName, value,
                     self.sendThresholdEvent)

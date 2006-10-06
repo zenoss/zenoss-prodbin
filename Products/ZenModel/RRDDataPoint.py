@@ -106,7 +106,6 @@ class RRDDataPoint(ZenModelRM):
 
     def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
         """build graph options for this datasource"""
-        
         graph = []
         src = "ds%d" % self.getIndex()
         dest = src
@@ -137,8 +136,8 @@ class RRDDataPoint(ZenModelRM):
         if multiid != -1:
             fname = os.path.basename(file)
             if fname.find('.rrd') > -1: fname = fname[:-4]
-            name = "%s-%s" % (self.getId(), fname)
-        else: name = self.getId()
+            name = "%s-%s" % (self.name(), fname)
+        else: name = self.name()
 
         graph.append(":".join((type, src, name,)))
 
