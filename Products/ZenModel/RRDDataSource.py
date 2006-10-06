@@ -196,16 +196,16 @@ class RRDDataSource(ZenModelRM):
         d = context.device()
         environ = {'dev' : d,
                    'devname': d.id,
-                   'here' : self, 
-                   # 'compname' : self.getComponentName(), 
+                   'here' : context, 
                    'zNagiosPath' : context.zNagiosPath,
                    'nothing' : None,
                    'now' : DateTime() }
         res = compiled(getEngine().getContext(environ))
         if isinstance(res, Exception):
             raise res
-        if not res.startswith(context.zNagiosPath):
-            res = os.path.join(context.zNagiosPath, res)
+        if not res.startswith('/'):
+            if not res.startswith(context.zNagiosPath):
+                res = os.path.join(context.zNagiosPath, res)
         return res
 
     def zmanage_editProperties(self, REQUEST=None):
