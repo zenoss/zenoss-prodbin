@@ -13,7 +13,7 @@ class dfB1(CommandPlugin):
     ifconfig maps a linux ifconfig command to the interfaces relation.
     """
     maptype = "FilesystemMap" 
-    command = '/bin/df -B1k'
+    command = '/bin/df -k'
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
