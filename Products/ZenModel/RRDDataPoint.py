@@ -136,8 +136,8 @@ class RRDDataPoint(ZenModelRM):
         if multiid != -1:
             fname = os.path.basename(file)
             if fname.find('.rrd') > -1: fname = fname[:-4]
-            name = "%s-%s" % (self.name(), fname)
-        else: name = self.name()
+            name = "%s-%s" % (self.id, fname)
+        else: name = self.id
 
         graph.append(":".join((type, src, name,)))
 
