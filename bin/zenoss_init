@@ -11,34 +11,7 @@ export ZENHOME="**ZENHOME**"
 export MYSQL_USERNAME="**MYSQL_USERNAME**"
 export MYSQL_PASSWD="**MYSQL_PASSWD**"
 export ZOPE_PASSWD="**ZOPE_PASSWD**"
-export SNMPD_CONF="**SNMPD_CONF**"
-export SUDOERS="**SUDOERS**"
 
-
-# location of where we copy configuration items to
-ZEN_ETC=${ZENHOME}/etc
-
-# update the sudoers file
-SUDOERS=/etc/sudoers
-BACKUP=`dirname ${SUDOERS}`/`basename ${SUDOERS}`.orig
-sudo cp ${SUDOERS} ${BACKUP}
-sudo cp ${ZEN_ETC}/sudoers ${SUDOERS}
-
-# update the snmpd.conf file
-SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
-BACKUP=${SNMPD_CONF_DIR}/`basename ${SNMPD_CONF}`.orig
-if [ -f ${SNMPD_CONF} ]; then
-    sudo cp ${SNMPD_CONF} ${BACKUP}
-fi
-if [ ! -d ${SNMPD_CONF_DIR} ]; then
-    sudo mkdir -p ${SNMPD_CONF_DIR}
-fi
-sudo cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
-
-# chown the files to be owned by zenoss
-sudo chown -R ${RUNUSER} ${ZENHOME}
-sudo chgrp -R wheel ${ZENHOME}
-sudo chmod -R 775 ${ZENHOME}
 
 # create the log directory
 mkdir -p ${ZENHOME}/log
@@ -70,5 +43,5 @@ python ${ZENHOME}/bin/mkzeoinstance.py $ZENHOME
 # create the zeo database
 ${ZENHOME}/bin/zeoctl start
 sudo chown -R ${RUNUSER} ${ZENHOME}/var
-sudo -u ${RUNUSER} -i ${ZENHOME}/bin/zenbuild -u ${MYSQL_USERNAME} -p "${MYSQL_PASSWD}" 
+sudo -u ${RUNUSER} ${ZENHOME}/bin/zenbuild -u ${MYSQL_USERNAME} -p "${MYSQL_PASSWD}" 
 ${ZENHOME}/bin/zeoctl stop
