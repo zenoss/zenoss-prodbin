@@ -108,7 +108,7 @@ class CollectorClient(protocol.ClientFactory):
 
     def addResult(self, command, data, exitCode):
         "add a result pair to the results store"
-        pname = self.cmdmap[command]
+        pname = self.cmdmap.get(command, command)
         self.results.append((pname, data))
 
   
