@@ -399,10 +399,9 @@ def getRRDToolVersion():
         v.full()
     """
     cmd = os.path.join(os.getenv('ZENHOME'), 'bin', 'rrdtool')
-    stdout, stdin, stderr = os.popen3(cmd)
-    output = stdin.readlines()[0].strip()
-    for o in stdout, stdin, stderr:
-        o.close()
+    fd = os.popen(cmd)
+    output = fd.readlines()[0].strip()
+    fd.close()
     name, version = output.split()[:2]
     major, minor, micro = getVersionTupleFromString(version)
     return (name, major, minor, micro)
