@@ -202,7 +202,4 @@ class RRDDataPoint(ZenModelRM):
     def name(self):
         """Include the data source name in our name,
         useful for lists of DataPoints"""
-        # snmp only has one datapoint per source, so provide a simple name
-        if self.datasource().sourcetype == 'SNMP':
-            return self.datasource().id
         return '%s%c%s' % (self.datasource().id, SEPARATOR, self.id)
