@@ -137,7 +137,7 @@ class FileSystem(OSComponent):
         return 0
 
     def usedBlocks(self, default = None):
-        blocks = self.cacheRRDValue('usedBlocks', default)
+        blocks = self.cacheRRDValue('usedBlocks_usedBlocks', default)
         if blocks is not None:
             return long(blocks)
         return None
