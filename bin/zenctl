@@ -7,6 +7,8 @@
 # environment variables
 export ZENHOME="**ZENHOME**"
 export RUNUSER="**OS_USERNAME**"
+export SNMPD_CONF="**SNMPD_CONF**"
+export SUDOERS="**SUDOERS**"
 
 # signature of zenoss having been installed and configured
 export FIRSTBOOT=${ZENHOME}/.installed
@@ -20,6 +22,31 @@ export FIRSTBOOT=${ZENHOME}/.installed
 if [ ! -f ${FIRSTBOOT} ]; then
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
+    # location of where we copy configuration items to
+    ZEN_ETC=${ZENHOME}/etc
+
+    # update the sudoers file
+    SUDOERS=/etc/sudoers
+    BACKUP=`dirname ${SUDOERS}`/`basename ${SUDOERS}`.orig
+    cp ${SUDOERS} ${BACKUP}
+    cp ${ZEN_ETC}/sudoers ${SUDOERS}
+
+    # update the snmpd.conf file
+    SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
+    BACKUP=${SNMPD_CONF_DIR}/`basename ${SNMPD_CONF}`.orig
+    if [ -f ${SNMPD_CONF} ]; then
+        cp ${SNMPD_CONF} ${BACKUP}
+    fi
+    if [ ! -d ${SNMPD_CONF_DIR} ]; then
+        mkdir -p ${SNMPD_CONF_DIR}
+    fi
+    cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
+    
+    # chown the files to be owned by zenoss
+    chown -R ${RUNUSER} ${ZENHOME}
+    chgrp -R wheel ${ZENHOME}
+    chmod -R 775 ${ZENHOME}
+    
     sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss_init
     touch ${FIRSTBOOT}
 
