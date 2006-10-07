@@ -84,7 +84,7 @@ class RRDDataPoint(ZenModelRM):
         'actions'        :
         ( 
             { 'id'            : 'edit'
-            , 'name'          : 'RRD Data Point'
+            , 'name'          : 'Data Point'
             , 'action'        : 'editRRDDataPoint'
             , 'permissions'   : ( Permissions.view, )
             },

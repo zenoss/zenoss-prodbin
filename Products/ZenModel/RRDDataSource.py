@@ -110,7 +110,7 @@ class RRDDataSource(ZenModelRM):
         'actions'        :
         ( 
             { 'id'            : 'edit'
-            , 'name'          : 'RRD Data Source'
+            , 'name'          : 'Data Source'
             , 'action'        : 'editRRDDataSource'
             , 'permissions'   : ( Permissions.view, )
             },

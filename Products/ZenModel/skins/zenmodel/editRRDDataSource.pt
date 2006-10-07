@@ -225,7 +225,7 @@
         objects here/datapoints;
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <tr>
-      <th class="tabletitle" align="left" colspan="4">RRDDataPoints</th>
+      <th class="tabletitle" align="left" colspan="4">DataPoints</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(

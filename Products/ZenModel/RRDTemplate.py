@@ -71,7 +71,7 @@ class RRDTemplate(ZenModelRM):
         'actions'        :
         ( 
             { 'id'            : 'overview'
-            , 'name'          : 'Overview'
+            , 'name'          : 'Performance Template'
             , 'action'        : 'viewRRDTemplate'
             , 'permissions'   : ( Permissions.view, )
             },

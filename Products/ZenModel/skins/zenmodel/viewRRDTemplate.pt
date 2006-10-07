@@ -53,7 +53,7 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="dsbody">
     <tr>
-      <th class="tabletitle" align="left" colspan="5">RRDDataSources</th>
+      <th class="tabletitle" align="left" colspan="5">DataSources</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
