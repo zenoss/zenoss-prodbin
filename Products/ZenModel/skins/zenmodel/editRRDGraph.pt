@@ -118,6 +118,17 @@
             tal:content="here/maxy"/>
     </tr>
     <tr>
+        <td class="tableheader">Has Summary</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="hasSummary:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.hasSummary"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/hasSummary"/>
+    </tr>
+    <tr>
         <td class="tableheader">Custom</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <textarea class="tablevalues" rows="8" cols="50"

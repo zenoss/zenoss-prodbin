@@ -23,7 +23,7 @@ class RRDUtil:
                                               3*self.cycleTime)
             rrdtool.create(filename,
                            "--step",  str(self.cycleTime),
-                           dataSource, *rrdCommand.split())
+                           str(dataSource), *rrdCommand.split())
         
         try:
             rrdtool.update(filename, 'N:%s' % value)

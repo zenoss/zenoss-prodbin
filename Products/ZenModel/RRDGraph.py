@@ -54,6 +54,7 @@ class RRDGraph(ZenModelRM):
     miny = -1
     maxy = -1
     custom = ""
+    hasSummary = True
 
 
     _properties = (
@@ -71,6 +72,7 @@ class RRDGraph(ZenModelRM):
         {'id':'maxy', 'type':'int', 'mode':'w'},
         {'id':'colors', 'type':'lines', 'mode':'w'},
         {'id':'custom', 'type':'text', 'mode':'w'},
+        {'id':'hasSummary', 'type':'boolean', 'mode':'w'},
         )
 
     _relations =  (
@@ -92,7 +94,7 @@ class RRDGraph(ZenModelRM):
         'actions'        :
         ( 
             { 'id'            : 'edit'
-            , 'name'          : 'RRD Graph'
+            , 'name'          : 'Graph'
             , 'action'        : 'editRRDGraph'
             , 'permissions'   : ( Permissions.view, )
             },
@@ -116,7 +118,7 @@ class RRDGraph(ZenModelRM):
             gopts = self.buildCustomDS(gopts, rrdfile, template)
             res = talesEval("string:"+self.custom, context)
             gopts.extend(res.split("\n"))
-            gopts = self.addSummary(gopts)
+            if self.hasSummary: gopts = self.addSummary(gopts)
         else:
             gopts = self.buildDS(gopts, rrdfile, template, self.summary)
             gopts = self.thresholds(gopts, context, template)
