@@ -3,6 +3,8 @@ import types
 def q(s):
     # turn string "fo'o" -> "'fo''o'"
     return "'%s'" % "''".join(s.split("'"))
+
+class Error(Exception): pass
                              
 class WhereJavaScript:
     "Base class for converting to/from javascript"
@@ -14,6 +16,8 @@ class WhereJavaScript:
     def buildClause(self, name, value, mode):
         result = []
         for v in value:
+            if not v:
+                raise Error('No value for %s' % name)
             result.append(self.buildClause1(name, v, mode))
         if not result:
             return None
