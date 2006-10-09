@@ -209,7 +209,7 @@ class zenperfsnmp(SnmpDaemon):
         if self.cycleComplete and \
            not self.options.daemon and \
            not self.options.cycle:
-            reactor.stop()
+            reactor.callLater(0, reactor.stop)
 
 
     def startUpdateConfig(self, driver):
@@ -309,8 +309,7 @@ class zenperfsnmp(SnmpDaemon):
 
     def scanCycle(self, *unused):
         self.log.debug("getting device ping issues")
-        proxy = self.buildProxy(self.options.zem)
-        d = proxy.callRemote('getDevicePingIssues')
+        d = self.zem.callRemote('getDevicePingIssues')
         d.addBoth(self.setUnresponsiveDevices)
         reactor.callLater(self.snmpCycleInterval, self.scanCycle)
 

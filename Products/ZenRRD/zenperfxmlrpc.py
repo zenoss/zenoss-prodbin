@@ -307,8 +307,7 @@ class zenperfxmlrpc(RRDDaemon):
 
     def scanCycle(self, *unused):
         self.log.debug("getting device ping issues")
-        proxy = self.buildProxy(self.options.zem)
-        d = proxy.callRemote('getDevicePingIssues')
+        d = self.zem.callRemote('getDevicePingIssues')
         d.addBoth(self.setUnresponsiveDevices)
         reactor.callLater(self.xmlrpcCycleInterval, self.scanCycle)
 
