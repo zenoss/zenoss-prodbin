@@ -12,9 +12,13 @@ Old users, passwords and roles are migrated to PAS with this script.
 ''' 
 
 __version__ = "$Revision$"[11:-2]
-        
+
+import transaction
+
 from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import PluggableAuthService
+
+import Migrate
 
 class MigrateToPAS(Migrate.Step):
     version = 23.0
@@ -27,6 +31,8 @@ class MigrateToPAS(Migrate.Step):
         newObs = [ x for x in app.zport._objects if x['id'] != 'acl_users'] + \
             [{'meta_type': 'User Folder', 'id': 'acl_users_orig'}]
         app.zport._objects = tuple(newObs)
+        app.zport._delOb('acl_users')
+
         # create a new PAS acl_users
         PluggableAuthService.addPluggableAuthService(app.zport)
         # set up some convenience vars
@@ -54,6 +60,17 @@ class MigrateToPAS(Migrate.Step):
             acl.userManager.addUser(user, user, password)
             for role in roles:
                 acl.roleManager.assignRoleToPrincipal(role, user)
+
+        # remove backup
+        app.zport._delOb('acl_users_orig')
+        newObs = [ x for x in app.zport._objects if x['id'] != 'acl_users_orig' ]
+        app.zport._objects = tuple(newObs)
+
+        # commit the changes
+        # XXX I couldn't get this work work without commit(). 
+        # XXX Does the commit that occurs after migration only apply at the dmd
+        # context?
+        transaction.commit()
 
 MigrateToPAS()
 
