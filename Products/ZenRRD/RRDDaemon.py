@@ -157,11 +157,11 @@ class RRDDaemon(Base):
             monitor = self.options.monitor or socket.getfqdn()
             self.model = FakeProxy(self.getDmdObj('/Monitors/Performance/'+
                                                   monitor))
+            self.zem = FakeProxy(self.getDmdObj('/ZenEventManager'))
         except KeyError, ex:
             self.log.debug("Not directly connected (%s) using Zope access.", ex)
             self.model = self.buildProxy(self.options.zopeurl)
-            
-        self.zem = self.buildProxy(self.options.zem)
+            self.zem = self.buildProxy(self.options.zem)
         self.events = []
 
     def buildProxy(self, url):
@@ -228,7 +228,7 @@ class RRDDaemon(Base):
     def _shutdown(self):
         self.shutdown = True
         if not self.events:
-            reactor.stop()
+            reactor.callLater(0, reactor.stop)
         else:
             self.log.debug('waiting for events to flush')
             reactor.callLater(5, reactor.stop)
