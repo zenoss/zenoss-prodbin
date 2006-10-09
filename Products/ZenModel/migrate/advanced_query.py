@@ -11,7 +11,6 @@ ManagableFieldIndex indices.
 
 __version__ = "$Revision$"[11:-2]
         
-import transaction
 from Products.ManagableIndex import FieldIndex
 from Products.ManagableIndex import KeywordIndex_scalable as KeywordIndex
 from Products.ZenModel.SearchUtils import makeFieldIndex
