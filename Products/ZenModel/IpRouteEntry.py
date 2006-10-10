@@ -196,8 +196,10 @@ class IpRouteEntry(OSComponent):
     
     security.declareProtected('Change Device', 'setInterfaceIndex')
     def setInterfaceIndex(self, ifindex):
-        os = self.os()
-        int = self.getInterfaceByIndex(ifindex)
+        for int in self.os().interfaces():
+            if int.ifindex == ifindex: break
+        else:
+            int = None
         if int: self.interface.addRelation(int)
         else: log.warn("interface index:%s not found", ifindex)
 
@@ -210,8 +212,8 @@ class IpRouteEntry(OSComponent):
     security.declareProtected('Change Device', 'setInterfaceName')
     def setInterfaceName(self, intname):
         os = self.os()
-        int = self.os.interfaces._getOb(intname,None)
-        if int: self.interface.addRelation(int)
+        int = os.interfaces._getOb(intname,None)
+        if int: os.addRelation(int)
         else: log.warn("interface '%s' not found", intname)
 
 

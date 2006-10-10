@@ -99,18 +99,6 @@ class OperatingSystem(Software):
         return filter(lambda r: r.target(), self.routes())
 
 
-    security.declareProtected('View', 'getInterfaceByIndex')
-    def getInterfaceByIndex(self, ifindex):
-        """Return an interface based on its snmp index.
-        """
-        idxmap = getattr(aq_base(self), "_v_idxmap", {})
-        if not idxmap:
-            for i in self.interfaces.objectValuesAll():
-                idxmap[i.ifindex] = i
-            self._v_idxmap = idxmap
-        return idxmap.get(ifindex, None)
-
-
     def device(self):
         """Return our Device object for DeviceResultInt.
         """
