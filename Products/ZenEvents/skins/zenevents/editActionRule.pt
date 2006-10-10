@@ -8,7 +8,7 @@
         tal:content="string:${message} ${here/getNowString}" />
 </tr>
 <tr>
-  <td class="tableheader">Delay</td>
+  <td class="tableheader">Delay (secs)</td>
   <td class="tablevalues">
     <input class="tablevalues" type="text" name="delay:int" size="5"
         tal:attributes="value here/delay" />
