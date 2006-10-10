@@ -91,6 +91,8 @@ class DeviceComponent(object):
 
 
     def getNagiosTemplate(self, name=None):
+        import warnings
+        warnings.warn('anything named nagios is deprecated', DeprecationWarning)
         if not name: name = self.getNagiosTemplateName()
         templ = getattr(self, name+"_Nagios", None)
         if templ is None:

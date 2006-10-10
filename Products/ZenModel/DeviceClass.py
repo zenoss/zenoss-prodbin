@@ -34,7 +34,6 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from RRDTemplate import RRDTemplate
 from SearchUtils import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
-from NagiosTemplate import NagiosTemplate
 
 _marker = "__MARKER___"
 
@@ -82,7 +81,6 @@ class DeviceClass(DeviceOrganizer):
     _relations = DeviceOrganizer._relations + (
         ("devices", ToManyCont(ToOne,"Device","deviceClass")),
         ("rrdTemplates", ToManyCont(ToOne,"RRDTemplate","deviceClass")),
-        ("nagiosTemplates", ToManyCont(ToOne,"NagiosTemplate","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -393,7 +391,7 @@ class DeviceClass(DeviceOrganizer):
 
     security.declareProtected('View', 'getRRDImportFilesData')
     def getRRDImportFilesData(self):
-        """Get a list of Nagios-only import files' data.
+        """Get a list of command-only import files' data.
         """
         return [ x for x in self.getImportFilesData() if 'RRD' in x['display'] ]
 
@@ -601,7 +599,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
         
-        devs._setProperty("zNagiosPath", "/usr/local/nagios/libexec")
+        devs._setProperty("zCommandPath", "/usr/local/nagios/libexec")
 
 
 InitializeClass(DeviceClass)

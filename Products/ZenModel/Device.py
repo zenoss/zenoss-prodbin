@@ -426,13 +426,13 @@ class Device(ManagedEntity):
         return (self.getSnmpConnInfo(), oids)
 
 
-    def getDataSourceCommands(self, dsType):
-        """Return list of nagios commands definitions in the form.
+    def getDataSourceCommands(self):
+        """Return list of command definitions in the form.
         (device, user, pass [(cmdinfo,),...])
         """
-        cmds = (super(Device, self).getDataSourceCommands(dsType))
+        cmds = (super(Device, self).getDataSourceCommands())
         for o in self.getMonitoredComponents():
-            cmds.extend(o.getDataSourceCommands(dsType))
+            cmds.extend(o.getDataSourceCommands())
         if cmds:
             return (self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,

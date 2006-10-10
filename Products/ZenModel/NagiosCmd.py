@@ -17,14 +17,9 @@ from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
-def manage_addNagiosCmd(context, id, REQUEST = None):
-    """make a NagiosCmd"""
-    tt = NagiosCmd(id)
-    context._setObject(tt.id, tt)
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
-
+import warnings
+warnings.warn("NagiosCmd is deprecated", DeprecationWarning)
 class NagiosCmd(ZenModelRM):
 
     usessh = True

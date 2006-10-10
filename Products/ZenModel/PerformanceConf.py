@@ -63,19 +63,11 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
-#    snmpCycleInterval = 300
     snmpCycleInterval = 60
     configCycleInterval = 30
     renderurl = ''
     renderuser = ''
     renderpass = ''
-#    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:600\n' \
-#                              'RRA:AVERAGE:0.5:6:600\n' \
-#                              'RRA:AVERAGE:0.5:24:600\n' \
-#                              'RRA:MAX:0.5:24:600\n' \
-#                              'RRA:AVERAGE:0.5:288:600\n' \
-#                              'RRA:MAX:0.5:288:600'
-#                              #'RRA:HWPREDICT:1440:0.5:0.5:1440',
     defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:1800\n' \
                               'RRA:AVERAGE:0.5:6:1800\n' \
                               'RRA:AVERAGE:0.5:24:1800\n' \
@@ -158,8 +150,8 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
-    def getDataSourceCommands(self, dsType, devname=None):
-        '''Get the Nagios command configuration for all devices.
+    def getDataSourceCommands(self, devname=None):
+        '''Get the command configuration for all devices.
         '''
         result = []
         for dev in self.devices():
@@ -167,7 +159,7 @@ class PerformanceConf(Monitor, StatusColor):
             dev = dev.primaryAq()
             if dev.monitorDevice():
                 try:
-                    cmdinfo = dev.getDataSourceCommands(dsType)
+                    cmdinfo = dev.getDataSourceCommands()
                     if not cmdinfo: continue
                     result.append(cmdinfo)
                 except POSError: raise

@@ -207,7 +207,7 @@
                 tal:content="graph/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="graph/getId"/>
         </td>
-        <td tal:content="python:','.join(graph.dsnames)"/>
+        <td tal:content="python:', '.join(graph.dsnames)"/>
         <td tal:content="graph/units"/>
         <td tal:content="graph/height"/>
         <td tal:content="graph/width"/>

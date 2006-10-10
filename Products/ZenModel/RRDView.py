@@ -111,6 +111,8 @@ class RRDView(object):
         """Return the nagios temlate name of this component. 
         By default meta_type. Override to create custom type selection.
         """
+        import warnings
+        warnings.warn('getNagiosTemplateName is deprecated', DeprecationWarning)
         return self.meta_type
 
 
@@ -211,7 +213,7 @@ class RRDView(object):
         return oids
 
 
-    def getDataSourceCommands(self, dsType):
+    def getDataSourceCommands(self):
         """Return list of nagios commands definitions in the form.
         [(name,compname,eventClass,eventKey,severity,command),...]
         """
@@ -220,7 +222,7 @@ class RRDView(object):
         threshs = self.getThresholds(templ)
         result = []
         basepath = self.rrdPath()
-        for ds in templ.getRRDDataSources(dsType):
+        for ds in templ.getRRDDataSources('COMMAND'):
             if not ds.enabled: continue
             points = []
             for dp in ds.getRRDDataPoints():

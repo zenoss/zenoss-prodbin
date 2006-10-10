@@ -13,6 +13,10 @@ $Id$
 
 __version__ = "$Revision$"[11:-2]
 
+# by virtue of being a migration script, we often import deprecated modules
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 import evtprops
 import kill_cricket
 import reindex_history
@@ -25,7 +29,7 @@ import mwrelations
 import rrdmin
 import winminseverity
 import nocountprocs
-import nagios
+import command
 import perfxmlrpc
 import import_export_filesystem
 import datapoints

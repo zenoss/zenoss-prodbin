@@ -94,13 +94,13 @@ True
 <property visible='True' type='boolean' id='zWinEventlog' >
 False
 </property>
-<property visible='True' type='string' id='zNagiosPath' >
+<property visible='True' type='string' id='zCommandPath' >
 /usr/local/nagios/libexec
 </property>
 <property visible='True' type='date' id='cDateTest' >
 1900/01/01
 </property>
-<property visible='True' type='int' id='zNagiosCycleTime' >
+<property visible='True' type='int' id='zCommandCycleTime' >
 60
 </property>
 <tomanycont id='rrdTemplates'>

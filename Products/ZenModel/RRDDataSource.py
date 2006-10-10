@@ -56,7 +56,7 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
 
-    sourcetypes = ('SNMP', 'XMLRPC', 'NAGIOS', 'CACTI')
+    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND')
     paramtypes = ('integer', 'string', 'float')
 
     sourcetype = 'SNMP'
@@ -135,7 +135,7 @@ class RRDDataSource(ZenModelRM):
             return self.oid
         if self.sourcetype == "XMLRPC":
             return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
-        if self.sourcetype in ("NAGIOS", "CACTI"):
+        if self.sourcetype == "COMMAND":
             if self.usessh:
                 return self.commandTemplate + " over SSH"
             else:
@@ -197,15 +197,15 @@ class RRDDataSource(ZenModelRM):
         environ = {'dev' : d,
                    'devname': d.id,
                    'here' : context, 
-                   'zNagiosPath' : context.zNagiosPath,
+                   'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
         res = compiled(getEngine().getContext(environ))
         if isinstance(res, Exception):
             raise res
         if not res.startswith('/'):
-            if not res.startswith(context.zNagiosPath):
-                res = os.path.join(context.zNagiosPath, res)
+            if not res.startswith(context.zCommandPath):
+                res = os.path.join(context.zCommandPath, res)
         return res
 
     def zmanage_editProperties(self, REQUEST=None):

@@ -14,6 +14,8 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from NagiosCmd import NagiosCmd
 
+import warnings
+warnings.warn("NagiosTemplate is deprecated", DeprecationWarning)
 
 def crumbspath(templ, crumbs, idx=-1):
     """Create the crumbs path for sub objects of an RRDTemplate.
@@ -126,6 +128,8 @@ class NagiosTemplate(ZenModelRM):
     
     def manage_copyNagiosCmds(self, ids=(), REQUEST=None):
         """Put a reference to the objects named in ids in the clip board"""
+        import warnings
+        warnings.warn('manage_copyNagiosCmds is deprecated', DeprecationWarning)
         if not ids: return self.callZenScreen(REQUEST)
         ids = [ id for id in ids if self.nagiosCmds._getOb(id, None) != None]
         if not ids: return self.callZenScreen(REQUEST)
@@ -141,6 +145,8 @@ class NagiosTemplate(ZenModelRM):
     def manage_pasteNagiosCmds(self, cb_copy_data=None, REQUEST=None):
         """Paste NagiosCmds that have been copied before.
         """
+        import warnings
+        warnings.warn('manage_copyNagiosCmds is deprecated', DeprecationWarning)
         cp = None
         if cb_copy_data: cp = cb_copy_data
         elif REQUEST:
