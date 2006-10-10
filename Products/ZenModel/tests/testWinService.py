@@ -60,5 +60,5 @@ def main():
        unittest.TextTestRunner().run(test_suite())
 
 if __name__=="__main__":
-    zenconn = ZenConn()
+    zeoconn = ZeoConn()
     unittest.main()
