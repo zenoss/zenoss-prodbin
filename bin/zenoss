@@ -32,8 +32,7 @@ C="$C zensyslog"
 C="$C zenstatus"
 C="$C zenactions"
 C="$C zentrap"
-C="$C zenagios"
-C="$C zencacti"
+C="$C zencommand"
 CMDS=$C
 
 reverse() {
