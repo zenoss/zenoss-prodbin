@@ -211,9 +211,8 @@ class IpRouteEntry(OSComponent):
 
     security.declareProtected('Change Device', 'setInterfaceName')
     def setInterfaceName(self, intname):
-        os = self.os()
-        int = os.interfaces._getOb(intname,None)
-        if int: os.addRelation(int)
+        int = self.os().interfaces._getOb(intname,None)
+        if int: self.interface.addRelation(int)
         else: log.warn("interface '%s' not found", intname)
 
 
