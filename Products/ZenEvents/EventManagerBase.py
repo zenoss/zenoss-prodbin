@@ -503,7 +503,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
 
     def getDeviceStatus(self, device, statclass=None, countField=None, 
-                        severity=4, state=None, where=""):
+                        severity=3, state=None, where=""):
         """see IEventStatus
         """
         if countField == None: countField = self.countField
@@ -566,7 +566,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
         
     def getComponentStatus(self, device, component, statclass=None, 
-                    countField=None, severity=4, state=1, where=""):
+                    countField=None, severity=3, state=1, where=""):
         """see IEventStatus
         """
         if countField == None: countField = self.countField
