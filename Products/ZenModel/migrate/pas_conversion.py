@@ -66,11 +66,5 @@ class MigrateToPAS(Migrate.Step):
         newObs = [ x for x in app.zport._objects if x['id'] != 'acl_users_orig' ]
         app.zport._objects = tuple(newObs)
 
-        # commit the changes
-        # XXX I couldn't get this work work without commit(). 
-        # XXX Does the commit that occurs after migration only apply at the dmd
-        # context?
-        transaction.commit()
-
 MigrateToPAS()
 

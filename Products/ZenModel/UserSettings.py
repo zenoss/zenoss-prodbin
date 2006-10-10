@@ -31,7 +31,7 @@ def manage_addUserSettingsManager(context, REQUEST=None):
     ufm = UserSettingsManager(UserSettingsId)
     context._setObject(ufm.getId(), ufm)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
@@ -46,8 +46,8 @@ class UserSettingsManager(ZenModelRM):
 
     sub_meta_types = ("UserSettings",)
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'UserSettingsManager',
             'meta_type'      : 'UserSettingsManager',
             'description'    : """Base class for all devices""",
@@ -56,7 +56,7 @@ class UserSettingsManager(ZenModelRM):
             'factory'        : 'manage_addUserSettingsManager',
             'immediate_view' : 'manageUserFolder',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'manageUserFolder'
@@ -70,7 +70,7 @@ class UserSettingsManager(ZenModelRM):
     def getAllUserSettings(self):
         """Return list user settings objects.
         """
-        return filter(lambda u: u.id != "admin", 
+        return filter(lambda u: u.id != "admin",
                     self.objectValues(spec="UserSettings"))
             
 
@@ -97,7 +97,7 @@ class UserSettingsManager(ZenModelRM):
         if userid is None:
             user = getSecurityManager().getUser()
         else:
-            user = self.acl_users.getUser(userid) 
+            user = self.acl_users.getUser(userid)
         if user: return user.__of__(self.acl_users)
 
 
@@ -113,8 +113,9 @@ class UserSettingsManager(ZenModelRM):
             ufolder = UserSettings(userid)
             self._setObject(ufolder.getId(), ufolder)
             folder = self._getOb(userid)
-            if not user: user = self.getUser(userid)
-            if user: 
+            if not user:
+                user = self.getUser(userid)
+            if user:
                 folder.changeOwnership(user)
                 folder.manage_setLocalRoles(userid, ("Owner",))
         return folder
@@ -132,6 +133,11 @@ class UserSettingsManager(ZenModelRM):
                     REQUEST=None,**kw):
         """Add a zenoss user to the system and set its default properties.
         """
+        # for PAS, we're going to need to:
+        #   o get the user manager instance
+        #   o get the role manager instance
+        #   o add a user
+        #   o assign a role to that user (principal)
         if password is None:
             password = self.generatePassword()
         self.acl_users._doAddUser(userid,password,roles,"")
@@ -159,14 +165,14 @@ class UserSettingsManager(ZenModelRM):
         """Change a zenoss users settings.
         """
         user = self.acl_users.getUser(userid)
-        if not user: 
-            if REQUEST: 
+        if not user:
+            if REQUEST:
                 REQUEST['message'] = "user %s not found" % userid
                 return self.callZenScreen(REQUEST)
-            else: 
+            else:
                 return
         if password and password != sndpassword:
-            if REQUEST: 
+            if REQUEST:
                 REQUEST['message'] = "passwords didn't match no change: "
                 return self.callZenScreen(REQUEST)
             else:
@@ -224,7 +230,7 @@ def manage_addUserSettings(context, id, title = None, REQUEST = None):
     dc = UserSettings(id, title)
     context._setObject(id, dc)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
 addUserSettings = DTMLFile('dtml/addUserSettings',globals())
@@ -266,11 +272,11 @@ class UserSettings(ZenModelRM):
     )
 
    # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'editUserSettings',
             'actions'        :
-            ( 
+            (
                 {'name'          : 'Edit',
                 'action'        : 'editUserSettings',
                 'permissions'   : ("Change Settings",),
@@ -317,20 +323,20 @@ class UserSettings(ZenModelRM):
 
 
     security.declareProtected('Change Settings', 'manage_editUserSettings')
-    def manage_editUserSettings(self, password=None, sndpassword=None, 
+    def manage_editUserSettings(self, password=None, sndpassword=None,
                                 roles=None, domains=None,
                                 REQUEST=None, **kw):
         """Update user settings.
         """
         user = self.getUser(self.id)
-        if not user: 
-            if REQUEST: 
+        if not user:
+            if REQUEST:
                 REQUEST['message'] = "user %s not found" % self.id
                 return self.callZenScreen(REQUEST)
-            else: 
+            else:
                 return
         if password and password != sndpassword:
-            if REQUEST: 
+            if REQUEST:
                 REQUEST['message'] = "Passwords didn't match no change: "
                 return self.callZenScreen(REQUEST)
             else:
@@ -396,17 +402,17 @@ class UserSettings(ZenModelRM):
                 mobj = self.getDmdRoot(root).getOrganizer(name)
             except KeyError: pass        
         if not mobj:
-            if REQUEST: 
+            if REQUEST:
                 REQUEST['message'] = "%s %s not found"%(type.capitalize(),name)
                 return self.callZenScreen(REQUEST)
             else: return
         roleNames = [ r.id for r in mobj.adminRoles() ]
         if self.id in roleNames:
-            if REQUEST: 
+            if REQUEST:
                 REQUEST['message'] = "Role exists on %s %s" % (type, name)
                 return self.callZenScreen(REQUEST)
             else: return
-        if name.startswith('/'): 
+        if name.startswith('/'):
             ar = DevOrgAdministrativeRole(self.id)
         else:
             ar = DeviceAdministrativeRole(self.id)
@@ -416,7 +422,7 @@ class UserSettings(ZenModelRM):
         mobj.adminRoles._setObject(self.id, ar)
         ar = mobj.adminRoles._getOb(self.id)
         ar.userSetting.addRelation(self)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Role Added for %s" % name
             return self.callZenScreen(REQUEST)
 
@@ -434,7 +440,7 @@ class UserSettings(ZenModelRM):
             except ValueError: continue
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
         
@@ -450,7 +456,7 @@ class UserSettings(ZenModelRM):
                 ar.userSetting.removeRelation()
                 mobj = ar.managedObject().primaryAq()
                 mobj.adminRoles._delObject(ar.id)
-        if REQUEST: 
+        if REQUEST:
             REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
