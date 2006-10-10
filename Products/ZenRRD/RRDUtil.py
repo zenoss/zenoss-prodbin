@@ -25,6 +25,8 @@ class RRDUtil:
                            "--step",  str(self.cycleTime),
                            str(dataSource), *rrdCommand.split())
         
+        if rrdType == 'COUNTER':
+            value = long(value)
         try:
             rrdtool.update(filename, 'N:%s' % value)
         except rrdtool.error, err:
