@@ -137,7 +137,12 @@ class RRDTemplate(ZenModelRM):
         point = name
         if name.find(SEPARATOR) >= 0:
             source, point = name.split(SEPARATOR)
-        return self.datasources._getOb(source).datapoints._getOb(point)
+        ds = self.datasources._getOb(source, None)
+
+        if ds is not None:
+            return ds.datapoints._getOb(point)
+        else:
+            return None
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
