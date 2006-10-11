@@ -231,7 +231,7 @@ True
 <tomanycont id='graphs'>
 <object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['cpu']
+['cpu_cpu']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
@@ -269,10 +269,13 @@ True
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['mem']
+['mem_mem']
 </property>
 <property type='int' id='sequence' mode='w' >
 1
@@ -309,6 +312,9 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
@@ -562,7 +568,7 @@ True
 <tomanycont id='graphs'>
 <object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['ifInErrors', 'ifOutErrors']
+['ifInErrors_ifInErrors', 'ifOutErrors_ifOutErrors']
 </property>
 <property type='int' id='sequence' mode='w' >
 2
@@ -600,10 +606,13 @@ True
 <property type='lines' id='colors' mode='w' >
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['ifInUcastPackets', 'ifOutUcastPackets']
+['ifInUcastPackets_ifInUcastPackets', 'ifOutUcastPackets_ifOutUcastPackets']
 </property>
 <property type='int' id='sequence' mode='w' >
 1
@@ -641,10 +650,13 @@ True
 <property type='lines' id='colors' mode='w' >
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['ifInOctets', 'ifOutOctets']
+['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
@@ -682,12 +694,15 @@ True
 <property type='lines' id='colors' mode='w' >
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='Utilization 75 perc' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type='lines' id='dsnames' mode='w' >
-['ifInOctets', 'ifOutOctets']
+['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
 <property type='string' id='maxval' mode='w' >
 here.speed / 8 * .75
@@ -1096,6 +1111,9 @@ True
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
@@ -1136,6 +1154,9 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 <object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
@@ -1178,6 +1199,9 @@ True
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
@@ -1219,6 +1243,9 @@ True
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
@@ -1259,6 +1286,9 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
@@ -1374,6 +1404,9 @@ True
 <property type='text' id='custom' mode='w' >
 CDEF:percent=usedBlocks_usedBlocks,${here/totalBlocks},/,100,*
 AREA:percent#00cc00:utilization
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
@@ -1610,6 +1643,9 @@ True
 <property type='lines' id='colors' mode='w' >
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
@@ -1651,6 +1687,9 @@ True
 <property type='lines' id='colors' mode='w' >
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
 </object>
 <object id='Paging' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
@@ -1691,6 +1730,9 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
@@ -1841,6 +1883,9 @@ True
 </property>
 <property type='lines' id='colors' mode='w' >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
 </property>
 </object>
 </tomanycont>
