@@ -371,6 +371,8 @@ class UserSettings(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+    def getActionRules(self):
+        return self.objectValues(spec=ActionRule.meta_type)
 
     security.declareProtected('Change Settings', 'manage_addCustomEventView')
     def manage_addCustomEventView(self, id, REQUEST=None):
