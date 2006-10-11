@@ -16,6 +16,7 @@ from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils import Time
 
 from ActionRuleWindow import ActionRuleWindow
 def _downcase(s):
@@ -265,7 +266,24 @@ class ActionRule(ZenModelRM):
         result.append('initializeFilters(current)\n')
         return ''.join(result)
 
+    def nextActive(self):
+        import time
+        if self.enabled:
+            return time.time()
+        next = None
+        for ar in self.windows():
+            if next is None or ar.next() < next:
+                next = ar.next()
+        return next
 
+    def nextActiveNice(self):
+        if self.enabled:
+            return "Now"
+        t = self.nextActive()
+        if t is None:
+            return "Never"
+        return Time.LocalDateTime(t)
+        
     security.declareProtected('Change Settings', 'manage_addActionRuleWindow')
     def manage_addActionRuleWindow(self, newId, REQUEST=None):
         "Add a ActionRule Window to this device"
