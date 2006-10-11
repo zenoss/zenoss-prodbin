@@ -22,6 +22,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils import Time
 
 def lastDayPreviousMonth(seconds):
     parts = list(time.localtime(seconds))
@@ -144,11 +145,11 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartDate(self):
         "Return a date in the format use by the calendar javascript"
-        return time.strftime('%m/%d/%Y', time.localtime(self.start))
+        return Time.USDate(self.start)
 
     def niceStartDateTime(self):
         "Return start time as a string with nice sort qualities"
-        return time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.start))
+        return Time.LocalDateTime(self.start)
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
