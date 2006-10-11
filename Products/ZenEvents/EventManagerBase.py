@@ -39,6 +39,7 @@ from EventDetail import EventDetail
 from Exceptions import *
 
 from Products.ZenModel.ZenModelItem import ZenModelItem
+from Products.ZenUtils import Time
 
 from ZenEventClasses import Unknown
 
@@ -835,9 +836,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         """
         if isinstance(value, DateTime.DateTime): 
             value = value.timeTime() 
-        # get seconds as floating point
-        secs = value % 60
-        return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.localtime(value)) % secs
+        return Time.LocalDateTime(value)
         
 
 
