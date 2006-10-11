@@ -106,13 +106,15 @@ class RRDView(object):
         """
         return self.meta_type
 
+    def _nagiosWarning(self):
+        import warnings
+        warnings.warn('nagios templates are deprecated', DeprecationWarning)
 
     def getNagiosTemplateName(self):
         """Return the nagios temlate name of this component. 
         By default meta_type. Override to create custom type selection.
         """
-        import warnings
-        warnings.warn('getNagiosTemplateName is deprecated', DeprecationWarning)
+        self._nagiosWarning()
         return self.meta_type
 
 
@@ -144,6 +146,7 @@ class RRDView(object):
 
 
     def getNagiosTemplate(self, name=None):
+        self._nagiosWarning()
         if not name: name =  self.getRRDTemplateName()
         templ = self._lookupTemplate(name, 'nagiosTemplates')
         if not templ:
@@ -232,8 +235,9 @@ class RRDView(object):
                      dp.rrdtype,
                      dp.createCmd,
                      threshs.get(dp.name(),[])))
+            key = ds.eventKey or ds.id
             result.append( (ds.usessh, ds.cycletime, ds.component,
-                            ds.eventClass, ds.eventKey, ds.severity,
+                            ds.eventClass, key, ds.severity,
                             ds.getCommand(self), points) )
         return result
     
@@ -292,6 +296,7 @@ class RRDView(object):
     def copyNagiosTemplate(self, REQUEST=None):
         """Make a local copy of our Nagios Template if one doesn't exist.
         """
+        self._nagiosWarning()
         name = self.getNagiosTemplateName() + "_Nagios"
         return self._copyTemplate(self.getNagiosTemplate, name, REQUEST)
 
@@ -316,6 +321,7 @@ class RRDView(object):
     def deleteNagiosTemplate(self, REQUEST=None):
         """Make a local delete of our Nagios Template if one doesn't exist.
         """
+        self._nagiosWarning()
         name = self.getNagiosTemplateName() + "_Nagios"
         return self._deleteTemplate(name, REQUEST)
 
