@@ -166,6 +166,7 @@ class RRDGraph(ZenModelRM):
         """
         for dsname in self.dsnames:
             dp = template.getRRDDataPoint(dsname)
+            if dp is None: continue
             myfile = os.path.join(rrdfile, dp.name()) + ".rrd"
             gopts.append('DEF:%s=%s:ds0:AVERAGE' % (dp.name(), myfile))
         return gopts
