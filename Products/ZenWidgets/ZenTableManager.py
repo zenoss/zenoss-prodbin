@@ -144,6 +144,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
                                         tableState.filterFields)
         if tableState.sortedHeader:
             objects = self.sortObjects(objects, tableState)
+        else:
+            # objects needs to be list not generator.  sortObjects() takes
+            # care of this for the other condition above.
+            objects = list(objects)
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
         if tableState.batchSize > 0:
