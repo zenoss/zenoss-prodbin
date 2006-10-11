@@ -1333,7 +1333,7 @@ True
 <tomanycont id='graphs'>
 <object id='Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['usedBlocks']
+['usedBlocks_usedBlocks']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
@@ -1372,7 +1372,7 @@ True
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
 <property type='text' id='custom' mode='w' >
-CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
+CDEF:percent=usedBlocks_usedBlocks,${here/totalBlocks},/,100,*
 AREA:percent#00cc00:utilization
 </property>
 </object>
