@@ -64,26 +64,29 @@ class DataPoints(Migrate.Step):
                 copyProperty(s, p, prop)
             s.datapoints._setObject(p.id, p)
 
-    def cutoverTemplates(self, obj):
+    def cutoverTemplate(self, t, rrdPath):
         oldbase = os.path.join(os.getenv('ZENHOME'), 'perf')
+        for s in t.datasources()[:]:
+            self.cutoverDataSource(s)
+            oldname = os.path.join(oldbase + rrdPath, s.id)
+            newname = '%s%c%s' % (oldname, SEPARATOR, s.id)
+            oldname += ".rrd"
+            newname += ".rrd"
+            if os.path.exists(oldname):
+                self.renames.append( (oldname, newname) )
+                os.rename(oldname, newname)
+            oldname = s.id
+            newname = '%s%c%s' % (s.id, SEPARATOR, s.id)
+            for part in t.graphs() + t.thresholds():
+                dsnames = part.dsnames[:]
+                if oldname in dsnames:
+                    dsnames.remove(oldname)
+                    dsnames.append(newname)
+                    part.dsnames = dsnames
+                        
+    def cutoverTemplates(self, obj):
         for t in obj.getRRDTemplates():
-            for s in t.datasources()[:]:
-                self.cutoverDataSource(s)
-                oldname = os.path.join(oldbase + obj.rrdPath(), s.id)
-                newname = '%s%c%s' % (oldname, SEPARATOR, s.id)
-                oldname += ".rrd"
-                newname += ".rrd"
-                if os.path.exists(oldname):
-                    self.renames.append( (oldname, newname) )
-                    os.rename(oldname, newname)
-                oldname = s.id
-                newname = '%s%c%s' % (s.id, SEPARATOR, s.id)
-                for part in t.graphs() + t.thresholds():
-                    dsnames = part.dsnames[:]
-                    if oldname in dsnames:
-                        dsnames.remove(oldname)
-                        dsnames.append(newname)
-                        part.dsnames = dsnames
+            self.cutoverTemplate(t, obj.rrdPath())
 
     def cutoverCommands(self, obj):
         sourceTemplate = obj.getNagiosTemplate()
@@ -111,7 +114,8 @@ class DataPoints(Migrate.Step):
             for o in d.getDeviceComponents():
                 self.cutoverTemplates(o)
                 self.cutoverCommands(o)
-            
+        for t in dmd.Devices.rrdTemplates():
+            self.cutoverTemplate(t, 'bogusName')
 
     def revert(self):
         for oldname, newname in self.renames:
