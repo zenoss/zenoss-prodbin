@@ -1,0 +1,53 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    objects  python:here.ZenUsers.getAllUserSettings();
+    tableName string: allrulesreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    ">
+<!-- link to action rule schedule
+ -->
+    <tr><th class="tabletitle" colspan="5">Notification Schedules</th><tr>
+    <tr class="tableheader">
+       <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','User')"/>
+       <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Rule')"/>
+       <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Delay')"/>
+       <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Active?')"/>
+       <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'primarySortKey','Next Active')"/>
+    </tr>
+    <span tal:repeat="user batch" tal:omit-tag="">
+         <span tal:repeat="rule user/getActionRules" tal:omit-tag="">
+                <tr class="tablevalues">
+                   <td><a tal:attributes="href user/getUserSettingsUrl" 
+                          tal:content="user/id"/>
+                   </td>
+                   <td><a tal:attributes="href rule/getPrimaryUrlPath"
+                          tal:content="rule/id"/>
+                   </td>
+                   <td tal:content="rule/delay"/>
+                   <td tal:content="rule/enabled"/>
+                   <td><a tal:attributes="href python:rule.getPrimaryUrlPath() + '/editActionRuleSchedule'" tal:content="rule/nextActiveNice"/></td>
+                </tr>
+                <tr class="tablevalues">
+                   <td/>
+                   <td colspan='4' tal:content="rule/where"/>
+                </tr>
+            </span>
+     </span>
+    <tr>
+        <td colspan="5" class="tableheader" align='center'>
+            <form metal:use-macro="here/miscmacros/macros/navtool"></form>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>
