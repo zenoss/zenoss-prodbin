@@ -149,17 +149,16 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
         device = self._findDevice(addr)
         summary = 'snmp trap %s from %s' % (eventType, device)
         self.log.debug(summary)
-        ev = Event(rcvtime=ts,
-                   ipAddress=addr[0],
-                   severity=3,
-                   device=device,
-                   component='',
-                   agent='zentrap',
-                   eventGroup='trap',
-                   eventClassKey=eventType,
-                   summary=summary,
-                   **result)
-        self.sendEvent(ev)
+        result.setdefault('agent', 'zentrap')
+        result.setdefault('component', '')
+        result.setdefault('device', device)
+        result.setdefault('eventClassKey', eventType)
+        result.setdefault('eventGroup', 'trap')
+        result.setdefault('rcvtime', ts)
+        result.setdefault('severity', 3)
+        result.setdefault('summary', summary)
+        result['ipAddress'] = addr[0]
+        self.sendEvent(result)
 
         diff = time.time() - ts
         self.totalTime += diff
