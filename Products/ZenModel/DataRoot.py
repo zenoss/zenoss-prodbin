@@ -24,6 +24,7 @@ from Globals import HTMLFile, DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.ZenModel.SiteError import SiteError
 from ImageFile import ImageFile
 import DateTime
 
@@ -246,6 +247,35 @@ class DataRoot(ZenModelRM, OrderedFolder):
     security.declareProtected('View', 'getAllUserGroups')
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
+        
+    
+    def reportError(self):
+        ''' send an email to the zenoss error email address
+            then send user to a thankyou page or an email error page.
+        '''
+        mailSent = SiteError.sendErrorEmail(
+                    self.REQUEST.errorType,
+                    self.REQUEST.errorValue,
+                    self.REQUEST.errorTrace,
+                    self.REQUEST.errorUrl,
+                    self.REQUEST.contactName,
+                    self.REQUEST.contactEmail,
+                    self.REQUEST.comments)
+        if not mailSent:
+            toAddress = SiteError.ERRORS_ADDRESS
+            body = SiteError.createReport(
+                                self.REQUEST.errorType,
+                                self.REQUEST.errorValue,
+                                self.REQUEST.errorTrace,
+                                self.REQUEST.errorUrl,
+                                True,
+                                self.REQUEST.contactName,
+                                self.REQUEST.contactEmail,
+                                self.REQUEST.comments)
+            return getattr(self, 'errorEmailFailure')(
+                        toAddress=SiteError.ERRORS_ADDRESS,
+                        body=body)
+        return getattr(self, 'errorEmailThankYou')()
 
 
 InitializeClass(DataRoot)

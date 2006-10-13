@@ -1,0 +1,16 @@
+<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+<h2>Zenoss Error</h2>
+
+<p>There was a problem sending details of the error to Zenoss, Inc.  Please 
+copy and paste the following information into an email and send to 
+<tal:block tal:replace="options/toAddress" />.  Thank you for your feedback.</p>
+
+<hr noshade="noshade" />
+
+<p tal:content="structure options/body">
+</p>
+
+</tal:block>
+</tal:block>

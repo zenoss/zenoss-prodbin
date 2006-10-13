@@ -1,0 +1,11 @@
+<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+<h2>Thank You</h2>
+
+<p>An email containing details of the error has been sent to Zenoss, Inc.</p>
+
+<p>Thank you for your feedback.</p>
+
+</tal:block>
+</tal:block>
