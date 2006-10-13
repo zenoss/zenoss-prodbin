@@ -19,9 +19,58 @@ from OFS.Folder import Folder
 from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import PluggableAuthService
 
-from Products.ZenModel import refreshLoginForm
-
 import Migrate
+
+# XXX
+# This is a hack-workaround for PAS until their login form becomes something
+# users can easily update
+# 
+# We need this here so that when Zenoss' Zope is restarted, any changes to the
+# file are loaded into the CookieAuthHelper instance.
+from AccessControl.Permissions import view
+from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
+
+def refreshLoginForm(context, instanceName='cookieAuthHelper'):
+    '''
+    'context' should be an acl_users PAS instance.
+    '''
+    try:
+        helper = getattr(context, instanceName)
+    except AttributeError:
+        # there expected plugin instance is not here
+        return
+    objId = 'login_form'
+
+    # let's get the data from the file
+    filename = os.path.join(os.path.dirname(__file__), 'skins', 'zenmodel',
+        '%s.pt' % objId)
+    html = open(filename).read()
+    # if there is no difference between the file and the object, our job is
+    # done; if there is a difference, update the object with the text from the
+    # file system.
+    if objId in helper.objectIds():
+        zpt = helper._getOb(objId)
+        if zpt and zpt.read() == html:
+            return
+        else:
+            zpt.write(html)
+            return
+
+    # create a new form
+    login_form = ZopePageTemplate(id=objId, text=html)
+    login_form.title = 'Zenoss Login Form'
+    login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
+    helper._setObject(objId, login_form, set_owner=0)
+
+def updateACLUsersLoginForms():
+    # XXX need to figure out how to run this so that it doesn't hang zenmigrate
+    # but still runs when ZenModel is loaded/imported.
+    from Products.ZenUtils.ZCmdBase import ZCmdBase
+    dmd = ZCmdBase(noopts=True).dmd
+    app = dmd.getPhysicalRoot()
+    zport = app.zport
+    for context in [app.acl_users, zport.acl_users]:
+        refreshLoginForm(context)
 
 class MigrateToPAS(Migrate.Step):
     version = 23.0
