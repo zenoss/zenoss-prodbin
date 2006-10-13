@@ -271,15 +271,22 @@ class ActionRule(ZenModelRM):
         result.append('initializeFilters(current)\n')
         return ''.join(result)
 
+    def nextActiveWindow(self):
+        next = None
+        w = None
+        for ar in self.windows():
+            if next is None or ar.next() < next:
+                next = ar.next()
+                w = ar
+        return w
+
     def nextActive(self):
         import time
         if self.enabled:
             return time.time()
-        next = None
-        for ar in self.windows():
-            if next is None or ar.next() < next:
-                next = ar.next()
-        return next
+        w = self.nextActiveWindow()
+        if w:
+            return w.next()
 
     def nextActiveNice(self):
         if self.enabled:
@@ -288,7 +295,23 @@ class ActionRule(ZenModelRM):
         if t is None:
             return "Never"
         return Time.LocalDateTime(t)
+
+    def nextDurationNice(self):
+        w = self.nextActiveWindow()
+        if w is None:
+            return "Forever"
+        if self.enabled:
+            return Time.Duration((w.next() + w.duration) - time.time())
+        return Time.Duration(w.duration)
+
+
+    def repeatNice(self):
+        w = self.nextActiveWindow()
+        if w is None:
+            return "Never"
+        return w.repeat
         
+
     security.declareProtected('Change Settings', 'manage_addActionRuleWindow')
     def manage_addActionRuleWindow(self, newId, REQUEST=None):
         "Add a ActionRule Window to this device"

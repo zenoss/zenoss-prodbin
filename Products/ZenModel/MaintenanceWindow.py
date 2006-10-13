@@ -134,14 +134,7 @@ class MaintenanceWindow(ZenModelRM):
     def niceDuration(self):
         """Return a human readable version of the duration in
         days, hours, minutes"""
-        duration = self.duration
-        if duration < 60:
-            return ":%02d" % duration
-        if duration < 24*60:
-            return "%02d:%02d" % (duration / 60, duration % 60)
-        return "%d days %02d:%02d" % (duration // (60 * 24),
-                                      (duration // 60) % 24,
-                                      duration % 60)
+        return Time.Duration(self.duration)
 
     def niceStartDate(self):
         "Return a date in the format use by the calendar javascript"

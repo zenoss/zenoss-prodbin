@@ -101,6 +101,11 @@ class UserSettingsManager(ZenModelRM):
         if user: return user.__of__(self.acl_users)
 
 
+    def getAllActionRules(self):
+        for u in self.getAllUserSettings():
+            for ar in u.getActionRules():
+                yield ar
+
     def getUserSettings(self, userid=None):
         """Return a user folder.  If userid is not passed return current user.
         """

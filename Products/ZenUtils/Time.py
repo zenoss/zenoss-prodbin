@@ -34,3 +34,17 @@ def YYYYMMDDHHMMS(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y%m%d%H%M%S", time.localtime(value))
 
+def Duration(seconds):
+    result = ':%02d' % (seconds % 60)
+    seconds /= 60
+    if seconds:
+        result = '%02d%s' % (seconds % 60, result)
+    seconds /= 60
+    if seconds:
+        result = '%02d:%s' % (seconds % 24, result)
+    seconds /= 24
+    if seconds:
+        result = '%d days %s' % (seconds, result)
+    return result
+
+        
