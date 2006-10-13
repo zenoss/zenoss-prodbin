@@ -14,6 +14,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
+from Products.PluggableAuthService import interfaces
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
@@ -193,8 +194,23 @@ class UserSettingsManager(ZenModelRM):
     def manage_deleteUsers(self, userids=(), REQUEST=None):
         """Delete a list of zenoss users from the system.
         """
-        self.acl_users._doDelUsers(userids)
+        # get a list of plugins that can add manage users and then call the
+        # appropriate methods
+        # 
+        # XXX this needs to be reviewed when new plugins are added, such as the
+        # LDAP plugin
+        ifaces = [interfaces.plugins.IUserAdderPlugin]
+        getPlugins = self.acl_users.plugins.listPlugins
+        plugins = [ getPlugins(x)[0][1] for x in ifaces ]
         for userid in userids:
+            try:
+                for plugin in plugins:
+                    plugin.removeUser(userid)
+            except KeyError:
+                # this means that there's no user in the acl_users, but that
+                # Zenoss still sees the user; we want to pass on this exception
+                # so that Zenoss can clean up
+                pass
             if getattr(aq_base(self), userid, False):
                 us = self._getOb(userid)
                 for ar in us.adminRoles():
