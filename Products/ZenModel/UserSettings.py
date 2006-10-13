@@ -344,6 +344,7 @@ class UserSettings(ZenModelRM):
                                 REQUEST=None, **kw):
         """Update user settings.
         """
+        # get the user object; return if no user
         user = self.getUser(self.id)
         if not user:
             if REQUEST:
@@ -351,24 +352,62 @@ class UserSettings(ZenModelRM):
                 return self.callZenScreen(REQUEST)
             else:
                 return
-        if password and password != sndpassword:
-            if REQUEST:
-                REQUEST['message'] = "Passwords didn't match no change: "
-                return self.callZenScreen(REQUEST)
+
+        # get the necessary plugins
+        userPlugins = [ self.acl_users.plugins.listPlugins(x)[0][1]
+            for x in [interfaces.plugins.IUserAdderPlugin] ]
+
+        rolePlugins = [ self.acl_users.plugins.listPlugins(x)[0][1]
+            for x in [interfaces.plugins.IRolesPlugin] ]
+
+        # update password info
+        if password:
+            if password != sndpassword:
+                if REQUEST:
+                    REQUEST['message'] = "Passwords didn't match! No change. "
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("Passwords don't match")
             else:
-                raise ValueError("Passwords don't match")
-        if not password: password = user._getPassword()
-        if not roles: roles = user.roles
-        if not domains: domains = user.domains
-        self.acl_users._doChangeUser(self.id,password,roles,domains)
-        if REQUEST: kw = REQUEST.form
+                for plugin in userPlugins:
+                    plugin.updateUserPassword(self.id, password)
+
+        # update role info
+        origRoles = filter(rolefilter, user.getRoles())
+        # if there's a change, then we need to update
+        if roles != origRoles:
+            # can we use the built-in set?
+            try:
+                set()
+            except NameError:
+                from sets import Set as set
+            # get roles to remove and then remove them
+            removeRoles = list(set(origRoles).difference(set(roles)))
+            for plugin in rolePlugins:
+                for role in removeRoles:
+                    plugin.removeRoleFromPrincipal(role, self.id)
+            # get roles to add and then add them
+            addRoles = list(set(roles).difference(set(origRoles)))
+            for plugin in rolePlugins:
+                for role in addRoles:
+                    plugin.assignRoleToPrincipal(role, self.id)
+
+        # we're not managing domains right now
+        if domains:
+            msg = 'Zenoss does not currently manage domains for users.'
+            raise NotImplementedError(msg)
+
+        # update Zenoss user folder settings
+        if REQUEST:
+            kw = REQUEST.form
         self.updatePropsFromDict(kw)
+
+        # finish up
         if REQUEST:
             REQUEST['message'] = "User saved at time:"
             return self.callZenScreen(REQUEST)
         else:
             return user
-
 
     security.declareProtected('Change Settings', 'manage_addActionRule')
     def manage_addActionRule(self, id, REQUEST=None):
