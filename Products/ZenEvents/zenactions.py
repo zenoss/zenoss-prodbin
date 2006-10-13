@@ -111,6 +111,13 @@ class ZenActions(ZCmdBase):
         return '%s/zport/dmd/ZenEventManager/viewEventFields?evid=%s' % (
             self.options.zopeurl, evid)
 
+    def getAckUrl(self, evid):
+        return '%s/zport/dmd/Events/manage_ackEvents?evid=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
+
+
+    def getDeleteUrl(self, evid):
+        return '%s/zport/dmd/Events/manage_deleteEvents?evid=%s&zenScreenName=viewHistoryEvents' % (self.options.zopeurl, evid)
+
 
     def processRules(self, db, zem):
         """Run through all rules matching them against events.
@@ -139,6 +146,8 @@ class ZenActions(ZCmdBase):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
             data['eventUrl'] = self.getUrl(evid)
+            data['ackUrl'] = self.getAckUrl(evid)
+            data['deleteUrl'] = self.getDeleteUrl(evid)
             actfunc = getattr(self, "send"+ar.action.title())
             actfunc(ar, data, False)
             addcmd = self.addstate % (evid, userid, ar.getId())

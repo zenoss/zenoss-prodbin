@@ -886,6 +886,9 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
+        "Delete the given event ids"
+        if type(evids) == type(''):
+            evids = [evids]
         if evids: 
             delete = "delete from status where evid in ("
             delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
@@ -921,6 +924,9 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
+        "Ack the given event ids"
+        if type(evids) == type(s):
+            evids = [evids]
         return self.manage_setEventStates(1 , evids, REQUEST)
 
 
