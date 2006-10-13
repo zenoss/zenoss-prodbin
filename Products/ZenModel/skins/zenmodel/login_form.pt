@@ -1,0 +1,102 @@
+<html>
+  <head>
+    <title>Zenoss Login</title>
+    <style type="text/css">
+    <!-- 
+    body {
+        background-color: #B1BCD2;
+        color: black;
+        font-family:  Verdana, Arial, Helvetica, sans-serif;
+        font-size:  9pt;
+    }
+
+    #loginback {
+        background-color: #E0E0E0;
+        border: solid #000 2px; 
+    }
+    input,textarea {
+        font-size: 9pt;
+    }
+    th.tabletitle {
+        color: white;
+        background-color: #5a6f8f;
+        background-image: url(subtitle_bkgrd.gif);
+        background-repeat: repeat-X;
+        text-align: left;
+        font-weight: normal;
+    }
+    .tableheader { 
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        color: #000000;
+        background-color: #CCCCCC;
+        font-weight: normal; 
+        text-align: left;
+        /*
+        font-size:.9em;
+        */
+        font-size:8pt;
+    }
+    .tablevalues {  
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        color: #000040; 
+        font-weight: normal; 
+        background-color: #EEE;
+    }
+    td.tablevalues {  
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        color: #000040; 
+        font-weight: normal; 
+        background-color: #EEE;
+    }
+    /-->
+    </style>
+  </head>
+
+  <body>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td align="center">
+    &nbsp;<br/><br/>
+    &nbsp;<br/><br/>
+    &nbsp;<br/><br/>
+    &nbsp;<br/><br/>
+
+    <table id="loginback" cellpadding="0" cellspacing="0" border="0">
+    <tr><td>
+    <form method="post" action=""
+          tal:attributes="action string:${here/absolute_url}/login">
+
+      <input type="hidden" name="came_from" value=""
+             tal:attributes="value request/came_from | string:"/>
+      <table cellpadding="2">
+        <thead>
+            <tr>
+                <th class="tabletitle" colspan="2">Zenoss Login</th>
+            </tr>
+        </thead>
+        <tr>
+          <td class="tableheader"><b>Username:</b> </td>
+          <td class="tablevalues"><input type="text" name="__ac_name" size="30" /></td>
+        </tr>
+        <tr>
+          <td class="tableheader"><b>Password:</b></td>
+          <td class="tablevalues"><input type="password" name="__ac_password" size="30" /></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <br />
+            <input type="submit" value=" Log In " />
+          </td>
+        </tr>
+      </table>
+
+    </form>
+    </td></tr>
+    </table>
+
+    </td></tr>
+    </table>
+
+  </body>
+
+</html>
+

@@ -1,0 +1,222 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.PAS_PR_ContentFactory"
+      provides="Products.GenericSetup.interfaces.IContentFactory"
+      for=".interfaces.authservice.IPluggableAuthService"
+      name="Plugin Registry"
+      />
+
+  <adapter
+      factory="Products.GenericSetup.content.FolderishExporterImporter"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".interfaces.authservice.IPluggableAuthService"
+      />
+
+  <adapter
+      factory="Products.GenericSetup.content.FolderishExporterImporter"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".interfaces.authservice.IPluggableAuthService"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.ChallengeProtocolChooser.IChallengeProtocolChooserPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.ChallengeProtocolChooser.IChallengeProtocolChooserPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.CookieAuthHelperExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.CookieAuthHelper.ICookieAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.CookieAuthHelperExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.CookieAuthHelper.ICookieAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DelegatePathExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.DelegatingMultiPlugin.IDelegatingMultiPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DelegatePathExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.DelegatingMultiPlugin.IDelegatingMultiPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DomainAuthHelperExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.DomainAuthHelper.IDomainAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DynamicGroupsPluginExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.DynamicGroupsPlugin.IDynamicGroupsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DynamicGroupsPluginExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.DynamicGroupsPlugin.IDynamicGroupsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.HTTPBasicAuthHelper.IHTTPBasicAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.HTTPBasicAuthHelper.IHTTPBasicAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.InlineAuthHelper.IInlineAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.InlineAuthHelper.IInlineAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.LocalRolePlugin.ILocalRolePlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.LocalRolePlugin.ILocalRolePlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.RecursiveGroupsPlugin.IRecursiveGroupsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.RecursiveGroupsPlugin.IRecursiveGroupsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.RequestTypeSniffer.IRequestTypeSnifferPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.RequestTypeSniffer.IRequestTypeSnifferPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DelegatePathExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.SearchPrincipalsPlugin.ISearchPrincipalsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.DelegatePathExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.SearchPrincipalsPlugin.ISearchPrincipalsPlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.SessionAuthHelper.ISessionAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.TitleOnlyExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.SessionAuthHelper.ISessionAuthHelper"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBUserManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.ZODBUserManager.IZODBUserManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBUserManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.ZODBUserManager.IZODBUserManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBGroupManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.ZODBGroupManager.IZODBGroupManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBGroupManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.ZODBGroupManager.IZODBGroupManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBRoleManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.ZODBRoleManager.IZODBRoleManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ZODBRoleManagerExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.ZODBRoleManager.IZODBRoleManager"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ScriptablePluginExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".plugins.ScriptablePlugin.IScriptablePlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.ScriptablePluginExportImport"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".plugins.ScriptablePlugin.IScriptablePlugin"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.PythonScriptFileAdapter"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for="Products.GenericSetup.PythonScripts.interfaces.IPythonScript"
+      />
+
+  <adapter
+      factory=".plugins.exportimport.PythonScriptFileAdapter"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for="Products.GenericSetup.PythonScripts.interfaces.IPythonScript"
+      />
+
+</configure>

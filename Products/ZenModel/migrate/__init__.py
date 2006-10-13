@@ -36,3 +36,4 @@ import datapoints
 import about_zenoss
 import ar_schedule
 import advanced_query
+import pas_conversion

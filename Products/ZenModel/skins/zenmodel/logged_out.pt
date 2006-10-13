@@ -5,7 +5,14 @@
     <th class="tabletitle">Logout</th>
 </tr>
 <tr>
-    <td class="tableheader">You are logged in using http basic authentication.  To logout you must close browser</td>
+<td tal:define="result here/isLoggedOut;">
+<p tal:condition="python: result == 'True'">You have been logged out.</p>
+<div tal:condition="python: result == 'False'">
+<p>You are logged in using HTTP Basic
+Authentication and need to quit your browser in order to log out.</p>
+<p>You are currently logged in as: <pre tal:content="here/ZenUsers/getUser" /></p>
+</div>
+</td>
 </tr>
 </table>
 </tal:block>

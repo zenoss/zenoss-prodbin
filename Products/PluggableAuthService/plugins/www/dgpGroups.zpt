@@ -1,0 +1,217 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+<h2 tal:replace="structure here/manage_tabs">Form Title</h2>
+
+<tal:block tal:define="adding request/adding | nothing;
+                       updating python:( not adding
+                                     and request.get('group_id')
+                                       );
+                       browsing python:( not adding
+                                     and not updating
+                                       );
+                      ">
+
+<div tal:condition="browsing">
+<div>
+
+<h3> Current Dynamic Groups <a href="?adding=1">(Add a group)</a></h3>
+
+<table width="100%" cellpadding="2" cellspacing="0">
+
+ <tr>
+  <td width="16" />
+  <th align="left" width="20%"> Group </th>
+  <th align="left" width="5%"> Active? </th>
+  <th align="left" width="35%"> Description </th>
+  <th align="left" width="40%"> Predicate </th>
+ </tr>
+
+ <form action="." method="POST">
+
+ <tr class="row-hilite"
+     tal:repeat="info here/listGroupInfo" 
+     tal:attributes="class
+            python:repeat['info'].odd() and 'row-normal' or default"
+     >
+  <td>
+    <input type="checkbox" name="group_ids:list" value="GROUP_ID"
+           tal:attributes="value info/id" />
+  </td>
+  <td class="form-text" width="20%">
+    <a href="foo"
+       tal:attributes="href
+            string:${here/absolute_url}/${info/id}/manage_workspace"
+       tal:content="info/id"
+    >GROUP_ID</a>
+    <span tal:condition="info/title"
+          tal:content="string:(${info/title})">GROUP_TITLE</span>
+  </td>
+  <td class="form-text" width="5%">
+    <span tal:condition="info/active">Yes</span>
+    <span tal:condition="not: info/active">No</span>
+  </td>
+  <td class="form-text" width="35%"
+       tal:content="info/description"
+  >GROUP_DESCRIPTION
+  </td>
+  <td class="form-text" width="40%"
+       tal:content="info/predicate"
+  >GROUP_PREDICATE
+  </td>
+ </tr>
+
+ <tr>
+  <td />
+  <td colspan="3">
+    <input type="hidden" name="group_ids:list:default" value="" />
+    <input type="submit" name="manage_removeGroups:method"
+           value=" Remove Groups " />
+  </td>
+ </tr>
+
+ </form>
+
+</table>
+
+</div>
+</div>
+
+<div tal:condition="adding">
+<div tal:define="group_id request/group_id | python:'';
+                ">
+
+<h3> Add a Dynamic Group </h3>
+
+<form action="manage_addGroup" method="POST">
+<table
+>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Group ID:</div>
+  </th>
+  <td>
+   <input type="text" name="group_id" size="20" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Predicate</div>
+  </th>
+  <td>
+   <input type="text" name="predicate" size="40" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Title</div>
+  </th>
+  <td>
+   <input type="text" name="title" size="40" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Description</div>
+  </th>
+  <td>
+   <textarea name="description" rows="5" cols="65"></textarea>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Add Dynamic Group " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+
+<div tal:condition="updating">
+<div tal:define="group_id request/group_id;
+                 info python:here.getGroupInfo(group_id);
+                 predicate info/predicate;
+                 title info/title;
+                 description info/description;
+                 active info/active;
+                "
+>
+<h3> Update Group: <span tal:replace="group_id">GROUP_ID</span> </h3>
+
+<form action="manage_updateGroup" method="POST">
+<input type="hidden" name="group_id" value="GROUP_ID"
+       tal:attributes="value group_id" />
+<table>
+
+ <tr valign="top">
+  <th align="right" width="20%">
+   <div class="form-label">Group ID:</div>
+  </th>
+  <td tal:content="group_id">GROUP_ID</td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Predicate</div>
+  </th>
+  <td>
+   <input type="text" name="predicate" size="40"
+          tal:attributes="value predicate" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Title</div>
+  </th>
+  <td>
+   <input type="text" name="title" size="40" value="TITLE"
+          tal:attributes="value title" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Description</div>
+  </th>
+  <td>
+   <textarea name="description" rows="5" cols="65"
+             tal:content="description">DESCRIPTION</textarea>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Active?</div>
+  </th>
+  <td>
+   <input type="hidden" name="active:int:default" value="0" />
+   <input type="checkbox" name="active:int" value="1"
+          tal:attributes="checked active" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Update Group " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+</tal:block>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>

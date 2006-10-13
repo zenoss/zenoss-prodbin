@@ -1,0 +1,45 @@
+ZCUserFolder TODOs
+==================
+
+  - (x) Migrate plugins to a separately-manageable object.
+        (TS, 2003/10/17)
+
+  - (x) Test 'validate' using stubbed-in plugins.
+
+  - (x) Implement TALES evaluation for plugin expressions.
+
+  - (x) Define SimpleUserFolder-workalike authentication, challenge,
+        and update plugins.  Use BTrees for credential storage.
+
+  - (x) Make the PluggableAuthService register itself as '__allow_groups__'
+        for its folder, and test simple auth.
+
+  - ( ) Define a BTree-based decorator and update plugins, and test.
+
+  - ( ) Lift the group-definition plugins from Chris' Groups product
+        ("static" using BTree-based relationships, "dynamic" using
+         rules?).  Test with existing plugin set.
+
+  - ( ) Define a simple validation plugin for the default
+        login-name and password propertyset.
+
+  - ( ) Define and /etc/passwd-based authentication plugin.  Test
+        mix-and-match with BTree decorator.
+
+  - (x) Create export / import facilities (GenericSetup)
+
+  - (x) Test layering of authentication plugins (try BTree first,
+        then fall back to /etc/passwd).
+
+  - ( ) Test layering of decorator plugins.
+
+  - ( ) Test layering of groups plugins (get groups from /etc/passwd,
+        then expand using relationship).
+
+  - (x) Test Shibboleth-like auth plugin (need some way to fake the
+        headers into the request).
+
+  - (x) Test Shibboleth-like group and decorator plugins.
+
+  - ( ) Explore issues for enumeration / search plugins.
+

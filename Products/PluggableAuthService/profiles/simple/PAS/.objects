@@ -1,0 +1,7 @@
+plugins,Products.PluginRegistry.PluginRegistry.PluginRegistry
+users,Products.PluggableAuthService.plugins.ZODBUserManager.ZODBUserManager
+roles,Products.PluggableAuthService.plugins.ZODBRoleManager.ZODBRoleManager
+groups,Products.PluggableAuthService.plugins.ZODBGroupManager.ZODBGroupManager
+dynamic_groups,Products.PluggableAuthService.plugins.DynamicGroupsPlugin.DynamicGroupsPlugin
+basic_auth,Products.PluggableAuthService.plugins.HTTPBasicAuthHelper.HTTPBasicAuthHelper
+recursive_groups,Products.PluggableAuthService.plugins.RecursiveGroupsPlugin.RecursiveGroupsPlugin

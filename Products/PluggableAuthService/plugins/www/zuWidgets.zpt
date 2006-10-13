@@ -1,0 +1,42 @@
+<!-- This template exists only to provide macros to the other templates -->
+
+<div tal:condition="nothing">
+
+<table>
+
+ <tbody metal:define-macro="authentication_widgets">
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Login name:</div>
+  </th>
+  <td>
+   <input type="text" name="login_name" size="40"
+          tal:attributes="value login_name"
+   />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Password:</div>
+  </th>
+  <td>
+   <input type="password" name="password" size="20" value="password" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Confirm password:</div>
+  </th>
+  <td>
+   <input type="password" name="confirm" size="20" value="confirm" />
+  </td>
+ </tr>
+
+ </tbody>
+
+</table>
+
+</div>

@@ -1,0 +1,18 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.PluginRegistryFileExportImportAdapter"
+      provides="Products.GenericSetup.interfaces.IFilesystemExporter"
+      for=".interfaces.IPluginRegistry"
+      />
+
+  <adapter
+      factory=".exportimport.PluginRegistryFileExportImportAdapter"
+      provides="Products.GenericSetup.interfaces.IFilesystemImporter"
+      for=".interfaces.IPluginRegistry"
+      />
+
+</configure>
+

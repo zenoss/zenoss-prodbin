@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<zodb-groups xmlns:tal="http://xml.zope.org/namespaces/tal"
+             title="PLUGIN TITLE"
+             tal:define="info options/info;
+                        "
+             tal:attributes="title info/title;
+                            "
+>
+ <group group_id="GROUP_ID" title="TITLE" description="DESCRIPTION"
+       tal:repeat="group info/groups"
+       tal:attributes="group_id group/group_id;
+                       title group/title;
+                       description group/description;
+                      ">
+  <principal principal_id="PRINCIPAL_ID"
+             tal:repeat="principal_id group/principals"
+             tal:attributes="principal_id principal_id" />
+ </group>
+</zodb-groups>

@@ -1,0 +1,268 @@
+Challenge Protocol Chooser
+--------------------------
+
+The Challenge Protocol Chooser is a plugin that decides what
+authentication protocol to use for a given request type.
+
+Let's start by setting up a PAS instance inside our existing test
+folder.
+
+  >>> folder = self.folder
+
+  >>> 'acl_users' in folder.objectIds()
+  True
+
+  >>> folder.manage_delObjects(ids=['acl_users'])
+
+  >>> 'acl_users' in folder.objectIds()
+  False
+
+  >>> dispatcher = folder.manage_addProduct['PluggableAuthService']
+  >>> dispatcher.addPluggableAuthService()
+
+  >>> 'acl_users' in folder.objectIds()
+  True
+
+  >>> folder.acl_users.meta_type
+  'Pluggable Auth Service'
+
+Now, we'll setup this PAS instance with what most people would get by
+default, users and roles stored in ZODB with HTTP Basic auth.
+
+  >>> pas = folder.acl_users
+
+  >>> dispatcher = pas.manage_addProduct['PluggableAuthService']
+
+  >>> dispatcher.addZODBUserManager('users')
+  >>> dispatcher.addZODBRoleManager('roles')
+  >>> dispatcher.addHTTPBasicAuthHelper('http_auth')
+
+  >>> plugins = pas.plugins
+
+  >>> from Products.PluggableAuthService.interfaces.plugins import \
+  ...   IAuthenticationPlugin, IUserEnumerationPlugin, IRolesPlugin, \
+  ...	IRoleEnumerationPlugin, IRoleAssignerPlugin, \
+  ...   IChallengePlugin, IExtractionPlugin, IUserAdderPlugin
+
+  >>> plugins.activatePlugin(IUserAdderPlugin, 'users')
+  >>> plugins.activatePlugin(IAuthenticationPlugin, 'users')
+  >>> plugins.activatePlugin(IUserEnumerationPlugin, 'users')
+  >>> plugins.activatePlugin(IRolesPlugin, 'roles')
+  >>> plugins.activatePlugin(IRoleEnumerationPlugin, 'roles')
+  >>> plugins.activatePlugin(IRoleAssignerPlugin, 'roles')
+  >>> plugins.activatePlugin(IExtractionPlugin, 'http_auth')
+  >>> plugins.activatePlugin(IChallengePlugin, 'http_auth')
+
+Create a user for testing:
+
+  >>> pas.getUserById('test_user_') is None
+  True
+
+  >>> username, password  = 'test_user_', 'test_user_pw'
+  >>> pas._doAddUser(username, password, ['Manager'], [])
+
+  >>> pas.getUserById('test_user_') is None
+  False
+
+We are now going to try some different kinds of requests and make sure
+all of them work. They all use HTTP Basic Auth, which is the default
+in this configuration we just set up. For the sake of testing, we are
+going to create a simple script that requires the 'Manager' role to be
+called.
+
+  >>> folder_name = folder.getId()
+  >>> dispatcher = folder.manage_addProduct['PythonScripts']
+  >>> _ = dispatcher.manage_addPythonScript('test_script')
+
+  >>> script = folder._getOb('test_script')
+  >>> script.write('return "Access Granted"')
+  >>> script.manage_permission(permission_to_manage='View',
+  ...                          roles=['Manager'], acquire=0)
+
+Access the script through a simple ``GET`` request, simulating browser
+access. Anonymous user should be challenged with a 401 response
+status.
+
+  >>> print http(r"""
+  ... GET /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...
+
+With the right credentials though the request should succeed:
+
+  >>> print http(r"""
+  ... GET /%s/test_script HTTP/1.1
+  ... Authorization: Basic %s:%s
+  ... """ % (folder_name, username, password), handle_errors=True)
+  HTTP/1.1 200 OK
+  ...
+  Access Granted
+
+Now a PROPFIND request, simulating a WebDAV client. Anonymous user
+should be challenged with a 401 response status:
+
+  >>> print http(r"""
+  ... PROPFIND /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...
+
+And with the right credentials the request should succeed:
+
+  >>> print http(r"""
+  ... PROPFIND /%s/test_script HTTP/1.1
+  ... Authorization: Basic %s:%s
+  ... """ % (folder_name, username, password), handle_errors=True)
+  HTTP/1.1 207 Multi-Status...
+
+  >>> print http(r"""
+  ... GET /%s/test_script/manage_DAVget HTTP/1.1
+  ... Authorization: Basic %s:%s
+  ... """ % (folder_name, username, password), handle_errors=True)
+  HTTP/1.1 200 OK...
+
+And a XML-RPC Request. Again, Anonymous user should be challenged with
+a 401 response status.
+
+  >>> print http(r"""
+  ... POST /%s HTTP/1.1
+  ... Content-Type: text/xml; charset="utf-8"
+  ... <?xml version="1.0"?>
+  ... <methodCall>
+  ... <methodName>test_script</methodName>
+  ... </methodCall>
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...
+
+And with valid credentials the reqeuest should succeed:
+
+  >>> print http(r"""
+  ... POST /%s HTTP/1.1
+  ... Content-Type: text/xml; charset="utf-8"
+  ... Authorization: Basic %s:%s
+  ... <?xml version="1.0"?>
+  ... <methodCall>
+  ... <methodName>test_script</methodName>
+  ... </methodCall>
+  ... """ % (folder_name, username, password), handle_errors=True)
+  HTTP/1.1 200 OK
+  Content-Length: 140
+  Content-Type: text/xml
+  <BLANKLINE>
+  <?xml version='1.0'?>
+  <methodResponse>
+  <params>
+  <param>
+  <value><string>Access Granted</string></value>
+  </param>
+  </params>
+  </methodResponse>
+
+Adding a Cookie Auth Helper now to test the correct behaviour of the
+Challenge Protocol Helper.
+
+  >>> dispatcher = pas.manage_addProduct['PluggableAuthService']
+  >>> dispatcher.addCookieAuthHelper('cookie_auth',
+  ...                                cookie_name='__ac')
+
+  >>> plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
+  >>> plugins.activatePlugin(IChallengePlugin, 'cookie_auth')
+
+Re-activate HTTP Auth Helper so that it appears **after** Cookie Auth
+Helper:
+
+  >>> plugins.deactivatePlugin(IExtractionPlugin, 'http_auth')
+  >>> plugins.activatePlugin(IExtractionPlugin, 'http_auth')
+  >>> plugins.deactivatePlugin(IChallengePlugin, 'http_auth')
+  >>> plugins.activatePlugin(IChallengePlugin, 'http_auth')
+
+Now, invalid credentials should result in a 302 response status for a
+normal (eg: browser) request:
+
+  >>> print http(r"""
+  ... GET /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 302 Moved Temporarily...
+
+And the same for a WebDAV request:
+
+  >>> print http(r"""
+  ... PROPFIND /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 302 Moved Temporarily...
+
+  >>> print http(r"""
+  ... GET /%s/test_script/manage_DAVget HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 302 Moved Temporarily...
+
+And for a XML-RPC request:
+
+  >>> print http(r"""
+  ... POST /%s HTTP/1.1
+  ... Content-Type: text/xml; charset="utf-8"
+  ... <?xml version="1.0"?>
+  ... <methodCall>
+  ... <methodName>test_script</methodName>
+  ... </methodCall>
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 302 Moved Temporarily...
+
+However, not all WebDAV and XML-RPC clients understand the
+redirect. Even worse, they will not be able to display the login form
+that is the target of this redirect.
+
+For this reason we should disable the Cookie Auth Helper for
+non-browser requests. In fact, we might only want plugins that
+understand the 'http' authorization protocol to issue challenges for
+WebDAV and XML-RPC.
+
+To do this, we use the Challenge Protocol Chooser plugin together with
+the Request Type Sniffer plugin.
+
+  >>> from Products.PluggableAuthService.interfaces.plugins import \
+  ...   IRequestTypeSniffer, IChallengeProtocolChooser
+
+  >>> dispatcher = pas.manage_addProduct['PluggableAuthService']
+
+  >>> dispatcher.addRequestTypeSnifferPlugin('sniffer')
+  >>> plugins.activatePlugin(IRequestTypeSniffer, 'sniffer')
+
+  >>> mapping = {'WebDAV': ['http'],
+  ...            'XML-RPC': ['http'],
+  ...		 'Browser': []}
+
+  >>> dispatcher.addChallengeProtocolChooserPlugin('chooser',
+  ...                                              mapping=mapping)
+  >>> plugins.activatePlugin(IChallengeProtocolChooser, 'chooser')
+
+Now, invalid credentials should result in a 302 response status for a
+normal (eg: browser) request:
+
+  >>> print http(r"""
+  ... GET /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 302 Moved Temporarily...
+
+A WebDAV request should result in a 401 response status:
+
+  >>> print http(r"""
+  ... PROPFIND /%s/test_script HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...
+
+  >>> print http(r"""
+  ... GET /%s/test_script/manage_DAVget HTTP/1.1
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...
+
+And a XML-RPC request should also result in a 401 response status:
+
+  >>> print http(r"""
+  ... POST /%s HTTP/1.1
+  ... Content-Type: text/xml; charset="utf-8"
+  ... <?xml version="1.0"?>
+  ... <methodCall>
+  ... <methodName>test_script</methodName>
+  ... </methodCall>
+  ... """ % (folder_name), handle_errors=True)
+  HTTP/1.1 401 Unauthorized...

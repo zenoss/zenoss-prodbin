@@ -1,0 +1,68 @@
+<h1 tal:replace="structure here/manage_page_header"> PAGE HEADER </h1>
+<h2 tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<div tal:define="plugin_type request/plugin_type | nothing">
+
+<div tal:condition="not: plugin_type">
+
+<h3> Plugin Types </h3>
+
+<dl>
+
+ <div tal:repeat="info here/listPluginTypeInfo"
+      tal:omit-tag="python: 1"
+ >
+ <dt class="form-label">
+   <a href="?plugin_type=PTYPE"
+      tal:attributes="href string:?plugin_type=${info/id}"
+      tal:content="string: ${info/title/title} Plugins"
+   >PLUGIN TYPE DESCRIPTION</a>
+ </dt>
+
+ <dd class="form-help" tal:content="info/description" />
+
+ </div>
+
+</dl>
+
+</div>
+
+<div tal:condition="plugin_type">
+<tal:info tal:define="plugin_info python:here.getPluginInfo( plugin_type )">
+
+<h3> <span tal:replace="plugin_info/title/capitalize">PluginType</span> 
+    Plugins </h3>
+
+
+<form action="."
+      tal:define="plugins python:here.getAllPlugins( plugin_type );
+                  left_name string:plugin_ids;
+                  left_list python: [(x, x) for x in plugins['available']];
+                  right_name string:plugin_ids;
+                  right_list python: [(x, x) for x in plugins['active']];
+                  left_to_right string:manage_activatePlugins;
+                  right_to_left string:manage_deactivatePlugins;
+                  right_is_ordered python:1;
+                  move_up string:manage_movePluginsUp;
+                  move_down string:manage_movePluginsDown;
+                 "
+>
+<table width="100%"
+       metal:use-macro="here/manage_twoLists/macros/two_lists"
+>
+ <input metal:fill-slot="hidden_vars"
+        type="hidden" name="plugin_type" value="PLUGIN_TYPE"
+        tal:attributes="value plugin_type" />
+
+ <span metal:fill-slot="left_title">Available Plugins</span>
+ <span metal:fill-slot="right_title">Active Plugins</span>
+
+</table>
+</form>
+
+</tal:info>
+</div>
+
+</div>
+
+<h1 tal:replace="structure here/manage_page_footer"> PAGE FOOTER </h1>

@@ -1,0 +1,94 @@
+<html>
+<body>
+<form action=".">
+
+<tal:comment>
+Macro for generic two-list UI.  Expects to have the following names defined
+by the including template:
+
+  - left_name: the name of the select widget for the left-hand side list.
+
+  - left_list: a list of tuples of strings for the left-hand side:
+    [ ( item_value, item_text ), ... ]
+
+  - right_name: the name of the select widget for the right-hand side list.
+
+  - right_list: is a list of tuples of strings for the right hand side:
+    [ ( item_value, item_text ), ... ]
+
+  - left_to_right: the name of the :method to move an item from left to
+    right lists.
+
+  - right_to_left: the name of the :method to move an item from left to
+    right lists.
+
+  - right_is_ordered:  if defined, then order matters, and the next two
+    names are required:
+
+    o move_up:  the name of a :method to move an item up in the right list.
+
+    o move_down:  the name of a :method to move an item down in the right list.
+
+</tal:comment>
+
+<table width="100%"
+       metal:define-macro="two_lists"
+>
+
+ <tal:block metal:define-slot="hidden_vars" />
+
+ <tr>
+    <td valign="top">
+      <div align="center">
+        <span metal:define-slot="left_title">Available</span>
+      </div>
+      <select size="10" name="items:list" style="width: 100%;"
+              multiple="multiple"
+              tal:attributes="name string:${left_name}:list" >
+        <option tal:repeat="item left_list"
+                tal:attributes="value python:item[0]" 
+                tal:content="python: item[1]"/>
+      </select>
+    </td>
+    <td align="center" valign="middle">
+      <input type="image" src="arrow_right_gif" 
+             width="29" height="30" border="0"
+             name="left_to_right:method"
+             tal:attributes="name string:${left_to_right}:method"/>
+      <br><br>
+      <input type="image" src="arrow_left_gif" 
+             width="29" height="30" border="0"
+             name="right_to_left:method"
+             tal:attributes="name string:${right_to_left}:method"/>
+    </td>
+    <td valign="top">
+      <div align="center">
+        <span metal:define-slot="right_title">Active</span>
+      </div>
+      <select size="10" name="items:list" style="width: 100%;"
+              multiple="multiple"
+              tal:attributes="name string:${right_name}:list" >
+        <option tal:repeat="item right_list"
+                tal:attributes="value python:item[0]" 
+                tal:content="python: item[1]"/>
+      </select>
+    </td>
+    <td align="center" valign="middle"
+        tal:condition="right_is_ordered | nothing"
+    >
+      <input type="image" src="arrow_up_gif" 
+             width="29" height="30" border="0"
+             name="move_up:method"
+             tal:attributes="name string:${move_up}:method"/>
+      <br><br>
+      <input type="image" src="arrow_down_gif" 
+             width="29" height="30" border="0"
+             name="move_down:method"
+             tal:attributes="name string:${move_down}:method"/>
+    </td>
+ </tr>
+</table>
+</form>
+
+</body>
+</html>

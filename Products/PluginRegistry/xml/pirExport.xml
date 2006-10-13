@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<plugin-registry xmlns:tal="http://xml.zope.org/namespaces/tal">
+ <plugin-type
+    id="PLUGIN_TYPE_ID"
+    title="PLUGIN_TYPE_TITLE"
+    description="PLUGIN_TYPE_DESCRIPTION"
+    interface="PLUGIN_TYPE_INTERFACE"
+    tal:repeat="pt context/listPluginTypes"
+    tal:attributes="id pt/id;
+                    title pt/title;
+                    description pt/description;
+                    interface pt/interface;
+                   "
+    >
+  <plugin
+    id="PLUGIN_ID"
+    tal:repeat="plugin_id pt/plugins"
+    tal:attributes="id plugin_id" />
+ </plugin-type>
+</plugin-registry>

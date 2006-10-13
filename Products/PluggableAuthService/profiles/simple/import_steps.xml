@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<import-steps>
+ <import-step id="contents" version="20051116-01"
+              handler="Products.PluggableAuthService.exportimport.importPAS"
+              title="Contents">
+  Import the PAS' registry and plugins.
+ </import-step>
+</import-steps>

@@ -1,0 +1,59 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+
+<h2 tal:define="global manage_tabs_message request/manage_tabs_message | nothing;
+		form_title string:Challenge Protocol Mapping"
+    tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<tal:block tal:define="info options/info">
+
+  <h3> Protocol Mapping </h3>
+
+  <form action="manage_updateProtocolMapping" method="POST">
+
+    <table cellpadding="2" cellspacing="0">
+
+      <tr>
+	<th align="left"> Request Type </th>
+	<th align="left"> Protocols </th>
+      </tr>
+
+      <tr class="row-hilite"
+	  tal:repeat="entry info" 
+	  tal:attributes="class python:repeat['entry'].odd() and 'row-normal' or default"
+	  >
+	<td class="form-label"
+	    tal:content="entry/label">
+	  Request Type
+	</td>
+	<td class="form-text">
+	  <select name="mapping.name:record:list"
+		  tal:attributes="name string:mapping.${entry/label}:list:record"
+		  type="multiple"
+		  multiple="multiple"
+		  size="3">
+	    <tal:block repeat="protocol entry/settings">
+	      <option tal:content="protocol/label"
+		      tal:attributes="selected protocol/selected;
+				      value protocol/value">
+		Protocol
+	      </option>
+	    </tal:block>
+	  </select>
+	</td>
+      </tr>
+
+      <tr>
+	<td />
+	<td colspan="3">
+	  <input type="submit"
+		 value=" Update Mapping " />
+	</td>
+      </tr>
+
+    </table>
+  </form>
+
+
+</tal:block>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>

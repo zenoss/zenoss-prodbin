@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<zodb-roles xmlns:tal="http://xml.zope.org/namespaces/tal"
+             tal:define="info options/info;
+                        "
+             title="PLUGIN TITLE"
+             tal:attributes="title info/title;
+                            "
+>
+ <role role_id="ROLE_ID" title="TITLE" description="DESCRIPTION"
+       tal:repeat="role info/roles"
+       tal:attributes="role_id role/role_id;
+                       title role/title;
+                       description role/description;
+                      ">
+  <principal principal_id="PRINCIPAL_ID"
+             tal:repeat="principal_id role/principals"
+             tal:attributes="principal_id principal_id" />
+ </role>
+</zodb-roles>

@@ -133,11 +133,6 @@ class UserSettingsManager(ZenModelRM):
                     REQUEST=None,**kw):
         """Add a zenoss user to the system and set its default properties.
         """
-        # for PAS, we're going to need to:
-        #   o get the user manager instance
-        #   o get the role manager instance
-        #   o add a user
-        #   o assign a role to that user (principal)
         if password is None:
             password = self.generatePassword()
         self.acl_users._doAddUser(userid,password,roles,"")

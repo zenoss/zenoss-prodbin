@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<delegating-plugin xmlns:tal="http://xml.zope.org/namespaces/tal"
+    title="%s" delegate_path="%s"
+    tal:define="info options/info"
+    tal:attributes="title info/title;
+                    delegate_path info/delegate_path;
+                   "/>

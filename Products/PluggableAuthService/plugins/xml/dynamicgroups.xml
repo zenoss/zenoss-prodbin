@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<dynamic-groups xmlns:tal="http://xml.zope.org/namespaces/tal"
+             title="PLUGIN TITLE"
+             tal:define="info options/info;
+                        "
+             tal:attributes="title info/title;
+                            "
+>
+ <group group_id="GROUP_ID"
+        predicate="PREDICATE"
+        title="TITLE"
+        description="DESCRIPTION"
+        active="ACTIVE"
+        tal:repeat="group info/groups"
+        tal:attributes="group_id group/group_id;
+                        predicate group/predicate;
+                        title group/title;
+                        description group/description;
+                        active group/active;
+                       " />
+</dynamic-groups>

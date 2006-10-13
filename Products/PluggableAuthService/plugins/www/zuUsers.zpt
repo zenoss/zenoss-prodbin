@@ -1,0 +1,219 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+
+<h2 tal:define="form_title string:ZODB Users"
+    tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<tal:block tal:define="adding request/adding | nothing;
+                       passwd python: not adding and request.get('user_id')
+                                                 and request.get('passwd');
+                       updating python: not adding and not passwd
+                                                   and request.get('user_id');
+                       browsing python: not adding and not passwd
+                                    and not updating;
+                      ">
+
+<div tal:condition="browsing">
+<div>
+
+<h3> Current Users <a href="?adding=1">(Add a user)</a></h3>
+
+<table width="100%" cellpadding="2" cellspacing="0">
+
+ <tr>
+  <td width="16" />
+  <th align="left" width="15%"> User ID </th>
+  <td width="10%" />
+  <th align="left" width="25%"> Login Name </th>
+ </tr>
+
+ <form action="." method="POST">
+
+ <tr class="row-hilite"
+     tal:repeat="info here/listUserInfo" 
+     tal:attributes="class python:repeat['info'].odd() and 'row-normal' or default"
+     >
+  <td>
+    <input type="checkbox" name="user_ids:list" value="USER_ID"
+           tal:attributes="value info/user_id" />
+  </td>
+  <td class="form-text">
+    <a href="?user_id=foo"
+       tal:attributes="href string:?user_id=${info/user_id}"
+       tal:content="info/user_id"
+    >USER_ID</a>
+  </td>
+  <td class="form-text">
+   <a href="?passwd=1"
+      tal:attributes="href string:?user_id=${info/user_id}&passwd=1"
+   >Password</a>
+  </td>
+  <td class="form-text" tal:content="info/login_name">LOGIN_NAME</td>
+ </tr>
+
+ <tr>
+  <td />
+  <td colspan="4">
+    <input type="hidden" name="user_ids:list:default" value="" />
+    <input type="submit" name="manage_removeUsers:method"
+           value=" Remove Users " />
+  </td>
+ </tr>
+
+ </form>
+
+</table>
+
+</div>
+</div>
+
+<div tal:condition="adding">
+<div tal:define="user_id request/user_id | python:'';
+                 login_name request/login_name | python:'';
+                ">
+
+<h3> Add a User </h3>
+
+<form action="manage_addUser" method="POST">
+<table
+>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">User ID:</div>
+  </th>
+  <td>
+   <input type="text" name="user_id" size="20" />
+  </td>
+ </tr>
+
+ <tbody metal:use-macro="here/manage_widgets/macros/authentication_widgets" />
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Add User " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+<div tal:condition="passwd">
+<div tal:define="user_id request/user_id;
+                 info python:here.getUserInfo( user_id );
+                 login_name info/login_name;
+                "
+>
+
+<h3> Update User Password <a href="?user_id=XXX"
+                             tal:attributes="href string:?user_id=${user_id}"
+                          >(update user)</a></h3>
+
+<form action="manage_updateUserPassword" method="POST">
+<table>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">User ID:</div>
+  </th>
+  <td>
+   <input type="hidden" name="user_id"
+          tal:attributes="value user_id" />
+   <div class="form-label" tal:content="user_id">USER_ID</div>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Login name:</div>
+  </th>
+  <td>
+    <div class="form-label" tal:content="login_name"> Login </div>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Password:</div>
+  </th>
+  <td>
+   <input type="password" name="password" size="20" value="password" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Confirm password:</div>
+  </th>
+  <td>
+   <input type="password" name="confirm" size="20" value="confirm" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Update Password " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+<div tal:condition="updating">
+<div tal:define="user_id request/user_id;
+                 info python:here.getUserInfo(user_id);
+                 login_name info/login_name;
+                "
+>
+<h3> Update User <a href="?user_id=XXX&passwd=1"
+                    tal:attributes="href string:?user_id=${user_id}&passwd=1"
+                 >(change password)</a></h3>
+
+<form action="manage_updateUser" method="POST">
+<table>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">User ID:</div>
+  </th>
+  <td>
+   <input type="hidden" name="user_id"
+          tal:attributes="value user_id" />
+   <div class="form-label" tal:content="user_id">USER_ID</div>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Login name:</div>
+  </th>
+  <td>
+   <input type="text" name="login_name" size="40"
+          tal:attributes="value login_name"
+   />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Update User " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+</tal:block>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>

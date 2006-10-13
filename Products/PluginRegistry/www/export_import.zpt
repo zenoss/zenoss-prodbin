@@ -1,0 +1,45 @@
+<h1 tal:replace="structure here/manage_page_header"> PAGE HEADER </h1>
+<h2 tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<h3> Export / Import Registry Configuration </h3>
+
+<p class="form-help">
+  This view allows you to view and edit the registry configuration as
+  a single XML document.
+</p>
+
+<form action="." method="POST" enctype="multipart/form-data"
+      tal:attributes="action
+                        string:${context/absolute_url}/manage_exportImportForm;
+                     ">
+<table>
+
+ <tr>
+  <th> Purge old config? </th>
+  <td>
+   <input type="hidden" name="should_purge:default:int" value="0" />
+   <input type="checkbox" name="should_purge:int" value="1" checked="checked" />
+  </td>
+ </tr>
+
+ <tr>
+  <th> Configuration </th>
+  <td>
+   <textarea name="xml:text" rows="30" cols="80"
+             tal:content="context/getConfigAsXML"
+   ></textarea>
+  </td>
+ </tr>
+
+ <tr>
+  <td />
+  <td>
+   <input type="submit" value=" Save " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+<h1 tal:replace="structure here/manage_page_footer"> PAGE FOOTER </h1>
+

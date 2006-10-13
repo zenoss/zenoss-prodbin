@@ -1,0 +1,126 @@
+Caching
+
+  The PluggableAuthService contains a caching mechanism based on the built-in
+  Zope Caching framework with a mix-in class that defines caching methods for
+  cacheable content and so-called Cache Managers that store cacheable data.
+
+
+  How does the site admin use it?
+
+    Given a plugin that is cache-enabled the steps to using the cache are
+    easy. The site administrator needs to...
+
+    o Instantiate a "RAM Cache Manager" inside the PluggableAuthService
+
+    o Using the "Cache" tab in the cache-enabled plugin's ZMI view,
+      associate the plugin with the RAM Cache Manager
+
+    At this point values will be cached inside the RAM Cache Manager. The
+    effect can be viewed easily on the "Statistics" tab in the Cache Manager
+    ZMI view, which shows which plugins have stored values, how many values
+    are stored, an approximation of the memory consumption for the cached
+    data, and how often the data has been retrieved from cache.
+
+    The Statistics view also provides an easy way to summarily invalidate 
+    cached values if needed. However, cache invalidation should be handled
+    by the plugins itself if it is possible.
+
+    The PluggableAuthService itself is also cacheable this way. Caching PAS
+    itself is the easiest way to achieve caching. In PAS, the _findUsers and
+    _verifyUser methods, being a suitably central spot for caching, have 
+    been enhanced to use the RAM Cache Manager if so configured.
+
+
+  How does a plugin programmer use it?
+
+    Due to the pluggable (and thus infinitely variable) nature of the 
+    PluggableAuthService it is up to the plugin developer to decide what to
+    cache and how to do so. Some of the built-in plugins provide a sample
+    implementation by caching certain methods' return values and invalidating
+    these records where necessary. In a nutshell, these are the steps needed
+    to enable cacheability at the plugin level:
+
+    o Add the Cacheable mix-in class to the list of classes your plugin
+      subclasses from
+
+    o Determine which method calls should have their return values cached, 
+      and which method calls affect the return value of the method that is
+      being cached and thus should invalidate the cache
+
+    o In the cached method, add code to try and look up the return value in
+      the cache first, and only perform the computation if the cache does
+      not have the desired data. At the end of computing the return value,
+      add it to the cache
+
+    o Add cache invalidation to those methods deemed to affect the cached
+      method's return value.
+
+    A little illustration using code snippets::
+
+      from OFS.Cache import Cacheable
+      from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
+      from Products.PluggableAuthService.utils import createViewName
+
+      class MyPlugin(BasePlugin, Cacheable):
+
+          def retrieveData(self, key):
+              """ Get data for the given key """
+              view_name = createViewName('retrieveData', key)
+              keywords = {'key': key}
+              cached_info = self.ZCacheable_get( view_name=view_name
+                                               , keywords=keywords
+                                               , default=None
+                                               )
+
+              if cached_info is not None:
+                  return cached_info
+
+              return_value = <perform return value calculation here>
+
+              # Put the computed value into the cache
+              self.ZCacheable_set( return_value
+                                 , view_name=view_name
+                                 , keywords=keywords
+                                 )
+
+              return return_value
+
+          def change_data(self, key, new_value):
+              """ Change the value for the given key """
+              <perform changes here>
+
+              # Also, remove from the cache
+              view_name = createViewName('retrieveData', key)
+              self.ZCacheable_invalidate(view_name=view_name)
+
+    As you can see, due to the variable nature of plugins certain items,
+    such as the relationships between the different accessor and mutator
+    methods in use, cannot be computed or guessed, they have to be hardcoded.
+    That's why inside change_data the view_name "retrieveData" is hardcoded
+    as the caching key for information returned from the retrieveData method.
+
+    This example also shows how, due to the way the built-in Zope caching
+    framework handles cached data, it is not possible to invalidate specific
+    entries, such as the value for one specific view_name/key combination. 
+    All cached records for a specific view_name are invalidated at once.
+
+    It must be kept in mind that it is very hard if not impossible to reach
+    a state where the cache is 100% synchronized with the live data in
+    those situations where information is retrieved and manipulated in more
+    than one plugin. Imagine a situation where one plugin's cached answer
+    is dependent on another plugin that handles updating the underlying data.
+    The retrieving plugin is not notified of updates happening in the 
+    "mutator plugin" (and thus does not invalidate cached data) unless the 
+    plugin developer forces some nasty cross-plugin dependencies.
+
+    The PluggableAuthService has two "sample implementations" for plugin
+    caching. Both the DynamicGroupsPlugin and the ZODBUserManager are 
+    cache-enabled.
+
+  CAVEATS
+
+    The Caching mechanism should not be used to cache persistent objects. So
+    if for some reason your PluggableAuthService emits user objects that are
+    persistent (which is not the default) you should not enable caching at the
+    PluggableAuthService-level.
+

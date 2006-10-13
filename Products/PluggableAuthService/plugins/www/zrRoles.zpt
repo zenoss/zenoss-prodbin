@@ -1,0 +1,252 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+
+<h2 tal:define="form_title string:ZODB Roles"
+    tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<tal:block tal:define="adding request/adding | nothing;
+                       assigning python:not adding and request.get('assign');
+                       updating python:not assigning and request.get('role_id');
+                       browsing python:( not assigning
+                                     and not adding
+                                     and not updating
+                                       );
+                      ">
+
+<div tal:condition="browsing">
+<div>
+
+<h3> Current Roles <a href="?adding=1">(Add a role)</a></h3>
+
+<table width="100%" cellpadding="2" cellspacing="0">
+
+ <tr>
+  <td width="16" />
+  <th align="left" width="25%"> Role </th>
+  <th align="left" width="25%"> Description </th>
+  <th align="left" width="50%"> Assignments </th>
+ </tr>
+
+ <form action="." method="POST">
+
+ <tr class="row-hilite"
+     tal:repeat="info here/listRoleInfo" 
+     tal:attributes="class python:repeat['info'].odd() and 'row-normal' or default"
+     >
+  <td>
+    <input type="checkbox" name="role_ids:list" value="ROLE_ID"
+           tal:attributes="value info/id" />
+  </td>
+  <td class="form-text" width="25%">
+    <a href="?role_id=foo"
+       tal:attributes="href string:?role_id=${info/id}"
+       tal:content="info/id"
+    >ROLE_ID</a>
+    <span tal:condition="info/title"
+          tal:content="string:(${info/title})">ROLE_TITLE</span>
+  </td>
+  <td class="form-text" width="25%"
+      tal:content="info/description">ROLE DESCRIPTION</td>
+  <td class="form-text" width="50%">
+    <a href="?role_id=foo&assign=1"
+       tal:attributes="href string:?role_id=${info/id}&assign=1"
+    >?</a>
+    <span
+       tal:content="python:','.join( 
+            [x[1] for x in here.listAssignedPrincipals(info['id'])] )"
+    >ROLE ASSIGNMENTS</span>
+  </td>
+ </tr>
+
+ <tr>
+  <td />
+  <td colspan="3">
+    <input type="hidden" name="role_ids:list:default" value="" />
+    <input type="submit" name="manage_removeRoles:method"
+           value=" Remove Roles " />
+  </td>
+ </tr>
+
+ </form>
+
+</table>
+
+</div>
+</div>
+
+<div tal:condition="adding">
+<div tal:define="role_id request/role_id | python:'';
+                 login_name request/login_name | python:'';
+                 roles request/roles | python:();
+                ">
+
+<h3> Add a Role </h3>
+
+<form action="manage_addRole" method="POST">
+<table
+>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Role ID:</div>
+  </th>
+  <td>
+   <input type="text" name="role_id" size="20" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Title</div>
+  </th>
+  <td>
+   <input type="text" name="title" size="40" />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Description</div>
+  </th>
+  <td>
+   <textarea name="description" rows="5" cols="65"></textarea>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Add Role " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+
+<div tal:condition="updating">
+<div tal:define="role_id request/role_id;
+                 info python:here.getRoleInfo(role_id);
+                 title info/title;
+                 description info/description;
+                "
+>
+<h3> Update Role: <span tal:replace="role_id">ROLE_ID</span>
+     <a href="manage_roles?role_id=role_id&assign=1"
+        tal:define="url here/absolute_url;
+                    qs string:role_id=${role_id}&assign=1;
+                   "
+        tal:attributes="href string:${url}/manage_roles?${qs}"
+     >(Assign)</a>
+</h3>
+
+<form action="manage_updateRole" method="POST">
+<input type="hidden" name="role_id" value="ROLE_ID"
+       tal:attributes="value role_id" />
+<table>
+
+ <tr valign="top">
+  <th align="right" width="20%">
+   <div class="form-label">Role ID:</div>
+  </th>
+  <td tal:content="role_id">ROLE_ID</td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Title</div>
+  </th>
+  <td>
+   <input type="text" name="title" size="40" value="TITLE"
+          tal:attributes="value title"
+   />
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">Description</div>
+  </th>
+  <td>
+   <textarea name="description" rows="5" cols="65"
+             tal:content="description">DESCRIPTION</textarea>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Update Role " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+</div>
+
+<div tal:condition="assigning">
+<div tal:define="role_id request/role_id;
+                 search_id request/search_id | nothing;
+                "
+>
+<h3> Assign Role: <span tal:replace="role_id">ROLE_ID</span>
+     <a href="manage_roles?role_id=role_id"
+        tal:define="url here/absolute_url"
+        tal:attributes="href string:${url}/manage_roles?role_id=${role_id}"
+     >(Properties)</a>
+</h3>
+
+<form action="HERE" method="POST"
+      tal:attributes="action string:${here/absolute_url}/manage_roles">
+ <input type="hidden" name="role_id"
+        tal:attributes="value role_id" />
+ <input type="hidden" name="assign" value="1" />
+<table>
+
+ <tr valign="top">
+  <th align="right" width="20%">
+   <div class="form-label">Principal ID</div>
+  </th>
+  <td>
+   <input type="text" name="search_id" value=""
+          tal:attributes="value search_id"
+   />
+   <input type="submit" value=" Search " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+<form action="." method="POST"
+      tal:define="matching python:
+                            here.listAvailablePrincipals(role_id, search_id);
+                  left_name string:principal_ids;
+                  left_list matching;
+                  right_name string:principal_ids;
+                  right_list python:here.listAssignedPrincipals(role_id);
+                  left_to_right string:manage_assignRoleToPrincipals;
+                  right_to_left string:manage_removeRoleFromPrincipals;
+                  right_is_ordered python:0;
+                 "
+>
+
+<table metal:use-macro="here/manage_twoLists/macros/two_lists">
+
+<input type="hidden" name="role_id" value="ROLE_ID"
+       tal:attributes="value role_id"
+       metal:fill-slot="hidden_vars" />
+
+</table>
+</form>
+
+</div>
+</div>
+
+</tal:block>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>

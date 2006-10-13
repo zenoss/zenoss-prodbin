@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<zodb-users xmlns:tal="http://xml.zope.org/namespaces/tal"
+       title="PLUGIN TITLE"
+       tal:define="info options/info"
+       tal:attributes="title info/title;
+                      ">
+ <user user_id="USER_ID" login_name="LOGIN" password_hash="PASSWORD_HASH"
+       tal:repeat="user info/users"
+       tal:attributes="user_id user/user_id;
+                       login_name user/login_name;
+                       password_hash user/password_hash;
+                      " />
+</zodb-users>

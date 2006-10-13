@@ -1,0 +1,141 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+<h2 tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<p class="form-help">
+  Generic mappings are a powerful tool to allow anyone access from
+  a matching location.
+</p>
+
+<div tal:define="user_id request/user_id|options/user_id|nothing;
+                 search_term request/search_term|options/search_term|nothing;
+                 acl_users nocall: here/acl_users;
+                 my_url here/absolute_url;"
+     tal:omit-tag="">
+
+  <div tal:define="user_map python: here.listMappingsForUser()">
+
+    <table width="98%" cellpadding="2">
+      <tr class="list-header">
+        <td class="list-header">
+          <span class="form-label">
+            Generic Domain mappings
+          </span>
+        </td>
+      </tr>
+    </table>
+
+    <p class="form-help"
+       tal:condition="not: user_map">
+      No generic mappings defined.
+    </p>
+
+    <form method="post" action=""
+          tal:condition="user_map"
+          tal:attributes="action string:${my_url}/manage_removeMappings">
+      <input type="hidden" name="user_id" value="">
+
+      <table width="98%">
+        <tr>
+          <td width="16"> &nbsp; </td>
+          <td class="form-label"> Match Type </td>
+          <td class="form-label"> Match String </td>
+          <td class="form-label"> Assigned Name </td>
+          <td class="form-label"> Roles </td>
+        </tr>
+
+        <tr tal:repeat="match_info python: here.listMappingsForUser()">
+          <td width="16" class="form-element">
+            <input type="checkbox" name="match_ids:list" value=""
+                   tal:attributes="value match_info/match_id" />
+          </td>
+          <td class="form-text" 
+              tal:content="match_info/match_type"> 
+            type 
+          </td>
+          <td class="form-text" 
+              tal:content="match_info/match_string"> 
+            string 
+          </td>
+          <td class="form-text"
+              tal:content="match_info/username">
+            Foobar User
+          </td>
+          <td class="form-text"
+              tal:content="python: ', '.join(match_info.get('roles'))">
+            foo, bar
+          </td>
+        </tr>
+
+        <tr>
+          <td width="16">&nbsp;</td>
+          <td colspan="4" class="form-element">
+            <input type="submit" value=" Delete " />
+          </td>
+        </tr>
+      </table>
+
+    </form>
+
+    <table width="98%" cellpadding="2">
+      <tr class="list-header">
+        <td class="list-header">
+          <span class="form-label">
+            Add new generic domain mapping.
+          </span>
+        </td>
+      </tr>
+    </table>
+
+
+    <form method="post" action=""
+          tal:attributes="action string:${my_url}/manage_addMapping">
+      <input type="hidden" name="user_id" value="">
+      <table width="98%" cellpaddding="2">
+        <tr>
+          <td class="form-label"> Match Type </td>
+          <td class="form-element">
+            <select name="match_type">
+              <option tal:repeat="match here/listMatchTypes"
+                      tal:attributes="value match"
+                      tal:content="match">
+                foo match
+              </option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="form-label"> Match String </td>
+          <td class="form-element">
+            <input type="text" size="30" name="match_string" />
+          </td>
+        </tr>
+        <tr>
+          <td class="form-label"> Assigned Name </td>
+          <td class="form-element">
+            <input type="text" size="30" name="username" />
+          </td>
+        </tr>
+        <tr>
+          <td class="form-label" valign="top"> Roles to convey </td>
+          <td class="form-element">
+            <span tal:repeat="role here/valid_roles">
+              <input type="checkbox" name="roles:list" value=""
+                     tal:attributes="value role" />
+                <span tal:replace="role"> Foobar </span><br />
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="form-element">
+            <input type="submit" value=" Add " />
+          </td>
+        </tr>
+      </table>
+    </form>
+
+  </div>
+
+</div>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>
+

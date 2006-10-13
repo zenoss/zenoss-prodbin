@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<zodb-roles title="Role Management">
+ <role role_id="Manager" title="" description="">
+  <principal principal_id="managers"/>
+ </role>
+ <role role_id="Owner" title="" description="">
+  <principal principal_id="members"/>
+ </role>
+</zodb-roles>

@@ -1,0 +1,32 @@
+<h2 tal:define="form_title string:ZODB Users"
+    tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<h3> Update Your Password </h3>
+
+<form action="manage_updatePassword" method="POST">
+<table tal:define="info here/getOwnUserInfo;
+                   user_id info/user_id;
+                   login_name info/login_name;
+                  "
+>
+
+ <tr valign="top">
+  <th align="right">
+   <div class="form-label">User ID:</div>
+  </th>
+  <td tal:content="user_id">USER_ID</td>
+ </tr>
+
+ <tbody metal:use-macro="here/manage_widgets/macros/authentication_widgets">
+
+ </tbody>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input type="submit" value=" Update Password " />
+  </td>
+ </tr>
+
+</table>
+</form>

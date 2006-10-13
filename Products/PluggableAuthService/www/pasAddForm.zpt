@@ -1,0 +1,45 @@
+<h1 tal:replace="structure context/manage_page_header">PAGE HEADER</h1>
+<h2 tal:define="form_title string:Add Pluggable Auth Service"
+    tal:replace="structure context/manage_form_title">FORM TITLE</h2>
+
+<p class="form-help">Please select the configuration for the new user folder</p>
+
+<form action="addConfiguredPAS" method="post">
+<table cellspacing="0" cellpadding="2" border="0">
+ <tr valign="top">
+  <td>
+   <div class="form-label">Setup profile</div>
+  </td>
+  <td>
+    <select name="base_profile">
+      <option value="PROFILE_ID"
+              tal:repeat="info options/base_profiles"
+              tal:attributes="value info/id"
+              tal:content="info/title">PROFILE TITLE</option>
+    </select>
+  </td>
+ </tr>
+ <tr valign="top"
+     tal:condition="options/extension_profiles | nothing">
+  <td>
+   <div class="form-label">Optional extensions</div>
+  </td>
+  <td><tal:span tal:repeat="info options/extension_profiles">
+   <input type="checkbox" name="extension_profiles:list" value="PROFILE_ID"
+          tal:attributes="value info/id" />
+   <tal:span tal:content="info/title">PROFILE TITLE</tal:span><br /></tal:span>
+  </td>
+ </tr>
+ <tr>
+  <td>
+   &nbsp;
+  </td>
+  <td>
+   <input class="form-element" type="submit" name="submit" value="Add" /> 
+  </td>
+ </tr>
+</table>
+</form>
+
+<h1 tal:replace="structure context/manage_page_footer">PAGE FOOTER</h1>
+

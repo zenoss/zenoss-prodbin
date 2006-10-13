@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<zodb-groups title="Group Management">
+ <group group_id="managers" title="Site Managers"
+        description="">
+ </group>
+ <group group_id="members" title="Site Members"
+        description="">
+ </group>
+</zodb-groups>
