@@ -1,0 +1,75 @@
+<h1 tal:replace="structure here/manage_page_header"> PAGE HEADER </h1>
+<h2 tal:replace="structure here/manage_tabs"> PAGE HEADER </h2>
+
+<h3> Site Configuration Export Steps </h3>
+
+
+<p class="form-help">
+Download selected export steps as tarball.
+</p>
+
+<h3>Available Export Steps</h3>
+
+<form action="." method="POST"
+      tal:attributes="action here/absolute_url" >
+<input type="hidden" name="ids:default:tokens" value="" />
+
+<table cellspacing="0" cellpadding="4">
+
+ <thead>
+  <tr class="list-header">
+   <td class="list-item">Sel.</td>
+   <td class="list-item">#</td>
+   <td class="list-item">Title / Description</td>
+   <td class="list-item">Handler</td>
+  </tr>
+ </thead>
+
+ <tbody tal:define="registry here/getExportStepRegistry;
+                    step_ids registry/listSteps;
+                   ">
+  <tal:loop tal:repeat="step_id step_ids">
+  <tr valign="top"
+      tal:define="info python: registry.getStepMetadata( step_id );"
+      tal:attributes="class python:
+                     repeat[ 'step_id' ].odd and 'row-normal' or 'row-hilite'" >
+   <td class="list-item" width="16">
+    <input type="checkbox" name="ids:list" value="STEP_ID"
+           tal:attributes="value step_id" />
+   </td>
+   <td align="right" class="list-item"
+       tal:content="repeat/step_id/number">1</td>
+   <td class="list-item">
+    <span tal:content="info/title">STEP TITLE</span><br />
+    <em tal:content="info/description">STEP DESCRIPTION</em>
+   </td>
+   <td class="list-item"
+       tal:content="info/handler">DOTTED.NAME</td>
+  </tr>
+  </tal:loop>
+
+  <tr valign="top" class="list-header">
+   <td colspan="4">&nbsp;</td>
+  </tr>
+
+  <tr valign="top">
+   <td />
+   <td colspan="3">
+
+    <input class="form-element" type="submit"
+           name="manage_exportSelectedSteps:method"
+           value=" Export selected steps " />
+      
+    <input class="form-element" type="submit"
+           name="manage_exportAllSteps:method"
+           value=" Export all steps " />
+      
+   </td>
+  </tr>
+ </tbody>
+
+</table>
+</form>
+
+
+<h1 tal:replace="structure here/manage_page_footer"> PAGE FOOTER </h1>

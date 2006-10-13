@@ -1,0 +1,84 @@
+Profiles
+
+  Overview
+
+    There are two different kinds of profiles: Base profiles and extension
+    profiles. Base profiles have no dependencies. Extension profiles are
+    profile fragments used to modify base profiles. They can be shipped with
+    add-on products or used for customization steps. Importing an extension
+    profile adds or overwrites existing settings in a fine-grained way. You
+    can't export extension profiles. Snapshots and exports always represent
+    the merged settings.
+
+  Registering Profiles
+
+    By convention profiles are stored in a 'profiles' directory within a Zope
+    product. They have to be registered explicitly using registerProfile.
+
+    Here is example ZCML for MyProduct that extends BaseProduct::
+
+      <genericsetup:registerProfile
+          name="install"
+          title="Install MyProduct Extension"
+          description="Adds local settings necessary for MyProduct."
+          provides="Products.GenericSetup.interfaces.EXTENSION"
+          for="Products.BaseProduct.interfaces.IBaseRoot"
+          />
+
+    See zcml.IRegisterProfileDirective for further details.
+
+    Alternatively the registerProfile method can be called. Using this for
+    product initialization is deprecated. Here is the code for the same
+    example::
+
+      from Products.BaseProduct.interfaces import IBaseRoot
+      from Products.GenericSetup import EXTENSION
+      from Products.GenericSetup import profile_registry
+
+      profile_registry.registerProfile(
+              name='install',
+              title='Install MyProduct Extension',
+              description='Adds local settings necessary for MyProduct.',
+              path='profiles/install',
+              product='Products.MyProduct',
+              profile_type=EXTENSION,
+              for_=IBaseRoot)
+
+    See IProfileRegistry.registerProfile for further details.
+
+  Update Directives
+
+    For some XML elements there are additional attributes and values to
+    specify update directives. They are only useful for extension profiles and
+    you will never see them in snapshots and exports.
+
+    The following directives are generally useful for container elements and
+    implemented by some setup handlers. Products using GenericSetup can also
+    implement other update directives.
+
+    'id="*"' wildcard
+
+      Updates all existing items in the container with the same settings.
+
+    'remove'
+
+      Removes the specified item if it exists.
+
+    'insert-before' and 'insert-after'
+
+      'insert-before' and 'insert-after' specify the position of a new item
+      relative to an existing item. If they are omitted or not valid, items
+      are appended. You can also use '*' as wildcard. This will insert the new
+      item at the top (before all existing items) or the bottom (after all
+      existing items). If an item with the given ID exists already, it is
+      moved to the specified position. This directive makes only sense for
+      ordered containers.
+
+  Other Special Directives
+
+    'purge'
+
+      By default existing settings are purged before applying settings from
+      base profiles. Extension profiles are applied in update mode. This
+      directive overrides the default behavior. If True the existing settings
+      of the current object are always purged, if False they are not purged.

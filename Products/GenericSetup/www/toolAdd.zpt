@@ -1,0 +1,6 @@
+<h1 tal:replace="structure context/manage_page_header">PAGE HEADER</h1>
+<h1 tal:replace="structure context/manage_tabs">TABS</h1>
+
+<h3> Add Setup Tool </h3>
+
+<h1 tal:replace="structure context/manage_page_footer">PAGE FOOTER</h1>

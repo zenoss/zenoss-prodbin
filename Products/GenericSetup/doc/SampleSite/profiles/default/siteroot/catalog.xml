@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<object name="ZCatalog" meta_type="ZCatalog">
+ <property name="title">Sample Catalog</property>
+ <object name="plaintext_lexicon" meta_type="ZCTextIndex Lexicon">
+  <element name="Whitespace splitter" group="Word Splitter"/>
+  <element name="Case Normalizer" group="Case Normalizer"/>
+  <element name="Remove listed stop words only" group="Stop Words"/>
+ </object>
+ <index name="path" meta_type="PathIndex"/>
+ <index name="title" meta_type="ZCTextIndex">
+  <indexed_attr value="title"/>
+  <extra name="index_type" value="Okapi BM25 Rank"/>
+  <extra name="lexicon_id" value="plaintext_lexicon"/>
+ </index>
+ <column value="getId"/>
+ <column value="title"/>
+</object>

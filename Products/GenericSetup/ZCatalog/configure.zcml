@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.ZCatalogXMLAdapter"
+      provides="Products.GenericSetup.interfaces.IBody"
+      for="Products.ZCatalog.interfaces.IZCatalog
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+</configure>

@@ -1,0 +1,61 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.PluggableIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IPluggableIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.DateIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IDateIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.DateRangeIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IDateRangeIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.PathIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IPathIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.VocabularyNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IVocabulary
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.TextIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.ITextIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.FilteredSetNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.IFilteredSet
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+  <adapter
+      factory=".exportimport.TopicIndexNodeAdapter"
+      provides="Products.GenericSetup.interfaces.INode"
+      for="Products.PluginIndexes.interfaces.ITopicIndex
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+</configure>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<import-steps xmlns:tal="http://xml.zope.org/namespaces/tal">
+ <import-step id="STEP_ID"
+             version="STEP_VERSION"
+             handler="DOTTED.NAME"
+             title="TITLE"
+             tal:repeat="step here/listStepMetadata"
+             tal:attributes="id step/id;
+                             version step/version;
+                             handler step/handler;
+                             title step/title
+                            ">
+  <dependency step="DEPENDENCY"
+              tal:repeat="dep step/dependencies"
+              tal:attributes="step dep" />
+  <span tal:replace="step/description">DESCRIPTION</span>
+ </import-step>
+</import-steps>

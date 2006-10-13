@@ -1,0 +1,37 @@
+<h1 tal:replace="structure context/manage_page_header">PAGE HEADER</h1>
+<h2 tal:replace="structure context/manage_tabs">TABS</h2>
+
+<h3> Setup Tool Properties </h3>
+
+<form method="post" action="manage_updateToolProperties">
+
+<table>
+
+ <tr valign="top">
+  <td>
+   <div class="form-label">Active site configuration:</div>
+  </td>
+  <td>
+   <select name="context_id"
+      tal:define="context_id context/getImportContextID">
+    <option value="context-CONTEXT_ID"
+       tal:repeat="context_info context/listContextInfos"
+       tal:attributes="selected python:context_id == context_info['id'];
+                       value context_info/id"
+       tal:content="context_info/title"
+    >CONTEXT_TITLE</option>
+   </select>
+  </td>
+ </tr>
+
+ <tr valign="top">
+  <td />
+  <td>
+   <input class="form-element" type="submit" value=" Update " />
+  </td>
+ </tr>
+
+</table>
+</form>
+
+<h1 tal:replace="structure context/manage_page_footer">PAGE FOOTER</h1>

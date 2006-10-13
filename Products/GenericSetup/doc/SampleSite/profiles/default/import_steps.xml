@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<import-steps>
+ <import-step id="rolemap" version="20060606-01"
+              handler="Products.GenericSetup.rolemap.importRolemap"
+              title="Role / Permission Map">
+  Import custom roles and non-default role-permission mappings.
+ </import-step>
+ <import-step id="site" version="20060606-01"
+              handler="Products.SampleSite.exportimport.importSite"
+              title="Site">
+  Import site configuration.
+ </import-step>
+</import-steps>

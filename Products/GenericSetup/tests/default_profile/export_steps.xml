@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<export-steps>
+ <export-step id="one"
+                handler="Products.GenericSetup.tests.common.dummy_handler"
+                title="One Step">
+  One small step
+ </export-step>
+</export-steps>

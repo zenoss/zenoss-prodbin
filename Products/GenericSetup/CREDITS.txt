@@ -1,0 +1,7 @@
+GenericSetup Credits
+
+  - Martijn Pieters <mj@zopatista.com> wrote the original version of this
+    software while working at Zope Corporation.
+
+  - He developed his version as part of the "Bonzai" CMS which Zope corp.
+    built Boston.com using its Zope4Media Print product.

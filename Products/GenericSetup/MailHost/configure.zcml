@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.MailHostXMLAdapter"
+      provides="Products.GenericSetup.interfaces.IBody"
+      for="Products.MailHost.interfaces.IMailHost
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+</configure>

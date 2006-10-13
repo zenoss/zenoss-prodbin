@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<export-steps>
+ <export-step id="rolemap"
+              handler="Products.GenericSetup.rolemap.exportRolemap"
+              title="Role / Permission Map">
+  Export custom roles and non-default role-permission mappings.
+ </export-step>
+ <export-step id="site"
+              handler="Products.SampleSite.exportimport.exportSite"
+              title="Site">
+  Export site configuration.
+ </export-step>
+ <export-step id="step_registries"
+              handler="Products.GenericSetup.tool.exportStepRegistries"
+              title="Step Registries">
+  Export current contents of import step registry and export step registry.
+ </export-step>
+</export-steps>

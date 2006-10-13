@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<import-steps>
+ <import-step id="one"
+             version="1"
+             handler="Products.GenericSetup.tests.common.dummy_handler"
+             title="One Step">
+  One small step
+ </import-step>
+</import-steps>

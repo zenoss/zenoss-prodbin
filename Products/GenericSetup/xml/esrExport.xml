@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<export-steps xmlns:tal="http://xml.zope.org/namespaces/tal">
+ <export-step id="STEP_ID"
+                handler="DOTTED.NAME"
+                title="TITLE"
+                tal:repeat="step here/listStepMetadata"
+                tal:attributes="id step/id;
+                                handler step/handler;
+                                title step/title
+                               ">
+  <span tal:replace="step/description">DESCRIPTION</span>
+ </export-step>
+</export-steps>

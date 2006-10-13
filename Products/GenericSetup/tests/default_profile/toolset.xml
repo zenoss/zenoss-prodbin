@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<tool-setup>
+ <forbidden tool_id="doomed" />
+ <required tool_id="mandatory" class="path.to.one" />
+ <required tool_id="obligatory" class="path.to.another" />
+</tool-setup>

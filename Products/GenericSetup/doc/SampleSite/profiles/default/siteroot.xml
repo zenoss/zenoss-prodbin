@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<object name="siteroot" meta_type="Folder">
+ <property name="title">Sample Zope Site</property>
+ <object name="MailHost" meta_type="Mail Host"/>
+ <object name="ZCatalog" meta_type="ZCatalog"/>
+ <object name="bar" meta_type="Script (Python)"/>
+ <object name="foo" meta_type="Folder"/>
+ <object name="index_html" meta_type="Page Template"/>
+</object>

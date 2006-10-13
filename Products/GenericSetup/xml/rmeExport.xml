@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<rolemap xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <roles>
+    <role name="ROLENAME"
+          tal:repeat="role context/listRoles"
+          tal:attributes="name role"/>
+  </roles>
+  <permissions>
+    <permission name="PERMISSION NAME" acquire="True"
+                tal:repeat="info context/listPermissions"
+                tal:attributes="name info/name;
+                                acquire info/acquire;
+                               ">
+      <role name="ROLENAME"
+         tal:repeat="role info/roles"
+         tal:attributes="name role"/>
+    </permission>
+  </permissions>
+</rolemap>

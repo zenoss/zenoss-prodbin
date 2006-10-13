@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+
+  <adapter
+      factory=".exportimport.FolderXMLAdapter"
+      provides="Products.GenericSetup.interfaces.IBody"
+      for="OFS.interfaces.IFolder
+           Products.GenericSetup.interfaces.ISetupEnviron"
+      />
+
+</configure>

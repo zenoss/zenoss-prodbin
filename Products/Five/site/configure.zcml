@@ -1,0 +1,47 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser">
+
+  <!-- enough to bootstrap the machinery to lookup local services -->
+  <hook
+      module="zope.component"
+      name="getServices"
+      implementation="zope.app.component.hooks.getServices_hook"
+      />
+
+  <hook
+      module="zope.component"
+      name="adapter_hook"
+      implementation="zope.app.component.hooks.adapter_hook"
+      />
+
+  <adapter
+      for="*"
+      provides="zope.component.interfaces.IServiceService"
+      factory=".localsite.serviceServiceAdapter"
+      />
+
+  <adapter
+      for="zope.app.site.interfaces.ISite"
+      provides=".interfaces.IFiveUtilityService"
+      factory=".utility.SimpleLocalUtilityService"
+      />
+
+  <subscriber
+      for="zope.app.publication.interfaces.IBeforeTraverseEvent"
+      factory="zope.app.component.localservice.threadSiteSubscriber"
+      />
+
+  <subscriber
+      for="zope.app.publication.interfaces.IEndRequestEvent"
+      factory="zope.app.component.localservice.clearThreadSiteSubscriber"
+      />
+
+  <browser:page
+      for="zope.app.site.interfaces.IPossibleSite"
+      name="manage_site.html"
+      permission="five.ManageSite"
+      class=".browser.LocalSiteView"
+      template="managesite.pt"
+      />
+
+</configure>
