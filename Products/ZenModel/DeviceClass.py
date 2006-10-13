@@ -259,6 +259,7 @@ class DeviceClass(DeviceOrganizer):
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
             if not dev.monitorDevice(): continue
+            if getattr(dev, 'zWmiMonitorIgnore', False): continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             sev = getattr(dev, 'zWinEventlogMinSeverity', '')
@@ -276,6 +277,7 @@ class DeviceClass(DeviceOrganizer):
             svcs[s.name()] = (s.getStatus(), s.zFailSeverity)
         for dev in self.getSubDevices():
             if not dev.monitorDevice(): continue
+            if getattr(dev, 'zWmiMonitorIgnore', False): continue
             svcs = allsvcs.get(dev.getId(), {})
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
@@ -563,6 +565,7 @@ class DeviceClass(DeviceOrganizer):
         # Status monitor properites
         devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
         devs._setProperty("zPingMonitorIgnore", False, type="boolean")
+        devs._setProperty("zWmiMonitorIgoner", False, type="boolean")
         devs._setProperty("zXmlRpcMonitorIgnore", False, type="boolean")
 
         # DataCollector properties
