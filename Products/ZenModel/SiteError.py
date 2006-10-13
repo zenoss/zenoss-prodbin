@@ -14,6 +14,8 @@ $Id:$
 __version__ = "$Revision: $"[11:-2]
 
 import smtplib
+import re
+import cgi # for cgi.escape()
 
 class SiteError:
 
@@ -51,13 +53,22 @@ class SiteError:
         ''' Produce a summary of the given error details suitable for use
         in an error email (inHtml=false) or on a page (inHtml=true)
         '''
+        def StripTags(s):
+            ''' Strip html tags from string
+            '''
+            return re.sub('<[^>]*>', '', s)
+
         # If not inHtml then strip html tags from the errorTrace
         if inHtml:
             linebreak = '<br />\n'
+            contactName = cgi.escape(contactName)
+            contactEmail = cgi.escape(contactEmail)
+            comments = cgi.escape(comments)
         else:
             linebreak = '\n'
-            import re
-            errorTrace = re.sub('<[^>]*>', '', errorTrace)
+            errorType = StripTags(errorType)
+            errorValue = StripTags(errorValue)
+            errorTrace = StripTags(errorTrace)
             errorTrace = re.sub('\r\n\r\n', '\r\n', errorTrace)
         msg = linebreak.join(['Type: %s' % errorType,
                                 'Value: %s' % errorValue,

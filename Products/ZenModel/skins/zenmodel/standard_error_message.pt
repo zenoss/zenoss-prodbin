@@ -1,4 +1,5 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block tal:condition="python: options['error_type'] != 'NotFound'">
+<tal:block metal:use-macro="root/zport/dmd/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
 <span tal:condition="exists:error_message" tal:content="error_message"></span>
@@ -48,3 +49,108 @@
 
 </tal:block>
 </tal:block>
+</tal:block>
+
+<tal:block tal:condition="python: options['error_type'] == 'NotFound'">
+
+    
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+<base href="/zport/dmd/ZenUsers/jason/test1/" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Zenoss: dmd</title>
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenoss.css">
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenevents.css">
+    <!--[if IE]>
+        <link rel="stylesheet" type="text/css" title="zenoss"
+            href="/zport/portal_skins/zenoss_ie.css" >
+    <![endif]-->
+    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" src="/zport/portal_skins/zenmodelfuncs.js"></script>
+    
+</head>
+	<body>
+	   <div id="frame">
+            <table id="topPane" cellpadding="0"
+                   cellspacing="0" border="0">
+    <tr>
+    <td class="logo" width="220px">
+        <img src="logo.gif" alt="Zenoss">
+    </td>
+    <td class="search">
+    <form action="/zport/dmd/deviceSearchResults" method="POST">
+        <input type="text" name="query" size="15" value="" />
+        <input type="submit" name="submit" value="Search" />
+    </form> 
+    </td>
+    <td id="settings">
+        <span>admin</span>
+        | <a href="/zport/dmd/ZenUsers/admin">
+        Settings</a>
+        | <a href="/zport/dmd/logoutUser">Log Out</a>
+    </td>
+    </tr>
+</table>
+            <div id="leftPane">
+
+    <p>Main Views</p>
+    <ul>
+        <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
+        <li><a href="/zport/dmd/Events">Events</a></li>
+        <li><a href="/zport/dmd/Devices">Devices</a></li>
+        <li><a href="/zport/dmd/Services">Services</a></li>
+        <li><a href="/zport/dmd/Processes">Processes</a></li>
+        <li><a href="/zport/dmd/Networks">Networks</a></li>
+        <li><a href="/zport/dmd/Manufacturers">Manufacturers</a></li>
+        <li><a href="/zport/dmd/Mibs">Mibs</a></li>
+    </ul>
+
+    <p>Browse By</p>
+    <ul>
+        <li><a href="/zport/dmd/Systems">Systems</a></li>
+        <li><a href="/zport/dmd/Groups">Groups</a></li>
+        <li><a href="/zport/dmd/Locations">Locations</a></li>
+        <li><a href="/zport/dmd/Reports">Reports</a></li>
+    </ul>
+
+
+    
+    <p>Management</p>
+    <ul>
+        <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
+        <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
+        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
+        <li><a href="/zport/dmd/ZenEventManager">Live Events</a></li>
+        <li><a href="/zport/dmd/ZenEventHistory">History Events</a></li>
+        <li><a href="/zport/dmd/About">About</a></li>
+    </ul>
+    
+
+
+</div>
+	        <div id="rightPane">
+                
+            <div id="breadCrumbPane">
+    
+</div>
+            <div id="contentPane">
+                
+
+<h2>Site error</h2>
+<p>An error was encountered while publishing this resource.  The requested
+resource does not exist.
+</p>
+<p>For more detailed information about the error, please refer to error log.
+</p>
+            </div>
+        
+            </div>
+       </div>
+    </body>
+</html>
+
+</tal:block>
+
