@@ -22,5 +22,10 @@ class Commands(Migrate.Step):
                     os.path.join(os.environ['ZENHOME'], 'libexec'))
         self.update(dmd, "zNagiosCycleTime", "zCommandCycleTime",
                     60, type='int')
+        c = dmd.ZenEventManager.connect()
+        s = c.cursor()
+        for name in 'zenagios', 'zencacti':
+            s.execute(s, 'DELETE FROM heartbeat where component = "%s"' % name)
+        
 
 Commands()
