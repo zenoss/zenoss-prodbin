@@ -33,7 +33,7 @@ class CollectorPlugin:
         with "_".  If id then starts with "_" it is removed.
         """
         id = self._prepId("_", id)
-        if id.startswith("_"):
+        while id.startswith("_"):
             if len(id) > 1: id = id[1:]
             else: id = "-"
         id = self._cleanend("",id)
