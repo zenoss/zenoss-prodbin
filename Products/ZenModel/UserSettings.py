@@ -354,6 +354,8 @@ class UserSettings(ZenModelRM):
                 return
 
         # get the necessary plugins
+        # XXX these plugins need to be reviewed when new authentication plugins
+        # are added
         userPlugins = [ self.acl_users.plugins.listPlugins(x)[0][1]
             for x in [interfaces.plugins.IUserAdderPlugin] ]
 

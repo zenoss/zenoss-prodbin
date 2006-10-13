@@ -24,11 +24,9 @@ import Migrate
 # XXX
 # This is a hack-workaround for PAS until their login form becomes something
 # users can easily update
-# 
-# We need this here so that when Zenoss' Zope is restarted, any changes to the
-# file are loaded into the CookieAuthHelper instance.
 from AccessControl.Permissions import view
 from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
+from Products import ZenModel
 
 def refreshLoginForm(context, instanceName='cookieAuthHelper'):
     '''
@@ -42,7 +40,7 @@ def refreshLoginForm(context, instanceName='cookieAuthHelper'):
     objId = 'login_form'
 
     # let's get the data from the file
-    filename = os.path.join(os.path.dirname(__file__), 'skins', 'zenmodel',
+    filename = os.path.join(ZenModel.__path__[0], 'skins', 'zenmodel',
         '%s.pt' % objId)
     html = open(filename).read()
     # if there is no difference between the file and the object, our job is
@@ -97,6 +95,10 @@ class MigrateToPAS(Migrate.Step):
             acl, 'basicAuthHelper')
         plugins.ZODBRoleManager.addZODBRoleManager(acl, 'roleManager')
         plugins.ZODBUserManager.addZODBUserManager(acl, 'userManager')
+        plugins.RequestTypeSniffer.addRequestTypeSnifferPlugin(
+            acl, 'requestTypeSniffer')
+        plugins.ChallengeProtocolChooser.addChallengeProtocolChooserPlugin(
+            acl, 'protocolChooser')
 
         # activate the plugins for the interfaces each will be responsible for;
         # note that we are only enabling CookieAuth for the Zenoss portal
@@ -104,16 +106,26 @@ class MigrateToPAS(Migrate.Step):
         physPath = '/'.join(context.getPhysicalPath())
         if physPath == '':
             interfaces = ['IExtractionPlugin']
-            acl.basicAuthHelper.manage_activateInterfaces(['IExtractionPlugin',
-                'IChallengePlugin', 'ICredentialsResetPlugin']
         elif physPath == '/zport':
-            interfaces = ['IExtractionPlugin', 'IChallengePlugin',
-                'ICredentialsUpdatePlugin', 'ICredentialsResetPlugin']
+            interfaces = ['IExtractionPlugin', 'ICredentialsUpdatePlugin',
+                'ICredentialsResetPlugin']
+        acl.basicAuthHelper.manage_activateInterfaces(['IExtractionPlugin',
+            'IChallengePlugin', 'ICredentialsResetPlugin'])
         acl.cookieAuthHelper.manage_activateInterfaces(interfaces)
         acl.roleManager.manage_activateInterfaces(['IRolesPlugin',
             'IRoleEnumerationPlugin', 'IRoleAssignerPlugin'])
         acl.userManager.manage_activateInterfaces(['IAuthenticationPlugin',
             'IUserEnumerationPlugin', 'IUserAdderPlugin'])
+        acl.protocolChooser.manage_activateInterfaces([
+            'IChallengeProtocolChooser'])
+
+        # set up non-Browser protocols to use HTTP BasicAuth
+        protocolMapping = {
+            'FTP': 'http',
+            'WebDAV': 'http',
+            'XML-RPC': 'http',
+        }
+        acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
 
         # migrate the old user information over to the PAS
         for u in orig.getUsers():
