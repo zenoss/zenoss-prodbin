@@ -13,6 +13,7 @@ __version__ = "$Revision: 1.76 $"[11:-2]
 import os
 import types
 import time
+import urllib
 from sets import Set
 from glob import glob
 import transaction
@@ -306,7 +307,7 @@ class DeviceClass(DeviceOrganizer):
         if ips:
             names += ips
         if len(names) == 1:
-            raise Redirect(names[0].getPrimaryId)
+            raise Redirect(urllib.quote(names[0].getPrimaryId))
         return self._convertResultsToObj(names)
    
 
