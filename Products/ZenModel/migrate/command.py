@@ -25,7 +25,7 @@ class Commands(Migrate.Step):
         c = dmd.ZenEventManager.connect()
         s = c.cursor()
         for name in 'zenagios', 'zencacti':
-            s.execute(s, 'DELETE FROM heartbeat where component = "%s"' % name)
+            s.execute('DELETE FROM heartbeat where component = "%s"' % name)
         
 
 Commands()
