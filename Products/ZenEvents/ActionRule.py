@@ -155,10 +155,15 @@ class ActionRule(ZenModelRM):
             return self.email
 
 
+    def getUser(self):
+        """Return the user this action is for.
+        """
+        return self.getPrimaryParent()
+
     def getUserid(self):
         """Return the userid this action is for.
         """
-        return self.getPrimaryParent().getId()
+        return self.getUser().getId()
 
     
     def genMeta(self):
