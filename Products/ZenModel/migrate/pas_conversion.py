@@ -55,6 +55,8 @@ class MigrateToPAS(Migrate.Step):
         physPath = '/'.join(context.getPhysicalPath())
         if physPath == '':
             interfaces = ['IExtractionPlugin']
+            acl.basicAuthHelper.manage_activateInterfaces(['IExtractionPlugin',
+                'IChallengePlugin', 'ICredentialsResetPlugin']
         elif physPath == '/zport':
             interfaces = ['IExtractionPlugin', 'IChallengePlugin',
                 'ICredentialsUpdatePlugin', 'ICredentialsResetPlugin']
