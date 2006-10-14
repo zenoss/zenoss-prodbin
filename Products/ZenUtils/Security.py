@@ -145,4 +145,4 @@ def replaceACLWithPAS(context, deleteBackup=False):
 
     # delete backup?
     if deleteBackup:
-        context.delObject(backupId)
+        context._delObject(backupId)
