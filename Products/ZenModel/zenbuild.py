@@ -77,7 +77,7 @@ class zenbuild(CmdBase):
 
         # Convert the acl_users folder at the root to a PAS folder and update
         # the login form to use the Zenoss login form
-        Security.replaceACLWithPAS(self.app)
+        Security.createPASFolder(self.app)
         Security.refreshLoginForm(self.app.acl_users)
 
         # Finish up

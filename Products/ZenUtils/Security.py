@@ -120,7 +120,6 @@ def replaceACLWithPAS(context):
     # set up some convenience vars
     orig = getattr(context, backupId).acl_users
     acl = context.acl_users
-    dmd = context.getPhysicalRoot().zport.dmd
 
     # migrate the old user information over to the PAS
     for u in orig.getUsers():
@@ -129,4 +128,9 @@ def replaceACLWithPAS(context):
         for role in roles:
             acl.roleManager.assignRoleToPrincipal(role, user)
         # initialize UserSettings for each user
-        dmd.ZenUsers.getUserSettings(user)
+        try:
+            dmd = context.getPhysicalRoot().zport.dmd
+            dmd.ZenUsers.getUserSettings(user)
+        except AttributeError:
+            # no dmd, or no ZenUsers
+            pass
