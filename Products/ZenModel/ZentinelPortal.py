@@ -22,7 +22,7 @@ from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
 
-
+from Products.ZenUtils import Search
 
 
 class ZentinelPortal ( PortalObjectBase ):
