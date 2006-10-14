@@ -96,9 +96,13 @@ class PortalGenerator:
 
 
     def setupRoles(self, p):
+        # XXX I don't think we need this anymore... PAS/ZenUtils.Security is
+        # handling this
+        #
         # Set up the suggested roles.
         #p.getPhysicalRoot().__ac_roles__ += ('ZenUser', 'ZenMonitor',)
-        p.__ac_roles__ += ('ZenUser', 'ZenMonitor',)
+        #p.__ac_roles__ += ('ZenUser', 'ZenMonitor',)
+        pass
 
 
     def setupPermissions(self, p):
@@ -143,11 +147,12 @@ class PortalGenerator:
 
 
     def setup(self, p, create_userfolder):
-        if create_userfolder: self.setupUserFolder(p)
+        if create_userfolder:
+            self.setupUserFolder(p)
         #self.setupCookieAuth(p)
         self.setupTools(p)
         self.setupMailHost(p)
-        self.setupRoles(p)
+        #self.setupRoles(p)
         self.setupPermissions(p)
         self.setupDefaultSkins(p)
         self.setupSessionManager(p)

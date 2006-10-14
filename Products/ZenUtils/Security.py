@@ -6,17 +6,19 @@ from OFS.Folder import Folder
 from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import PluggableAuthService
 
+from Products import ZenModel
+
+ZENOSS_ROLES = ['ZenUser', 'ZenMonitor']
+
 # XXX
 # This is a hack-workaround for PAS until their login form becomes something
 # users can easily update
-from AccessControl.Permissions import view
-from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
-from Products import ZenModel
-
 def refreshLoginForm(context, instanceName='cookieAuthHelper'):
     '''
     'context' should be an acl_users PAS instance.
     '''
+    from AccessControl.Permissions import view
+    from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
     try:
         helper = getattr(context, instanceName)
     except AttributeError:
@@ -99,8 +101,14 @@ def createPASFolder(context):
         'IRoleEnumerationPlugin', 'IRoleAssignerPlugin'])
     acl.userManager.manage_activateInterfaces(['IAuthenticationPlugin',
         'IUserEnumerationPlugin', 'IUserAdderPlugin'])
+    acl.requestTypeSniffer.manage_activateInterfaces([
+        'IRequestTypeSniffer'])
     acl.protocolChooser.manage_activateInterfaces([
         'IChallengeProtocolChooser'])
+
+    # setup roles
+    for role in ZENOSS_ROLES:
+        acl.roleManager.addRole(role)
 
     # set up non-Browser protocols to use HTTP BasicAuth
     protocolMapping = {
@@ -110,7 +118,7 @@ def createPASFolder(context):
     }
     acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
 
-def replaceACLWithPAS(context):
+def replaceACLWithPAS(context, deleteBackup=False):
     # archive the old "User Folder"
     backupId = backupACLUserFolder(context)
 
@@ -134,3 +142,7 @@ def replaceACLWithPAS(context):
         except AttributeError:
             # no dmd, or no ZenUsers
             pass
+
+    # delete backup?
+    if deleteBackup:
+        context.delObject(backupId)
