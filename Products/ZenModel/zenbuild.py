@@ -26,6 +26,7 @@ zenhome = os.environ['ZENHOME']
 
 import Globals
 
+from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 
 class zenbuild(CmdBase):
@@ -63,16 +64,23 @@ class zenbuild(CmdBase):
             trans.commit()
             print "ZentinelPortal loaded at %s" % self.sitename
 
-    	# Remove index_html and replace with a python script that will
-    	# redirect to /zport/dmd/
-    	trans = transaction.get()
+        # Remove index_html and replace with a python script that will
+        # redirect to /zport/dmd/
+        trans = transaction.get()
         if self.app.hasObject('index_html'):
             self.app._delObject('index_html')
-    	from Products.PythonScripts.PythonScript import manage_addPythonScript
-    	manage_addPythonScript(self.app, 'index_html')
-    	newIndexHtml = self.app._getOb('index_html')
-    	text = 'container.REQUEST.RESPONSE.redirect("/zport/dmd/")\n'
-    	newIndexHtml.ZPythonScript_edit('', text)
+        from Products.PythonScripts.PythonScript import manage_addPythonScript
+        manage_addPythonScript(self.app, 'index_html')
+        newIndexHtml = self.app._getOb('index_html')
+        text = 'container.REQUEST.RESPONSE.redirect("/zport/dmd/")\n'
+        newIndexHtml.ZPythonScript_edit('', text)
+
+        # Convert the acl_users folder at the root to a PAS folder and update
+        # the login form to use the Zenoss login form
+        replaceACLWithPAS(self.app)
+        refreshLoginForm(self.app.acl_users)
+
+        # Finish up
         trans.commit()
 
         # build dmd

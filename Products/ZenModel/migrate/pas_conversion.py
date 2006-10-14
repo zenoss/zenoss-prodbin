@@ -21,7 +21,6 @@ import Migrate
 class MigrateToPAS(Migrate.Step):
     version = 23.0
 
-
     def cutover(self, dmd):
         newModule = 'Products.PluggableAuthService.PluggableAuthService'
         app = dmd.getPhysicalRoot()

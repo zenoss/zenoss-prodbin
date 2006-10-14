@@ -1,5 +1,5 @@
 import os
-import random
+from random import random
 from datetime import datetime
 
 from OFS.Folder import Folder
@@ -55,22 +55,22 @@ def updateACLUsersLoginForms():
     for context in [app.acl_users, zport.acl_users]:
         refreshLoginForm(context)
 
-def replaceACLWithPAS(context):
-    # archive the old "User Folder"
+def backupACLUserFolder(context):
     timestamp = datetime.now().strftime('%Y.%d.%m-%H%M%S')
-    backupFolder = Folder('backup_acl_users_%s' % timestamp)
+    randomBit = int(random() * 10000)
+    backupFolderName = 'backup_acl_users_%s-%d' % (timestamp, randomBit)
+    backupFolder = Folder(backupFolderName)
     backupFolder._setObject('acl_users', context.acl_users)
     context._setObject(backupFolder.getId(), backupFolder)
     context._delObject('acl_users')
+    return backupFolderName
 
-    # create a new PAS acl_users
+def createPASFolder(context):
     PluggableAuthService.addPluggableAuthService(context)
     context.acl_users.title = 'PAS'
 
     # set up some convenience vars
-    orig = context.backup_acl_users.acl_users
     acl = context.acl_users
-    dmd = context.getPhysicalRoot().zport.dmd
 
     # setup the plugins we will need
     plugins.CookieAuthHelper.addCookieAuthHelper(acl, 'cookieAuthHelper')
@@ -109,6 +109,18 @@ def replaceACLWithPAS(context):
         'XML-RPC': 'http',
     }
     acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
+
+def replaceACLWithPAS(context):
+    # archive the old "User Folder"
+    backupId = backupACLUserFolder(context)
+
+    # create a new PAS acl_users
+    createPASFolder(context)
+
+    # set up some convenience vars
+    orig = getattr(context, backupId).acl_users
+    acl = context.acl_users
+    dmd = context.getPhysicalRoot().zport.dmd
 
     # migrate the old user information over to the PAS
     for u in orig.getUsers():

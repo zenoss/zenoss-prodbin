@@ -85,12 +85,14 @@ class PortalGenerator:
 
 
     def setupUserFolder(self, p):
-        p.manage_addProduct['OFSP'].manage_addUserFolder()
-
+        #p.manage_addProduct['OFSP'].manage_addUserFolder()
+        Security.createPASFolder(p)
 
     def setupCookieAuth(self, p):
-        p.manage_addProduct['CMFCore'].manage_addCC(
-            id='cookie_authentication')
+        # XXX PAS is handling this now, right?
+        #p.manage_addProduct['CMFCore'].manage_addCC(
+        #    id='cookie_authentication')
+        pass
 
 
     def setupRoles(self, p):
