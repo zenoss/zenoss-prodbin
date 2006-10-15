@@ -98,7 +98,7 @@ True
 False
 </property>
 <property visible='True' type='string' id='zCommandPath' >
-/usr/local/nagios/libexec
+/usr/local/zenoss/libexec
 </property>
 <property visible='True' type='date' id='cDateTest' >
 1900/01/01
