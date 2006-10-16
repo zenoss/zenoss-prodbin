@@ -52,12 +52,19 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     #setTitle = DTMLFile('dtml/setTitle',globals())
 
+    uuid = None
+    availableVersion = None
+    lastVersionCheck = 0
+
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
         {'id':'prodStateConversions','type':'lines','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
         {'id':'interfaceStateConversions','type':'lines','mode':'w'},
         {'id':'administrativeRoles','type':'lines','mode':'w'},
+        {'id':'uuid', 'type': 'string', 'mode':'w'},
+        {'id':'availableVersion', 'type': 'string', 'mode':'w'},
+        {'id':'lastVersion"Check', 'type': 'long', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)

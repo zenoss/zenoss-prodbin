@@ -17,15 +17,37 @@
 <table class="zentable" cellpadding="3" cellspacing="1">
     <thead>
         <tr>
-            <th class="tabletitle" colspan="2">
+            <th class="tabletitle" colspan="3">
                 Software Component Versions
             </th>
         </tr>
     </thead>
     <tbody>
-        <tr tal:repeat="version here/getAllVersions">
-            <th class="tableheader" tal:content="version/header" />
-            <td class="tablevalues" tal:content="version/data" />
+        <tr tal:repeat="version here/getAllVersions" >
+            <span tal:define="iszenoss python:version['header']=='Zenoss'">
+                <th class="tableheader" tal:content="version/header" />
+                <span tal:condition="iszenoss">
+                    <td class="tablevalues">
+                        <span tal:content="version/data"/>
+                        <span tal:condition='here/versionBehind' 
+                              tal:content="string:(${here/dmd/availableVersion} available!)" 
+                              style="background-color: #F00"/>
+                    </td>
+                    <td class="tablevalues">
+                        <form tal:attributes="action string:${here/absolute_url_path}" 
+                              method="POST">
+                           <input type="hidden" name="zenScreenName" 
+                               tal:attributes="value template/id" /> 
+                           <input type="submit" 
+                                  name="manage_checkVersion:method" 
+                                  value="Check Zenoss Version"/>
+                        </form>
+                    </td>
+                </span>
+                <span tal:condition="not:iszenoss">
+                    <td class="tablevalues" tal:content="version/data" colspan='2'/>
+                </span>
+            </span>
         </tr>
     </tbody>
 </table>

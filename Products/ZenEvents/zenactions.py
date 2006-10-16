@@ -28,6 +28,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 from Schedule import Schedule
+from UpdateCheck import UpdateCheck
 
 from twisted.internet import reactor
 
@@ -75,6 +76,7 @@ class ZenActions(ZCmdBase):
         self.loadActionRules()
         if not self.options.fromaddr:
             self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
+        self.updateCheck = UpdateCheck()
         self.sendEvent(Event.Event(device=socket.getfqdn(), 
                         eventClass=AppStart, 
                         summary="zenactions started",
@@ -132,6 +134,11 @@ class ZenActions(ZCmdBase):
                 if self.lastCommand:
                     self.log.warning(self.lastCommand)
                 self.log.exception("action:%s",ar.getId())
+
+    def checkVersion(self, db, zem):
+        import pdb
+        pdb.set_trace()
+        self.updateCheck.check(db, zem)
 
     def processActionRule(self, db, zem, ar):
         fields = ar.getEventFields()
@@ -229,6 +236,7 @@ class ZenActions(ZCmdBase):
         zem = self.dmd.ZenEventManager
         db = zem.connect()
         self.processRules(db, zem)
+        self.checkVersion(self.dmd, zem)
         self.maintenance(db, zem)
         self.heartbeatEvents(db)
         db.close()

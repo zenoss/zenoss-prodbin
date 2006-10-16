@@ -26,7 +26,7 @@ class SendEvent(object):
 
         agent - is the management collection system that the event came through
 
-        Other potential feilds are:
+        Other potential fields are:
 
         """
         event = {}

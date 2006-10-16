@@ -11,6 +11,8 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenModel.version import Current
 
+from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
+
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
     Provide an instance of ZenossInfo for the portal.
@@ -170,6 +172,20 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         if action == 'stop': time.sleep(2)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
-        
+
+    def manage_checkVersion(self, REQUEST):
+        "Check for Zenoss updates on the Zenoss website"
+        uc = UpdateCheck()
+        uc.check(self.dmd, self.dmd.ZenEventManager, manual=True)
+        return self.callZenScreen(REQUEST)
+    security.declareProtected('Manage DMD','manage_checkVersion')
+
+    def versionBehind(self):
+        if self.dmd.availableVersion is None:
+            return False
+        if parseVersion(self.dmd.availableVersion) > Current.zenoss:
+            return True
+        return False
+
     
 InitializeClass(ZenossInfo)

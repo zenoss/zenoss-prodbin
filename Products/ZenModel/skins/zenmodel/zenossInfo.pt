@@ -26,7 +26,7 @@
             <td class="tablevalues"
                 tal:define="name daemon/buttons/button1">
                 <form method="post"
-                    tal:attributes="action url">
+                    tal:attributes="action url" >
                 <input type="hidden" name="action" tal:attributes="
                     value name" />
                 <input type="hidden" name="daemon" tal:attributes="

@@ -182,6 +182,8 @@ class Version(object):
         Version object represents a verion of the same product with the same
         name but a different version number.
         """
+        if other is None:
+            return 1
         if isinstance(other, tuple):
             version = '.'.join([ str(x) for x in other ])
             other = Version.parse("%s %s" % (self.name, version))
@@ -189,19 +191,7 @@ class Version(object):
             other = Version.parse("%s %s" % (self.name, str(other)))
         if self.name != other.name:
             raise IncomparableVersions()
-        if not self.revision:
-            if other.revision:
-                raise IncomparableVersions()
-            comparison = cmp(
-                (self.major, self.minor, self.micro),
-                (other.major, other.minor, other.micro))
-        else:
-            if not other.revision:
-                raise IncomparableVersions()
-            comparison = cmp(
-                (self.major, self.minor, self.micro, self.revision),
-                (other.major, other.minor, other.micro, other.revision))
-        return comparison
+        return cmp(self.tuple(), other.tuple())
 
     def _getSVNRevisionFor13(self):
         """
