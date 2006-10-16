@@ -136,8 +136,6 @@ class ZenActions(ZCmdBase):
                 self.log.exception("action:%s",ar.getId())
 
     def checkVersion(self, db, zem):
-        import pdb
-        pdb.set_trace()
         self.updateCheck.check(db, zem)
 
     def processActionRule(self, db, zem, ar):
