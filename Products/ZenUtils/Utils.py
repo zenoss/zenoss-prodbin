@@ -164,7 +164,7 @@ def importClass(modulePath, classname=""):
 def cleanstring(value):
     """take the trailing \x00 off the end of a string"""
     if type(value) in types.StringTypes:
-        value = value.rstrip('\0')
+        value = value.split('\0')[0]
     return value
 
 
