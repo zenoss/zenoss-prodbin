@@ -603,7 +603,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
         
-        devs._setProperty("zCommandPath", "/usr/local/nagios/libexec")
+        devs._setProperty("zCommandPath", "/usr/local/zenoss/libexec")
 
 
 InitializeClass(DeviceClass)

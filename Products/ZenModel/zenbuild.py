@@ -76,11 +76,11 @@ class zenbuild(CmdBase):
 
         # Convert the acl_users folder at the root to a PAS folder and update
         # the login form to use the Zenoss login form
-        Security.replaceACLWithPAS(self.app, deleteBackup=True)
-        Security.refreshLoginForm(self.app.acl_users)
+        #Security.replaceACLWithPAS(self.app, deleteBackup=True)
+        #Security.refreshLoginForm(self.app.acl_users)
 
         # Finish up
-        trans.commit()
+        #trans.commit()
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
