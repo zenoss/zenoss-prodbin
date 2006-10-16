@@ -38,3 +38,4 @@ import ar_schedule
 import advanced_query
 import wmiignore
 import pas_conversion
+import indexhtml
