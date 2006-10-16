@@ -165,7 +165,7 @@ def setupRoleManager(context):
         try:
             acl.roleManager.addRole(role)
         except KeyError:
-            # it's already been added
+            # that role already exists
             pass
 
 def setupUserManager(context):

@@ -87,6 +87,7 @@ class PortalGenerator:
     def setupUserFolder(self, p):
         #p.manage_addProduct['OFSP'].manage_addUserFolder()
         Security.createPASFolder(p)
+        Security.setupPASFolder(p)
 
     def setupCookieAuth(self, p):
         # XXX PAS is handling this now, right?
