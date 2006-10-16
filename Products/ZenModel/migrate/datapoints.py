@@ -89,7 +89,10 @@ class DataPoints(Migrate.Step):
             self.cutoverTemplate(t, obj.rrdPath())
 
     def cutoverCommands(self, obj):
-        sourceTemplate = obj.getNagiosTemplate()
+        try:
+            sourceTemplate = obj.getNagiosTemplate()
+        except AttributeError:
+            return
         destTemplate = obj.getRRDTemplate(obj.getRRDTemplateName())
         for n in sourceTemplate.nagiosCmds():
             try:
