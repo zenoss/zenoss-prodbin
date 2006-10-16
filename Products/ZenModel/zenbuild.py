@@ -54,18 +54,15 @@ class zenbuild(CmdBase):
 
     def build(self):
         site = getattr(self.app, self.sitename, None)
-        if not site:
-            from Products.ZenModel.ZentinelPortal import \
-                manage_addZentinelPortal
-            manage_addZentinelPortal(self.app, self.sitename)
-            site = self.app._getOb(self.sitename)
-            trans = transaction.get()
-            trans.note("Initial ZentinelPortal load by zenbuild.py")
-            trans.commit()
-            print "ZentinelPortal loaded at %s" % self.sitename
+        if site is not None: 
+            print "zport portal object exits exiting."
+            return
+        
+        from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
+        manage_addZentinelPortal(self.app, self.sitename)
+        site = self.app._getOb(self.sitename)
 
         # build index_html
-        trans = transaction.get()
         if self.app.hasObject('index_html'):
             self.app._delObject('index_html')
         from Products.PythonScripts.PythonScript import manage_addPythonScript
@@ -79,23 +76,15 @@ class zenbuild(CmdBase):
         Security.replaceACLWithPAS(self.app, deleteBackup=True)
         Security.refreshLoginForm(self.app.acl_users)
 
-        # Finish up
-        #trans.commit()
+        trans = transaction.get()
+        trans.note("Initial ZentinelPortal load by zenbuild.py")
+        trans.commit()
+        print "ZentinelPortal loaded at %s" % self.sitename
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
         dmdBuilder = DmdBuilder(site,self.options.evtuser,self.options.evtpass)
         dmdBuilder.build()
-
-        # Load RRD Data
-        #from Products.ZenRRD.RRDLoader import RRDLoader
-        #rrdloader = RRDLoader(noopts=True, app=self.app) 
-        #rrdloader.loadDatabase()
-        
-        # Load IpService data
-        #from Products.ZenModel.IpServiceLoader import IpServiceLoader
-        #ipsvcloader = IpServiceLoader(noopts=True, app=self.app) 
-        #ipsvcloader.loadDatabase()
 
         # Load reports
         from Products.ZenModel.ReportLoader import ReportLoader
