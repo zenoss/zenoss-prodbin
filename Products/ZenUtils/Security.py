@@ -253,7 +253,3 @@ def migratePAS(context):
         # the next function calls all the setup functions, each of which do an
         # attriibute check and installs anything that's missing
         setupPASFolder(context)
-
-        # XXX
-        from transaction import commit
-        commit()
