@@ -1,15 +1,24 @@
 import os
 from random import random
 from datetime import datetime
+try:
+    set
+except NameError:
+    from sets import Set as set
 
 from OFS.Folder import Folder
 from Products.PluggableAuthService import plugins
+from Products.PluggableAuthService import interfaces
 from Products.PluggableAuthService import PluggableAuthService
 
 from Products import ZenModel
 
 ZENOSS_ROLES = ['ZenUser', 'ZenMonitor']
-
+PROTOCOL_MAPPING = {
+    'FTP': 'http',
+    'WebDAV': 'http',
+    'XML-RPC': 'http',
+}
 # XXX
 # This is a hack-workaround for PAS until their login form becomes something
 # users can easily update
@@ -67,25 +76,65 @@ def backupACLUserFolder(context):
     context._delObject('acl_users')
     return backupFolderName
 
+def _createInitialUser(self):
+    """
+    Note: copied and adapted from AccessControl.User.BasicUser
+
+    If there are no users or only one user in this user folder,
+    populates from the 'inituser' file in the instance home.
+    We have to do this even when there is already a user
+    just in case the initial user ignored the setup messages.
+    We don't do it for more than one user to avoid
+    abuse of this mechanism.
+    Called only by OFS.Application.initialize().
+    """
+    from AccessControl.User import readUserAccessFile
+
+    plugins = self.plugins.listPlugins(
+        interfaces.plugins.IUserEnumerationPlugin)
+    userCounts = [ len(plugin.listUserInfo()) for id, plugin in plugins ]
+
+    if len(userCounts) <= 1:
+        info = readUserAccessFile('inituser')
+        if info:
+            import App.config
+            name, password, domains, remote_user_mode = info
+            userManagers = self.plugins.listPlugins(interfaces.plugins.IUserAdderPlugin)
+            roleManagers = self.plugins.listPlugins(interfaces.plugins.IRolesPlugin)
+            for pluginId, userPlugin in userManagers:
+                # delete user
+                try:
+                    userPlugin.removeUser(name)
+                except KeyError:
+                    # user doesn't exist
+                    pass
+                # recreate user
+                userPlugin.doAddUser(name, password)
+                # add role
+                for pluginId, rolePlugin in roleManagers:
+                    rolePlugin.assignRoleToPrincipal('Manager', name)
+            cfg = App.config.getConfiguration()
+            # now that we've loaded from inituser, let's delete the file
+            try:
+                os.remove(os.path.join(cfg.instancehome, 'inituser'))
+            except:
+                pass
+
 def createPASFolder(context):
+    # check to see if we need to monkey patch PAS to accomodate inituser files
+    pas = PluggableAuthService.PluggableAuthService
+    if not hasattr(pas, '_createInitialUser'):
+        pas._createInitialUser =  _createInitialUser
+
+    # create new PAS
     PluggableAuthService.addPluggableAuthService(context)
     context.acl_users.title = 'PAS'
 
-    # set up some convenience vars
+def setupCookieHelper(context):
     acl = context.acl_users
-
-    # setup the plugins we will need
-    plugins.CookieAuthHelper.addCookieAuthHelper(acl, 'cookieAuthHelper')
-    plugins.HTTPBasicAuthHelper.addHTTPBasicAuthHelper(
-        acl, 'basicAuthHelper')
-    plugins.ZODBRoleManager.addZODBRoleManager(acl, 'roleManager')
-    plugins.ZODBUserManager.addZODBUserManager(acl, 'userManager')
-    plugins.RequestTypeSniffer.addRequestTypeSnifferPlugin(
-        acl, 'requestTypeSniffer')
-    plugins.ChallengeProtocolChooser.addChallengeProtocolChooserPlugin(
-        acl, 'protocolChooser')
-
-    # activate the plugins for the interfaces each will be responsible for;
+    id = 'cookieAuthHelper'
+    if not hasattr(acl, id):
+        plugins.CookieAuthHelper.addCookieAuthHelper(acl, id)
     # note that we are only enabling CookieAuth for the Zenoss portal
     # acl_users, not for the root acl_users.
     physPath = '/'.join(context.getPhysicalPath())
@@ -94,29 +143,65 @@ def createPASFolder(context):
     elif physPath == '/zport':
         interfaces = ['IExtractionPlugin', 'ICredentialsUpdatePlugin',
             'ICredentialsResetPlugin']
+    acl.cookieAuthHelper.manage_activateInterfaces(interfaces)
+
+def setupBasciAuthHelper(context):
+    acl = context.acl_users
+    id = 'basicAuthHelper'
+    if not hasattr(acl, id):
+        plugins.HTTPBasicAuthHelper.addHTTPBasicAuthHelper(acl, id)
     acl.basicAuthHelper.manage_activateInterfaces(['IExtractionPlugin',
         'IChallengePlugin', 'ICredentialsResetPlugin'])
-    acl.cookieAuthHelper.manage_activateInterfaces(interfaces)
+
+def setupRoleManager(context):
+    acl = context.acl_users
+    id = 'roleManager'
+    if not hasattr(acl, id):
+        plugins.ZODBRoleManager.addZODBRoleManager(acl, id)
     acl.roleManager.manage_activateInterfaces(['IRolesPlugin',
         'IRoleEnumerationPlugin', 'IRoleAssignerPlugin'])
-    acl.userManager.manage_activateInterfaces(['IAuthenticationPlugin',
-        'IUserEnumerationPlugin', 'IUserAdderPlugin'])
-    acl.requestTypeSniffer.manage_activateInterfaces([
-        'IRequestTypeSniffer'])
-    acl.protocolChooser.manage_activateInterfaces([
-        'IChallengeProtocolChooser'])
-
     # setup roles
     for role in ZENOSS_ROLES:
-        acl.roleManager.addRole(role)
+        try:
+            acl.roleManager.addRole(role)
+        except KeyError:
+            # it's already been added
+            pass
 
+def setupUserManager(context):
+    acl = context.acl_users
+    id = 'userManager'
+    if not hasattr(acl, id):
+        plugins.ZODBUserManager.addZODBUserManager(acl, id)
+    acl.userManager.manage_activateInterfaces(['IAuthenticationPlugin',
+        'IUserEnumerationPlugin', 'IUserAdderPlugin'])
+
+def setupTypeSniffer(context):
+    acl = context.acl_users
+    id = 'requestTypeSniffer'
+    if not hasattr(acl, id):
+        plugins.RequestTypeSniffer.addRequestTypeSnifferPlugin(acl, id)
+    acl.requestTypeSniffer.manage_activateInterfaces(['IRequestTypeSniffer'])
+
+def setupProtocolChooser(context):
+    acl = context.acl_users
+    id = 'protocolChooser'
+    if not hasattr(acl, id):
+        plugins.ChallengeProtocolChooser.addChallengeProtocolChooserPlugin(acl,
+            id)
+    acl.protocolChooser.manage_activateInterfaces([
+        'IChallengeProtocolChooser'])
     # set up non-Browser protocols to use HTTP BasicAuth
-    protocolMapping = {
-        'FTP': 'http',
-        'WebDAV': 'http',
-        'XML-RPC': 'http',
-    }
-    acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
+    acl.protocolChooser.manage_updateProtocolMapping(PROTOCOL_MAPPING)
+
+def setupPASFolder(context):
+    # set up some convenience vars
+    setupCookieHelper(context)
+    setupBasciAuthHelper(context)
+    setupRoleManager(context)
+    setupUserManager(context)
+    setupTypeSniffer(context)
+    setupCookieHelper(context)
 
 def replaceACLWithPAS(context, deleteBackup=False):
     # archive the old "User Folder"
@@ -124,6 +209,7 @@ def replaceACLWithPAS(context, deleteBackup=False):
 
     # create a new PAS acl_users
     createPASFolder(context)
+    setupPASFolder(context)
 
     # set up some convenience vars
     orig = getattr(context, backupId).acl_users
@@ -132,7 +218,7 @@ def replaceACLWithPAS(context, deleteBackup=False):
     # migrate the old user information over to the PAS
     for u in orig.getUsers():
         user, password, domains, roles = (u.name, u.__, u.domains, u.roles)
-        acl.userManager.addUser(user, user, password)
+        acl.userManager.doAddUser(user, password)
         for role in roles:
             acl.roleManager.assignRoleToPrincipal(role, user)
         # initialize UserSettings for each user
@@ -146,3 +232,28 @@ def replaceACLWithPAS(context, deleteBackup=False):
     # delete backup?
     if deleteBackup:
         context._delObject(backupId)
+
+def migratePAS(context):
+    # check to see if the current acl_users is a PAS instance or not
+    newModule = 'Products.PluggableAuthService.PluggableAuthService'
+    acl = context.acl_users
+    if acl.__module__ != newModule:
+        replaceACLWithPAS(context)
+    else:
+        # check to see if there are any missing attributes
+        if not hasattr(acl, '_createInitialUser'):
+            backupId = backupACLUserFolder(context)
+            backup = context._getOb(backupId)
+            createPASFolder(context)
+            # now that we have a monkey-patched acl_users, restore the plugins
+            for itemId in backup.objectIds():
+                acl._setObject(itemId, backup._getOb(itemId))
+            # delete the (empty) backup
+            context._delObject(backupId)
+        # the next function calls all the setup functions, each of which do an
+        # attriibute check and installs anything that's missing
+        setupPASFolder(context)
+
+        # XXX
+        from transaction import commit
+        commit()
