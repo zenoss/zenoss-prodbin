@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -15,7 +18,7 @@ from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestIpAddress(unittest.TestCase):
 
@@ -52,11 +55,11 @@ class TestIpAddress(unittest.TestCase):
 #        self.addr.setIpAddress('2.3.4.5/16')
 #        self.assert_(self.addr.getIpAddress() == '2.3.4.5/16')
 
-
-def main():
-
-       unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestIpAddress))
+    return suite
 
 if __name__=="__main__":
-    zenconn = ZenConn()
-    unittest.main()
+    framework()
