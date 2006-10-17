@@ -368,7 +368,7 @@ class IpInterface(OSComponent):
     def getRRDTemplateName(self):
         """Return the interface type as the target type name.
         """
-        return self.prepId(self.type)
+        return self.prepId(self.type or "Unknown")
 
 
     def snmpIgnore(self):
