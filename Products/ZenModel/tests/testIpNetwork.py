@@ -1,3 +1,7 @@
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
+
 import unittest
 import pdb
 
@@ -7,7 +11,7 @@ import transaction
 from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = None
+zeoconn = ZeoConn
 
 class TestIpNetwork(unittest.TestCase):
 
@@ -94,10 +98,11 @@ class TestIpNetwork(unittest.TestCase):
         self.assert_(subNet in net.getSubNetworks())
         
 
-    
-def main():
-    unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestIpNetwork))
+    return suite
 
 if __name__=="__main__":
-    zenconn = ZenConn()
-    unittest.main()
+    framework()
