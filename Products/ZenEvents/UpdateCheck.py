@@ -17,7 +17,7 @@ import urllib
 import string
 import time
 
-URL = 'http://dev.zenoss.org/cgi-bin/version'
+URL = 'http://update.zenoss.org/cgi-bin/version'
 
 DAY_SECONDS = 60*60*24
 
@@ -57,6 +57,8 @@ class UpdateCheck:
         "call home with version information"
         if not manual:
             if time.time() - dmd.lastVersionCheck < DAY_SECONDS:
+                return
+            if not dmd.versionCheckOptIn:
                 return
         available = self.getUpdate(dmd, manual)
         availableVersion = parseVersion(dmd.availableVersion)
