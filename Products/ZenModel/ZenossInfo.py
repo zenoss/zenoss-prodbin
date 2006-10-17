@@ -10,6 +10,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenModel.version import Current
+from Products.ZenUtils import Time
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
@@ -173,12 +174,19 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
 
-    def manage_checkVersion(self, REQUEST):
+    def manage_checkVersion(self, optInOut=False, REQUEST=None):
         "Check for Zenoss updates on the Zenoss website"
-        uc = UpdateCheck()
-        uc.check(self.dmd, self.dmd.ZenEventManager, manual=True)
+        self.dmd.versionCheckOptIn = optInOut
+        if self.dmd.versionCheckOptIn:
+            uc = UpdateCheck()
+            uc.check(self.dmd, self.dmd.ZenEventManager, manual=True)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_checkVersion')
+
+    def lastVersionCheckedString(self):
+        if not self.dmd.lastVersionCheck:
+            return "Never"
+        return Time.LocalDateTime(self.dmd.lastVersionCheck)
 
     def versionBehind(self):
         if self.dmd.availableVersion is None:

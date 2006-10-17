@@ -1,5 +1,50 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+
+<form tal:attributes="action string:${here/absolute_url_path}" method="POST">
+    <input type="hidden" name="zenScreenName" 
+           tal:attributes="value template/id" /> 
+    <input type="hidden" name="manage_checkVersion:method" value="dome"/>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tr>
+            <th class="tabletitle" colspan="2">Check For Updates</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th class="tableheader" width="50%">Available Zenoss Version</th>
+            <td class="tablevalues">
+                <span tal:condition='here/versionBehind' 
+                          tal:content="here/dmd/availableVersion" 
+                          style="foreground-color: #FFF; background-color: #F00"/>
+                <span tal:condition='not:here/versionBehind' 
+                      tal:content="here/dmd/availableVersion"/>
+           </td>
+        </tr>
+        <tr>
+            <th class="tableheader">Last Checked</th>
+            <td class="tablevalues" tal:content="here/lastVersionCheckedString"/>
+        </tr>
+        <tr>
+            <th class="tableheader">Check For Updates Daily</th>
+            <td class="tablevalues">
+                <input type="checkbox" name="optInOut"
+                       tal:attributes="checked here/dmd/versionCheckOptIn; value here/dmd/versionCheckOptIn"
+                      onchange="form.submit()"/>
+            </td>
+        </tr>
+        <tr>
+            <th class="tableheader">
+               <input type="submit" 
+                      name="manage_checkVersion:method" 
+                      value="Check Zenoss Version Now"/>
+            </th>
+            <td class="tablevalues"/>
+    </tbody>
+</table>
+</form>
+<br />
 <table class="zentable" cellpadding="3" cellspacing="1">
     <thead>
         <tr>
@@ -24,30 +69,8 @@
     </thead>
     <tbody>
         <tr tal:repeat="version here/getAllVersions" >
-            <span tal:define="iszenoss python:version['header']=='Zenoss'">
-                <th class="tableheader" tal:content="version/header" />
-                <span tal:condition="iszenoss">
-                    <td class="tablevalues">
-                        <span tal:content="version/data"/>
-                        <span tal:condition='here/versionBehind' 
-                              tal:content="string:(${here/dmd/availableVersion} available!)" 
-                              style="background-color: #F00"/>
-                    </td>
-                    <td class="tablevalues">
-                        <form tal:attributes="action string:${here/absolute_url_path}" 
-                              method="POST">
-                           <input type="hidden" name="zenScreenName" 
-                               tal:attributes="value template/id" /> 
-                           <input type="submit" 
-                                  name="manage_checkVersion:method" 
-                                  value="Check Zenoss Version"/>
-                        </form>
-                    </td>
-                </span>
-                <span tal:condition="not:iszenoss">
-                    <td class="tablevalues" tal:content="version/data" colspan='2'/>
-                </span>
-            </span>
+            <th class="tableheader" tal:content="version/header" />
+            <td class="tablevalues" tal:content="version/data"/>
         </tr>
     </tbody>
 </table>

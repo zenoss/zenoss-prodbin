@@ -55,6 +55,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
     uuid = None
     availableVersion = None
     lastVersionCheck = 0
+    versionCheckOptIn = True
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
