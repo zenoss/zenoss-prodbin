@@ -14,57 +14,7 @@ from Products.PluggableAuthService import PluggableAuthService
 from Products import ZenModel
 
 ZENOSS_ROLES = ['ZenUser', 'ZenMonitor']
-PROTOCOL_MAPPING = {
-    'FTP': 'http',
-    'WebDAV': 'http',
-    'XML-RPC': 'http',
-}
-# XXX
-# This is a hack-workaround for PAS until their login form becomes something
-# users can easily update
-def refreshLoginForm(context, instanceName='cookieAuthHelper'):
-    '''
-    'context' should be an acl_users PAS instance.
-    '''
-    from AccessControl.Permissions import view
-    from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
-    try:
-        helper = getattr(context, instanceName)
-    except AttributeError:
-        # there expected plugin instance is not here
-        return
-    objId = 'login_form'
 
-    # let's get the data from the file
-    filename = os.path.join(ZenModel.__path__[0], 'skins', 'zenmodel',
-        '%s.pt' % objId)
-    html = open(filename).read()
-    # if there is no difference between the file and the object, our job is
-    # done; if there is a difference, update the object with the text from the
-    # file system.
-    if objId in helper.objectIds():
-        zpt = helper._getOb(objId)
-        if zpt and zpt.read() == html:
-            return
-        else:
-            zpt.write(html)
-            return
-
-    # create a new form
-    login_form = ZopePageTemplate(id=objId, text=html)
-    login_form.title = 'Zenoss Login Form'
-    login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
-    helper._setObject(objId, login_form, set_owner=0)
-
-def updateACLUsersLoginForms():
-    # XXX need to figure out how to run this so that it doesn't hang zenmigrate
-    # but still runs when ZenModel is loaded/imported.
-    from Products.ZenUtils.ZCmdBase import ZCmdBase
-    dmd = ZCmdBase(noopts=True).dmd
-    app = dmd.getPhysicalRoot()
-    zport = app.zport
-    for context in [app.acl_users, zport.acl_users]:
-        refreshLoginForm(context)
 
 def backupACLUserFolder(context):
     timestamp = datetime.now().strftime('%Y.%d.%m-%H%M%S')
@@ -75,6 +25,7 @@ def backupACLUserFolder(context):
     context._setObject(backupFolder.getId(), backupFolder)
     context._delObject('acl_users')
     return backupFolderName
+
 
 def _createInitialUser(self):
     """
@@ -120,6 +71,7 @@ def _createInitialUser(self):
             except:
                 pass
 
+
 def createPASFolder(context):
     # check to see if we need to monkey patch PAS to accomodate inituser files
     pas = PluggableAuthService.PluggableAuthService
@@ -129,6 +81,21 @@ def createPASFolder(context):
     # create new PAS
     PluggableAuthService.addPluggableAuthService(context)
     context.acl_users.title = 'PAS'
+
+
+def setupBasciAuthHelper(context):
+    acl = context.acl_users
+    id = 'basicAuthHelper'
+    if not hasattr(acl, id):
+        plugins.HTTPBasicAuthHelper.addHTTPBasicAuthHelper(acl, id)
+    physPath = '/'.join(context.getPhysicalPath())
+    if physPath == '':
+        interfaces = ['IExtractionPlugin', 'IChallengePlugin',
+            'ICredentialsResetPlugin']
+    elif physPath == '/zport':
+        interfaces = ['IExtractionPlugin', 'IChallengePlugin']
+    acl.basicAuthHelper.manage_activateInterfaces(interfaces)
+
 
 def setupCookieHelper(context):
     acl = context.acl_users
@@ -142,16 +109,9 @@ def setupCookieHelper(context):
         interfaces = ['IExtractionPlugin']
     elif physPath == '/zport':
         interfaces = ['IExtractionPlugin', 'ICredentialsUpdatePlugin',
-            'ICredentialsResetPlugin']
+            'ICredentialsResetPlugin', 'IChallengePlugin']
     acl.cookieAuthHelper.manage_activateInterfaces(interfaces)
 
-def setupBasciAuthHelper(context):
-    acl = context.acl_users
-    id = 'basicAuthHelper'
-    if not hasattr(acl, id):
-        plugins.HTTPBasicAuthHelper.addHTTPBasicAuthHelper(acl, id)
-    acl.basicAuthHelper.manage_activateInterfaces(['IExtractionPlugin',
-        'IChallengePlugin', 'ICredentialsResetPlugin'])
 
 def setupRoleManager(context):
     acl = context.acl_users
@@ -168,6 +128,7 @@ def setupRoleManager(context):
             # that role already exists
             pass
 
+
 def setupUserManager(context):
     acl = context.acl_users
     id = 'userManager'
@@ -176,12 +137,14 @@ def setupUserManager(context):
     acl.userManager.manage_activateInterfaces(['IAuthenticationPlugin',
         'IUserEnumerationPlugin', 'IUserAdderPlugin'])
 
+
 def setupTypeSniffer(context):
     acl = context.acl_users
     id = 'requestTypeSniffer'
     if not hasattr(acl, id):
         plugins.RequestTypeSniffer.addRequestTypeSnifferPlugin(acl, id)
     acl.requestTypeSniffer.manage_activateInterfaces(['IRequestTypeSniffer'])
+
 
 def setupProtocolChooser(context):
     acl = context.acl_users
@@ -192,16 +155,43 @@ def setupProtocolChooser(context):
     acl.protocolChooser.manage_activateInterfaces([
         'IChallengeProtocolChooser'])
     # set up non-Browser protocols to use HTTP BasicAuth
-    acl.protocolChooser.manage_updateProtocolMapping(PROTOCOL_MAPPING)
+    physPath = '/'.join(context.getPhysicalPath())
+    if physPath == '':
+        protocolMapping = {
+            'Browser': ['http'],
+            'FTP': ['http'],
+            'WebDAV': ['http'],
+            'XML-RPC': ['http'],
+        }
+    elif physPath == '/zport':
+        # we don't want to hard-code plugin names here, so let's do a lookup
+        from Products.PluggableAuthService.plugins import CookieAuthHelper
+        p = context.acl_users.plugins
+        icookie = CookieAuthHelper.ICookieAuthHelper
+        ichallenge = interfaces.plugins.IChallengePlugin
+        # valid cooike auth plugins
+        cookies = [ x for id, x in p.listPlugins(ichallenge) if icookie.providedBy(x) ]
+        # for now, let's just get the first match and use that one (there
+        # should really only be one...)
+        protocolMapping = {
+            'Browser': [cookies[0].id],
+            'FTP': ['http'],
+            'WebDAV': ['http'],
+            'XML-RPC': ['http'],
+        }
+    acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
+
 
 def setupPASFolder(context):
-    # set up some convenience vars
-    setupCookieHelper(context)
     setupBasciAuthHelper(context)
+    setupCookieHelper(context)
     setupRoleManager(context)
     setupUserManager(context)
     setupTypeSniffer(context)
-    setupCookieHelper(context)
+    # this one has to go last in case any of the protocol mappings need to make
+    # reference to an already-installed plugin
+    setupProtocolChooser(context)
+
 
 def replaceACLWithPAS(context, deleteBackup=False):
     # archive the old "User Folder"
@@ -233,15 +223,27 @@ def replaceACLWithPAS(context, deleteBackup=False):
     if deleteBackup:
         context._delObject(backupId)
 
+
 def migratePAS(context):
     # check to see if the current acl_users is a PAS instance or not
     newModule = 'Products.PluggableAuthService.PluggableAuthService'
-    acl = context.acl_users
+    try:
+        acl = context.acl_users
+    except AttributeError:
+        createPASFolder(context)
+        acl = context.acl_users
+
     if acl.__module__ != newModule:
         replaceACLWithPAS(context)
     else:
-        # check to see if there are any missing attributes
-        if not hasattr(acl, '_createInitialUser'):
+        # check to see if there are any missing attributes; we have to make the
+        # dir() call twice, because (when testing in the dmd) the 'plugins'
+        # attribute doesn't show up on the first call.
+        dummy = dir(acl)
+        full = set(dir(acl))
+        needed = set(['_createInitialUser', 'plugins'])
+        # if any of 'needed' are missing, the PAS has to be recreated
+        if not full.issuperset(needed):
             backupId = backupACLUserFolder(context)
             backup = context._getOb(backupId)
             createPASFolder(context)

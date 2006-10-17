@@ -54,8 +54,8 @@ class zenbuild(CmdBase):
 
     def build(self):
         site = getattr(self.app, self.sitename, None)
-        if site is not None: 
-            print "zport portal object exits exiting."
+        if site is not None:
+            print "zport portal object exits; exiting."
             return
         
         from Products.ZenModel.ZentinelPortal import manage_addZentinelPortal
@@ -74,7 +74,6 @@ class zenbuild(CmdBase):
         # Convert the acl_users folder at the root to a PAS folder and update
         # the login form to use the Zenoss login form
         Security.replaceACLWithPAS(self.app, deleteBackup=True)
-        Security.refreshLoginForm(self.app.acl_users)
 
         trans = transaction.get()
         trans.note("Initial ZentinelPortal load by zenbuild.py")
@@ -91,7 +90,6 @@ class zenbuild(CmdBase):
         rl = ReportLoader(noopts=True, app=self.app)
         rl.loadDatabase()
 
-        
         # Load XML Data
         from Products.ZenModel.XmlDataLoader import XmlDataLoader
         dl = XmlDataLoader(noopts=True, app=self.app)

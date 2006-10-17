@@ -26,7 +26,6 @@ class MigrateToPAS(Migrate.Step):
         portal = app.zport
         for context in [app, portal]:
             migratePAS(context)
-            refreshLoginForm(context.acl_users)
 
 MigrateToPAS()
 
