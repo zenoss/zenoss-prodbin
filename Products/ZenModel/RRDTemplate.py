@@ -269,12 +269,18 @@ class RRDTemplate(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_resequenceRRDGraphs')
-    def manage_resequenceRRDGraphs(self, seqmap=(), REQUEST=None):
+    def manage_resequenceRRDGraphs(self, seqmap=(), origseq=(), REQUEST=None):
         """Reorder the sequecne of the RRDGraphs.
         """
-        if seqmap:
-            for i, graph in enumerate(self.getGraphs()):
-                graph.sequence = seqmap[i]
+        if seqmap and origseq:
+            try:
+                origseq = tuple([long(s) for s in origseq])
+            except ValueError:
+                origseq = ()
+            if origseq:
+                graphs = self.getGraphs()
+                for oldSeq, newSeq in zip(origseq, seqmap):
+                    graphs[oldSeq].sequence = newSeq
         for i, graph in enumerate(self.getGraphs()):
             graph.sequence = i
         if REQUEST:

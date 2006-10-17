@@ -196,6 +196,9 @@
             <input tal:condition="editable" 
                 type="text" name="seqmap:list" size="2"
                 tal:attributes="value graph/sequence"/>
+            <input tal:condition="editable"
+                type="hidden" name="origseq:list"
+                tal:attributes="value graph/sequence" />
             <span tal:condition="not:editable" tal:content="graph/sequence"/>
         </td>
         <td>
