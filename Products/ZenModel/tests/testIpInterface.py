@@ -116,7 +116,7 @@ class TestIpInterface(unittest.TestCase):
 
     def testGetParentInfo(self):
         self.assert_(self.iface.getParentDeviceName() == self.dev.getDeviceName())
-        self.assert_(self.iface.getParentDeviceUrl() == self.dev.absolute_url()
+        self.assert_(self.iface.getParentDeviceUrl() == self.dev.absolute_url())
 
         
 def main():
