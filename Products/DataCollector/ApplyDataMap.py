@@ -152,7 +152,8 @@ class ApplyDataMap(object):
                 try:
                     value.encode('ascii')
                 except UnicodeDecodeError:
-                    value = value.decode('latin-1')
+                    decoding = obj.zCollectorDecoding
+                    value = value.decode(decoding)
             if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:

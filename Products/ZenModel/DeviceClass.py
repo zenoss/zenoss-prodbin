@@ -574,6 +574,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCollectorIgnorePlugins", "")
         devs._setProperty("zCollectorCollectPlugins", "")
         devs._setProperty("zCollectorClientTimeout", 180, type="int")
+        devs._setProperty("zCollectorDecoding", 'latin-1')
         devs._setProperty("zCommandUsername", "")
         devs._setProperty("zCommandPassword", "")
         devs._setProperty("zCommandProtocol", "ssh")

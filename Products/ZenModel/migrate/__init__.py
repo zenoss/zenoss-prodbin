@@ -39,3 +39,4 @@ import advanced_query
 import wmiignore
 import pas_conversion
 import indexhtml
+import zcollectordecoding
