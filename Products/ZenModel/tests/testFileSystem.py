@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -14,7 +17,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.FileSystem import FileSystem
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestFileSystem(unittest.TestCase):
 
@@ -46,10 +49,11 @@ class TestFileSystem(unittest.TestCase):
         self.assert_(self.fs.getParentDeviceName() == 'testdev')
         self.assert_(self.fs.getParentDeviceUrl() == 'zport/dmd/Devices/devices/testdev')
 
-def main():
-
-       unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestFileSystem))
+    return suite
 
 if __name__=="__main__":
-    zenconn = ZenConn()
-    unittest.main()
+    framework()
