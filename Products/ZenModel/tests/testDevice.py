@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -13,7 +16,7 @@ import transaction
 from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestDevice(unittest.TestCase):
 
@@ -39,7 +42,7 @@ class TestDevice(unittest.TestCase):
         from Products.ZenModel.IpRouteEntry import IpRouteEntry
         ipr = IpRouteEntry("1.2.3.4_24")
         self.dev.os.routes._setObject(ipr.id, ipr)
-        ipr = self.dev.os.routes._getOb(ipr.id) 
+        ipr = self.dev.os.routes._getOb(ipr.id)
         ipr.setTarget("1.2.3.4/24")
         self.assert_(ipr.getTarget() == "1.2.3.0/24")
         net = ipr.target()
@@ -231,7 +234,7 @@ class TestDevice(unittest.TestCase):
 
         self.assert_(self.dev.hw.tag == '')
         self.assert_(self.dev.hw.serialNumber == '')
-        self.assert_(self.dev.zSnmpCommunity == '') 
+        self.assert_(self.dev.zSnmpCommunity == '')
         self.assert_(self.dev.zSnmpPort == 161)
         self.assert_(self.dev.zSnmpVer == 'v1')
         self.assert_(self.dev.rackSlot == 0)
@@ -261,7 +264,7 @@ class TestDevice(unittest.TestCase):
                         
         self.assert_(self.dev.hw.tag == 'tag')
         self.assert_(self.dev.hw.serialNumber == 'SN123')
-        self.assert_(self.dev.zSnmpCommunity == 'theHood') 
+        self.assert_(self.dev.zSnmpCommunity == 'theHood')
         self.assert_(self.dev.zSnmpPort == 121)
         self.assert_(self.dev.zSnmpVer == 'v2')
         self.assert_(self.dev.rackSlot == 1)
@@ -282,10 +285,11 @@ class TestDevice(unittest.TestCase):
         self.assert_(self.dev.getPerformanceServerName() == "perfMon")
 
 
-def main():
-
-       unittest.TextTestRunner().run(test_suite())
+def test_suite():
+      from unittest import TestSuite, makeSuite
+      suite = TestSuite()
+      suite.addTest(makeSuite(TestDevice))
+      return suite
 
 if __name__=="__main__":
-    zeoconn = ZeoConn()
-    unittest.main()
+    framework()

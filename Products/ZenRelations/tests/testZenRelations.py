@@ -6,7 +6,7 @@
 
 import os, sys
 if __name__ == '__main__':
-  execfile(os.path.join(sys.path[0], 'framework.py')) 
+  execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -34,7 +34,7 @@ class PrimaryPathManagerTest(RMBaseTest):
         "absolute primary path of a contained object using zPrimaryBasePath"
         dev = self.build(self.app.dataroot, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
-        self.failUnless(eth0.getPrimaryPath() == 
+        self.failUnless(eth0.getPrimaryPath() ==
                         ("", "dataroot", "dev", "interfaces", "eth0"))
         self.failUnless(eth0.getPrimaryId() == "/dataroot/dev/interfaces/eth0")
        
@@ -43,7 +43,7 @@ class PrimaryPathManagerTest(RMBaseTest):
         "absolute primary path of a contained object using fromNode"
         dev = self.build(self.app.dataroot, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
-        self.failUnless(eth0.getPrimaryPath("dev") == 
+        self.failUnless(eth0.getPrimaryPath("dev") ==
                         ("interfaces", "eth0"))
         self.failUnless(eth0.getPrimaryId("dev") == "/interfaces/eth0")
        
@@ -53,7 +53,7 @@ class PrimaryPathManagerTest(RMBaseTest):
         dev = self.build(self.app.dataroot, Device, "dev")
         group = self.create(self.app.dataroot, Group, "group")
         dev.groups.addRelation(group)
-        self.failUnless(dev.groups()[0].getPrimaryPath() == 
+        self.failUnless(dev.groups()[0].getPrimaryPath() ==
                         ("", "dataroot", "group"))
         self.failUnless(dev.groups()[0].getPrimaryId() == "/dataroot/group")
 
@@ -64,10 +64,10 @@ class PrimaryPathManagerTest(RMBaseTest):
         group = self.create(self.app.dataroot, Group, "group")
         dev.groups.addRelation(group)
         group = dev.groups()[0]
-        self.failUnless(map(lambda x: x.getId(), group.aq_chain) == 
+        self.failUnless(map(lambda x: x.getId(), group.aq_chain) ==
                             ["group", "groups", "dev", "dataroot", "Zope"])
         group = group.primaryAq()
-        self.failUnless(map(lambda x: x.getId(), group.aq_chain) == 
+        self.failUnless(map(lambda x: x.getId(), group.aq_chain) ==
                             ["group", "dataroot", "Zope"])
 
 
@@ -76,24 +76,24 @@ class RelationshipManagerTest(RMBaseTest):
     def testBuildRelations(self):
         "Check that relationships are built correctly."
         dev = self.build(self.app.dataroot, Device, "dev")
-        self.failUnless(getattr(dev, "location").meta_type == 
+        self.failUnless(getattr(dev, "location").meta_type ==
                             "ToOneRelationship")
-        self.failUnless(getattr(dev, "groups").meta_type == 
+        self.failUnless(getattr(dev, "groups").meta_type ==
                             "ToManyRelationship")
-        self.failUnless(getattr(dev, "interfaces").meta_type == 
+        self.failUnless(getattr(dev, "interfaces").meta_type ==
                             "ToManyContRelationship")
     
 
     def testBuildRelationsWithInheritance(self):
         "Check that relationships are built correctly with inheritance."
         server = self.build(self.app.dataroot, Server, "server")
-        self.failUnless(getattr(server, "location").meta_type == 
+        self.failUnless(getattr(server, "location").meta_type ==
                             "ToOneRelationship")
-        self.failUnless(getattr(server, "groups").meta_type == 
+        self.failUnless(getattr(server, "groups").meta_type ==
                             "ToManyRelationship")
-        self.failUnless(getattr(server, "interfaces").meta_type == 
+        self.failUnless(getattr(server, "interfaces").meta_type ==
                             "ToManyContRelationship")
-        self.failUnless(getattr(server, "admin").meta_type == 
+        self.failUnless(getattr(server, "admin").meta_type ==
                             "ToOneRelationship")
     
 
@@ -171,7 +171,7 @@ class ToOneRelationshipTest(RMBaseTest):
     def testaddRelationOneToOneNone(self):
         """Test addRelation in a one to one with None"""
         dev = self.build(self.app, Server, "dev")
-        self.failUnlessRaises(ZenRelationsError, dev.addRelation, 
+        self.failUnlessRaises(ZenRelationsError, dev.addRelation,
                               "admin", None)
 
 
@@ -616,7 +616,7 @@ class ToManyRelationshipTest(RMBaseTest):
     def testaddRelationToManyNone(self):
         """Test adding None to a to many relationship"""
         dev = self.create(self.app, Device, "dev")
-        self.failUnlessRaises(ZenRelationsError, 
+        self.failUnlessRaises(ZenRelationsError,
                             dev.addRelation, "groups", None)
 
 
