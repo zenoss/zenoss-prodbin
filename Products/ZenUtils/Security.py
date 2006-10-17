@@ -164,21 +164,31 @@ def setupProtocolChooser(context):
             'XML-RPC': ['http'],
         }
     elif physPath == '/zport':
-        # we don't want to hard-code plugin names here, so let's do a lookup
-        from Products.PluggableAuthService.plugins import CookieAuthHelper
-        p = context.acl_users.plugins
-        icookie = CookieAuthHelper.ICookieAuthHelper
-        ichallenge = interfaces.plugins.IChallengePlugin
-        # valid cooike auth plugins
-        cookies = [ x for id, x in p.listPlugins(ichallenge) if icookie.providedBy(x) ]
-        # for now, let's just get the first match and use that one (there
-        # should really only be one...)
         protocolMapping = {
-            'Browser': [cookies[0].id],
             'FTP': ['http'],
             'WebDAV': ['http'],
             'XML-RPC': ['http'],
         }
+        # we don't want to hard-code plugin names here, so let's do a lookup
+        icookie = plugins.CookieAuthHelper.ICookieAuthHelper
+        ichallenge = interfaces.plugins.IChallengePlugin
+        challengePlugins = context.acl_users.plugins.listPlugins(ichallenge)
+        # valid cooike auth plugins
+        cookies = [ x for id, x in challengePlugins if icookie.providedBy(x) ]
+        # we want to move the cookie auth instance above the basic auth listing so
+        # that it is accessed first and we can keep 'Browser' set to any; for
+        # now, let's just get the first match and use that one (there should
+        # really only be one...)
+        #
+        # XXX well, it seems that this might not be a good idea...
+        # movePluginsUp() is kind of stupid: if the plugin being moved is
+        # already at the top, it gets wrapped around, and goes to the bottom.
+        # Since there's no API call for discovering the current position of the
+        # plugin in the list (that I could find, anyway), there's not a good,
+        # general solution for this.
+        #for i in xrange(len(challengePlugins) - 1):
+        #    acl.plugins.movePluginsUp(ichallenge, [cookies[0].id])
+        acl.plugins.movePluginsUp(ichallenge, [cookies[0].id])
     acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
 
 
