@@ -1,4 +1,3 @@
-
 #################################################################
 #
 #   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
@@ -14,8 +13,10 @@ Re-index the event history table.
 __version__ = "$Revision$"[11:-2]
 
 import os
+import sys
 import Migrate
 
+from Acquisition import aq_base
 from Products.ZenModel.RRDDataPoint import RRDDataPoint, SEPARATOR
 
 from Products.ZenRelations.RelSchema import *
@@ -86,7 +87,8 @@ class DataPoints(Migrate.Step):
                         
     def cutoverTemplates(self, obj):
         for t in obj.getRRDTemplates():
-            self.cutoverTemplate(t, obj.rrdPath())
+            if hasattr(aq_base(obj), t.id):
+                self.cutoverTemplate(t, obj.rrdPath())
 
     def cutoverCommands(self, obj):
         try:
@@ -111,12 +113,16 @@ class DataPoints(Migrate.Step):
             for t in org.getRRDTemplates():
                 for s in t.datasources():
                     self.cutoverDataSource(s)
-        for d in dmd.Devices.getSubDevices():
+        for i, d in enumerate(dmd.Devices.getSubDevicesGen()):
+            if i % 10 == 0:
+                sys.stdout.write('#')
+                sys.stdout.flush()
             self.cutoverTemplates(d)
             self.cutoverCommands(d)
             for o in d.getDeviceComponents():
                 self.cutoverTemplates(o)
                 self.cutoverCommands(o)
+        sys.stdout.write('\n')
         for t in dmd.Devices.rrdTemplates():
             self.cutoverTemplate(t, 'bogusName')
 
