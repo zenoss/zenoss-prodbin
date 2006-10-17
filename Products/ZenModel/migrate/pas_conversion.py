@@ -14,7 +14,6 @@ Old users, passwords and roles are migrated to PAS with this script.
 __version__ = "$Revision$"[11:-2]
 
 from Products.ZenUtils.Security import migratePAS
-from Products.ZenUtils.Security import refreshLoginForm
 
 import Migrate
 
