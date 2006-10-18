@@ -18,7 +18,7 @@ from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestIpRouteEntry(unittest.TestCase):
 
@@ -66,7 +66,7 @@ class TestIpRouteEntry(unittest.TestCase):
         iface2.setIpAddresses('3.4.5.6/24')
         self.rEntry.setNextHopIp('3.4.5.6')
         self.assert_(self.rEntry.getNextHopIp() == '3.4.5.6')
-        self.assert_(self.rEntry.getNextHopIpLink() == "<a href='/zport/dmd/Networks/3.4.0.0/3.4.5.0/ipaddresses/3.4.5.6'>3.4.5.6</a>")
+        self.assert_(self.rEntry.getNextHopIpLink() == "<a href='/zport/dmd/Networks/3.4.5.0/ipaddresses/3.4.5.6'>3.4.5.6</a>")
         self.assert_(self.rEntry.getNextHopDevice() == tempdev)
         self.assert_(self.rEntry.getNextHopDeviceLink() == "<a href='/zport/dmd/Devices/devices/testdev2/'>testdev2</a>")
         #TODO: test setNextHopIp locally
@@ -77,7 +77,7 @@ class TestIpRouteEntry(unittest.TestCase):
         self.assert_(self.rEntry.getTarget() == '1.2.3.0/24')
         self.assert_(self.rEntry.matchTarget('1.2.3.0'))
         self.assert_(self.rEntry.getTargetIp() == '1.2.3.0')
-        self.assert_(self.rEntry.getTargetLink() == "<a href='/zport/dmd/Networks/1.2.0.0/1.2.3.0'>1.2.3.0</a>")
+        self.assert_(self.rEntry.getTargetLink() == "<a href='/zport/dmd/Networks/1.2.3.0'>1.2.3.0</a>")
         #TODO(?): test setTarget locally
 
 

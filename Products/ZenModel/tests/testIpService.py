@@ -17,7 +17,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.IpService import IpService
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestIpService(unittest.TestCase):
 

@@ -41,7 +41,7 @@ class TestIpAddress(unittest.TestCase):
     def testGets(self):#most/all of the get method tests
         self.assert_(self.addr.getIp() == '1.2.3.4')
         self.assert_(self.addr.getIpAddress() == '1.2.3.4/24')
-        self.assert_(self.addr.getInterfaceName()() == self.addr.interface().name())
+        self.assert_(self.addr.getInterfaceName() == self.addr.interface().name())
         self.assert_(self.addr.getDeviceUrl() == '/zport/dmd/Devices/devices/testdev')
         self.assert_(self.addr.device() == self.dev)
     

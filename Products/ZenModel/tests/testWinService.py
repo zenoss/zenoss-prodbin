@@ -17,7 +17,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.WinService import WinService
 
-zeoconn = None
+zeoconn = ZeoConn()
 
 class TestWinService(unittest.TestCase):
 
