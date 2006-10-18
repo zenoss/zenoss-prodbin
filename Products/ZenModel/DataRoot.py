@@ -65,7 +65,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'administrativeRoles','type':'lines','mode':'w'},
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
-        {'id':'lastVersion"Check', 'type': 'long', 'mode':'w'},
+        {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
+        {'id':'versionCheckOptIn"Check', 'type': 'boolean', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)
@@ -73,7 +74,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {
             'id'             : 'DataRoot',
             'meta_type'      : 'DataRoot',
-            'description'    : """Arbitrary device grouping class""",
+            'description'    : """Arbitrary devlastVersionice grouping class""",
             'icon'           : 'DataRoot_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addStatusMonitorconf',
