@@ -35,8 +35,8 @@ class ZCmdBase(ZenDaemon):
             storage=ClientStorage.ClientStorage(addr)
             self.db=DB(storage)
             self.poollock = Lock()
-            self.login()
         self.getDataRoot()
+        self.login()
 
 
     def login(self, name='admin', userfolder=None):
