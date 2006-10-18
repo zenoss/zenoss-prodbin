@@ -137,6 +137,8 @@ class ZenActions(ZCmdBase):
 
     def checkVersion(self, db, zem):
         self.updateCheck.check(db, zem)
+        import transaction
+        transaction.commit()
 
     def processActionRule(self, db, zem, ar):
         fields = ar.getEventFields()
