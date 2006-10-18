@@ -12,6 +12,9 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 
 from threading import Lock
 
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
+
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
@@ -32,7 +35,23 @@ class ZCmdBase(ZenDaemon):
             storage=ClientStorage.ClientStorage(addr)
             self.db=DB(storage)
             self.poollock = Lock()
+            self.login()
         self.getDataRoot()
+
+
+    def login(name='admin', userfolder=None):
+        '''Logs in.'''
+        if userfolder is None:
+            userfolder = self.app.acl_users
+        user = userfolder.getUserById(name)
+        if not hasattr(user, 'aq_base'):
+            user = user.__of__(userfolder)
+        newSecurityManager(None, user)
+
+
+    def logout():
+        '''Logs out.'''
+        noSecurityManager()
 
 
     def getConnection(self):
