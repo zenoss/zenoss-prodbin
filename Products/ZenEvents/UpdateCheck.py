@@ -60,7 +60,11 @@ class UpdateCheck:
                 return
             if not dmd.versionCheckOptIn:
                 return
-        available = self.getUpdate(dmd, manual)
+        try:
+            available = self.getUpdate(dmd, manual)
+        except Exception, ex:
+            log.debug("Cannot fetch version information", ex)
+            return
         availableVersion = parseVersion(dmd.availableVersion)
         if availableVersion is None or zenoss < availableVersion:
             if availableVersion != available:
