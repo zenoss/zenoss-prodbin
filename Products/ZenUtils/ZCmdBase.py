@@ -39,7 +39,7 @@ class ZCmdBase(ZenDaemon):
         self.getDataRoot()
 
 
-    def login(name='admin', userfolder=None):
+    def login(self, name='admin', userfolder=None):
         '''Logs in.'''
         if userfolder is None:
             userfolder = self.app.acl_users
@@ -49,7 +49,7 @@ class ZCmdBase(ZenDaemon):
         newSecurityManager(None, user)
 
 
-    def logout():
+    def logout(self):
         '''Logs out.'''
         noSecurityManager()
 
