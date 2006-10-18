@@ -63,16 +63,20 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
-    snmpCycleInterval = 60
+    snmpCycleInterval = 300
     configCycleInterval = 30
     renderurl = ''
     renderuser = ''
     renderpass = ''
-    defaultRRDCreateCommand = 'RRA:AVERAGE:0.5:1:1800\n' \
-                              'RRA:AVERAGE:0.5:6:1800\n' \
-                              'RRA:AVERAGE:0.5:24:1800\n' \
-                              'RRA:AVERAGE:0.5:288:1800\n' \
-                              'RRA:MAX:0.5:288:1800'
+    defaultRRDCreateCommand = (
+        'RRA:AVERAGE:0.5:1:2016\n'  # every 5 mins for 7 days
+        'RRA:AVERAGE:0.5:4:2016\n'  # every 20 mins for 4 weeks
+        'RRA:AVERAGE:0.5:24:1440\n' # every 2 hours for 4 months
+        'RRA:AVERAGE:0.5:288:720\n' # every 1 day for 2 years 
+        'RRA:MAX:0.5:1:2016\n'
+        'RRA:MAX:0.5:4:2016\n'
+        'RRA:MAX:0.5:24:1440\n'
+    )
 
 
     _properties = (

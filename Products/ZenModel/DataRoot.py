@@ -131,14 +131,14 @@ class DataRoot(ZenModelRM, OrderedFolder):
         "Tester",
     )
 
-    defaultDateRange = 18000
+    defaultDateRange = 129600 
     performanceDateRanges = [
-        ('Hourly',18000,),
-        ('Daily',129600,),
-        ('Weekly',864000,),
-        ('Monthly',3628800,),
-        ('Yearly',41472000,),
-        ]
+        ('Hourly',129600,),
+        ('Daily',864000,),
+        ('Weekly',3628800,),
+        ('Monthly',41472000,),
+        ('Yearly',62208000,)
+    ]
 
 
     # when calculating the primary path this will be its root
