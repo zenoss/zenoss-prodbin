@@ -71,13 +71,12 @@ class PerformanceConf(Monitor, StatusColor):
     defaultRRDCreateCommand = (
         'RRA:AVERAGE:0.5:1:2016\n'  # every 5 mins for 7 days
         'RRA:AVERAGE:0.5:4:2016\n'  # every 20 mins for 4 weeks
-        'RRA:AVERAGE:0.5:24:1440\n' # every 2 hours for 4 months
-        'RRA:AVERAGE:0.5:288:720\n' # every 1 day for 2 years 
-        'RRA:MAX:0.5:1:2016\n'
+        'RRA:AVERAGE:0.5:24:1488\n' # every 2 hours for 4 months
+        'RRA:AVERAGE:0.5:288:730\n' # every 1 day for 2 years 
         'RRA:MAX:0.5:4:2016\n'
-        'RRA:MAX:0.5:24:1440\n'
+        'RRA:MAX:0.5:24:1488\n'
+        'RRA:MAX:0.5:288:730\n'
     )
-
 
     _properties = (
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
