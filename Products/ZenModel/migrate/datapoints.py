@@ -85,11 +85,6 @@ class DataPoints(Migrate.Step):
                     dsnames.append(newname)
                     part.dsnames = dsnames
                         
-    def cutoverTemplates(self, obj):
-        for t in obj.getRRDTemplates():
-            if hasattr(aq_base(obj), t.id):
-                self.cutoverTemplate(t, obj.rrdPath())
-
     def cutoverCommands(self, obj):
         try:
             sourceTemplate = obj.getNagiosTemplate()
@@ -117,10 +112,10 @@ class DataPoints(Migrate.Step):
             if i % 10 == 0:
                 sys.stdout.write('#')
                 sys.stdout.flush()
-            self.cutoverTemplates(d)
+            self.cutoverTemplate(d.getRRDTemplate(), d.rrdPath())
             self.cutoverCommands(d)
             for o in d.getDeviceComponents():
-                self.cutoverTemplates(o)
+                self.cutoverTemplate(o.getRRDTemplate(), o.rrdPath())
                 self.cutoverCommands(o)
         sys.stdout.write('\n')
         for t in dmd.Devices.rrdTemplates():
