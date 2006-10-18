@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -54,10 +57,11 @@ class TestIpService(unittest.TestCase):
         self.assert_(self.ipsvc.getManageIp() == '2.3.4.5/24')
 
 
-def main():
-
-       unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestIpService))
+    return suite
 
 if __name__=="__main__":
-    zenconn = ZenConn()
-    unittest.main()
+    framework()

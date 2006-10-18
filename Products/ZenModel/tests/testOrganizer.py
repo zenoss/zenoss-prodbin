@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -64,8 +67,11 @@ class TestOrganizer(ZenModelBaseTest):
         self.assert_(org.children() == [])
 
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestOrganizer))
+    return suite
 
 if __name__=="__main__":
-    unittest.main()
+    framework()

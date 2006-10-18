@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
+import os, sys
+if __name__ == '__main__':
+    execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import pdb
 import unittest
@@ -19,7 +22,7 @@ class TestMibOrganizer(ZenModelBaseTest):
 
 
     def testMibOrganizer(self):
-        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs') 
+        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
         mod = mibOrg.createMibModule('mod')
         two = mibOrg.createMibModule('two','/layer')
         self.assert_(mod in mibOrg.mibs())
@@ -81,8 +84,11 @@ class TestMibOrganizer(ZenModelBaseTest):
         self.assert_(mibOrg.countClasses() == 0)
         
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestMibOrganizer))
+    return suite
 
 if __name__=="__main__":
-    unittest.main()
+    framework()
