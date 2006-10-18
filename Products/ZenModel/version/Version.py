@@ -97,8 +97,7 @@ class Version(object):
 
     # comparison, one with a revision number
     >>> v7 > v6
-    Traceback (most recent call last):
-    IncomparableVersions
+    False
 
     # revision number comparisons
     >>> v7 > v8
