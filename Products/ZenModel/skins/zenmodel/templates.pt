@@ -151,7 +151,7 @@
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/ZenEventManager">Live Events</a></li>
         <li><a href="/zport/dmd/ZenEventHistory">History Events</a></li>
-        <li><a href="/zport/dmd/About">Settings</a></li>
+        <li><a href="/zport/dmd/About">About</a></li>
     </ul>
     </tal:block>
 
