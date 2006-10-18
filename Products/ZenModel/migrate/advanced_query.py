@@ -15,6 +15,7 @@ from Products.ManagableIndex import FieldIndex
 from Products.ManagableIndex import KeywordIndex_scalable as KeywordIndex
 from Products.ZenModel.SearchUtils import makeFieldIndex
 from Products.ZenModel.SearchUtils import makeKeywordIndex
+from Products.ZCatalog.Catalog import CatalogError
 
 import Migrate
 
@@ -78,8 +79,9 @@ class AdvancedQuery(Migrate.Step):
                         # going to mess with it
                         continue
                     # get rid of the old index
-                    if cat.getIndex(indexName) is not None:
+                    try:
                         cat.delIndex(indexName)
+                    except CatalogError: pass
                     # add the new one
                     cat.addIndex(indexName, makeIndex(indexName))
             # reindex the sections
