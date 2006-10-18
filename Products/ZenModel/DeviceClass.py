@@ -275,7 +275,7 @@ class DeviceClass(DeviceOrganizer):
         allsvcs = {}
         for s in self.getSubComponents("WinService"):
             svcs=allsvcs.setdefault(s.hostname(),{})
-            svcs[s.name()] = (s.getStatus(), s.zFailSeverity)
+            svcs[s.name()] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
         for dev in self.getSubDevices():
             if not dev.monitorDevice(): continue
             if getattr(dev, 'zWmiMonitorIgnore', False): continue
