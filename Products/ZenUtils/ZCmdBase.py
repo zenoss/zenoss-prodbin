@@ -44,6 +44,7 @@ class ZCmdBase(ZenDaemon):
         if userfolder is None:
             userfolder = self.app.acl_users
         user = userfolder.getUserById(name)
+        if user is None: return
         if not hasattr(user, 'aq_base'):
             user = user.__of__(userfolder)
         newSecurityManager(None, user)
