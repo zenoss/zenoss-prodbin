@@ -14,5 +14,11 @@ else
     exit 1
 fi
 
-mysql -u $1 --password=$2 < zenevents.sql
-mysql -u $1 --password=$2 < zenprocs.sql
+# Create the database
+mysql -u $1 --password=$2 << EOF
+	CREATE DATABASE IF NOT EXISTS $3;
+EOF
+# Load schema
+mysql -u $1 --password=$2 $3 < zenevents.sql
+# Load stored procedures
+mysql -u $1 --password=$2 $3 < zenprocs.sql
