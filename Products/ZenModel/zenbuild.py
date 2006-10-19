@@ -50,7 +50,7 @@ class zenbuild(CmdBase):
                 help="username used to connect to the events database")
         self.parser.add_option('-p','--evtpass', dest="evtpass", default="",
                 help="password used to connect to the events database")
-        self.parser.add_option('-d','--evtdb', dest="evtdb", default="",
+        self.parser.add_option('-d','--evtdb', dest="evtdb", default="events",
                 help="name of events database")
 
 
