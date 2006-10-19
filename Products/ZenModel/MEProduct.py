@@ -27,7 +27,8 @@ class MEProduct(ManagedEntity):
     security.declareProtected('View', 'getProductName')
     def getProductName(self):
         productClass = self.productClass()
-        if productClass: return productClass.getId()
+        if productClass: 
+            return productClass.name and productClass.name or productClass.id
         return ''
     getModelName = getProductName
 

@@ -28,4 +28,11 @@ class ZenDate(Persistent):
         return self.date
    
     def getString(self):
+        """Date in format 2006/09/13 12:16:06.000
+        """
         return Time.LocalDateTime(self.date.timeTime())
+
+    def getStringSecsResolution(self):
+        """Date in format 2006/09/13 12:16:06
+        """
+        return Time.LocalDateTimeSecsResolution(self.date.timeTime())

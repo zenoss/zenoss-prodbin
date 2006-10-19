@@ -71,4 +71,9 @@ class Hardware(MEProduct):
         else:
             self.productClass.removeRelation()
     
+    
+    def getDeviceLink(self):
+        return super(Hardware, self).getDeviceLink('deviceHardwareDetail')
+
+
 InitializeClass(Hardware)

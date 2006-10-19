@@ -26,6 +26,10 @@ def LocalDateTime(gmtSecondsSince1970 = None):
     secs = value % 60
     return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.localtime(value)) % secs
 
+def LocalDateTimeSecsResolution(gmtSecondsSince1970 = None):
+    value = _maybenow(gmtSecondsSince1970)
+    return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(value)) 
+
 def USDate(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%m/%d/%Y", time.localtime(value))

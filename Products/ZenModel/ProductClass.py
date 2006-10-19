@@ -85,11 +85,12 @@ class ProductClass(ZenModelRM):
     security = ClassSecurityInfo()
     
 
-    def __init__(self, id,title="",productKey="",partNumber="",description=""):
-        if not productKey: 
-            self.productKeys = [id]
-        id = self.prepId(id)
+    def __init__(self, id, title="", prodName=None,
+                 productKey=None, partNumber="",description=""):
         ZenModelRM.__init__(self, id, title)
+        if productKey is None:  self.productKeys = [prodName]
+        if prodName is None:  self.name = id
+        else: self.name = prodName
         self.partNumber = partNumber
         self.description = description
 

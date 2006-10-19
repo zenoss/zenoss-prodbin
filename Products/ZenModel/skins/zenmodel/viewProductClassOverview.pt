@@ -10,7 +10,7 @@
       <td class="tablevalues"
         tal:content="structure here/manufacturer/getPrimaryLink"/>
       <td class="tableheader">Name</td>
-      <td class="tablevalues" tal:content="here/id"/>
+      <td class="tablevalues" tal:content="here/name"/>
     </tr>
     <tr>
       <th class="tableheader">Type</th>
@@ -50,7 +50,7 @@
     <tr tal:repeat="prod batch">
       <td class="tablevalues" 
         tal:content="structure prod/getDeviceLink"/>
-      <td class="tablevalues" tal:content="prod/id"/>
+      <td class="tablevalues" tal:content="prod/getProductName"/>
     </tr>
     <tr>
         <td colspan="2" class="tableheader" align='center'>
