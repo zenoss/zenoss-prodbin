@@ -927,7 +927,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         "Ack the given event ids"
-        if type(evids) == type(s):
+        if type(evids) == type(''):
             evids = [evids]
         return self.manage_setEventStates(1 , evids, REQUEST)
 
