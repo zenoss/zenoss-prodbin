@@ -46,7 +46,10 @@ class InterfaceMap(SnmpPlugin):
         ),
         # Interface Description
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
-                {'.18' : 'description'}
+                {
+                '.18' : 'description',
+                '.15' : 'highSpeed',
+                }
         ),
     )
 
@@ -66,8 +69,12 @@ class InterfaceMap(SnmpPlugin):
 
         # add interface alias (cisco description) to iftable
         for ifidx, data in ifalias.items():
-            if iftable.has_key(ifidx):
-                iftable[ifidx]['description'] = data['description']
+            if not iftable.has_key(ifidx): continue
+            iftable[ifidx]['description'] = data['description']
+            # handle 10GB interfaces using IF-MIB::ifHighSpeed
+            if iftable[ifidx]['speed'] == 4294967295L:
+                try: iftable[ifidx]['speed'] = data['highSpeed']*1e6
+                except KeyError: pass
 
         omtable = {}
         for iprow in iptable.values():
@@ -106,6 +113,7 @@ class InterfaceMap(SnmpPlugin):
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.interfaceName = om.id
         om.id = self.prepId(om.id)
+            
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if (dontCollectIntNames 
             and re.search(dontCollectIntNames, om.interfaceName)):

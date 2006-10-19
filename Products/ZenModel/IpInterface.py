@@ -69,7 +69,7 @@ class IpInterface(OSComponent):
     speed = 0
     adminStatus = 0
     operStatus = 0
-    _ipAddresses = []
+    _ipAddresses =  []
 
 
     _properties = OSComponent._properties + (
@@ -132,6 +132,7 @@ class IpInterface(OSComponent):
 
     def __init__(self, id, title = None):
         OSComponent.__init__(self, id, title)
+        self._ipAddresses = []
 
        
     security.declareProtected('View', 'viewName')
@@ -204,10 +205,9 @@ class IpInterface(OSComponent):
         """
         (ip, netmask) = self._prepIp(ip, netmask)
         ip = ip + '/' + str(netmask)
-        if not hasattr(self,'_ipAddresses'):
-            self._ipAddresses = []
+        if not self._ipAddresses: self._ipAddresses = []
         if not ip in self._ipAddresses:
-            self._ipAddresses.append(ip)
+            self._ipAddresses = self._ipAddresses + [ip,]
 
 
     def setIpAddresses(self, ips):
@@ -293,8 +293,6 @@ class IpInterface(OSComponent):
         retval=[]
         for ip in self.ipaddresses.objectValuesAll():
             retval.append(ip)
-        if not hasattr(self,'_ipAddresses'):
-            self._ipAddresses = []
         for ip in self._ipAddresses:
             retval.append(ip)
         return retval
@@ -336,8 +334,6 @@ class IpInterface(OSComponent):
     def getNetworkLinks(self):
         """Return a list of network links for each ip in this interface.
         """
-        if not hasattr(self,'_ipAddresses'):
-            self._ipAddresses = []
         addrs = self.ipaddresses() + self._ipAddresses
         if addrs:
             links = []
