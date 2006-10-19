@@ -25,10 +25,17 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Hostname</td>
+        <td class="tableheader">Database</td>
         <td class="tablevalues"> 
             <input type='text' name='database' 
                 tal:attributes='value here/database'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Hostname</td>
+        <td class="tablevalues"> 
+            <input type='text' name='host' 
+                tal:attributes='value here/host'>
         </td>
     </tr>
     <tr>
