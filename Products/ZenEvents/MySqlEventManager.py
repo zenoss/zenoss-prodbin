@@ -11,12 +11,12 @@ from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 
 def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
-                                history=False, REQUEST=None):
+                                evtdb="events", history=False, REQUEST=None):
     '''make an MySqlEventManager'''
     if not id: 
         id = "ZenEventManager"
         if history: id = "ZenEventHistory"
-    evtmgr = MySqlEventManager(id,username=evtuser,password=evtpass) 
+    evtmgr = MySqlEventManager(id,username=evtuser,password=evtpass,dbname=evtdb) 
     context._setObject(id, evtmgr)
     evtmgr = context._getOb(id)
     try:

@@ -20,9 +20,9 @@ class DbAccessBase(object):
             mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime
             # FIXME for some reason it thinks my int is a long -EAD
             mysqlconv[FIELD_TYPE.LONG] = int
-            db = MySQLdb.connect(host=self.database, user=self.username,
+            db = MySQLdb.connect(host=self.host, user=self.username,
                                 port=self.port, passwd=self.password, 
-                                db="events",conv=mysqlconv)
+                                db=self.database, conv=mysqlconv)
             db.autocommit(1)
         elif self.backend == "oracle":
             import DCOracle2

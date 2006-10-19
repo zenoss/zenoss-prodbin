@@ -307,8 +307,9 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
     class that can connect to backend must be passed:
         username - backend username to use
         password - backend password
-        database - hostname of box (in mysql case) or database name
-        port - port (for mysql)
+        database - backend database name
+        host - hostname of database server
+        port - port
     """
     backend = "mysql"
 
@@ -316,6 +317,7 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
         "username",
         "password",
         "database",
+        "host",
         "port",
         "requiredEventFields",
         "defaultEventId",

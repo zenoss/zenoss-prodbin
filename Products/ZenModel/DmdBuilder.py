@@ -87,10 +87,11 @@ class DmdBuilder:
     monRoots = ('StatusMonitors','Performance')
 
 
-    def __init__(self, portal, evtuser, evtpass):
+    def __init__(self, portal, evtuser, evtpass, evtdb):
         self.portal = portal
         self.evtuser = evtuser
         self.evtpass = evtpass
+        self.evtdb = evtdb
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
@@ -133,9 +134,10 @@ class DmdBuilder:
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
-                                              evtpass=self.evtpass)
+                                    evtpass=self.evtpass, evtdb=self.evtdb)
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
-                                    evtpass=self.evtpass, history=True)
+                                    evtpass=self.evtpass, evtdb=self.evtdb, 
+                                    history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
                                     

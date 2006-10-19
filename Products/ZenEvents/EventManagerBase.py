@@ -126,6 +126,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'backend', 'type':'string','mode':'r', },
         {'id':'username', 'type':'string', 'mode':'w'},
         {'id':'password', 'type':'string', 'mode':'w'},
+        {'id':'host', 'type':'string', 'mode':'w'},
         {'id':'database', 'type':'string', 'mode':'w'},
         {'id':'port', 'type':'int', 'mode':'w'},
         {'id':'defaultWhere', 'type':'text', 'mode':'w'},
@@ -187,13 +188,14 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     
 
     def __init__(self, id, title='', username='root',
-                 password='', database='127.0.0.1', port=3306,
+                 password='', database='events', host='127.0.0.1', port=3306,
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
         self.id = id
         self.title = title
         self.username = username
         self.password = password
         self.database = database
+        self.host = host
         self.port = port
         self.defaultWhere = defaultWhere
 

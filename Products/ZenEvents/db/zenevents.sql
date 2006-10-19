@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS events;
-USE events;
-
 CREATE TABLE IF NOT EXISTS status
 (
     dedupid         varchar(255) not null,

@@ -1,4 +1,3 @@
-USE events;
 DROP PROCEDURE IF EXISTS close_events;
 DELIMITER //
 CREATE PROCEDURE close_events()

@@ -17,6 +17,7 @@ __version__ = "$Revision$"[11:-2]
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
+import eventdbname
 import evtprops
 import kill_cricket
 import reindex_history

@@ -50,6 +50,8 @@ class zenbuild(CmdBase):
                 help="username used to connect to the events database")
         self.parser.add_option('-p','--evtpass', dest="evtpass", default="",
                 help="password used to connect to the events database")
+        self.parser.add_option('-d','--evtdb', dest="evtdb", default="",
+                help="name of events database")
 
 
     def build(self):
@@ -82,7 +84,7 @@ class zenbuild(CmdBase):
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
-        dmdBuilder = DmdBuilder(site,self.options.evtuser,self.options.evtpass)
+        dmdBuilder = DmdBuilder(site,self.options.evtuser,self.options.evtpass,self.options.evtdb)
         dmdBuilder.build()
 
         # Load reports
