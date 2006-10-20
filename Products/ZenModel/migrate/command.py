@@ -20,8 +20,8 @@ class Commands(Migrate.Step):
         import os
         self.update(dmd, "zNagiosPath", "zCommandPath",
                     os.path.join(os.environ['ZENHOME'], 'libexec'))
-        self.update(dmd, "zNagiosCycleTime", "zCommandCycleTime",
-                    60, type='int')
+        if dmd.Devices.hasProperty("zNagiosCycleTime"):
+            dmd.Devices._delProperty("zNagiosCycleTime")
         c = dmd.ZenEventManager.connect()
         s = c.cursor()
         for name in 'zenagios', 'zencacti':
