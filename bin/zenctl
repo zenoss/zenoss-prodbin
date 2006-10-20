@@ -46,8 +46,16 @@ if [ ! -f ${FIRSTBOOT} ]; then
     chown -R ${RUNUSER} ${ZENHOME}
     chgrp -R wheel ${ZENHOME}
     chmod -R 775 ${ZENHOME}
-    
-    sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss_init
+
+    # run the first time initialization script
+    ${ZENHOME}/bin/zenoss_init
+
+    # chown the files to be owned by zenoss (again)
+    chown -R ${RUNUSER} ${ZENHOME}
+    chgrp -R wheel ${ZENHOME}
+    chmod -R 775 ${ZENHOME}
+
+    # mark our territory
     touch ${FIRSTBOOT}
 
     echo "Zenoss initialization complete."
