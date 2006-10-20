@@ -15,6 +15,7 @@ from AccessControl import Permissions
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from Products.PluggableAuthService import interfaces
+from zExceptions import Unauthorized
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
@@ -114,6 +115,7 @@ class UserSettingsManager(ZenModelRM):
         if userid is None:
             user = getSecurityManager().getUser()
             userid = user.getId()
+        if not userid: raise Unauthorized
         folder = self._getOb(userid,None)
         if not folder and userid:
             ufolder = UserSettings(userid)
