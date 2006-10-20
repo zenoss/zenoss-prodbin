@@ -1,0 +1,70 @@
+<dtml-if "error_type!='NotFound'">
+    <dtml-var "zport.dmd.zenoss_error_message(error_type=error_type, error_value=error_value, error_traceback=error_traceback, error_message=error_message)">
+<dtml-else>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>Zenoss: error</title>
+    <link rel="stylesheet" type="text/css" title="zenoss" 
+                            href="/zport/portal_skins/zenoss.css">
+    <link rel="stylesheet" type="text/css" title="zenoss" 
+                            href="/zport/portal_skins/zenevents.css">
+    <!--[if IE]>
+        <link rel="stylesheet" type="text/css" title="zenoss"
+            href="/zport/portal_skins/zenoss_ie.css" >
+    <![endif]-->
+
+</head>
+	<body>
+	   <div id="frame">
+            <table id="topPane" cellpadding="0"
+                   cellspacing="0" border="0">
+    <tr>
+    <td class="logo" width="220px">
+        <img src="logo.gif" alt="Zenoss">
+    </td>
+    <td class="search">
+
+    <form action="/zport/dmd/deviceSearchResults" method="POST">
+        <input type="text" name="query" size="15" value="" />
+        <input type="submit" name="submit" value="Search" />
+    </form> 
+    </td>
+    <td id="settings">
+
+    </td>
+    </tr>
+</table>
+
+            <div id="leftPane">
+
+
+</div>
+	        <div id="rightPane">
+                
+            <div id="breadCrumbPane">
+    
+</div>
+            <div id="contentPane">
+                
+
+<h2>Site error</h2>
+<p>An error was encountered while publishing this resource.  The requested
+resource does not exist.
+
+<a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
+
+            </div>
+        
+            </div>
+       </div>
+    </body>
+</html>
+
+
+
+</dtml-if>

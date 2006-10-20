@@ -72,6 +72,19 @@ class zenbuild(CmdBase):
         newIndexHtml = self.app._getOb('index_html')
         text = 'container.REQUEST.RESPONSE.redirect("/zport/dmd/")\n'
         newIndexHtml.ZPythonScript_edit('', text)
+        
+        # build standard_error_message
+        if self.app.hasObject('standard_error_message'):
+            self.app._delObject('standard_error_message')
+        file = open('%s/Products/ZenModel/dtml/standard_error_message.dtml' %
+                        zenhome)
+        try:
+            text = file.read()
+        finally:
+            file.close()
+        import OFS.DTMLMethod
+        OFS.DTMLMethod.addDTMLMethod(self.app, id='standard_error_message',
+                                        file=text)
 
         # Convert the acl_users folder at the root to a PAS folder and update
         # the login form to use the Zenoss login form

@@ -1,0 +1,50 @@
+<tal:block metal:use-macro="root/zport/dmd/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+<span tal:condition="exists:error_message" tal:content="error_message"></span>
+<span tal:condition="not:exists:error_message">
+
+  <h2>Zenoss Error</h2>
+  
+  <p>An error was encountered while publishing this resource.  Please use the
+  form below to submit details of this error to Zenoss, Inc.
+  </p>
+
+  <form tal:attributes="action here/absolute_url_path" method="post">
+  <p>
+      <strong>Type: <tal:block tal:replace="options/error_type" />
+      </strong><br/>
+      <strong>Value: <tal:block tal:replace="options/error_value" />
+      </strong><br/>
+      <tal:block tal:replace="structure options/error_traceback" />
+  </p>
+  
+  <p>The following fields are optional.  This information will only be used
+  to contact you if further information is needed regarding this error.
+  </p>
+  
+  Your name:<br />
+  <input type="text" size="50" name="contactName" /><br />
+  Your email address:<br />
+  <input type="text" size="50" name="contactEmail" /><br />
+  Additional info you would like to provide:<br />
+  <textarea name="comments" rows="6" cols="50"></textarea><br />
+  <br />
+
+  <p>Click this button to send the above inforamation to Zenoss, Inc.</p>
+    <input type="hidden" name="errorType" 
+        tal:attributes="value options/error_type" />
+    <input type="hidden" name="errorValue" 
+        tal:attributes="value options/error_value" />
+    <input type="hidden" name="errorTrace" 
+        tal:attributes="value options/error_traceback" />
+    <input type="hidden" name="errorUrl" 
+        tal:attributes="value request/URL" />
+    <input type="submit" name="reportError:method" 
+        value="Send Error Details" />
+  </form>
+
+</span>
+
+</tal:block>
+</tal:block>
