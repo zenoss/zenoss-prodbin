@@ -54,7 +54,7 @@
 
 <h2>Site error</h2>
 <p>An error was encountered while publishing this resource.  The requested
-resource does not exist.
+resource does not exist.</p>
 
 <a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
 
