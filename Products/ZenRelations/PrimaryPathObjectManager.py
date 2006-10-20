@@ -30,7 +30,7 @@ class PrimaryPathManager(object):
         ppath = []
         obj = aq_base(self)
         while True:
-            ppath.append(obj.id) 
+            ppath.append(obj.id)
             parent = getattr(obj, "__primary_parent__", None)
             if parent is None: break
             obj = parent
@@ -88,7 +88,7 @@ class PrimaryPathObjectManagerBase(PrimaryPathManager):
     """
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
-        obj.__primary_parent__ = aq_base(self) 
+        obj.__primary_parent__ = aq_base(self)
         return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
@@ -100,13 +100,13 @@ class PrimaryPathObjectManagerBase(PrimaryPathManager):
 
 
 
-class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager, 
+class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager,
                                 RelCopyContainer, RoleManager, Item):
     """
     PrimaryPathObjectManager with basic Zope persistent classes.
     """
-    manage_options = (ObjectManager.manage_options + 
-                      RoleManager.manage_options + 
+    manage_options = (ObjectManager.manage_options +
+                      RoleManager.manage_options +
                       Item.manage_options)
 
 

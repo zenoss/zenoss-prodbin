@@ -38,7 +38,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     _properties = (
      {'id':'snmpindex', 'type':'int', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
-    )    
+    )
 
     _relations = (
         ("dependenices", ToMany(ToMany, "ManagedEntity", "dependants")),

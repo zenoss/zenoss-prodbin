@@ -24,12 +24,16 @@ from Testing.ZopeTestCase import ZopeLite
 from Testing.ZopeTestCase.ZopeTestCase import ZopeTestCase, user_role, \
                                     folder_name, standard_permissions
 
+# XXX
+from Testing.ZopeTestCase import connections
+import zLOG
+from zLOG.EventLogger import log_write
+
 class TestDeviceClass(ZenModelBaseTest):
 
 
     def testCreateInstanceDevice(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()#necessary, don't know why
+        devices = self.dmd.Devices
         dev = devices.createInstance("testdev")
         self.assert_(isinstance(dev, Device))
         self.assert_(dev.deviceClass() == devices)
@@ -40,43 +44,38 @@ class TestDeviceClass(ZenModelBaseTest):
 
     
     def testCreateInstanceDeviceAndIndex(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()
-        dev = devices.createInstance("testdev")
+        devices = self.dmd.Devices
+        dev = self.dmd.Devices.createInstance("testdev")
         self.assert_(isinstance(dev, Device))
         self.assert_(dev.deviceClass() == devices)
         self.assert_(dev.getDeviceClassName() == "/")
 
 
     def testSearchDevicesOneDevice(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()
+        devices = self.dmd.Devices
         dev = devices.createInstance("testdev")
         self.assertRaises(Redirect, devices.searchDevices, "testdev")
 
     
     def testSearchDevicesNoDevice(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()
+        devices = self.dmd.Devices
         dev = devices.createInstance("testdev")
         self.assert_(len(devices.searchDevices("adsf"))==0)
 
     
     def testSearchDevicesMultipleDevices(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()
+        devices = self.dmd.Devices
         dev = devices.createInstance("testdev")
         dev = devices.createInstance("testdev2")
         self.assert_(len(devices.searchDevices("testdev*"))==2)
 
     
     def testGetPeerDeviceClassNames(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
+        devices = self.dmd.Devices
         routers = devices.createOrganizer("/NetworkDevice/Router")
         devices.createOrganizer("/NetworkDevice/Router/Firewall")
         devices.createOrganizer("/NetworkDevice/Router/RSM")
         devices.createOrganizer("/Server")
-        devices.createCatalog()
         dev = routers.createInstance("testrouter")
         dcnames = dev.getPeerDeviceClassNames()
         
@@ -93,7 +92,7 @@ class TestDeviceClass(ZenModelBaseTest):
                         
 
     def testOrganizer(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
+        devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
         self.assert_(dc in devices.children())
         self.assert_(dc in devices.getSubOrganizers())
@@ -102,7 +101,7 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_('/Test' in devices.getOrganizerNames())
         self.assert_(devices.getOrganizer('/Test') == dc)
         layer = devices.createOrganizer('/Layer')
-        devices.moveOrganizer('Layer',['Test']) 
+        devices.moveOrganizer('Layer',['Test'])
         self.assert_('/Layer' in devices.getOrganizerNames())
         self.assert_(dc not in devices.children())
         self.assert_(dc in devices.getSubOrganizers())
@@ -112,12 +111,13 @@ class TestDeviceClass(ZenModelBaseTest):
 
 
     def testDeviceOrganizer(self):
-        devices = self.create(self.dmd, DeviceClass, 'Devices')
-        devices.createCatalog()
+        log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
+        devices = self.dmd.Devices
         dev = devices.createInstance('testdev')
         dc = devices.createOrganizer('/Test')
         self.assert_(devices.countDevices() == 1)
         self.assert_(dev in devices.getSubDevices())
+        log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
         
 
 def test_suite():

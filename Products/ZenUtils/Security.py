@@ -88,6 +88,7 @@ def setupBasciAuthHelper(context):
     id = 'basicAuthHelper'
     if not hasattr(acl, id):
         plugins.HTTPBasicAuthHelper.addHTTPBasicAuthHelper(acl, id)
+    interfaces = []
     physPath = '/'.join(context.getPhysicalPath())
     if physPath == '':
         interfaces = ['IExtractionPlugin', 'IChallengePlugin',
@@ -102,6 +103,7 @@ def setupCookieHelper(context):
     id = 'cookieAuthHelper'
     if not hasattr(acl, id):
         plugins.CookieAuthHelper.addCookieAuthHelper(acl, id)
+    interfaces = []
     # note that we are only enabling CookieAuth for the Zenoss portal
     # acl_users, not for the root acl_users.
     physPath = '/'.join(context.getPhysicalPath())
@@ -154,6 +156,7 @@ def setupProtocolChooser(context):
             id)
     acl.protocolChooser.manage_activateInterfaces([
         'IChallengeProtocolChooser'])
+    protocolMapping = {}
     # set up non-Browser protocols to use HTTP BasicAuth
     physPath = '/'.join(context.getPhysicalPath())
     if physPath == '':

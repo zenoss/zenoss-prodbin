@@ -3,58 +3,56 @@
 #   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 #
 #################################################################
-
-import pdb
 import unittest
-import transaction
 
-from OFS.Folder import manage_addFolder
-
-from Testing.ZopeTestCase import ZopeLite
+from Testing import ZopeTestCase
+from Testing.ZopeTestCase import ZopeTestCase as BaseTestCase
 
 from Products.ZenModel.DataRoot import DataRoot
-
-from Testing.ZopeTestCase import ZopeLite
-from Testing.ZopeTestCase.ZopeTestCase import ZopeTestCase, user_role, \
-                                    folder_name, standard_permissions
-
-class ZenModelBaseTest(ZopeTestCase):
-
-
-    def _setupFolder(self):
-        '''Creates and configures the folder.'''
-        if self.app._getOb(folder_name, False):
-            self.app._delObject(folder_name)
-            transaction.commit()
-        self.app.manage_addFolder(folder_name)
-        self.folder = getattr(self.app, folder_name)
-        self.folder._addRole(user_role)
-        self.folder.manage_role(user_role, standard_permissions)
+from Products.ZenModel.IpNetwork import IpNetwork
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.DeviceGroup import DeviceGroup
+from Products.ZenModel.MonitorClass import MonitorClass
+from Products.ZenModel.ZentinelPortal import PortalGenerator
 
 
-    def afterSetUp(self):
+ZopeTestCase.installProduct('ZenRelations', 1)
+ZopeTestCase.installProduct('ZenModel', 1)
+ZopeTestCase.installProduct('ZCatalog', 1)
+ZopeTestCase.installProduct('OFolder', 1)
+ZopeTestCase.installProduct('ManagableIndex', 1)
+ZopeTestCase.installProduct('AdvancedQuery', 1)
+ZopeTestCase.installProduct('ZCTextIndex', 1)
+ZopeTestCase.installProduct('CMFCore', 1)
+ZopeTestCase.installProduct('CMFDefault', 1)
+ZopeTestCase.installProduct('MailHost', 1)
+ZopeTestCase.installProduct('Transience', 1)
+
+
+class ZenModelBaseTest(BaseTestCase):
+
+    #def afterSetUp(self):
+    def setUp(self):
         """setup schema manager and add needed permissions"""
-        self.app = ZopeLite.app()
-        ZopeLite.installProduct("ZenRelations")
-        ZopeLite.installProduct("ZenModel")
-        ZopeLite.installProduct("ZCatalog")
-        ZopeLite.installProduct("ZCTextIndex")
-        self.dmd = self.create(self.app, DataRoot, "dmd")
-        self.dmd.zPrimaryBasePath = ("",)
-        #self.dmd.manage_permission("Add Relationship Managers", [user_role,])
-        self.dmd.manage_permission("Add DMD Objects", [user_role,])
-        self.dmd.manage_permission("Delete objects", [user_role,])
-        self.dmd.manage_permission("Copy or Move", [user_role,])
+        BaseTestCase.setUp(self)
+        gen = PortalGenerator()
+        gen.create(self.app, 'zport', True)
+        self.dmd = self.create(self.app.zport, DataRoot, "dmd")
+        self.app.zport.zPrimaryBasePath = ("",)
+        dev = DeviceClass('Devices')
+        self.dmd._setObject(dev.getId(), dev)
+        self.dmd.Devices.createCatalog()
+        net = IpNetwork('Networks')
+        self.dmd._setObject(net.getId(), net)
+        self.dmd.Networks.createCatalog()
+        group = DeviceGroup('Groups')
+        self.dmd._setObject(group.getId(), group)
+        mon = MonitorClass('Monitors')
+        self.dmd._setObject(mon.getId(), mon)
 
-
-    def beforeTearDown(self):
-        transaction.abort()
-        if self.folder._p_jar is not None:
-            self.app._delObject(folder_name)
-        transaction.commit()
-    
     def tearDown(self):
         self.app = None
+        self.dmd = None
 
 
     def create(self, context, klass, id):

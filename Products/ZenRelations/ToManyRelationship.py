@@ -74,13 +74,13 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToMany unlinks from its remote relations if its being deleted.
         ToMany will not propagate beforeDelete because its not a container.
         """
-        if getattr(item, "_operation", -1) < 1: 
+        if getattr(item, "_operation", -1) < 1:
             self._remoteRemove()
         
 
     def manage_pasteObjects(self, cb_copy_data=None, REQUEST=None):
         """ToManyRelationships link instead of pasting"""
-        return self.manage_linkObjects(cb_copy_data=cb_copy_data, 
+        return self.manage_linkObjects(cb_copy_data=cb_copy_data,
                                         REQUEST=REQUEST)
 
         
@@ -99,7 +99,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                 self._objects.remove(obj)
             except ValueError:
                 raise ObjectNotFound(
-                    "Object with id %s not found on relation %s" % 
+                    "Object with id %s not found on relation %s" %
                     (obj.id, self.id))
         else:
             self._objects = []
@@ -110,7 +110,7 @@ class ToManyRelationship(ToManyRelationshipBase):
     def _remoteRemove(self, obj=None):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
-        if obj: 
+        if obj:
             if obj not in self._objects: raise ObjectNotFound
             objs = [obj]
         else: objs = self.objectValuesAll()

@@ -86,10 +86,10 @@ class OperatingSystem(Software):
         if nextdev == self.device() or ip=="0.0.0.0":
             ippath.append(target)
             return ippath
-        if nextdev: 
+        if nextdev:
             ippath.append(ip)
             return nextdev.traceRoute(target, ippath)
-        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target, 
+        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target,
                             self.getDeviceName()))
 
 

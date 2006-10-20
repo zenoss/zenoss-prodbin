@@ -161,7 +161,7 @@ def findCommunity(context, ip, devicePath, community="", port=161):
         except: pass #keep trying until we run out
     else:
         raise NoSnmp("no snmp found for ip = %s" % ip)
-    return (goodcommunity, port, snmpver, devname) 
+    return (goodcommunity, port, snmpver, devname)
 
 
 
@@ -1023,7 +1023,7 @@ class Device(ManagedEntity):
             relPaths = [relPaths,]
         relPaths = filter(lambda x: x.strip(), relPaths)
         rel = getattr(self, relName, None)
-        if not rel: 
+        if not rel:
             raise AttributeError, "Relation %s not found" % relName
         curRelIds = {}
         for value in rel.objectValuesAll():
@@ -1056,7 +1056,7 @@ class Device(ManagedEntity):
     def pastSnmpMaxFailures(self):
         """Device has more SNMP failures than maxFailures on its status mon."""
         statusmon = self.monitors()
-        if len(statusmon) > 0: 
+        if len(statusmon) > 0:
             statusmon = statusmon[0]
             return statusmon.maxFailures < self.getSnmpStatusNumber()
         return False
@@ -1147,7 +1147,7 @@ class Device(ManagedEntity):
         self.getEventManager().manage_deleteAllEvents(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
-            REQUEST['RESPONSE'].redirect(parent.absolute_url() + 
+            REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus")
 
 
@@ -1164,7 +1164,7 @@ class Device(ManagedEntity):
         """
         Device only propagates afterAdd if it is the added object.
         """
-        if item == self: 
+        if item == self:
             self.index_object()
             ManagedEntity.manage_afterAdd(self, item, container)
 
@@ -1180,7 +1180,7 @@ class Device(ManagedEntity):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        if item == self or getattr(item, "_operation", -1) < 1: 
+        if item == self or getattr(item, "_operation", -1) < 1:
             ManagedEntity.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
@@ -1188,14 +1188,14 @@ class Device(ManagedEntity):
     def index_object(self):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.catalog_object(self, self.getId())
             
                                                 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.uncatalog_object(self.getId())
 
     def cacheComponents(self):

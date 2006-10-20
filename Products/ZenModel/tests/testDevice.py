@@ -7,27 +7,19 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
 import unittest
 
-import Globals
 import transaction
 
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestDevice(unittest.TestCase):
+class TestDevice(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
         self.dev = self.dmd.Devices.createInstance("testdev")
-
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
 
 
     def testcreateInstanceDevice(self):
@@ -140,7 +132,7 @@ class TestDevice(unittest.TestCase):
         self.dev.setOSProduct('testOS', 'HP')
         self.assert_('testOS' in self.dev.getDmdRoot("Manufacturers")\
                      .getProductNames('HP')\
-                    ) 
+                    )
 
 
     def testAddStatusMonitor(self):

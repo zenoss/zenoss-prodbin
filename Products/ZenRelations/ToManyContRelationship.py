@@ -97,7 +97,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         0 = copy, 1 = move, 2 = rename
         ToManyCont will propagate beforeDelete because its a container
         """
-        if getattr(item, "_operation", -1) < 1: 
+        if getattr(item, "_operation", -1) < 1:
             self._remoteRemove()
         ToManyRelationshipBase.manage_beforeDelete(self, item, container)
         
@@ -127,7 +127,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             id = obj.id
             if not self._objects.has_key(id):
                 raise ObjectNotFound(
-                    "Object with id %s not found on relation %s" % 
+                    "Object with id %s not found on relation %s" %
                     (id, self.id))
             del self._objects[id]
         else:
@@ -139,7 +139,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def _remoteRemove(self, obj=None):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
-        if obj: 
+        if obj:
             if not self._objects.has_key(obj.id): raise ObjectNotFround
             objs = [obj]
         else: objs = self.objectValuesAll()
@@ -221,7 +221,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         for oobj in self.objectValuesAll():
             cobj = oobj._getCopy(rel)
             rel._setObject(cobj.id, cobj)
-        return rel    
+        return rel
 
 
     def exportXml(self, ofile, ignorerels=[]):
@@ -243,8 +243,8 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok.
         """
-        if repair and len(self._objects) != self._count: 
-            log.warn("resetting count on %s", self.getPrimaryId()) 
+        if repair and len(self._objects) != self._count:
+            log.warn("resetting count on %s", self.getPrimaryId())
             self._resetCount()
 
 

@@ -117,7 +117,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     def addRelation(self, name, obj):
         """Form a bi-directional relationship."""
         rel = getattr(self, name, None)
-        if rel == None: 
+        if rel == None:
             raise AttributeError("Relationship %s, not found" % name)
         rel.addRelation(obj)
 
@@ -128,7 +128,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         If no object is passed all objects are removed.
         """
         rel = getattr(self, name, None)
-        if rel == None: 
+        if rel == None:
             raise AttributeError("Relationship %s, not found" % name)
         rel.removeRelation(obj)
 
@@ -139,8 +139,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             if not schema.checkType(object):
                 raise ZenSchemaError("Relaitonship %s type %s != %s" %
                             (id, object.meta_type, schema.__class__.__name__))
-        return PrimaryPathObjectManager._setObject(self, id, object, roles, 
-                                            user, set_owner)                
+        return PrimaryPathObjectManager._setObject(self, id, object, roles,
+                                            user, set_owner)
 
 
     def manage_beforeDelete(self, item, container):
@@ -314,7 +314,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     def manage_removeRelation(self, name, id=None, REQUEST=None):
         """remove a relationship to be called from UI"""
         rel = getattr(self, name, None)
-        if rel == None: 
+        if rel == None:
             raise AttributeError("Relationship %s, not found" % name)
         rel._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
@@ -326,7 +326,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         myp = self.getPrimaryUrlPath()
         if url.find(myp) > 0:
             Tabs.manage_workspace(self, REQUEST)
-        else:    
+        else:
             raise "Redirect", (myp+'/manage_workspace')
 
 

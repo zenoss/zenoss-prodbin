@@ -7,35 +7,27 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
+import logging
 
-import Globals
-import transaction
-
-from Products.ZenModel.Exceptions import *
-from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpInterface import IpInterface
-from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestIpAddress(unittest.TestCase):
+
+log = logging.getLogger("zen.IpAddress")
+log.warn = lambda *args, **kwds: None
+
+
+class TestIpAddress(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpIface = IpInterface('test')
         self.dev.os.interfaces._setObject('test',tmpIface)
         self.iface = self.dev.getDeviceComponents()[0]
-        tmpAddr = IpAddress('1.2.3.4')
-        self.iface.ipaddresses._setObject('1.2.3.4',tmpAddr)
+        self.iface.addIpAddress('1.2.3.4')
         self.addr = self.iface.getIpAddressObj()
-
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
 
 
     def testGets(self):#most/all of the get method tests

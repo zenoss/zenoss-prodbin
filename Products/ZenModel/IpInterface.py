@@ -43,7 +43,7 @@ def manage_addIpInterface(context, id, REQUEST = None):
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+                                     +'/manage_main')
 
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
@@ -98,8 +98,8 @@ class IpInterface(OSComponent):
     
     defaultIgnoreTypes = ('Other', 'softwareLoopback', 'CATV MAC Layer')
     
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'IpInterface',
             'meta_type'      : 'IpInterface',
             'description'    : """Arbitrary device grouping class""",
@@ -108,7 +108,7 @@ class IpInterface(OSComponent):
             'factory'        : 'manage_addIpInterface',
             'immediate_view' : 'viewIpInterface',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'viewIpInterface'
@@ -118,7 +118,7 @@ class IpInterface(OSComponent):
                 , 'name'          : 'PerfConf'
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
-                },                
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -147,7 +147,7 @@ class IpInterface(OSComponent):
         self._wrapperCheck(value)
         if id == 'ips':
             self.setIpAddresses(value)
-        else:    
+        else:
             setattr(self,id,value)
             #if id == 'macaddress': self.index_object()
    
@@ -195,7 +195,7 @@ class IpInterface(OSComponent):
                          ip, self.getId(), dev.getId())
             self.ipaddresses.addRelation(ipobj)
         #never seen this ip make a new one in correct subnet
-        else:  
+        else:
             ipobj = self.getDmdRoot("Networks").createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
   
@@ -307,7 +307,7 @@ class IpInterface(OSComponent):
     def getNetwork(self):
         """Return the network for the first ip on this interface.
         """
-        if self.ipaddresses.countObjects(): 
+        if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].network()
 
 
@@ -337,7 +337,7 @@ class IpInterface(OSComponent):
         addrs = self.ipaddresses() + self._ipAddresses
         if addrs:
             links = []
-            for addr in addrs: 
+            for addr in addrs:
                 if hasattr(aq_base(addr), 'network'):
                     links.append(addr.network.getPrimaryLink())
                 else:
@@ -377,7 +377,7 @@ class IpInterface(OSComponent):
         """Unindex this interface after it is deleted.
         """
         if (item == self or item == self.device()
-            or getattr(item, "_operation", -1) < 1): 
+            or getattr(item, "_operation", -1) < 1):
             OSComponent.manage_beforeDelete(self, item, container)
 
 

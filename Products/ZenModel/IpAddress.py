@@ -24,14 +24,14 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 from OFS.FindSupport import FindSupport
-from Acquisition import aq_parent    
+from Acquisition import aq_parent
 
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.IpUtil import *
 from Products.ZenUtils.Utils import getObjByPath
 
-from Products.ZenModel.Exceptions import * 
+from Products.ZenModel.Exceptions import *
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     """make a IpAddress"""
@@ -39,18 +39,18 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     context._setObject(ip.id, ip)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+                                     +'/manage_main')
 
 
 def findIpAddress(context, ip):
     """find an ip from base. base should be Networks root found through aq"""
     searchCatalog = context.Networks.ipSearch
     ret = searchCatalog({'id':ip})
-    if len(ret) > 1: 
+    if len(ret) > 1:
         raise IpAddressConflict, "IP address conflict for IP: %s" % ip
     if ret:
-        ipobj = getObjByPath(searchCatalog.getPhysicalRoot(), 
-                            ret[0].getPrimaryId) 
+        ipobj = getObjByPath(searchCatalog.getPhysicalRoot(),
+                            ret[0].getPrimaryId)
         return ipobj
 
 
@@ -73,8 +73,8 @@ class IpAddress(ManagedEntity):
         ("clientroutes", ToMany(ToOne,"IpRouteEntry","nexthop")),
         )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'id'             : 'IpAddress',
             'meta_type'      : 'IpAddress',
             'description'    : """Ip Address Class""",
@@ -83,7 +83,7 @@ class IpAddress(ManagedEntity):
             'factory'        : 'manage_addIpAddress',
             'immediate_view' : 'viewIpAddressOverview',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'viewIpAddressOverview'
@@ -126,7 +126,7 @@ class IpAddress(ManagedEntity):
         self._wrapperCheck(value)
         if id == 'netmask':
             self.setNetmask(value)
-        else:    
+        else:
             setattr(self,id,value)
 
 
@@ -214,7 +214,7 @@ class IpAddress(ManagedEntity):
 
     def manage_afterAdd(self, item, container):
         """setup relationshipmanager add object to index and build relations """
-        if item == self: 
+        if item == self:
             self.index_object()
 
 
@@ -223,7 +223,7 @@ class IpAddress(ManagedEntity):
 
 
     def manage_beforeDelete(self, item, container):
-        if item == self or getattr(item, "_operation", -1) < 1: 
+        if item == self or getattr(item, "_operation", -1) < 1:
             ManagedEntity.manage_beforeDelete(self, item, container)
             self.unindex_object()
 
@@ -231,14 +231,14 @@ class IpAddress(ManagedEntity):
     def index_object(self):
         """interfaces use hostname + interface name as uid"""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.catalog_object(self, self.getId())
             
                                                 
     def unindex_object(self):
         """interfaces use hostname + interface name as uid"""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
+        if cat != None:
             cat.uncatalog_object(self.getId())
 
 
