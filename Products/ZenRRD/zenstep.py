@@ -125,7 +125,7 @@ class UpdateStep(ZCmdBase):
                                help='Really put the converted files in place.')
         self.parser.add_option('--monitor', dest='monitor', 
                                default='localhost',
-                               help='Really put the converted files in place.')
+                               help='Name of this collection host.')
 
 if __name__ == '__main__':
     us = UpdateStep()
