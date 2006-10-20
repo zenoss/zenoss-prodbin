@@ -75,7 +75,7 @@ class RRDDataSource(ZenModelRM):
     eventKey = ''
     severity = 3
     commandTemplate = ""
-    cycletime = 60
+    cycletime = 300
 
     _properties = (
         {'id':'sourcetype', 'type':'selection',
