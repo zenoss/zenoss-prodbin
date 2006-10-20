@@ -366,7 +366,7 @@ class zencommand(RRDDaemon):
                 obj.updateConfig(CommandConfig(locals()))
         self.schedule = table.values()
 
-    def heartbeatCycle(self):
+    def heartbeatCycle(self, *ignored):
         "There is no master 'cycle' to send the hearbeat"
         self.heartbeat()
         reactor.callLater(self.heartBeatTimeout, self.heartbeatCycle)
@@ -490,9 +490,6 @@ class zencommand(RRDDaemon):
 
                 self.rrd = RRDUtil(createCommand, 60)
 
-                if self.options.cycle:
-                    self.heartbeatCycle()
-                
             except Exception, ex:
                 log.exception(ex)
                 raise
@@ -518,7 +515,10 @@ class zencommand(RRDDaemon):
         
     def main(self):
         self.sendEvent(self.startevt)
-        drive(self.start).addCallbacks(self.processSchedule, self.errorStop)
+        d = drive(self.start)
+        d.addCallbacks(self.processSchedule, self.errorStop)
+        if self.options.cycle:
+            d.addCallback(self.heartbeatCycle)
         reactor.run()
         self.sendEvent(self.stopevt, now=True)
 
