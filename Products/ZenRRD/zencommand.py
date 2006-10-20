@@ -365,8 +365,6 @@ class zencommand(RRDDaemon):
                 obj = table.setdefault((device,command), Cmd())
                 obj.updateConfig(CommandConfig(locals()))
         self.schedule = table.values()
-        if self.options.cycle:
-            self.heartbeatCycle()
 
     def heartbeatCycle(self):
         "There is no master 'cycle' to send the hearbeat"
@@ -491,6 +489,10 @@ class zencommand(RRDDaemon):
                 self.updateConfig(driver.next())
 
                 self.rrd = RRDUtil(createCommand, 60)
+
+                if self.options.cycle:
+                    self.heartbeatCycle()
+                
             except Exception, ex:
                 log.exception(ex)
                 raise
