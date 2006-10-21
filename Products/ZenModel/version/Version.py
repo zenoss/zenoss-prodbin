@@ -388,6 +388,8 @@ def getRRDToolVersion():
         v.full()
     """
     cmd = os.path.join(os.getenv('ZENHOME'), 'bin', 'rrdtool')
+    if not os.path.exists(cmd):
+        cmd = 'rrdtool'
     fd = os.popen(cmd)
     output = fd.readlines()[0].strip()
     fd.close()
