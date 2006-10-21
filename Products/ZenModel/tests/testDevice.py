@@ -7,11 +7,14 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
+import time
 import unittest
 
-import transaction
+from DateTime import DateTime
 
 from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Device import Device
+from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
 from ZenModelBaseTest import ZenModelBaseTest
 
@@ -23,7 +26,6 @@ class TestDevice(ZenModelBaseTest):
 
 
     def testcreateInstanceDevice(self):
-        from Products.ZenModel.Device import Device
         devices = self.dmd.Devices
         self.assert_(isinstance(self.dev, Device))
         self.assert_(self.dev.deviceClass() == devices)
@@ -31,7 +33,6 @@ class TestDevice(ZenModelBaseTest):
     
                             
     def testIpRouteCreation(self):
-        from Products.ZenModel.IpRouteEntry import IpRouteEntry
         ipr = IpRouteEntry("1.2.3.4_24")
         self.dev.os.routes._setObject(ipr.id, ipr)
         ipr = self.dev.os.routes._getOb(ipr.id)
@@ -91,19 +92,12 @@ class TestDevice(ZenModelBaseTest):
 
 
     def testSetLastChange(self):
-        from DateTime import DateTime
         dt = DateTime()
         self.dev.setLastChange(dt)
         self.assert_(self.dev.getLastChange() == dt)
 
 
-    def testSetProdState(self):
-        self.dev.setProdState(500)
-        self.assert_(self.dev.getProductionStateString() == 'Pre-Production')
-
-
     def testSetSnmpLastCollection(self):
-        from DateTime import DateTime
         dt = DateTime()
         self.dev.setSnmpLastCollection(dt)
         self.assert_(self.dev.getSnmpLastCollection() == dt)
@@ -117,7 +111,6 @@ class TestDevice(ZenModelBaseTest):
 
 
     def testSetLastPollSnmpUpTime(self):
-        from DateTime import DateTime
         dt = DateTime()
         self.dev.setLastPollSnmpUpTime(dt)
         self.assert_(int(dt) == self.dev.getLastPollSnmpUpTime())
@@ -170,7 +163,6 @@ class TestDevice(ZenModelBaseTest):
         
 
     def testSnmpAgeCheck(self):
-        import time
         self.dev.setSnmpLastCollection()
         time.sleep(0.1)  #because computers are too fast...
         self.assert_(self.dev.snmpAgeCheck(0) == 1)
@@ -204,6 +196,11 @@ class TestDevice(ZenModelBaseTest):
         self.assert_(self.dev.getPerformanceServerName() == 'perfMon')
         self.dev.setPerformanceMonitor('perfMon', 'nextMon')
         self.assert_(self.dev.getPerformanceServerName() == 'nextMon')
+
+
+    def testSetProdState(self):
+        self.dev.setProdState(500)
+        self.assert_(self.dev.getProductionStateString() == 'Pre-Production')
 
 
     def testMonitorDevice(self):
@@ -275,7 +272,6 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('statMon1' in self.dev.getStatusMonitorNames())
         self.assert_('statMon2' in self.dev.getStatusMonitorNames())
         self.assert_(self.dev.getPerformanceServerName() == "perfMon")
-
 
 def test_suite():
     from unittest import TestSuite, makeSuite
