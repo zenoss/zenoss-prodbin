@@ -52,7 +52,7 @@
     </style>
   </head>
 
-  <body>
+  <body onload="document.login.__ac_name.focus();">
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr><td align="center">
     &nbsp;<br/><br/>
@@ -62,7 +62,7 @@
 
     <table id="loginback" cellpadding="0" cellspacing="0" border="0">
     <tr><td>
-    <form method="post" action=""
+    <form method="post" action="" name="login"
           tal:attributes="action string:${here/absolute_url}/login">
 
       <input type="hidden" name="came_from" value=""
