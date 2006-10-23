@@ -10,6 +10,7 @@ export RUNUSER="**OS_USERNAME**"
 export ZENHOME="**ZENHOME**"
 export MYSQL_USERNAME="**MYSQL_USERNAME**"
 export MYSQL_PASSWD="**MYSQL_PASSWD**"
+export MYSQL_DATABASE="**MYSQL_DATABASE**"
 export ZOPE_PASSWD="**ZOPE_PASSWD**"
 
 
@@ -28,9 +29,9 @@ EOF
 fi
 
 # create the events database in mysql
-if mysql events -u ${MYSQL_USERNAME} -p"${MYSQL_PASSWD}" -e 'quit' 2>/dev/null ; 
+if mysql ${MYSQL_DATABASE} -u ${MYSQL_USERNAME} -p"${MYSQL_PASSWD}" -e 'quit' 2>/dev/null ; 
 then
-   ${ZENHOME}/bin/zeneventbuild ${MYSQL_USERNAME} ${MYSQL_PASSWD}
+   ${ZENHOME}/bin/zeneventbuild ${MYSQL_USERNAME} ${MYSQL_PASSWD} ${MYSQL_DATABASE}
 fi
 
 # set up the zope instance and the zeo database
