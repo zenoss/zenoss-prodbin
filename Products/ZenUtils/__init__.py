@@ -9,7 +9,7 @@ pas = PluggableAuthService.PluggableAuthService
 if not hasattr(pas, '_createInitialUser'):
     pas._createInitialUser =  _createInitialUser
 
-# monkey patch for the PAS login form
+# monkey patches for the PAS login form
 import os
 from Products import ZenModel
 from Products.PluggableAuthService.plugins import CookieAuthHelper
@@ -19,3 +19,26 @@ fh = open(filename)
 html = fh.read()
 fh.close()
 CookieAuthHelper.BASIC_LOGIN_FORM = html
+
+def login(self):
+    """ Set a cookie and redirect to the url that we tried to
+    authenticate against originally.
+    """
+    request = self.REQUEST
+    response = request['RESPONSE']
+    
+    login = request.get('__ac_name', '')
+    password = request.get('__ac_password', '')
+    submitted = request.get('submitted', '')
+    
+    pas_instance = self._getPAS()
+    
+    if pas_instance is not None:
+        pas_instance.updateCredentials(request, response, login, password)
+    
+    came_from = request.form['came_from']
+    if 'submitted' not in came_from:
+        came_from += '?submitted=%s' % submitted
+    return response.redirect(came_from)
+
+CookieAuthHelper.CookieAuthHelper.login = login

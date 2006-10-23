@@ -48,6 +48,11 @@
         font-weight: normal; 
         background-color: #EEE;
     }
+    .error {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 10pt;
+        color: #F00;
+    }
     /-->
     </style>
   </head>
@@ -80,6 +85,19 @@
         <tr>
           <td class="tableheader"><b>Password:</b></td>
           <td class="tablevalues"><input type="password" name="__ac_password" size="30" /></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <tal:block define="
+                    came_form here/REQUEST/form/came_from | nothing;
+                    submitted python:came_form.find('submitted=true') + 1;
+                    ">
+                    <span class="error" tal:condition="submitted">
+                    The entered password or <br />username is incorrect.
+                    </span>
+                </tal:block>
+            <input type="hidden" name="submitted" value="true" />
+            </td>
         </tr>
         <tr>
           <td colspan="2">
