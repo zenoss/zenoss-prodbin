@@ -566,7 +566,7 @@ class DeviceClass(DeviceOrganizer):
         # Status monitor properites
         devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
         devs._setProperty("zPingMonitorIgnore", False, type="boolean")
-        devs._setProperty("zWmiMonitorIgoner", False, type="boolean")
+        devs._setProperty("zWmiMonitorIgnore", False, type="boolean")
         devs._setProperty("zXmlRpcMonitorIgnore", False, type="boolean")
 
         # DataCollector properties
