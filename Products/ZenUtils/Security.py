@@ -175,17 +175,15 @@ def setupProtocolChooser(context):
         # we don't want to hard-code plugin names here, so let's do a lookup
         icookie = plugins.CookieAuthHelper.ICookieAuthHelper
         ichallenge = interfaces.plugins.IChallengePlugin
-        challengePlugins = [ p for id, p in
-            context.acl_users.plugins.listPlugins(ichallenge) ]
+        challenge = [ p for id, p in acl.plugins.listPlugins(ichallenge) ]
         # valid cooike auth plugins
-        cookiePlugins = [ p for p in challengePlugins if icookie.providedBy(p) ]
-        # XXX for now, let's just get the first one
-        cookie = cookiePlugins[0]
+        cookiePlugins = [ p for p in challenge if icookie.providedBy(p) ]
         # we want to move the cookie auth instance above the basic auth listing so
         # that it is accessed first and we can keep 'Browser' set to any; for
         # now, let's just get the first match and use that one (there should
         # really only be one...)
-        index = challengePlugins.index(cookie)
+        cookie = cookiePlugins[0]
+        index = challenge.index(cookie)
         for i in xrange(index):
             acl.plugins.movePluginsUp(ichallenge, [cookie.id])
     acl.protocolChooser.manage_updateProtocolMapping(protocolMapping)
