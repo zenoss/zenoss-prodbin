@@ -27,6 +27,8 @@ def addLoginForm(self):
     login_form.title = 'Login Form'
     login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
 
+CookieAuthHelper.CookieAuthHelper.addLoginForm = addLoginForm
+
 def manage_afterAdd(self, item, container):
     """ Setup tasks upon instantiation """
     if not 'login_form' in self.objectIds():
