@@ -37,6 +37,8 @@ class Step:
         "self insert ourselves in the list of all steps"
         allSteps.append(self)
 
+    def __cmp__(self, other):
+        return cmp((self.version, self.name()), (other.version, other.name()))
 
     def prepare(self):
         "do anything you must before running the cutover"
@@ -64,8 +66,7 @@ class Migration(ZCmdBase):
     def __init__(self):
         ZCmdBase.__init__(self)
         self.allSteps = allSteps[:]
-        self.allSteps.sort(lambda x, y: cmp((x.version, x.name()),
-                                            (x.version, x.name())))
+        self.allSteps.sort()
 
     def message(self, msg):
         log.info(msg)
