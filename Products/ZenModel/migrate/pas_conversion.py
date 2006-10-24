@@ -29,7 +29,6 @@ class MigrateToPAS(Migrate.Step):
             # note that the addLoginForm() is not PAS-native; it's part of a
             # monkey patch we have applied to allow for a file-system-based
             # login page template. See ZenUtils.__init__ and ZenUtils.Security.
-            addLoginForm(context.acl_users.cookieAuthHelper)
-
+            context.acl_users.cookieAuthHelper.addLoginForm()
 MigrateToPAS()
 
