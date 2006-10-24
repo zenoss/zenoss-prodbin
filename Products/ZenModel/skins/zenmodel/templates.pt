@@ -11,7 +11,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-    <head metal:use-macro="here/templates/macros/head1"/>
+    <head>
+        <tal:block metal:use-macro="here/templates/macros/head1"/>
+        <tal:block metal:define-slot="head-local"/>
+    </head>
 	<body>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
@@ -74,7 +77,7 @@
 <!-- ======================================================
     head1 - standard header
  ====================================================== -->
-<head metal:define-macro="head1">
+<tal:block metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:Zenoss: ${here/getId}"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
@@ -89,8 +92,7 @@
         src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
-    <tal:block metal:define-slot="head-local"/>
-</head>
+</tal:block>
 
 <!-- ======================================================
     topPane - standard top area with logo, etc...

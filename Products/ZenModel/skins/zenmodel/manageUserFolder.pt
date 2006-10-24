@@ -1,5 +1,19 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
 
+<tal:block metal:fill-slot="head-local">
+<script type="text/javascript">
+function ConfirmEmailTest() {
+    return confirm("This will send a test email to this address." +
+        "  Do you wish to continue?");
+}
+
+function ConfirmPagerTest() {
+    return confirm("This will send a test message to this pager number." +
+        "  Do you wish to continue?");
+}
+</script>
+</tal:block>
+
 <tal:block metal:fill-slot="breadCrumbPane">
     /<a tal:attributes=
             "href string:${here/absolute_url_path}/${template/id}">Users
@@ -35,8 +49,20 @@
             <span tal:condition="not: user/iseditable" 
                   tal:content="user/getId"/>
         </td>
-        <td class="tablevalues" tal:content="user/email"/>
-        <td class="tablevalues" tal:content="user/pager"/>
+        <td class="tablevalues">
+            <tal:block tal:content="user/email" />
+            <tal:block tal:condition="user/email">
+            (<a class="tablevalues" onclick="return ConfirmEmailTest()"
+            tal:attributes="href string:${here/absolute_url_path}?manage_emailTest:method=1&userid=${user/getId}">test</a>)
+            </tal:block>
+        </td>
+        <td class="tablevalues">
+            <tal:block tal:content="user/pager"/>
+            <tal:block tal:condition="user/pager">
+            (<a class="tablevalues" onclick="return ConfirmPagerTest()"
+            tal:attributes="href string:${here/absolute_url_path}?manage_pagerTest:method=1&userid=${user/getId}">test</a>)
+            </tal:block>
+        </td>
         <td class="tablevalues" 
             tal:content="python:', '.join(user.getUserRoles())"/>
     </tr>
