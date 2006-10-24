@@ -372,7 +372,10 @@ def getMySQLVersion():
     regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
     regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
     regex = re.match(regexString, output)
-    name, version, release, info = regex.groups()
+    if regex:
+        name, version, release, info = regex.groups()
+    else:
+        version = 0
     comment = 'Ver %s' % version
     # the name returned in the output is all lower case, so we'll make our own
     name = 'MySQL'
