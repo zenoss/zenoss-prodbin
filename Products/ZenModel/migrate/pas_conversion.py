@@ -18,13 +18,17 @@ from Products.ZenUtils.Security import migratePAS
 import Migrate
 
 class MigrateToPAS(Migrate.Step):
-    version = 23.0
+    version = 24.0
 
     def cutover(self, dmd):
         app = dmd.getPhysicalRoot()
         portal = app.zport
         for context in [app, portal]:
             migratePAS(context)
+            # note that the addLoginForm() is not PAS-native; it's part of a
+            # monkey patch we have applied to allow for a file-system-based
+            # login page template. See ZenUtils.__init__ and ZenUtils.Security.
+            context.acl_users.cookieAuthHelper.addLoginForm()
 
 MigrateToPAS()
 

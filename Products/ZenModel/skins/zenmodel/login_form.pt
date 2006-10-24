@@ -89,9 +89,12 @@
         <tr>
             <td colspan="2">
                 <tal:block define="
-                    came_form here/REQUEST/form/came_from | nothing;
-                    submitted python:came_form.find('submitted=true') + 1;
-                    ">
+                    came_from here/REQUEST/form/came_from | nothing;
+                    submitted python:came_from.find('submitted=true') + 1;
+                    "
+                    tal:omit-tag=""
+                    tal:on-error="string:"
+                    >
                     <span class="error" tal:condition="submitted">
                     The entered password or <br />username is incorrect.
                     </span>

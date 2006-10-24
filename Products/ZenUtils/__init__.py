@@ -12,13 +12,27 @@ if not hasattr(pas, '_createInitialUser'):
 # monkey patches for the PAS login form
 import os
 from Products import ZenModel
+from AccessControl.Permissions import view
 from Products.PluggableAuthService.plugins import CookieAuthHelper
+from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 filename = os.path.join(ZenModel.__path__[0], 'skins', 'zenmodel',
     'login_form.pt')
 fh = open(filename)
 html = fh.read()
 fh.close()
 CookieAuthHelper.BASIC_LOGIN_FORM = html
+
+def addLoginForm(self):
+    login_form = PageTemplateFile(filename, globals(), __name__='login_form')
+    login_form.title = 'Login Form'
+    login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
+
+def manage_afterAdd(self, item, container):
+    """ Setup tasks upon instantiation """
+    if not 'login_form' in self.objectIds():
+        addLoginForm(self)
+
+CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
 def login(self):
     """ Set a cookie and redirect to the url that we tried to
