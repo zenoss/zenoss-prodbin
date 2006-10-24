@@ -49,7 +49,8 @@ class ActionRule(ZenModelRM):
             "Message:\n%(message)s\n" \
             "Event: %(eventUrl)s\n" \
             "Acknowledge: %(ackUrl)s\n" \
-            "Delete: %(deleteUrl)s\n" 
+            "Delete: %(deleteUrl)s\n" \
+            "Device Events: %(eventsUrl)s\n"
     clearFormat = "[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s"
     clearBody =  \
             "Event: '%(summary)s'\n" \
@@ -131,7 +132,7 @@ class ActionRule(ZenModelRM):
         result.update(re.findall("%\((\S+)\)s", self.body))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
-        notDb = Set('orEventSummary eventUrl ackUrl deleteUrl'.split())
+        notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl'.split())
         return list(result - notDb)
 
 

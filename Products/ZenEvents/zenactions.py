@@ -113,6 +113,12 @@ class ZenActions(ZCmdBase):
         return '%s/zport/dmd/ZenEventManager/viewEventFields?evid=%s' % (
             self.options.zopeurl, evid)
 
+            
+    def getEventsUrl(self, device):
+        return '%s%s/viewEvents' % (
+                    self.options.zopeurl, device.getPrimaryUrlPath())
+
+
     def getAckUrl(self, evid):
         return '%s/zport/dmd/Events/manage_ackEvents?evid=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
 
@@ -153,6 +159,11 @@ class ZenActions(ZCmdBase):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
             data['eventUrl'] = self.getUrl(evid)
+            device = self.dmd.Devices.findDevice(data.get('device', None))
+            if device:
+                data['eventsUrl'] = self.getEventsUrl(device)
+            else:
+                data['eventsUrl'] = 'n/a'
             data['ackUrl'] = self.getAckUrl(evid)
             data['deleteUrl'] = self.getDeleteUrl(evid)
             actfunc = getattr(self, "send"+ar.action.title())
