@@ -21,7 +21,7 @@ class DbAccessBase(object):
             # FIXME for some reason it thinks my int is a long -EAD
             mysqlconv[FIELD_TYPE.LONG] = int
             if hasattr(self, 'host'):
-                host, database = self.host, host.database
+                host, database = self.host, self.database
             else:
                 host, database = self.database, 'events'
             db = MySQLdb.connect(host=host, user=self.username,
