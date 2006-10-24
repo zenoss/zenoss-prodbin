@@ -14,6 +14,7 @@ Old users, passwords and roles are migrated to PAS with this script.
 __version__ = "$Revision$"[11:-2]
 
 from Products.ZenUtils.Security import migratePAS
+from Products.ZenUtils import addLoginForm
 
 import Migrate
 
@@ -28,7 +29,7 @@ class MigrateToPAS(Migrate.Step):
             # note that the addLoginForm() is not PAS-native; it's part of a
             # monkey patch we have applied to allow for a file-system-based
             # login page template. See ZenUtils.__init__ and ZenUtils.Security.
-            context.acl_users.cookieAuthHelper.addLoginForm()
+            addLoginForm(context.acl_users.cookieAuthHelper)
 
 MigrateToPAS()
 
