@@ -140,9 +140,13 @@ class EventServer(ZCmdBase):
                                dest='statcycle',
                                type='int',
                                default=0)
+
+    def _wakeUpReactorAndHandleSignals(self):
+        reactor.callLater(1.0, self._wakeUpReactorAndHandleSignals)
         
     def main(self):
         reactor.callInThread(self.run)
         reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
+        self._wakeUpReactorAndHandleSignals()
         reactor.run(installSignalHandlers=False)
         
