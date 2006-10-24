@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 
 if [ "$ZENHOME" = "" ]; then 
     echo ERROR: ZENHOME envrionment variable not set.

@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 . $ZENHOME/bin/zenfunctions
 rm -rf $ZENHOME/zendocs/api
 mkdir -p $ZENHOME/zendocs/api

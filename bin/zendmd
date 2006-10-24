@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 
 # For some reason the zenfunctions line eats part of $*.  Store
 # value now to use in call to zendmd.py

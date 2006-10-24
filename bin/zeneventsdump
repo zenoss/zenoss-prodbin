@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 
 # Dump events in the MySQL in memory table status
 # Make sure that MYUSER MYPASS and MYSQLHOME are set properly

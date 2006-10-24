@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 
 #
 # zenoss_init      A script that performs the initialization required for zenoss
