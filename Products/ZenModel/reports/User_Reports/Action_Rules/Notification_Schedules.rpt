@@ -29,7 +29,7 @@
     </tr>
      <span tal:repeat="rule batch" tal:omit-tag="">
             <tr class="tablevalues">
-               <td><a tal:attributes="href python:rule.getUser().getUserSettingsUrl()" 
+               <td><a tal:attributes="href python:rule.getUserSettingsUrl(rule.getUserid())" 
                       tal:content="rule/getUserid"/>
                </td>
                <td><a tal:attributes="href rule/getPrimaryUrlPath"
