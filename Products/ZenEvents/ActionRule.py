@@ -3,6 +3,7 @@
 #   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
 #################################################################
+import time
 import re
 from sets import Set
 import logging
@@ -283,7 +284,6 @@ class ActionRule(ZenModelRM):
         return w
 
     def nextActive(self):
-        import time
         if self.enabled:
             return time.time()
         w = self.nextActiveWindow()
