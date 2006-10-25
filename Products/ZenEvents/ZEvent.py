@@ -31,17 +31,19 @@ class ZEvent(Event):
         self._baseurl = manager.absolute_url_path()
  
 
-    def getDataListWithLinks(self, fields):
+    def getDataListWithLinks(self, fields, cssClass=''):
         """return a list of data elements that map to the fields parameter.
         """
         data = []
         for field in fields:
             value = getattr(self, field)
             if field == "device":
-                value = "<a href='/zport/dmd/deviceSearchResults?query=%s'>"\
-                        "%s</a>" % (value, value)
+                value = ('<a class="%s"' % (cssClass) +
+                            ' href="/zport/dmd/deviceSearchResults'
+                            '?query=%s">%s</a>' % (value, value))
             elif field == 'eventClass':
-                value = "<a href='/zport/dmd/Events%s'>%s</a>" % (value,value)
+                value = ('<a class="%s" ' % (cssClass) +
+                        'href="/zport/dmd/Events%s">%s</a>' % (value,value))
             elif field == 'summary' or field == 'message':
                 value = cgi.escape(value)
             data.append(value)

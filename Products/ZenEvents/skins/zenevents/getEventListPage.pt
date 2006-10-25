@@ -26,7 +26,7 @@
     </td>
     <tal:block tal:define="evclick 
         string:javascript:eventWindow('${event/zem}','${event/evid}')">
-    <td tal:repeat="data python:event.getDataListWithLinks(resultFields)"
+    <td tal:repeat="data python:event.getDataListWithLinks(resultFields, event.getCssClass())"
         tal:attributes="onclick python:repeat['data'].end and evclick or ''"
         tal:content="structure data">
         event data
