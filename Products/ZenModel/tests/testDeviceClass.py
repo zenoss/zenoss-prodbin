@@ -31,64 +31,62 @@ from zLOG.EventLogger import log_write
 
 class TestDeviceClass(ZenModelBaseTest):
 
+    def setUp(self):
+        ZenModelBaseTest.setUp(self)
+        devices = self.dmd.Devices
+        self.routers = devices.createOrganizer("/NetworkDevice/Router")
+        devices.createOrganizer("/NetworkDevice/Router/Firewall")
+        devices.createOrganizer("/NetworkDevice/Router/RSM")
+        devices.createOrganizer("/Server")
+        self.dev = self.dmd.Devices.createInstance("testdev")
+        self.dev2 = self.dmd.Devices.createInstance("testdev2")
+        self.dev3 = self.routers.createInstance("testrouter")
 
     def testCreateInstanceDevice(self):
         devices = self.dmd.Devices
-        dev = devices.createInstance("testdev")
-        self.assert_(isinstance(dev, Device))
-        self.assert_(dev.deviceClass() == devices)
-        self.assert_(dev.getDeviceClassName() == "/")
-        self.assert_(devices.countDevices() == 1)
-        self.assert_(dev in devices.getSubDevices())
+        self.assert_(isinstance(self.dev, Device))
+        self.assert_(self.dev.deviceClass() == devices)
+        self.assert_(self.dev.getDeviceClassName() == "/")
+        self.assert_(devices.countDevices() == 3)
+        self.assert_(self.dev in devices.getSubDevices())
         self.assert_(devices.getPythonDeviceClass() == Device)
 
     
     def testCreateInstanceDeviceAndIndex(self):
         devices = self.dmd.Devices
-        dev = self.dmd.Devices.createInstance("testdev")
-        self.assert_(isinstance(dev, Device))
-        self.assert_(dev.deviceClass() == devices)
-        self.assert_(dev.getDeviceClassName() == "/")
+        self.assert_(isinstance(self.dev, Device))
+        self.assert_(self.dev.deviceClass() == devices)
+        self.assert_(self.dev.getDeviceClassName() == "/")
 
 
     def testSearchDevicesOneDevice(self):
         devices = self.dmd.Devices
-        dev = devices.createInstance("testdev")
-        self.assertRaises(Redirect, devices.searchDevices, "testdev")
+        self.assertRaises(Redirect, devices.searchDevices, "testdev2")
 
     
     def testSearchDevicesNoDevice(self):
         devices = self.dmd.Devices
-        dev = devices.createInstance("testdev")
         self.assert_(len(devices.searchDevices("adsf"))==0)
 
     
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
-        dev = devices.createInstance("testdev")
-        dev = devices.createInstance("testdev2")
         self.assert_(len(devices.searchDevices("testdev*"))==2)
 
     
     def testGetPeerDeviceClassNames(self):
-        devices = self.dmd.Devices
-        routers = devices.createOrganizer("/NetworkDevice/Router")
-        devices.createOrganizer("/NetworkDevice/Router/Firewall")
-        devices.createOrganizer("/NetworkDevice/Router/RSM")
-        devices.createOrganizer("/Server")
-        dev = routers.createInstance("testrouter")
-        dcnames = dev.getPeerDeviceClassNames()
-        
+        dcnames = self.dev3.getPeerDeviceClassNames()
         self.assert_("/NetworkDevice/Router" in dcnames)
         self.assert_("/NetworkDevice/Router/Firewall" in dcnames)
         self.assert_("/NetworkDevice/Router/RSM" in dcnames)
-        #self.assert_("/Server" not in dcnames)FIXME: should it be in here or
-        #                                             not?
 
-        routers.moveDevices('/','testrouter')
+        # XXX should this be in here or not?
+        #self.assert_("/Server" not in dcnames)
 
-        self.assert_(dev in self.dmd.Devices.getSubDevices())
-        self.assert_(dev not in self.dmd.Devices.NetworkDevice.Router.getSubDevices())
+        self.routers.moveDevices('/','testrouter')
+        self.assert_(self.dev3 in self.dmd.Devices.getSubDevices())
+        self.assert_(self.dev3 not in 
+            self.dmd.Devices.NetworkDevice.Router.getSubDevices())
                         
 
     def testOrganizer(self):
@@ -96,7 +94,7 @@ class TestDeviceClass(ZenModelBaseTest):
         dc = devices.createOrganizer('/Test')
         self.assert_(dc in devices.children())
         self.assert_(dc in devices.getSubOrganizers())
-        self.assert_(devices.countChildren() == 1)
+        self.assert_(devices.countChildren() == 6)
         self.assert_('Test' in devices.childIds())
         self.assert_('/Test' in devices.getOrganizerNames())
         self.assert_(devices.getOrganizer('/Test') == dc)
@@ -113,10 +111,9 @@ class TestDeviceClass(ZenModelBaseTest):
     def testDeviceOrganizer(self):
         log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
         devices = self.dmd.Devices
-        dev = devices.createInstance('testdev')
         dc = devices.createOrganizer('/Test')
-        self.assert_(devices.countDevices() == 1)
-        self.assert_(dev in devices.getSubDevices())
+        self.assert_(devices.countDevices() == 3)
+        self.assert_(self.dev in devices.getSubDevices())
         log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
         
 

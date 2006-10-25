@@ -7,31 +7,22 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
 import unittest
 
-import Globals
-import transaction
-
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.FileSystem import FileSystem
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestFileSystem(unittest.TestCase):
+class TestFileSystem(ZenModelBaseTest):
+
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
         self.dev = self.dmd.Devices.createInstance('testdev')
         tmpo = FileSystem('fs')
         self.dev.os.filesystems._setObject('fs',tmpo)
         self.fs = self.dev.os.filesystems()[0]
-
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
 
 
     def testSetManageIp(self):
@@ -43,6 +34,7 @@ class TestFileSystem(unittest.TestCase):
 
 
     def testGets(self):
+        import pdb;pdb.set_trace()
         self.assert_(self.fs.getInstDescription() == 'fs')
         self.assert_(self.fs.name() == 'fs')
         self.assert_(self.fs.hostname() == 'testdev')

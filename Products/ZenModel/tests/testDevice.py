@@ -20,9 +20,18 @@ from ZenModelBaseTest import ZenModelBaseTest
 
 class TestDevice(ZenModelBaseTest):
 
+
     def setUp(self):
         ZenModelBaseTest.setUp(self)
         self.dev = self.dmd.Devices.createInstance("testdev")
+        man = self.dmd.Manufacturers
+        man.createManufacturer('Apple')
+        man.createSoftwareProduct('Macos 10.4.1', 'Apple',
+            productKey='Darwin 8.1.0')
+        man.createManufacturer('HP')
+        man.createHardwareProduct('ProLiant 800', 'HP',
+            productKey='ProLiant 800')
+        man.createManufacturer('Unknown')
 
 
     def testcreateInstanceDevice(self):
@@ -76,20 +85,28 @@ class TestDevice(ZenModelBaseTest):
         unicodeificated = 'ab\xefcd'.decode('latin1')
         self.dev.setOSProductKey(unicodeificated)
         self.assert_(self.dev.getOSProductKey() == u'ab\xefcd')
-        
+
+
     def testSetOSProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
+        #import pdb;pdb.set_trace()
+        #raise "**%s**" % str([ x for x in dir(self.dev.os) if '_' not in x ])
+        #raise "**%s**" % len(self.dev.os.productKeys)
+        raise "**%s**" % self.dev.getOSProductKey()
         self.assert_(self.dev.getOSProductKey() == 'Darwin 8.1.0')
 
 
     def testSetHWProductKey(self):
-        self.dev.setHWProductKey('tesHWKey')
+        self.dev.setHWProductKey('testHWKey')
         self.assert_(self.dev.getHWProductKey() == 'testHWKey')
+
 
     def testSetHWProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(hwManufacturer='HP',
                                    hwProductName='ProLiant 800')
+        #raise "**%s**" % len(self.dev.hw.productKeys)
+        raise "**%s**" % self.dev.getHWProductKey()
         self.assert_(self.dev.getHWProductKey() == 'ProLiant 800')
 
 

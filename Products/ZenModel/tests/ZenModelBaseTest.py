@@ -92,22 +92,7 @@ class ZenModelBaseTest(BaseTestCase):
         builder = Builder(self.app.zport, 'dbuser', 'dbpass', 'dbtable')
         builder.build()
         self.dmd = builder.dmd
-        self.loadData()
 
-
-    def loadData(self):
-        """load data to be used in tests"""
-        man = self.dmd.Manufacturers
-        man.createManufacturer('Apple')
-        man.createSoftwareProduct('Macos 10.4.1', 'Apple',
-            productKey='Darwin 8.1.0')
-        man.createManufacturer('HP')
-        man.createHardwareProduct('ProLiant 800', 'HP',
-            productKey='ProLiant 800')
-        man.createManufacturer('Unknown')
-        zcat = man._getOb(man.default_catalog)
-        for prod in man.getProductsGen():
-            prod.index_object()
 
     def tearDown(self):
         self.app = None

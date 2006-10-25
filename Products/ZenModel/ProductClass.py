@@ -88,7 +88,12 @@ class ProductClass(ZenModelRM):
     def __init__(self, id, title="", prodName=None,
                  productKey=None, partNumber="",description=""):
         ZenModelRM.__init__(self, id, title)
-        if productKey is None:  self.productKeys = [prodName]
+        # XXX per a comment in #406 from Erik, we may want to get rid
+        # of prodName and only use productKey, to avoid redundancy
+        if productKey:
+            self.productKeys = [productKey]
+        else:
+            self.productKeys = [prodName]
         if prodName is None:  self.name = id
         else: self.name = prodName
         self.partNumber = partNumber
