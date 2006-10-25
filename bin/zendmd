@@ -2,6 +2,5 @@
 
 # For some reason the zenfunctions line eats part of $*.  Store
 # value now to use in call to zendmd.py
-args=$*
 . $ZENHOME/bin/zenfunctions
-$PYTHON -i $ZENHOME/Products/ZenModel/zendmd.py $args
+$PYTHON -i $ZENHOME/Products/ZenModel/zendmd.py "$CMD" $*
