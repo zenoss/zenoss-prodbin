@@ -68,27 +68,29 @@ class TestDevice(ZenModelBaseTest):
 
     
     def testSetHWSerialNumber(self):
-        self.dev.setHWSerialNumber('testKey')
-        self.assert_(self.dev.getHWSerialNumber() == 'testKey')
+        self.dev.setHWSerialNumber('testSWKey')
+        self.assert_(self.dev.getHWSerialNumber() == 'testSWKey')
     
 
     def testSetOSProductKey(self):
         unicodeificated = 'ab\xefcd'.decode('latin1')
         self.dev.setOSProductKey(unicodeificated)
-        self.assert_(self.dev.getOSProductKey() == 'ab_cd')
+        self.assert_(self.dev.getOSProductKey() == u'ab\xefcd')
         
+    def testSetOSProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
         self.assert_(self.dev.getOSProductKey() == 'Darwin 8.1.0')
 
 
     def testSetHWProductKey(self):
-        self.dev.setHWProductKey('testKey')
-        self.assert_(self.dev.getHWProductKey() == 'testKey')
+        self.dev.setHWProductKey('tesHWKey')
+        self.assert_(self.dev.getHWProductKey() == 'testHWKey')
 
+    def testSetHWProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(hwManufacturer='HP',
-                                   hwProductName='ProLient 800')
-        self.assert_(self.dev.getHWProductKey() == 'ProLient 800')
+                                   hwProductName='ProLiant 800')
+        self.assert_(self.dev.getHWProductKey() == 'ProLiant 800')
 
 
     def testSetLastChange(self):
