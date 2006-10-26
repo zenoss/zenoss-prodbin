@@ -18,6 +18,11 @@ from AccessControl.SecurityManagement import noSecurityManager
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
+import os
+defaultCacheDir = os.getenv('ZENHOME')
+if defaultCacheDir is not None:
+    defaultCacheDir = os.path.join(defaultCacheDir, 'var')
+
 class DataRootError(Exception):pass
 
 class ZCmdBase(ZenDaemon):
@@ -32,8 +37,11 @@ class ZCmdBase(ZenDaemon):
             from ZEO import ClientStorage
             from ZODB import DB
             addr = (self.options.host, self.options.port)
-            storage=ClientStorage.ClientStorage(addr)
-            self.db=DB(storage)
+            storage=ClientStorage.ClientStorage(addr, 
+                            client=self.options.pcachename,
+                            var=self.options.pcachedir,
+                            cache_size=self.options.pcachesize*1024*1024)
+            self.db=DB(storage, cache_size=self.options.cachesize)
             self.poollock = Lock()
         self.getDataRoot()
         self.login()
@@ -144,4 +152,15 @@ class ZCmdBase(ZenDaemon):
                     dest="dataroot",
                     default="/zport/dmd",
                     help="root object for data load (i.e. /zport/dmd)")
-
+        self.parser.add_option('--cachesize',
+                    dest="cachesize",default=1000, type='int',
+                    help="in memory cachesize default: 1000")
+        self.parser.add_option('--pcachename',
+                    dest="pcachename",default=None,
+                    help="persistent cache file name default:None")
+        self.parser.add_option('--pcachedir',
+                    dest="pcachedir",default=defaultCacheDir,
+                    help="persistent cache file directory")
+        self.parser.add_option('--pcachesize',
+                    dest="pcachesize",default=10, type='int',
+                    help="persistent cache file size in MB")
