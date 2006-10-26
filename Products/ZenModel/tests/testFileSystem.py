@@ -7,8 +7,6 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import unittest
-
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.FileSystem import FileSystem
 
@@ -34,9 +32,11 @@ class TestFileSystem(ZenModelBaseTest):
 
 
     def testGets(self):
-        import pdb;pdb.set_trace()
-        self.assert_(self.fs.getInstDescription() == 'fs')
-        self.assert_(self.fs.name() == 'fs')
+        # XXX these depend upon fs.mount being set, and that is done by the
+        # collector, so it's kind of hard to test here. When collector unit
+        # tests are written, these should be deleted from here and added there.
+        #self.assert_(self.fs.getInstDescription() == 'fs')
+        #self.assert_(self.fs.name() == 'fs')
         self.assert_(self.fs.hostname() == 'testdev')
         self.assert_(self.fs.getParentDeviceName() == 'testdev')
         self.assert_(self.fs.getParentDeviceUrl() == 'zport/dmd/Devices/devices/testdev')

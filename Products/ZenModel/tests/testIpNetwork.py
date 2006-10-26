@@ -2,26 +2,13 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import unittest
-import pdb
-
-import Globals
-import transaction
+import logging
 
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestIpNetwork(unittest.TestCase):
-
-    def setUp(self):
-        self.dmd = zeoconn.dmd
-
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
+class TestIpNetwork(ZenModelBaseTest):
 
 
     def testIpNetCreation(self):
@@ -72,6 +59,7 @@ class TestIpNetwork(unittest.TestCase):
     def testMisc(self):
         net = self.dmd.Networks.createNet('1.2.3.0/24')
         self.dmd.Networks.addIp('1.2.3.4')
+        import pdb;pdb.set_trace()
         self.assert_(net.freeIps() == 253)
         self.assert_(net.getNetworkName() == '1.2.3.0/24')
         self.assert_(not net.getIpAddress('1.2.3.4') == None)
@@ -89,6 +77,7 @@ class TestIpNetwork(unittest.TestCase):
         self.assert_(net in dmdNet.getSubNetworks())
         
         subNet = net.getSubNetwork('1.2.3.0')
+        import pdb;pdb.set_trace()
         self.assert_(subNet in net.getSubNetworks())
         
         subNet = net.getSubNetwork('1.2.4.0')

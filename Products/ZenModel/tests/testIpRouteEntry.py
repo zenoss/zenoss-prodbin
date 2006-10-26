@@ -7,23 +7,23 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-import transaction
+import logging
 
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestIpRouteEntry(unittest.TestCase):
+log = logging.getLogger("zen.IpAddress")
+log.warn = lambda *args, **kwds: None
+
+
+class TestIpRouteEntry(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
+
         self.dev = self.dmd.Devices.createInstance('testdev')
 
         tmpo = IpInterface('test0')
@@ -44,11 +44,6 @@ class TestIpRouteEntry(unittest.TestCase):
         self.dev.os.routes._setObject('rEntry',tmpo)
         self.rEntry = self.dev.os.routes()[0]
 
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
-    
 
     def testSetManageIp(self):
         self.rEntry.setManageIp('1.2.3.4/24')

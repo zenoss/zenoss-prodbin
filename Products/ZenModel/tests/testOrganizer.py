@@ -6,17 +6,11 @@
 import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
-
-import pdb
-import unittest
-   
-import Globals
-  
-from ZenModelBaseTest import ZenModelBaseTest
   
 from Products.ZenModel.Exceptions import *
-  
 from Products.ZenModel.Organizer import *
+
+from ZenModelBaseTest import ZenModelBaseTest
   
 class TestOrganizer(ZenModelBaseTest):
   

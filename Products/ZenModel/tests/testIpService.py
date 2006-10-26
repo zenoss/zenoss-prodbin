@@ -7,32 +7,22 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-import transaction
-
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.IpService import IpService
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestIpService(unittest.TestCase):
+
+class TestIpService(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
+
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = IpService('ipsvc')
         self.dev.os.ipservices._setObject('ipsvc',tmpo)
         self.ipsvc = self.dev.os.ipservices()[0]
 
-
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
-    
 
     def testSetIpService(self):
         self.ipsvc.port = 121 #for now, so that setIpService is actually useful

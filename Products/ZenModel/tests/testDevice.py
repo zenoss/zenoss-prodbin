@@ -8,7 +8,6 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import time
-import unittest
 
 from DateTime import DateTime
 
@@ -90,10 +89,6 @@ class TestDevice(ZenModelBaseTest):
     def testSetOSProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
-        #import pdb;pdb.set_trace()
-        #raise "**%s**" % str([ x for x in dir(self.dev.os) if '_' not in x ])
-        #raise "**%s**" % len(self.dev.os.productKeys)
-        raise "**%s**" % self.dev.getOSProductKey()
         self.assert_(self.dev.getOSProductKey() == 'Darwin 8.1.0')
 
 
@@ -105,8 +100,6 @@ class TestDevice(ZenModelBaseTest):
     def testSetHWProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(hwManufacturer='HP',
                                    hwProductName='ProLiant 800')
-        #raise "**%s**" % len(self.dev.hw.productKeys)
-        raise "**%s**" % self.dev.getHWProductKey()
         self.assert_(self.dev.getHWProductKey() == 'ProLiant 800')
 
 

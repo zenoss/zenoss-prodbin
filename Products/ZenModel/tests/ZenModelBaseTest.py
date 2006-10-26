@@ -15,9 +15,11 @@ from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator
 from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
+from Products.ZenEvents.MySqlEventManager import log
 from Products.ZenEvents import MySqlEventManager
 from Products.ZenRelations.ImportRM import ImportRM
 
+log.warn = lambda *args, **kwds: None
 
 # setup the Products needed for the Zenoss test instance
 ZopeTestCase.installProduct('ZenRelations', 1)

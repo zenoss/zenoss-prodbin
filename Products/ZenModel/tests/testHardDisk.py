@@ -7,33 +7,21 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-import transaction
-
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.HardDisk import HardDisk
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestHardDisk(unittest.TestCase):
+class TestHardDisk(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = HardDisk('hdd')
         self.dev.hw.harddisks._setObject('hdd',tmpo)
         self.hdd = self.dev.hw.harddisks()[0]
 
 
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
-    
-        
     def testSetManageIp(self):
         self.hdd.setManageIp('1.2.3.4/24')
         self.assert_(self.hdd.getManageIp() == '1.2.3.4/24')
@@ -47,6 +35,7 @@ class TestHardDisk(unittest.TestCase):
         self.assert_(self.hdd.name() == 'hdd')
         self.assert_(self.hdd.hostname() == 'testdev')
         self.assert_(self.hdd.getParentDeviceName() == 'testdev')
+        import pdb;pdb.set_trace()
         self.assert_(self.hdd.getParentDeviceUrl() == 'zport/dmd/Devices/devices/testdev')
 
 def test_suite():

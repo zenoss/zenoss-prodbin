@@ -7,22 +7,17 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-import transaction
-
 from Products.ZenModel.Exceptions import *
-from Products.ZenUtils.ZeoConn import ZeoConn
 from Products.ZenModel.WinService import WinService
 
-zeoconn = ZeoConn()
+from ZenModelBaseTest import ZenModelBaseTest
 
-class TestWinService(unittest.TestCase):
+
+class TestWinService(ZenModelBaseTest):
 
     def setUp(self):
-        self.dmd = zeoconn.dmd
+        ZenModelBaseTest.setUp(self)
+
         self.dev = self.dmd.Devices.createInstance("testdev")
         tmpo = WinService('wsvc')
         self.dev.os.winservices._setObject('wsvc',tmpo)
@@ -30,14 +25,10 @@ class TestWinService(unittest.TestCase):
         self.wsvc.dmd = self.dmd #temporary fix -> setServiceClass
 
 
-    def tearDown(self):
-        transaction.abort()
-        self.dmd = None
-
-
     def testSetServiceClass(self):
         self.wsvc.setServiceClass({'name':'ALG','description':'testsvc'})
         self.assert_(self.wsvc.name() == 'ALG')
+        import pdb;pdb.set_trace()
         self.assert_(self.wsvc.caption() == 'Application Layer Gateway Service')
         self.assert_(self.wsvc.getInstDescription() == \
                      "'%s' StartMode: StartName:" % (self.wsvc.caption())\
@@ -55,6 +46,7 @@ class TestWinService(unittest.TestCase):
     def testGets(self):
         self.assert_(self.wsvc.hostname() == 'testdev')
         self.assert_(self.wsvc.getParentDeviceName() == 'testdev')
+        import pdb;pdb.set_trace()
         self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
 
 def test_suite():

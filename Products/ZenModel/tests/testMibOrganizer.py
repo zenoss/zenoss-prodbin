@@ -7,22 +7,17 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
+from Products.ZenModel.Exceptions import *
+from Products.ZenModel.MibOrganizer import *
 
 from ZenModelBaseTest import ZenModelBaseTest
 
-from Products.ZenModel.Exceptions import *
-
-from Products.ZenModel.MibOrganizer import *
 
 class TestMibOrganizer(ZenModelBaseTest):
 
 
     def testMibOrganizer(self):
-        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
+        mibOrg = self.dmd.Mibs
         mod = mibOrg.createMibModule('mod')
         two = mibOrg.createMibModule('two','/layer')
         self.assert_(mod in mibOrg.mibs())
@@ -40,7 +35,7 @@ class TestMibOrganizer(ZenModelBaseTest):
         
 
     def testMibModule(self):
-        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
+        mibOrg = self.dmd.Mibs
         mod = mibOrg.createMibModule('mod')
 
         self.assert_(mod.getModuleName() == 'mod')
@@ -64,12 +59,14 @@ class TestMibOrganizer(ZenModelBaseTest):
 
 
     def testOrganizer(self):
-        mibOrg = self.create(self.dmd, MibOrganizer, 'Mibs')
+        mibOrg = self.dmd.Mibs
         subOrg = mibOrg.createOrganizer('/sub')
         mod = mibOrg.createMibModule('mod', '/modLoc')
         modLoc = mibOrg.getOrganizer('modLoc')
         moveMe = mibOrg.createOrganizer('/mobile')
-        self.assert_(mibOrg.countChildren() == 2)
+        # there's more in mibOrg than is defined here, due to the test case
+        # setup
+        self.assert_(mibOrg.countChildren() == 3)
         self.assert_(subOrg in mibOrg.getSubOrganizers())
         self.assert_(modLoc in mibOrg.getSubOrganizers())
         self.assert_('/sub' in mibOrg.getOrganizerNames())
@@ -78,7 +75,7 @@ class TestMibOrganizer(ZenModelBaseTest):
         self.assert_(moveMe not in mibOrg.children())
         self.assert_(moveMe in subOrg.children())
         mibOrg.manage_deleteOrganizers(['sub','modLoc'])
-        self.assert_(sub not in mibOrg.getSubOrganizers())
+        self.assert_(subOrg not in mibOrg.getSubOrganizers())
         self.assert_(modLoc not in mibOrg.getSubOrganizers())
         self.assert_(moveMe not in mibOrg.getSubOrganizers())
         self.assert_(mibOrg.countClasses() == 0)

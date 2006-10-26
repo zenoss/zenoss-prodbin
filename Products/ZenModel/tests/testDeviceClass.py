@@ -7,11 +7,6 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-
 from zExceptions import Redirect
 
 from Products.ZenModel.Exceptions import *
@@ -19,10 +14,6 @@ from Products.ZenModel.DeviceClass import *
 from Products.ZenModel.Device import Device
 
 from ZenModelBaseTest import ZenModelBaseTest
-
-from Testing.ZopeTestCase import ZopeLite
-from Testing.ZopeTestCase.ZopeTestCase import ZopeTestCase, user_role, \
-                                    folder_name, standard_permissions
 
 # XXX
 from Testing.ZopeTestCase import connections
