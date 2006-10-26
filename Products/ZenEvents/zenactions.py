@@ -317,6 +317,7 @@ class ZenActions(ZCmdBase):
                            self.options.snpphost, 
                            self.options.snppport)
         page.send()
+        msg = fmt % data
         self.log.info("sent page:%s to:%s", msg, action.getAddress())
         
 
