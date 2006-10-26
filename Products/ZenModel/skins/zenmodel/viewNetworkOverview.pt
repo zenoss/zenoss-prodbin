@@ -1,6 +1,8 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" value="viewNetworkOverview" />
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:condition="python:here.id != 'Networks'">
     <tr>
@@ -23,7 +25,25 @@
         <td class="tableheader">Description</td>
         <td class="tablevalues" colspan="4" tal:content="here/description"/>
     </tr>
+    <tr>
+      <td class="tableheader">Description</td>
+      <td class="tablevalues" colspan="3">
+        <textarea tal:condition="here/isManager" name="description" 
+                rows="4" cols="50" tal:content="here/description" />
+        <tal:block tal:condition="not: here/isManager" 
+                tal:replace="here/description" />
+      </td>
+    </tr>
+    <tr tal:condition="here/isManager">
+        <td class="tableheader" align="left">
+        </td>
+        <td align="left" class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save " 
+                name="zmanage_editProperties:method:method" />
+        </td>
+    </tr>
 </table>
+</form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
@@ -35,7 +55,7 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
   <tr>
-      <th class="tabletitle" align="left" colspan="4">
+      <th class="tabletitle" align="left" colspan="5">
         Subnetworks
       </th>
   </tr>
@@ -44,6 +64,10 @@
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Address','cmp')">
         Address
+    </th>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'description','Description','cmp')">
+        Description
     </th>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'countChildren','Subnets','cmp')">
@@ -63,15 +87,16 @@
     <input tal:condition="here/isManager" 
         type="checkbox" name="organizerPaths:list" 
         tal:attributes="value net/getId"/>
-    <a tal:attributes="href net/getPrimaryUrlPath"
+        <a tal:attributes="href net/getPrimaryUrlPath"
         tal:content="string:${net/id}/${net/netmask}">1.2.3.0/24</a>
     </td>
+    <td class="tablevalues" align="left" tal:content="net/description"/>
     <td class="tablevalues" align="center" tal:content="net/countChildren"/>
     <td class="tablevalues" align="center" tal:content="net/countIpAddresses"/>
     <td class="tablevalues" align="center" tal:content="net/freeIps"/>
   </tr>
   <tr>
-    <td colspan="4" class="tableheader" align='center'>
+    <td colspan="5" class="tableheader" align='center'>
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
