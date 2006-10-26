@@ -781,17 +781,20 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'manage_addMaintenanceWindow')
-    def manage_addMaintenanceWindow(self, newId, REQUEST=None):
+    def manage_addMaintenanceWindow(self, newId=None, REQUEST=None):
         "Add a Maintenance Window to this device"
-        mw = DeviceMaintenanceWindow(newId)
-        self.maintenanceWindows._setObject(newId, mw)
-        self.setLastChange()
+        mw = None
+        if newId:
+            mw = DeviceMaintenanceWindow(newId)
+            self.maintenanceWindows._setObject(newId, mw)
+            self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Maintenace Window Added"
+            if mw:
+                REQUEST['message'] = "Maintenace Window Added"
             return self.callZenScreen(REQUEST)
                           
     security.declareProtected('Change Device', 'manage_deleteMaintenanceWindow')
-    def manage_deleteMaintenanceWindow(self, maintenanceIds, REQUEST=None):
+    def manage_deleteMaintenanceWindow(self, maintenanceIds=(), REQUEST=None):
         "Delete a Maintenance Window to this device"
         import types
         if type(maintenanceIds) in types.StringTypes:
@@ -838,14 +841,15 @@ class Device(ManagedEntity):
         
 
     security.declareProtected('Change Device','manage_deleteAdministrativeRole')
-    def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
+    def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
         if type(delids) in types.StringTypes:
             delids = [delids]
         for id in delids:
             self.adminRoles._delObject(id)
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Deleted"
+            if delids:
+                REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
 

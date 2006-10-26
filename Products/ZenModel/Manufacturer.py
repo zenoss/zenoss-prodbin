@@ -22,10 +22,11 @@ from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
-def manage_addManufacturer(context, id, REQUEST = None):
+def manage_addManufacturer(context, id=None, REQUEST = None):
     """make a Manufacturer"""
-    d = Manufacturer(id)
-    context._setObject(id, d)
+    if id:
+        d = Manufacturer(id)
+        context._setObject(id, d)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

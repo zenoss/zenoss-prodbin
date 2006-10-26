@@ -122,12 +122,13 @@ class ServiceOrganizer(Organizer):
         return svccl 
 
     
-    def manage_addServiceClass(self, id, REQUEST=None):
+    def manage_addServiceClass(self, id=None, REQUEST=None):
         """Create a new service class in this Organizer.
         """
-        sc = ServiceClass(id)
-        self.serviceclasses._setObject(id, sc)
-        if REQUEST:
+        if id:
+            sc = ServiceClass(id)
+            self.serviceclasses._setObject(id, sc)
+        if REQUEST or not id:
             return self.callZenScreen(REQUEST)
         else:
             return self.serviceclasses._getOb(id)

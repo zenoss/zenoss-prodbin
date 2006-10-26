@@ -472,19 +472,20 @@ class UserSettings(ZenModelRM):
             return user
 
     security.declareProtected('Change Settings', 'manage_addActionRule')
-    def manage_addActionRule(self, id, REQUEST=None):
+    def manage_addActionRule(self, id=None, REQUEST=None):
         """Add an action rule to this object.
         """
-        ar = ActionRule(id)
-        self._setObject(id, ar)
-        ar = self._getOb(id)
-        user = getSecurityManager().getUser()
-        userid = user.getId()
-        if userid != self.id:
-            userid = self.id
-            user = self.getUser(userid)
-            ar.changeOwnership(user)
-            ar.manage_setLocalRoles(userid, ("Owner",))
+        if id:
+            ar = ActionRule(id)
+            self._setObject(id, ar)
+            ar = self._getOb(id)
+            user = getSecurityManager().getUser()
+            userid = user.getId()
+            if userid != self.id:
+                userid = self.id
+                user = self.getUser(userid)
+                ar.changeOwnership(user)
+                ar.manage_setLocalRoles(userid, ("Owner",))
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -492,19 +493,20 @@ class UserSettings(ZenModelRM):
         return self.objectValues(spec=ActionRule.meta_type)
 
     security.declareProtected('Change Settings', 'manage_addCustomEventView')
-    def manage_addCustomEventView(self, id, REQUEST=None):
+    def manage_addCustomEventView(self, id=None, REQUEST=None):
         """Add an action rule to this object.
         """
-        ar = CustomEventView(id)
-        self._setObject(id, ar)
-        ar = self._getOb(id)
-        user = getSecurityManager().getUser()
-        userid = user.getId()
-        if userid != self.id:
-            userid = self.id
-            user = self.getUser(userid)
-            ar.changeOwnership(user)
-            ar.manage_setLocalRoles(userid, ("Owner",))
+        if id:
+            ar = CustomEventView(id)
+            self._setObject(id, ar)
+            ar = self._getOb(id)
+            user = getSecurityManager().getUser()
+            userid = user.getId()
+            if userid != self.id:
+                userid = self.id
+                user = self.getUser(userid)
+                ar.changeOwnership(user)
+                ar.manage_setLocalRoles(userid, ("Owner",))
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -547,7 +549,7 @@ class UserSettings(ZenModelRM):
 
 
     #security.declareProtected('Change Settings','manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids, role, level, REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), REQUEST=None):
         """Edit list of admin roles.
         """
         if type(ids) in types.StringTypes:
@@ -560,12 +562,13 @@ class UserSettings(ZenModelRM):
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Updated"
+            if ids:
+                REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
         
 
     #security.declareProtected('Change Settings','manage_deleteAdministrativeRole')
-    def manage_deleteAdministrativeRole(self, delids, REQUEST=None):
+    def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
         import types
         if type(delids) in types.StringTypes:
@@ -576,7 +579,8 @@ class UserSettings(ZenModelRM):
                 mobj = ar.managedObject().primaryAq()
                 mobj.adminRoles._delObject(ar.id)
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Deleted"
+            if delids:
+                REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
 

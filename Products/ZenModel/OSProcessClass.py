@@ -17,13 +17,14 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 
 
-def manage_addOSProcessClass(context, id, REQUEST = None):
+def manage_addOSProcessClass(context, id=None, REQUEST = None):
     """make a device class"""
-    sc = OSProcessClass(id)
-    context._setObject(id, sc)
-    sc = context._getOb(id)
-    sc.createCatalog()
-    sc.buildZProperties()
+    if id:
+        sc = OSProcessClass(id)
+        context._setObject(id, sc)
+        sc = context._getOb(id)
+        sc.createCatalog()
+        sc.buildZProperties()
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 

@@ -88,10 +88,11 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         self.buildzProperties()
 
 
-    def manage_addManufacturer(self, manufacturerName, REQUEST=None):
+    def manage_addManufacturer(self, manufacturerName=None, REQUEST=None):
         """Add a manufacturer from UI code.
         """
-        self.createManufacturer(manufacturerName)
+        if manufacturerName:
+            self.createManufacturer(manufacturerName)
         if REQUEST: return self.callZenScreen(REQUEST)
        
 

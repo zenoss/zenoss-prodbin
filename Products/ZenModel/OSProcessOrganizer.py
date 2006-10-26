@@ -100,11 +100,12 @@ class OSProcessOrganizer(Organizer):
         return count
 
 
-    def manage_addOSProcessClass(self, id, REQUEST=None):
+    def manage_addOSProcessClass(self, id=None, REQUEST=None):
         """Create a new service class in this Organizer.
         """
-        sc = OSProcessClass(id)
-        self.osProcessClasses._setObject(id, sc)
+        if id:
+            sc = OSProcessClass(id)
+            self.osProcessClasses._setObject(id, sc)
         if REQUEST:
             return self.callZenScreen(REQUEST)
         else:
