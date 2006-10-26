@@ -375,7 +375,7 @@ def getMySQLVersion():
     if regex:
         name, version, release, info = regex.groups()
     else:
-        version = 0
+        version = '0'
     comment = 'Ver %s' % version
     # the name returned in the output is all lower case, so we'll make our own
     name = 'MySQL'
