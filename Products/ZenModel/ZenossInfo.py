@@ -174,10 +174,18 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
 
-    def manage_checkVersion(self, optInOut=False, REQUEST=None):
+    def manage_checkVersion(self, optInOut=False, optInOutMetrics=False, REQUEST=None):
         "Check for Zenoss updates on the Zenoss website"
         self.dmd.versionCheckOptIn = optInOut
-        if self.dmd.versionCheckOptIn:
+        self.dmd.reportMetricsOptIn = optInOutMetrics
+        # There is a hidden field for manage_checkVersions in the form so that
+        # the javascript submit() calls will end up calling this method.
+        # That means that when user hits the Check Now button we will receive
+        # 2 values for that field.  (button is that same field name.)
+        # We want to initiate only when the button is pressed.
+        if self.dmd.versionCheckOptIn \
+          and REQUEST \
+          and isinstance(REQUEST.form['manage_checkVersion'], list):
             uc = UpdateCheck()
             uc.check(self.dmd, self.dmd.ZenEventManager, manual=True)
         return self.callZenScreen(REQUEST)

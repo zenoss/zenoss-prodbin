@@ -86,6 +86,27 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         self.cleanCache()
         return sevsum
 
+    def countEventsSince(self, since):
+        ''' since is number of seconds since epoch, see documentation
+        for python time.time()
+        '''
+        db = self.connect()
+        curs = db.cursor()
+        count = 0
+        try:
+            for table in ('status', 'history'):
+                sql = 'select count(*) from status ' \
+                        'where firstTime >= %s' % since
+            curs.execute(sql)
+            count = curs.fetchall()[0][0]
+            sql = 'select count(*) from history ' \
+                    'where firstTime >= %s' % since
+            curs.execute(sql)
+            count += curs.fetchall()[0][0]
+        finally:
+            curs.close()
+            db.close()
+        return count
 
 InitializeClass(MySqlEventManager)
 

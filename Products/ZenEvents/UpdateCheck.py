@@ -42,6 +42,26 @@ class UpdateCheck:
         args['mv'] = mysql.long()
         args['os'] = os.long()
         args['up'] = time.time() - dmd.getPhysicalRoot().Control_Panel.process_start
+
+        # If they have not opted-out and this is not a manual check then
+        # gather usage numbers and include in request
+        if not manual and dmd.reportMetricsOptIn:
+            args['nd'] = dmd.Devices.countDevices()
+            args['nu'] = len(dmd.ZenUsers.objectIds())
+            args['nm'] = dmd.Events.countInstances()
+            args['ne'] = dmd.ZenEventManager.countEventsSince(
+                                            time.time() - 24 * 60 * 60)
+            numProducts = 0
+            manufacturers = dmd.Manufacturers.objectValues(spec='Manufacturer')
+            for m in manufacturers:
+                numProducts += m.products.countObjects()
+            args['np'] = numProducts
+            args['nr'] = dmd.Reports.countReports()
+            args['nt'] = dmd.Devices.rrdTemplates.countObjects()
+            args['ns'] = dmd.Systems.countChildren()
+            args['ng'] = dmd.Groups.countChildren()
+            args['nl'] = dmd.Locations.countChildren()
+            
         query = urllib.urlencode(args.items())
         for line in urllib.urlopen(URL + '?' + query):
             # skip blank lines and http gunk
@@ -78,7 +98,6 @@ class UpdateCheck:
         dmd.availableVersion = available.short()
         dmd.lastVersionCheck = long(time.time())
         return True
-
 
 if __name__ == "__main__":
     from Products.ZenUtils import ZCmdBase

@@ -56,6 +56,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
     availableVersion = None
     lastVersionCheck = 0
     versionCheckOptIn = True
+    reportMetricsOptIn = True
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -68,6 +69,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
+        {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)

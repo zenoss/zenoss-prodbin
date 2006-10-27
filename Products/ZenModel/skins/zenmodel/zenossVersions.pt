@@ -35,6 +35,14 @@
             </td>
         </tr>
         <tr>
+            <th class="tableheader">Send Anonymous Usage Info with Daily Update Check</th>
+            <td class="tablevalues">
+                <input type="checkbox" name="optInOutMetrics"
+                       tal:attributes="checked here/dmd/reportMetricsOptIn; value here/dmd/reportMetricsOptIn"
+                      onchange="form.submit()"/>
+            </td>
+        </tr>
+        <tr>
             <th class="tableheader">
                <input type="submit" 
                       name="manage_checkVersion:method" 
