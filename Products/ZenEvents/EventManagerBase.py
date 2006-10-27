@@ -698,7 +698,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
-                if dev.productionState < 1000: continue
+                if dev.productionState < self.prodStateDashboardThresh: 
+                    continue
                 if simple:
                     alink = devname
                 else:

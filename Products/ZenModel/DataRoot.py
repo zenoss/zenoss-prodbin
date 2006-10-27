@@ -59,6 +59,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
+        {'id':'prodStateDashboardThresh','type':'int','mode':'w'},
         {'id':'prodStateConversions','type':'lines','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
         {'id':'interfaceStateConversions','type':'lines','mode':'w'},
@@ -66,7 +67,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
-        {'id':'versionCheckOptIn"Check', 'type': 'boolean', 'mode':'w'},
+        {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)
@@ -99,7 +100,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     security = ClassSecurityInfo()
 
-
+    # production state threshold at which devices show on dashboard
+    prodStateDashboardThresh = 1000
 
     prodStateConversions = [
                 'Production:1000',
