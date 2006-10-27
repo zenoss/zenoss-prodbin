@@ -22,19 +22,10 @@ html = fh.read()
 fh.close()
 CookieAuthHelper.BASIC_LOGIN_FORM = html
 
-def addLoginForm(self):
-    login_form = PageTemplateFile(filename, globals(), __name__='login_form')
-    login_form.title = 'Login Form'
-    login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
-
-CookieAuthHelper.CookieAuthHelper.addLoginForm = addLoginForm
-
-def manage_afterAdd(self, item, container):
-    """ Setup tasks upon instantiation """
-    if not 'login_form' in self.objectIds():
-        addLoginForm(self)
-
-CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
+login_form = PageTemplateFile(filename, globals(), __name__='login_form')
+login_form.title = 'Login Form'
+login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
+CookieAuthHelper.CookieAuthHelper.login_form = login_form
 
 def login(self):
     """ Set a cookie and redirect to the url that we tried to
