@@ -20,7 +20,7 @@ fi
 
 if [ `id -u` -eq 0 ] ; then
    USERNAME=`ls -l $ZENHOME/var/Data.fs | awk '{ print $3 }'`
-   if [ "$USERNAME" = "root" ]  ; then 
+   if [ "$USERNAME" = "root" -o -z "$USERNAME" ]  ; then 
        echo Unable to determine the right user to run zenoss
        exit 1
    fi
