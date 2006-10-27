@@ -19,7 +19,7 @@ if [ -z "$ZENHOME" ] ; then
 fi
 
 if [ `id -u` -eq 0 ] ; then
-   USERNAME=`stat --format='%U' $ZENHOME/var/Data.fs`
+   USERNAME=`stat -f '%U' $ZENHOME/var/Data.fs`
    if [ "$USERNAME" = "root" ]  ; then 
        echo Unable to determine the right user to run zenoss
        exit 1
