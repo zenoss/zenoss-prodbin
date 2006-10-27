@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS status
     clearid         char(25),
     PRIMARY KEY ( dedupid ),
     Index evididx (evid)
-) ENGINE=MEMORY MAX_ROWS=20000;
+) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS history
 (
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS heartbeat
     timeout         int default 0,
     lastTime        timestamp,
     PRIMARY KEY ( device,component )
-) ENGINE=MEMORY MAX_ROWS=10000;
+) ENGINE=INNODB;
 
 
 CREATE TABLE IF NOT EXISTS alert_state
