@@ -92,6 +92,8 @@ class Migration(ZCmdBase):
         # dump old steps
         if not hasattr(self.dmd, 'version'):
             self.dmd.version = 'Step 0.0.1'
+        if type(self.dmd.version) == type(1.0):
+            self.dmd.version = "0.%f" % self.dmd.version
         current = VersionBase.parse(self.dmd.version)
         if self.useDatabaseVersion:
             while steps and steps[0].version < current:
@@ -108,7 +110,8 @@ class Migration(ZCmdBase):
                 self.message("Database going to version %s" % m.version.long())
             self.message('Installing %s' % m.name())
             m.cutover(self.dmd)
-            self.dmd.version = m.version.long()
+            self.dmd.version = m.version
+        self.dmd.version = self.dmd.version.long()
 
         for m in steps:
             m.cleanup()
@@ -139,7 +142,7 @@ class Migration(ZCmdBase):
     def recover(self):
         transaction.abort()
         steps = self.allSteps[:]
-        current = getattr(self.dmd, "version", 0)
+        current = VersionBase.parse(getattr(self.dmd, "version", 'Step 0.0.1'))
         while steps and steps[0].version < current:
             steps.pop(0)
         for m in steps:
