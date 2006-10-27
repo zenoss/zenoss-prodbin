@@ -11,7 +11,7 @@ log = logging.getLogger("zen.migrate")
 import Migrate
 
 class Innodb(Migrate.Step):
-    version = 24.0
+    version = (1, 0, 0)
 
     def cutover(self, dmd):
         c = dmd.ZenEventManager.connect()
