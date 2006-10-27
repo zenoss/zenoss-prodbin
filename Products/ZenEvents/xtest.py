@@ -14,11 +14,9 @@ import xmlrpclib
 import time
 
 s = xmlrpclib.ServerProxy('http://localhost:8081/', encoding='iso-8859-1')
-# s = xmlrpclib.ServerProxy('http://admin:not2much@localhost:8080/zport/dmd/ZenEventManager')
+# s = xmlrpclib.ServerProxy('http://admin:zenoss@localhost:8080/zport/dmd/ZenEventManager')
 
-event = dict(device='eros', 
-	     eventClassKey = 'test',
-	     eventClass = '/App',
+event = dict(device='lappytop', 
              summary='This is \xfc new test event: %d' % time.time(),
              severity=4,
              component='xyzzy')
