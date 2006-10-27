@@ -16,7 +16,7 @@ import Migrate
 import os
 
 class Processes(Migrate.Step):
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def cutover(self, dmd):
         

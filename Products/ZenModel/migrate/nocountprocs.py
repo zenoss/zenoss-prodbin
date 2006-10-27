@@ -21,7 +21,7 @@ def delProperty(obj, name):
         pass
 
 class NoCountProcs(Migrate.Step):
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def cutover(self, dmd):
        for p in dmd.Processes.getSubOSProcessClassesGen():

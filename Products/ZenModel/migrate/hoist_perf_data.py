@@ -19,7 +19,7 @@ import Migrate
 import os
 
 class HoistPerfData(Migrate.Step):
-    version = 21.0
+    version = Migrate.Version(0, 21, 0)
 
     def __init__(self):
         Migrate.Step.__init__(self)

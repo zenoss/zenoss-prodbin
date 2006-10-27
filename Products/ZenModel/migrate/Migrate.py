@@ -16,6 +16,7 @@ __version__ = "$Revision$"[11:-2]
 import Globals
 import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Version import Version as VersionBase
 
 import sys
 import logging
@@ -25,6 +26,10 @@ log = logging.getLogger("zen.migrate")
 allSteps = []
 
 class MigrationFailed(Exception): pass
+
+class Version(VersionBase):
+    def __init__(self, *args, **kw):
+        VersionBase.__init__(self, 'Step', *args, **kw)
 
 class Step:
     'A single migration step, to be subclassed for each new change'
@@ -100,9 +105,7 @@ class Migration(ZCmdBase):
 
         for m in steps:
             if m.version != current:
-                if type(m.version) != tuple: m.version = (0, m.verison, 0)
-                self.message("Database going to version %s" % 
-                            '.'.join(map(str, m.version)))
+                self.message("Database going to version %s" % m.version.long())
             self.message('Installing %s' % m.name())
             m.cutover(self.dmd)
             self.dmd.version = m.version

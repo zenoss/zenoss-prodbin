@@ -10,7 +10,7 @@ __doc__='''UpdateCheck
 
 import Globals
 import transaction
-from Products.ZenModel.version.Version import Version
+from Products.ZenUtils.Version import Version
 from Products.ZenModel.version.Current import zenoss, python, mysql, os
 from Products.ZenEvents import Event
 import urllib

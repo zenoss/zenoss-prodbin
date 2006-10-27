@@ -19,7 +19,7 @@ from Products.ZenUtils import addLoginForm
 import Migrate
 
 class MigrateToPAS(Migrate.Step):
-    version = (1, 0, 0)
+    version = Migrate.Version(1, 0, 0)
 
     def cutover(self, dmd):
         app = dmd.getPhysicalRoot()

@@ -20,7 +20,7 @@ from Acquisition import aq_base
 import os
 
 class InterfaceNameConvert(Migrate.Step):
-    version = 21.0
+    version = Migrate.Version(0, 21, 0)
 
     def cutover(self, dmd):
         for dev in dmd.Devices.getSubDevices():

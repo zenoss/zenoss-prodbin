@@ -15,7 +15,7 @@ __version__ = "$Revision$"[11:-2]
 import Migrate
 
 class ReindexHistory(Migrate.Step):
-    version = 20.0
+    version = Migrate.Version(0, 20, 0)
 
     def execute(self, s, cmd):
         from MySQLdb import OperationalError

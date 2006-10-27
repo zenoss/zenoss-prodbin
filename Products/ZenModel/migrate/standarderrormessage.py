@@ -16,7 +16,7 @@ import Migrate
 import os
 
 class StandardErrorMessage(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
     	''' Remove index_html and replace with a python script that will

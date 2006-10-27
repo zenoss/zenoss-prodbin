@@ -51,7 +51,7 @@ def copyProperty(source, dest, name):
 
 class DataPoints(Migrate.Step):
     "Convert a data source into a data source with a data point"
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def __init__(self):
         Migrate.Step.__init__(self)

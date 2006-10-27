@@ -6,7 +6,7 @@ Add zXmlRpcMonitorIgnore to DeviceClass and XmlRpc to EventClass.
 import Migrate
 
 class PerfXmlRpc(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
         if not dmd.Devices.hasProperty("zXmlRpcMonitorIgnore"):

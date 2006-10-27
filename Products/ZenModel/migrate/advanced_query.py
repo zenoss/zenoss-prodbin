@@ -42,7 +42,7 @@ allCatalogs = {
 }
 
 class AdvancedQuery(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
         # create a new index

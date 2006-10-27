@@ -21,7 +21,7 @@ from Acquisition import aq_base
 import Migrate
 
 class KillCricket(Migrate.Step):
-    version = 20.0
+    version = Migrate.Version(0, 20, 0)
 
     def convert(self, dc):
         """Convert DeviceClass objects.

@@ -1,15 +1,10 @@
 """
 Zenoss versioning module.
 
-XXX
-Note that when ZenCore or ZenBase is abstracted out, this should be moved as
-well. When/if this occurs, the module name needs to be renamed below.
 """
 import os
 import re
 import sys
-
-moduleName = 'ZenModel'
 
 def getVersionTupleFromString(versionString):
     """
@@ -468,7 +463,8 @@ def createCurrentVersionModule(major=0, minor=0, micro=0, version=''):
 # ALL CHANGES TO THIS FILE WILL BE OVERWRITTEN!!!
 # For permanent changes, please edit Version.py.
 
-from Version import *
+import Globals
+from Products.ZenUtils.Version import *
 
 # OS and Software Dependencies
 os = Version(*getOSVersion())
@@ -511,7 +507,7 @@ if __name__ == '__main__':
     revision = vers.getSVNRevision()
     if revision:
         version += ", %s" % revision
-    dstFile = os.path.join(os.getenv('ZENHOME'), 'Products', moduleName,
+    dstFile = os.path.join(os.getenv('ZENHOME'), 'Products', 'ZenModel',
         'version', 'Current.py')
     fh = open(dstFile, 'w+')
     fh.write(moduleString % version)

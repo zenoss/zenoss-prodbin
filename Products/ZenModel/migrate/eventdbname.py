@@ -12,7 +12,7 @@ Add database to dmd.ZenEventManager
 import Migrate
 
 class EventDBName(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
         if not hasattr(dmd.ZenEventManager, 'host'):

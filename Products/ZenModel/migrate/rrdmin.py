@@ -26,7 +26,7 @@ import Migrate
 rrd = re.compile('.*\\.rrd')
 
 class RRDMinValue(Migrate.Step):
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def setMin(self, value):
         for d,_, files in os.walk(os.path.join(os.environ['ZENHOME'], "perf")):

@@ -20,7 +20,7 @@ import Migrate
 zenhome = os.getenv('ZENHOME')
 
 class ImportExportFilesystem(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
         for directory in ['import', 'export']:

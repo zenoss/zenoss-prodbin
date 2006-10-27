@@ -54,7 +54,7 @@ trigger = """
 
 class ClearId(Migrate.Step):
     "Add a clearid column to the status and history tables"
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def execute(self, s, cmd):
         from MySQLdb import OperationalError

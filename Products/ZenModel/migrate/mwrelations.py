@@ -7,7 +7,7 @@ Add relations for maintenance windows and admin roles.
 import Migrate
 
 class MaintenanceWindowRelations(Migrate.Step):
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def cutover(self, dmd):
         for dev in dmd.Devices.getSubDevices():

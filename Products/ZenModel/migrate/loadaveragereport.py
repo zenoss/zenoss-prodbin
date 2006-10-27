@@ -13,7 +13,7 @@ $Id:$
 import Migrate
 
 class LoadAverageReport(Migrate.Step):
-    version = (1,0,0)
+    version = Migrate.Version(1,0,0)
 
     def cutover(self, dmd):
         if hasattr(dmd.Reports, 'Performance Reports'):

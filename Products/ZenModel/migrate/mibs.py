@@ -18,7 +18,7 @@ import Migrate
 import os
 
 class Mibs(Migrate.Step):
-    version = 22.0
+    version = Migrate.Version(0, 22, 0)
 
     def cutover(self, dmd):
         if hasattr(dmd, 'Mibs'):

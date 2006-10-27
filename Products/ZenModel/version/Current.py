@@ -2,7 +2,8 @@
 # ALL CHANGES TO THIS FILE WILL BE OVERWRITTEN!!!
 # For permanent changes, please edit Version.py.
 
-from Version import *
+import Globals
+from Products.ZenUtils.Version import *
 
 # OS and Software Dependencies
 os = Version(*getOSVersion())
@@ -15,7 +16,7 @@ twistedsnmp = Version(*getTwistedSNMPVersion())
 zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('Zenoss', 0, 23, 0)
+zenmodel = Version('Zenoss', 1, 0, 0, 2851)
 zenoss = zenmodel
 version = zenoss.full()
 

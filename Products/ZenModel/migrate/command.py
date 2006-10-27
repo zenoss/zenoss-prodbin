@@ -6,7 +6,7 @@ Add zCommandPath and zCommandCycleTime to DeviceClass.
 import Migrate
 
 class Commands(Migrate.Step):
-    version = 23.0
+    version = Migrate.Version(0, 23, 0)
 
     def update(self, dmd, oldname, name, default, **kw):
         if dmd.Devices.hasProperty(oldname):
