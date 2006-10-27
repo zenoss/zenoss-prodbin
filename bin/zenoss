@@ -18,6 +18,16 @@ if [ -z "$ZENHOME" ] ; then
   ZENHOME=/usr/local/zenoss
 fi
 
+if [ `id -u` -eq 0 ] ; then
+   USERNAME=`stat --format='%U' $ZENHOME/var/Data.fs`
+   if [ "$USERNAME" = "root" ]  ; then 
+       echo Unable to determine the right user to run zenoss
+       exit 1
+   fi
+   chown -R $USERNAME $ZENHOME/var
+   exec sudo -u $USERNAME $0 $@
+fi
+
 . $ZENHOME/bin/zenfunctions
 C=
 C="$C zeoctl"
@@ -51,11 +61,7 @@ issue() {
     for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
-        if  echo $cmd | grep -q ctl; then
-            sudo $ZENHOME/bin/$cmd "$FUNC"
-        else
-            $ZENHOME/bin/$cmd "$FUNC"
-        fi
+        $ZENHOME/bin/$cmd "$FUNC"
     done
 }
 
