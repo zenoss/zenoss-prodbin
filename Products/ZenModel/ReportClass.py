@@ -69,7 +69,7 @@ class ReportClass(Organizer):
         """Return a count of all our contained children."""
         count = len(self.reports())
         for child in self.children():
-            count += child.countChildren()
+            count += child.countReports()
         return count
         
 
