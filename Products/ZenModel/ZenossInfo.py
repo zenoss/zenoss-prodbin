@@ -138,7 +138,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             try:
                 pid = int(pid)
             except ValueError:
-                pid = None
+                return None
             return self._pidRunning(int(pid))
         else:
             pid = None
