@@ -100,7 +100,9 @@ class Migration(ZCmdBase):
 
         for m in steps:
             if m.version != current:
-                self.message("Database going to version %s" % m.version)
+                if type(m.version) != tuple: m.version = (0, m.verison, 0)
+                self.message("Database going to version %s" % 
+                            '.'.join(map(str, m.version)))
             self.message('Installing %s' % m.name())
             m.cutover(self.dmd)
             self.dmd.version = m.version

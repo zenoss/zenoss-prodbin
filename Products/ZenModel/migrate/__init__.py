@@ -43,3 +43,4 @@ import indexhtml
 import zcollectordecoding
 import standarderrormessage
 import innodb
+import loadaveragereport
