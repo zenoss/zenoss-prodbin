@@ -11,8 +11,6 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
-__version__ = "$Revision$"[11:-2]
-
 import re
 
 from AccessControl import ClassSecurityInfo
@@ -260,18 +258,17 @@ class DataRoot(ZenModelRM, OrderedFolder):
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
 
-    def getRevision(self):
-        return __revision__
-    
     def reportError(self):
         ''' send an email to the zenoss error email address
             then send user to a thankyou page or an email error page.
         '''
+        import Products.ZenUtils.Version as Version
         mailSent = SiteError.sendErrorEmail(
                     self.REQUEST.errorType,
                     self.REQUEST.errorValue,
                     self.REQUEST.errorTrace,
                     self.REQUEST.errorUrl,
+                    Version.getZenossRevision(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
                     self.REQUEST.comments)
@@ -282,6 +279,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
                                 self.REQUEST.errorValue,
                                 self.REQUEST.errorTrace,
                                 self.REQUEST.errorUrl,
+                                Version.getZenossRevision(),
                                 True,
                                 self.REQUEST.contactName,
                                 self.REQUEST.contactEmail,

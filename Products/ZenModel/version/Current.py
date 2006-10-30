@@ -16,7 +16,7 @@ twistedsnmp = Version(*getTwistedSNMPVersion())
 zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('Zenoss', 1, 0, 0, 2851)
+zenmodel = Version('Zenoss', 1, 0, 0, getZenossRevision())
 zenoss = zenmodel
 version = zenoss.full()
 

@@ -7,11 +7,7 @@
 __doc__="""SiteError
 
 SiteError consolidates code used to handle and report site errors.
-
-$Id:$
 """
-
-__version__ = "$Revision: $"[11:-2]
 
 import smtplib
 import re
@@ -47,7 +43,7 @@ class SiteError:
     createEmailHeader = classmethod(createEmailHeader)
 
         
-    def createReport(cls, errorType, errorValue, errorTrace, errorUrl, 
+    def createReport(cls, errorType, errorValue, errorTrace, errorUrl, revision,
                         inHtml=True, contactName=None, contactEmail=None, 
                         comments=None):
         ''' Produce a summary of the given error details suitable for use
@@ -73,6 +69,7 @@ class SiteError:
         msg = linebreak.join(['Type: %s' % errorType,
                                 'Value: %s' % errorValue,
                                 'URL: %s' % cls.cleanUrl(errorUrl),
+                                'Revision: %s' % revision,
                                 '%s' % errorTrace,
                                 'Contact name: %s' % (contactName or ''),
                                 'Email address: %s' % (contactEmail or ''),
@@ -81,7 +78,8 @@ class SiteError:
     createReport = classmethod(createReport)
 
 
-    def sendErrorEmail(cls, errorType, errorValue, errorTrace, errorUrl,
+    def sendErrorEmail(cls, errorType, errorValue, errorTrace, errorUrl, 
+                        revision,
                         contactName=None, contactEmail=None, comments=None):
         ''' Attempt to send an email to the zenoss errors email address
         with details of this error.
@@ -91,10 +89,11 @@ class SiteError:
         fqdn = socket.getfqdn()
         fromAddress = 'errors@%s' % fqdn
         cleanUrl = cls.cleanUrl(errorUrl)
-        subject = '%s: %s (%s)' % (errorType, errorValue, cleanUrl)
+        subject = '%s: %s (%s)' % (errorType, errorValue[:15], cleanUrl)
         header = cls.createEmailHeader(
                     fromAddress, cls.ERRORS_ADDRESS, subject)
         body = cls.createReport(errorType, errorValue, errorTrace, cleanUrl,
+                                revision,
                                 0, contactName, contactEmail, comments)
         mailSent = False
         server = smtplib.SMTP(cls.SMTP_HOST)

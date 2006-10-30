@@ -10,6 +10,7 @@ __doc__='''UpdateCheck
 
 import Globals
 import transaction
+import Products.ZenUtils.Version
 from Products.ZenUtils.Version import Version
 from Products.ZenModel.version.Current import zenoss, python, mysql, os
 from Products.ZenEvents import Event
@@ -41,6 +42,7 @@ class UpdateCheck:
         args['pv'] = python.long()
         args['mv'] = mysql.long()
         args['os'] = os.long()
+        args['rv'] = Products.ZenUtils.Version.getZenossRevision()
         args['up'] = time.time() - dmd.getPhysicalRoot().Control_Panel.process_start
 
         # If they have not opted-out and this is not a manual check then
@@ -83,6 +85,7 @@ class UpdateCheck:
         try:
             available = self.getUpdate(dmd, manual)
         except Exception, ex:
+            raise
             log.debug("Cannot fetch version information", ex)
             return
         availableVersion = parseVersion(dmd.availableVersion)
