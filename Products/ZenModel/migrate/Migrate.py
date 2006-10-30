@@ -76,6 +76,13 @@ class Migration(ZCmdBase):
     def message(self, msg):
         log.info(msg)
 
+    def _currentVersion(self):
+        if not hasattr(self.dmd, 'version'):
+            self.dmd.version = 'Step 0.0.1'
+        if type(self.dmd.version) == type(1.0):
+            self.dmd.version = "Step 0.%f" % self.dmd.version
+        return VersionBase.parse(self.dmd.version)
+
     def migrate(self):
         "walk the steps and apply them"
         steps = self.allSteps[:]
@@ -90,11 +97,8 @@ class Migration(ZCmdBase):
         app = self.dmd.getPhysicalRoot()
 
         # dump old steps
-        if not hasattr(self.dmd, 'version'):
-            self.dmd.version = 'Step 0.0.1'
-        if type(self.dmd.version) == type(1.0):
-            self.dmd.version = "0.%f" % self.dmd.version
-        current = VersionBase.parse(self.dmd.version)
+        
+        current = self._currentVersion()
         if self.useDatabaseVersion:
             while steps and steps[0].version < current:
                 steps.pop(0)
@@ -142,7 +146,7 @@ class Migration(ZCmdBase):
     def recover(self):
         transaction.abort()
         steps = self.allSteps[:]
-        current = VersionBase.parse(getattr(self.dmd, "version", 'Step 0.0.1'))
+        current = self._currentVersion()
         while steps and steps[0].version < current:
             steps.pop(0)
         for m in steps:
