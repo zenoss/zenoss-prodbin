@@ -6,6 +6,8 @@ import os
 import re
 import sys
 
+__revision__ = int('$Revision:$'.split()[-2])
+
 def getVersionTupleFromString(versionString):
     """
     A utility function for parsing dot-delimited stings as a version tuple.
@@ -187,34 +189,6 @@ class Version(object):
             raise IncomparableVersions()
         return cmp(self.tuple(), other.tuple())
 
-    def _getSVNRevisionFor13(self):
-        """
-        For all versions of Subversion that support XML .svn/entries files.
-        """
-        # XXX
-        # we're not going to use the .svn/entries files for now, so this method
-        # may be sufficient for all Subversion versions.
-        prod = os.path.join(os.getenv('ZENHOME'), 'Products')
-        cmd = 'cd %s;svn info .' % prod
-        stdout, stdin, stderr = os.popen3(cmd)
-        err = stderr.read()
-        if err:
-            raise Exception, err
-        # the fifth line has the revision info
-        output = stdin.readlines()[4].strip()
-        for o in stdout, stdin, stderr:
-            o.close()
-        revision = output.split()[-1]
-        return revision
-
-    def _getSVNRevisionFor14(self):
-        """
-        As of version 1.4 of Subversion, XML .svn/entries failes are no longer
-        supported. This method is for extracting revision information from SVN
-        1.4+.
-        """
-        return ''
-
     def _formatSVNRevision(self):
         svnrev = self.revision
         if svnrev:
@@ -226,11 +200,7 @@ class Version(object):
     def getSVNRevision(self):
         if self.revision:
             return self.revision
-        try:
-            v = self._getSVNRevisionFor13()
-        except ComponentVersionError:
-            v = self._getSVNRevisionFor14()
-        self.revision = v
+        self.revision = __revision__
         return self.revision
 
     def __repr__(self):
