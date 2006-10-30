@@ -330,17 +330,16 @@ def getMySQLVersion():
         mysql  Ver 14.12 Distrib 5.0.24a, for Win32 (ia32)
     """
     cmd = 'mysql --version'
-    stdout, stdin, stderr = os.popen3(cmd)
-    output = stdin.read().strip()
-    for o in stdout, stdin, stderr:
-        o.close()
-    regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
-    regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
-    regex = re.match(regexString, output)
-    if regex:
-        name, version, release, info = regex.groups()
-    else:
-        version = '0'
+    fd = os.popen(cmd)
+    output = fd.readlines()
+    version = "0"
+    if fd.close() is None and len(output) > 0:
+        output = output[0].strip()
+        regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
+        regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
+        regex = re.match(regexString, output)
+        if regex:
+            name, version, release, info = regex.groups()
     comment = 'Ver %s' % version
     # the name returned in the output is all lower case, so we'll make our own
     name = 'MySQL'
