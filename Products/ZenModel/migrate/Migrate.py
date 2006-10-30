@@ -1,4 +1,4 @@
-#################################################################
+################################################################
 #
 #   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
@@ -115,7 +115,8 @@ class Migration(ZCmdBase):
             self.message('Installing %s' % m.name())
             m.cutover(self.dmd)
             self.dmd.version = m.version
-        self.dmd.version = self.dmd.version.long()
+        if type(self.dmd.version) != type(''):
+            self.dmd.version = self.dmd.version.long()
 
         for m in steps:
             m.cleanup()
@@ -181,7 +182,7 @@ class Migration(ZCmdBase):
                                help="List all the steps")
         self.parser.add_option('--level',
                                dest="level",
-                               type='float',
+                               type='string',
                                default=None,
                                help="Run the steps by version number")
         self.parser.add_option('--newer',
@@ -214,8 +215,9 @@ class Migration(ZCmdBase):
             return
 
         if self.options.level is not None:
+            self.options.level = VersionBase.parse('Step ' + self.options.level)
             self.allSteps = [s for s in self.allSteps
-                             if abs(s.version - self.options.level) < 0.0001]
+                             if s.version == self.options.level]
             self.useDatabaseVersion = False
         if self.options.steps:
             import re
