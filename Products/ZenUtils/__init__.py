@@ -42,6 +42,28 @@ def login(self):
     came_from = request.form.get('came_from') or ''
     if 'submitted' not in came_from:
         came_from += '?submitted=%s' % submitted
-    return response.redirect(came_from)
+    if self.dmd.acceptedTerms:
+        url = came_from
+    else:
+        url = "%s/zenoss_terms/?came_from=%s" % (self.absolute_url(), came_from)
+    return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
+
+def termsCheck(self):
+    """ Check to see if the user has accepted the Zenoss terms.
+    """
+    request = self.REQUEST
+    response = request['RESPONSE']
+    
+    acceptStatus = request.form.get('submit') or '**'
+    acceptStatus = str(request.form)
+    raise acceptStatus
+    url = request.form.get('came_from') or ''
+
+    if acceptStatus != 'Accept':
+        self.resetCredentials(request, response)
+    return response.redirect(url)
+
+
+CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck

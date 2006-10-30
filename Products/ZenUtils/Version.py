@@ -35,7 +35,19 @@ def getVersionTupleFromString(versionString):
     >>> version = '1a.23zzX.abs'
     >>> getVersionTupleFromString(version)
     (1, 23, 0)
+
+    # checks against ints and floats being passed instead of strings
+    >>> version = 1
+    >>> getVersionTupleFromString(version)
+    (1, 0, 0)
+    >>> version = 1.0
+    >>> getVersionTupleFromString(version)
+    (1, 0, 0)
+    >>> version = 0
+    >>> getVersionTupleFromString(version)
+    (0, 0, 0)
     """
+    versionString = str(versionString)
     versions = re.split('[^0-9]+', versionString.strip())[:3]
     return (lambda x,y=0,z=0: (int(x),int(y or 0),int(z or 0)))(*versions)
 
