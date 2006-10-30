@@ -1,4 +1,4 @@
-################################################################
+###############################################################
 #
 #   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
@@ -29,7 +29,7 @@ class MigrationFailed(Exception): pass
 
 class Version(VersionBase):
     def __init__(self, *args, **kw):
-        VersionBase.__init__(self, 'Step', *args, **kw)
+        VersionBase.__init__(self, 'Zenoss', *args, **kw)
 
 class Step:
     'A single migration step, to be subclassed for each new change'
@@ -78,10 +78,11 @@ class Migration(ZCmdBase):
 
     def _currentVersion(self):
         if not hasattr(self.dmd, 'version'):
-            self.dmd.version = 'Step 0.0.1'
+            self.dmd.version = 'Zenoss 0.0.1'
         if type(self.dmd.version) == type(1.0):
-            self.dmd.version = "Step 0.%f" % self.dmd.version
-        return VersionBase.parse(self.dmd.version)
+            self.dmd.version = "Zenoss 0.%f" % self.dmd.version
+        v = VersionBase.parse(self.dmd.version)
+        v.name = 'Zenoss'
 
     def migrate(self):
         "walk the steps and apply them"
