@@ -1,0 +1,5 @@
+[default]
+title=Zenoss Login
+
+[security]
+View=0:Anonymous

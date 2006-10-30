@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>Zenoss Terms</title>
+</head>
+
+<body>
+
+<div id="acceptance" tal:define="
+    dest string:${here/absolute_url}/termsCheck;
+    came_from request/came_from | string:">
+    <a class="button"
+        tal:attributes="href string:${dest}?came_from=${came_from}&submit=Accept">Accept</a> 
+    <a class="button"
+        tal:attributes="href string:${dest}?came_from=${came_from}&submit=Decline">Decline</a> 
+</div>
+
+</body>
+</html>

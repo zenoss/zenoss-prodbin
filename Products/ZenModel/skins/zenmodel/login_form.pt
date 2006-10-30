@@ -26,16 +26,10 @@
 <tr>
 <td colspan="2" style="text-align: right;"><input type="submit" value="Submit" />
 <div id="errorbox">
-    <tal:block define="
-        came_from here/REQUEST/form/came_from | nothing;
-        submitted python:came_from.find('submitted=') + 1;
-        "
+    <tal:block define="msg here/getLoginMessage"
         tal:omit-tag=""
-        tal:on-error="string:"
-        >
-        <span class="error" tal:condition="submitted">
-        The entered password or <br />username is incorrect.
-        </span>
+        tal:on-error="string:">
+        <span class="error" tal:condition="msg" tal:content="structure msg" />
     </tal:block>
 </div>
 </td>

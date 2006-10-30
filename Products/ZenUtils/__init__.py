@@ -56,13 +56,18 @@ def termsCheck(self):
     request = self.REQUEST
     response = request['RESPONSE']
     
-    acceptStatus = request.form.get('submit') or '**'
-    acceptStatus = str(request.form)
-    raise acceptStatus
-    url = request.form.get('came_from') or ''
+    acceptStatus = request.form.get('terms') or ''
+    url = request.form.get('came_from') or self.absolute_url()
 
     if acceptStatus != 'Accept':
         self.resetCredentials(request, response)
+        if '?' in url:
+            url += '&'
+        else:
+            url += '?'
+        url += 'terms=Decline'
+    else:
+        self.dmd.acceptedTerms = True
     return response.redirect(url)
 
 
