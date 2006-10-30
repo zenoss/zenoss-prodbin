@@ -9,10 +9,9 @@ __doc__="""DataRoot
 DataRoot is the object manager which contains all confmon
 data objects.  It can be used as a global acquisition 
 name space.
+"""
 
-$Id: DataRoot.py,v 1.25 2004/02/27 23:19:12 edahl Exp $"""
-
-__version__ = "$Revision: 1.25 $"[11:-2]
+__revision__ = $Revision$
 
 import re
 
