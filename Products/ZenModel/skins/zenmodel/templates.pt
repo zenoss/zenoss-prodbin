@@ -111,10 +111,15 @@
     </form> 
     </td>
     <td id="settings">
-        <span tal:content="request/AUTHENTICATED_USER"/>
-        | <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
-        Settings</a>
-        | <a href="/zport/dmd/logoutUser">Log Out</a>
+    <div class="menu">
+        <img src="header_tab_left.gif" style="float: left;"/>
+        <tal:block tal:content="request/AUTHENTICATED_USER"/>
+        <span>|</span>
+        <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
+            Settings</a>
+        <span>|</span> <a href="/zport/dmd/logoutUser">Logout</a>
+        <span>|</span> <a href="#">Help</a>
+    </div>
     </td>
     </tr>
 </table>
@@ -174,12 +179,12 @@
    <table class="tabtable" cellpadding="0" cellspacing="0"
         tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
-           <td align="center" tal:repeat="tab ztabs">
+           <td tal:repeat="tab ztabs"
+               tal:attributes="class python:tab.get('selected',None) and 'tabletitleselected'">
            <a class="tabletitle" tal:content="tab/name"
                tal:attributes="href python:
-                   '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);
-                   class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
-            >TabName</a>
+                   '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);"
+                >TabName</a>
            </td>
        </tr>
    </table>

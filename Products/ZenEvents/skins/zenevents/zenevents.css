@@ -2,154 +2,93 @@
     color: #FFFFFF;
     background-color: #CD0000;
 }
-a.zenevents_5_acked:link {color: #FFFFFF;}
-a.zenevents_5_acked:visited {color: #FFFFFF;}
-a.zenevents_5_acked:hover {color: #FFFFFF;}
-a.zenevents_5_acked:active {color: #FFFFFF;}
+
+.zenevents_5_acked a {
+color: #fff;
+}
 
 .zenevents_5_noack {
     color: #000000;
     background-color: #FF0000;
 }
-a.zenevents_5_noack:link {color: #000000;}
-a.zenevents_5_noack:visited {color: #000000;}
-a.zenevents_5_noack:hover {color: #000000;}
-a.zenevents_5_noack:active {color: #000000;}
 
 .zenevents_4_acked {
     color: #FFFFFF;
     background-color: #b56300;
 }
-a.zenevents_4_acked:link {color: #FFFFFF;}
-a.zenevents_4_acked:visited {color: #FFFFFF;}
-a.zenevents_4_acked:hover {color: #FFFFFF;}
-a.zenevents_4_acked:active {color: #FFFFFF;}
 
 .zenevents_4_noack {
     color: #000000;
     background-color: #ffb329;
 }
-a.zenevents_4_noack:link {color: #000000;}
-a.zenevents_4_noack:visited {color: #000000;}
-a.zenevents_4_noack:hover {color: #000000;}
-a.zenevents_4_noack:active {color: #000000;}
+
 
 .zenevents_3_acked {
     color: #FFFFFF;
     background-color: #CDCD00;
 }
-a.zenevents_3_acked:link {color: #FFFFFF;}
-a.zenevents_3_acked:visited {color: #FFFFFF;}
-a.zenevents_3_acked:hover {color: #FFFFFF;}
-a.zenevents_3_acked:active {color: #FFFFFF;}
 
 .zenevents_3_noack {
     color: #000000;
     background-color: #ffff00;
 }
-a.zenevents_3_noack:link {color: #000000;}
-a.zenevents_3_noack:visited {color: #000000;}
-a.zenevents_3_noack:hover {color: #000000;}
-a.zenevents_3_noack:active {color: #000000;}
 
 .zenevents_2_acked {
     color: #FFFFFF;
     background-color: #4F94CD;
 }
-a.zenevents_2_acked:link {color: #FFFFFF;}
-a.zenevents_2_acked:visited {color: #FFFFFF;}
-a.zenevents_2_acked:hover {color: #FFFFFF;}
-a.zenevents_2_acked:active {color: #FFFFFF;}
 
 .zenevents_2_noack {
     color: #000000;
     background-color: #6368FF;
 }
-a.zenevents_2_noack:link {color: #000000;}
-a.zenevents_2_noack:visited {color: #000000;}
-a.zenevents_2_noack:hover {color: #000000;}
-a.zenevents_2_noack:active {color: #000000;}
 
 .zenevents_1_acked {
     color: #FFFFFF;
     background-color: #C8C8C8;
 }
-a.zenevents_1_acked:link {color: #FFFFFF;}
-a.zenevents_1_acked:visited {color: #FFFFFF;}
-a.zenevents_1_acked:hover {color: #FFFFFF;}
-a.zenevents_1_acked:active {color: #FFFFFF;}
 
 .zenevents_1_noack {
     color: #000000;
     background-color: #AFAFAF;
 }
-a.zenevents_1_noack:link {color: #000000;}
-a.zenevents_1_noack:visited {color: #000000;}
-a.zenevents_1_noack:hover {color: #000000;}
-a.zenevents_1_noack:active {color: #000000;}
+
 
 .zenevents_0_acked {
     color: #FFFFFF;
     background-color: #00CD00;
 }
-a.zenevents_0_acked:link {color: #FFFFFF;}
-a.zenevents_0_acked:visited {color: #FFFFFF;}
-a.zenevents_0_acked:hover {color: #FFFFFF;}
-a.zenevents_0_acked:active {color: #FFFFFF;}
 
 .zenevents_0_noack {
     color: #000000;
     background-color: #00FF00;
 }
-a.zenevents_0_noack:link {color: #000000;}
-a.zenevents_0_noack:visited {color: #000000;}
-a.zenevents_0_noack:hover {color: #000000;}
-a.zenevents_0_noack:active {color: #000000;}
+
 
 .zenevents_unknown_acked {
     color: #FFFFFF;
     background-color: #CD00CD;
 }
-a.zenevents_unknown_acked:link {color: #FFFFFF;}
-a.zenevents_unknown_acked:visited {color: #FFFFFF;}
-a.zenevents_unknown_acked:hover {color: #FFFFFF;}
-a.zenevents_unknown_acked:active {color: #FFFFFF;}
 
 .zenevents_unknown_noack {
     color: #000000;
     background-color: #D02090;
 }
-a.zenevents_unknown_noack:link {color: #000000;}
-a.zenevents_unknown_noack:visited {color: #000000;}
-a.zenevents_unknown_noack:hover {color: #000000;}
-a.zenevents_unknown_noack:active {color: #000000;}
 
 .zenstatus_3 {
     color: #000000;
     background-color: #FF0000;
 }
-a.zenstatus_3:link {color: #000000;}
-a.zenstatus_3:visited {color: #000000;}
-a.zenstatus_3:hover {color: #000000;}
-a.zenstatus_3:active {color: #000000;}
 
 .zenstatus_2 {
     color: #000000;
     background-color: #ffb329;
 }
-a.zenstatus_2:link {color: #000000;}
-a.zenstatus_2:visited {color: #000000;}
-a.zenstatus_2:hover {color: #000000;}
-a.zenstatus_2:active {color: #000000;}
 
 .zenstatus_1 {
     color: #000000;
     background-color: #ffff00;
 }
-a.zenstatus_1:link {color: #000000;}
-a.zenstatus_1:visited {color: #000000;}
-a.zenstatus_1:hover {color: #000000;}
-a.zenstatus_1:active {color: #000000;}
 
 .zenstatus_0 {
     background-color: #00FF00;
@@ -159,7 +98,3 @@ a.zenstatus_1:active {color: #000000;}
     color: #000000;
     background-color: #D02090;
 }
-a.zenstatus_unknown:link {color: #000000;}
-a.zenstatus_unknown:visited {color: #000000;}
-a.zenstatus_unknown:hover {color: #000000;}
-a.zenstatus_unknown:active {color: #000000;}

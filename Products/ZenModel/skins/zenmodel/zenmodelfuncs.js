@@ -18,6 +18,7 @@ function zenPageInit(){
             as[i].className = 'unselected';
         }
     }
+    /*
     var tt = document.getElementById("tabsPane")
     if(tt) {
         tabs = tt.getElementsByTagName("a");
@@ -26,6 +27,7 @@ function zenPageInit(){
             roundElement(tabs[i],{corners:"tl tr"});
         }
     }
+    */
 }
 
 function submitAction(myform, url) {

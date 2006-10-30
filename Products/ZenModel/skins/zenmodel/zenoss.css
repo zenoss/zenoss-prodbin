@@ -1,13 +1,10 @@
 body {
-    background-color: white;
+    /*background: #fff url(../images/bg_app.gif) repeat-y 8.6em 0em;*/
     color: black;
     font-family:  Verdana, Arial, Helvetica, sans-serif;
-    /*
-    font-size:  .9em;
-    */
     font-size:  9pt;
     margin: 0px;
-    margin: 6px 3px 3px 3px;
+    /*margin: 0px 3px 3px 3px;*/
 }
 
 input,textarea {
@@ -22,11 +19,13 @@ input,textarea {
 
 #topPane{
     width:100%;
-	color: white;
-    background-color: black;
-	height: 35px;
+	background: #fff;
+	height: 40px;
     padding-left:0px;
     padding-right:10px;
+	border: 0px solid red;
+	margin: 0px;
+	background: #fff url(bg_topPane.gif) repeat-y right top;
 }
 
 #logo {
@@ -34,18 +33,38 @@ input,textarea {
     margin:0;
 }
 
+#logo a { padding:0; margin:0;}
+
 td.logo {
-    background-color: white;
-    padding: 0px;
-    margin: 0px;
-    width: 75px;
+width: 220px;
+height: 35px;
+
 }      
 td.search {
     padding-left: 8px;
 }   
+/*   ADDED BY JM OCTOBER 24 2006 --- */
 
-#settings {
+#settings { vertical-align: bottom; width: 22em;}
+
+#settings div.menu {
+	background: url(header_tab_right.gif) 
+	right top; 
+	height: 28px; width: 22em; 
+	margin: 0px 10px 0px auto; 
+	padding: 0px 10px 0px 0px; 
+	text-align: center; 
+	border: 0px solid red;
 }
+
+#settings div.menu a{ color:#fff; text-decoration: none; line-height: 28px; text-decoration: none;}
+
+#settings div.menu a:hover {text-decoration: underline;}
+
+#settings div.menu span { padding: 0px 5px 0px 5px;}
+
+/* END NEW BY JM --*/
+
 
 #topPane form{
     margin:0;
@@ -59,33 +78,24 @@ td.search {
     font-size: 7pt; 
     margin:0;
     text-align:right;
-    padding-right: 20px;
+    /*padding-right: 20px;*/
 }
 #topPane a{
 	color: white;
 }
 #leftPane {
     position: absolute;
-	left: 0;
-    margin-top:5px;
-    padding: 25px 0px 0px 10px;
-	min-height: 320px;
-    background: white;
-	width: 8.3em;
-    /*
-	width: 8.3em;
-    font-size: .9em;
-    */
-    font-size: 8pt;
-    overflow: hidden;
+	left: 0px;
+    margin: 5px 0px 0px 5px;
+    padding: 25px 0px 0px 0px;
+	width: 8.2em;
+	border: 0px solid red;
 }
 #leftPane p {
-    background: white;
-    padding: 0px 0px 0px 3px;
+    padding: 0px 0px 0px 0px;
     margin: 0px;
     font-weight: bold;
     border-bottom: 1px solid #5a6f8f;
-    width: 90%;
     color: #5a6f8f;
 }
 
@@ -93,30 +103,27 @@ td.search {
     list-style: none; 
     margin: 0px 0px 10px 0px; 
     padding: 0px; 
+	
 }
 
 #leftPane ul li {
     display: block;
+    padding: 0px 0px 0px 0px;
     margin: 0px;
-    padding: 0px;
-    padding-top: 3px;
-    overflow: hidden;
 }
 #leftPane ul li a {
     text-decoration: none;
     display: block;
-    /*
-    padding: 2px 0px 2px 3px;
-    */
-    padding: 0px 0px 0px 3px;
+    padding: 3px 0px 3px 3px;
     margin: 0px;
-    overflow: hidden;
+	height: 1em;
+	
 }
 	
 #leftPane ul li a:hover {
     color: white;
     background: #5a6f8f;
-    overflow: hidden;
+
 }
 
 #leftPane ul li a.selected {
@@ -130,7 +137,6 @@ td.search {
 #leftPane ul li a.selected:hover {
     color: white;
     background: #5a6f8f;
-    overflow: hidden;
 }
 #rightPane
 {
@@ -142,28 +148,29 @@ td.search {
     float:right;
     */
     padding: 5px;
-    margin-left: 118px;
-    margin-top: 5px;
-    background: #b1bcd2;
+	margin-left: 8.6em;
+    /*margin-top: 5px;*/
+    background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;
 }
+
+/*#rightPane table {margin-left: 5px; }*/
 #breadCrumbPane
 {
 	color: black;
-    /*
-	font-size: 1em;
-    */
 	font-size: 9pt;
 	padding-bottom: 5px;
+	padding: 0px 0px 5px 5px;
 	margin: 0px;
 	font-weight: bold;
+	border: 0px solid red;
 }
 
 #breadCrumbPane a
 {
 	color: inherit;
 	font-size: inherit;
-	background: inherit;
-	font-weight: inherit;
+/*	background: inherit;
+*/	font-weight: inherit;
 }
 
 #tabsPane
@@ -175,6 +182,11 @@ td.search {
 	padding: 5px;
 	background: #E0E0E0;
     min-height: 320px;
+	/*
+	border-left: 5px solid #b1bcd2 ;
+	border-bottom: 5px solid #b1bcd2 ;
+	border-right: 5px solid #b1bcd2 ;
+	*/
 }
 a:link {
     color: #000040;
@@ -206,7 +218,7 @@ form {
 table.tabtable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-weight: normal; 
-	height: 25px;
+	height: 23px;
 	margin: 0px;
 	padding: 0px;
     width: 100%;
@@ -217,13 +229,35 @@ table.tabtable td{
 	padding: 0px;
 	border: 0px;
 	vertical-align: top;
+	text-align: center;
+	background: #5a6f8f url(tab_left.gif) no-repeat left top;
 }
+
+table.tabtable td.tabletitleselected {
+    color: #333333;
+	display: block;
+	border-right: 2px solid #b1bcd2;
+    height:23px;
+    font-size:8pt;
+	line-height: 20pt;
+	background: #E0E0E0 url(tab_left_selected.gif) no-repeat left top;
+
+}
+
+table.tabtable td.tabletitleselected a {
+    color: #333333;
+	display: block;
+    height:23px;
+    font-size:8pt;
+	line-height: 20pt;
+	background: url(tab_right_selected.gif) no-repeat right top;
+
+}
+
+
 
 table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    /*
-    font-size: .9em; 
-    */
     font-size: 8pt;
     width: 100%;
     font-weight: normal; 
@@ -240,16 +274,11 @@ table.zentable {
     border:0;
     margin:0;
     padding:0;
-    /*
-    font-size: .8em;
-    */
     font-size: 7pt;
 }
 
 .errortitle {
-    /*
-    font-size: 1.1em;
-    */
+
     font-size: 10pt;
     font-weight: bold; 
     color: #ff0000;
@@ -257,20 +286,16 @@ table.zentable {
 }
 
 a.tabletitle {  
-    color: white;
-    /*font-weight: bold; */
-    background-color: #5a6f8f;
 	display: block;
-	border-bottom: 1px solid black;
+	color: white;
 	border-right: 2px solid #b1bcd2;
 	text-decoration: none;
-	padding: 2px 0px 0px 0px;
 	margin: 0px;
     height:23px;
-    /*
-    font-size:.9em;
-    */
     font-size:8pt;
+	line-height: 20pt;
+	background: url(tab_right.gif) no-repeat right top;
+
 }
 a.tabletitle:link {  
     color: white;
