@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-__revision__ = int('$Revision:$'.split()[-2])
+__revision__ = int('$Revision$'.split()[-2])
 
 def getVersionTupleFromString(versionString):
     """
@@ -200,7 +200,7 @@ class Version(object):
     def getSVNRevision(self):
         if self.revision:
             return self.revision
-        self.revision = __revision__
+        self.revision = getZenossRevision()
         return self.revision
 
     def __repr__(self):
@@ -424,6 +424,9 @@ def getZenossVersion(component='None'):
     # dynamically by zenpkg.
     pass
 
+def getZenossRevision():
+    return __revision__
+    
 def createCurrentVersionModule(major=0, minor=0, micro=0, version=''):
     """
     This method creates/overwrites Products.ZenMode.version.Current with
@@ -447,7 +450,7 @@ twistedsnmp = Version(*getTwistedSNMPVersion())
 zope = Version(*getZopeVersion())
 
 # Zenoss components
-zenmodel = Version('Zenoss', %s)
+zenmodel = Version('Zenoss', %s, getZenossRevision())
 zenoss = zenmodel
 version = zenoss.full()
 
@@ -474,9 +477,9 @@ if __name__ == '__main__':
     else:
         version = "%d, %d, %d" % (major, minor, micro)
     vers = Version('Zenoss', major, minor, micro)
-    revision = vers.getSVNRevision()
-    if revision:
-        version += ", %s" % revision
+    #revision = vers.getSVNRevision()
+    #if revision:
+    #    version += ", %s" % revision
     dstFile = os.path.join(os.getenv('ZENHOME'), 'Products', 'ZenModel',
         'version', 'Current.py')
     fh = open(dstFile, 'w+')
