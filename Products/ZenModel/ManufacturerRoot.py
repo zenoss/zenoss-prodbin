@@ -104,14 +104,16 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    def createManufacturer(self, manufacturerName):
+    def createManufacturer(self, manufacturerName=None):
         """Return and create if nessesary manufacturerName.
         """
         from Products.ZenModel.Manufacturer import manage_addManufacturer
-        if not self.has_key(manufacturerName):
+        if manufacturerName and not self.has_key(manufacturerName):
             logging.info("Creating Manufacturer %s" % manufacturerName)
             manage_addManufacturer(self, manufacturerName)
-        return self._getOb(manufacturerName)
+        if manufacturerName:
+            return self._getOb(manufacturerName)
+        return None
 
 
     def getManufacturer(self, manufacturerName):

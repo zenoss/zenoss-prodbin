@@ -913,22 +913,29 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'setHWProduct')
-    def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
+    def setHWProduct(self, newHWProductName=None, hwManufacturer=None, 
+                        REQUEST=None):
         """set the productName of this device"""
-        self.getDmdRoot("Manufacturers").createHardwareProduct(
+        added = False
+        if newHWProductName and hwManufacturer:
+            self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         newHWProductName, hwManufacturer)
+            added = True
         if REQUEST:
-            REQUEST['hwProductName'] = newHWProductName
+            if added:
+                REQUEST['hwProductName'] = newHWProductName
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setOSProduct')
-    def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
+    def setOSProduct(self, newOSProductName=None, osManufacturer=None, REQUEST=None):
         """set the productName of this device"""
-        self.getDmdRoot("Manufacturers").createSoftwareProduct(
+        if newOSProductName:
+            self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                         newOSProductName, osManufacturer)
         if REQUEST:
-            REQUEST['osProductName'] = newOSProductName
+            if newOSProductName:
+                REQUEST['osProductName'] = newOSProductName
             return self.callZenScreen(REQUEST)
 
 
@@ -971,12 +978,15 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'addStatusMonitor')
-    def addStatusMonitor(self, newStatusMonitor, REQUEST=None):
+    def addStatusMonitor(self, newStatusMonitor=None, REQUEST=None):
         """add new status monitor to the database and this device"""
-        mon = self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
-        self.addRelation("monitors", mon)
+        if newStatusMonitor:
+            mon = self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
+            self.addRelation("monitors", mon)
         if REQUEST:
-            REQUEST['message'] = "Added Monitor %s at time:" % newStatusMonitor
+            if newStatusMonitor:
+                REQUEST['message'] = "Added Monitor %s at time:" % \
+                                                    newStatusMonitor
             return self.callZenScreen(REQUEST)
 
 
@@ -1156,11 +1166,12 @@ class Device(ManagedEntity):
 
 
     security.declareProtected('Change Device', 'renameDevice')
-    def renameDevice(self, newId, REQUEST=None):
+    def renameDevice(self, newId=None, REQUEST=None):
         """Rename device from the DMD"""
-        parent = self.getPrimaryParent()
-        parent.manage_renameObject(self.getId(), newId)
-        self.setLastChange()
+        if newId:
+            parent = self.getPrimaryParent()
+            parent.manage_renameObject(self.getId(), newId)
+            self.setLastChange()
         if REQUEST: return self()
 
 

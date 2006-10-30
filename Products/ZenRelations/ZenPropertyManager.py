@@ -212,11 +212,12 @@ class ZenPropertyManager(PropertyManager):
         return self.callZenScreen(REQUEST)
 
     
-    def deleteZenProperty(self, propname, REQUEST=None):
+    def deleteZenProperty(self, propname=None, REQUEST=None):
         """
         Delete device tree properties from the this DeviceClass object.
         """
-        self._delProperty(propname)
+        if propname:
+            self._delProperty(propname)
         if REQUEST: return self.callZenScreen(REQUEST)
          
     

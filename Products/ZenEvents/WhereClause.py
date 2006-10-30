@@ -17,7 +17,8 @@ class WhereJavaScript:
         result = []
         for v in value:
             if not v:
-                raise Error('No value for %s' % name)
+                return None
+                #raise Error('No value for %s' % name)
             result.append(self.buildClause1(name, v, mode))
         if not result:
             return None
