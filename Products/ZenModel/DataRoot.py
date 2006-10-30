@@ -11,7 +11,7 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
-__revision__ = $Revision$
+__revision__ = int('$Revision$'.split()[-2])
 
 import re
 
@@ -259,7 +259,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
     security.declareProtected('View', 'getAllUserGroups')
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
-        
+
+    def getRevision(self):
+        return __revision__
     
     def reportError(self):
         ''' send an email to the zenoss error email address
