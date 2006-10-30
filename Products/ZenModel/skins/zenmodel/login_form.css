@@ -1,0 +1,35 @@
+/* CSS Document */
+
+body {background: #cccaca url(bg_loginscreen.gif) repeat-x 0px 0px; margin: 0px; text-align: center; color: #fff}
+ 
+div {margin: 0px; padding: 0px;}
+ 
+#darkloginbox {background: #898989 url(bg_dark_loginbox.gif) repeat-y 0px 0px; width:622px;  padding: 129px 0px 0px 0px;  margin: 0px auto 0px auto;}
+
+#loginimage {background: url(bg_login_img.jpg) no-repeat 0px 0px; width: 622px; height: 212px; padding: 0px; margin: 0px 0px 0px 0px;}
+
+#loginboxwrapper {width:329px; height: 205px; padding: 0px; margin: 0px 0px 0px 80px;  }
+
+#loginboxtop {background: #000 url(loginbox_top.gif) no-repeat 0px 0px; border: 0px solid red; font-size: 6px;}
+
+#loginboxmiddle {background: #000 url(loginbox_middle.gif) repeat-y; text-align: center; color: #fff; padding: 0px 0px 0px 0px;}
+
+#loginboxclear {clear: both; font-size: 10px;}
+
+
+#loginboxbottom {background: #000 url(loginbox_bottom.gif) no-repeat left bottom; font-size: 16px;}
+
+#form {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 11pt;color: #fff; background: url(bg_insidebox.gif) no-repeat 0px 0px; width: 285px; height: 100px;  margin: 0px auto 0px auto; padding: 30px 0px 0px 0px;}
+
+#form table {margin: 0px auto 0px auto; padding: 0px;}
+
+#form table td {}
+
+#form input {margin: 0px 0px 4px 0px;}
+
+#info {font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #ccc; text-align: right; padding: 5px 20px 0px 0px; margin: 0px 0px 100px 0px;}
+
+#errorbox {position: relative; text-align: left; left: 0em; top: -1.7em;}
+
+#errorbox .error {font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #F00;}
+

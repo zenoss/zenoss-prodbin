@@ -11,7 +11,7 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
-__revision__ = int('$Revision$'.split()[-2])
+__version__ = "$Revision$"[11:-2]
 
 import re
 
@@ -290,6 +290,14 @@ class DataRoot(ZenModelRM, OrderedFolder):
                         toAddress=SiteError.ERRORS_ADDRESS,
                         body=body)
         return getattr(self, 'errorEmailThankYou')()
+
+
+    security.declarePublic('getZenossVersion')
+    def getZenossVersion(self):
+        if hasattr(self, 'version'):
+            return self.version
+        else:
+            return ''
 
 
 InitializeClass(DataRoot)

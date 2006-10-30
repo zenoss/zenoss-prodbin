@@ -10,22 +10,18 @@ if not hasattr(pas, '_createInitialUser'):
     pas._createInitialUser =  _createInitialUser
 
 # monkey patches for the PAS login form
-import os
-from Products import ZenModel
-from AccessControl.Permissions import view
 from Products.PluggableAuthService.plugins import CookieAuthHelper
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-filename = os.path.join(ZenModel.__path__[0], 'skins', 'zenmodel',
-    'login_form.pt')
-fh = open(filename)
-html = fh.read()
-fh.close()
-CookieAuthHelper.BASIC_LOGIN_FORM = html
 
-login_form = PageTemplateFile(filename, globals(), __name__='login_form')
-login_form.title = 'Login Form'
-login_form.manage_permission(view, roles=['Anonymous'], acquire=1)
-CookieAuthHelper.CookieAuthHelper.login_form = login_form
+def manage_afterAdd(self, item, container):
+    """We don't want CookieAuthHelper setting the login attribute, we we'll
+    override manage_afterAdd().
+
+    For now, the only thing that manage_afterAdd does is set the login_form
+    attribute, but we will need to check this after every upgrade of the PAS.
+    """
+    pass
+
+CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
 def login(self):
     """ Set a cookie and redirect to the url that we tried to
@@ -43,7 +39,7 @@ def login(self):
     if pas_instance is not None:
         pas_instance.updateCredentials(request, response, login, password)
     
-    came_from = request.form['came_from']
+    came_from = request.form.get('came_from') or ''
     if 'submitted' not in came_from:
         came_from += '?submitted=%s' % submitted
     return response.redirect(came_from)

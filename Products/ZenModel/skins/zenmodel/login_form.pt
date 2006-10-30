@@ -1,123 +1,52 @@
 <html>
-  <head>
-    <title>Zenoss Login</title>
-    <style type="text/css">
-    <!-- 
-    body {
-        background-color: #B1BCD2;
-        color: black;
-        font-family:  Verdana, Arial, Helvetica, sans-serif;
-        font-size:  9pt;
-    }
+<head>
+<title>Zenoss Login</title>
+<link type="text/css" rel="stylesheet" href="login_form.css" />
+</head>
 
-    #loginback {
-        background-color: #E0E0E0;
-        border: solid #000 2px; 
-    }
-    input,textarea {
-        font-size: 9pt;
-    }
-    th.tabletitle {
-        color: white;
-        background-color: #5a6f8f;
-        background-image: url(subtitle_bkgrd.gif);
-        background-repeat: repeat-X;
-        text-align: left;
-        font-weight: normal;
-    }
-    .tableheader { 
-        font-family: Verdana, Arial, Helvetica, sans-serif;
-        color: #000000;
-        background-color: #CCCCCC;
-        font-weight: normal; 
-        text-align: left;
-        /*
-        font-size:.9em;
-        */
-        font-size:8pt;
-    }
-    .tablevalues {  
-        font-family: Verdana, Arial, Helvetica, sans-serif;
-        color: #000040; 
-        font-weight: normal; 
-        background-color: #EEE;
-    }
-    td.tablevalues {  
-        font-family: Verdana, Arial, Helvetica, sans-serif;
-        color: #000040; 
-        font-weight: normal; 
-        background-color: #EEE;
-    }
-    .error {
-        font-family: Verdana, Arial, Helvetica, sans-serif;
-        font-size: 10pt;
-        color: #F00;
-    }
-    /-->
-    </style>
-  </head>
+<body onload="document.loginform.__ac_name.focus();">
 
-  <body onload="document.login.__ac_name.focus();">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center">
-    &nbsp;<br/><br/>
-    &nbsp;<br/><br/>
-    &nbsp;<br/><br/>
-    &nbsp;<br/><br/>
+<div id="darkloginbox">
+<div id="loginimage">
 
-    <table id="loginback" cellpadding="0" cellspacing="0" border="0">
-    <tr><td>
-    <form method="post" action="" name="login"
-          tal:attributes="action string:${here/absolute_url}/login">
-
-      <input type="hidden" name="came_from" value=""
-             tal:attributes="value request/came_from | string:"/>
-      <table cellpadding="2">
-        <thead>
-            <tr>
-                <th class="tabletitle" colspan="2">Zenoss Login</th>
-            </tr>
-        </thead>
-        <tr>
-          <td class="tableheader"><b>Username:</b> </td>
-          <td class="tablevalues"><input type="text" name="__ac_name" size="30" /></td>
-        </tr>
-        <tr>
-          <td class="tableheader"><b>Password:</b></td>
-          <td class="tablevalues"><input type="password" name="__ac_password" size="30" /></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <tal:block define="
-                    came_from here/REQUEST/form/came_from | nothing;
-                    submitted python:came_from.find('submitted=true') + 1;
-                    "
-                    tal:omit-tag=""
-                    tal:on-error="string:"
-                    >
-                    <span class="error" tal:condition="submitted">
-                    The entered password or <br />username is incorrect.
-                    </span>
-                </tal:block>
-            <input type="hidden" name="submitted" value="true" />
-            </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <br />
-            <input type="submit" value=" Log In " />
-          </td>
-        </tr>
-      </table>
-
-    </form>
-    </td></tr>
-    </table>
-
-    </td></tr>
-    </table>
-
-  </body>
-
+<div id="loginboxwrapper">
+<div id="loginboxtop">&nbsp;</div>
+<div id="loginboxmiddle">
+<img src="logo_login.gif" width="181" height="55" /><div id="form">
+<form method="post" name="loginform" tal:attributes="action string:${here/absolute_url}/login">
+<input type="hidden" name="came_from" value="" tal:attributes="value request/came_from | string:"/>
+<input type="hidden" name="submitted" value="true" />
+<table cellspacing="0">
+<tr>
+<td><label>Username:</label></td><td><input type="text" name="__ac_name" size="20" /></td>
+</tr>
+<tr>
+<td><label>Password:</label></td><td><input type="password" name="__ac_password" size="20" /></td>
+</tr>
+<tr>
+<td colspan="2" style="text-align: right;"><input type="submit" value="Submit" />
+<div id="errorbox">
+    <tal:block define="
+        came_from here/REQUEST/form/came_from | nothing;
+        submitted python:came_from.find('submitted=') + 1;
+        "
+        tal:omit-tag=""
+        tal:on-error="string:"
+        >
+        <span class="error" tal:condition="submitted">
+        The entered password or <br />username is incorrect.
+        </span>
+    </tal:block>
+</div>
+</td>
+</tr>
+</table>
+</form>
+</div></div>
+<div id="loginboxbottom">&nbsp;</div>
+</div></div>
+<p id="info">Copyright &copy; 2006 Zenoss, Inc. | 
+    Version <span tal:content="here/dmd/getZenossVersion" /></p>
+<img src="dark_loginbox_bottom.gif" width="622" height="34" /></div>
+</body>
 </html>
-
