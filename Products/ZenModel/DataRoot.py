@@ -54,6 +54,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
     lastVersionCheck = 0
     versionCheckOptIn = True
     reportMetricsOptIn = True
+    acceptedTerms = False
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},

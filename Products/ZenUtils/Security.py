@@ -236,6 +236,9 @@ def migratePAS(context):
     newModule = 'Products.PluggableAuthService.PluggableAuthService'
     try:
         acl = context.acl_users
+        # if there's an acl_users object, let's see if theres a login_form
+        # attribute; if there is, we need to delete it
+        del(acl.login_form)
     except AttributeError:
         createPASFolder(context)
         acl = context.acl_users
