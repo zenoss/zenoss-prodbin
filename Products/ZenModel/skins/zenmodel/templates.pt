@@ -120,7 +120,7 @@
         <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
             Settings</a>
         <span>|</span> <a href="/zport/dmd/logoutUser">Logout</a>
-        <span>|</span> <a href="#">Help</a>
+        <span>|</span> <a href="http://www.zenoss.com/help">Help</a>
     </div>
     </td>
     </tr>
