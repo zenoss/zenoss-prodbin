@@ -78,7 +78,8 @@ class Migration(ZCmdBase):
 
     def _currentVersion(self):
         if not hasattr(self.dmd, 'version'):
-            self.dmd.version = 'Zenoss 0.0.1'
+            from Products.ZenModel.version import VERSION
+            self.dmd.version = 'Zenoss ' + VERSION
         if type(self.dmd.version) == type(1.0):
             self.dmd.version = "Zenoss 0.%f" % self.dmd.version
         v = VersionBase.parse(self.dmd.version)
@@ -217,7 +218,7 @@ class Migration(ZCmdBase):
             return
 
         if self.options.level is not None:
-            self.options.level = VersionBase.parse('Step ' + self.options.level)
+            self.options.level = VersionBase.parse('Zenoss ' + self.options.level)
             self.allSteps = [s for s in self.allSteps
                              if s.version == self.options.level]
             self.useDatabaseVersion = False

@@ -14,8 +14,6 @@ from Products.ZenUtils.Version import *
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
-from Products.ZenModel.revision import REVISION
-
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
     Provide an instance of ZenossInfo for the portal.
@@ -57,8 +55,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
+        from Products.ZenModel.version import VERSION
         return Version.parse("%s %s" % 
-                    (self.dmd.version, self.getZenossRevision()))
+                    (VERSION, self.getZenossRevision()))
 
     security.declarePublic('getZenossVersionShort')
     def getZenossVersionShort(self):
@@ -196,13 +195,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     
     def getZenossRevision(self):
-        rev = REVISION
         try:
             os.chdir(os.path.join(os.getenv('ZENHOME'), 'Products'))
             fd = os.popen("svn info | grep Revision | awk '{print $2}'")
-            rev = fd.readlines()[0].strip()
-        except: pass
-        return rev
+            return fd.readlines()[0].strip()
+        except:
+            return ''
 
 
     def getAllVersions(self):
