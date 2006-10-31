@@ -349,7 +349,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def versionBehind(self):
         if self.dmd.availableVersion is None:
             return False
-        import pdb; pdb.set_trace()
         if parseVersion(self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
