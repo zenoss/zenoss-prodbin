@@ -83,6 +83,7 @@ class Migration(ZCmdBase):
             self.dmd.version = "Zenoss 0.%f" % self.dmd.version
         v = VersionBase.parse(self.dmd.version)
         v.name = 'Zenoss'
+        return v
 
     def migrate(self):
         "walk the steps and apply them"
