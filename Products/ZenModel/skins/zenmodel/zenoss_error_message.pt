@@ -31,7 +31,7 @@
   <textarea name="comments" rows="6" cols="50"></textarea><br />
   <br />
 
-  <p>Click this button to send the above inforamation to Zenoss, Inc.</p>
+  <p>Click this button to send the above information to Zenoss, Inc.</p>
     <input type="hidden" name="errorType" 
         tal:attributes="value options/error_type" />
     <input type="hidden" name="errorValue" 
