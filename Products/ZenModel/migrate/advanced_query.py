@@ -104,8 +104,6 @@ class AdvancedQuery(Migrate.Step):
                     indexed[catalogName] = True
             # reindex the current section
             if True in indexed.values():
-                print "Indexing section %s" % (section)
-                print "  indexed: %s" % str(indexed)
                 dmd.getDmdRoot(section).reIndex()
 
 AdvancedQuery()
