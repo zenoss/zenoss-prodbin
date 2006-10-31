@@ -55,7 +55,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
-        from Products.ZenModel.version import VERSION
+        from Products.ZenModel.ZVersion import VERSION
         return Version.parse("%s %s" % 
                     (VERSION, self.getZenossRevision()))
 

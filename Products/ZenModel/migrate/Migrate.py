@@ -78,7 +78,7 @@ class Migration(ZCmdBase):
 
     def _currentVersion(self):
         if not hasattr(self.dmd, 'version'):
-            from Products.ZenModel.version import VERSION
+            from Products.ZenModel.ZVersion import VERSION
             self.dmd.version = 'Zenoss ' + VERSION
         if type(self.dmd.version) == type(1.0):
             self.dmd.version = "Zenoss 0.%f" % self.dmd.version
