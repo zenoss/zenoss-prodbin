@@ -13,8 +13,8 @@ __version__ = "$Revision$"[11:-2]
         
 from Products.ZCatalog.Catalog import CatalogError
 
-from Products.ZenModel.Search import makeFieldIndex
-from Products.ZenModel.Search import makeKeywordIndex
+from Products.ZenUtils.Search import makeFieldIndex
+from Products.ZenUtils.Search import makeKeywordIndex
 
 import Migrate
 
@@ -40,11 +40,19 @@ allCatalogs = {
     },
 }
 
+newModules = [
+    'Products.ManagableIndex.FieldIndex',
+    'Products.ManagableIndex.KeywordIndex',
+]
+
+
 class AdvancedQuery(Migrate.Step):
+
     version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
-        # create a new index
+        # initialize our index tracker, in case catalogNames is empty
+        indexed = {}
         for section, catalogNames in allCatalogs.items():
             # see which king of index we need to create
             if section in ['Services', 'Manufacturers', 'Mibs']:
@@ -52,38 +60,52 @@ class AdvancedQuery(Migrate.Step):
             else:
                 makeIndex = makeFieldIndex
             for catalogName, indexNames in catalogNames.items():
+                # we'll use a dict to keep track of whether this catalog will
+                # need reindexing or not
+                indexed = {}
                 zcat = getattr(dmd.getDmdRoot(section), catalogName)
                 cat = zcat._catalog
                 # remove the lexicon, if it's there
                 delID = 'myLexicon'
                 try:
                     zcat._getOb(delID)
-                    lexExists = True
-                except AttributeError:
-                    #print "No lexicon found at %s.%s" % (section, catalogName)
-                    lexExists = False
-                if lexExists:
-                    #print "Deleting %s.%s.%s ..." % (section, catalogName, delID)
+                    # delete the old lexicon
                     zcat._delOb(delID)
                     newObjs = []
                     for obj in zcat._objects:
                         if obj.get('id') != delID:
                             newObjs.append(obj)
                     zcat._objects = tuple(newObjs)
+                    indexed[catalogName] = True
+                except AttributeError:
+                    # no lexicon found
+                    indexed[catalogName] = False
                 # replace the indices
                 for indexName in indexNames:
                     if (catalogName == 'componentSearch' and 
                         indexName == 'monitored'):
                         # the monitored index contains bools, so we're not
                         # going to mess with it
+                        indexed[catalogName] = False
+                        continue
+                    # check to see if the catalog is already using 
+                    # ManagableIndex
+                    module = cat.getIndex(indexName).__module__
+                    if module in newModules:
+                        indexed[catalogName] = False
                         continue
                     # get rid of the old index
                     try:
                         cat.delIndex(indexName)
-                    except CatalogError: pass
+                    except CatalogError:
+                        pass
                     # add the new one
                     cat.addIndex(indexName, makeIndex(indexName))
-            # reindex the sections
-            dmd.getDmdRoot(section).reIndex()
+                    indexed[catalogName] = True
+            # reindex the current section
+            if True in indexed.values():
+                print "Indexing section %s" % (section)
+                print "  indexed: %s" % str(indexed)
+                dmd.getDmdRoot(section).reIndex()
 
 AdvancedQuery()
