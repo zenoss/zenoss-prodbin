@@ -11,11 +11,10 @@ ManagableFieldIndex indices.
 
 __version__ = "$Revision$"[11:-2]
         
-from Products.ManagableIndex import FieldIndex
-from Products.ManagableIndex import KeywordIndex_scalable as KeywordIndex
-from Products.ZenModel.SearchUtils import makeFieldIndex
-from Products.ZenModel.SearchUtils import makeKeywordIndex
 from Products.ZCatalog.Catalog import CatalogError
+
+from Products.ZenModel.Search import makeFieldIndex
+from Products.ZenModel.Search import makeKeywordIndex
 
 import Migrate
 

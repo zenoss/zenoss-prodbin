@@ -9,9 +9,9 @@
     dest string:${here/absolute_url}/termsCheck;
     came_from request/came_from | string:">
     <a class="button"
-        tal:attributes="href string:${dest}?came_from=${came_from}&submit=Accept">Accept</a> 
+        tal:attributes="href string:${dest}?came_from=${came_from}&terms=Accept">Accept</a> 
     <a class="button"
-        tal:attributes="href string:${dest}?came_from=${came_from}&submit=Decline">Decline</a> 
+        tal:attributes="href string:${dest}?came_from=${came_from}&terms=Decline">Decline</a> 
 </div>
 
 </body>

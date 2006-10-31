@@ -50,6 +50,7 @@ def login(self):
 
 CookieAuthHelper.CookieAuthHelper.login = login
 
+
 def termsCheck(self):
     """ Check to see if the user has accepted the Zenoss terms.
     """
@@ -69,6 +70,5 @@ def termsCheck(self):
     else:
         self.dmd.acceptedTerms = True
     return response.redirect(url)
-
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck

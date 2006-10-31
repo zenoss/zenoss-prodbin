@@ -27,7 +27,7 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
 
 from ZenModelBase import ZenModelBase
-from SearchUtils import makeKeywordIndex
+from Products.ZenUtils.Search import makeKeywordIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""

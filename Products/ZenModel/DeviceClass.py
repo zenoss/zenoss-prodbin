@@ -14,7 +14,6 @@ import os
 import types
 import time
 import urllib
-from sets import Set
 from glob import glob
 import transaction
 
@@ -29,11 +28,12 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob
-from Products.ZenRelations.RelSchema import *
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
+from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Search import makeFieldIndex
+
 from RRDTemplate import RRDTemplate
-from SearchUtils import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
 
 _marker = "__MARKER___"
@@ -46,9 +46,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 
-
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
-
 
 
 class DeviceClass(DeviceOrganizer):

@@ -13,10 +13,10 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Search import makeKeywordIndex
 
 from Organizer import Organizer
 from MibModule import MibModule
-from SearchUtils import makeKeywordIndex
 
 def manage_addMibOrganizer(context, id, REQUEST = None):
     """make a device class"""

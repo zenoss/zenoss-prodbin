@@ -27,7 +27,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import *
 
 from IpAddress import IpAddress
-from SearchUtils import makeFieldIndex
+from Products.ZenUtils.Search import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import *
