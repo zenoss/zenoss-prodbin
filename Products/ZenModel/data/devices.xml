@@ -106,6 +106,8 @@ False
 <property visible='True' type='int' id='zCommandCycleTime' >
 60
 </property>
+<property visible='True' type='text' id='zLinks' >
+</property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >

@@ -39,7 +39,13 @@
                 tal:content="pvalue">
             </textarea>        
             </span>
-            <span tal:condition="python: ptype not in ('boolean','lines')">
+            <span tal:condition="python: ptype=='text'">
+            <textarea class="tablevalues" rows='5' cols="33"
+                tal:attributes="name python:prop+':'+ptype"
+                tal:content="pvalue">
+            </textarea>        
+            </span>
+            <span tal:condition="python: ptype not in 'boolean lines text'.split()">
             <input class="tablevalues" type="text" size="40"
                 tal:attributes="value pvalue;name python:prop+':'+ptype"/>
             </span>

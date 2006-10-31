@@ -591,6 +591,9 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
 
+        # Extra stuff for users
+        devs._setProperty("zLinks", "")
+
         # Device context Event Mapping
         #FIXME this is half baked needs to be specific to an event class
         #devs._setProperty("zEventSeverity", -1, type="int")

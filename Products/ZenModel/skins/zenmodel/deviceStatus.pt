@@ -104,6 +104,10 @@
       <td class="tableheader">Comments</td>
       <td class="tablevalues" colspan="3" tal:content="here/comments" />
     </tr>
+    <tr>
+      <td class="tableheader">Links</td>
+      <td class="tablevalues" colspan="3" tal:content="structure here/getExpandedLinks" />
+    </tr>
 </table>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>

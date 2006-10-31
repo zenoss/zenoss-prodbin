@@ -1052,6 +1052,15 @@ class Device(ManagedEntity):
             self.removeRelation(relName, obj)
 
 
+    def getExpandedLinks(self):
+        'Return the expanded zComment property'
+        from Products.ZenUtils.ZenTales import talesEval
+        try:
+            return talesEval('string:' + self.zLinks, self)
+        except Exception, ex:
+            import cgi
+            return "<i class='errortitle'>%s</i>" % cgi.escape(str(ex))
+
     ####################################################################
     # Private getter functions that implement DeviceResultInt
     ####################################################################
