@@ -1,0 +1,66 @@
+<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+
+<form method=post tal:attributes="action string:${here/absolute_url_path}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr tal:define="message request/message | string:State at time:">
+        <th class=tabletitle colspan=4
+            tal:content="string:${message} ${here/getNowString}" />
+    </tr>
+    
+    <tr>
+      <td class="tableheader" align="left">Dashboard Threshold</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="prodStateDashboardThresh"
+            tal:attributes="value here/prodStateDashboardThresh" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">State Conversions</td>
+      <td class="tablevalues">
+        <textarea class="tablevalues" name="prodStateConversions:lines"
+            rows="6" cols="35"
+            tal:content="python: '\n'.join(here.prodStateConversions)"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Status Conversions</td>
+      <td class="tablevalues">
+        <textarea class="tablevalues" name="statusConversions:lines"
+            rows="6" cols="35"
+            tal:content="python: '\n'.join(here.statusConversions)"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Interface State Conversions</td>
+      <td class="tablevalues">
+        <textarea class="tablevalues" name="interfaceStateConversions:lines"
+            rows="6" cols="35"
+            tal:content="python: '\n'.join(here.interfaceStateConversions)"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Administrative Roles</td>
+      <td class="tablevalues">
+        <textarea class="tablevalues" name="administrativeRoles:lines"
+            rows="6" cols="35"
+            tal:content="python: '\n'.join(here.administrativeRoles)"></textarea>
+      </td>
+    </tr>
+
+    <tr>
+        <td class="tableheader"></td>
+        <td class="tableheader" align="left">
+            <input class="tableheader" type="submit" value=" Save " 
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+    
+</table>
+</form>
+
+</tal:block>
+</tal:block>

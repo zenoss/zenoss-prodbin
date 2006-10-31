@@ -88,6 +88,11 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'settings'
+                , 'name'          : 'Settings'
+                , 'action'        : 'editSettings'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

@@ -118,7 +118,7 @@
         <tal:block tal:content="request/AUTHENTICATED_USER"/>
         <span>|</span>
         <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
-            Settings</a>
+            Preferences</a>
         <span>|</span> <a href="/zport/dmd/logoutUser">Logout</a>
         <span>|</span> <a href="http://www.zenoss.com/help">Help</a>
     </div>
@@ -158,6 +158,7 @@
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
         <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
+        <li><a href="/zport/dmd/editSettings">Settings</a></li>
         <li><a href="/zport/dmd/ZenEventManager">Live Events</a></li>
         <li><a href="/zport/dmd/ZenEventHistory">History Events</a></li>
         <li><a href="/zport/dmd/About">About</a></li>
