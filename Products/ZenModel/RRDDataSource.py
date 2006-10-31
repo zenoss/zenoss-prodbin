@@ -208,6 +208,9 @@ class RRDDataSource(ZenModelRM):
                 res = os.path.join(context.zCommandPath, res)
         return res
 
+    def getSeverityString(self):
+        return self.ZenEventManager.getSeverityString(self.severity)
+
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:

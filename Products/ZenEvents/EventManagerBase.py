@@ -61,15 +61,9 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 #('Bogus',       3),
                 )
 
-    severityConversions = (
-                ('Critical',5),
-                ('Error',   4),
-                ('Warning', 3),
-                #('Notice', 3),
-                ('Info',    2),
-                ('Debug',   1),
-                ('Clear',   0),
-                )
+    severities = ['Clear', 'Debug', 'Info', 'Warning', 'Error', 'Critical']
+
+    severityConversions = tuple([(s, i) for i, s in enumerate(severities)])
     
     statusTable = "status"
     detailTable = "detail"
@@ -812,6 +806,14 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         """Return a list of tuples of severities [('Warning', 3), ...] 
         """
         return self.severityConversions
+
+    def getSeverityString(self, severity):
+        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """
+        try:
+            return self.severities[severity]
+        except IndexError:
+            return "Unknown"
 
    
     def getStatusCssClass(self, status):

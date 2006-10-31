@@ -177,7 +177,7 @@
             </select>
             </td>
           <td class="tablevalues" tal:condition="not:editable" 
-                tal:content="here/severity"/>
+                tal:content="here/getSeverityString"/>
         </tr>
         <tr>
             <td class="tableheader">Cycle Time</td>

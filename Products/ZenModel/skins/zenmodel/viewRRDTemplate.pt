@@ -137,7 +137,7 @@
             <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
         <td tal:content="python:', '.join(thresh.dsnames)"/>
-        <td tal:content="thresh/severity"/>
+        <td tal:content="thresh/getSeverityString"/>
         <td tal:content="thresh/escalateCount"/>
         <td tal:content="thresh/enabled"/>
     </tr>

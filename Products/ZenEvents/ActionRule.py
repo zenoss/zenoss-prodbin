@@ -45,7 +45,7 @@ class ActionRule(ZenModelRM):
     format = "[zenoss] %(device)s %(summary)s"
     body =  "Device: %(device)s\n" \
             "Component: %(component)s\n" \
-            "Severity: %(severity)s\n" \
+            "Severity: %(severityString)s\n" \
             "Time: %(firstTime)s\n" \
             "Message:\n%(message)s\n" \
             "Event: %(eventUrl)s\n" \
@@ -59,7 +59,7 @@ class ActionRule(ZenModelRM):
             "At: %(clearFirstTime)s\n" \
             "Device: %(device)s\n" \
             "Component: %(component)s\n" \
-            "Severity: %(severity)s\n" \
+            "Severity: %(severityString)s\n" \
             "Message:\n%(message)s\n"
     enabled = False
     actionTypes = ("page", "email") 
@@ -133,7 +133,7 @@ class ActionRule(ZenModelRM):
         result.update(re.findall("%\((\S+)\)s", self.body))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
-        notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl'.split())
+        notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl severityString'.split())
         return list(result - notDb)
 
 
