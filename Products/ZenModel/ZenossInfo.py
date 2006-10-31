@@ -56,7 +56,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
-        return Version.parse("%s %s" % 
+        return Version.parse("Zenoss %s %s" % 
                     (VERSION, self.getZenossRevision()))
 
     security.declarePublic('getZenossVersionShort')
@@ -349,6 +349,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def versionBehind(self):
         if self.dmd.availableVersion is None:
             return False
+        import pdb; pdb.set_trace()
         if parseVersion(self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
