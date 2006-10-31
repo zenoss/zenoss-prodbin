@@ -29,6 +29,9 @@ function ConfirmPagerTest() {
        batch python:ztm.getBatch(tableName, objects)"
        >
     <tr><th class="tabletitle" colspan="4">User Folder</th></tr>
+    <tr tal:condition="exists: request/message">
+        <th class=tabletitle colspan=4 tal:content="request/message" />
+    </tr>
     <tr>
         <th tal:replace="structure python:ztm.getTableHeader(
                             tableName,'primarySortKey','UserId')"/>

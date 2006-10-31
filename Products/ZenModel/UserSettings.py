@@ -28,6 +28,7 @@ import smtplib
 from email.MIMEText import MIMEText
 import socket
 import Pager
+import sys
 
 UserSettingsId = "ZenUsers"
 
@@ -249,10 +250,13 @@ class UserSettingsManager(ZenModelRM):
             emsg['To'] = destAddress
             # Use localhost for now.  This will need to become a setting in 
             # the install and from within the app I think.
-            server = smtplib.SMTP('localhost', 25)
-            server.sendmail(srcAddress, (destAddress,), emsg.as_string())
-            server.quit()
-            msg = 'Test email successfully sent to %s' % destAddress
+            try:
+                server = smtplib.SMTP('localhost', 25)
+                server.sendmail(srcAddress, (destAddress,), emsg.as_string())
+                server.quit()
+                msg = 'Test email sent to %s' % destAddress
+            except:
+                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
         else:
             msg = 'Test email not sent, user has no email address.'
         if REQUEST:
@@ -271,11 +275,14 @@ class UserSettingsManager(ZenModelRM):
             rcpt = Pager.Recipient(destPager)
             pmsg = Pager.Message('Test sent by %s' % srcId +
                     ' from the Zenoss installation on %s.' % fqdn)
-            page = Pager.Pager((rcpt,), pmsg,
-                               'localhost', 
-                               444)
-            page.send()
-            msg = 'Test page successfully sent to %s' % settings.pager
+            try:
+                page = Pager.Pager((rcpt,), pmsg,
+                                   'localhost', 
+                                   444)
+                page.send()
+                msg = 'Test page sent to %s' % settings.pager
+            except:
+                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
         else:
             msg = 'Test page not sent, user has no pager number.'
         if REQUEST:
