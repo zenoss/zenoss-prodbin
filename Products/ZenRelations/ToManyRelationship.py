@@ -139,7 +139,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         Return object based on its primaryId. plain id will not work!!!
         """
         objs = filter(lambda x: x.getPrimaryId() == id, self._objects)
-        if len(objs) == 1: return objs[0]
+        if len(objs) == 1: return objs[0].__of__(self)
         if default != zenmarker: return default
         raise AttributeError(id)
 
