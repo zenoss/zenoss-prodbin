@@ -40,7 +40,7 @@
 <div id="loginboxbottom">&nbsp;</div>
 </div></div>
 <p id="info">Copyright &copy; 2006 Zenoss, Inc. | 
-    Version <span tal:content="here/dmd/getZenossVersion" /></p>
+    Version <span tal:content="here/dmd/About/getZenossVersionShort" /></p>
 <img src="dark_loginbox_bottom.gif" width="622" height="34" /></div>
 </body>
 </html>

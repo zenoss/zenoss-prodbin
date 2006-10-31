@@ -291,12 +291,4 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return getattr(self, 'errorEmailThankYou')()
 
 
-    security.declarePublic('getZenossVersion')
-    def getZenossVersion(self):
-        if hasattr(self, 'version'):
-            return self.version
-        else:
-            return ''
-
-
 InitializeClass(DataRoot)

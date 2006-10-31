@@ -9,10 +9,12 @@ from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelItem import ZenModelItem
-from Products.ZenModel.version import Current
 from Products.ZenUtils import Time
+from Products.ZenUtils.Version import *
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
+
+from Products.ZenModel.revision import REVISION
 
 def manage_addZenossInfo(context, id='About', REQUEST=None):
     """
@@ -53,22 +55,172 @@ class ZenossInfo(ZenModelItem, SimpleItem):
           },
         ) 
 
+    security.declarePublic('getZenossVersion')
+    def getZenossVersion(self):
+        return Version.parse("%s %s" % 
+                    (self.dmd.version, self.getZenossRevision()))
+
+    security.declarePublic('getZenossVersionShort')
+    def getZenossVersionShort(self):
+        return self.getZenossVersion().short()
+
+    def getOSVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getOSVersion())
+            v.full()
+        """
+        if os.name == 'posix':
+            sysname, nodename, version, build, arch = os.uname()
+            name = "%s (%s)" % (sysname, arch)
+            major, minor, micro = getVersionTupleFromString(version)
+            comment = ' '.join(os.uname())
+        elif os.name == 'nt':
+            from win32api import GetVersionEx
+            major, minor, micro, platformID, additional = GetVersionEx()
+            name = 'Windows %s (%s)' % (os.name.upper(), additional)
+            comment = ''
+        else:
+            raise VersionNotSupported
+        return Version(name, major, minor, micro, 0, comment)
+
+    def getPythonVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getPythonVersion())
+            v.full()
+        """
+        name = 'Python'
+        major, minor, micro, releaselevel, serial = sys.version_info
+        return Version(name, major, minor, micro)
+
+    def getMySQLVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getMySQLVersion())
+            v.full()
+
+        The regex was tested against the following output strings:
+            mysql  Ver 14.12 Distrib 5.0.24, for apple-darwin8.5.1 (i686) using readline 5.0
+            mysql  Ver 12.22 Distrib 4.0.24, for pc-linux-gnu (i486)
+            mysql  Ver 14.12 Distrib 5.0.24a, for Win32 (ia32)
+        """
+        cmd = 'mysql --version'
+        fd = os.popen(cmd)
+        output = fd.readlines()
+        version = "0"
+        if fd.close() is None and len(output) > 0:
+            output = output[0].strip()
+            regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
+            regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
+            regex = re.match(regexString, output)
+            if regex:
+                name, version, release, info = regex.groups()
+        comment = 'Ver %s' % version
+        # the name returned in the output is all lower case, so we'll make our own
+        name = 'MySQL'
+        major, minor, micro = getVersionTupleFromString(version)
+        return Version(name, major, minor, micro, 0, comment)
+
+    def getRRDToolVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getRRDToolVersion())
+            v.full()
+        """
+        cmd = os.path.join(os.getenv('ZENHOME'), 'bin', 'rrdtool')
+        if not os.path.exists(cmd):
+            cmd = 'rrdtool'
+        fd = os.popen(cmd)
+        output = fd.readlines()[0].strip()
+        fd.close()
+        name, version = output.split()[:2]
+        major, minor, micro = getVersionTupleFromString(version)
+        return Version(name, major, minor, micro)
+
+    def getTwistedVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getTwistedVersion())
+            v.full()
+        """
+        from twisted._version import version as v
+
+        return Version('Twisted', v.major, v.minor, v.micro)
+
+    def getPySNMPVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getpySNMPVersion())
+            v.full()
+        """
+        from pysnmp.version import getVersion
+        return Version('PySNMP', *getVersion())
+
+    def getTwistedSNMPVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getTwistedSNMPVersion())
+            v.full()
+        """
+        from twistedsnmp.version import version
+        return Version('TwistedSNMP', *version)
+        
+    def getZopeVersion(self):
+        """
+        This function returns a Version-ready tuple. For use with the Version
+        object, use exteneded call syntax:
+
+            v = Version(*getZopeVersion())
+            v.full()
+        """
+        from App import version_txt as version
+
+        name = 'Zope'
+        major, minor, micro, status, release = version.getZopeVersion()
+        return Version(name, major, minor, micro)
+
+    
+    def getZenossRevision(self):
+        rev = REVISION
+        try:
+            os.chdir(os.path.join(os.getenv('ZENHOME'), 'Products'))
+            fd = os.popen("svn info | grep Revision | awk '{print $2}'")
+            rev = fd.readlines()[0].strip()
+        except: pass
+        return rev
+
+
     def getAllVersions(self):
         """
         Return a list of version numbers for currently tracked component
         software.
         """
-        vers = Current.getVersions()
-        versions = [
-            {'header': 'Zenoss', 'data': vers['Zenoss']},
-            {'header': 'OS', 'data': vers['OS']},
-            {'header': 'Zope', 'data': vers['Zope']},
-            {'header': 'Python', 'data': vers['Python']},
-            {'header': 'Database', 'data': vers['Database']},
-            {'header': 'RRD', 'data': vers['RRD']},
-            {'header': 'Twisted', 'data': vers['Twisted']},
-            {'header': 'SNMP', 'data': vers['SNMP']},
-        ]
+        versions = (
+        {'header': 'Zenoss', 'data': self.getZenossVersion().full()},
+        {'header': 'OS', 'data': self.getOSVersion().full()},
+        {'header': 'Zope', 'data': self.getZopeVersion().full()},
+        {'header': 'Python', 'data': self.getPythonVersion().full()},
+        {'header': 'Database', 'data': self.getMySQLVersion().full()},
+        {'header': 'RRD', 'data': self.getRRDToolVersion().full()},
+        {'header': 'Twisted', 'data': self.getTwistedVersion().full()},
+        {'header': 'SNMP', 'data': self.getPySNMPVersion().full()},
+        {'header': 'Twisted SNMP', 'data': self.getTwistedSNMPVersion().full()},
+        )
         return versions
     security.declareProtected('View','getAllVersions')
 
@@ -199,7 +351,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def versionBehind(self):
         if self.dmd.availableVersion is None:
             return False
-        if parseVersion(self.dmd.availableVersion) > Current.zenoss:
+        if parseVersion(self.dmd.availableVersion) > self.getZenossVersion():
             return True
         return False
 

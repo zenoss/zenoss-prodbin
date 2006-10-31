@@ -12,7 +12,6 @@ import Globals
 import transaction
 import Products.ZenUtils.Version
 from Products.ZenUtils.Version import Version
-from Products.ZenModel.version.Current import zenoss, python, mysql, os
 from Products.ZenEvents import Event
 import urllib
 import string
@@ -38,11 +37,12 @@ class UpdateCheck:
             dmd.uuid = commands.getoutput('uuidgen')
         args['sk'] = dmd.uuid
         args['ac'] = (manual and '0') or '1'
-        args['zv'] = zenoss.long()
-        args['pv'] = python.long()
-        args['mv'] = mysql.long()
-        args['os'] = os.long()
-        args['rv'] = Products.ZenUtils.Version.getZenossRevision()
+        args['zv'] = dmd.About.getZenossVersion().long()
+        args['pv'] = dmd.About.getPythonVersion().long()
+        args['mv'] = dmd.About.getMySQLVersion().long()
+        args['os'] = dmd.About.getOSVersion().long()
+        #args['rv'] = Products.ZenUtils.Version.getZenossRevision()
+        args['rv'] = 'bad bad bad' 
         args['up'] = time.time() - dmd.getPhysicalRoot().Control_Panel.process_start
 
         # If they have not opted-out and this is not a manual check then
@@ -89,7 +89,8 @@ class UpdateCheck:
             log.debug("Cannot fetch version information", ex)
             return
         availableVersion = parseVersion(dmd.availableVersion)
-        if availableVersion is None or zenoss < availableVersion:
+        if (availableVersion is None 
+            or dmd.About.getZenossVersion() < availableVersion):
             if availableVersion != available:
                 import socket
                 summary = ('A new version of Zenoss (%s) has been released' % 
