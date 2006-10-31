@@ -123,11 +123,7 @@
     </table>
     </form>
 
-    <span metal:use-macro="here/templates/macros/contentSeparator"/>
-
-    <!--
     <br tal:condition="here/devices/countObjects">
-    -->
 
     <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
 
