@@ -45,12 +45,12 @@ td.search {
 }   
 /*   ADDED BY JM OCTOBER 24 2006 --- */
 
-#settings { vertical-align: bottom; width: 22em;}
+#settings { vertical-align: bottom; width: 270px;}
 
 #settings div.menu {
 	background: url(header_tab_right.gif) 
 	right top; 
-	height: 28px; width: 22em; 
+	height: 28px; width: 270px; 
 	margin: 0px 10px 0px auto; 
 	padding: 0px 10px 0px 0px; 
 	text-align: center; 
@@ -61,7 +61,7 @@ td.search {
 
 #settings div.menu a:hover {text-decoration: underline;}
 
-#settings div.menu span { padding: 0px 5px 0px 5px;}
+#settings div.menu span { padding: 0px 1px 0px 1px;}
 
 /* END NEW BY JM --*/
 
