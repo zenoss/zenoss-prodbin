@@ -1,25 +1,27 @@
 #################################################################
 #
-#   Copyright (c) 2002 Zenoss, Inc. All rights reserved.
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
 __doc__="""MonitorClass
 
-The service classification class.  default identifiers, screens,
-and data collectors live here.
+Organizes Monitors
 
 $Id: MonitorClass.py,v 1.11 2004/04/09 00:34:39 edahl Exp $"""
 
-__version__ = "$Revision: 1.11 $"[11:-2]
+__version__ = "$Revision$"[11:-2]
 
-from Globals import InitializeClass
-from OFS.Folder import Folder
 from Globals import DTMLFile
-
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
+from AccessControl import Permissions as permissions
+from Acquisition import aq_base
+from OFS.Folder import Folder
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-
-from Classification import Classification
+from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenUtils.Utils import checkClass
+from ZenModelRM import ZenModelRM
 
 def manage_addMonitorClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -31,11 +33,39 @@ def manage_addMonitorClass(context, id, title = None, REQUEST = None):
 
 addMonitorClass = DTMLFile('dtml/addMonitorClass',globals())
 
-class MonitorClass(Classification, Folder):
+class MonitorClass(ZenModelRM, Folder):
+    #isInTree = 1
     meta_type = "MonitorClass"
-    manage_main = Folder.manage_main
-    manage_options = Folder.manage_options
 
+    _properties = (
+        {'id':'title', 'type':'string', 'mode':'w'},
+        {'id':'sub_class', 'type':'string', 'mode':'w'},
+        {'id':'sub_meta_types', 'type':'lines', 'mode':'w'},
+    )
+
+    factory_type_information = ( 
+        { 
+            'id'             : 'MonitorClass',
+            'meta_type'      : meta_type,
+            'description'    : "Monitor Class",
+            'icon'           : 'Classification_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addMonitorClass',
+            'immediate_view' : 'monitorList',
+            'actions'        :
+            ( 
+                { 'id'            : 'view'
+                , 'name'          : 'View'
+                , 'action'        : 'monitorList'
+                , 'permissions'   : (
+                  permissions.view, )
+                , 'visible'       : 0
+                },
+            )
+          },
+        )
+    
+    security = ClassSecurityInfo()
 
     def getStatusMonitor(self, monitorName):
         """get or create the status monitor name"""
@@ -53,7 +83,6 @@ class MonitorClass(Classification, Folder):
         snames = status.objectIds()
         snames.sort()
         return snames
-            
 
     def getPerformanceMonitor(self, monitorName):
         """get or create the performance monitor name"""
@@ -73,5 +102,32 @@ class MonitorClass(Classification, Folder):
         return cnames
             
 
+    def objectSubValues(self):
+        """get contained objects that are sub classes of sub_class"""
+        retdata = []
+        for obj in self.objectValues():
+            if checkClass(obj.__class__, self.sub_class):
+                retdata.append(obj)
+        return retdata
+
+
+    def manage_removeMonitor(self, ids = None, REQUEST=None):
+        'Add an object of sub_class, from a module of the same name'
+        if ids:
+            for id in ids:
+                if self.hasObject(id):
+                    self._delObject(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_addMonitor(self, id, REQUEST=None):
+        'Remove an object from this one'
+        values = {}
+        exec('from Products.ZenModel.%s import %s' % (self.sub_class,
+                                                      self.sub_class), values)
+        ctor = values[self.sub_class]
+        self._setObject(id, ctor(id))
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 InitializeClass(MonitorClass)

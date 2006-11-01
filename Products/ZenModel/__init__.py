@@ -33,7 +33,6 @@ from Products.CMFCore.DirectoryView import registerDirectory
 confmon_globals = globals()
 
 productNames = (
-    "Classification",
     "Classifier",
     "ClassifierEntry",
     "PerformanceReport",
