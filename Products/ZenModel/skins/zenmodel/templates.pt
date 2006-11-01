@@ -159,7 +159,7 @@
         <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/editSettings">Settings</a></li>
-        <li><a href="/zport/dmd/ZenEventManager">Events</a></li>
+        <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
         <li><a href="/zport/dmd/About">About</a></li>
     </ul>
     </tal:block>
