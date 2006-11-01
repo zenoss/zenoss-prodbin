@@ -799,6 +799,12 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     def getFieldList(self):
         """Return a list of all fields in the status table of the  backend.
         """
+        if not self._fieldList:
+            db = self.connect()
+            try:
+                self.loadSchema(db)
+            finally:
+                db.close()
         return self._fieldlist
 
 
@@ -874,18 +880,20 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         fieldlist = []
         sql = "describe %s;" % self.statusTable
         curs = db.cursor()
-        curs.execute(sql)
-        for row in curs.fetchall():
-            fieldlist.append(row[0])
-            col = self.cleanstring(row[0])
-            if self.backend == "omnibus":
-                type = row[1] in (1, 4, 7, 8) #different date types
-            elif self.backend == "mysql":
-                type = row[1] in ("datetime", "timestamp", "double")
-            schema[col] = type
-        if schema: self._schema = schema 
-        self._fieldlist = fieldlist
-        curs.close()
+        try:
+            curs.execute(sql)
+            for row in curs.fetchall():
+                fieldlist.append(row[0])
+                col = self.cleanstring(row[0])
+                if self.backend == "omnibus":
+                    type = row[1] in (1, 4, 7, 8) #different date types
+                elif self.backend == "mysql":
+                    type = row[1] in ("datetime", "timestamp", "double")
+                schema[col] = type
+            if schema: self._schema = schema 
+            self._fieldlist = fieldlist
+        finally:
+            curs.close()
 
 
     def eventControls(self):
