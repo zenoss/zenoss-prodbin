@@ -170,8 +170,8 @@ class Software(MEProduct):
         self._installDate.setDate(value) 
 
 
-    def getDeviceLink(self):
-        return super(Software, self).getDeviceLink('deviceSoftwareDetail')
+    def getDeviceLink(self, screen='deviceSoftwareDetail'):
+        return super(Software, self).getDeviceLink(screen)
 
 
     def device(self):
