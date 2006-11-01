@@ -171,6 +171,11 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 , 'action'        : 'editEventManagerFields'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'history_edit'
+                , 'name'          : 'History Fields'
+                , 'action'        : 'editEventManagerHistoryFields'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'changes'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -985,8 +990,10 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     security.declareProtected('Manage EventManager','manage_refreshConversions')
     def manage_refreshConversions(self, REQUEST=None):
         """get the conversion information from the omnibus server"""
+        assert(self == self.dmd.ZenEventManager)
         db = self.connect()
         self.loadSchema(db)
+        self.dmd.ZenEventHistory.loadSchema(db)
         db.close()
         if REQUEST: return self.callZenScreen(REQUEST)
 
@@ -999,14 +1006,58 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         if REQUEST:
             message = "Cache parameters set"
             return self.editCache(self, REQUEST, manage_tabs_message=message)
-   
+
 
     security.declareProtected('Manage EventManager','manage_clearCache')
     def manage_clearCache(self, REQUEST=None):
         """Reset cache values"""
+        assert(self == self.dmd.ZenEventManager)
         self.cleanCache(force=1)
+        self.dmd.ZenEventHistory.cleanCache(force=1)
         if REQUEST: return self.callZenScreen(REQUEST)
-  
+
+
+    security.declareProtected('Manage EventManager','manage_editEventManager')
+    def manage_editEventManager(self, REQUEST=None):
+        ''' Call zmanage_editProperties then take care of saving a few
+        values to ZenEventHistory
+        '''
+        assert(self == self.dmd.ZenEventManager)
+        self.zmanage_editProperties(REQUEST)
+        self.dmd.ZenEventHistory.timeout = REQUEST['history_timeout']
+        self.dmd.ZenEventHistory.clearthresh = REQUEST['history_clearthresh']
+        self.dmd.ZenEventHistory.username = self.dmd.ZenEventManager.username
+        self.dmd.ZenEventHistory.password = self.dmd.ZenEventManager.password
+        self.dmd.ZenEventHistory.database = self.dmd.ZenEventManager.database
+        self.dmd.ZenEventHistory.host = self.dmd.ZenEventManager.host
+        self.dmd.ZenEventHistory.port = self.dmd.ZenEventManager.port
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+   
+    security.declareProtected('Manage EventManager','manage_clearHeartbeats')
+    def manage_clearHeartbeats(self, REQUEST=None):
+        """truncate heartbeat table"""
+        db = self.connect()
+        cursor = db.cursor()
+        try:
+            sql = 'truncate table heartbeat'
+            cursor.execute(sql)
+        finally:
+            cursor.close()
+            db.close()
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+    security.declareProtected('Manage EventManager','zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None):
+        ''' Need to handle editing of history event fields differently
+        '''
+        assert(self == self.dmd.ZenEventManager)
+        if REQUEST.get('zenScreenName', '') == 'editEventManagerHistoryFields':
+            obj = self.dmd.ZenEventHistory
+        else:
+            obj = self
+        ZenModelItem.zmanage_editProperties(obj, REQUEST)
+        if REQUEST: return self.callZenScreen(REQUEST)
     
     #==========================================================================
     # Utility functions

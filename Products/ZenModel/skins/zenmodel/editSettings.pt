@@ -12,6 +12,35 @@
     </tr>
     
     <tr>
+      <td class="tableheader" align="left">SMTP Host</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="smtpHost"
+            tal:attributes="value here/smtpHost" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">SMTP Port (usually 25)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="smtpPort"
+            tal:attributes="value here/smtpPort" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">SNPP Host</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="snppHost"
+            tal:attributes="value here/snppHost" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">SNPP Port (usually 444)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="snppPort"
+            tal:attributes="value here/snppPort" />
+      </td>
+    </tr>
+
+    <tr>
       <td class="tableheader" align="left">Dashboard Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="prodStateDashboardThresh"

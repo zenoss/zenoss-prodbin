@@ -65,6 +65,20 @@
                 tal:attributes='value here/clearthresh'>
         </td>
     </tr>
+    <tr>
+        <td class="tableheader" width="25%">History Cache Timeout</td>
+        <td class="tablevalues"> 
+            <input type='text' name='history_timeout:int' 
+                tal:attributes='value here/dmd/ZenEventHistory/timeout'>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">History Cache Clear Count</td>
+        <td class="tablevalues"> 
+            <input type='text' name='history_clearthresh:int' 
+                tal:attributes='value here/dmd/ZenEventHistory/clearthresh'>
+        </td>
+    </tr>
 </table>
 <br>
 <table class="zentable" cellpadding="3" cellspacing="1">
@@ -85,7 +99,7 @@
             Refresh Event Schema
         </td>
         <td class="tableheader" colspan="2">
-            <input type='submit' value="Refresh"
+            <input type='submit' value="Refresh Event Schema"
                 name='manage_refreshConversions:method'>
         </td>
     </tr>
@@ -94,8 +108,17 @@
             Clear Event Cache
         </td>
         <td class="tableheader" colspan="2">
-            <input type='submit' value="Clear"
+            <input type='submit' value="Clear Event Cache"
                 name='manage_clearCache:method'>
+        </td>
+    </tr>
+    <tr class='tableheader'>
+        <td class="tableheader">
+            Clear All Heartbeats
+        </td>
+        <td class="tableheader" colspan="2">
+            <input type='submit' value="Clear Heartbeats"
+                name='manage_clearHeartbeats:method'>
         </td>
     </tr>
 </table>
@@ -105,7 +128,7 @@
         <td class="tableheader" width='25%'>Save Changes</td>
         <td class="tableheader">
             <input type='submit' value="Save"
-                name='zmanage_editProperties:method'>
+                name='manage_editEventManager:method'>
         </td>
     </tr>
 </table>

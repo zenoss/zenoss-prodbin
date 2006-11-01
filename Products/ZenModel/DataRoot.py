@@ -68,6 +68,10 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
+        {'id':'smtpHost', 'type': 'string', 'mode':'w'},
+        {'id':'smtpPort', 'type': 'int', 'mode':'w'},
+        {'id':'snppHost', 'type': 'string', 'mode':'w'},
+        {'id':'snppPort', 'type': 'int', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)
