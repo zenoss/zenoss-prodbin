@@ -248,10 +248,8 @@ class UserSettingsManager(ZenModelRM):
             emsg['Subject'] = 'Zenoss Email Test'
             emsg['From'] = srcAddress
             emsg['To'] = destAddress
-            # Use localhost for now.  This will need to become a setting in 
-            # the install and from within the app I think.
             try:
-                server = smtplib.SMTP('localhost', 25)
+                server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
                 server.sendmail(srcAddress, (destAddress,), emsg.as_string())
                 server.quit()
                 msg = 'Test email sent to %s' % destAddress
@@ -277,8 +275,7 @@ class UserSettingsManager(ZenModelRM):
                     ' from the Zenoss installation on %s.' % fqdn)
             try:
                 page = Pager.Pager((rcpt,), pmsg,
-                                   'localhost', 
-                                   444)
+                                   self.dmd.snppHost, self.snppPort) 
                 page.send()
                 msg = 'Test page sent to %s' % settings.pager
             except:

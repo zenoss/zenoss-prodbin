@@ -316,8 +316,8 @@ class ZenActions(ZCmdBase):
         rcpt = Pager.Recipient(action.getAddress())
         pmsg = Pager.Message(fmt % data)
         page = Pager.Pager((rcpt,), pmsg,
-                           self.options.snpphost, 
-                           self.options.snppport)
+                           self.dmd.snppHost, 
+                           self.dmd.snppPort)
         page.send()
         msg = fmt % data
         self.log.info("sent page:%s to:%s", msg, action.getAddress())
@@ -334,7 +334,7 @@ class ZenActions(ZCmdBase):
         emsg['Subject'] = fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
-        server = smtplib.SMTP(self.options.smtphost, self.options.smtpport)
+        server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
         server.sendmail(self.options.fromaddr, (addr,), emsg.as_string())
         server.quit()
         self.log.info("sent email:%s to:%s", fmt, addr)
@@ -348,18 +348,6 @@ class ZenActions(ZCmdBase):
         self.parser.add_option('--fromaddr',
             dest='fromaddr', default="",
             help="address from which email is sent")
-        self.parser.add_option('--snpphost',
-            dest='snpphost', default="localhost",
-            help="snpp server to used when sending pages")
-        self.parser.add_option('--snppport',
-            dest='snppport', default=444, type="int",
-            help="snpp port used when sending pages")
-        self.parser.add_option('--smtphost',
-            dest='smtphost', default="localhost",
-            help="smtp server to used when sending pages")
-        self.parser.add_option('--smtpport',
-            dest='smtpport', default=25, type="int",
-            help="smtp port used when sending pages")
         self.parser.add_option(
             '--zopeurl', dest='zopeurl',
             default='http://%s:%d' % (socket.getfqdn(), 8080),
