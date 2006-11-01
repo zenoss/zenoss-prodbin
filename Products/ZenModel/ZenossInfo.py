@@ -197,7 +197,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getZenossRevision(self):
         try:
             os.chdir(os.path.join(os.getenv('ZENHOME'), 'Products'))
-            fd = os.popen("svn info | grep Revision | awk '{print $2}'")
+            fd = os.popen("svn info 2>/dev/null | grep Revision | awk '{print $2}'")
             return fd.readlines()[0].strip()
         except:
             return ''
