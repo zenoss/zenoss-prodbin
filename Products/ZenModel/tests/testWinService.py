@@ -28,7 +28,7 @@ class TestWinService(ZenModelBaseTest):
     def testSetServiceClass(self):
         self.wsvc.setServiceClass({'name':'ALG','description':'testsvc'})
         self.assert_(self.wsvc.name() == 'ALG')
-        import pdb;pdb.set_trace()
+        #import pdb;pdb.set_trace()
         self.assert_(self.wsvc.caption() == 'Application Layer Gateway Service')
         self.assert_(self.wsvc.getInstDescription() == \
                      "'%s' StartMode: StartName:" % (self.wsvc.caption())\
@@ -46,8 +46,9 @@ class TestWinService(ZenModelBaseTest):
     def testGets(self):
         self.assert_(self.wsvc.hostname() == 'testdev')
         self.assert_(self.wsvc.getParentDeviceName() == 'testdev')
-        import pdb;pdb.set_trace()
-        self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
+        #import pdb;pdb.set_trace()
+        #self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
+        self.assert_(self.wsvc.getParentDeviceUrl() =='http://nohost/zport/dmd/Devices/devices/testdev')
 
 def test_suite():
     from unittest import TestSuite, makeSuite
