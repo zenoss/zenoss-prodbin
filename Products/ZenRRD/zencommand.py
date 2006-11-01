@@ -468,8 +468,9 @@ class zencommand(RRDDaemon):
             value = float(parts.group(3))
             if cmd.points.has_key(label):
                 path, type, command, thresholds = cmd.points[label]
-                value = self.rrd.save(path, value, type, command)
-                log.debug("storing %s to %s", value, path)
+                log.debug("storing %s = %s in: %s" % (label, value, path))
+                value = self.rrd.save(path, value, type, command, cmd.cycleTime)
+                log.debug("rrd save result: %s" % value)
                 for t in thresholds:
                     t.check(cmd.device, cmd.component, cmd.eventKey, value,
                             self.sendThresholdEvent)
@@ -493,6 +494,7 @@ class zencommand(RRDDaemon):
             except Exception, ex:
                 log.exception(ex)
                 raise
+
         return drive(doFetchConfig)
             
 

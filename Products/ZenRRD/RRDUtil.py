@@ -5,12 +5,16 @@ log = logging.getLogger("zen.RRDUtil")
 from Products.ZenModel.PerformanceConf import performancePath
 
 class RRDUtil:
-    def __init__(self, defaultRrdCreateCommand, cycleTime):
+    def __init__(self, defaultRrdCreateCommand, defaultCycleTime):
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
-        self.cycleTime = cycleTime
+        self.defaultCycleTime = defaultCycleTime
 
-    def save(self, path, value, rrdType, rrdCommand = None):
+    def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None):
         import rrdtool, os
+
+        if cycleTime is None:
+            cycleTime = self.defaultCycleTime
+
         filename = performancePath(path) + '.rrd'
         if not rrdCommand:
             rrdCommand = self.defaultRrdCreateCommand
@@ -20,9 +24,9 @@ class RRDUtil:
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
             dataSource = 'DS:%s:%s:%d:U:U' % ('ds0', rrdType,
-                                              3*self.cycleTime)
+                                              3*cycleTime)
             rrdtool.create(filename,
-                           "--step",  str(self.cycleTime),
+                           "--step",  str(cycleTime),
                            str(dataSource), *rrdCommand.split())
         
         if rrdType == 'COUNTER':
@@ -36,7 +40,7 @@ class RRDUtil:
         if rrdType == 'COUNTER':
             startStop, names, values = \
                        rrdtool.fetch(filename, 'AVERAGE',
-                                     '-s', 'now-%d' % self.cycleTime*2,
+                                     '-s', 'now-%d' % cycleTime*2,
                                      '-e', 'now')
             value = values[0][0]
         return value
