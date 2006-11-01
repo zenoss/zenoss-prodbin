@@ -100,14 +100,14 @@
 <table id="topPane" metal:define-macro="topPane"
     cellpadding="0" cellspacing="0" border="0">
     <tr>
-    <td class="logo" width="220px">
+    <td class="logo">
         <a href="http://www.zenoss.com">
             <img border="0" src="logo.gif" alt="Zenoss">
         </a>
     </td>
     <td class="search">
     <form action="/zport/dmd/deviceSearchResults" method="POST">
-        <input type="text" name="query" size="15"
+        <input type="text" name="query" size="18"
             tal:attributes="value request/query | string:"/>
         <input type="submit" name="submit" value="Search"/>
     </form> 
