@@ -63,7 +63,10 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
     severities = ['Clear', 'Debug', 'Info', 'Warning', 'Error', 'Critical']
 
-    severityConversions = tuple([(s, i) for i, s in enumerate(severities)])
+    severityConversions = [(s, i) for i, s in enumerate(severities)]
+    severityConversions.reverse()
+    severityConversions = tuple(severityConversions)
+    print severityConversions
     
     statusTable = "status"
     detailTable = "detail"
