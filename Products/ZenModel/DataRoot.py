@@ -55,6 +55,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = False
+    smtpHost, snppHost = 'localhost'
+    smtpPort = 25
+    snppPort = 444
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
