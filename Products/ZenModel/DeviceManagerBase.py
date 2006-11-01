@@ -36,6 +36,5 @@ class DeviceManagerBase:
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            dev = self.devices._getOb(devname)
-            dev.deleteDevice()
+            self.devices._delObject(devname)
         if REQUEST: return self()

@@ -261,7 +261,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
-        
 
 InitializeClass(DeviceOrganizer)
 

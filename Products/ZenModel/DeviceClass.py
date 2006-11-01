@@ -608,4 +608,13 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCommandPath", "/usr/local/zenoss/libexec")
 
 
+    def removeDevices(self, deviceNames=None, REQUEST=None):
+        """see IManageDevice"""
+        if not deviceNames: return self()
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname)
+            dev.deleteDevice()
+        if REQUEST: return self()
+
 InitializeClass(DeviceClass)
