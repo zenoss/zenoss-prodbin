@@ -88,7 +88,7 @@ td.search {
 	left: 0px;
     margin: 5px 0px 0px 5px;
     padding: 25px 0px 0px 0px;
-	width: 8.2em;
+	width: 8.6em;
 	border: 0px solid red;
 }
 #leftPane p {
@@ -148,7 +148,7 @@ td.search {
     float:right;
     */
     padding: 5px;
-	margin-left: 8.6em;
+	margin-left: 9.0em;
     /*margin-top: 5px;*/
     background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;
 }
