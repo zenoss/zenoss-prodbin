@@ -3,8 +3,8 @@
     background-color: #CD0000;
 }
 
-.zenevents_5_acked a {
-color: #fff;
+.zenevents_5_acked a, .zenevents_5_acked a:visited, .zenevents_5_acked a:link {
+color: #FFFFFF;
 }
 
 .zenevents_5_noack {
@@ -15,6 +15,10 @@ color: #fff;
 .zenevents_4_acked {
     color: #FFFFFF;
     background-color: #b56300;
+}
+
+.zenevents_4_acked a, .zenevents_4_acked a:visited, .zenevents_4_acked a:link {
+color: #FFFFFF
 }
 
 .zenevents_4_noack {
@@ -28,6 +32,10 @@ color: #fff;
     background-color: #CDCD00;
 }
 
+.zenevents_3_acked a, .zenevents_3_acked a:visited, .zenevents_3_acked a:link {
+color: #FFFFFF
+}
+
 .zenevents_3_noack {
     color: #000000;
     background-color: #ffff00;
@@ -38,6 +46,10 @@ color: #fff;
     background-color: #4F94CD;
 }
 
+.zenevents_2_acked a, .zenevents_2_acked a:visited, .zenevents_2_acked a:link {
+color: #FFFFFF
+}
+
 .zenevents_2_noack {
     color: #000000;
     background-color: #6368FF;
@@ -46,6 +58,10 @@ color: #fff;
 .zenevents_1_acked {
     color: #FFFFFF;
     background-color: #C8C8C8;
+}
+
+.zenevents_1_acked a, .zenevents_1_acked a:visited, .zenevents_1_acked a:link {
+color: #FFFFFF
 }
 
 .zenevents_1_noack {
@@ -59,6 +75,10 @@ color: #fff;
     background-color: #00CD00;
 }
 
+.zenevents_0_acked a, .zenevents_0_acked a:visited, .zenevents_0_acked a:link {
+color: #FFFFFF
+}
+
 .zenevents_0_noack {
     color: #000000;
     background-color: #00FF00;
@@ -68,6 +88,10 @@ color: #fff;
 .zenevents_unknown_acked {
     color: #FFFFFF;
     background-color: #CD00CD;
+}
+
+.zenevents_unknown_acked a, .zenevents_unknown_acked a:visited, .zenevents_unknown_acked a:link {
+color: #FFFFFF
 }
 
 .zenevents_unknown_noack {
