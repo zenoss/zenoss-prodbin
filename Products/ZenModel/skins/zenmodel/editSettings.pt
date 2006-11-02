@@ -55,6 +55,7 @@
             tal:content="python: '\n'.join(here.prodStateConversions)"></textarea>
       </td>
     </tr>
+    <!--
     <tr>
       <td class="tableheader" align="left">Status Conversions</td>
       <td class="tablevalues">
@@ -71,6 +72,7 @@
             tal:content="python: '\n'.join(here.interfaceStateConversions)"></textarea>
       </td>
     </tr>
+    -->
     <tr>
       <td class="tableheader" align="left">Administrative Roles</td>
       <td class="tablevalues">
