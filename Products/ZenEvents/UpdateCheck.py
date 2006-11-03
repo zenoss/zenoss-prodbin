@@ -88,6 +88,8 @@ class UpdateCheck:
             raise
             log.debug("Cannot fetch version information", ex)
             return
+        dmd.availableVersion = available.short()
+        dmd.lastVersionCheck = long(time.time())
         availableVersion = parseVersion(dmd.availableVersion)
         if (availableVersion is None 
             or dmd.About.getZenossVersion() < availableVersion):
@@ -99,8 +101,6 @@ class UpdateCheck:
                                           eventClass='/Status/Update',
                                           severity=Event.Info,
                                           summary=summary))
-        dmd.availableVersion = available.short()
-        dmd.lastVersionCheck = long(time.time())
         return True
 
 if __name__ == "__main__":
