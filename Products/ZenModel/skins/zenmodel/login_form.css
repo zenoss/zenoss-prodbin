@@ -6,7 +6,7 @@ div {margin: 0px; padding: 0px;}
  
 #darkloginbox {background: #898989 url(bg_dark_loginbox_blue.gif) repeat-y 0px 0px; width:622px;  padding: 129px 0px 0px 0px;  margin: 0px auto 0px auto;}
 
-#loginimage {background: url(bg_login_img_blue.jpg) no-repeat 0px 0px; width: 622px; height: 212px; padding: 0px; margin: 0px 0px 0px 0px;}
+#loginimage {background: url(bg_login_img_blue.jpg) no-repeat 0px 0px; width: 622px; height: 212px; padding: 0px; margin: 0px 0px 0px 0px; text-align:left}
 
 #loginboxwrapper {width:329px; height: 205px; padding: 0px; margin: 0px 0px 0px 80px;  }
 
