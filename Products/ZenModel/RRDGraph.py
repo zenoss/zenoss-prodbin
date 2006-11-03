@@ -153,7 +153,7 @@ class RRDGraph(ZenModelRM):
                     gopts.append('--upper-limit=100')
                 if not self.miny > -1:
                     gopts.append('--lower-limit=0')
-                gopts.append('--rigid')
+            #    gopts.append('--rigid')
         if self.base:
             gopts.append('--base=1024')
         return gopts
