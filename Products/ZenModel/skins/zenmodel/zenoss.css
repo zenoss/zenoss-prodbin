@@ -126,7 +126,7 @@ td.search {
 
 }
 
-#leftPane ul li a.selected {
+#leftpane ul li a.selected  {
     color: black;
     background: #b1bcd2;
     text-decoration: none;
@@ -233,7 +233,7 @@ table.tabtable td{
 	background: #5a6f8f url(tab_left.gif) no-repeat left top;
 }
 
-table.tabtable td.tabletitleselected {
+table.tabtable td.tabletitleselected  {
     color: #333333;
 	display: block;
 	border-right: 2px solid #b1bcd2;
@@ -244,7 +244,7 @@ table.tabtable td.tabletitleselected {
 
 }
 
-table.tabtable td.tabletitleselected a {
+table.tabtable td.tabletitleselected a,table.tabtable td.tabletitleselected a:visited, table.tabtable td.tabletitleselected a:link   {
     color: #333333;
 	display: block;
     height:23px;
