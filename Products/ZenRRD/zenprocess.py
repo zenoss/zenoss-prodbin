@@ -369,7 +369,7 @@ class zenprocess(SnmpDaemon):
         for pids, pidConfig in device.pids.items():
             pidCounts[pidConfig.name] += 1
         for name, count in pidCounts.items():
-            self.save(device.name, name, 'count', count, 'GAUGE')
+            self.save(device.name, name, 'count_count', count, 'GAUGE')
 
 
     def periodic(self, unused=None):
@@ -427,9 +427,9 @@ class zenprocess(SnmpDaemon):
                 mem = results.get(MEM + str(pid), None)
                 pidConf.updateCpu(pid, cpu)
                 pidConf.updateMemory(pid, mem)
-            self.save(device.name, pidName, 'cpu', pidConf.getCpu(),
+            self.save(device.name, pidName, 'cpu_cpu', pidConf.getCpu(),
                       'COUNTER')
-            self.save(device.name, pidName, 'mem', pidConf.getMemory() * 1024,
+            self.save(device.name, pidName, 'mem_mem', pidConf.getMemory() * 1024,
                       'GAUGE')
 
 
