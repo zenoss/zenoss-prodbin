@@ -36,6 +36,7 @@ addMonitorClass = DTMLFile('dtml/addMonitorClass',globals())
 class MonitorClass(ZenModelRM, Folder):
     #isInTree = 1
     meta_type = "MonitorClass"
+    sub_class = 'MonitorClass'
 
     _properties = (
         {'id':'title', 'type':'string', 'mode':'w'},
@@ -74,7 +75,9 @@ class MonitorClass(ZenModelRM, Folder):
         statusMonitorObj = self.getDmdRoot("Monitors").StatusMonitors
         if not hasattr(statusMonitorObj, monitorName):
             manage_addStatusMonitorConf(statusMonitorObj, monitorName)
-        return statusMonitorObj._getOb(monitorName)
+        m = statusMonitorObj._getOb(monitorName)
+        m.sub_class = 'StatusMonitorConf'
+        return m
 
 
     def getStatusMonitorNames(self):
@@ -91,7 +94,9 @@ class MonitorClass(ZenModelRM, Folder):
         perfServerObj = self.getDmdRoot("Monitors").Performance
         if not hasattr(perfServerObj, monitorName):
             manage_addPerformanceConf(perfServerObj, monitorName)
-        return perfServerObj._getOb(monitorName)
+        m = perfServerObj._getOb(monitorName)
+        m.sub_class = 'PerformanceConf'
+        return m
 
 
     def getPerformanceMonitorNames(self):
