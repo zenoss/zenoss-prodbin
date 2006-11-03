@@ -7,7 +7,7 @@
 <table 
     class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
-    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',864000)">
+    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
     <th class="tabletitle" align=left> 
