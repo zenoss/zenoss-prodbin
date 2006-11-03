@@ -7,7 +7,7 @@
         resultFields request/ev_resultfields | here/getResultFields | 
                         here/ZenEventManager/defaultResultFields;
         filter request/filter | string:;
-        evcolspan python:len(resultFields);
+        evcolspan python:len(resultFields)+1;
         evcolspan python:here.isManager() and evcolspan + 1 or evcolspan;
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
@@ -27,9 +27,12 @@
     <tal:block tal:define="evclick 
         string:javascript:eventWindow('${event/zem}','${event/evid}')">
     <td tal:repeat="data python:event.getDataListWithLinks(resultFields, event.getCssClass())"
-        tal:attributes="onclick python:repeat['data'].end and evclick or ''"
         tal:content="structure data">
         event data
+    </td>
+    <td tal:attributes="onclick evclick">
+        <img tal:condition="python: event.eventState<=0" src="/zport/dmd/icon_details_magnify.gif" />
+        <img tal:condition="python: event.eventState>0" src="/zport/dmd/icon_details_magnify_white.gif" />
     </td>
     </tal:block>
     </tr>

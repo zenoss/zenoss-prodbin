@@ -13,7 +13,7 @@
     resultFields request/ev_resultfields | here/getResultFields | 
                     zem/defaultResultFields;
     evcontrol here/ZenEventManager/eventControls;
-    evcolspan python:len(resultFields)+1+evcontrol;
+    evcolspan python:len(resultFields)+1+evcontrol+1;
     severity request/severity | python:2;
     state request/state | python:1;
     sortedHeader request/sortedHeader | string:;
@@ -71,6 +71,8 @@
                 tal:attributes="name headername; value headername"
                 onclick="setSortedHeader(this.name, this.form);">
         </th>
+        <td class="tableheader">
+        </td>
     </tr>
     </tal:block>
     <tbody id="eventsBody">
