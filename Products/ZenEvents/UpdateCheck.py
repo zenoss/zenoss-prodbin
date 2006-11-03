@@ -41,6 +41,7 @@ class UpdateCheck:
         args['pv'] = dmd.About.getPythonVersion().long()
         args['mv'] = dmd.About.getMySQLVersion().long()
         args['os'] = dmd.About.getOSVersion().long()
+        args['osv'] = dmd.About.getOSVersion().full()
         #args['rv'] = Products.ZenUtils.Version.getZenossRevision()
         args['rv'] = 'bad bad bad' 
         args['up'] = time.time() - dmd.getPhysicalRoot().Control_Panel.process_start
