@@ -99,6 +99,7 @@ class ZenModelBaseTest(BaseTestCase):
     def tearDown(self):
         self.app = None
         self.dmd = None
+        BaseTestCase.tearDown(self)
 
 
     def create(self, context, klass, id):

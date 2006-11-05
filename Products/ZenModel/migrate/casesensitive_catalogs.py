@@ -27,7 +27,7 @@ class CaseSensitive(Migrate.Step):
         # initialize our index tracker, in case catalogNames is empty
         indexed = {}
         for section, catalogNames in allCatalogs.items():
-            # see which king of index we need to create
+            # see which kind of index we need to create
             if section in ['Services', 'Manufacturers', 'Mibs']:
                 makeIndex = makeKeywordIndex
             else:

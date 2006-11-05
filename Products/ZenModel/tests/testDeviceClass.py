@@ -15,11 +15,6 @@ from Products.ZenModel.Device import Device
 
 from ZenModelBaseTest import ZenModelBaseTest
 
-# XXX
-from Testing.ZopeTestCase import connections
-import zLOG
-from zLOG.EventLogger import log_write
-
 class TestDeviceClass(ZenModelBaseTest):
 
     def setUp(self):
@@ -100,12 +95,10 @@ class TestDeviceClass(ZenModelBaseTest):
 
 
     def testDeviceOrganizer(self):
-        log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
         self.assert_(devices.countDevices() == 3)
         self.assert_(self.dev in devices.getSubDevices())
-        log_write("(checking connections)", zLOG.WARNING, "testDeviceOrganizer() conection count: %s " % connections.count(), None, None)
         
 
 def test_suite():
