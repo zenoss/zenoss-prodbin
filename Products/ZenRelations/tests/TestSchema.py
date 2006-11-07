@@ -12,7 +12,7 @@ from Products.ZenRelations.Exceptions import *
 class TestBaseClass(RM):
     zenRelationsBaseModule = "Products.ZenRelations.tests"
 
-class DataRoot(TestBaseClass): 
+class DataRoot(TestBaseClass):
 
     def manage_afterAdd(self, item, container):
         self.zPrimaryBasePath = container.getPhysicalPath()
@@ -47,7 +47,7 @@ class IpInterface(TestBaseClass):
         self.beforeDelete = True
     def manage_afterAdd(self, item, container):
         if (not hasattr(self, "__primary_parent__") or 
-            item.__primary_parent__ != container): 
+            item.__primary_parent__ != container):
             raise ZenRelationsError("__primary_parent__ not set in afterAdd")
         self.afterAdd = True
 
@@ -78,7 +78,7 @@ class Organizer(TestBaseClass):
         self._setProperty("zLines", [], type="lines")
 
     def getZenRootNode(self):
-        return self.unrestrictedTraverse("/dataroot/Orgs")
+        return self.unrestrictedTraverse("/zport/dmd/Orgs")
 
 
 def create(context, klass, id):
@@ -87,4 +87,5 @@ def create(context, klass, id):
     context._setObject(id, inst)
     inst = context._getOb(id)
     return inst
+
 build = create

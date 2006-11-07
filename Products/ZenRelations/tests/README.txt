@@ -24,3 +24,6 @@ ZenRelations uses the following schema to perform tests on relationships:
  | Server |----------------------| Admin |
   --------  server         admin  -------
 
+
+To run the tests, enter the Products directory and use the following:
+    zopectl test --libdir ZenRelations

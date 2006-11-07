@@ -1,8 +1,5 @@
 objnoprops = \
 """<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location'>
-<property type='string' id='title' mode='wd' >
-
-</property>
 </object>
 """
 
@@ -12,9 +9,6 @@ objwithprops = \
 <property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
 0
 </property>
-<property type='lines' id='communities' mode='w' >
-()
-</property>
 </object>
 """
 
@@ -23,19 +17,12 @@ objwithtoone = \
 <property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
 0
 </property>
-<property type='lines' id='communities' mode='w' >
-()
-</property>
-<toone id='location'>loc
-</toone>
+<toone id='location' objid='loc'/>
 </object>
 """
 
 objwithtomany = \
 """<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location'>
-<property type='string' id='title' mode='wd' >
-
-</property>
 <tomany id='devices'>
 <link objid='dev'/>
 </tomany>
@@ -47,15 +34,9 @@ objwithtomanycont = \
 <property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
 0
 </property>
-<property type='lines' id='communities' mode='w' >
-()
-</property>
 <tomanycont id='interfaces'>
 <object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface'>
-<property type='string' id='title' mode='wd' >
-
-</property>
-<toone id='device' objid="dev"/>
+<toone id='device' objid='dev'/>
 </object>
 </tomanycont>
 </object>

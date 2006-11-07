@@ -8,18 +8,12 @@ import os, sys
 if __name__ == '__main__':
   execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
-import unittest
-
-import Globals
-
-from Products.ZenRelations.tests.RMBaseTest import RMBaseTest
 from Products.ZenRelations.tests.TestSchema import *
-
 from Products.ZenRelations.Exceptions import *
 
+from ZenRelationsBaseTest import ZenRelationsBaseTest
 
-class PrimaryPathManagerTest(RMBaseTest):
+class PrimaryPathManagerTest(ZenRelationsBaseTest):
 
 
     def testGetPrimaryPath(self):
@@ -32,16 +26,16 @@ class PrimaryPathManagerTest(RMBaseTest):
     
     def testGetPrimaryPath2(self):
         "absolute primary path of a contained object using zPrimaryBasePath"
-        dev = self.build(self.app.dataroot, Device, "dev")
+        dev = self.build(self.dmd, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
         self.failUnless(eth0.getPrimaryPath() ==
-                        ("", "dataroot", "dev", "interfaces", "eth0"))
-        self.failUnless(eth0.getPrimaryId() == "/dataroot/dev/interfaces/eth0")
+                        ("", "zport", "dmd", "dev", "interfaces", "eth0"))
+        self.failUnless(eth0.getPrimaryId() == "/zport/dmd/dev/interfaces/eth0")
        
 
     def testGetPrimaryPath2(self):
         "absolute primary path of a contained object using fromNode"
-        dev = self.build(self.app.dataroot, Device, "dev")
+        dev = self.build(self.dmd, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
         self.failUnless(eth0.getPrimaryPath("dev") ==
                         ("interfaces", "eth0"))
@@ -50,32 +44,32 @@ class PrimaryPathManagerTest(RMBaseTest):
 
     def testGetPrimaryPath3(self):
         "absolute primary path of a related object using zPrimaryBasePath"
-        dev = self.build(self.app.dataroot, Device, "dev")
-        group = self.create(self.app.dataroot, Group, "group")
+        dev = self.build(self.dmd, Device, "dev")
+        group = self.create(self.dmd, Group, "group")
         dev.groups.addRelation(group)
         self.failUnless(dev.groups()[0].getPrimaryPath() ==
-                        ("", "dataroot", "group"))
-        self.failUnless(dev.groups()[0].getPrimaryId() == "/dataroot/group")
+                        ("", "zport", "dmd", "group"))
+        self.failUnless(dev.groups()[0].getPrimaryId() == "/zport/dmd/group")
 
 
     def testPrimaryAq(self):
         "primary acquisition chain of a related object"
-        dev = self.build(self.app.dataroot, Device, "dev")
-        group = self.create(self.app.dataroot, Group, "group")
+        dev = self.build(self.dmd, Device, "dev")
+        group = self.create(self.dmd, Group, "group")
         dev.groups.addRelation(group)
-        group = dev.groups()[0]
-        self.failUnless(map(lambda x: x.getId(), group.aq_chain) ==
-                            ["group", "groups", "dev", "dataroot", "Zope"])
-        group = group.primaryAq()
-        self.failUnless(map(lambda x: x.getId(), group.aq_chain) ==
-                            ["group", "dataroot", "Zope"])
+        chain = dev.groups()[0].aq_chain
+        ids = [ x.getId() for x in chain if hasattr(x, 'getId')]
+        self.failUnless(ids == ['group', 'groups', 'dev', 'dmd', 'zport', ''])
+        chain = group.primaryAq().aq_chain
+        ids = [ x.getId() for x in chain if hasattr(x, 'getId')]
+        self.failUnless(ids == ['group', 'dmd', 'zport', ''])
 
 
-class RelationshipManagerTest(RMBaseTest):
+class RelationshipManagerTest(ZenRelationsBaseTest):
     
     def testBuildRelations(self):
         "Check that relationships are built correctly."
-        dev = self.build(self.app.dataroot, Device, "dev")
+        dev = self.build(self.dmd, Device, "dev")
         self.failUnless(getattr(dev, "location").meta_type ==
                             "ToOneRelationship")
         self.failUnless(getattr(dev, "groups").meta_type ==
@@ -86,7 +80,7 @@ class RelationshipManagerTest(RMBaseTest):
 
     def testBuildRelationsWithInheritance(self):
         "Check that relationships are built correctly with inheritance."
-        server = self.build(self.app.dataroot, Server, "server")
+        server = self.build(self.dmd, Server, "server")
         self.failUnless(getattr(server, "location").meta_type ==
                             "ToOneRelationship")
         self.failUnless(getattr(server, "groups").meta_type ==
@@ -98,19 +92,19 @@ class RelationshipManagerTest(RMBaseTest):
     
 
     def testLookupRelationSchema(self):
-        dev = self.build(self.app.dataroot, Device, "dev")
+        dev = self.build(self.dmd, Device, "dev")
         self.failUnless(dev.lookupSchema("location").remoteName == "devices")
 
 
     def testLookupRelationSchemaWithInheritance(self):
-        dev = self.build(self.app.dataroot, Server, "dev")
+        dev = self.build(self.dmd, Server, "dev")
         self.failUnless(dev.lookupSchema("location").remoteName == "devices")
         self.failUnless(dev.lookupSchema("admin").remoteName == "server")
 
 
     def testSetObjectRM(self):
         """Make sure that _setObject returns id and sets object correctlly"""
-        dev = self.build(self.app.dataroot, Server, "dev")
+        dev = self.build(self.dmd, Server, "dev")
         from OFS.Folder import Folder
         folder = Folder("folder")
         id = dev._setObject("folder", folder)
@@ -124,7 +118,7 @@ class RelationshipManagerTest(RMBaseTest):
     
 from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 
-class ToOneRelationshipTest(RMBaseTest):
+class ToOneRelationshipTest(ZenRelationsBaseTest):
 
     def testmanage_addToOneRelationship(self):
         """Test adding a to one relationship"""
@@ -203,7 +197,7 @@ class ToOneRelationshipTest(RMBaseTest):
 #=============================================================================
 
 
-class ToManyContRelationshipTest(RMBaseTest):
+class ToManyContRelationshipTest(ZenRelationsBaseTest):
 
     def testFindObjectsByIdOnCont(self):
         """Test removeRelation on a to many object itself """
@@ -371,7 +365,7 @@ class ToManyContRelationshipTest(RMBaseTest):
 
     
 
-class ToManyRelationshipTest(RMBaseTest):
+class ToManyRelationshipTest(ZenRelationsBaseTest):
 
 
     def testFindObjectsByIdOnToMany(self):
@@ -582,9 +576,9 @@ class ToManyRelationshipTest(RMBaseTest):
 
     def testObjectItemsOneToMany(self):
         """Test objectItems on a ToMany"""
-        loc = self.create(self.app.dataroot, Location, "loc")
-        dev = self.create(self.app.dataroot, Device, "dev")
-        dev2 = self.create(self.app.dataroot, Device, "dev2")
+        loc = self.create(self.dmd, Location, "loc")
+        dev = self.create(self.dmd, Device, "dev")
+        dev2 = self.create(self.dmd, Device, "dev2")
         devid = dev.getPrimaryId()
         dev2id = dev2.getPrimaryId()
         loc.addRelation("devices", dev)

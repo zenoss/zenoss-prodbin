@@ -7,6 +7,7 @@ import os
 import unittest
 
 from Testing import ZopeTestCase
+from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
 
 from Products import ZenModel
 from Products.ZenModel.DmdBuilder import DmdBuilder

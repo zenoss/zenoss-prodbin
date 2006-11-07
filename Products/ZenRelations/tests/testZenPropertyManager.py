@@ -4,44 +4,29 @@
 #
 #################################################################
 
-import pdb
-import unittest
-import transaction
+import os, sys
+if __name__ == '__main__':
+  execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import Globals
 from Acquisition import aq_base
 
 from Products.ZenRelations.tests.TestSchema import *
-
 from Products.ZenRelations.Exceptions import *
 
-from Testing.ZopeTestCase import ZopeLite
+from ZenRelationsBaseTest import ZenRelationsBaseTest
 
-class ZenPropertyManagerTest(unittest.TestCase):
+
+class ZenPropertyManagerTest(ZenRelationsBaseTest):
 
 
     def setUp(self):
-        self.app = ZopeLite.app()
-        ZopeLite.installProduct("ZenRelations")
-        self.dataroot = self.create(self.app, DataRoot, "dataroot")
-        self.dataroot.zPrimaryBasePath = ("",)
-        self.orgroot = self.create(self.app.dataroot, Organizer, "Orgs")
+        ZenRelationsBaseTest.setUp(self)
+        self.orgroot = self.create(self.dmd, Organizer, "Orgs")
         self.orgroot.buildOrgProps()
 
 
-    def tearDown(self):
-        transaction.abort()
-        self.app._p_jar.close()
-        self.app = None
-
-
-    def create(self, context, klass, id):
-        """create an instance and attach it to the context passed"""
-        return create(context, klass, id)
-
-
     def testZenPropertyIds(self):
-        self.assert_(self.orgroot.zenPropertyIds() == 
+        self.assert_(self.orgroot.zenPropertyIds() ==
             ["zBool", "zFloat", "zInt", "zLines", "zString"])
 
 
@@ -115,11 +100,11 @@ class ZenPropertyManagerTest(unittest.TestCase):
 
 
 def test_suite():
-    return unittest.makeSuite(ZenPropertyManagerTest)
-
-def main():
-    unittest.TextTestRunner().run(test_suite())
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(ZenPropertyManagerTest))
+    return suite
 
 if __name__=="__main__":
-    unittest.main()
+    framework()
         

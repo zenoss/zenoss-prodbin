@@ -5,22 +5,20 @@
 #################################################################
 
 import os, sys
-#if __name__ == '__main__':
-#  execfile(os.path.join(sys.path[0], 'framework.py')) 
+if __name__ == '__main__':
+  execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import pdb
 import unittest
 import StringIO
 
-import Globals
-
-from Products.ZenRelations.tests.RMBaseTest import RMBaseTest
 from Products.ZenRelations.tests.TestSchema import *
 from Products.ZenRelations.tests.dataImportExport import *
 
 from Products.ZenRelations.Exceptions import *
 
-class ExportTest(RMBaseTest):
+from ZenRelationsBaseTest import ZenRelationsBaseTest
+
+class ExportTest(ZenRelationsBaseTest):
 
     def testExportObject(self):
         "test exporting rm with properties"
@@ -62,11 +60,11 @@ class ExportTest(RMBaseTest):
         dev = self.build(self.app, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
         ofile = StringIO.StringIO()
-        dev.exportXml(ofile,True)
+        dev.exportXml(ofile)
         self.assert_(ofile.getvalue() == objwithtomanycont)
 
 
-class ImportTest(RMBaseTest):
+class ImportTest(ZenRelationsBaseTest):
     """Import Tests"""
 
 
@@ -75,7 +73,8 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(ExportTest))
     suite.addTest(makeSuite(ImportTest))
+    return suite
 
 if __name__ == '__main__':
-    #framework()
-    unittest.main()
+    framework()
+    #unittest.main()
