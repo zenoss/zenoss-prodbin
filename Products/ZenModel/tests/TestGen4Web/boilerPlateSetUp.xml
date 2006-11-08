@@ -100,5 +100,35 @@
             <xpath><![CDATA[*]]></xpath>
             <value><![CDATA[ten24@page.verizon.net]]></value>
         </action>
+
+        <action type="click" refresh="true" step="26">
+            <xpath><![CDATA[TD[@ID="settings"]/*/A[@CDATA="Logout"]]]></xpath>
+            <value><![CDATA[]]></value>
+        </action>
+        <action type="verify-title" step="27">
+            <xpath><![CDATA[*]]></xpath>
+            <value><![CDATA[Zenoss Login]]></value>
+        </action>
+
+        <action type="fill" step="28">
+            <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="text" and @NAME="__ac_name"]]]></xpath>
+            <value><![CDATA[testuser1024]]></value>
+        </action>
+        <action type="fill" step="29">
+            <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="password" and @NAME="__ac_password"]]]></xpath>
+            <value><![CDATA[tentwenty]]></value>
+        </action>
+        <action type="click" refresh="true" step="30">
+            <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="submit"and @VALUE="Submit"]]]></xpath>
+            <value><![CDATA[null]]></value>
+        </action>
+        <action type="verify-title" step="31">
+            <xpath><![CDATA[*]]></xpath>
+            <value><![CDATA[Zenoss: dmd]]></value>
+        </action>
+        <action type="assert-text-exists" step="32">
+            <xpath><![CDATA[*]]></xpath>
+            <value><![CDATA[testuser1024]]></value>
+        </action>
     </actions>
 </tg4w>
