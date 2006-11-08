@@ -20,6 +20,7 @@ import time
 URL = 'http://update.zenoss.org/cgi-bin/version'
 
 DAY_SECONDS = 60*60*24
+HOUR_SECONDS = 60*60
 
 def parseVersion(s):
     if s is None: return s
@@ -79,18 +80,24 @@ class UpdateCheck:
     def check(self, dmd, zem, manual=False):
         "call home with version information"
         if not manual:
-            if time.time() - dmd.lastVersionCheck < DAY_SECONDS:
+            if time.time() - dmd.lastVersionCheck < DAY_SECONDS \
+              or time.time() - dmd.lastVersionCheckAttempt < 2 * HOUR_SECONDS:
                 return
             if not dmd.versionCheckOptIn:
                 return
+        now = long(time.time())
+        dmd.lastVersionCheckAttempt = now
         try:
             available = self.getUpdate(dmd, manual)
         except Exception, ex:
             raise
             log.debug("Cannot fetch version information", ex)
             return
+        if not isinstance(available, Version):
+            # We did not successfully get a version, don't continue
+            return
         dmd.availableVersion = available.short()
-        dmd.lastVersionCheck = long(time.time())
+        dmd.lastVersionCheck = now
         availableVersion = parseVersion(dmd.availableVersion)
         if (availableVersion is None 
             or dmd.About.getZenossVersion() < availableVersion):

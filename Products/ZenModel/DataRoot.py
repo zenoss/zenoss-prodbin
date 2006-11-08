@@ -52,6 +52,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
     uuid = None
     availableVersion = None
     lastVersionCheck = 0
+    lastVersionCheckAttempt = 0
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = False
@@ -70,6 +71,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'uuid', 'type': 'string', 'mode':'w'},
         {'id':'availableVersion', 'type': 'string', 'mode':'w'},
         {'id':'lastVersionCheck', 'type': 'long', 'mode':'w'},
+        {'id':'lastVersionCheckAttempt', 'type': 'long', 'mode':'w'},
         {'id':'versionCheckOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'smtpHost', 'type': 'string', 'mode':'w'},
