@@ -105,6 +105,10 @@
             <xpath><![CDATA[TD[@ID="settings"]/*/A[@CDATA="Logout"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
+        <action type="goto" refresh="true" step="0">
+            <xpath><![CDATA[window.location.href]]></xpath>
+            <value><![CDATA[http://localhost:8080/zport/dmd/]]></value>
+        </action>
         <action type="verify-title" step="27">
             <xpath><![CDATA[*]]></xpath>
             <value><![CDATA[Zenoss Login]]></value>
