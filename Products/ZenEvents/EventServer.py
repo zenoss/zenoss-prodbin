@@ -54,7 +54,7 @@ class Stats:
             self.lock.release()
 
 class EventServer(ZCmdBase):
-    'Listen for xmlrpc requests and turn them into events'
+    'Base class for a daemon whose primary job is to post events'
 
     name = 'EventServer'
     
@@ -79,17 +79,24 @@ class EventServer(ZCmdBase):
 
     def run(self):
         'method to process events in a thread'
-        while 1:
-            args = self.q.get()
-            if args is None:
-                break
-            if isinstance(args, Event):
-                self.sendEvent(args)
-            else:
-                self.doHandleRequest(*args)
-                diff = time.time() - args[-1]
-                self.stats.add(diff)
-            self.syncdb()
+        try:
+            while 1:
+                args = self.q.get()
+                if args is None:
+                    break
+                try:
+                    if isinstance(args, Event):
+                        self.sendEvent(args)
+                    else:
+                        self.doHandleRequest(*args)
+                        diff = time.time() - args[-1]
+                        self.stats.add(diff)
+                except Exception, ex:
+                    self.log.exception(ex)
+                self.syncdb()
+        finally:
+            if reactor.running:
+                reactor.stop()
 
     def sendEvent(self, evt):
         "wrapper for sending an event"
