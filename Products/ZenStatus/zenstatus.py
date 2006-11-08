@@ -72,11 +72,11 @@ class ZenStatus(ZCmdBase):
             except StopIteration: return False
             dev = svc.device()
             if dev.getPingStatus() > 0: 
-                self.log.warn("skipping service %s on %s bad ping status.",
+                self.log.debug("skipping service %s on %s bad ping status.",
                                 svc.name(), dev.getId())
                 continue
             if not dev.monitorDevice():
-                self.log.warn("skipping service %s on %s prod state too low.",
+                self.log.debug("skipping service %s on %s prod state too low.",
                                 svc.name(), dev.getId())
                 continue
             if svc.getProtocol() != "tcp":
