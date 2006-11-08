@@ -21,6 +21,24 @@ import sys
 # that contains one dictionary per test event.
 # Each of these dictionaries should have values for device, summary, component
 # and severity.
+#
+#Example:
+#
+#events = [
+#    {
+#        'device': 'Device1a',
+#        'summary': 'This is the summary.',
+#        'component': 'Some component',
+#        'severity': 4,
+#    },
+#    {
+#        'device': 'Device2a',
+#        'summary': 'This is the summary.',
+#        'component': 'Some component',
+#        'severity': 4,
+#    },
+#]
+
 
 class XTest(CmdBase):
 
