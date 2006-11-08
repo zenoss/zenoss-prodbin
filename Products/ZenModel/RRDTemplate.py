@@ -136,7 +136,7 @@ class RRDTemplate(ZenModelRM):
         source = name
         point = name
         if name.find(SEPARATOR) >= 0:
-            source, point = name.split(SEPARATOR)
+            source, point = name.split(SEPARATOR, 1)
         ds = self.datasources._getOb(source, None)
 
         if ds is not None:
