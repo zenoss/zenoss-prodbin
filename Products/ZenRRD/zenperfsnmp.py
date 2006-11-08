@@ -76,7 +76,7 @@ class Status:
 
 
     def record(self, name, successOrFailure):
-        'single funtion to record success or failure'
+        'Record success or failure'
         if name in self._reported:
             log.error("Device %s is reporting more than once", name)
             return
