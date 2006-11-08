@@ -166,7 +166,7 @@ class ZenActions(ZCmdBase):
                 data['eventsUrl'] = 'n/a'
             data['ackUrl'] = self.getAckUrl(evid)
             data['deleteUrl'] = self.getDeleteUrl(evid)
-            data['severityString'] = dmd.ZenEventManager.getSeverityString(
+            data['severityString'] = self.dmd.ZenEventManager.getSeverityString(
                 data.get('severity', -1))
             actfunc = getattr(self, "send"+ar.action.title())
             actfunc(ar, data, False)
