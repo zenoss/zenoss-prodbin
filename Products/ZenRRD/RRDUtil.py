@@ -40,7 +40,7 @@ class RRDUtil:
         if rrdType == 'COUNTER':
             startStop, names, values = \
                        rrdtool.fetch(filename, 'AVERAGE',
-                                     '-s', 'now-%d' % cycleTime*2,
+                                     '-s', 'now-%d' % (cycleTime*2),
                                      '-e', 'now')
             value = values[0][0]
         return value
