@@ -92,7 +92,20 @@ class RenderServer(RRDToolItem):
             graph = self.getGraph(id, ftype, REQUEST)
         return graph 
 
-    
+
+    security.declareProtected('View', 'plugin')
+    def plugin(self, name, REQUEST=None):
+        "render a custom graph and return it"
+        try:
+            m = os.path.join(os.environ['ZENHOME'],
+                             'Products/ZenRRD/plugins/%s.py' % name)
+            exec open(m)
+            return graph
+        except Exception, ex:
+            log.exception("failed generating graph from plugin %s" % name)
+            raise
+
+
     security.declareProtected('GenSummary', 'summary')
     def summary(self, gopts, drange):
         """return summary information as a list but no graph"""
