@@ -173,6 +173,7 @@ class UserSettingsManager(ZenModelRM):
         """Change a zenoss users settings.
         """
         user = self.acl_users.getUser(userid)
+        import pdb;pdb.set_trace()
         if not user:
             if REQUEST:
                 REQUEST['message'] = "user %s not found" % userid
@@ -375,6 +376,8 @@ class UserSettings(ZenModelRM):
         """
         # get the user object; return if no user
         user = self.getUser(self.id)
+        if not user:
+            user = self.getPhysicalRoot().acl_users.getUser(self.id)
         if not user:
             if REQUEST:
                 REQUEST['message'] = "user %s not found" % self.id
