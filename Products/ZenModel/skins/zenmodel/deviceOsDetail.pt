@@ -123,7 +123,7 @@
     tal:define="tableName string:osprocesslist;
     objects here/os/processes/objectValuesAll;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='name');"
+                                            sortedHeader='getOSProcessClass');"
     tal:condition="objects">
     <tr>
       <th class="tabletitle" align="left" colspan="6">
@@ -132,9 +132,9 @@
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'name','Name')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getOSProcessClass','Class')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'alertOnRestart','Restarts')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -143,10 +143,10 @@
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
     <tr tal:repeat="proc batch" class="tablevalues">
-        <td><a class="tablevalues" tal:content="proc/name"
+        <td tal:content="structure proc/getOSProcessClassLink"/>
+        <td><a class="tablevalues" tal:content="python:proc.name[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
         </td>
-        <td tal:content="structure proc/getOSProcessClassLink"/>
         <td tal:content="proc/alertOnRestart"/>
         <td tal:content="proc/failSeverity"/>
         <td tal:define="status proc/getStatus"
