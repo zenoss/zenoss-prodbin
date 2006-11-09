@@ -75,9 +75,7 @@ class MonitorClass(ZenModelRM, Folder):
         statusMonitorObj = self.getDmdRoot("Monitors").StatusMonitors
         if not hasattr(statusMonitorObj, monitorName):
             manage_addStatusMonitorConf(statusMonitorObj, monitorName)
-        m = statusMonitorObj._getOb(monitorName)
-        m.sub_class = 'StatusMonitorConf'
-        return m
+        return statusMonitorObj._getOb(monitorName)
 
 
     def getStatusMonitorNames(self):
@@ -94,9 +92,7 @@ class MonitorClass(ZenModelRM, Folder):
         perfServerObj = self.getDmdRoot("Monitors").Performance
         if not hasattr(perfServerObj, monitorName):
             manage_addPerformanceConf(perfServerObj, monitorName)
-        m = perfServerObj._getOb(monitorName)
-        m.sub_class = 'PerformanceConf'
-        return m
+        return perfServerObj._getOb(monitorName)
 
 
     def getPerformanceMonitorNames(self):

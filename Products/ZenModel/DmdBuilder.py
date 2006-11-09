@@ -105,6 +105,8 @@ class DmdBuilder:
     def buildMonitors(self):
         mons = self.dmd.Monitors
         self.addroots(mons, self.monRoots, "Monitors")
+        mons.Performance.sub_class = 'PerformanceConf'
+        mons.StatusMonitors.sub_class = 'StatusMonitorConf'
         manage_addPerformanceConf(mons.Performance, "localhost")
         crk = mons.Performance._getOb("localhost")
         crk.renderurl = "/zport/RenderServer"
