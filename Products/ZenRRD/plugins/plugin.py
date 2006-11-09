@@ -17,7 +17,7 @@ def read(fname):
 def cached(fname, cachedTime=600):
     "return the contents of a file if it is young enough"
     try:
-        if os.stat(fname).st_mtime > time.time() - 600:
+        if os.stat(fname).st_mtime > time.time() - cachedTime:
             return read(fname)
     except OSError:
         return None
