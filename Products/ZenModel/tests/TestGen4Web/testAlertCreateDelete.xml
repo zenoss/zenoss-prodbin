@@ -161,10 +161,6 @@
             <xpath><![CDATA[*/FORM[@ID="actionRule"]/*/SELECT[@NAME="enabled:boolean"]]]></xpath>
             <value><![CDATA[True]]></value>
         </action>
-        <action type="select" step="44">
-            <xpath><![CDATA[*/FORM[@ID="actionRule"]/*/SELECT[@ID="add_filter"]]]></xpath>
-            <value><![CDATA[]]></value>
-        </action>
         <action type="click" refresh="true" step="45">
             <xpath><![CDATA[*/FORM[@ID="actionRule"]/*/INPUT[@NAME="manage_editActionRule:method"and @VALUE=" Save "]]]></xpath>
             <value><![CDATA[manage_editActionRule:method]]></value>
@@ -198,9 +194,10 @@
             <value><![CDATA[Zenoss: testuser1024]]></value>
         </action>
         <action type="check" step="54">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="checkbox" and @NAME="ids:list"]]]></xpath>
+            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="checkbox" and @NAME="ids:list" and @VALUE="testAlertRule"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
+
         <action type="click" refresh="true" step="55">
             <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_deleteObjects:method"and @VALUE=" Delete "]]]></xpath>
             <value><![CDATA[manage_deleteObjects:method]]></value>
