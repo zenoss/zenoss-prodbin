@@ -1,6 +1,23 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<script type="text/javascript">
+function ConfirmEmailTest() {
+    return confirm(
+        "Make sure you have saved any changes to this form." +
+        "  This will send a test email to this address." +
+        "  Do you wish to continue?");
+}
+
+function ConfirmPagerTest() {
+    return confirm(
+        "Make sure you have saved any changes to this form." +
+        "  This will send a test message to this pager number." +
+        "  Do you wish to continue?");
+}
+</script>
+
+
 <form method=post tal:attributes="action string:${here/absolute_url_path}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
 <table class="zentable" cellpadding="3" cellspacing="1">
@@ -30,6 +47,11 @@
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="email" size="40"
             tal:attributes="value here/email" />
+        <tal:block tal:condition="here/email">
+        &nbsp;&nbsp;
+        <a class="tablevalues" onclick="return ConfirmEmailTest()"
+        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}">test</a>
+        </tal:block>
       </td>
     </tr>
     <tr>
@@ -37,6 +59,11 @@
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="pager" size="40"
             tal:attributes="value here/pager" />
+        <tal:block tal:condition="here/email">
+        &nbsp;&nbsp;
+        <a class="tablevalues" onclick="return ConfirmPagerTest()"
+        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}">test</a>
+        </tal:block>
       </td>
     </tr>
     <tr>

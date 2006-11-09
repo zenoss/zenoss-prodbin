@@ -230,62 +230,27 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    def manage_emailTest(self, userid, REQUEST=None):
-        ''' Send a test email to the given userid.
+    def manage_emailTestAdmin(self, userid, REQUEST=None):
+        ''' Do email test for given user
         '''
-        destSettings = self.getUserSettings(userid)
-        destAddress = destSettings.email
-        if destAddress:
-            fqdn = socket.getfqdn()
-            thisUser = self.getUser()
-            srcId = thisUser.getId()
-            srcSettings = self.getUserSettings(srcId)
-            srcAddress = srcSettings.email or 'zenossuser_%s@%s' % (srcId, fqdn)
-            # Read body from file probably
-            body = ('This is a test message sent by %s' % srcId +
-                    ' from the Zenoss installation on %s.' % fqdn)
-            emsg = MIMEText(body)
-            emsg['Subject'] = 'Zenoss Email Test'
-            emsg['From'] = srcAddress
-            emsg['To'] = destAddress
-            try:
-                server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
-                server.sendmail(srcAddress, (destAddress,), emsg.as_string())
-                server.quit()
-                msg = 'Test email sent to %s' % destAddress
-            except:
-                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
-        else:
-            msg = 'Test email not sent, user has no email address.'
-        if REQUEST:
+        userSettings = self.getUserSettings(userid)
+        msg = userSettings.manage_emailTest()
+        if msg:
             REQUEST['message'] = msg
+        if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
-    def manage_pagerTest(self, userid, REQUEST=None):
-        ''' Send a test page to the given userid.
+    def manage_pagerTestAdmin(self, userid, REQUEST=None):
+        ''' Do pager test for given user
         '''
-        destSettings = self.getUserSettings(userid)
-        destPager = destSettings.pager
-        if destPager:
-            fqdn = socket.getfqdn()
-            srcId = self.getUser().getId()
-            rcpt = Pager.Recipient(destPager)
-            pmsg = Pager.Message('Test sent by %s' % srcId +
-                    ' from the Zenoss installation on %s.' % fqdn)
-            try:
-                page = Pager.Pager((rcpt,), pmsg,
-                                   self.dmd.snppHost, self.snppPort) 
-                page.send()
-                msg = 'Test page sent to %s' % settings.pager
-            except:
-                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
-        else:
-            msg = 'Test page not sent, user has no pager number.'
-        if REQUEST:
+        userSettings = self.getUserSettings(userid)
+        msg = userSettings.manage_pagerTest()
+        if msg:
             REQUEST['message'] = msg
+        if REQUEST:
             return self.callZenScreen(REQUEST)
-        
+
 
     def cleanUserFolders(self):
         """Delete orphaned user folders.
@@ -587,7 +552,69 @@ class UserSettings(ZenModelRM):
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
                           
+    security.declareProtected('Change Settings', 'manage_emailTest')
+    def manage_emailTest(self, REQUEST=None):
+        ''' Send a test email to the given userid.
+        '''
+        destSettings = self.getUserSettings(self.getId())
+        destAddress = destSettings.email
+        msg = None
+        if destAddress:
+            fqdn = socket.getfqdn()
+            thisUser = self.getUser()
+            srcId = thisUser.getId()
+            srcSettings = self.getUserSettings(srcId)
+            srcAddress = srcSettings.email or 'zenossuser_%s@%s' % (srcId, fqdn)
+            # Read body from file probably
+            body = ('This is a test message sent by %s' % srcId +
+                    ' from the Zenoss installation on %s.' % fqdn)
+            emsg = MIMEText(body)
+            emsg['Subject'] = 'Zenoss Email Test'
+            emsg['From'] = srcAddress
+            emsg['To'] = destAddress
+            try:
+                server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
+                server.sendmail(srcAddress, (destAddress,), emsg.as_string())
+                server.quit()
+                msg = 'Test email sent to %s' % destAddress
+            except:
+                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
+        else:
+            msg = 'Test email not sent, user has no email address.'
+        if REQUEST:
+            REQUEST['message'] = msg
+            return self.callZenScreen(REQUEST)
+        else:
+            return msg
 
+
+    security.declareProtected('Change Settings', 'manage_pagerTest')
+    def manage_pagerTest(self, REQUEST=None):
+        ''' Send a test page 
+        '''
+        destSettings = self.getUserSettings(self.getId())
+        destPager = destSettings.pager
+        msg = None
+        if destPager:
+            fqdn = socket.getfqdn()
+            srcId = self.getUser().getId()
+            rcpt = Pager.Recipient(destPager)
+            pmsg = Pager.Message('Test sent by %s' % srcId +
+                    ' from the Zenoss installation on %s.' % fqdn)
+            try:
+                page = Pager.Pager((rcpt,), pmsg,
+                                   self.dmd.snppHost, self.snppPort) 
+                page.send()
+                msg = 'Test page sent to %s' % settings.pager
+            except:
+                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
+        else:
+            msg = 'Test page not sent, user has no pager number.'
+        if REQUEST:
+            REQUEST['message'] = msg
+            return self.callZenScreen(REQUEST)
+        else:
+            return msg
 
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)

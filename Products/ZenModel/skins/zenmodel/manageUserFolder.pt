@@ -30,7 +30,8 @@ function ConfirmPagerTest() {
        >
     <tr><th class="tabletitle" colspan="4">User Folder</th></tr>
     <tr tal:condition="exists: request/message">
-        <th class=tabletitle colspan=4 tal:content="request/message" />
+        <th class=tabletitle colspan=4
+            tal:content="request/message" />
     </tr>
     <tr>
         <th tal:replace="structure python:ztm.getTableHeader(
@@ -56,14 +57,14 @@ function ConfirmPagerTest() {
             <tal:block tal:content="user/email" />
             <tal:block tal:condition="user/email">
             (<a class="tablevalues" onclick="return ConfirmEmailTest()"
-            tal:attributes="href string:${here/absolute_url_path}?manage_emailTest:method=1&userid=${user/getId}">test</a>)
+            tal:attributes="href string:${here/absolute_url_path}?manage_emailTestAdmin:method=1&userid=${user/getId}">test</a>)
             </tal:block>
         </td>
         <td class="tablevalues">
             <tal:block tal:content="user/pager"/>
             <tal:block tal:condition="user/pager">
             (<a class="tablevalues" onclick="return ConfirmPagerTest()"
-            tal:attributes="href string:${here/absolute_url_path}?manage_pagerTest:method=1&userid=${user/getId}">test</a>)
+            tal:attributes="href string:${here/absolute_url_path}?manage_pagerTestAdmin:method=1&userid=${user/getId}">test</a>)
             </tal:block>
         </td>
         <td class="tablevalues" 
