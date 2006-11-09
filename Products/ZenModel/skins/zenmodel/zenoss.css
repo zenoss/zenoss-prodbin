@@ -114,10 +114,8 @@ td.search {
 #leftPane ul li a {
     text-decoration: none;
     display: block;
-    padding: 3px 0px 3px 3px;
+    padding: 1px 0px 1px 3px;
     margin: 0px;
-	height: 1em;
-	
 }
 	
 #leftPane ul li a:hover {
