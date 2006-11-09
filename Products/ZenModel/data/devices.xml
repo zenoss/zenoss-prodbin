@@ -1078,7 +1078,7 @@ True
 <tomanycont id='graphs'>
 <object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['ssCpuRawIdle']
+['ssCpuRawIdle_ssCpuRawIdle']
 </property>
 <property type='int' id='sequence' mode='w' >
 2
@@ -1122,7 +1122,7 @@ True
 </object>
 <object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['ssCpuRawSystem', 'ssCpuRawUser', 'ssCpuRawWait']
+['ssCpuRawSystem_ssCpuRawSystem', 'ssCpuRawUser_ssCpuRawUser', 'ssCpuRawWait_ssCpuRawWait']
 </property>
 <property type='int' id='sequence' mode='w' >
 1
@@ -1166,7 +1166,7 @@ True
 </object>
 <object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['memAvailReal']
+['memAvailReal_memAvailReal']
 </property>
 <property type='int' id='sequence' mode='w' >
 3
@@ -1210,7 +1210,7 @@ True
 </object>
 <object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['memAvailSwap']
+['memAvailSwap_memAvailSwap']
 </property>
 <property type='int' id='sequence' mode='w' >
 4
@@ -1254,7 +1254,7 @@ True
 </object>
 <object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['laLoadInt5']
+['laLoadInt5_laLoadInt5']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
@@ -1300,7 +1300,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type='lines' id='dsnames' mode='w' >
-['ssCpuRawIdle']
+['ssCpuRawIdle_ssCpuRawIdle']
 </property>
 <property type='string' id='minval' mode='w' >
 2
@@ -1418,7 +1418,7 @@ True
 <tomanycont id='thresholds'>
 <object id='Free Space 90 Percent' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type='lines' id='dsnames' mode='w' >
-['usedBlocks']
+['usedBlocks_usedBlocks']
 </property>
 <property type='string' id='maxval' mode='w' >
 here.totalBlocks * .9
@@ -1610,7 +1610,7 @@ True
 <tomanycont id='graphs'>
 <object id='CPU' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['cpuPercentProcessorTime']
+['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
@@ -1654,7 +1654,7 @@ True
 </object>
 <object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['memoryAvailableKBytes']
+['memoryAvailableKBytes_memoryAvailableKBytes']
 </property>
 <property type='int' id='sequence' mode='w' >
 1
@@ -1698,7 +1698,7 @@ True
 </object>
 <object id='Paging' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['memoryPagesPerSec']
+['memoryPagesPerSec_memoryPagesPerSec']
 </property>
 <property type='int' id='sequence' mode='w' >
 2
@@ -1744,7 +1744,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU Utilization over 90' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type='lines' id='dsnames' mode='w' >
-['cpuPercentProcessorTime']
+['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
 <property type='string' id='maxval' mode='w' >
 90
@@ -1851,7 +1851,7 @@ True
 <tomanycont id='graphs'>
 <object id='IO Bytes' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
 <property type='lines' id='dsnames' mode='w' >
-['lDiskDiskReadBytesPerSec', 'lDiskDiskWriteBytesPerSec']
+['lDiskDiskReadBytesPerSec_lDiskDiskReadBytesPerSec', 'lDiskDiskWriteBytesPerSec_lDiskDiskWriteBytesPerSec']
 </property>
 <property type='int' id='sequence' mode='w' >
 0
