@@ -70,7 +70,7 @@ class InterfaceMap(SnmpPlugin):
         # add interface alias (cisco description) to iftable
         for ifidx, data in ifalias.items():
             if not iftable.has_key(ifidx): continue
-            iftable[ifidx]['description'] = data['description']
+            iftable[ifidx]['description'] = data.get('description', '')
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
             if iftable[ifidx].get('speed',0) == 4294967295L:
                 try: iftable[ifidx]['speed'] = data['highSpeed']*1e6
