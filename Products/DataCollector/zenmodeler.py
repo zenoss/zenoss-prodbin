@@ -327,12 +327,12 @@ class ZenModeler(ZCmdBase):
                 help="fully qualified device name ie www.confmon.com")
         self.parser.add_option('-a', '--collage',
                 dest='collage', default=0, type='int',
-                help="don't collect from devices whos collect date " +
-                        "is with in this many minutes")
+                help="do not collect from devices whose collect date " +
+                        "is within this many minutes")
         self.parser.add_option('--writetries',
                 dest='writetries',default=2,type='int',
                 help="number of times to try to write if a "
-                     "readconflict is found")
+                     "read conflict is found")
         self.parser.add_option("-F", "--force",
                     dest="force", action='store_true', default=False,
                     help="force collection of config data " 
