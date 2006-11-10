@@ -4,7 +4,6 @@ import time
 TMPDIR='/tmp/renderserver'
 if not os.path.exists(TMPDIR):
     os.makedirs(TMPDIR)
-from Products.ZenRRD.plugins.plugin import *
 
 def read(fname):
     "read a file, ensuring that the file is always closed"
