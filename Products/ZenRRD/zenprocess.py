@@ -71,6 +71,12 @@ class Pid:
     memory = None
 
     def updateCpu(self, n):
+        if n is not None:
+            try:
+                n = int(n)
+            except ValueError, er:
+                log.error("Bad value for CPU: '%s'", n)
+
         if self.cpu is None:
             self.cpu = n
             return None
@@ -374,10 +380,10 @@ class zenprocess(SnmpDaemon):
 
     def periodic(self, unused=None):
         "Basic SNMP scan loop"
+        reactor.callLater(self.snmpCycleInterval, self.periodic)
         d = defer.DeferredList([self.countScan(), self.perfScan()],
                                consumeErrors=True)
         d.addCallback(self.heartbeat)
-        reactor.callLater(self.snmpCycleInterval, self.periodic)
 
 
     def perfScan(self):
