@@ -144,7 +144,7 @@
     </tr>
     <tr tal:repeat="proc batch" class="tablevalues">
         <td tal:content="structure proc/getOSProcessClassLink"/>
-        <td><a class="tablevalues" tal:content="python:proc.name[:50]"
+        <td><a class="tablevalues" tal:content="python:proc.name()[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
         </td>
         <td tal:content="proc/alertOnRestart"/>
