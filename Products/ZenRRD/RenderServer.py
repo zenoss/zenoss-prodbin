@@ -133,7 +133,7 @@ class RenderServer(RRDToolItem):
             gopts.append("VDEF:v%d=x%d_r,LAST" % (i, i))
             gopts.append("PRINT:v%d:%%.2lf" % (i))
         gopts.append('--end=now')
-        gopts.append('--start=now-360')
+        gopts.append('--start=now-660')
         try:
             values = rrdtool.graph(*gopts)[2]
             if values:
