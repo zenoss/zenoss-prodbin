@@ -144,8 +144,10 @@ class RRDGraph(ZenModelRM):
             gopts.append('--logarithmic')
         if self.maxy > -1:
             gopts.append('--upper-limit=%d' % self.maxy)
+            gopts.append('--rigid')
         if self.miny > -1:
             gopts.append('--lower-limit=%d' % self.miny)
+            gopts.append('--rigid')
         if self.units: 
             gopts.append('--vertical-label=%s' % self.units)
             if self.units == 'percentage':
@@ -153,7 +155,6 @@ class RRDGraph(ZenModelRM):
                     gopts.append('--upper-limit=100')
                 if not self.miny > -1:
                     gopts.append('--lower-limit=0')
-            #    gopts.append('--rigid')
         if self.base:
             gopts.append('--base=1024')
         return gopts
