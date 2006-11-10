@@ -26,7 +26,6 @@ if not graph:
     env.update(locals())
     if REQUEST:
         env.update(dict(zip(REQUEST.keys(), REQUEST.values())))
-    open('/tmp/ttt', 'w').write(`env`)
     opts = '''
     %(fname)s
     --imgformat=PNG
