@@ -384,18 +384,6 @@ class UserSettings(ZenModelRM):
             else:
                 return
 
-        # update password info
-        userManager = self.acl_users.userManager
-        if password:
-            if password != sndpassword:
-                if REQUEST:
-                    REQUEST['message'] = "Passwords didn't match! No change. "
-                    return self.callZenScreen(REQUEST)
-                else:
-                    raise ValueError("Passwords don't match")
-            else:
-                userManager.updateUserPassword(self.id, password)
-
         # update role info
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
@@ -424,6 +412,19 @@ class UserSettings(ZenModelRM):
         if REQUEST:
             kw = REQUEST.form
         self.updatePropsFromDict(kw)
+
+        # update password info
+        userManager = self.acl_users.userManager
+        if password:
+            if password != sndpassword:
+                if REQUEST:
+                    REQUEST['message'] = "Passwords didn't match! No change. "
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("Passwords don't match")
+            else:
+                userManager.updateUserPassword(self.id, password)
+                self.acl_users.logout(REQUEST)
 
         # finish up
         if REQUEST:
