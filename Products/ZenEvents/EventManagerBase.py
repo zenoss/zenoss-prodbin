@@ -846,6 +846,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     def isDate(self, colName):
         """Check to see if a column is of type date.
         """
+        if not self._schema:
+            self.getFieldList()
         return self._schema.get(colName, False)
 
 
