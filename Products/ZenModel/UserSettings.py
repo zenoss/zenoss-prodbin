@@ -384,16 +384,8 @@ class UserSettings(ZenModelRM):
             else:
                 return
 
-        # get the necessary plugins
-        # XXX these plugins need to be reviewed when new authentication plugins
-        # are added
-        userPlugins = [ self.acl_users.plugins.listPlugins(x)[0][1]
-            for x in [interfaces.plugins.IUserAdderPlugin] ]
-
-        rolePlugins = [ self.acl_users.plugins.listPlugins(x)[0][1]
-            for x in [interfaces.plugins.IRolesPlugin] ]
-
         # update password info
+        userManager = self.acl_users.userManager
         if password:
             if password != sndpassword:
                 if REQUEST:
@@ -402,10 +394,10 @@ class UserSettings(ZenModelRM):
                 else:
                     raise ValueError("Passwords don't match")
             else:
-                for plugin in userPlugins:
-                    plugin.updateUserPassword(self.id, password)
+                userManager.updateUserPassword(self.id, password)
 
         # update role info
+        roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
         # if there's a change, then we need to update
         if roles != origRoles:
@@ -416,14 +408,12 @@ class UserSettings(ZenModelRM):
                 from sets import Set as set
             # get roles to remove and then remove them
             removeRoles = list(set(origRoles).difference(set(roles)))
-            for plugin in rolePlugins:
-                for role in removeRoles:
-                    plugin.removeRoleFromPrincipal(role, self.id)
+            for role in removeRoles:
+                roleManager.removeRoleFromPrincipal(role, self.id)
             # get roles to add and then add them
             addRoles = list(set(roles).difference(set(origRoles)))
-            for plugin in rolePlugins:
-                for role in addRoles:
-                    plugin.assignRoleToPrincipal(role, self.id)
+            for role in addRoles:
+                roleManager.assignRoleToPrincipal(role, self.id)
 
         # we're not managing domains right now
         if domains:
