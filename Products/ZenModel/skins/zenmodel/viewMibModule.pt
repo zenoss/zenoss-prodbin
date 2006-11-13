@@ -35,7 +35,7 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
-      <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
+      <th class="tabletitle" align="left" colspan="3">OID Mappings</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -69,7 +69,7 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects)">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
-      <th class="tabletitle" align="left" colspan="3">RRDDataSources</th>
+      <th class="tabletitle" align="left" colspan="3">Traps</th>
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
