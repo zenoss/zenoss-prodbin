@@ -40,6 +40,12 @@ allCatalogs = {
     },
 }
 
+keywordCatalogs = [
+    'Manufacturers',
+    'Mibs',
+    'Services',
+]
+
 newModules = [
     'Products.ManagableIndex.FieldIndex',
     'Products.ManagableIndex.KeywordIndex',
@@ -55,7 +61,7 @@ class AdvancedQuery(Migrate.Step):
         indexed = {}
         for section, catalogNames in allCatalogs.items():
             # see which kind of index we need to create
-            if section in ['Services', 'Manufacturers', 'Mibs']:
+            if section in keywordCatalogs:
                 makeIndex = makeKeywordIndex
             else:
                 makeIndex = makeFieldIndex

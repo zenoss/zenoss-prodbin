@@ -13,7 +13,7 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeKeywordIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 from Organizer import Organizer
 from MibModule import MibModule
@@ -166,9 +166,9 @@ class MibOrganizer(Organizer):
         manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('oid', makeKeywordIndex('oid'))
-        cat.addIndex('id', makeKeywordIndex('id'))
-        cat.addIndex('summary', makeKeywordIndex('summary'))
+        cat.addIndex('oid', makeCaseInsensitiveKeywordIndex('oid'))
+        cat.addIndex('id', makeCaseInsensitiveKeywordIndex('id'))
+        cat.addIndex('summary', makeCaseInsensitiveKeywordIndex('summary'))
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
         zcat.addColumn('oid')

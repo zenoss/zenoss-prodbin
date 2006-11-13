@@ -22,12 +22,12 @@ from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
-from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.IpUtil import *
+from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 from IpAddress import IpAddress
-from Products.ZenUtils.Search import makeFieldIndex
 from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import *
@@ -378,7 +378,7 @@ class IpNetwork(DeviceOrganizer):
                             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('id', makeFieldIndex('id'))
+        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
         zcat.addColumn('getPrimaryId')
     
      

@@ -31,7 +31,8 @@ from Products.AdvancedQuery import MatchGlob
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeFieldIndex, makeCaseInsensitiveFieldIndex
+from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 from RRDTemplate import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -496,14 +497,14 @@ class DeviceClass(DeviceOrganizer):
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
         cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
-        cat.addIndex('summary', makeFieldIndex('summary'))
+        cat.addIndex('summary', makeCaseInsensitiveFieldIndex('summary'))
         zcat.addColumn('getPrimaryId')
     
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
         zcat = self._getOb("componentSearch")
         cat = zcat._catalog
-        cat.addIndex('meta_type', makeFieldIndex('meta_type'))
+        cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
         # XXX still using regular FieldIndex here for now, since this contains
         # binary information
         zcat.addIndex('monitored', 'FieldIndex')

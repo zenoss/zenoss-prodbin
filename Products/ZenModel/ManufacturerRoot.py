@@ -27,7 +27,7 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
 
 from ZenModelBase import ZenModelBase
-from Products.ZenUtils.Search import makeKeywordIndex
+from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""
@@ -203,7 +203,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('productKeys', makeKeywordIndex('productKeys'))
+        cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
         zcat.addColumn('getPrimaryId')
 
 
