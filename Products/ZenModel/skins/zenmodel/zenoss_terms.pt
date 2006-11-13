@@ -19,9 +19,11 @@ div {
 }
  
 #copy {
+    text-align: left; 
+    font-size: 14pt;
     background-color: #b1bcd2; 
     margin-top: 20px;
-    padding: 40px 0px 40px 0px;
+    padding: 40px 20px 40px 20px;
     border: 2px solid #000;
 }
 
@@ -50,7 +52,7 @@ div {
 <body>
 
 <div id="copy">
-Terms go here.
+The Zenoss Core monitoring platform is made available pursuant to version 2 of the <a href="/zport/LICENSE" target="_">GNU General Public License</a>. Without limiting your rights under the GPL, the Zenoss Core monitoring platform is subject to the <a href="/zport/EULA" target="_">Zenoss Core End User License Agreement</a> and our <a href="/zport/PRIVACY" target="_">Privacy Policy</a>. Please click the "accept" button to acknowledge your consent to the above.
 </div>
 
 <div id="acceptance" tal:define="
