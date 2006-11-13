@@ -210,7 +210,11 @@
                 tal:content="graph/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="graph/getId"/>
         </td>
-        <td tal:content="python:', '.join(graph.dsnames)"/>
+        <td>
+            <tal:block tal:repeat="ds graph/dsnames">
+                <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in here.getRRDTemplate().getRRDDataPointNames()"> (invalid)</tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
+            </tal:block>
+        </td>
         <td tal:content="graph/units"/>
         <td tal:content="graph/height"/>
         <td tal:content="graph/width"/>
