@@ -31,7 +31,7 @@ from Products.AdvancedQuery import MatchGlob
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeFieldIndex
+from Products.ZenUtils.Search import makeFieldIndex, makeCaseInsensitiveFieldIndex
 
 from RRDTemplate import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -495,7 +495,7 @@ class DeviceClass(DeviceOrganizer):
             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('id', makeFieldIndex('id'))
+        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
         cat.addIndex('summary', makeFieldIndex('summary'))
         zcat.addColumn('getPrimaryId')
     
