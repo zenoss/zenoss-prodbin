@@ -191,6 +191,15 @@ class ZenBackup(CmdBase):
 
 
 if __name__ == '__main__':
+
+    ##########
+    # UNDER DEVELOPMENT - USE AT YOUR OWN RISK
+    print ('zenbackup.py is still underdevelopment and almost certainly ' 
+            'contains bugs.  If you still wish to use it you can remove ' 
+            'these lines from zenbackup.py to enable use.')
+    sys.exit(-1)
+    ###########
+
     zb = ZenBackup()
 
     showUsage = False
