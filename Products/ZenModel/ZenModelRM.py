@@ -152,7 +152,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
                 else:
                     xmlfiles.append(collection)
         # load the objects into Zenoss
-        im = ImportRM(noopts=True, app=self.dmd)
+        im = ImportRM(noopts=True, app=self.getPhysicalRoot())
         for xmlfile in xmlfiles:
             im.loadObjectFromXML(context, xmlfile)
             if doDelete and xmlfile in filenames:
