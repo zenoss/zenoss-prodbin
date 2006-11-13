@@ -7,6 +7,13 @@
         <th class="tabletitle" colspan="4">Connection Information</th>
     </tr>
     <tr>
+        <td class="tableheader" width="25%">Default Sort</td>
+        <td class="tablevalues"> 
+            <input type='text' name="defaultOrderby" size="42"
+                tal:attributes="value here/defaultOrderby">
+        </td>
+    </tr>
+    <tr>
         <td class="tableheader" width="25%">Default Result Fields</td>
         <td class="tablevalues"> 
             <textarea class="tablevalues" rows="7" cols="40"

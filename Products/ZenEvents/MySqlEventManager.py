@@ -24,6 +24,8 @@ def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
     except:
         log.warn("Failed to refresh conversions, db connection failed.")
     if history: 
+        evtmgr.defaultOrderby="%s desc" % evtmgr.lastTimeField
+        evtmgr.timeout = 300
         evtmgr.statusTable = "history"
     evtmgr.installIntoPortal()
     if REQUEST:

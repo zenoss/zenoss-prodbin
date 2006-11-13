@@ -200,7 +200,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         self.port = port
         self.defaultWhere = defaultWhere
 
-        self.defaultOrderby="%s desc" % self.lastTimeField
+        self.defaultOrderby="%s desc, %s desc" % (
+                            self.severityField, self.lastTimeField)
 
         self._schema = {}
         self._fieldlist = []
