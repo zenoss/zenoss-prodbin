@@ -181,6 +181,6 @@ if __name__ == '__main__':
                         severity=xt.options.severity)
         xt.sendEvents([event])
     else:
-        sys.stderr.write('%s\n' % xt.usage)
+        xt.parser.print_help()
         
         
