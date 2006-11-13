@@ -24,8 +24,14 @@ from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
-
-# addRRDDataPoint = DTMLFile('dtml/addRRDDataPoint',globals())
+def manage_addRRDDataPoint(context, id, REQUEST = None):
+    """make a RRDDataPoint"""
+    dp = RRDDataPoint(id)
+    context._setObject(dp.id, dp)
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+                                     
+#addRRDDataPoint = DTMLFile('dtml/addRRDDataPoint',globals())
 
 SEPARATOR = '_'
 
