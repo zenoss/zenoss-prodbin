@@ -17,25 +17,28 @@ import os
 import os.path
 import tempfile
 from datetime import date
-
-
+    
 class ZenBackup(CmdBase):
 
-    BACKUP_DIR = 'zenossbackup'
+
+    BACKUP_DIR = 'zenbackup'
     MAX_UNIQUE_NAME_ATTEMPTS = 1000
-    
+
+
     def __init__(self, noopts=0):
+        CmdBase.__init__(self, noopts)
         self.zenhome = os.getenv('ZENHOME')
-        
+
+
     def getDefaultBackupFile(self):
-        def getName(self, index=0):
-            return 'zenbackup_%s_%s.tgz' % (date.today().strftime('%Y%m%d'), 
-                                            index)
+        def getName(index=0):
+            return 'zenbackup_%s%s.tgz' % (date.today().strftime('%Y%m%d'), 
+                                            (index and '_%s' % index) or '')
         backupDir = os.path.join(self.zenhome, 'backups')
         if not os.path.exists(backupDir):
             os.mkdir(backupDir)
         for i in range(self.MAX_UNIQUE_NAME_ATTEMPTS):
-            name = os.path.join(backupDir, self.getName(i))
+            name = os.path.join(backupDir, getName(i))
             if not os.path.exists(name):
                 break
         else:
@@ -44,10 +47,12 @@ class ZenBackup(CmdBase):
                     ' Use --outfile to specify location for the backup'
                     ' file.\n')
             sys.exit(-1)
-        
+        return name
+
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
-        ZCmdBase.buildOptions(self)
+        CmdBase.buildOptions(self)
         self.parser.add_option('--dbname',
                                dest='dbname',
                                default='events',
@@ -66,7 +71,6 @@ class ZenBackup(CmdBase):
                                help='File to backup to or restore from')
         self.parser.add_option('--restore',
                                dest="restore",
-                               type='int'
                                default=False,
                                action='store_true',
                                help='Restore from a previous backup.')
@@ -77,25 +81,34 @@ class ZenBackup(CmdBase):
                                help='If restoring from backup do not create'
                                     ' a backup of existing data first.')
 
+
     def makeBackup(self):
+    
         # Create temp backup dir
         rootTempDir = tempfile.mkdtemp()
         tempDir = os.path.join(rootTempDir, self.BACKUP_DIR)
         os.mkdir(tempDir)
         
         # mysqldump to backup dir
-        os.system('mysqldump -u%s -p%s %s > %s' % (
+        cmd = 'mysqldump -u%s -p%s %s > %s' % (
                     self.options.dbuser,
                     (self.options.dbpass or ''),
                     self.options.dbname,
-                    os.path.join(tempDir, 'events.sql')))
+                    os.path.join(tempDir, 'events.sql'))
+        if os.system(cmd): return -1
+                    
+        # save db name to a file
+        cmd = 'echo "%s" > %s' % (self.options.dbname, 
+                                os.path.join(tempDir, 'dbname.txt'))
+        if os.system(cmd): return -1                                
 
         # backup zopedb
         repozoDir = os.path.join(tempDir, 'repozo')
         os.mkdir(repozoDir)
-        os.system('repozo.py --backup --full '
-                    '--repository %s --file %s/var/Data.fs' %
-                    (repozoDir, self.zenhome))
+        cmd = ('repozo.py --backup --full '
+                '--repository %s --file %s/var/Data.fs' %
+                (repozoDir, self.zenhome))
+        if os.system(cmd): return -1
         
         # /etc to backup dir (except for sockets)
         etcSrc = os.path.join(self.zenhome, 'etc')
@@ -104,88 +117,103 @@ class ZenBackup(CmdBase):
         files = os.listdir(etcSrc)
         for f in files:
             if not f.endswith('sock'):
-                os.system('cp %s %s/' % (os.path.join(etcSrc, f), etcBak))
-        
+                cmd = 'cp %s %s/' % (os.path.join(etcSrc, f), etcBak)
+                if os.system(cmd): return -1
+
         # /perf to backup dir
-        os.system('cp -r %s %s/' % (os.path.join(self.zenhome, 'perf'), tempDir))
+        cmd = 'cp -r %s %s/' % (os.path.join(self.zenhome, 'perf'), tempDir)
+        if os.system(cmd): return -1
                                 
         # tar, gzip and send to outfile
         if self.options.file:
             outfile = self.options.file
         else:
-            outfile = self.getDeaultBackupFile()
+            outfile = self.getDefaultBackupFile()
         tempHead, tempTail = os.path.split(tempDir)
-        os.system('tar czfC %s %s %s' % (outfile, tempHead, tempTail))
-        
+        cmd = 'tar czfC %s %s %s' % (outfile, tempHead, tempTail)
+        if os.system(cmd): return -1
+
         # clean up
-        os.system('rm -r %s' % rootTempDir)
+        cmd = 'rm -r %s' % rootTempDir
+        if os.system(cmd): return -1
+        
+        return 0
 
 
     def restore(self):
-        #### Are you sure?
+    
+        # Are you sure?
+        confirm = raw_input('Are you sure you want to restore from backup?'
+                '  This will overwrite existing data.  Type YES to proceed.')
+        if confirm != 'YES':
+            return -1
         
-        #### Make sure zenoss is not running
+        # Make sure zenoss is not running
+        raw_input('Make sure zenoss is not running and press Return.')
         
-        # Create temp backup dir
-        
-        
-        
-        
+        # Create temp dir and untar backup into it
         rootTempDir = tempfile.mkdtemp()
-        os.system('cp %s %s/' % (self.options.restore, rootTempDir))
-        os.system('tar xzf %s' % self.options.restore)
+        cmd = 'tar xzfC %s %s' % (self.options.file, rootTempDir)
+        if os.system(cmd): return -1
         tempDir = os.path.join(rootTempDir, self.BACKUP_DIR)
         
-        # mysqldump to backup dir
-        os.system('mysqldump -u%s -p%s %s > %s' % (
-                    self.options.dbuser,
-                    (self.options.dbpass or ''),
-                    self.options.dbname,
-                    os.path.join(tempDir, 'events.sql')))
-
-        # backup zopedb
+        # Restore mysql
+        # Could read dbname from dbname.txt in backup dir if needed maybe
+        cmd='mysql -u%s -p%s %s < %s' % (
+                            self.options.dbuser,
+                            (self.options.dbpass or ''),
+                            self.options.dbname,
+                            os.path.join(tempDir, 'events.sql'))
+        if os.system(cmd): return -1
+        
+        # Copy etc files
+        cmd = 'cp %s %s' % (os.path.join(tempDir, 'etc', '*'),
+                            os.path.join(self.zenhome, 'etc'))
+        if os.system(cmd): return -1
+        
+        # Copy perf files
+        cmd = 'cp %s %s' % (os.path.join(tempDir, 'perf', '*'),
+                            os.path.join(self.zenhome, 'perf'))
+        if os.system(cmd): return -1
+        
+        # restore zopedb
         repozoDir = os.path.join(tempDir, 'repozo')
-        os.mkdir(repozoDir)
-        os.system('repozo.py --backup --full '
-                    '--repository %s --file %s/var/Data.fs' %
-                    (repozoDir, self.zenhome))
-        
-        # /etc to backup dir (except for sockets)
-        etcSrc = os.path.join(self.zenhome, 'etc')
-        etcBak = os.path.join(tempDir, 'etc')
-        os.mkdir(etcBak)
-        files = os.listdir(etcSrc)
-        for f in files:
-            if not f.endswith('sock'):
-                os.system('cp %s %s/' % (os.path.join(etcSrc, f), etcBak))
-        
-        # /perf to backup dir
-        os.system('cp -r %s %s/' % (os.path.join(self.zenhome, 'perf'), tempDir))
-                                
-        # tar, gzip and send to stdout or outfile
-        if self.options.outfile:
-            outfile = self.options.outfile
-        else:
-            outfile = '-'
-        tempHead, tempTail = os.path.split(tempDir)
-        os.system('tar czfC %s %s %s' % (outfile, tempHead, tempTail))
-        
+        cmd ='repozo.py --recover --repository %s --output %s' % (
+                    repozoDir,
+                    os.path.join(self.zenhome, 'var', 'Data.fs'))
+        if os.system(cmd): return -1
+
         # clean up
-        os.system('rm -r %s' % rootTempDir)
+        cmd = 'rm -r %s' % rootTempDir
+        if os.system(cmd): return -1
+        
+        return 0
 
 
 if __name__ == '__main__':
     zb = ZenBackup()
-    if len(sys.argv) < 2:
-        # Usage message
+
+    showUsage = False
+    
+    required = ['dbname', 'dbuser']
+    if zb.options.restore:
+        required.append('file')
+    for attr in required:
+        if not getattr(zb.options, attr, None):
+            print 'You must provide a value for %s' % attr
+            showUsage = True
+            
+    if showUsage:
         zb.parser.print_help()
+
     elif zb.options.restore:
         # Restore
-        if not zb.options.quick:
-            # Backup before the restore
-            zb.makeBackup()
-            # Should write to log telling where backup is
-        zb.restore()
+        if zb.options.quick:
+            doRestore = True
+        else:
+            doRestore = not zb.makeBackup()
+        if doRestore:
+            zb.restore()
     else:
         zb.makeBackup()
         
