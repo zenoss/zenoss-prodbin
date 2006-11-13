@@ -71,6 +71,7 @@ productNames = (
     "Report",
     "ReportClass",
     "RRDDataSource",
+    "RRDDataPoint",
     "RRDGraph",
     "RRDTemplate",
     "RRDThreshold",
