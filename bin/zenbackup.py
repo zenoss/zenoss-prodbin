@@ -17,7 +17,11 @@ import os
 import os.path
 import tempfile
 from datetime import date
-    
+
+# This is written in Python because in was originally a subclass of ZCmdBase.
+# Since that is no longer the case this would probably be cleaner now if done
+# as a shell script.
+
 class ZenBackup(CmdBase):
 
 
@@ -56,19 +60,23 @@ class ZenBackup(CmdBase):
         self.parser.add_option('--dbname',
                                dest='dbname',
                                default='events',
-                               help='events database name')
+                               help='MySQL events database name')
         self.parser.add_option('--dbuser',
                                dest='dbuser',
                                default='root',
-                               help='mysql username')
+                               help='MySQL username')
         self.parser.add_option('--dbpass',
                                dest='dbpass',
                                default=None,
-                               help='mysql password')
+                               help='MySQL password (if not specified then'
+                                    ' you may be prompted'
+                                    ' during the backup/restore')
         self.parser.add_option('--file',
                                dest="file",
                                default=None,
-                               help='File to backup to or restore from')
+                               help='File to backup to or restore from.'
+                                     ' Backups will by default be placed'
+                                     ' in %ZENHOME/backups/')
         self.parser.add_option('--restore',
                                dest="restore",
                                default=False,
@@ -78,8 +86,9 @@ class ZenBackup(CmdBase):
                                dest="quick",
                                default=False,
                                action='store_true',
-                               help='If restoring from backup do not create'
-                                    ' a backup of existing data first.')
+                               help='A backup is by default performed before'
+                                    ' each restore.'
+                                    ' --quick skips this backup.')
 
 
     def makeBackup(self):
@@ -142,14 +151,21 @@ class ZenBackup(CmdBase):
 
     def restore(self):
     
-        # Are you sure?
-        confirm = raw_input('Are you sure you want to restore from backup?'
-                '  This will overwrite existing data.  Type YES to proceed.')
-        if confirm != 'YES':
-            return -1
-        
-        # Make sure zenoss is not running
-        raw_input('Make sure zenoss is not running and press Return.')
+        # Check for running processes
+        i, o = os.popen2('ps -Ao pid,command '
+                            '| grep python '
+                            '| grep -v "zenbackup" '
+                            '| grep -v "do not match self" '
+                            '| egrep "zope|zeo"'
+                            )
+        try:
+            if len(o.readlines()):
+                print ('It looks like one or more zenoss processes are running.'
+                        '  Please quit zenoss before attempting to restore.')
+                sys.exit(-1)
+        finally:        
+            i.close()
+            o.close()
         
         # Create temp dir and untar backup into it
         rootTempDir = tempfile.mkdtemp()
@@ -157,32 +173,52 @@ class ZenBackup(CmdBase):
         if os.system(cmd): return -1
         tempDir = os.path.join(rootTempDir, self.BACKUP_DIR)
         
-        # Restore mysql
-        # Could read dbname from dbname.txt in backup dir if needed maybe
-        cmd='mysql -u%s -p%s %s < %s' % (
-                            self.options.dbuser,
-                            (self.options.dbpass or ''),
-                            self.options.dbname,
-                            os.path.join(tempDir, 'events.sql'))
-        if os.system(cmd): return -1
+        # If there is not a Data.fs then create an empty one
+        # Maybe should read file location/name from zeo.conf
+        # but we're going to assume the standard location for now.
+        if not os.path.isfile(os.path.join(self.zenhome, 'var', 'Data.fs')):
+            os.system('zeoctl start')
+            os.system('zeoctl stop')
         
-        # Copy etc files
-        cmd = 'cp %s %s' % (os.path.join(tempDir, 'etc', '*'),
-                            os.path.join(self.zenhome, 'etc'))
-        if os.system(cmd): return -1
-        
-        # Copy perf files
-        cmd = 'cp %s %s' % (os.path.join(tempDir, 'perf', '*'),
-                            os.path.join(self.zenhome, 'perf'))
-        if os.system(cmd): return -1
-        
-        # restore zopedb
+        # Restore zopedb        
         repozoDir = os.path.join(tempDir, 'repozo')
         cmd ='repozo.py --recover --repository %s --output %s' % (
                     repozoDir,
                     os.path.join(self.zenhome, 'var', 'Data.fs'))
         if os.system(cmd): return -1
 
+        # Copy etc files
+        cmd = 'cp %s %s' % (os.path.join(tempDir, 'etc', '*'),
+                            os.path.join(self.zenhome, 'etc'))
+        if os.system(cmd): return -1
+        
+        # Copy perf files
+        cmd = 'cp -r %s %s' % (os.path.join(tempDir, 'perf', '*'),
+                            os.path.join(self.zenhome, 'perf'))
+        if os.system(cmd): return -1
+        
+        # The original dbname is stored in the backup within dbname.txt
+        # For now we ignore it and use the database specified on the command
+        # line.
+        
+        # Try to create the mysql database, ignore failure if the database
+        # aleady exists.
+        cmd = 'mysqladmin -u %s -p %s create %s' % (
+                    self.options.dbuser,
+                    self.options.dbpass or '',
+                    self.options.dbname)
+        result = os.system(cmd)
+        if result not in [0, 256]:
+            return -1
+        
+        # Restore the mysql tables
+        cmd='mysql -u%s -p%s %s < %s' % (
+                            self.options.dbuser,
+                            self.options.dbpass or '',
+                            self.options.dbname,
+                            os.path.join(tempDir, 'events.sql'))
+        if os.system(cmd): return -1
+        
         # clean up
         cmd = 'rm -r %s' % rootTempDir
         if os.system(cmd): return -1
@@ -192,38 +228,31 @@ class ZenBackup(CmdBase):
 
 if __name__ == '__main__':
 
-    ##########
-    # UNDER DEVELOPMENT - USE AT YOUR OWN RISK
-    print ('zenbackup.py is still underdevelopment and almost certainly ' 
-            'contains bugs.  If you still wish to use it you can remove ' 
-            'these lines from zenbackup.py to enable use.')
-    sys.exit(-1)
-    ###########
+    # Warning
+    print ('zenbackup is still under development and has not been thoroughly'
+            ' tested.  Use at your own peril.')
+    if (raw_input('Enter YES to continue: ') != 'YES'):
+        sys.exit(-1)
 
+    # Instantiate ZenBackup to get access to options
     zb = ZenBackup()
-
-    showUsage = False
     
+    # Check for required fields
     required = ['dbname', 'dbuser']
     if zb.options.restore:
         required.append('file')
-    for attr in required:
-        if not getattr(zb.options, attr, None):
-            print 'You must provide a value for %s' % attr
-            showUsage = True
-            
-    if showUsage:
-        zb.parser.print_help()
-
+    missing = [a for a in required if not getattr(zb.options, a, None)]
+    if missing:
+        # Print usage message
+        print 'You must provide %s for %s' % (
+            (len(missing) == 1 and 'a value') or 'values', ', '.join(missing))
+        zb.parser.print_help();
     elif zb.options.restore:
-        # Restore
-        if zb.options.quick:
-            doRestore = True
-        else:
-            doRestore = not zb.makeBackup()
-        if doRestore:
+        # Perform restore, maybe doing a backup first
+        if zb.options.quick or not zb.makeBackup():
             zb.restore()
     else:
+        # Perform backup
         zb.makeBackup()
         
         
