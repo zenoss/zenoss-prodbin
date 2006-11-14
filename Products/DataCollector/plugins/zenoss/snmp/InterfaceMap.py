@@ -113,6 +113,8 @@ class InterfaceMap(SnmpPlugin):
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.interfaceName = om.id
         om.id = self.prepId(om.id)
+        if not om.id:
+            return None
             
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
         if (dontCollectIntNames 
