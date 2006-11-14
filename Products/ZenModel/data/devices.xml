@@ -1532,6 +1532,9 @@ True
 </object>
 </object>
 <object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property visible='True' type='boolean' id='zWinEventlog' >
+True
+</property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >

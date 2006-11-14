@@ -10,6 +10,8 @@ status
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
+<object id='WinEventlog' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -17,6 +19,14 @@ status
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Wmi' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
