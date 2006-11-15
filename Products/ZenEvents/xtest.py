@@ -45,8 +45,9 @@ class XTest(CmdBase):
     # Sample event and corresponding clear event used by several methods.
     sampleEvent = dict(device='Sample device',
                         summary='Test event at %s' % time.time(),
+			eventClass='/Status/Perf',
                         severity=4,
-                        compontent='Sample component')
+                        component='Sample component')
     sampleClear = sampleEvent.copy()
     sampleClear.update(dict(
                         severity=0,
@@ -182,5 +183,3 @@ if __name__ == '__main__':
         xt.sendEvents([event])
     else:
         xt.parser.print_help()
-        
-        

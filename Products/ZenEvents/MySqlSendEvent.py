@@ -105,6 +105,11 @@ class MySqlSendEventMixin:
             clearcls = event.clearClasses()
             if clearcls:
                 execute(curs, self.buildClearUpdate(event, clearcls))
+                insert = ('insert into log '
+                          '(evid, userName, text) '
+                          'select evid, "admin", "auto cleared"'
+                          ' from status where clearid = "%s"'  % evid)
+                execute(curs, insert)
         stmt = self.buildStatusInsert(statusdata, event._action, evid)
         rescount = execute(curs, stmt)
         if detaildata and rescount == 1:
