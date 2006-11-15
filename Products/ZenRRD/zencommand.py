@@ -116,13 +116,13 @@ class MySshClient(SshClient):
 
     def __init__(self, *args, **kw):
         SshClient.__init__(self, *args, **kw)
-        self.defers = []
+        self.defers = {}
 
     
     def addCommand(self, command):
         "Run a command against the server"
         d = defer.Deferred()
-        self.defers.append(d)
+        self.defers[command] = d
         SshClient.addCommand(self, command)
         return d
 
@@ -130,7 +130,7 @@ class MySshClient(SshClient):
     def addResult(self, command, data, code):
         "Forward the results of the command execution to the starter"
         SshClient.addResult(self, command, data, code)
-        d = self.defers.pop(0)
+        d = self.defers.pop(command)
         if not d.called:
             d.callback((data, code))
 
