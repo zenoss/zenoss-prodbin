@@ -309,7 +309,7 @@ class Cmd:
         self.eventClass = cfg.eventClass
         self.component = cfg.component
         self.severity = cfg.severity
-        self.command = cfg.command
+        self.command = str(cfg.command)
         self.points, before = {}, self.points
         for p in cfg.points:
             index = p[0]
