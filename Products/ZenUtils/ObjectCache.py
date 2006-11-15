@@ -53,10 +53,16 @@ class ObjectCache(Persistent):
         self._v_cache[key] = cobj
 
 
-    def clearCache(self):
+    def clearCache(self, key=None):
         """Clear the cache.
         """
-        self._v_cache = {}
+        if key is not None:
+            try:
+                del self._v_cache[key]
+            except KeyError:
+                pass
+        else:
+            self._v_cache = {}
 
 
     def cleanCache(self, force=0):

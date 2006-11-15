@@ -906,31 +906,39 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
             return 1
         return 0
 
+    def updateEvents(self, stmt, whereClause, reason):
+        userId = getSecurityManager().getUser().getId()
+        insert = 'INSERT INTO log (evid, userName, text) ' + \
+                 'SELECT evid, "%s", "%s" ' % (userId, reason) + \
+                 'FROM status ' + whereClause
+        delete = stmt + ' ' + whereClause
+        db = self.connect()
+        curs = db.cursor()
+        curs.execute(insert);
+        curs.execute(delete);
+        db.close()
+        self.clearCache()
+
+    def deleteEvents(self, whereClause, reason):
+        self.updateEvents('DELETE FROM status', whereClause, reason)
 
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         "Delete the given event ids"
         if type(evids) == type(''):
             evids = [evids]
-        if evids: 
-            delete = "delete from status where evid in ("
-            delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(delete);
-            db.close()
-            self.clearCache()
+        if evids:
+            evids = ",".join([ "'%s'" % evid for evid in evids])
+            whereClause = ' where evid in (%s)' % evids
+            self.deleteEvents(whereClause, 'Deleted by user')
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteAllEvents')
     def manage_deleteAllEvents(self, devname, REQUEST=None):
-        delete = 'delete from status where device = "%s"' % devname
-        db = self.connect()
-        curs = db.cursor()
-        curs.execute(delete);
-        db.close()
-        self.clearCache()
+        "Delete the events for a given Device (used for deleting the device"
+        whereClause = 'where device = "%s"' % devname
+        self.deleteEvents(whereClause, 'Device deleted')
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -959,16 +967,16 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
             eventState = int(eventState)
             userid = ""
             if eventState > 0: userid = getSecurityManager().getUser()
-            delete = "update status set eventState=%s, ownerid='%s' " % (
+            update = "update status set eventState=%s, ownerid='%s' " % (
                         eventState, userid)
-            delete += "where evid in (" 
-            delete += ",".join([ "'%s'" % evid for evid in evids]) + ")"
-            #print delete
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(delete);
-            db.close()
-            self.clearCache()
+            whereClause = "where evid in (" 
+            whereClause += ",".join([ "'%s'" % evid for evid in evids]) + ")"
+            reason = 'Event state changed to '
+            try:
+                reason += self.eventStateConversions[eventState][0]
+            except KeyError:
+                reason += 'unknown (%d)' % eventState
+            self.updateEvents(update, whereClause, reason)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -1069,6 +1077,24 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
             obj = self
         ZenModelItem.zmanage_editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
+
+    security.declareProtected('Manage EventManager', 'manage_addLogMessage')
+    def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
+        'Add a log message to an event'
+        if not evid:
+            return
+        userId = getSecurityManager().getUser().getId()
+        db = self.connect()
+        insert = 'INSERT INTO log (evid, userName, text) '
+        insert += 'VALUES ("%s", "%s", "%s")' % (evid,
+                                                 userId,
+                                                 db.escape_string(message))
+        curs = db.cursor()
+        curs.execute(insert)
+        db.close()
+        self.clearCache('evid' + evid)
+        if REQUEST: return self.callZenScreen(REQUEST)
+        
     
     #==========================================================================
     # Utility functions
