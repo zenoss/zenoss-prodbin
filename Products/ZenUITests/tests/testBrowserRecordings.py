@@ -6,7 +6,7 @@ from testgen.mechunit import MechanizeUnitTest
 from Products import ZenUITests
 
 def test_suite():
-    basePath = ZenTestUI.__path__[0]
+    basePath = ZenUITests.__path__[0]
     suites = []
     for filename in glob('%s/tests/TestGen4Web/*.xml' % basePath):
         loader = unittest.TestLoader()
