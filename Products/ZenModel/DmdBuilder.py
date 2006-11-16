@@ -87,7 +87,8 @@ class DmdBuilder:
     monRoots = ('StatusMonitors','Performance')
 
 
-    def __init__(self, portal, evtuser, evtpass, evtdb):
+    def __init__(self, portal, evtuser, evtpass, evtdb, 
+                    smtphost, smtpport, snpphost, snppport):
         self.portal = portal
         self.evtuser = evtuser
         self.evtpass = evtpass
@@ -95,6 +96,10 @@ class DmdBuilder:
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
+        self.dmd.smtpHost = smtphost
+        self.dmd.snppHost = snpphost
+        self.dmd.smtpPort = smtpport
+        self.dmd.snppPort = snppport
 
 
     def buildRoots(self):

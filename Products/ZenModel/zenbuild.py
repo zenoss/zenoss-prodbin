@@ -52,6 +52,14 @@ class zenbuild(CmdBase):
                 help="password used to connect to the events database")
         self.parser.add_option('-d','--evtdb', dest="evtdb", default="events",
                 help="name of events database")
+        self.parser.add_option('--smtphost', dest="smtphost", default="localhost",
+                help="smtp host")
+        self.parser.add_option('--smtpport', dest="smtpport", default=25,
+                help="smtp port")
+        self.parser.add_option('--snpphost', dest="snpphost", default="localhost",
+                help="snpp host")
+        self.parser.add_option('--snppport', dest="snppport", default=444,
+                help="snpp port")
 
 
     def build(self):
@@ -97,8 +105,14 @@ class zenbuild(CmdBase):
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
-        dmdBuilder = DmdBuilder(site,self.options.evtuser,self.options.evtpass,self.options.evtdb)
+        dmdBuilder = DmdBuilder(site, self.options.evtuser, 
+                        self.options.evtpass,self.options.evtdb, 
+                        self.options.smtphost, self.options.smtpport, 
+                        self.options.snpphost, self.options.snppport)
         dmdBuilder.build()
+        
+        # Set smtp and snpp values
+        
 
         # Load reports
         from Products.ZenModel.ReportLoader import ReportLoader
