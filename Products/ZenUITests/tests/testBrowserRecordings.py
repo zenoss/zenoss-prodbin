@@ -3,7 +3,7 @@ from glob import glob
 
 from testgen.mechunit import MechanizeUnitTest
 
-from Products import ZenTestUI
+from Products import ZenUITests
 
 def test_suite():
     basePath = ZenTestUI.__path__[0]
