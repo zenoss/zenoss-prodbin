@@ -53,7 +53,7 @@ class testEventClassifier(unittest.TestCase):
         for line in file.readlines():
             if line.find("#") == 0:
                 process, summary = line[1:].split("||")
-                ev = EventFromDict({"device":"conrad", 
+                ev = EventFromDict({"device":"conrad",
                         "process":process, "summary": summary})
                 self.logevents.append(ev)
 
