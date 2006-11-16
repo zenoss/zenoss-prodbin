@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS status
     clearid         char(25),
     PRIMARY KEY ( dedupid ),
     Index evididx (evid)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS history
 (
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS history
     INDEX device (device),
     INDEX firstTime (firstTime),
     INDEX lastTime(lastTime)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
 
 CREATE TRIGGER status_delete BEFORE DELETE ON status
     FOR EACH ROW INSERT INTO history VALUES (
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS heartbeat
     timeout         int default 0,
     lastTime        timestamp,
     PRIMARY KEY ( device,component )
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
 
 
 CREATE TABLE IF NOT EXISTS alert_state
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS alert_state
     userid      varchar(64),
     rule        varchar(255),
     PRIMARY KEY ( evid, userid, rule )
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
 
 
 CREATE TABLE IF NOT EXISTS log
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS log
     ctime       timestamp,
     text        text,
     Index evididx (evid)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
 
 
 CREATE TABLE IF NOT EXISTS detail
@@ -146,4 +146,4 @@ CREATE TABLE IF NOT EXISTS detail
     value       varchar(255),
     PRIMARY KEY ( evid, name ),
     Index evididx (evid)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+) ENGINE=INNODB;
