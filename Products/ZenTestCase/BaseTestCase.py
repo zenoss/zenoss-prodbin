@@ -90,7 +90,10 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         ZopeTestCase.ZopeTestCase.setUp(self)
         gen = PortalGenerator()
         gen.create(self.app, 'zport', True)
-        builder = Builder(self.app.zport, 'dbuser', 'dbpass', 'dbtable')
+        # builder params:
+        # portal, evtuser, evtpass, evtdb, smtphost, smtpport, snpphost, snppport
+        builder = Builder(self.app.zport, 'dbuser', 'dbpass', 'dbtable',
+            'localhost', '25', 'localhost', '0')
         builder.build()
         self.dmd = builder.dmd
 
