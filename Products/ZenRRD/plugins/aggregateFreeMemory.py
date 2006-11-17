@@ -46,6 +46,10 @@ for d, _, fs in os.walk(perf):
     for f in fs:
         if f.find('memAvailReal') >= 0:
             ifiles.append(os.path.join(d, f))
+        if f.find('memCached') >= 0:
+            ifiles.append(os.path.join(d, f))
+        if f.find('memBuffer') >= 0:
+            ifiles.append(os.path.join(d, f))
         if f.find('memoryAvailableKBytes') >= 0:
             ofiles.append(os.path.join(d, f))
 files = ifiles + ofiles
