@@ -13,7 +13,7 @@ except ImportError:
 locals().setdefault('REQUEST', None)
 locals().setdefault('name', 'test')
 
-title = 'Aggregate Network Traffic'
+title = 'Aggregate Free Memory'
 label = 'Mbs'
 width = 500
 height = 100
@@ -44,9 +44,9 @@ perf = os.path.join(os.environ['ZENHOME'], 'perf')
 rpn = env['rpn']
 for d, _, fs in os.walk(perf):
     for f in fs:
-        if f.find('ifInOctets') >= 0:
+        if f.find('memAvailReal') >= 0:
             ifiles.append(os.path.join(d, f))
-        if f.find('ifOutOctets') >= 0:
+        if f.find('memoryAvailableKBytes') >= 0:
             ofiles.append(os.path.join(d, f))
 files = ifiles + ofiles
 count = len(files)
@@ -55,8 +55,11 @@ defs = []
 for i, f in enumerate(files):
     defs.append('DEF:d%d=%s:ds0:AVERAGE' % (i, f))
 cdefs = []
-for i in range(count):
-    cdefs.append('CDEF:c%d=d%d%s' % (i, i, rpn))
+for i, f in enumerate(files):
+    if f.find("/mem_") >= 0:
+        cdefs.append('CDEF:c%d=d%d,1024,/%s' % (i, i, rpn))
+    else:
+        cdefs.append('CDEF:c%d=d%d%s' % (i, i, rpn))
 lcdef = ['CDEF:lcdef=']
 now = time.time()
 for i in range(count):
