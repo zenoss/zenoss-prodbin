@@ -127,29 +127,25 @@ class RenderServer(RRDToolItem):
     security.declareProtected('GenSummary', 'currentValues')
     def currentValues(self, paths):
         """return latest values"""
-        gopts = ['/dev/null']
-        for i, p in enumerate(paths):
-            gopts.append("DEF:x%d_r=%s:ds0:AVERAGE" % (i,p))
-            gopts.append("VDEF:v%d=x%d_r,LAST" % (i, i))
-            gopts.append("PRINT:v%d:%%.2lf" % (i))
-        gopts.append('--end=now')
-        gopts.append('--start=now-660')
         try:
-            values = rrdtool.graph(*gopts)[2]
-            if values:
-                if values.count('nan') > 0:
-                    raise ValueError('Data Unavailable')
-                values = map(float, values)
-            else:
-                values = []
+            def value(p):
+                info = rrdtool.info(p)
+                last = info['last_update']
+                step = info['step']
+                v = rrdtool.graph('/dev/null',
+                                  'DEF:x=%s:ds0:AVERAGE' % p,
+                                  'VDEF:v=x,LAST',
+                                  'PRINT:v:%.2lf',
+                                  '--start=%d'%(last-step),
+                                  '--end=%d'%last)
+                return float(v[2][0])
+            return map(value, paths)
         except NameError:
             log.warn("It appears that the rrdtool bindings are not installed properly.")
             values = []
         except:
             log.exception("failed generating summary")
-            log.warn(" ".join(gopts))
             raise
-        return values
         
 
     def rrdcmd(self, gopts, ftype='PNG'):
