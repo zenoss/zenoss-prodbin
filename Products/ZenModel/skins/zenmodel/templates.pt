@@ -156,6 +156,7 @@
     <p>Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
+        <li><a href="/zport/dmd/ZenEventManager/addEvent">Add Event</a></li>
         <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/editSettings">Settings</a></li>

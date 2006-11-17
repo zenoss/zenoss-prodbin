@@ -181,6 +181,11 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( permissions.view, )
                 },
+                { 'id'            : 'addEvent'
+                , 'name'          : 'Add Event'
+                , 'action'        : 'addEvent'
+                , 'permissions'   : ( "Manage DMD", )
+                },
             )
           },
         )
@@ -918,6 +923,21 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         curs.execute(delete);
         db.close()
         self.clearCache()
+        
+    security.declareProtected('Manage Events','manage_addEvent')
+    def manage_addEvent(self, REQUEST=None):
+        ''' Create an event from user supplied data
+        '''
+        eventDict = dict(
+            summary = REQUEST['summary'],
+            message = REQUEST['message'],
+            device = REQUEST['device'],
+            component = REQUEST['component'],
+            severity = REQUEST['severity'],
+            eventClass = REQUEST['eclass'])
+        self.sendEvent(eventDict)
+        if REQUEST:
+            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)
