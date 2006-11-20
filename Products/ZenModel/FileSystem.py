@@ -148,7 +148,7 @@ class FileSystem(OSComponent):
         
 
     def getRRDNames(self):
-        return ['usedBlocks']
+        return ['usedBlocks_usedBlocks']
 
     def viewName(self): return self.mount
     name = viewName
