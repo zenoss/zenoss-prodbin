@@ -9,7 +9,8 @@
     <tr>
         <td class="tableheader" width="25%">Default Sort</td>
         <td class="tablevalues"> 
-            <input type='text' name="defaultOrderby" size="42"
+            <input class="tablevalues" type='text'
+                name="defaultOrderby" size="42"
                 tal:attributes="value here/defaultOrderby">
         </td>
     </tr>
