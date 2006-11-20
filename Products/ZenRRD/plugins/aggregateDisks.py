@@ -61,7 +61,6 @@ for i, f in enumerate(dmd.Devices.getSubComponents(meta_type='FileSystem')):
     lcdef.append('TIME,%d,GT,c%d,c%d,UN,0,c%d,IF,IF,' % (time.time(), i, i, i))
     stacks.append('AREA:c%d#%s::STACK' % (i, colors[i % lcolors]))
     total += available
-stacks.reverse()
 lcdef.append('+,'*(len(files) - 1))
 
 cmd += defs + cdefs + [''.join(lcdef)] + stacks 
