@@ -97,6 +97,7 @@ class RenderServer(RRDToolItem):
     def plugin(self, name, REQUEST=None):
         "render a custom graph and return it"
         try:
+            dmd = self.dmd
             m = os.path.join(os.environ['ZENHOME'],
                              'Products/ZenRRD/plugins/%s.py' % name)
             exec open(m)
