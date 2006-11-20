@@ -1239,6 +1239,6 @@ class Device(ManagedEntity):
                 if result:
                     RRDView.updateCache(zip(paths, result))
             except Exception:
-                log.exception("Unable to cache values for %s", id);
+                log.exception("Unable to cache values for %s", self.id);
             
 InitializeClass(Device)
