@@ -805,7 +805,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     def getFieldList(self):
         """Return a list of all fields in the status table of the  backend.
         """
-        if not self._fieldlist:
+        if not getattr(self, '_fieldlist', None):
             db = self.connect()
             try:
                 self.loadSchema(db)
