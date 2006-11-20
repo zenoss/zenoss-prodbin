@@ -45,8 +45,6 @@ class CpuMap(SnmpPlugin):
         maps = []
         rm = self.relMap()
         slot = 0
-        import pdb
-        pdb.set_trace()
         for row in table.values():
             if row['_type'] != self.hrDeviceProcessor: continue
             desc = row['description']
