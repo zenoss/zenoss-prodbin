@@ -199,6 +199,9 @@ class ZenActions(ZCmdBase):
                 
             # add in the link to the url
             data['eventUrl'] = self.getUrl(evid)
+            
+            data['severityString'] = self.dmd.ZenEventManager.getSeverityString(
+                data.get('severity', -1))
             actfunc(ar, data, True)
             delcmd = self.clearstate % (evid, userid, ar.getId())
             self.execute(db, delcmd)
