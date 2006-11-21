@@ -95,7 +95,7 @@ class IpServiceClass(ServiceClass):
         self.expectRegex = expectRegex
         return super(IpServiceClass,self).manage_editServiceClass(
                                 name, monitor, serviceKeys,
-                                port, description)
+                                port, description, REQUEST=REQUEST)
    
 
 
