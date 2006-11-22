@@ -14,9 +14,9 @@
         <th class="tableheader">Text</th>
     </tr>
     <tr tal:repeat="log objects">
-        <td class=tablevalues tal:content="python:log[1]">date</td>
-        <td class=tableheader tal:content="python:log[0]">user</td>
-        <td class=tablevalues tal:content="python:log[2]">text</td>
+        <td class="tablevalues" tal:content="python:log[1]">date</td>
+        <td class="tablevalues" tal:content="python:log[0]">user</td>
+        <td class="tablevalues" tal:content="python:log[2]">text</td>
     </tr>
     <tr>
       <td class='tableheader' colspan='3'>
@@ -25,8 +25,8 @@
           <input type="hidden" name="zenScreenName" 
                  tal:attributes="value template/id" /> 
           <input type="hidden" name='evid' tal:attributes='value python:evid'/>
-          <input type="submit" name='manage_addLogMessage:method' value='Add Message'/>
-          <input name='message'/>
+          <input type="text" class="tablevalues" size="50" name='message'/>
+          <input type="submit" class="tableheader" name='manage_addLogMessage:method' value='Add Message'/>
         </form>
       </td>
     </tr>
