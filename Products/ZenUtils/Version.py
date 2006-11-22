@@ -45,10 +45,17 @@ def getVersionTupleFromString(versionString):
     >>> version = 0
     >>> getVersionTupleFromString(version)
     (0, 0, 0)
+    >>> version = 'a.1.2'
+    >>> getVersionTupleFromString(version)
+    (0, 1, 2)
+    >>> version = ''
+    >>> getVersionTupleFromString(version)
+    (0, 0, 0)
     """
     versionString = str(versionString)
     versions = re.split('[^0-9]+', versionString.strip())[:3]
-    return (lambda x,y=0,z=0: (int(x),int(y or 0),int(z or 0)))(*versions)
+    versions = [int(x or 0) for x in versions] + [0, 0, 0]
+    return tuple(versions[:3])
 
 class VersionError(Exception):
     pass
