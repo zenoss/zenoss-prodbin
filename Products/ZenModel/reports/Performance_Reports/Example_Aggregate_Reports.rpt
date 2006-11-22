@@ -1,0 +1,155 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" src="/zport/js/FormCollect.js"></script>
+<script language="javascript">
+function getImage(form)
+{
+    var img = document.getElementById(form.name.value + ":image");
+    img.src = form.action + "?" + FormCollect(form);
+}
+
+function toggleForm(image)
+{
+   if (!image) return;
+   var form = eval('document.' + image.id.split(":")[0]);
+   if (form.visible == 0) {
+      showElement(form);
+      form.visible = 1;
+   } else {
+      hideElement(form);
+      form.visible = 0;
+   }
+}
+
+function hideForms() {
+    for (i = 0; i < document.forms.length; i++) {
+       var form = document.forms[i];
+       if (form.name && document.getElementById(form.name.value + ':image')) {
+          hideElement(form);
+          form.visible = 0;
+       }
+    }
+}
+//-->
+</script>
+
+<h3>Click the graph to edit</h3>
+<form name="upperLower" action="/zport/RenderServer/plugin" 
+      onsubmit="getImage(this); return false">
+    <input type="hidden" name="name" value="upperLower"/>
+    <input type="hidden" name="arg" value="--units-exponent=6"/>
+    <table class="zentable" cellpadding="3" cellspacing="1">
+      <tr><th class="tabletitle" colspan="4">
+           Edit graph parameters below, click the image to hide this form.
+         </th>
+      </tr><tr>
+        <td class="tablevalues">Title:</td>
+        <td class="tablevalues"><input class="tablevalues" name="title" value="Network Output/Input"/></td>
+        <td class="tablevalues">Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="label" value="Mbs"/></td>
+      </tr><tr>
+        <td class="tablevalues">Width:</td>
+        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
+        <td class="tablevalues">Height:</td>
+        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
+      </tr><tr>
+        <td class="tablevalues">Upper:</td>
+        <td class="tablevalues"><input class="tablevalues" name="upper" value="ifOutOctets"/></td>
+        <td class="tablevalues">Upper Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="upperLabel" value="Out"/></td>
+      </tr><tr>
+        <td class="tablevalues">Lower:</td>
+        <td class="tablevalues"><input class="tablevalues" name="lower" value="ifInOctets"/></td>
+        <td class="tablevalues">Lower Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="lowerLabel" value="In "/></td>
+      </tr><tr>
+        <td class="tablevalues">Devices:</td>
+        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
+        <td class="tablevalues">RPN:</td>
+        <td class="tablevalues"> <input class="tablevalues" name="rpn" value=",8,*"/></td>
+      </tr><tr>
+        <td class="tablevalues">Span:</td>
+        <td class="tablevalues" colspan="3">
+            <select class="tablevalues" 
+                    name="start" onchange="getImage(this.form)">
+                <option value="-1d">One Day</option>
+                <option value="-1w" selected="True">One Week</option>
+                <option value="-2w">Two Weeks</option>
+                <option value="-1m">One Month</option>
+                <option value="-1y">One Year</option>
+            </select>
+        </td>
+      </tr><tr>
+        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
+      </tr>
+   </table>
+</form>
+<img id="upperLower:image" onclick="toggleForm(this)" 
+     alt="Onos! Where is the graph?"/>
+
+<br/>
+<form name="areaLine" action="/zport/RenderServer/plugin" 
+      onsubmit="getImage(this); return false">
+    <input type="hidden" name="name" value="areaLine"/>
+    <input type="hidden" name="rpn" value=",8,*"/>
+    <input type="hidden" name="arg" value="--units-exponent=6"/>
+   <table class="zentable" cellpadding="3" cellspacing="1">
+     <tr><th class="tabletitle" colspan="4">
+           Edit graph parameters below, click the image to hide this form.
+         </th>
+     </tr><tr>
+        <td class="tablevalues">Title:</td>
+        <td class="tablevalues"><input class="tablevalues" name="title" value="Network Output/Input"/></td>
+        <td class="tablevalues">Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="label" value="Mbs"/></td>
+     </tr><tr>
+        <td class="tablevalues">Area:</td>
+        <td class="tablevalues"><input class="tablevalues" name="area" value="ifInOctets"/></td>
+        <td class="tablevalues">Line:</td>
+        <td class="tablevalues"><input class="tablevalues" name="line" value="ifOutOctets"/></td>
+     </tr><tr>
+        <td class="tablevalues">Area Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="areaLabel" value="In "/></td>
+        <td class="tablevalues">Line Label:</td>
+        <td class="tablevalues"><input class="tablevalues" name="lineLabel" value="Out"/></td>
+     </tr><tr>
+        <td class="tablevalues">Width:</td>
+        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
+        <td class="tablevalues">Height:</td>
+        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
+     </tr><tr>
+        <td class="tablevalues">Devices:</td>
+        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
+        <td class="tablevalues">Span:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" 
+                    name="start" onchange="getImage(this.form)">
+                <option value="-1d">One Day</option>
+                <option value="-1w" selected="True">One Week</option>
+                <option value="-2w">Two Weeks</option>
+                <option value="-1m">One Month</option>
+                <option value="-1y">One Year</option>
+            </select>
+        </td>
+     </tr><tr>
+        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
+     </tr>
+    </table>
+</form>
+<img id="areaLine:image" onclick="toggleForm(this)" 
+     alt="Onos! Where is the graph?"/>
+
+<script language="javascript">
+<!--
+getImage(document.upperLower)
+getImage(document.areaLine)
+hideForms()
+//-->
+</script>
+
+</tal:block>
+</tal:block>
