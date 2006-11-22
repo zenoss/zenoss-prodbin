@@ -228,12 +228,6 @@ class ZenBackup(CmdBase):
 
 if __name__ == '__main__':
 
-    # Warning
-    print ('zenbackup is still under development and has not been thoroughly'
-            ' tested.  Use at your own peril.')
-    if (raw_input('Enter YES to continue: ') != 'YES'):
-        sys.exit(-1)
-
     # Instantiate ZenBackup to get access to options
     zb = ZenBackup()
     
