@@ -53,7 +53,10 @@ class ZenDisc(ZenModeler):
             pingthresh = getattr(self.dmd.Networks, "zPingFailThresh", 168)
         goodCount = 0
         for net in nets:
-            if not getattr(net, "zAutoDiscover", False): continue
+            if not getattr(net, "zAutoDiscover", False): 
+                self.log.warn("skipping network %s zAutoDiscover is False"
+                                % net.id)
+                continue
             self.log.info("discover network '%s'", net.id)
             goodips, badips = ping.ping(net.fullIpList())
             goodCount += len(goodips)
