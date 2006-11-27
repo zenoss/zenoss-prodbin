@@ -82,7 +82,9 @@ class Pid:
             return None
         diff = n - self.cpu
         if diff < 0:
-            diff = WRAP - self.cpu + n
+            # don't provide a value when the counter falls backwards
+            n = None
+            diff = None
         self.cpu = n
         return diff
 
