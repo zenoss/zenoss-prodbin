@@ -512,7 +512,7 @@ class zencommand(RRDDaemon):
         RRDDaemon.buildOptions(self)
 
         self.parser.add_option('--parallel', dest='parallel', 
-                               default=50, type='int',
+                               default=10, type='int',
                                help="number of devices to collect at one time")
         
     def main(self):
