@@ -77,10 +77,8 @@ class Pid:
             except ValueError, er:
                 log.error("Bad value for CPU: '%s'", n)
 
-        if self.cpu is None:
+        if self.cpu is None or n is None:
             self.cpu = n
-            return None
-        if n is None:
             return None
         diff = n - self.cpu
         if diff < 0:
@@ -362,6 +360,7 @@ class zenprocess(SnmpDaemon):
         # no pids for a config
         for config in device.processes.values():
             if not afterByConfig.has_key(config):
+                config.status += 1
                 summary = 'Process not running: %s' % config.originalName
                 self.sendEvent(self.statusEvent,
                                device=device.name,
