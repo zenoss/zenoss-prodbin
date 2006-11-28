@@ -6,7 +6,6 @@ from _mysql_exceptions import MySQLError
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
-
 class EventView(object):
 
     security = ClassSecurityInfo()

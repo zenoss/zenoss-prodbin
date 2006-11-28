@@ -7,8 +7,8 @@ from Globals import DTMLFile, InitializeClass
 from AccessControl import Permissions, ClassSecurityInfo
 from Acquisition import aq_parent
 
-
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenEvents.EventFilter import EventFilter
 
 def manage_addCustomEventView(context, id, REQUEST=None):
     """Create an aciton rule"""
@@ -20,7 +20,7 @@ def manage_addCustomEventView(context, id, REQUEST=None):
 addCustomEventView = DTMLFile('dtml/addCustomEventView',globals())
 
 
-class CustomEventView(ZenModelRM):
+class CustomEventView(ZenModelRM, EventFilter):
     
     meta_type = "CustomEventView"
 
@@ -99,26 +99,38 @@ class CustomEventView(ZenModelRM):
 
 
     def getResultFields(self):
-        zem = self.getEventManager()
-        return self.resultFields and self.resultFields \
-                            or zem.defaultResultFields
+        if self.resultFields:
+            return self.resultFields
+        return self.getEventManager().defaultResultFields
+
+
+    def getWhere(self):
+        if self.where:
+            return self.where
+        return self.getEventManager.defaultWhere
+
+
+    def getOrderBy(self):
+        if self.orderby:
+            return self.orderby
+        return self.getEventManager().defaultOrderby
 
 
     def getEventSummary(self, severity=1, state=1):
         """Return the current event summary for this custom view.
         """
         zem = self.getEventManager()
-        where = self.where and self.where or zem.defaultWhere
-        return zem.getEventSummary(where,severity,state)
+        return zem.getEventSummary(self.getWhere(),severity,state)
 
 
     def getEventList(self, **kwargs):
         """Return the current event list for this custom view.
         """
         zem = self.getEventManager()
-        orderby = self.orderby and self.orderby or zem.defaultOrderby
-        where = self.where and self.where or zem.defaultWhere
-        return zem.getEventList(self.getResultFields(),where,orderby,**kwargs)
+        return zem.getEventList(self.getResultFields(),
+                                self.getWhere(),
+                                self.getOrderBy(),
+                                **kwargs)
     getEventHistoryList = getEventList
         
 
@@ -165,6 +177,19 @@ class CustomEventView(ZenModelRM):
         if REQUEST:
             if screen: return screen
             return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Settings', 'manage_editEventView')
+    def manage_editEventView(self, REQUEST=None):
+        """Update user settings.
+        """
+        import WhereClause
+        if REQUEST and not REQUEST.form.has_key('where'):
+            clause = WhereClause.fromFormVariables(self.genMeta(), REQUEST.form)
+            if clause:
+                REQUEST.form['where'] = clause
+        return self.zmanage_editProperties(REQUEST)
+
 
 
 InitializeClass(CustomEventView)

@@ -78,7 +78,7 @@ function initializeFilters(current) {
     }
     
     if (propertyName) {
-      var select = document.forms["actionRule"].elements["add_filter"];
+      var select = document.forms["clauseForm"].elements["add_filter"];
       for (var i = 0; i < select.options.length; i++) {
         var option = select.options[i];
         if (option.value == propertyName) option.disabled = false;
@@ -298,7 +298,7 @@ function initializeFilters(current) {
   }
 
   // Make the drop-down menu for adding a filter a client-side trigger
-  var addButton = document.forms["actionRule"].elements["add"];
+  var addButton = document.forms["clauseForm"].elements["add"];
   addButton.parentNode.removeChild(addButton);
   var select = document.getElementById("add_filter");
   select.onchange = function() {

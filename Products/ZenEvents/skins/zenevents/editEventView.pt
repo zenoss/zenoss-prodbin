@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form id='clauseForm' method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable"  cellpadding="3" cellspacing="1">
 <tr tal:define="message request/message | string:State at time:">
@@ -16,42 +16,58 @@
     </select>
   </td>
 </tr>
+
 <tr>
-<td class="tableheader" colspan="2">Where</td>
+  <td class="tableheader">Where</td>
+  <td class="tablevalues" colspan="2">
+  <script type="text/javascript" src="/zport/js/query.js"></script>
+    <span id="query"><span id="filters">
+      <table summary="Action filters"><tbody>
+	  <tr><td colspan='4'>
+	     <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
+	     <select name="add_filter" id="add_filter" class="tablevalues"
+	       tal:content='structure here/getQueryElements'/>
+	     <input type="submit" name="add" value="+" class="tablevalues"/>
+	   </td></tr>
+       </tbody></table>
+    </span></span>
+  </td>
 </tr>
-<tr>
-<td class="tablevalues" colspan="2">
-    <textarea class="tablevalues" rows="3" cols="65" name="where:text"
-        tal:content="here/where">
-    </textarea>
-</td>
-</tr>
+<noscript>
+  <tr><td colspan="6"><b>Unable to use javascript:</b><td></tr>
+  <tr>
+    <td class="tablevalues" colspan="2">
+      <textarea class="tablevalues" rows="6" cols="75" name="where"
+          tal:content="here/getWhere"/>
+    </td>
+  </tr>
+</noscript>
+
 <tr>
   <td class="tableheader">Order by</td>
   <td class="tablevalues">
     <input class="tablevalues" type="text" name="orderby" size="60"
-        tal:attributes="value here/orderby" />
+        tal:attributes="value here/getOrderBy" />
   </td>
 </tr>
 <tr>
 <td class="tableheader">Result Fields</td>
 <td class="tablevalues">
     <textarea class="tablevalues" rows="7" cols="20" name="resultFields:lines"
-        tal:content="python:'\n'.join(here.resultFields)">
+        tal:content="python:'\n'.join(here.getResultFields())">
     </textarea>
 </td>
 </tr>
 <tr>
     <td class="tableheader" colspan="2">
         <input class="tableheader" type="submit" value=" Save "
-            name="zmanage_editProperties:method" />
+            name="manage_editEventView:method" />
     </td>
 </tr>
 </table>
-<p>
-The Where field above is a standard SQL where clause. The list of fields available in the event database is: 
-<span tal:content="python: ', '.join(here.ZenEventManager.getFieldList())"/>.
-</p>
 </form>
+
+<script tal:content="structure here/getWhereClauseAsJavaScript" type="text/javascript"/>
+
 </tal:block>
 </tal:block>
