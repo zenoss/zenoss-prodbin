@@ -303,7 +303,9 @@ class ActionRule(ZenModelRM):
         if w is None:
             return "Forever"
         if self.enabled:
-            return Time.Duration((w.next() + w.duration) - time.time())
+            next = w.next()
+            if next:
+                return Time.Duration((next + w.duration) - time.time())
         return Time.Duration(w.duration)
 
 

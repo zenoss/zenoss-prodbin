@@ -78,7 +78,7 @@ class Schedule:
             if mw.enabled:
                 self.log.debug("Never going to run Maintenance "
                                "Window %s for %s again",
-                               mw.getId(), mw.productionState().getId())
+                               mw.getId(), mw.target().getId())
             if mw.started:
                 mw.end()
             work.pop(0)
