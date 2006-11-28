@@ -118,9 +118,15 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
 
     def getManufacturer(self, manufacturerName):
         """Return manufacturerName.
+        If trying to get Unknown and it doesn't exist, create it
         """
-        return self._getOb(manufacturerName)
-
+        createOnDemand = ['Unknown']
+        if not self.has_key(manufacturerName) \
+            and manufacturerName in createOnDemand:
+            man = self.createManufacturer(manufacturerName)
+        else:
+            man = self._getOb(manufacturerName)
+        return man
 
     def getManufacturerNames(self):
         """return list of all companies"""
