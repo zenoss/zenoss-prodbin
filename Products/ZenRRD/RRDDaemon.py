@@ -66,10 +66,10 @@ class Threshold:
         if value is None:
             return
         thresh = None
-        if self.maximum is not None and value >= self.maximum:
+        if self.maximum is not None and value > self.maximum:
             thresh = self.maximum
             how = 'exceeded'
-        if self.minimum is not None and value <= self.minimum:
+        if self.minimum is not None and value < self.minimum:
             thresh = self.minimum
             how = 'not met'
         if thresh is not None:
