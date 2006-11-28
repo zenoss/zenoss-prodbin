@@ -17,6 +17,7 @@ import os
 import os.path
 import tempfile
 from datetime import date
+import getpass
 
 # This is written in Python because in was originally a subclass of ZCmdBase.
 # Since that is no longer the case this would probably be cleaner now if done
@@ -92,6 +93,10 @@ class ZenBackup(CmdBase):
 
 
     def makeBackup(self):
+        ''' Create a backup of the data and configuration for a zenoss install.
+        getWhatYouCan == True means to continue without reporting errors even
+        if this appears to be an incomplete zenoss install.
+        '''
     
         # Create temp backup dir
         rootTempDir = tempfile.mkdtemp()
@@ -99,12 +104,20 @@ class ZenBackup(CmdBase):
         os.mkdir(tempDir)
         
         # mysqldump to backup dir
+        
         cmd = 'mysqldump -u%s -p%s %s > %s' % (
                     self.options.dbuser,
                     (self.options.dbpass or ''),
                     self.options.dbname,
                     os.path.join(tempDir, 'events.sql'))
-        if os.system(cmd): return -1
+        if os.system(cmd):
+            sys.stderr.write('The database "%s" does not appear to exist.\n' %
+                                self.options.dbname)
+            if self.options.restore \
+                and not self.options.quick \
+                and not self.doesMySqlDbExist():
+                sys.stderr.write('You may wish to use --quick.\n')
+            return -1
                     
         # save db name to a file
         cmd = 'echo "%s" > %s' % (self.options.dbname, 
@@ -150,7 +163,15 @@ class ZenBackup(CmdBase):
 
 
     def restore(self):
-    
+        ''' Restore from a previous backup
+        '''
+        # Arguably it would be better to tear down all existing
+        # data, files, etc before starting the restore instead of
+        # doing it all piecemeal like this.  If a restore failed along the
+        # way it would be clear what was restored and what wasn't.  As it
+        # is, if a restore fails the installation might be left with a mix 
+        # of restored and unrestored state.
+        
         # Check for running processes
         i, o = os.popen2('ps -Ao pid,command '
                             '| grep python '
@@ -197,19 +218,8 @@ class ZenBackup(CmdBase):
                             os.path.join(self.zenhome, 'perf'))
         if os.system(cmd): return -1
         
-        # The original dbname is stored in the backup within dbname.txt
-        # For now we ignore it and use the database specified on the command
-        # line.
-        
-        # Try to create the mysql database, ignore failure if the database
-        # aleady exists.
-        cmd = 'mysqladmin -u %s -p %s create %s' % (
-                    self.options.dbuser,
-                    self.options.dbpass or '',
-                    self.options.dbname)
-        result = os.system(cmd)
-        if result not in [0, 256]:
-            return -1
+        # Create the mysql db if it doesn't exist already
+        if self.createMySqlDb(): return -1
         
         # Restore the mysql tables
         cmd='mysql -u%s -p%s %s < %s' % (
@@ -225,6 +235,41 @@ class ZenBackup(CmdBase):
         
         return 0
 
+    def createMySqlDb(self):
+        ''' Create the mysql db if it does not exist
+        '''
+        # The original dbname is stored in the backup within dbname.txt
+        # For now we ignore it and use the database specified on the command
+        # line.
+        
+        # Try to create the mysql database, ignore failure if the database
+        # aleady exists.
+        #cmd = 'mysqladmin -u %s -p %s create %s' % (
+        #            self.options.dbuser,
+        #            self.options.dbpass or '',
+        #            self.options.dbname)
+        sql = 'create database if not exists %s' % self.options.dbname
+        cmd = 'echo "%s" | mysql -u%s -p%s' % (
+                    sql,
+                    self.options.dbuser,
+                    self.options.dbpass or '')
+        result = os.system(cmd)
+        if result not in [0, 256]:
+            return -1
+        return 0
+    
+    def doesMySqlDbExist(self):
+        ''' Return true if the mysqldb appears to exist, false otherwise.
+        '''
+        cmd = 'echo "show databases" | mysql -u%s -p%s | grep %s' % (
+                self.options.dbuser,
+                self.options.dbpass or '',
+                self.options.dbname)
+        i, o = os.popen2(cmd)
+        out = o.read()
+        i.close()
+        o.close()
+        return out != ''
 
 if __name__ == '__main__':
 
@@ -241,12 +286,16 @@ if __name__ == '__main__':
         print 'You must provide %s for %s' % (
             (len(missing) == 1 and 'a value') or 'values', ', '.join(missing))
         zb.parser.print_help();
-    elif zb.options.restore:
-        # Perform restore, maybe doing a backup first
-        if zb.options.quick or not zb.makeBackup():
-            zb.restore()
     else:
-        # Perform backup
-        zb.makeBackup()
+        if not zb.options.dbpass:
+            zb.options.dbpass = getpass.getpass(
+                    'MySQL password for %s: ' % zb.options.dbuser)
+        if zb.options.restore:
+            # Perform restore, maybe doing a backup first
+            if zb.options.quick or not zb.makeBackup():
+                zb.restore()
+        else:
+            # Perform backup
+            zb.makeBackup()
         
         
