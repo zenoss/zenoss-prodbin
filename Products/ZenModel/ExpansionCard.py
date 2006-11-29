@@ -27,6 +27,9 @@ class ExpansionCard(HWComponent):
 
     slot = ""
 
+    # we don't monitor cards
+    monitor = False
+
     _properties = HWComponent._properties + (
         {'id':'slot', 'type':'int', 'mode':'w'},
     )

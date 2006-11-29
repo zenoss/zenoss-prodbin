@@ -42,6 +42,9 @@ class IpRouteEntry(OSComponent):
     """IpRouteEntry object"""
     
     meta_type = 'IpRouteEntry'
+
+    # we don't monitor routes
+    monitor = False
     
     _nexthop = ""
     _target = ""
