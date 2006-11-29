@@ -26,9 +26,9 @@ devicePat = re.compile('.*' + env.get('devices', '') + '.*')
 for i, f in enumerate(dmd.Devices.getSubComponents(meta_type='FileSystem')):
     available = f.totalBlocks * f.blockSize
     rrdFile = perf + f.getRRDFileName('usedBlocks')
-    files = glob.glob(rrdFile)
-    if len(files) != 1: continue
-    rrdFile = files[0]
+    globbed = glob.glob(rrdFile)
+    if len(globbed) == 0: continue
+    rrdFile = globbed[0]
     if not devicePat.match(rrdFile): continue
     files.append(rrdFile)
     defs.append('DEF:d%d=%s:ds0:AVERAGE' % (i, rrdFile))
