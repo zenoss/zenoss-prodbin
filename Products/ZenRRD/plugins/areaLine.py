@@ -71,7 +71,6 @@ stacks=[]
 stacks.append('AREA:c0#0F0')
 stacks.append('LINE:c1#00B')
 cmd = [fname] + basicArgs(env) + args + defs + cdefs + [lcdef1, lcdef2] + stacks 
-cmd.extend(['GPRINT:c0:LAST:test%8.2lf\n'])
 cmd.extend(['GPRINT:lcdef1:LAST:%(areaLabel)s Current\\:%%8.2lf %%s' % env,
             'GPRINT:lcdef1:AVERAGE:Average\\:%8.2lf %s',
             'GPRINT:lcdef1:MAX:Maximum\\:%8.2lf %s\\n'])
