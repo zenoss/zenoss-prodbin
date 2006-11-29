@@ -1,5 +1,6 @@
 import rrdtool
 import re
+import glob
 import Globals
 try:
     from Products.ZenRRD.plugins.plugin import *
@@ -44,8 +45,10 @@ for i, d in enumerate(dmd.Devices.getSubDevices()):
             for ds in graph.dsnames:
                 dp = template.getRRDDataPoint(ds)
                 if not dp: continue
-                rrdfile = perf + interface.getRRDFileName(dp.name())
-                if not os.path.exists(rrdfile): continue
+                rrdfile = perf + interface.getRRDFileName(dp.id)
+                files = glob.glob(rrdfile)
+                if len(files) != 1: continue
+                rrdfile = files[0]
                 dir = 1
                 if ds.find("ifInOctets") >= 0:
                     dir = -1

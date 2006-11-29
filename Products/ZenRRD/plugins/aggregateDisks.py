@@ -1,5 +1,6 @@
 import rrdtool
 import re
+import glob
 import Globals
 try:
     from Products.ZenRRD.plugins.plugin import *
@@ -24,10 +25,10 @@ lcolors = len(colors)
 devicePat = re.compile('.*' + env.get('devices', '') + '.*')
 for i, f in enumerate(dmd.Devices.getSubComponents(meta_type='FileSystem')):
     available = f.totalBlocks * f.blockSize
-    rrdFile = perf + f.getRRDFileName('usedBlocks_usedBlocks')
-    if not os.path.exists(rrdFile):
-        rrdFile = perf + f.getRRDFileName('disk_usedBlocks')
-    if not os.path.exists(rrdFile): continue
+    rrdFile = perf + f.getRRDFileName('usedBlocks')
+    files = glob.glob(rrdFile)
+    if len(files) != 1: continue
+    rrdFile = files[0]
     if not devicePat.match(rrdFile): continue
     files.append(rrdFile)
     defs.append('DEF:d%d=%s:ds0:AVERAGE' % (i, rrdFile))
