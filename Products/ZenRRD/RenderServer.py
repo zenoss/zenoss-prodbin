@@ -139,7 +139,9 @@ class RenderServer(RRDToolItem):
                                   'PRINT:v:%.2lf',
                                   '--start=%d'%(last-step),
                                   '--end=%d'%last)
-                return float(v[2][0])
+                v = float(v[2][0])
+                if float('nan') == v: v = None
+                return v
             return map(value, paths)
         except NameError:
             log.warn("It appears that the rrdtool bindings are not installed properly.")
