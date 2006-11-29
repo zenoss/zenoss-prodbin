@@ -1,6 +1,6 @@
 import os
 import time
-import glob
+import re
 import rrdtool
 import random
 try:
@@ -35,7 +35,9 @@ ifiles = []
 ofiles = []
 perf = os.path.join(os.environ['ZENHOME'], 'perf')
 rpn = env['rpn']
+devicePat = re.compile('.*' + env.get('devices', '') + '.*')
 for d, _, fs in os.walk(perf):
+    if not devicePat.match(d): continue
     for f in fs:
         if f.find('memAvailReal') >= 0:
             ifiles.append(os.path.join(d, f))
