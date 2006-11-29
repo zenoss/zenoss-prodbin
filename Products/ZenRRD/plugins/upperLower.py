@@ -68,7 +68,11 @@ lcdef2 = ''.join(lcdef)
 stacks=[]
 inputFilesCount = len(lfiles)
 lcolor = len(colors)
-for i in range(count):
+for i in range(lcount):
+    stacks.append('AREA:c%d#%s::STACK' % (i, colors[i % lcolor]))
+if lcount != count:
+    stacks.append('AREA:c%d#%s' % (lcount, colors[lcount % lcolor]))
+for i in range(lcount + 1, count):
     stacks.append('AREA:c%d#%s::STACK' % (i, colors[i % lcolor]))
 cmd = [fname] + basicArgs(env) + defs + cdefs + [lcdef1, lcdef2] + stacks
 cmd.extend(['GPRINT:lcdef2:LAST:%(upperLabel)s Current\\:%%8.2lf %%s' % env,
