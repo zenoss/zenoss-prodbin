@@ -30,7 +30,7 @@ cmd = [fname,] + basicArgs(env) + args
 perf = os.path.join(os.environ['ZENHOME'], 'perf')
 rpn = env['rpn']
 rfiles = []
-devicePat = re.compile('.*' + devices + '.*')
+devicePat = re.compile('.*(' + devices + ').*')
 for d, _, fs in os.walk(perf):
     if not devicePat.match(d): continue
     parts = []
