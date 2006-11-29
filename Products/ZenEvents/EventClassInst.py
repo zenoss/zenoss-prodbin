@@ -288,20 +288,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         self.unindex_object()
 
 
-    def index_object(self):
-        """A common method to allow Findables to index themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.catalog_object(self, self.getPrimaryId())
-            
-                                                
-    def unindex_object(self):
-        """A common method to allow Findables to unindex themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.uncatalog_object(self.getPrimaryId())
-
-
     security.declareProtected('Manage DMD', 'manage_resequence')
     def manage_resequence(self, seqmap, REQUEST=None):
         """Reorder the sequence of eventClassMappings with the same key.

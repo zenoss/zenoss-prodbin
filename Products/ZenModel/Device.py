@@ -1188,14 +1188,13 @@ class Device(ManagedEntity):
         """
         Device only propagates afterAdd if it is the added object.
         """
-        if item == self:
-            self.index_object()
-            ManagedEntity.manage_afterAdd(self, item, container)
+        super(Device,self).manage_afterAdd(item, container)
+        self.index_object()
 
 
     def manage_afterClone(self, item):
         """Not really sure when this is called."""
-        ManagedEntity.manage_afterClone(self, item)
+        super(Device,self).manage_afterClone(item)
         self.index_object()
 
 
@@ -1204,23 +1203,9 @@ class Device(ManagedEntity):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        if item == self or getattr(item, "_operation", -1) < 1:
-            ManagedEntity.manage_beforeDelete(self, item, container)
-            self.unindex_object()
+        super(Device,self).manage_beforeDelete(item, container)
+        self.unindex_object()
 
-
-    def index_object(self):
-        """A common method to allow Findables to index themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None:
-            cat.catalog_object(self, self.getId())
-            
-                                                
-    def unindex_object(self):
-        """A common method to allow Findables to unindex themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None:
-            cat.uncatalog_object(self.getId())
 
     def cacheComponents(self):
         "Read current RRD values for all of a device's components"

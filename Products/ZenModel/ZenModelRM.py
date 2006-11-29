@@ -277,6 +277,20 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         return ', '.join(users)
 
 
+    def index_object(self):
+        """A common method to allow Findables to index themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.catalog_object(self, self.getPrimaryId())
+            
+                                                
+    def unindex_object(self):
+        """A common method to allow Findables to unindex themselves."""
+        cat = getattr(self, self.default_catalog, None)
+        if cat != None: 
+            cat.uncatalog_object(self.getPrimaryId())
+
+
     def reindex_all(self, obj=None):
         """
         Called for in the CataLogAwarenessInterface not sure this is needed.

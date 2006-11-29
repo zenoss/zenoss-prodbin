@@ -93,32 +93,27 @@ class MibModule(ZenModelRM):
         return node 
         
     
-#    def manage_afterAdd(self, item, container):
-#        self.index_object()
-#
-#
-#    def manage_afterClone(self, item):
-#        self.index_object()
-#
-#
-#    def manage_beforeDelete(self, item, container):
-#        self.unindex_object()
-
-
-    def index_object(self):
-        """index nodes and notifications.
+    def manage_afterAdd(self, item, container):
         """
-        [ n.index_object() for n in self.nodes() ]
-        [ n.index_object() for n in self.notifications() ]
-        if getattr(self, self.default_catalog, None) is not None:
-            self.mibSearch.catalog_object(self, self.getModuleName())
+        Device only propagates afterAdd if it is the added object.
+        """
+        super(MibModule,self).manage_afterAdd(item, container)
+        self.index_object()
 
 
-#    def unindex_object(self):
-#        """use MIB::name as index key.
-#        """
-#        if getattr(self, self.default_catalog, None) is not None:
-#            self.mibSearch.uncatalog_object(self.getModuleName())
+    def manage_afterClone(self, item):
+        """Not really sure when this is called."""
+        super(MibModule,self).manage_afterClone(item)
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        """
+        Device only propagates beforeDelete if we are being deleted or copied.
+        Moving and renaming don't propagate.
+        """
+        super(MibModule,self).manage_beforeDelete(item, container)
+        self.unindex_object()
 
 
 InitializeClass(MibModule)

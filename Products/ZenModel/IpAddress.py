@@ -213,33 +213,26 @@ class IpAddress(ManagedEntity):
 
 
     def manage_afterAdd(self, item, container):
-        """setup relationshipmanager add object to index and build relations """
-        if item == self:
-            self.index_object()
+        """
+        Device only propagates afterAdd if it is the added object.
+        """
+        super(IpAddress,self).manage_afterAdd(item, container)
+        self.index_object()
 
 
     def manage_afterClone(self, item):
+        """Not really sure when this is called."""
+        super(IpAddress,self).manage_afterClone(item)
         self.index_object()
 
 
     def manage_beforeDelete(self, item, container):
-        if item == self or getattr(item, "_operation", -1) < 1:
-            ManagedEntity.manage_beforeDelete(self, item, container)
-            self.unindex_object()
-
-
-    def index_object(self):
-        """interfaces use hostname + interface name as uid"""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None:
-            cat.catalog_object(self, self.getId())
-            
-                                                
-    def unindex_object(self):
-        """interfaces use hostname + interface name as uid"""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None:
-            cat.uncatalog_object(self.getId())
+        """
+        Device only propagates beforeDelete if we are being deleted or copied.
+        Moving and renaming don't propagate.
+        """
+        super(IpAddress,self).manage_beforeDelete(item, container)
+        self.unindex_object()
 
 
 InitializeClass(IpAddress)

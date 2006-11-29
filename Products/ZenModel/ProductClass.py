@@ -124,13 +124,13 @@ class ProductClass(ZenModelRM):
         """
         Device only propagates afterAdd if it is the added object.
         """
+        super(ProductClass,self).manage_afterAdd(item, container)
         self.index_object()
-        ZenModelRM.manage_afterAdd(self, item, container)
 
 
     def manage_afterClone(self, item):
         """Not really sure when this is called."""
-        ZenModelRM.manage_afterClone(self, item)
+        super(ProductClass,self).manage_afterClone(item)
         self.index_object()
 
 
@@ -139,22 +139,8 @@ class ProductClass(ZenModelRM):
         Device only propagates beforeDelete if we are being deleted or copied.
         Moving and renaming don't propagate.
         """
-        ZenModelRM.manage_beforeDelete(self, item, container)
+        super(ProductClass,self).manage_beforeDelete(item, container)
         self.unindex_object()
-
-
-    def index_object(self):
-        """A common method to allow Findables to index themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.catalog_object(self, self.getPrimaryId())
-            
-                                                
-    def unindex_object(self):
-        """A common method to allow Findables to unindex themselves."""
-        cat = getattr(self, self.default_catalog, None)
-        if cat != None: 
-            cat.uncatalog_object(self.getPrimaryId())
 
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')
