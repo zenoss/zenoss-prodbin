@@ -73,8 +73,7 @@ for i in range(count):
     if i < inputFilesCount:
         color |= 0x707070
     color = '#%06x' % (color & 0xffffff)
-    if i == 0:
-        stacks.append('AREA:c%d%s::STACK' % (i, color))
+    stacks.append('AREA:c%d%s::STACK' % (i, color))
 cmd.extend(defs)
 cmd.extend(cdefs)
 cmd.append(''.join(lcdef))
