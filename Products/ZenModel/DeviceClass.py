@@ -16,6 +16,8 @@ import time
 import urllib
 from glob import glob
 import transaction
+import logging
+log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
 from zExceptions import Redirect
@@ -333,24 +335,25 @@ class DeviceClass(DeviceOrganizer):
     def _convertResultsToObj(self, results):
         devices = []
         for brain in results:
-            devobj = self.unrestrictedTraverse(brain.getPrimaryId)
-            devices.append(devobj)
+            try:
+                devobj = self.unrestrictedTraverse(brain.getPrimaryId)
+                devices.append(devobj)
+            except KeyError:
+                log.warn("bad path '%s' in index" % brain.getPrimaryId)
+                
         return devices
-
-
-    security.declareProtected('View', 'getDeviceFromSearchResult')
-    def getDeviceFromSearchResult(self, brain):
-        if brain.has_key('getPrimaryId'):
-            return self.unrestrictedTraverse(brain.getPrimaryId)
 
 
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
         query = MatchGlob('id', devicename)
         ret = self._getCatalog().evalAdvancedQuery(query)
-        if ret:
+        if not ret: return None
+        try:
             devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
             return devobj
+        except KeyError:
+            log.warn("bad path '%s' in index deviceSearch", ret[0].getPrimaryId)
 
 
     def findDevicePingStatus(self, devicename):
@@ -362,11 +365,14 @@ class DeviceClass(DeviceOrganizer):
     def getSubComponents(self, meta_type="", monitored=True):
         """Return generator of components, by meta_type if specified.
         """
-        zcat = getattr(self, "componentSearch", None)
-        if zcat:
-            res = zcat({'meta_type': meta_type, 'monitored': monitored})
-            for b in res:
+        zcat = getattr(self, "componentSearch")
+        res = zcat({'meta_type': meta_type, 'monitored': monitored})
+        for b in res:
+            try:
                 yield self.unrestrictedTraverse(b.getPrimaryId)
+            except KeyError:
+                log.warn("bad path '%s' in index 'componentSearch'", 
+                            b.getPrimaryId)
 
 
     def getMonitoredComponents(self):

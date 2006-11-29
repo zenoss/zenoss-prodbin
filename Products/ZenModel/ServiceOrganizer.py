@@ -91,12 +91,12 @@ class ServiceOrganizer(Organizer):
         cat = getattr(self, self.default_catalog, None)
         if not cat: return 
         brains = cat({'serviceKeys': query})
+        if not brains: return None
         try:
-            prods = [self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
+            return self.unrestrictedTraverse(brains[0].getPrimaryId) 
         except KeyError:
-            log.exception(", ".join([b.getPrimaryId for b in brains]))
-            raise
-        if len(prods) >= 1: return prods[0]
+            log.warn("bad path '%s' for index '%s'", brains[0].getPrimaryId,
+                        self.default_catalog)
 
     
     def countClasses(self):

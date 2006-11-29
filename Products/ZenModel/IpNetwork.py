@@ -15,6 +15,8 @@ __version__ = "$Revision: 1.22 $"[11:-2]
 
 import math
 import transaction
+import logging
+log = logging.getLogger('zen')
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -333,10 +335,13 @@ class IpNetwork(DeviceOrganizer):
         """
         searchCatalog = self.getDmdRoot("Networks").ipSearch
         ret = searchCatalog({'id':ip})
+        if not ret: return None
         if len(ret) > 1:
             raise IpAddressConflict, "IP address conflict for IP: %s" % ip
-        if ret:
+        try:
             return self.unrestrictedTraverse(ret[0].getPrimaryId)
+        except KeyError:
+            log.warn("bad path '%s' in index ipSearch" % ret[0].getPrimaryId)
 
 
     def ipHref(self,ip):

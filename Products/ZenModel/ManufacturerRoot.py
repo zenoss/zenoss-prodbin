@@ -14,6 +14,7 @@ $Id: ManufacturerRoot.py,v 1.10 2004/04/22 02:14:12 edahl Exp $"""
 __version__ = "$Revision: 1.10 $"[11:-2]
 
 import logging
+log = logging.getLogger('zen')
 
 import transaction
 
@@ -146,11 +147,14 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
     def findProduct(self, query):
         """Find a product by is productKey.
         """
-        cat = getattr(self, self.default_catalog, None)
-        if not cat: return 
+        cat = getattr(self, self.default_catalog)
         brains = cat({'productKeys': query})
-        prods = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
-        if len(prods) == 1: return prods[0]
+        if not brains: return None
+        try:
+            return self.unrestrictedTraverse(brains[0].getPrimaryId)
+        except KeyError:
+            log.warn("bad path '%s' index '%s'", 
+                        brains[0].getPrimaryId, self.default_catalog)
 
     
     def createHardwareProduct(self,prodName,manufacturer="Unknown",**kwargs):
