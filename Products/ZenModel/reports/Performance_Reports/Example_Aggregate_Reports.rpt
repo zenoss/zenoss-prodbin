@@ -118,6 +118,7 @@ function hideForms() {
 <img id="aggregateFreeMemory:image" onclick="toggleForm(this)" 
      alt="Onos! Where is the graph?"/>
 
+<br/>
 <form name="aggregateCpu" action="/zport/RenderServer/plugin" 
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateCpu"/>
