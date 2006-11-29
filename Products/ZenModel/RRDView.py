@@ -7,6 +7,7 @@
 import os
 import types
 import time
+import glob
 
 import logging
 log = logging.getLogger("zen.RRDView")
@@ -119,7 +120,12 @@ class RRDView(object):
 
 
     def getRRDFileName(self, dsname):
-        return os.path.join(self.rrdPath(), dsname) + ".rrd"
+        """Look up an rrd file based on its data point name using glob like 
+        *_sysUpTime.  This is to do a lame type of
+        normalization accross different types of data collection.
+        """
+        return self.rrdPath() + "/*_" + dsname + ".rrd"
+
 
     def getRRDNames(self):
         return []

@@ -137,7 +137,7 @@ class FileSystem(OSComponent):
         return 0
 
     def usedBlocks(self, default = None):
-        blocks = self.cacheRRDValue('usedBlocks_usedBlocks', default)
+        blocks = self.cacheRRDValue('usedBlocks', default)
         if blocks is not None:
             return long(blocks)
         return None
@@ -148,7 +148,7 @@ class FileSystem(OSComponent):
         
 
     def getRRDNames(self):
-        return ['usedBlocks_usedBlocks']
+        return ['usedBlocks']
 
     def viewName(self): return self.mount
     name = viewName

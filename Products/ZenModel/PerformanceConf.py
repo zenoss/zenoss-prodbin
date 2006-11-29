@@ -14,6 +14,7 @@ $Id: PerformanceConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
+import glob
 import transaction
 import logging
 log = logging.getLogger("zen.PerformanceConf")
@@ -248,7 +249,12 @@ class PerformanceConf(Monitor, StatusColor):
             server = xmlrpclib.Server(url)
         else:
             server = self.unrestrictedTraverse(self.renderurl)
-        return server.currentValues(map(performancePath, paths))
+            npaths = []
+            for path in map(performancePath, paths):
+                path = glob.glob(path)
+                if not path: continue
+                npaths.append(path[0])
+        return server.currentValues(npaths)
 
 
     def _fullPerformancePath(self, gopts):
