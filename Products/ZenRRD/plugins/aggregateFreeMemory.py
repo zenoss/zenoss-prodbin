@@ -35,7 +35,7 @@ ifiles = []
 ofiles = []
 perf = os.path.join(os.environ['ZENHOME'], 'perf')
 rpn = env['rpn']
-devicePat = re.compile('.*' + env.get('devices', '') + '.*')
+devicePat = re.compile('.*(' + env.get('devices', '') + ').*')
 for d, _, fs in os.walk(perf):
     if not devicePat.match(d): continue
     for f in fs:

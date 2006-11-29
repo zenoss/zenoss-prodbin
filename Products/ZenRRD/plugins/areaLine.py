@@ -31,7 +31,7 @@ fname = "%s/graph-%s.png" % (TMPDIR,name)
 afiles = []
 lfiles = []
 perf = os.path.join(os.environ['ZENHOME'], 'perf')
-devPat = re.compile('.*%s.*' % env.get('devices',''))
+devPat = re.compile('.*(%s).*' % env.get('devices',''))
 for d, _, fs in os.walk(perf):
     if not devPat.match(d): continue
     for f in fs:

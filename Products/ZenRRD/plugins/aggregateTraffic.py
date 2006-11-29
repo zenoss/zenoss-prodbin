@@ -30,7 +30,7 @@ xdefs = []
 stacks=[]
 lcdef = ['CDEF:lcdef=']
 lcolors = len(colors)
-devicePat = re.compile('.*' + env['devices'] + '.*')
+devicePat = re.compile('.*(' + env['devices'] + ').*')
 files = []
 n = 0
 for i, d in enumerate(dmd.Devices.getSubDevices()):
