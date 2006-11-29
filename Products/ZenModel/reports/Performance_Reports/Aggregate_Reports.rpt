@@ -111,6 +111,41 @@ function hideForms() {
      alt="Onos! Where is the graph?"/>
 
 <br/>
+<form name="aggregateSwap" action="/zport/RenderServer/plugin" 
+      onsubmit="getImage(this); return false">
+    <input type="hidden" name="name" value="aggregateSwap"/>
+   <table class="zentable" cellpadding="3" cellspacing="1">
+     <tr><th class="tabletitle" colspan="4">
+           Edit graph parameters below, click the image to hide this form.
+         </th>
+     </tr><tr>
+        <td class="tablevalues">Width:</td>
+        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
+        <td class="tablevalues">Height:</td>
+        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
+     </tr><tr>
+        <td class="tablevalues">Devices:</td>
+        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
+        <td class="tablevalues">Span:</td>
+        <td class="tablevalues">
+            <select class="tablevalues" 
+                    name="start" onchange="getImage(this.form)">
+                <option value="-1d">One Day</option>
+                <option value="-1w" selected="True">One Week</option>
+                <option value="-2w">Two Weeks</option>
+                <option value="-1m">One Month</option>
+                <option value="-1y">One Year</option>
+            </select>
+        </td>
+     </tr><tr>
+        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
+     </tr>
+    </table>
+</form>
+<img id="aggregateSwap:image" onclick="toggleForm(this)" 
+     alt="Onos! Where is the graph?"/>
+
+<br/>
 <form name="aggregateDisks" action="/zport/RenderServer/plugin" 
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateDisks"/>
@@ -268,6 +303,7 @@ getImage(document.areaLine)
 getImage(document.aggregateCpu)
 getImage(document.aggregateDisks)
 getImage(document.aggregateFreeMemory)
+getImage(document.aggregateSwap)
 hideForms()
 //-->
 </script>
