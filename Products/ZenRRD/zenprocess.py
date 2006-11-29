@@ -291,6 +291,10 @@ class zenprocess(SnmpDaemon):
 
     def deviceFailure(self, error, device):
         "Log exception for a single device"
+        self.sendEvent(self.statusEvent,
+                       device=device.name,
+                       summary='Unable to read processes on device %s' % device.name,
+                       severity=Event.Error)
         self.logError('Error on device %s' % device.name, error)
 
 
