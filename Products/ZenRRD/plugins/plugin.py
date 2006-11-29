@@ -19,7 +19,6 @@ colors = [s.strip()[1:] for s in '''
 #000099
 #000000
 '''.split()]
-'FF0033 FF00CC FF3333 FF33CC FF6633 FF66CC FF9933 FF99CC FFCC33 FFCCCC FFFF33 FFFFCC'.split()
 
 
 def read(fname):
@@ -29,6 +28,7 @@ def read(fname):
         return fp.read()
     finally:
         fp.close()
+
 
 def cached(fname, cachedTime=600):
     "return the contents of a file if it is young enough"
@@ -58,15 +58,14 @@ def basicArgs(env):
             '--vertical-label=%(label)s' % env]
 
 def getArgs(REQUEST, env):
-    args = []
+    env['arg'] = []
     if REQUEST:
         REQUEST.response.setHeader('Content-type', 'image/png')
         kv = zip(REQUEST.keys(), REQUEST.values())
         env.update(dict(kv))
-        for k, v in kv:
-           if k == 'arg':
-              args.append(v)
-    return args
+    if type(env['arg']) == type(''):
+        env['arg'] = [env['arg']]
+    return env['arg']
 
     
 now = time.time()

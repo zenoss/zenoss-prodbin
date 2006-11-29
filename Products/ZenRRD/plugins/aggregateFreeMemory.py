@@ -9,10 +9,6 @@ try:
 except ImportError:
     from plugin import *
 
-# set variables for command-line testing
-locals().setdefault('REQUEST', None)
-locals().setdefault('name', 'test')
-
 title = 'Aggregate Free Memory'
 label = 'Mbs'
 width = 500
@@ -22,9 +18,9 @@ end='now'
 rpn = ',8,*'
 
 env = locals().copy()
-if REQUEST:
-    REQUEST.response.setHeader('Content-type', 'image/png')
-    env.update(dict(zip(REQUEST.keys(), REQUEST.values())))
+args = getArgs(REQUEST, env)
+for k, v in env.items():
+    locals()[k] = v
 fname = "%s/graph-%s.png" % (TMPDIR,name)
 cmd = [fname,
        '--imgformat=PNG',
@@ -34,9 +30,6 @@ cmd = [fname,
        '--base=1000',
        '--height=%(height)s' % env,
        '--width=%(width)s' % env,
-       '--alt-autoscale-max',
-       '--lower-limit=0',
-       '--units-exponent=6',
        '--vertical-label=%(label)s' % env]
 ifiles = []
 ofiles = []
@@ -91,5 +84,7 @@ cmd.extend(['GPRINT:lcdef:LAST:Current\\:%8.2lf %s',
             'GPRINT:lcdef:MAX:Maximum\\:%8.2lf %s'])
 cmd = [c.strip() for c in cmd if c.strip()]
 import rrdtool
-rrdtool.graph(*cmd)
-graph = read(fname)
+graph = None
+if defs:
+    rrdtool.graph(*cmd)
+    graph = open(fname, 'rb').read()

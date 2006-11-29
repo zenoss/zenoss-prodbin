@@ -19,7 +19,8 @@ label = 'Mbs'
 devices='.*'
 env = locals().copy()
 args = getArgs(REQUEST, env)
-
+for k, v in env.items():
+    locals()[k] = v
 fname = "%s/graph-%s.png" % (TMPDIR,name)
 files = []
 defs = []

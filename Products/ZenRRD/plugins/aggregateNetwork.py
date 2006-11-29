@@ -9,10 +9,6 @@ try:
 except ImportError:
     from plugin import *
 
-# set variables for command-line testing
-locals().setdefault('REQUEST', None)
-locals().setdefault('name', 'test')
-
 title = 'Aggregate Network Traffic'
 label = 'Mbs'
 width = 500
@@ -22,22 +18,12 @@ end='now'
 rpn = ',8,*'
 
 env = locals().copy()
-if REQUEST:
-    REQUEST.response.setHeader('Content-type', 'image/png')
-    env.update(dict(zip(REQUEST.keys(), REQUEST.values())))
+args = getArgs(REQUEST, env)
+for k, v in env.items():
+    locals()[k] = v
 fname = "%s/graph-%s.png" % (TMPDIR,name)
-cmd = [fname,
-       '--imgformat=PNG',
-       '--start=%(start)s' % env,
-       '--end=%(end)s' % env,
-       '--title=%(title)s' % env,
-       '--base=1000',
-       '--height=%(height)s' % env,
-       '--width=%(width)s' % env,
-       '--alt-autoscale-max',
-       '--lower-limit=0',
-       '--units-exponent=6',
-       '--vertical-label=%(label)s' % env]
+cmd = [fname,] + basicArgs(env) + ['--base=1000',
+                                   '--vertical-label=%(label)s' % env]
 ifiles = []
 ofiles = []
 perf = os.path.join(os.environ['ZENHOME'], 'perf')

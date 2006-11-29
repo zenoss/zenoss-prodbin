@@ -1,23 +1,17 @@
 import rrdtool
+import re
 import Globals
 try:
     from Products.ZenRRD.plugins.plugin import *
 except ImportError:
     from plugin import *
 
-locals().setdefault('REQUEST', None)
-locals().setdefault('name', 'test')
-if locals().has_key('self'):
-    dmd = self.dmd
-if not locals().has_key('dmd'):
-    from Products.ZenUtils.ZCmdBase import ZCmdBase
-    locals()['dmd'] = ZCmdBase().dmd
-
 title = 'Aggregate Disk Use'
 label = 'Gigabytes'
 env = locals().copy()
 args = getArgs(REQUEST, env)
-
+for k, v in env.items():
+    locals()[k] = v
 fname = "%s/graph-%s.png" % (TMPDIR,name)
 
 total = 0l
@@ -27,12 +21,14 @@ cdefs = []
 lcdef = ['CDEF:lcdef=']
 stacks=[]
 lcolors = len(colors)
+devicePat = re.compile('.*' + env.get('devices', '') + '.*')
 for i, f in enumerate(dmd.Devices.getSubComponents(meta_type='FileSystem')):
     available = f.totalBlocks * f.blockSize
     rrdFile = perf + f.getRRDFileName('usedBlocks_usedBlocks')
     if not os.path.exists(rrdFile):
         rrdFile = perf + f.getRRDFileName('disk_usedBlocks')
     if not os.path.exists(rrdFile): continue
+    if not devicePat.match(rrdFile): continue
     files.append(rrdFile)
     defs.append('DEF:d%d=%s:ds0:AVERAGE' % (i, rrdFile))
     cdefs.append('CDEF:c%d=d%d,%d,*' % (i, i, f.blockSize))
@@ -50,5 +46,7 @@ cmd.extend(['GPRINT:lcdef:LAST:Current\\:%8.2lf %s',
             'GPRINT:lcdef:MAX:Maximum\\:%8.2lf %s'])
 cmd = [c.strip() for c in cmd if c.strip()]
 import rrdtool
-rrdtool.graph(*cmd)
-graph = open(fname, 'rb').read()
+graph = None
+if defs:
+    rrdtool.graph(*cmd)
+    graph = open(fname, 'rb').read()

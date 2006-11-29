@@ -11,10 +11,6 @@ try:
 except ImportError:
     from plugin import *
 
-# set variables for command-line testing
-locals().setdefault('REQUEST', None)
-locals().setdefault('name', 'test')
-
 title = 'Aggregate Idle Time'
 label = 'Idle'
 width = 500
@@ -24,15 +20,9 @@ end='now'
 rpn = ''
 
 env = locals().copy()
-args = []
-if REQUEST:
-    REQUEST.response.setHeader('Content-type', 'image/png')
-    kv = zip(REQUEST.keys(), REQUEST.values())
-    env.update(dict(kv))
-    for k, v in kv:
-       if k == 'arg':
-          args.append(v)
-
+args = getArgs(REQUEST, env)
+for k, v in env.items():
+    locals()[k] = v
 fname = "%s/graph-%s.png" % (TMPDIR,name)
 cmd = [fname,
        '--imgformat=PNG',
@@ -104,6 +94,7 @@ cmd.extend(['GPRINT:lcdef:LAST:Current\\:%8.2lf %s',
             'GPRINT:lcdef:MAX:Maximum\\:%8.2lf %s'])
 cmd = [c.strip() for c in cmd if c.strip()]
 import rrdtool
-open('/tmp/ttt', 'w').write(`cmd` + '\n')
-rrdtool.graph(*cmd)
-graph = read(fname)
+graph = None
+if defs:
+    rrdtool.graph(*cmd)
+    graph = open(fname, 'rb').read()

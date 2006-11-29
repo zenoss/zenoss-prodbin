@@ -10,10 +10,6 @@ try:
 except ImportError:
     from plugin import *
 
-# set variables for command-line testing
-locals().setdefault('REQUEST', None)
-locals().setdefault('name', 'test')
-
 title = 'Upper Lower Graph'
 label = ''
 width = 500
@@ -26,22 +22,16 @@ upperLabel = 'Out'
 start='-7d'
 end='now'
 rpn = ''
-devices='.*'
 
 env = locals().copy()
-if REQUEST:
-    REQUEST.response.setHeader('Content-type', 'image/png')
-    env.update(dict(zip(REQUEST.keys(), REQUEST.values())))
-fname = "%s/graph-%s.png" % (TMPDIR,name)
 args = getArgs(REQUEST, env)
-args = args or ['--units-exponent=6']
 for k, v in env.items():
     locals()[k] = v
+fname = "%s/graph-%s.png" % (TMPDIR,name)
 lfiles = []
 ufiles = []
 perf = os.path.join(os.environ['ZENHOME'], 'perf')
-rpn = env['rpn']
-devPat = re.compile('.*%s.*' % devices)
+devPat = re.compile('.*%s.*' % env.get('devices', ''))
 for d, _, fs in os.walk(perf):
     if not devPat.match(d): continue
     for f in fs:
@@ -81,14 +71,15 @@ lcolor = len(colors)
 for i in range(count):
     stacks.append('AREA:c%d#%s::STACK' % (i, colors[i % lcolor]))
 cmd = [fname] + basicArgs(env) + defs + cdefs + [lcdef1, lcdef2] + stacks
-cmd.extend(['GPRINT:lcdef2:LAST:%s Current\\:%%8.2lf %%s' % upperLabel,
+cmd.extend(['GPRINT:lcdef2:LAST:%(upperLabel)s Current\\:%%8.2lf %%s' % env,
             'GPRINT:lcdef2:AVERAGE:Average\\:%8.2lf %s',
             'GPRINT:lcdef2:MAX:Maximum\\:%8.2lf %s\\n'])
-cmd.extend(['GPRINT:lcdef1:LAST:%s Current\\:%%8.2lf %%s' % lowerLabel,
+cmd.extend(['GPRINT:lcdef1:LAST:%(lowerLabel)s Current\\:%%8.2lf %%s' % env,
             'GPRINT:lcdef1:AVERAGE:Average\\:%8.2lf %s',
             'GPRINT:lcdef1:MAX:Maximum\\:%8.2lf %s\\n'])
 cmd = [c.strip() for c in cmd if c.strip()]
 import rrdtool
-print cmd
-rrdtool.graph(*cmd)
-graph = read(fname)
+graph = None
+if defs:
+    rrdtool.graph(*cmd)
+    graph = read(fname)
