@@ -18,12 +18,13 @@ from AccessControl import Permissions as permissions
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
+from Commandable import Commandable
 
 from MaintenanceWindow import OrganizerMaintenanceWindow
 
 from Products.ZenRelations.RelSchema import *
 
-class DeviceOrganizer(Organizer, DeviceManagerBase):
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -75,6 +76,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
         ("maintenanceWindows",
          ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
        )
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
@@ -260,7 +262,20 @@ class DeviceOrganizer(Organizer, DeviceManagerBase):
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
-                          
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return self.getSubDevices()        
+
+
+    def getUserCommandEnvironment(self, context, target):
+        environ = Commandable.getUserCommandEnvironment(self, context, target)
+        environ.update({'dev': target,  'device': target,})
+        return environ
+
 
 InitializeClass(DeviceOrganizer)
 

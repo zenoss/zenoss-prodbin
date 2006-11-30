@@ -13,6 +13,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
+from Commandable import Commandable
 
 from Products.ZenRelations.RelSchema import *
 
@@ -29,7 +30,7 @@ def manage_addServiceOrganizer(context, id, REQUEST = None):
 
 addServiceOrganizer = DTMLFile('dtml/addServiceOrganizer',globals())
 
-class ServiceOrganizer(Organizer):
+class ServiceOrganizer(Organizer, Commandable):
     meta_type = "ServiceOrganizer"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -42,8 +43,9 @@ class ServiceOrganizer(Organizer):
 
     _relations = (
         ("serviceclasses", ToManyCont(ToOne,"ServiceClass","serviceorganizer")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )
-
+        
     factory_type_information = ( 
         { 
             'id'             : 'ServiceOrganizer',
@@ -57,6 +59,12 @@ class ServiceOrganizer(Organizer):
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'serviceOrganizerOverview'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'serviceOrganizerManage'
                 , 'permissions'   : (
                   Permissions.view, )
                 },
@@ -199,6 +207,17 @@ class ServiceOrganizer(Organizer):
         zcat.addIndex('serviceKeys', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
 
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        targets = []
+        for sc in self.serviceclasses():
+            targets += sc.getUserCommandTargets()
+        for so in self.children():
+            targets += so.getUserCommandTargets()
+        return targets            
 
 
 InitializeClass(ServiceOrganizer)

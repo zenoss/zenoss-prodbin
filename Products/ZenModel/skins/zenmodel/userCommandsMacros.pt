@@ -1,0 +1,77 @@
+﻿
+
+<form method="post" tal:attributes="action here/absolute_url_path"
+    metal:define-macro="userCommandsTable"
+    tal:define="objects here/userCommands/objectValuesAll;
+    editable here/isManager;
+    tableName string:userCommands;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+      <th class="tabletitle" colspan="5">
+        Define Commands
+      </th>
+    </tr>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'primarySortKey','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Description')"/>
+  </tr>
+  <tr tal:repeat="uc batch">
+    <td class="tablevalues" align="left">
+       <input type="hidden" name="ids" 
+              tal:attributes="value uc/getId"/>
+       <input type="checkbox" name="delids" 
+              tal:attributes="value uc/getId"/>
+        <a href="_" 
+        tal:attributes="href uc/absolute_url"
+        tal:content="uc/getId">command</a>
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="uc/description">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="5" class="tableheader">
+        <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+    </td>
+  </tr>
+    <tr tal:condition="here/isManager">
+    <td class="tableheader" colspan="5">
+        <input type="hidden" name="id" tal:attributes="value here/getId"/>
+        <input class="tableheader" type="text" name="newId"/>
+
+        <input class="tableheader" type="submit" 
+            name="manage_addUserCommand:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteUserCommand:method" value=" Delete " />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+    </tr>
+</table>
+</form>
+
+
+<tr metal:define-macro="runCommand">
+    <td class="tableheader">
+        Run Command
+    </td>
+    <td class="tableheader">
+        <select class="tableheader" name="commandId">
+            <option tal:repeat="uc here/getUserCommands"
+                    tal:attributes="value uc/getId;
+                        selected python:getattr(request,'commandId',None)==uc.id"
+                    tal:content="uc/getId" />
+        </select>
+        &nbsp;&nbsp;
+        <input class="tableheader" type="submit" 
+            name="manage_doUserCommand:method" value=" Run " /> 
+    </td>
+</tr>

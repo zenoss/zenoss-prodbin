@@ -1,0 +1,54 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" />
+    <input type="hidden" name="commandId"
+        tal:attributes="value here/id" />
+<table class="zentable" cellpadding="3" cellspacing="1"
+        tal:define="editable here/isManager">
+    <tr>
+      <th class="tabletitle" colspan="3">
+        Define Commands
+      </th>
+    </tr>
+    <tr tal:condition="exists: request/message">
+        <th class=tabletitle colspan="2"
+            tal:content="string: ${request/message} ${here/getNowString}"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:content="here/getId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" tal:condition="editable">
+            <textarea name="description:text" rows="4" cols="50"
+                        tal:content="here/description">
+            </textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable" 
+            tal:content="here/description"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Command</td>
+        <td class="tablevalues" tal:condition="editable">
+            <textarea name="command:text" rows="4" cols="50"
+                        tal:content="here/command">
+            </textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:editable" 
+            tal:content="here/description"/>
+    </tr>
+    <tr>
+        <td align="left"  class="tableheader" colspan=2>
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editUserCommand:method"/>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+</tal:block>

@@ -14,7 +14,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
-
+from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 
 from Organizer import Organizer
@@ -30,7 +30,7 @@ def manage_addOSProcessOrganizer(context, id, REQUEST = None):
 
 addOSProcessOrganizer = DTMLFile('dtml/addOSProcessOrganizer',globals())
 
-class OSProcessOrganizer(Organizer):
+class OSProcessOrganizer(Organizer, Commandable):
     meta_type = "OSProcessOrganizer"
     dmdRootName = "Processes"
     #default_catalog = "osprocessSearch"
@@ -44,6 +44,7 @@ class OSProcessOrganizer(Organizer):
     _relations = (
         ("osProcessClasses", ToManyCont(
             ToOne,"OSProcessClass","osProcessOrganizer")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )
 
     factory_type_information = ( 
@@ -54,6 +55,12 @@ class OSProcessOrganizer(Organizer):
                 { 'id'            : 'overview'
                 , 'name'          : 'Overview'
                 , 'action'        : 'osProcessOrganizerOverview'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'osProcessOrganizerManage'
                 , 'permissions'   : (
                   Permissions.view, )
                 },
@@ -162,6 +169,18 @@ class OSProcessOrganizer(Organizer):
         self._setProperty("zAlertOnRestart", False, type="boolean")
         self._setProperty("zMonitor", True, type="boolean")
         self._setProperty("zFailSeverity", 4, type="int")
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        targets = []
+        for osc in self.osProcessClasses():
+            targets += osc.getUserCommandTargets()
+        for org in self.children():
+            targets += org.getUserCommandTargets()
+        return targets            
 
 
 InitializeClass(OSProcessOrganizer)

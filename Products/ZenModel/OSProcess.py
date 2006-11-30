@@ -7,12 +7,12 @@
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
-
+from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
 
-class OSProcess(OSComponent):
+class OSProcess(OSComponent, Commandable):
     """Hardware object"""
     portal_type = meta_type = 'OSProcess'
 
@@ -30,6 +30,7 @@ class OSProcess(OSComponent):
     _relations = OSComponent._relations + (
         ("os", ToOne(ToManyCont, "OperatingSystem", "processes")),
         ("osProcessClass", ToOne(ToMany, "OSProcessClass", "instances")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
     )
 
     factory_type_information = (
@@ -147,6 +148,19 @@ class OSProcess(OSComponent):
         if REQUEST:
             REQUEST['message'] = ", ".join(msg) + ":"
             return self.callZenScreen(REQUEST)
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return [self]     
+
+
+    def getUserCommandEnvironment(self, context):
+        environ = Commandable.getUserCommandEnvironment(self, context)
+        environ.update({'proc': self,  'process': self,})
+        return environ
 
 
 InitializeClass(OSProcess)

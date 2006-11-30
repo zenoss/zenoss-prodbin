@@ -48,3 +48,4 @@ import casesensitive_catalogs
 import zlinks
 import smtpsnpp
 import monitors
+import usercommands

@@ -1,0 +1,36 @@
+<html> 
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body>
+        <div id="frame">
+            <div metal:use-macro="here/templates/macros/topPane"/>
+            <div metal:use-macro="here/templates/macros/leftPane"/>
+            <div id="rightPane"/>
+            <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+            <div metal:use-macro="here/templates/macros/tabsPane"/>
+            <script type="text/javascript">zenPageInit()</script>
+            <div id="contentPane">
+                <table class="zentable" cellpadding="3" cellspacing="0">
+                    <tr><th class="tabletitle">Command Output</th></tr>
+                    <tr>
+                        <td class="tablevalues" valign="top">
+                            Command:
+                            <tal:block tal:content="request/cmd/command" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tablevalues" valign="top">
+                            Description:
+                            <tal:block tal:content="request/cmd/description" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tablevalues" valign="top">
+                            Output:
+                        </td>
+                    </tr>
+                    OUTPUT_TOKEN
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

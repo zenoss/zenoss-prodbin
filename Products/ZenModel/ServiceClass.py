@@ -18,6 +18,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
+from Commandable import Commandable
 
 from Products.ZenRelations.RelSchema import *
 
@@ -38,7 +39,7 @@ def manage_addServiceClass(context, id=None, REQUEST = None):
 
 addServiceClass = DTMLFile('dtml/addServiceClass',globals())
 
-class ServiceClass(ZenModelRM):
+class ServiceClass(ZenModelRM, Commandable):
     meta_type = "ServiceClass"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -60,6 +61,7 @@ class ServiceClass(ZenModelRM):
         ("instances", ToMany(ToOne, "Service", "serviceclass")),
         ("serviceorganizer", 
             ToOne(ToManyCont,"ServiceOrganizer","serviceclasses")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )
 
 
@@ -83,6 +85,12 @@ class ServiceClass(ZenModelRM):
                 , 'name'          : 'Edit'
                 , 'action'        : 'serviceClassEdit'
                 , 'permissions'   : ("Manage DMD", )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'serviceClassManage'
+                , 'permissions'   : (
+                  Permissions.view, )
                 },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
@@ -178,6 +186,12 @@ class ServiceClass(ZenModelRM):
             REQUEST['message'] = "Saved at time:"
             return self.callZenScreen(REQUEST, redirect)
    
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return self.instances()        
 
 
 InitializeClass(ServiceClass)

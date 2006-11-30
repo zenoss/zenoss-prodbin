@@ -50,6 +50,8 @@ from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import SnmpStatus
 from MaintenanceWindow import DeviceMaintenanceWindow
 from AdministrativeRole import DeviceAdministrativeRole
+from UserCommand import UserCommand
+from Commandable import Commandable
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -177,7 +179,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity):
+class Device(ManagedEntity, Commandable):
     """
     Device is a key class within zenoss.  It represents the combination of
     computer hardware running an operating system.
@@ -228,6 +230,7 @@ class Device(ManagedEntity):
         ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
         ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
         )
 
@@ -806,7 +809,6 @@ class Device(ManagedEntity):
             REQUEST['message'] = "Maintenace Window Deleted"
             return self.callZenScreen(REQUEST)
                           
-
     security.declareProtected('Change Device', 'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId, REQUEST=None):
         "Add a Admin Role to this device"
@@ -1225,5 +1227,19 @@ class Device(ManagedEntity):
                     RRDView.updateCache(zip(paths, result))
             except Exception:
                 log.exception("Unable to cache values for %s", self.id);
-            
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return [self]
+
+
+    def getUserCommandEnvironment(self, context):
+        environ = Commandable.getUserCommandEnvironment(self, context)
+        environ.update({'dev': self,  'device': self,})
+        return environ
+
+
 InitializeClass(Device)

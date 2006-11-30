@@ -17,16 +17,18 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
+from Commandable import Commandable
 
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
 
-class Service(OSComponent):
+class Service(OSComponent, Commandable):
     portal_type = meta_type = 'Service'
    
     _relations = OSComponent._relations + (
         ("serviceclass", ToOne(ToMany,"ServiceClass","instances")),
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )
 
     security = ClassSecurityInfo()
@@ -94,3 +96,14 @@ class Service(OSComponent):
             return self.callZenScreen(REQUEST)
 
 
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return [self]     
+
+
+    def getUserCommandEnvironment(self, context):
+        environ = Commandable.getUserCommandEnvironment(self, context)
+        environ.update({'serv': self,  'service': self,})
+        return environ

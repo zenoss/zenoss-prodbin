@@ -12,6 +12,9 @@
     tal:attributes="value template/id" /> 
 <table class="zentable" border=0 cellpadding=3 cellspacing=1>
   <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
+
+    <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
+
     <tr>
         <td class="tableheader" align="left">Device Class Path</td>
         <td class="tableheader" align="left" colspan=3>
@@ -77,6 +80,10 @@
   </tr>
   </table>
 </form>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+<span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
