@@ -157,6 +157,14 @@ class SshPool:
     def get(self, cmd):
         "Make an ssh connection if there isn't one available"
         result = self.pool.get(cmd.device, None)
+        ##### <Hack> ######
+        # In some cases the existing ssh connection is bad.
+        # Circumventing use of pre-existing connections for now.
+        # See ticket #648
+        if result:
+            self._close(cmd.device)
+            result = None
+        ##### </Hack> #####
         if result is None:
             log.debug("Creating connection to %s", cmd.device)
             options = Options(cmd.username, cmd.password,
