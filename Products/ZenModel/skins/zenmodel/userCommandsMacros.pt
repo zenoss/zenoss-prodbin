@@ -61,8 +61,7 @@
 
 <tr metal:define-macro="runCommand">
     <td class="tableheader">
-        Run Command
-    </td>
+        Run Command against all Devices within this Organizer
     <td class="tableheader">
         <select class="tableheader" name="commandId">
             <option tal:repeat="uc here/getUserCommands"

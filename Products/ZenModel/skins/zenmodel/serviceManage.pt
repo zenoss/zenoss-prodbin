@@ -6,7 +6,7 @@
     <table class="zentable" cellpadding="3" cellspacing="1">
         <tr>
             <th class="tabletitle" colspan="2">
-                Process Management
+                Service Management
             </th>
         </tr>
         <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />

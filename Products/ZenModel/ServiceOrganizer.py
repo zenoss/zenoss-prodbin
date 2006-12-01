@@ -65,8 +65,7 @@ class ServiceOrganizer(Organizer, Commandable):
                 { 'id'            : 'manage'
                 , 'name'          : 'Manage'
                 , 'action'        : 'serviceOrganizerManage'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'

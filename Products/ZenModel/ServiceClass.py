@@ -89,8 +89,7 @@ class ServiceClass(ZenModelRM, Commandable):
                 { 'id'            : 'manage'
                 , 'name'          : 'Manage'
                 , 'action'        : 'serviceClassManage'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'

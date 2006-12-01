@@ -48,6 +48,11 @@ class OSProcess(OSComponent, Commandable):
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
                 },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'osProcessManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

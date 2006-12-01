@@ -61,8 +61,7 @@ class OSProcessOrganizer(Organizer, Commandable):
                 { 'id'            : 'manage'
                 , 'name'          : 'Manage'
                 , 'action'        : 'osProcessOrganizerManage'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
