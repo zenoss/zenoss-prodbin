@@ -103,7 +103,8 @@ class Service(OSComponent, Commandable):
         return [self]     
 
 
-    def getUserCommandEnvironment(self, context):
-        environ = Commandable.getUserCommandEnvironment(self, context)
-        environ.update({'serv': self,  'service': self,})
+    def getUserCommandEnvironment(self):
+        environ = Commandable.getUserCommandEnvironment(self)
+        context = self.primaryAq()
+        environ.update({'serv': context,  'service': context,})
         return environ

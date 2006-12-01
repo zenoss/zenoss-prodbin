@@ -271,11 +271,5 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable):
         return self.getSubDevices()        
 
 
-    def getUserCommandEnvironment(self, context, target):
-        environ = Commandable.getUserCommandEnvironment(self, context, target)
-        environ.update({'dev': target,  'device': target,})
-        return environ
-
-
 InitializeClass(DeviceOrganizer)
 

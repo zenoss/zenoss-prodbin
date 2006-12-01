@@ -106,7 +106,7 @@ class Commandable:
             try:
                 self.write(out, '')
                 self.write(out, '==== %s ====' % target.id)
-                self.doCommandForTarget(command, self, target, out)
+                self.doCommandForTarget(command, target, out)
             except:
                 self.write(out,
                     'exception while performing command for %s' % target.id)
@@ -119,6 +119,40 @@ class Commandable:
         self.write(out, 'DONE in %s seconds on %s targets' % 
                     (long(time.time() - startTime), numTargets))
         REQUEST.RESPONSE.write(footer)
+
+
+    def doCommandForTarget(self, cmd, target, out):
+        ''' Execute the given UserCommand on the given target and context.
+        '''
+        compiled = self.compile(cmd, target)
+        child = popen2.Popen4(compiled)
+        flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
+        fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
+        timeout = getattr(target, 'zCommandCommandTimeout', self.defaultTimeout)
+        endtime = time.time() + max(timeout, 1)
+        self.write(out, '%s' % compiled)
+        self.write(out, '')
+        while time.time() < endtime and child.poll() == -1:
+            readable, writable, errors = \
+                                select.select([child.fromchild], [], [], 1)
+            if readable:
+                self.write(out, child.fromchild.read())
+        if child.poll() == -1:
+            self.write(out, 'Command timed out for %s' % target.id +
+                            ' (timeout is %s seconds)' % timeout)
+            os.kill(child.pid, signal.SIGKILL)
+
+
+    def compile(self, cmd, target):
+        ''' Evaluate command as a tales expression
+        '''
+        exp = "string:"+ cmd.command
+        compiled = talesCompile(exp)
+        environ = target.getUserCommandEnvironment()
+        res = compiled(getEngine().getContext(environ))
+        if isinstance(res, Exception):
+            raise res
+        return res
 
 
     security.declareProtected('Change Device', 'getUserCommands')
@@ -163,42 +197,8 @@ class Commandable:
         '''
         return self.getUserCommands(asDict=True).get(commandId, None)
 
-        
-    def doCommandForTarget(self, cmd, context, target, out):
-        ''' Execute the given UserCommand on the given target and context.
-        '''
-        compiled = self.compile(cmd, context, target)
-        child = popen2.Popen4(compiled)
-        flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
-        fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
-        timeout = getattr(target, 'zCommandCommandTimeout', self.defaultTimeout)
-        endtime = time.time() + max(timeout, 1)
-        self.write(out, '%s' % compiled)
-        self.write(out, '')
-        while time.time() < endtime and child.poll() == -1:
-            readable, writable, errors = \
-                                select.select([child.fromchild], [], [], 1)
-            if readable:
-                self.write(out, child.fromchild.read())
-        if child.poll() == -1:
-            self.write(out, 'Command timed out for %s' % target.id +
-                            ' (timeout is %s seconds)' % timeout)
-            os.kill(child.pid, signal.SIGKILL)
-
-
-    def compile(self, cmd, context, target):
-        ''' Evaluate command as a tales expression with the given context
-        '''
-        exp = "string:"+ cmd.command
-        compiled = talesCompile(exp)
-        environ = target.getUserCommandEnvironment(context)
-        res = compiled(getEngine().getContext(environ))
-        if isinstance(res, Exception):
-            raise res
-        return res
-
     
-    def getUserCommandEnvironment(self, context):
+    def getUserCommandEnvironment(self):
         ''' Get the environment that provides context for the tales
         evaluation of a UserCommand.
         '''

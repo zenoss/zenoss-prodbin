@@ -157,9 +157,10 @@ class OSProcess(OSComponent, Commandable):
         return [self]     
 
 
-    def getUserCommandEnvironment(self, context):
-        environ = Commandable.getUserCommandEnvironment(self, context)
-        environ.update({'proc': self,  'process': self,})
+    def getUserCommandEnvironment(self):
+        environ = Commandable.getUserCommandEnvironment(self)
+        context = self.primaryAq()
+        environ.update({'proc': context,  'process': context,})
         return environ
 
 

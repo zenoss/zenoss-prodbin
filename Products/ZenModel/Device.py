@@ -1236,9 +1236,10 @@ class Device(ManagedEntity, Commandable):
         return [self]
 
 
-    def getUserCommandEnvironment(self, context):
-        environ = Commandable.getUserCommandEnvironment(self, context)
-        environ.update({'dev': self,  'device': self,})
+    def getUserCommandEnvironment(self):
+        environ = Commandable.getUserCommandEnvironment(self)
+        context = self.primaryAq()
+        environ.update({'dev': context,  'device': context,})
         return environ
 
 
