@@ -112,8 +112,6 @@ class Commandable:
                     'exception while performing command for %s' % target.id)
                 self.write(
                     out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-                self.write(out, 'traceback:')
-                self.write(out,traceback.format_list(traceback.extract_tb(sys.exc_info()[2])))
             self.write(out, '')
         self.write(out, '')
         self.write(out, 'DONE in %s seconds on %s targets' % 
@@ -129,14 +127,17 @@ class Commandable:
         flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
         fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
         timeout = getattr(target, 'zCommandCommandTimeout', self.defaultTimeout)
-        endtime = time.time() + max(timeout, 1)
+        timeout = max(timeout, 1)
+        endtime = time.time() + timeout
         self.write(out, '%s' % compiled)
         self.write(out, '')
-        while time.time() < endtime and child.poll() == -1:
-            readable, writable, errors = \
-                                select.select([child.fromchild], [], [], 1)
-            if readable:
-                self.write(out, child.fromchild.read())
+        firstPass = True
+        while time.time() < endtime and (firstPass or child.poll() == -1):
+            firstPass = False
+            r, w, e = select.select([child.fromchild], [], [], 1)
+            if r:
+                self.write(out, child.fromchild.read().strip())
+                    
         if child.poll() == -1:
             self.write(out, 'Command timed out for %s' % target.id +
                             ' (timeout is %s seconds)' % timeout)
