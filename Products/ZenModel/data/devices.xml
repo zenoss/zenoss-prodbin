@@ -2454,7 +2454,7 @@ False
 False
 </property>
 <property type='boolean' id='stacked' mode='w' >
-False
+True
 </property>
 <property type='boolean' id='summary' mode='w' >
 True
