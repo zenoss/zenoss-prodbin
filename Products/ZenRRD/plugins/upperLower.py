@@ -74,7 +74,7 @@ if lcount != count:
     stacks.append('AREA:c%d#%s' % (lcount, colors[lcount % lcolor]))
 for i in range(lcount + 1, count):
     stacks.append('AREA:c%d#%s::STACK' % (i, colors[i % lcolor]))
-cmd = [fname] + basicArgs(env) + defs + cdefs + [lcdef1, lcdef2] + stacks
+cmd = [fname] + basicArgs(env) + args + defs + cdefs + [lcdef1, lcdef2] + stacks
 cmd.extend(['GPRINT:lcdef2:LAST:%(upperLabel)s Current\\:%%8.2lf %%s' % env,
             'GPRINT:lcdef2:AVERAGE:Average\\:%8.2lf %s',
             'GPRINT:lcdef2:MAX:Maximum\\:%8.2lf %s\\n'])
