@@ -86,7 +86,7 @@ class Commandable:
         # This could be changed so that output is sent through a
         # logger so that non web-based code can produce output.
         # Not necessary for now.
-        command = self.getUserCommands(self, asDict=True).get(commandId,None)
+        command = self.getUserCommands(asDict=True).get(commandId,None)
         if not command:
             if REQUEST:
                 self.redirectToManageTab(REQUEST, commandId)
