@@ -208,7 +208,12 @@ class SshRunner:
         "Initiate a command on the remote device"
         self.defer = defer.Deferred()
         c = self.pool.get(cmd)
-        d = Timeout(c.addCommand(cmd.command), cmd.commandTimeout, cmd)
+        try:
+            d = Timeout(c.addCommand(cmd.command), cmd.commandTimeout, cmd)
+        except Exception, ex:
+            log.exception(ex)
+            self.pool.close(cmd)
+            return defer.fail(ex)
         d.addErrback(self.timeout)
         d.addBoth(self.processEnded)
         return d
