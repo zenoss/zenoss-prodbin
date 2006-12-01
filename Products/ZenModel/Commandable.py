@@ -205,7 +205,7 @@ class Commandable:
         # Overridden by Service and Device
         return {
                 'target': self,
-                'here': context, 
+                'here': self, 
                 'nothing': None,
                 'now': DateTime()
                 }
