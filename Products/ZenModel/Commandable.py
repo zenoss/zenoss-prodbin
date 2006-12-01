@@ -131,12 +131,18 @@ class Commandable:
         endtime = time.time() + timeout
         self.write(out, '%s' % compiled)
         self.write(out, '')
+        pollPeriod = 1
         firstPass = True
         while time.time() < endtime and (firstPass or child.poll() == -1):
             firstPass = False
-            r, w, e = select.select([child.fromchild], [], [], 1)
+            r, w, e = select.select([child.fromchild], [], [], pollPeriod)
             if r:
-                self.write(out, child.fromchild.read().strip())
+                t = child.fromchild.read()
+                # We are sometimes getting to this point without any data
+                # from child.fromchild.  I don't think that should happen
+                # but the conditional below seems to be necessary.
+                if t:
+                    self.write(out, t)
                     
         if child.poll() == -1:
             self.write(out, 'Command timed out for %s' % target.id +
