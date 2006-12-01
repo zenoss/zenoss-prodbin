@@ -58,14 +58,28 @@ def basicArgs(env):
             '--vertical-label=%(label)s' % env]
 
 def getArgs(REQUEST, env):
-    env['arg'] = []
+    env.setdefault('arg', [])
+    args = []
     if REQUEST:
         REQUEST.response.setHeader('Content-type', 'image/png')
         kv = zip(REQUEST.keys(), REQUEST.values())
         env.update(dict(kv))
+    miny = env.get('miny', '')
+    maxy = env.get('maxy', '')
+    if miny:
+        del env['miny']
+        args.append('--lower-limit=%s' % miny)
+    if maxy:
+        del env['maxy']
+        args.append('--upper-limit=%s' % maxy)
+    if miny or maxy:
+        args.append('-r')
     if type(env['arg']) == type(''):
-        env['arg'] = [env['arg']]
-    return env['arg']
+        args = [env['arg']] + args
+    else:
+        args += env['arg']
+    env['arg'] = args
+    return args
 
     
 now = time.time()
