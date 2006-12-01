@@ -120,7 +120,7 @@ class Commandable:
 
 
     def doCommandForTarget(self, cmd, target, out):
-        ''' Execute the given UserCommand on the given target and context.
+        ''' Execute the given UserCommand on the given target
         '''
         compiled = self.compile(cmd, target)
         child = popen2.Popen4(compiled)
@@ -163,13 +163,11 @@ class Commandable:
 
 
     security.declareProtected('Change Device', 'getUserCommands')
-    def getUserCommands(self, context=None, asDict=False):
+    def getUserCommands(self, asDict=False):
         ''' Get the user commands available in this context
         '''
         commands = {}
-        if not context:
-            context = self
-        mychain = aq_chain(context)
+        mychain = aq_chain(self)
         mychain.reverse()
         for obj in mychain:
             if getattr(aq_base(obj), 'userCommands', None):
