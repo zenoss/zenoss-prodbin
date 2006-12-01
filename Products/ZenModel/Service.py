@@ -108,10 +108,9 @@ class Service(OSComponent, Commandable):
         context = self.primaryAq()
         environ.update({'serv': context,  'service': context,})
         return environ
-        
-    security.declareProtected('Change Device', 'getUserCommands')
-    def getUserCommands(self, asDict=False):
-        ''' Get the user commands available in this context
-        '''
-        c = self.getClassObject().primaryAq()
-        return c.getUserCommands(asDict=asDict)
+
+
+    def getAqChainForUserCommands(self):
+        chain = aq_chain(self.getClassObject().primaryAq())
+        chain.insert(0, self)
+        return chain
