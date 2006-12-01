@@ -108,3 +108,10 @@ class Service(OSComponent, Commandable):
         context = self.primaryAq()
         environ.update({'serv': context,  'service': context,})
         return environ
+
+
+    def getAqChainForUserCommands(self):
+        chain = aq_chain(self.getClassObject())
+        chain.insert(0, self)
+        return chain
+

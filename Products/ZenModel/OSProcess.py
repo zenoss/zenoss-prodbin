@@ -169,4 +169,9 @@ class OSProcess(OSComponent, Commandable):
         return environ
 
 
+    def getAqChainForUserCommands(self):
+        chain = aq_chain(self.getClassObject())
+        chain.insert(0, self)
+        return chain
+
 InitializeClass(OSProcess)
