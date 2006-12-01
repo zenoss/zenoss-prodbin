@@ -167,9 +167,7 @@ class Commandable:
         ''' Get the user commands available in this context
         '''
         commands = {}
-        mychain = self.getAqChainForUserCommands()
-        #mychain = self.getClassObject().primaryAq()
-        #mychain = aq_chain(self)
+        mychain = aq_chain(self.primaryAq())
         mychain.reverse()
         for obj in mychain:
             if getattr(aq_base(obj), 'userCommands', None):
@@ -181,10 +179,6 @@ class Commandable:
             commands = commands.values()
             commands.sort(cmpCommands)
         return commands
-
-
-    def getAqChainForUserCommands(self):
-        return aq_chain(self)
 
 
     def redirectToManageTab(self, REQUEST, commandId=None):
