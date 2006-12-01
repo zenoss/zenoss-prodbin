@@ -60,8 +60,12 @@
 
 
 <tr metal:define-macro="runCommand">
-    <td class="tableheader">
+    <td class="tableheader" tal:condition="not: exists: here/manageIp">
         Run Command against all Devices within this Organizer
+    </td>
+    <td class="tableheader" tal:condition="exists: here/manageIp">
+        Run Command against this Device
+    </td>
     <td class="tableheader">
         <select class="tableheader" name="commandId">
             <option tal:repeat="uc here/getUserCommands"
