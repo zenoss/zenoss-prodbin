@@ -75,23 +75,50 @@ class Commandable:
         command = self.getUserCommand(commandId)
         if command:
             command.manage_changeProperties(**REQUEST.form)
-        # Try to dig up a management tab from the factory information.
-        # If we can't find it then just stay on the edit page.
-        actions = [a for a in self.factory_type_information[0]['actions'] 
-                if a['name'] == 'Manage']
-        if actions:
-            url = '%s/%s?commandId=%s' % (self.getPrimaryUrlPath(), 
-                                        actions[0]['action'], command.id)
-            REQUEST.RESPONSE.redirect(url)
-        else:
-            return self.callZenScreen(REQUEST)
-
+        return self.redirectToManageTab(REQUEST, commandId)
+        
 
     security.declareProtected('Change Device', 'manage_doUserCommand')
     def manage_doUserCommand(self, commandId=None, REQUEST=None):
-        ''' Perform the given usercommand
+        ''' Execute a UserCommand. If REQUEST then
+        wrap output in proper zenoss html page.
         '''
-        self.doCommand(self, commandId, REQUEST)
+        # This could be changed so that output is sent through a
+        # logger so that non web-based code can produce output.
+        # Not necessary for now.
+        command = self.getUserCommands(self, asDict=True).get(commandId,None)
+        if not command:
+            if REQUEST:
+                self.redirectToManageTab(REQUEST, commandId)
+            return
+        if REQUEST:
+            REQUEST['cmd'] = command
+            header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
+            REQUEST.RESPONSE.write(header)
+            out = REQUEST.RESPONSE
+        else:
+            out = None
+        
+        startTime = time.time()
+        numTargets = 0
+        for target in self.getUserCommandTargets():
+            numTargets += 1
+            try:
+                self.write(out, '')
+                self.write(out, '==== %s ====' % target.id)
+                self.doCommandForTarget(command, self, target, out)
+            except:
+                self.write(out,
+                    'exception while performing command for %s' % target.id)
+                self.write(
+                    out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+                self.write(out, 'traceback:')
+                self.write(out,traceback.format_list(traceback.extract_tb(sys.exc_info()[2])))
+            self.write(out, '')
+        self.write(out, '')
+        self.write(out, 'DONE in %s seconds on %s targets' % 
+                    (long(time.time() - startTime), numTargets))
+        REQUEST.RESPONSE.write(footer)
 
 
     security.declareProtected('Change Device', 'getUserCommands')
@@ -115,50 +142,26 @@ class Commandable:
         return commands
 
 
+    def redirectToManageTab(self, REQUEST, commandId=None):
+        ''' Redirect to the Manage tab for this Commandable object.
+        Pass the commandId if there is one so that it can be preselected
+        in the Run Command popup menu.
+        If there is no management tab for this object an exception will be
+        raised.
+        '''
+        # Try to dig up a management tab from the factory information.
+        action = [a for a in self.factory_type_information[0]['actions'] 
+                if a['name'] == 'Manage'][0]
+        url = '%s/%s' % (self.getPrimaryUrlPath(), action['action'])
+        if commandId:
+            url += '?commandId=%s' % commandId
+        return REQUEST.RESPONSE.redirect(url)
+
+
     def getUserCommand(self, commandId):
         ''' Returns the command from the current context if it exists
         '''
         return self.getUserCommands(asDict=True).get(commandId, None)
-
-
-    def doCommand(self, context, commandId, REQUEST=None):
-        ''' Execute a UserCommand on a single device if deviceId,
-        a single service if serviceId or all devices/services
-        in this container. If REQUEST then
-        wrap output in proper zenoss html page.
-        '''
-        # This could be changed so that output is sent through a
-        # logger so that non web-based code can produce output.
-        # Not necessary for now.
-        command = self.getUserCommands(context, asDict=True)[commandId]
-        if REQUEST:
-            REQUEST['cmd'] = command
-            header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
-            REQUEST.RESPONSE.write(header)
-            out = REQUEST.RESPONSE
-        else:
-            out = None
-        
-        startTime = time.time()
-        numTargets = 0
-        for target in self.getUserCommandTargets():
-            numTargets += 1
-            try:
-                self.write(out, '')
-                self.write(out, '==== %s ====' % target.id)
-                self.doCommandForTarget(command, context, target, out)
-            except:
-                self.write(out,
-                    'exception while performing command for %s' % target.id)
-                self.write(
-                    out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-                self.write(out, 'traceback:')
-                self.write(out,traceback.format_list(traceback.extract_tb(sys.exc_info()[2])))
-            self.write(out, '')
-        self.write(out, '')
-        self.write(out, 'DONE in %s seconds on %s targets' % 
-                    (long(time.time() - startTime), numTargets))
-        REQUEST.RESPONSE.write(footer)
 
         
     def doCommandForTarget(self, cmd, context, target, out):
