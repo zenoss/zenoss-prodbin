@@ -64,7 +64,7 @@
             tal:attributes="value here/linewidth" />
         </td>
         <td class="tablevalues" tal:condition="not:here/isManager" 
-            tal:content="here/units"/>
+            tal:content="here/linewidth"/>
     </tr>
     <tr>
         <td class="tableheader">Log</td>
