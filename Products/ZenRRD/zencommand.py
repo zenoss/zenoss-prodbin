@@ -36,7 +36,7 @@ NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.]+)([^;]*;?){0,5}""")
 # how to parse each value from a cacti command
 CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 
-MAX_CONNECTIONS=50
+MAX_CONNECTIONS=256
 
 class CommandConfig:
     def __init__(self, dictionary):
