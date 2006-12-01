@@ -105,7 +105,10 @@ class Commandable:
             numTargets += 1
             try:
                 self.write(out, '')
-                self.write(out, '==== %s ====' % target.id)
+                #name = target.id
+                name = '<a href="%s">%s</a>' % (target.absolute_url_path(),
+                                                target.id)
+                self.write(out, '==== %s ====' % name, isHtml=1)
                 self.doCommandForTarget(command, target, out)
             except:
                 self.write(out,
@@ -218,7 +221,7 @@ class Commandable:
         raise 'must be implemented by subclass'
 
 
-    def write(self, out, lines):
+    def write(self, out, lines, isHtml=0):
         ''' Output (maybe partial) result text from a UserCommand.
         '''
         # Looks like firefox renders progressive output more smoothly
@@ -232,7 +235,8 @@ class Commandable:
                 if not isinstance(l, str):
                     l = str(l)
                 l = l.strip()
-                l = cgi.escape(l)
+                if not isHtml:
+                    l = cgi.escape(l)
                 l = l.replace('\n', endLine + startLine)
                 out.write(startLine + l + endLine)
 
