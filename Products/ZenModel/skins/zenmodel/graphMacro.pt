@@ -1,0 +1,42 @@
+<span metal:define-macro="defaultGraphForm" tal:omit-tag="">
+   <tr><th class="tabletitle" colspan="4">
+         Edit graph parameters below, click the image to hide this form.
+       </th>
+    </tr><tr>
+      <td class="tablevalues">Width:</td>
+      <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
+      <td class="tablevalues">Height:</td>
+      <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
+    </tr><tr>
+      <td class="tablevalues">Min Y:</td>
+      <td class="tablevalues">
+         <input class="tablevalues" name="miny" value=""/>
+      </td>
+      <td class="tablevalues">Max Y:</td>
+      <td class="tablevalues">
+         <input class="tablevalues" name="maxy" value=""/>
+      </td>
+   </tr><tr>
+      <td class="tablevalues">Devices:</td>
+      <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
+      <td class="tablevalues">Span:</td>
+      <td class="tablevalues">
+          <select class="tablevalues" 
+                  name="start" onchange="getImage(this.form)">
+              <option value="-1d">One Day</option>
+              <option value="-1w" selected="True">One Week</option>
+              <option value="-2w">Two Weeks</option>
+              <option value="-1m">One Month</option>
+              <option value="-1y">One Year</option>
+          </select>
+      </td>
+   </tr>
+</span>
+
+<span metal:define-macro="defaultGraphFormEnd" tal:omit-tag="">
+     <tr>
+        <td class="tablevalues" colspan="4">
+          <input class="tablevalues" type="submit">
+        </td>
+     </tr>
+</span>

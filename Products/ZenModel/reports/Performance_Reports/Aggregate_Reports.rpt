@@ -44,31 +44,10 @@ function hideForms() {
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateCpu"/>
    <table class="zentable" cellpadding="3" cellspacing="1">
-     <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-      </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-     </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-     </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-     </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
     </table>
 </form>
 <img id="aggregateCpu:image" onclick="toggleForm(this)" 
@@ -80,31 +59,10 @@ function hideForms() {
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateFreeMemory"/>
    <table class="zentable" cellpadding="3" cellspacing="1">
-     <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-     </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-     </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-     </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-     </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
     </table>
 </form>
 <img id="aggregateFreeMemory:image" onclick="toggleForm(this)" 
@@ -115,31 +73,10 @@ function hideForms() {
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateSwap"/>
    <table class="zentable" cellpadding="3" cellspacing="1">
-     <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-     </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-     </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-     </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-     </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
     </table>
 </form>
 <img id="aggregateSwap:image" onclick="toggleForm(this)" 
@@ -150,39 +87,19 @@ function hideForms() {
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="aggregateDisks"/>
    <table class="zentable" cellpadding="3" cellspacing="1">
-     <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-     </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-     </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-     </tr><tr>
-        <td class="tablevalues">
-           <input type='checkbox' 
-                  class="tablevalues" 
-                  onchange="getImage(this.form)" 
-                  name='nolimit'/>Hide Limit
-        </td>
-        <td colspan="3" class="tablevalues"/>
-     </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-     </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <tr>
+          <td class="tablevalues">
+             <input type='checkbox' 
+                    class="tablevalues" 
+                    onchange="getImage(this.form)" 
+                    name='nolimit'/>Hide Limit
+          </td>
+          <td colspan="3" class="tablevalues"/>
+       </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
     </table>
 </form>
 <img id="aggregateDisks:image" onclick="toggleForm(this)" 
@@ -194,50 +111,18 @@ function hideForms() {
       onsubmit="getImage(this); return false">
     <input type="hidden" name="name" value="upperLower"/>
     <input type="hidden" name="arg" value="--units-exponent=6"/>
+    <input type="hidden" name="title" value="Network Output/Input"/>
+    <input type="hidden" name="label" value="Mbs"/>
+    <input type="hidden" name="upper" value="ifOutOctets"/>
+    <input type="hidden" name="lower" value="ifInOctets"/>
+    <input type="hidden" name="upperLabel" value="Out"/>
+    <input type="hidden" name="lowerLabel" value="In "/>
+    <input type="hidden" name="rpn" value=",8,*"/>
     <table class="zentable" cellpadding="3" cellspacing="1">
-      <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-      </tr><tr>
-        <td class="tablevalues">Title:</td>
-        <td class="tablevalues"><input class="tablevalues" name="title" value="Network Output/Input"/></td>
-        <td class="tablevalues">Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="label" value="Mbs"/></td>
-      </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-      </tr><tr>
-        <td class="tablevalues">Upper:</td>
-        <td class="tablevalues"><input class="tablevalues" name="upper" value="ifOutOctets"/></td>
-        <td class="tablevalues">Upper Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="upperLabel" value="Out"/></td>
-      </tr><tr>
-        <td class="tablevalues">Lower:</td>
-        <td class="tablevalues"><input class="tablevalues" name="lower" value="ifInOctets"/></td>
-        <td class="tablevalues">Lower Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="lowerLabel" value="In "/></td>
-      </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">RPN:</td>
-        <td class="tablevalues"> <input class="tablevalues" name="rpn" value=",8,*"/></td>
-      </tr><tr>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues" colspan="3">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-      </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-      </tr>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
    </table>
 </form>
 <img id="upperLower:image" onclick="toggleForm(this)" 
@@ -250,46 +135,16 @@ function hideForms() {
     <input type="hidden" name="rpn" value=",8,*"/>
     <input type="hidden" name="arg" value="--units-exponent=6"/>
    <table class="zentable" cellpadding="3" cellspacing="1">
-     <tr><th class="tabletitle" colspan="4">
-           Edit graph parameters below, click the image to hide this form.
-         </th>
-     </tr><tr>
-        <td class="tablevalues">Title:</td>
-        <td class="tablevalues"><input class="tablevalues" name="title" value="Network Output/Input"/></td>
-        <td class="tablevalues">Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="label" value="Mbs"/></td>
-     </tr><tr>
-        <td class="tablevalues">Area:</td>
-        <td class="tablevalues"><input class="tablevalues" name="area" value="ifInOctets"/></td>
-        <td class="tablevalues">Line:</td>
-        <td class="tablevalues"><input class="tablevalues" name="line" value="ifOutOctets"/></td>
-     </tr><tr>
-        <td class="tablevalues">Area Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="areaLabel" value="In "/></td>
-        <td class="tablevalues">Line Label:</td>
-        <td class="tablevalues"><input class="tablevalues" name="lineLabel" value="Out"/></td>
-     </tr><tr>
-        <td class="tablevalues">Width:</td>
-        <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
-        <td class="tablevalues">Height:</td>
-        <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
-     </tr><tr>
-        <td class="tablevalues">Devices:</td>
-        <td class="tablevalues"><input class="tablevalues" name="devices" value=".*"/></td>
-        <td class="tablevalues">Span:</td>
-        <td class="tablevalues">
-            <select class="tablevalues" 
-                    name="start" onchange="getImage(this.form)">
-                <option value="-1d">One Day</option>
-                <option value="-1w" selected="True">One Week</option>
-                <option value="-2w">Two Weeks</option>
-                <option value="-1m">One Month</option>
-                <option value="-1y">One Year</option>
-            </select>
-        </td>
-     </tr><tr>
-        <td class="tablevalues" colspan="4"><input class="tablevalues" type="submit"></td>
-     </tr>
+        <input type="hidden" name="title" value="Network Output/Input"/>
+        <input type="hidden" name="label" value="Mbs"/>
+        <input type="hidden" name="area" value="ifInOctets"/>
+        <input type="hidden" name="line" value="ifOutOctets"/>
+        <input type="hidden" name="areaLabel" value="In "/>
+        <input type="hidden" name="lineLabel" value="Out"/>
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
     </table>
 </form>
 <img id="areaLine:image" onclick="toggleForm(this)" 
