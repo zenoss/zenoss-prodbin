@@ -190,13 +190,22 @@ class Commandable:
         If there is no management tab for this object an exception will be
         raised.
         '''
-        # Try to dig up a management tab from the factory information.
-        action = [a for a in self.factory_type_information[0]['actions'] 
-                if a['name'] == 'Manage'][0]
-        url = '%s/%s' % (self.getPrimaryUrlPath(), action['action'])
-        if commandId:
-            url += '?commandId=%s' % commandId
+        url = self.getPathToManageTab(commandId)
         return REQUEST.RESPONSE.redirect(url)
+
+
+    def getPathToManageTab(self, commandId=None):
+        # Try to dig up a management tab from the factory information.
+        candidates = [a for a in self.factory_type_information[0]['actions'] 
+                        if a['name'] == 'Manage']
+        if candidates:
+            action = candidates[0]
+            url = '%s/%s' % (self.getPrimaryUrlPath(), action['action'])
+            if commandId:
+                url += '?commandId=%s' % commandId
+        else:
+            url = ''
+        return url  
 
 
     def getUserCommand(self, commandId):

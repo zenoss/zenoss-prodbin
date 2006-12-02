@@ -65,28 +65,36 @@ class UserCommand(ZenModelRM):
         [('url','id'), ...]
         """
         crumbs = super(UserCommand, self).breadCrumbs(terminator)
-        commType = self.commandable().meta_type
-        if commType == 'Device':
-            crumb = (crumbs[-2][0] + '/deviceManagement', 'manage')
-        elif commType in ['DeviceClass', 'System', 'DeviceGroup', 'Location']:
-            crumb = (crumbs[-2][0] + '/deviceOrganizerManage', 'manage')
-        elif commType == 'ServiceOrganizer':
-            crumb = (crumbs[-2][0] + '/serviceOrganizerManage', 'manage')
-        elif commType == 'ServiceClass':
-            crumb = (crumbs[-2][0] + '/serviceClassManage', 'manage')
-        #elif commType == 'Service':
-        #    crumb = (crumbs[-2][0] + '/serviceManage', 'manage')
-        elif commType == 'OSProcessOrganizer':
-            crumb = (crumbs[-2][0] + '/osProcessOrganizerManage', 'manage')
-        elif commType == 'OSProcessClass':
-            crumb = (crumbs[-2][0] + '/osProcessClassManage', 'manage')
-        #elif commType == 'OSProcess':
-        #    crumb = (crumbs[-2][0] + '/serviceManage', 'manage')
-        else:
-            raise 'huh? %s' % self.commandable().meta_type
-            crumb = None
-        if crumb:
+        #commType = self.commandable().meta_type
+        manageTab = self.commandable().getPathToManageTab()
+        if manageTab:
+            crumb = (manageTab, 'manage')
             crumbs.insert(-1, crumb)
+#        if commType == 'Device':
+#            crumb = (crumbs[-2][0] + '/deviceManagement', 'manage')
+#        elif commType in ['DeviceClass', 'System', 'DeviceGroup', 'Location']:
+#            crumb = (crumbs[-2][0] + '/deviceOrganizerManage', 'manage')
+#        elif commType == 'ServiceOrganizer':
+#            crumb = (crumbs[-2][0] + '/serviceOrganizerManage', 'manage')
+#        elif commType == 'ServiceClass':
+#            crumb = (crumbs[-2][0] + '/serviceClassManage', 'manage')
+#        elif commType == 'ipService':
+#            crumb = (crumbs[-2][0] + '/ipServiceClassManage', 'manage')
+#        #elif commType == 'winService':
+#        #    crumb = (crumbs[-2][0] + '/serviceManage', 'manage')
+#        elif commType == 'Service':
+#            crumb = (crumbs[-2][0] + '/serviceManage', 'manage')
+#        elif commType == 'OSProcessOrganizer':
+#            crumb = (crumbs[-2][0] + '/osProcessOrganizerManage', 'manage')
+#        elif commType == 'OSProcessClass':
+#            crumb = (crumbs[-2][0] + '/osProcessClassManage', 'manage')
+#        #elif commType == 'OSProcess':
+#        #    crumb = (crumbs[-2][0] + '/serviceManage', 'manage')
+#        else:
+#            raise 'huh? %s' % self.commandable().meta_type
+#            crumb = None
+#        if crumb:
+#            crumbs.insert(-1, crumb)
         return crumbs
 
 
