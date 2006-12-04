@@ -59,8 +59,8 @@ class TestIpNetwork(ZenModelBaseTest):
     def testMisc(self):
         net = self.dmd.Networks.createNet('1.2.3.0/24')
         self.dmd.Networks.addIp('1.2.3.4')
-        #import pdb;pdb.set_trace()
-        self.assert_(net.freeIps() == 253)
+        self.assert_(net.freeIps() == 254)
+        self.assert_(net.countIpAddresses(inuse=False) == 1)
         self.assert_(net.getNetworkName() == '1.2.3.0/24')
         self.assert_(not net.getIpAddress('1.2.3.4') == None)
         self.assert_(net.getIpAddress('1.2.3.5') == None)
@@ -75,16 +75,8 @@ class TestIpNetwork(ZenModelBaseTest):
         dmdNet.createNet('1.2.3.0/24')
         net = dmdNet.getSubNetwork('1.2.3.0')
         self.assert_(net in dmdNet.getSubNetworks())
-        
-        subNet = net.getSubNetwork('1.2.3.0')
-        #import pdb;pdb.set_trace()
-        self.assert_(subNet in net.getSubNetworks())
-        
-        subNet = net.getSubNetwork('1.2.4.0')
-        self.assert_(subNet not in net.getSubNetworks())
-
-        subNet = net.addSubNetwork('1.2.4.0',24)
-        self.assert_(subNet in net.getSubNetworks())
+        subNet = dmdNet.addSubNetwork('1.2.4.0',24)
+        self.assert_(subNet in dmdNet.getSubNetworks())
         
 
 def test_suite():
