@@ -14,8 +14,6 @@ __version__ = '$Revision: 1.1 $'[11:-2]
 
 import re
 
-import re
-
 from CollectorPlugin import SnmpPlugin, GetTableMap
 from DataMaps import ObjectMap
 
