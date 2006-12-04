@@ -9,7 +9,8 @@ class RRDUtil:
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
         self.defaultCycleTime = defaultCycleTime
 
-    def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None):
+    def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
+             min='U', max='U'):
         import rrdtool, os
 
         if cycleTime is None:
@@ -23,8 +24,8 @@ class RRDUtil:
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            dataSource = 'DS:%s:%s:%d:U:U' % ('ds0', rrdType,
-                                              3*cycleTime)
+            dataSource = 'DS:%s:%s:%d:%s:%s' % ('ds0', rrdType,
+                                              3*cycleTime, min, max)
             rrdtool.create(filename,
                            "--step",  str(cycleTime),
                            str(dataSource), *rrdCommand.split())

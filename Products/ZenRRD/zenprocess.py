@@ -439,15 +439,16 @@ class zenprocess(SnmpDaemon):
                 pidConf.updateCpu(pid, cpu)
                 pidConf.updateMemory(pid, mem)
             self.save(device.name, pidName, 'cpu_cpu', pidConf.getCpu(),
-                      'COUNTER')
+                      'DERIVE', min=0)
             self.save(device.name, pidName, 'mem_mem', pidConf.getMemory() * 1024,
                       'GAUGE')
 
 
-    def save(self, deviceName, pidName, statName, value, rrdType):
+    def save(self, deviceName, pidName, statName, value, rrdType,
+             min='U', max='U'):
         "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
-        value = self.rrd.save(path, value, rrdType)
+        value = self.rrd.save(path, value, rrdType, min, max)
 
         thresholds = self.devices[deviceName].processes[pidName].thresholds
         for t in thresholds.get(statName,[]):
