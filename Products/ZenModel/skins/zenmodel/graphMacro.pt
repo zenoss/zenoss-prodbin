@@ -6,7 +6,7 @@
       <td class="tablevalues">Width:</td>
       <td class="tablevalues"><input class="tablevalues" name="width" value="500"/></td>
       <td class="tablevalues">Height:</td>
-      <td class="tablevalues"><input class="tablevalues" name="height" value="100"/></td>
+      <td class="tablevalues"><input class="tablevalues" name="height" value="140"/></td>
     </tr><tr>
       <td class="tablevalues">Min Y:</td>
       <td class="tablevalues">
