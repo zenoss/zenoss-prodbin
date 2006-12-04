@@ -448,7 +448,7 @@ class zenprocess(SnmpDaemon):
              min='U', max='U'):
         "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
-        value = self.rrd.save(path, value, rrdType, min, max)
+        value = self.rrd.save(path, value, rrdType, min=min, max=max)
 
         thresholds = self.devices[deviceName].processes[pidName].thresholds
         for t in thresholds.get(statName,[]):
