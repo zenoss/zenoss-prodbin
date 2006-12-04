@@ -393,6 +393,7 @@ class ZenModeler(ZCmdBase):
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("problem in main loop")
+            self.reactorLoop()
             if runTime < self.cycletime:
                 time.sleep(self.cycletime - runTime)
 
