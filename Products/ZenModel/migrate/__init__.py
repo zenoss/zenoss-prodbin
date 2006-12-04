@@ -49,3 +49,4 @@ import zlinks
 import smtpsnpp
 import monitors
 import usercommands
+import rrdcpu
