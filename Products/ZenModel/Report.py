@@ -62,22 +62,19 @@ class Report(ZopePageTemplate, ZenModelItem):
     """Report object"""
     meta_type = 'Report'
 
+    # this is depricated don't use!!!
+    description = ""
+
     security = ClassSecurityInfo()
 
-    _properties = ZopePageTemplate._properties + (
-                    {'id':'description', 'type':'text', 'mode':'w'},
-                   ) 
 
-    
     pt_editForm = PageTemplateFile('www/reportEdit', globals(),
                                    __name__='pt_editForm')
                                   
 
-    def __init__(self, id, title = None, text=None, content_type=None,
-                        description = ''):
+    def __init__(self, id, title = None, text=None, content_type=None):
         ZopePageTemplate.__init__(self, id, text, content_type)
         self.title = title
-        self.description = description
 
     
     def om_icons(self):
@@ -91,15 +88,6 @@ class Report(ZopePageTemplate, ZenModelItem):
                               'alt': 'Error',
                               'title': 'This template has an error'},)
         return icons
-
-
-    security.declareProtected('Change Page Templates','pt_editAction')
-    def pt_editAction(self, REQUEST, title, text, 
-                        content_type, expand, description):
-        "add description to editing" 
-        self.description = description
-        return ZopePageTemplate.pt_editAction(self, REQUEST, title, text,
-                                            content_type, expand)
 
 
 InitializeClass(Report)
