@@ -44,27 +44,27 @@ running() {
     return 1
 }
 
-EXEC="exec ${SUDO:-}"
+EXEC="exec $SUDO"
 
 start() {
     if running; then    
         echo is already running
     else
         echo starting...
-        if [ ${CFGFILE:-""} = "" ]; then
-            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --cycle --daemon '"$@"'
+        if [ "$CFGFILE" = "" ]; then
+            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --cycle --daemon '"$@"'
         else
-            eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
                 --cycle --daemon '"$@"'
         fi
     fi
 }
 
 run() {
-    if [ ${CFGFILE:-""} = "" ]; then
-        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME '"$@"'
+    if [ "$CFGFILE" = "" ]; then
+        eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME '"$@"'
     else        
-        eval exec ${SUDO:-} $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE '"$@"'
+        eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE '"$@"'
     fi
 }
 
@@ -72,7 +72,7 @@ stop() {
     if running; then
         PID=`cat $PIDFILE`
         echo stopping...
-        `${SUDO:-} kill $PID` 
+        `$SUDO kill $PID` 
         if [ $? -gt 0 ]; then
             rm -f $PIDFILE
             echo clearing pid file
