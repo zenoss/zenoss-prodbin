@@ -210,7 +210,7 @@ class Migration(ZCmdBase):
                                  initial_indent=indent,
                                  subsequent_indent=indent))
             doc = doc.lstrip()
-            print "%5.2f %-15s %s" % (s.version, s.name(), doc)
+            print "%-8s %-15s %s" % (s.version.short(), s.name(), doc)
 
     def main(self):
         if self.options.list:
