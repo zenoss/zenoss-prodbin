@@ -131,6 +131,7 @@
     <input class="tableheader" type="text" name="filter" size=40 value=""
         onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/filter" />
+    
 
     </div>
     </div>

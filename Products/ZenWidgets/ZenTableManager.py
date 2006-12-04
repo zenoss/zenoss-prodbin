@@ -187,7 +187,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
         """filter objects base on a regex in regex and list of fields
         in filterFields."""
         if not regex: return objects
-        search = re.compile(regex,re.I).search
+        try: search = re.compile(regex,re.I).search
+        except re.error, e:
+            self.REQUEST.SESSION['message'] = "Invalid regular expression." 
+            return objects
         filteredObjects = []
         for obj in objects:
             target = []
@@ -200,6 +203,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 target.append(value)
             targetstring = " ".join(target)
             if search(targetstring): filteredObjects.append(obj)
+        if self.REQUEST.SESSION.has_key('message'): self.REQUEST.SESSION.delete('message')
         return filteredObjects
 
 
