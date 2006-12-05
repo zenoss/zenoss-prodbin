@@ -310,6 +310,17 @@ class ZenActions(ZCmdBase):
             body = action.clearBody
         return fmt % data, body % data
 
+    def stripTags(self, data):
+        """A quick html => plaintext converter
+           that retains and displays anchor hrefs
+        """
+        import re
+        tags = re.compile(r'<(.|\n)+?>', re.I|re.M)
+        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I|re.M)
+        anchors = re.finditer(aattrs, data)
+        for x in anchors: data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
+        data = re.sub(tags, '', data)
+        return data
 
     def sendPage(self, action, data, clear = None):
         """Send and event to a pager.
@@ -331,12 +342,26 @@ class ZenActions(ZCmdBase):
         """
         import smtplib
         from email.MIMEText import MIMEText
+        from email.MIMEMultipart import MIMEMultipart
         addr = action.getAddress()
-        fmt, body = self.format(action, data, clear)
-        emsg = MIMEText(body)
+        fmt, htmlbody = self.format(action, data, clear)
+        # Add breaks for HTML emails
+        htmlbody = htmlbody.replace('\n','<br/>\n')
+        # Create a plaintext version
+        body = self.stripTags(htmlbody)
+        # Build the message
+        emsg = MIMEMultipart('related')
+        emsgAlternative = MIMEMultipart('alternative')
+        emsg.attach( emsgAlternative )
+        plaintext = MIMEText(body)
+        html = MIMEText(htmlbody)
+        html.set_type('text/html')
+        emsgAlternative.attach(plaintext)
+        emsgAlternative.attach(html)
         emsg['Subject'] = fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
+        # Send the message
         server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
         server.sendmail(self.options.fromaddr, (addr,), emsg.as_string())
         server.quit()

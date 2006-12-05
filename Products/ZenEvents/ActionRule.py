@@ -49,10 +49,10 @@ class ActionRule(ZenModelRM, EventFilter):
             "Severity: %(severityString)s\n" \
             "Time: %(firstTime)s\n" \
             "Message:\n%(message)s\n" \
-            "Event: %(eventUrl)s\n" \
-            "Acknowledge: %(ackUrl)s\n" \
-            "Delete: %(deleteUrl)s\n" \
-            "Device Events: %(eventsUrl)s\n"
+            "<a href=\"%(eventUrl)s\">Event Detail</a>\n" \
+            "<a href=\"%(ackUrl)s\">Acknowledge</a>\n" \
+            "<a href=\"%(deleteUrl)s\">Delete</a>\n" \
+            "<a href=\"%(eventsUrl)s\">Device Events</a>\n"
     clearFormat = "[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s"
     clearBody =  \
             "Event: '%(summary)s'\n" \
