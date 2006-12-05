@@ -34,14 +34,19 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         {'id':'title', 'type':'string'},
     )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'zenossInfo',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'zenossInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'configuration'
+                , 'name'          : 'Configuration'
+                , 'action'        : 'zenossConfigs'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'versions'
@@ -51,17 +56,20 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 },
            )
           },
-        ) 
+        )
+
 
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
-        return Version.parse("Zenoss %s %s" % 
+        return Version.parse("Zenoss %s %s" %
                     (VERSION, self.getZenossRevision()))
+
 
     security.declarePublic('getZenossVersionShort')
     def getZenossVersionShort(self):
         return self.getZenossVersion().short()
+
 
     def getOSVersion(self):
         """
@@ -85,6 +93,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             raise VersionNotSupported
         return Version(name, major, minor, micro, 0, comment)
 
+
     def getPythonVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -96,6 +105,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         name = 'Python'
         major, minor, micro, releaselevel, serial = sys.version_info
         return Version(name, major, minor, micro)
+
 
     def getMySQLVersion(self):
         """
@@ -127,6 +137,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro = getVersionTupleFromString(version)
         return Version(name, major, minor, micro, 0, comment)
 
+
     def getRRDToolVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -145,6 +156,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro = getVersionTupleFromString(version)
         return Version(name, major, minor, micro)
 
+
     def getTwistedVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -157,6 +169,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         return Version('Twisted', v.major, v.minor, v.micro)
 
+
     def getPySNMPVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -168,6 +181,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         from pysnmp.version import getVersion
         return Version('PySNMP', *getVersion())
 
+
     def getTwistedSNMPVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -178,6 +192,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         from twistedsnmp.version import version
         return Version('TwistedSNMP', *version)
+
         
     def getZopeVersion(self):
         """
@@ -222,6 +237,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return versions
     security.declareProtected('View','getAllVersions')
 
+
     def getAllUptimes(self):
         """
         Return a list of daemons with their uptimes.
@@ -235,6 +251,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         uptimes.append(zope)
         return uptimes
     security.declareProtected('View','getAllUptimes')
+
 
     def getZenossDaemonStates(self):
         """
@@ -262,6 +279,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 'buttons': buttons})
         return states
 
+
     def _pidRunning(self, pid):
         try:
             os.kill(pid, 0)
@@ -271,6 +289,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             errnum, msg = ex.args
             if errnum == errno.EPERM:
                 return pid
+
 
     def _getDaemonPID(self, name):
         """
@@ -294,6 +313,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             pid = None
         return pid
 
+
     def _getDaemonList(self):
         """
         Get the list of supported Zenoss daemons.
@@ -305,6 +325,92 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             if match:
                 daemons.append(match.groups()[0])
         return daemons
+
+
+    def getZenossDaemonConfigs(self):
+        """
+        Return a data structures representing the config infor for the
+        supported Zenoss daemons.
+        """
+        return [ dict(name=x) for x in self._getDaemonList() ]
+
+
+    def getLogData(self, daemon, kb=500):
+        """
+        Get the last kb kilobytes of a daemon's log file contents.
+        """
+        maxBytes = 1024 * int(kb)
+        if daemon == 'zopectl':
+            daemon = 'event'
+        elif daemon == 'zeoctl':
+            daemon = 'zeo'
+        if daemon == 'zopectl':
+            daemon = 'event'
+        elif daemon == 'zeoctl':
+            daemon = 'zeo'
+        filename = os.path.join(os.getenv('ZENHOME'), 'log', "%s.log" % daemon)
+        data = None
+        try:
+            fh = open(filename)
+            size = os.stat(filename)[6]
+            if size <= maxBytes:
+                data = fh.read()
+            else:
+                fh.seek(size - maxBytes)
+                # the first line could be a partial line, so skip it
+                lines = fh.readlines()[1:]
+                data = ''.join(lines)
+                if not data:
+                    data = 'Empty file.'
+        finally:
+            if not data:
+                data = 'Could not read file.'
+            fh.close()
+        return data
+
+
+    def _getConfigFilename(self, daemon):
+        if daemon == 'zopectl':
+            daemon = 'zope'
+        elif daemon == 'zeoctl':
+            daemon = 'zeo'
+        return os.path.join(os.getenv('ZENHOME'), 'etc',
+            "%s.conf" % daemon)
+
+
+    def getConfigData(self, daemon):
+        """
+        Return the contents of the daemon's config file.
+        """
+        filename = self._getConfigFilename(daemon)
+        data = None
+        try:
+            fh = open(filename)
+            data = fh.read()
+            if not data:
+                data = ' '
+            fh.close()
+        finally:
+            if not data:
+                data = 'Could not read file.'
+            fh.close()
+        return data
+
+
+    def manage_saveConfigData(self, REQUEST):
+        """
+        Save config data from REQUEST to the daemon's config file.
+        """
+        daemon = REQUEST.form.get('daemon')
+        filename = self._getConfigFilename(daemon)
+        try:
+            fh = open(filename, 'w+')
+            data = REQUEST.form.get('data')
+            fh.write(data)
+        finally:
+            fh.close()
+        return self.callZenScreen(REQUEST, redirect=True)
+
 
     def manage_daemonAction(self, REQUEST):
         """
@@ -324,6 +430,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
 
+
     def manage_checkVersion(self, optInOut=False, optInOutMetrics=False, REQUEST=None):
         "Check for Zenoss updates on the Zenoss website"
         self.dmd.versionCheckOptIn = optInOut
@@ -341,10 +448,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_checkVersion')
 
+
     def lastVersionCheckedString(self):
         if not self.dmd.lastVersionCheck:
             return "Never"
         return Time.LocalDateTime(self.dmd.lastVersionCheck)
+
 
     def versionBehind(self):
         if self.dmd.availableVersion is None:

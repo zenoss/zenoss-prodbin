@@ -1,0 +1,45 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane" tal:define="
+    url string:${here/absolute_url_path};
+    query here/REQUEST/QUERY_STRING;
+    daemon  python:query.split('=')[-1]">
+<form action="" method="post" 
+    tal:attributes="
+        actionx string:${url}/viewDaemonConfig?daemon=${daemon};
+        action url">
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tr>
+            <th class="tabletitle" colspan="2">
+                <code tal:content="daemon" /> Configuration File
+            </th>
+        </tr>
+    </thead>
+    <tbody tal:define="
+            url string:${here/absolute_url_path};
+            data python:here.getConfigData(daemon);
+            ">
+        <tr>
+            <td class="tablevalues" colspan="2"> 
+                <textarea cols="80" rows="30" name="data"
+                    tal:content="data">
+                </textarea>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" />
+            <td class="tablevalues">
+                <input type="hidden" name="daemon" tal:attributes="
+                    value daemon" />
+                <input type="hidden" name="zenScreenName" tal:attributes="
+                    value string:viewDaemonConfig?daemon=${daemon}"/>
+                <input type="submit" value="Save" 
+                    name="manage_saveConfigData:method"/>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</form>
+</tal:block>
+</tal:block>
+

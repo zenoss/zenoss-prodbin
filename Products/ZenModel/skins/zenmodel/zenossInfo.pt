@@ -4,10 +4,13 @@
     <thead>
         <tr>
             <th class="tabletitle">
-                Zenoss Daemon Status
+                Zenoss Daemon
             </th>
             <th class="tabletitle">
                 PID
+            </th>
+            <th class="tabletitle">
+                Log File
             </th>
             <th class="tabletitle">
                 State
@@ -21,6 +24,8 @@
         <tr tal:repeat="daemon here/getZenossDaemonStates">
             <th class="tableheader" tal:content="daemon/name" />
             <td class="tablevalues" tal:content="daemon/pid" />
+            <td class="tablevalues"><a tal:attributes="
+                href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
             <td class="tablevalues" tal:content="daemon/msg" tal:attributes="
                 style string:background-color: ${daemon/color};" />
             <td class="tablevalues"

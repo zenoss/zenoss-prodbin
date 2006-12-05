@@ -1,0 +1,27 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tr>
+            <th class="tabletitle">
+                Zenoss Daemon
+            </th>
+            <th class="tabletitle" colspan="2">
+                Action
+            </th>
+        </tr>
+    </thead>
+    <tbody tal:define="url string:${here/absolute_url_path}">
+        <tr tal:repeat="daemon here/getZenossDaemonConfigs">
+            <th class="tableheader" tal:content="daemon/name" />
+            <td class="tablevalues"><a tal:attributes="
+                href string:${url}/viewDaemonConfig?daemon=${daemon/name}">view configiuration</a></td>
+            <td class="tablevalues"><a tal:attributes="
+                href string:${url}/editDaemonConfig?daemon=${daemon/name}">edit configuration</a></td>
+        </tr>
+    </tbody>
+</table>
+</tal:block>
+</tal:block>
+
+

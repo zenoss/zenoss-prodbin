@@ -1,0 +1,23 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+        query here/REQUEST/QUERY_STRING;
+        daemon  python:query.split('=')[-1]">
+    <thead>
+        <tr>
+            <th class="tabletitle">
+                <code tal:content="daemon" /> Log File
+            </th>
+        </tr>
+    </thead>
+    <tbody tal:define="url string:${here/absolute_url_path}">
+        <tr>
+            <td class="tablevalues"> 
+                <pre tal:content="python:here.getLogData(daemon)" />
+            </td>
+        </tr>
+    </tbody>
+</table>
+</tal:block>
+</tal:block>
