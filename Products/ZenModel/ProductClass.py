@@ -92,8 +92,12 @@ class ProductClass(ZenModelRM):
         # of prodName and only use productKey, to avoid redundancy
         if productKey:
             self.productKeys = [productKey]
-        else:
+        elif prodName:
             self.productKeys = [prodName]
+        else:
+            # When adding manually through the gui both prodName and 
+            # productKey will be None
+            self.productKeys = []
         if prodName is None:  self.name = id
         else: self.name = prodName
         self.partNumber = partNumber
