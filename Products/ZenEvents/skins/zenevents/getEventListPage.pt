@@ -14,9 +14,13 @@
         objects python:ztm.sortObjects(objects,request);
         batch python:ztm.getBatchForm(objects,request);"
         tal:on-error="structure here/eventsError">
+    
     <script type="text/javascript">
-        var eventsurl='/zport/dmd/ZenEventManager/getJSONEventsInfo'
+        var eventsurl='/zport/dmd/ZenEventManager/getJSONEventsInfo';
     </script>
+    <tr tal:condition="exists:request/SESSION/message">
+    <td tal:content="request/SESSION/message" colspan="9" 
+        style="background-color:#CCC;text-align:center;color:red;font-weight:bold;"></td></tr>
     <tal:block metal:define-macro="eventRow">
     <tr tal:repeat="event batch" 
         tal:attributes="class event/getCssClass">
@@ -41,6 +45,7 @@
         <td class="tableheader" tal:attributes="colspan evcolspan">
             <span metal:use-macro=
                 "here/zenTableNavigation/macros/navbodynofilter" />
+            
         </td>
     </tr>
 </tal:block>

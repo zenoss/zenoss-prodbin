@@ -8,8 +8,7 @@
     tal:define="
         tableName string:devicelist;
         objects here/devices/getSubDevicesGen;
-        batch python: here.ZenTableManager.getBatch(tableName,objects);
-        message request/SESSION/message | nothing; ">
+        batch python: here.ZenTableManager.getBatch(tableName,objects);">
     
     <tr>
       <th class="tabletitle" colspan="5">Device List</th>
@@ -17,7 +16,7 @@
 	<tr>
 		<td colspan="5" class="tableheader" align='center'>
 			<form metal:use-macro="here/zenTableNavigation/macros/navfilter"/>
-			<span style="padding-left:2em;color:red;font-weight:bold;" tal:content="message"></span>
+			
 		</td>
 	</tr>
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>

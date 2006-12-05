@@ -12,7 +12,7 @@
     >
     <tr>
       <th class="tabletitle" align="left" colspan="5">
-       Devices 
+       Devices
       </th>
     </tr>
     <input type='hidden' name='tableName' tal:attributes="value tableName" />

@@ -7,7 +7,8 @@
     <input type='hidden' name='zenScreenName'
         tal:attributes="value template/id" />
     <div metal:define-macro="navbody" 
-        tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
+        tal:define="ts python:here.ZenTableManager.getTableState(tableName);
+                    message request/SESSION/message | nothing;"
         tal:condition="python: ts.totalobjs > 6 or ts.filter"
         style="border:0; padding-top:2px;margin-bottom:2px;">
     <div style="padding-left: 10px; float: left; text-align:left;">
@@ -37,7 +38,10 @@
         tal:attributes="disabled not:batch/next" />&nbsp;&nbsp;
     <input class="navcontrol" type="submit" name="showAll" value="show all" />
     </div>
+    
     <div style="padding-right: 10px; float: right; text-align:right;">
+    <span style="height:1em;line-height:1em;text-align:right;
+                 padding-right:2em;color:red;font-weight:bold;" tal:content="message"></span>
     Filter
     <input class="tableheader" type="text" name="filter" size=15 value=""
         onkeypress="submitViaEnter(event)"
@@ -116,7 +120,8 @@
 </form>
 
 <form metal:define-macro="navfilter" class="tableheader"
-    action="_" method="POST" tal:attributes="action request/URL">
+    action="_" method="POST" tal:attributes="action request/URL"
+    tal:define="message request/SESSION/message | nothing; ">
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
@@ -131,8 +136,8 @@
     <input class="tableheader" type="text" name="filter" size=40 value=""
         onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/filter" />
-    
-
+    <span style="height:1em;line-height:1em;padding-left:2em;
+                 color:red;font-weight:bold;" tal:content="message"></span>
     </div>
     </div>
 </form>
