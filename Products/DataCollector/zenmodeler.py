@@ -48,6 +48,7 @@ class ZenModeler(ZCmdBase):
         if self.options.device:
             self.single = True
         self.threaded = threaded
+        self.generateEvents = True
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = []

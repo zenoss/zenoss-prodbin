@@ -14,13 +14,16 @@ import transaction
 from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass
-
 from Exceptions import *
-
+import Products.ZenEvents.Event as Event
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
+
+EVCLASS_ADD = '/Change/Add'
+EVCLASS_REMOVE = '/Change/Remove'
+EVCLASS_SET = '/Change/Set'
 
 class ApplyDataMap(object):
 
@@ -28,6 +31,24 @@ class ApplyDataMap(object):
         self.datacollector = datacollector
 
 
+    def logChange(self, device, eventClass, msg):
+        ''' Used to report a change to a device model.  Logs the given msg
+        to log.info and creates an event.
+        '''
+        log.info(msg)
+        if self.datacollector \
+            and getattr(self.datacollector, 'generateEvents', False) \
+            and getattr(self.datacollector, 'dmd', None):
+            eventDict = {
+                'eventClass': eventClass,
+                'device': device.id,
+                'component': 'zenmodeler',
+                'summary': msg,
+                'severity': Event.Info,
+                }
+            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+
+        
     def processClient(self, device, collectorClient):
         """Apply datamps to device.
         """
@@ -129,15 +150,17 @@ class ApplyDataMap(object):
                     self._createRelObject(device, objmap, rname)
                     changed = True
             elif isinstance(objmap, ZenModelRM):
-                log.info("linking object %s to device %s relation %s",
-                                    objmap.id, device.id, rname)
+                self.logChange(device, EVCLASS_ADD,
+                            "linking object %s to device %s relation %s" % (
+                            objmap.id, device.id, rname))
                 device.addRelation(rname, objmap)
                 changed = True
             else:
                 log.warn("ignoring objmap no id found")
         for id in relids: 
-            log.info("removing object %s from rel %s on device %s",
-                        id, rname, device.id)
+            self.logChange(device, EVCLASS_REMOVE,
+                            "removing object %s from rel %s on device %s" % (
+                            id, rname, device.id))
             rel._delObject(id)
         if relids: changed=True
         return changed
@@ -160,6 +183,10 @@ class ApplyDataMap(object):
                 log.warn('attribute %s not found on object %s',
                               attname, obj.id)
                 continue
+            if obj.meta_type == 'Device':
+                device = obj
+            else:
+                device = obj.device()
             if callable(att): 
                 setter = getattr(obj, attname)
                 gettername = attname.replace("set","get") 
@@ -169,13 +196,15 @@ class ApplyDataMap(object):
                                   "skipping", gettername, obj.id)
                 elif value != getter():
                     setter(value)
-                    log.info("calling function '%s' with '%s' on "
-                               "object %s", attname, value, obj.id)
+                    self.logChange(device, EVCLASS_SET,
+                                "calling function '%s' with '%s' on "
+                                "object %s" % (attname, value, obj.id))
                     changed = True            
             elif att != value:
                 setattr(aq_base(obj), attname, value) 
-                log.info("set attribute '%s' to '%s' on object '%s'",
-                           attname, value, obj.id)
+                self.logChange(device, EVCLASS_SET,
+                                "set attribute '%s' to '%s' on object '%s'" % (
+                                attname, value, obj.id))
         if not changed:
             try: changed = obj._p_changed
             except: pass
@@ -202,7 +231,9 @@ class ApplyDataMap(object):
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
-        log.info("adding object %s to relationship %s", remoteObj.id, relname)
+        self.logChange(device, EVCLASS_ADD,
+                        "adding object %s to relationship %s" % (
+                        remoteObj.id, relname))
         self._updateObject(remoteObj, objmap)
         return True
 

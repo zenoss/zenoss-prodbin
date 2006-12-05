@@ -1137,7 +1137,7 @@ class Device(ManagedEntity, Commandable):
     ####################################################################
 
     security.declareProtected('Change Device', 'collectDevice')
-    def collectDevice(self, setlog=True, REQUEST=None):
+    def collectDevice(self, setlog=True, REQUEST=None, generateEvents=False):
         """collect the configuration of this device.
         """
         if REQUEST and setlog:
@@ -1150,6 +1150,7 @@ class Device(ManagedEntity, Commandable):
             from Products.DataCollector.zenmodeler import ZenModeler
             sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
+            sc.generateEvents = generateEvents
             sc.collectDevice(self, ip=self.manageIp)
             sc.reactorLoop()
         except:
