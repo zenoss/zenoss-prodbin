@@ -3,6 +3,20 @@
 # zenctl        This init.d script starts and stops Zenoss
 #               
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
+#
+# Most of the time this script simply delegates to
+# ${ZENHOME}/bin/zenoss to actually execute the requested command
+# (start/stop).  But, in some situations it behaves differently.  When
+# this script encounters the FRESH_INSTALL flag (a file named
+# ${ZENHOME}/.fresh_install) the script runs
+# ${ZENHOME}/bin/zenoss_init in order to perform first-time
+# installation.  When this script encounters the UPGRADED flag (a file
+# named ${ZENHOME}/.upgraded) the script runs
+# ${ZENHOME}/bin/zenoss_upgrade in order to migrate the zeodb and push
+# around the rrd files.
+#
+# --Christopher Blunck
+#
 
 # environment variables
 export ZENHOME="**ZENHOME**"
@@ -10,16 +24,24 @@ export RUNUSER="**OS_USERNAME**"
 export SNMPD_CONF="**SNMPD_CONF**"
 export SUDOERS="**SUDOERS**"
 
-# signature of zenoss having been installed and configured
-export FIRSTBOOT=${ZENHOME}/.installed
+# signature of zenoss having been installed for the first time (but
+# not configured yet)
+export FRESH_INSTALL=${ZENHOME}/.fresh_install
+
+# signature of zenoss having been upgraded from a previous install
+export UPGRADED=${ZENHOME}/.upgraded
 
 
-#
-# main script starts here
-#
+# changes the owners and permissions for the zenoss files
+set_perms() {
+    chown -R ${RUNUSER} ${ZENHOME}
+    chgrp -R wheel ${ZENHOME}
+    chmod -R 775 ${ZENHOME}
+}
 
-# run the firstboot if this is the first time zenoss was started
-if [ ! -f ${FIRSTBOOT} ]; then
+
+# these commands are run when zenoss was installed for the first time
+fresh_install() {
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
     # location of where we copy configuration items to
@@ -42,24 +64,46 @@ if [ ! -f ${FIRSTBOOT} ]; then
     fi
     cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
     
-    # chown the files to be owned by zenoss
-    chown -R ${RUNUSER} ${ZENHOME}
-    chgrp -R wheel ${ZENHOME}
-    chmod -R 775 ${ZENHOME}
-
     # run the first time initialization script
+    set_perms
     ${ZENHOME}/bin/zenoss_init
-
-    # chown the files to be owned by zenoss (again)
-    chown -R ${RUNUSER} ${ZENHOME}
-    chgrp -R wheel ${ZENHOME}
-    chmod -R 775 ${ZENHOME}
-
-    # mark our territory
-    touch ${FIRSTBOOT}
+    set_perms
 
     echo "Zenoss initialization complete."
+}
+
+
+# these commands are run when zenoss is started after being upgraded
+upgrade() {
+    echo "Zenoss upgraded.  Running data migration scripts..."
+
+    # run the first time initialization script
+    set_perms
+    ${ZENHOME}/bin/zenoss_upgrade
+    set_perms
+
+    echo "Zenoss upgrade complete."
+}
+
+
+#
+# main script starts here
+#
+
+# run the firstboot if this is the first time zenoss was started
+if [ -f ${FRESH_INSTALL} ]; then
+    fresh_install
+    rm ${FRESH_INSTALL}
 fi
+
+# run the upgrade if this is the first time zenoss was started since
+# an upgrade occurred
+if [ -f ${UPGRADED} ]; then
+    upgrade
+    rm ${UPGRADED}
+fi
+
 
 # delegate to the main zenoss script for control functions
 sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss $@
+
