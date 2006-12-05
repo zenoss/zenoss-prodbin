@@ -140,7 +140,7 @@ class RenderServer(RRDToolItem):
                                   '--start=%d'%(last-step),
                                   '--end=%d'%last)
                 v = float(v[2][0])
-                if float('nan') == v: v = None
+                if str(v) == 'nan': v = None
                 return v
             return map(value, paths)
         except NameError:
