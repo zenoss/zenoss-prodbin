@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+
+#
+# zenoss_upgrade:  A script that performs the steps needed to safely
+#                  upgrade the zenoss database and rrd files from one 
+#                  version to another version.
+#
+
+# environment variables
+export OS_USERNAME="**OS_USERNAME**"
+export ZENHOME="**ZENHOME**"
+export MYSQLUSER="**MYSQL_USERNAME**"
+export MYSQLPASS="**MYSQL_PASSWD**"
+export MYSQLEVENTDB="**MYSQL_DATABASE**"
+export ZOPEPASSWORD="**ZOPE_PASSWD**"
+export ZOPEHOME=${ZENHOME}
+
+# load the installation functions
+. ${ZENHOME}/bin/shared-functions.sh
+. ${ZENHOME}/bin/install-functions.sh
+
+# migrate the zeo database
+start_zeodb
+run_zenmigrate
+stop_zeodb
+
