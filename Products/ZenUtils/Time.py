@@ -34,6 +34,9 @@ def USDate(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%m/%d/%Y", time.localtime(value))
 
+def ParseUSDate(mdy):
+    return time.mktime(time.strptime(mdy, "%m/%d/%Y"))
+
 def YYYYMMDDHHMMS(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y%m%d%H%M%S", time.localtime(value))
