@@ -50,3 +50,4 @@ import smtpsnpp
 import monitors
 import usercommands
 import rrdcpu
+import changeeventclasses
