@@ -33,6 +33,15 @@ class Timed:
         return v
 
 
+    def __getitem__(self, key):
+        now = time.time()
+        v, t = self.map[key]
+        if t + self.timeout < now:
+            del self.map[v]
+            raise KeyError
+        return v
+
+
     def __setitem__(self, key, value):
         now = time.time()
         self.clean(now)
@@ -73,6 +82,10 @@ class Locked:
         
     def __setitem__(self, *args, **kw):
         return self.impl(self.map.__setitem__, *args, **kw)
+
+
+    def __getitem__(self, *args, **kw):
+        return self.impl(self.map.__getitem__, *args, **kw)
 
 
     def update(self, *args, **kw):
