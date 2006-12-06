@@ -424,7 +424,8 @@ class Device(ManagedEntity, Commandable):
         """
         oids = (super(Device, self).getSnmpOidTargets())
         for o in self.os.getMonitoredComponents():
-            oids.extend(o.getSnmpOidTargets())
+            if o.meta_type != "OSProcess":
+                oids.extend(o.getSnmpOidTargets())
         return (self.getSnmpConnInfo(), oids)
 
 
