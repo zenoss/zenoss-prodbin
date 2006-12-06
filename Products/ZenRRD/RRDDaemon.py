@@ -33,7 +33,6 @@ DEFAULT_URL = BASE_URL + '/Monitors/Performance/localhost'
 
 
 COMMON_EVENT_INFO = {
-    'agent': 'zenprocess',
     'manager': socket.getfqdn(),
     }
 
@@ -142,6 +141,7 @@ class RRDDaemon(Base):
                'severity': BAD_SEVERITY}
     heartbeatevt = {'eventClass':'/Heartbeat'}
     
+    agent = None
     properties = ('configCycleInterval',)
     heartBeatTimeout = 60
     configCycleInterval = 20            # minutes
@@ -150,6 +150,7 @@ class RRDDaemon(Base):
 
     def __init__(self, name):
         Base.__init__(self)
+        self.agent = name
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
@@ -190,6 +191,7 @@ class RRDDaemon(Base):
     def sendEvent(self, event, now=False, **kw):
         'convenience function for pushing an event to the Zope server'
         ev = COMMON_EVENT_INFO.copy()
+        ev['agent'] = self.agent
         ev.update(event)
         ev.update(kw)
         self.events.append(ev)
