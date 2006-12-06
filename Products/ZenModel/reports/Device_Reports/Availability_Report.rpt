@@ -1,0 +1,113 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/datePicker.js">
+</script>
+
+<form id="availabilityForm" 
+      tal:define="device python:request.get('device', '');
+                  component python:request.get('component', '');
+                  severity python:request.get('severity', 'Error');
+                  eventClass python:request.get('eventClass', '/Status/Ping');
+                  start python:request.get('start', 
+                           here.dmd.ZenEventManager.defaultAvailabilityStart());
+                  end python:request.get('end', 
+                           here.dmd.ZenEventManager.defaultAvailabilityEnd());"
+      method="submit"
+>
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <tr>
+       <td class="tableheader">Device:</td>
+       <td class="tablevalues">
+           <input class="tablevalues" name="device" 
+                  tal:attributes="value device">
+      </td>
+       <td class="tableheader">Component:</td>
+       <td class="tablevalues">
+          <input class="tablevalues" name="component" 
+                 tal:attributes="value component">
+       </td>
+    </tr><tr>
+        <td class="tableheader">Start Date:</td>
+        <td class="tablevalues"><input class="tablevalues" 
+                                  name="start" readonly="true" 
+                                  tal:attributes="value start"/>
+            <input class="tablevalues" type="button" value="select"
+                   onclick="displayDatePicker('start');"/>
+        </td>
+        <td class="tableheader">End Date:</td>
+        <td class="tablevalues"><input class="tablevalues" name="end" 
+                                       readonly="true" 
+                                       tal:attributes="value end"/>
+            <input class="tablevalues" type="button" value="select"
+                   onclick="displayDatePicker('end');"/>
+        </td>
+    </tr><tr>
+       <td class="tableheader">Event Class:</td>
+       <td class="tablevalues"><select class="tablevalues" name="eventClass">
+            <option tal:repeat="org here/dmd/Events/getOrganizerNames"
+                    tal:content="org"
+                    tal:attributes="selected python:org==eventClass"/>
+           </select>
+       </td>
+       <td class="tableheader">Severity:</td>
+       <td class="tablevalues"><select class="tablevalues" name="severity">
+            <option tal:repeat="sev here/dmd/ZenEventManager/severities"
+                    tal:content="sev"
+                    tal:attributes="
+                       value sev;
+                       selected python:sev==severity;
+                    "/>
+           </select>
+       </td>
+    </tr><tr>
+       <td class="tablevalues" colspan="4">
+         <input class="tablevalues" type="Submit" value="Update"/>
+       </td> 
+    </tr>
+</table>
+</form>
+
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    objects  python:here.getDmdRoot('ZenEventManager').getAvailability(request);
+    tableName string: deviceavailabilityreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    ">
+  <tr><th class="tabletitle" colspan="3">Device Availability</th></tr>
+  <tr>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                          tableName,'device','Device')"/>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                          tableName,'component','Component')"/>
+    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                          tableName,'availability','Availability')"/>
+  </tr>
+  <tal:block tal:repeat="avail batch">
+    <tr tal:define="dev python:avail.getDevice(here.dmd);
+                    comp python:avail.getComponent(dev);" 
+    >
+      <td class="tablevalues"
+          tal:condition="dev"
+          tal:content="structure python:dev.getDeviceLink()"/>
+      <td class="tablevalues"
+          tal:condition="not:dev"
+          tal:content="avail/device"/>
+      <td class="tablevalues" 
+          tal:condition="not:comp" 
+          tal:content="avail/component"/>
+      <td class="tablevalues" 
+          tal:condition="comp">
+          <a tal:content="avail/component"
+             tal:attributes="href comp/getPrimaryUrlPath"/>
+      </td>
+      <td class="tablevalues" tal:content="avail/floatStr"/>
+   </tr>
+  </tal:block>
+</table>
+</tal:block>
+</tal:block>f

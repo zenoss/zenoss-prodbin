@@ -95,6 +95,16 @@
         </td>
     </tr>
     <tr class='tableheader'>
+        <td class="tableheader">
+            Default Availability Report (days)
+        </td>
+        <td class="tableheader" colspan="2">
+            <input class="tablevalues"
+                   type='int' name='defaultAvailabilityDays' 
+                   tal:attributes="value here/defaultAvailabilityDays"/>
+        </td>
+    </tr>
+    <tr class='tableheader'>
         <td class="tableheader" width='25%'>
             Refresh Event Schema
         </td>

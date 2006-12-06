@@ -339,7 +339,12 @@ class Device(ManagedEntity, Commandable):
         except Exception:
             log.exception("failed getting sysUpTime")
             return -1
-    
+
+
+    def availability(self, *args, **kw):
+        from Products.ZenEvents import Availability
+        return Availability.query(self.dmd, device=self.id, *args, **kw)[0]
+
 
     def __getattr__(self, name):
         if name == 'lastPollSnmpUpTime':
@@ -379,13 +384,7 @@ class Device(ManagedEntity, Commandable):
     def getMonitoredComponents(self):
         """Return list of monitored DeviceComponents on this device.
         """
-        cmps = []
-        cmps.extend([c for c in self.os.ipservices() if c.monitored()])
-        cmps.extend([c for c in self.os.winservices() if c.monitored()])
-        cmps.extend([c for c in self.os.interfaces() if c.monitored()])
-        cmps.extend([c for c in self.os.filesystems() if c.monitored()])
-        cmps.extend([c for c in self.hw.harddisks() if c.monitored()])
-        return cmps
+        return [c for c in self.getDeviceComponents() if c.monitored()]
 
 
     def getDeviceComponents(self):
@@ -396,9 +395,9 @@ class Device(ManagedEntity, Commandable):
         cmps.extend(self.os.winservices())
         cmps.extend(self.os.interfaces())
         cmps.extend(self.os.filesystems())
+        cmps.extend(self.os.processes())
         cmps.extend(self.hw.harddisks())
         return cmps
-
 
     def getSnmpConnInfo(self):
         return (self.id, self.getSnmpStatus(),

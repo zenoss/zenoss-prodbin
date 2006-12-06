@@ -118,6 +118,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                     ObjectCache.manage_options +
                     Item.manage_options)
 
+    defaultAvailabilityDays = 7
+
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
         {'id':'username', 'type':'string', 'mode':'w'},
@@ -154,6 +156,7 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'defaultFields', 'type':'lines', 'mode':'w'},
         {'id':'timeout', 'type':'int', 'mode':'w'},
         {'id':'clearthresh', 'type':'int', 'mode':'w'},
+        {'id':'defaultAvailabilityDays', 'type':'int', 'mode':'w'},
         )
     
     factory_type_information = ( 
@@ -540,6 +543,32 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 log.exception("status failed for device %s", device)
                 return -1
         return statusCache.get(device, 0)
+
+
+    def defaultAvailabilityStart(self):
+        return Time.USDate(time.time() - 60*60*24*self.defaultAvailabilityDays)
+
+
+    def defaultAvailabilityEnd(self):
+        return Time.USDate(time.time())
+
+
+    def getAvailability(self, REQUEST=None, **kw):
+        import Availability
+        if REQUEST:
+            for name in "device", "component", "eventClass":
+                if REQUEST.has_key(name):
+                    kw.setdefault(name, REQUEST[name])
+            try:
+                kw.setdefault('severity',
+                              self.severities.index(REQUEST['severity']))
+            except (ValueError, KeyError):
+                pass
+            for name in "start", "end":
+                if REQUEST.has_key(name):
+                    kw.setdefault(name, Time.ParseUSDate(REQUEST[name]))
+        kw.setdefault('start', time.time() - 60*60*24*self.defaultAvailabilityDays)
+        return Availability.query(self.dmd, **kw)
 
 
     def getHeartbeat(self, failures=True, simple=False, limit=0, db=None):
@@ -1156,5 +1185,3 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 out.write(
                     "Skipping %s skin, 'zenevents' is already set up\n" % skin) 
         return out.getvalue()
-
-

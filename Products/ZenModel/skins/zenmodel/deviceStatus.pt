@@ -42,6 +42,10 @@
       <th class="tableheader">First Seen</th>
       <td class="tablevalues" tal:content="here/getCreatedTimeString" />
     </tr>
+    <tr>
+      <td class="tableheader">Availability</td>
+      <td class="tablevalues" colspan="3" tal:content="here/availability"/>
+    </tr>
 </table>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
