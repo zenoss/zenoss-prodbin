@@ -46,7 +46,7 @@ class HRSWInstalledMap(CustomRelMap):
         swtable = snmpsess.collectSnmpTableMap(self.swTableOid, self.swMap)
         datamaps = []
         for sw in swtable.values():
-            sw['id'] = self.prepId.sub('_', sw['setProductKey'])
+            sw['id'] = self.prepId(sw['setProductKey'])
 #            if sw['setInstallDate']:
 #                log.info("installdate=",sw['setInstallDate'])
 #                date, time = sw['setInstallDate'].split(",")[:2]

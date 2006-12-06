@@ -17,6 +17,7 @@ import os
 import types
 import struct
 import logging
+import re
 log = logging.getLogger("zen.Utils")
 
 from Acquisition import aq_base
@@ -309,3 +310,18 @@ def basicAuthUrl(username, password, url):
         return url 
     urlar[2] = "%s:%s@%s" % (username, password, urlar[2])
     return "/".join(urlar)
+
+
+
+def prepId(id, subchar='_'):
+    """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
+    with subchar.  If id then starts with subchar it is removed.
+    """
+    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
+    _cleanend = re.compile(r"%s+$" % subchar).sub
+    id = _prepId(subchar, id)
+    while id.startswith(subchar):
+        if len(id) > 1: id = id[1:]
+        else: id = "-"
+    id = _cleanend("",id)
+    return id

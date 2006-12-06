@@ -47,7 +47,7 @@ class Linux_ifconfig(CommandPlugin):
                     name, itype = m.groups()[3:]
                 iface.type = itype.strip()
                 iface.name = name
-                iface.id = self.prepId.sub('_', name)
+                iface.id = self.prepId(name)
                 continue
             m = self.v4addr(line)
             if m:

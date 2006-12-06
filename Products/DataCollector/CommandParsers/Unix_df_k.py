@@ -20,8 +20,6 @@ class Unix_df_k(CommandParser):
     
     command = 'df -k'
 
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
     def condition(self, device, log):
         pp = device.getPrimaryPath()
         return "Linux" in pp or "Darwin" in pp
@@ -42,7 +40,7 @@ class Unix_df_k(CommandParser):
                 cap = aline[4][-1] == "%" and aline[4][:-1] or aline[4]
                 om['capacity'] = cap
                 om['mount'] = aline[5]
-                om['id'] = self.prepId.sub('-', om['mount'])
+                om['id'] = self.prepId(om['mount'], '-')
                 rm.append(om)
             except ValueError: pass
         return rm

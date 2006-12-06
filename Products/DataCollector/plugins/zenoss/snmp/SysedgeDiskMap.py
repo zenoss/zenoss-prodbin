@@ -51,6 +51,6 @@ class SysedgeDiskMap(SnmpPlugin):
                                     'zSysedgeDiskMapIgnoreNames', None)
                 if disknamereg and re.search(disknamereg, desc): continue
                 id = re.split('[,\s]', desc)[0]
-                diskrow['id'] = self.prepId.sub('_', id)
+                diskrow['id'] = self.prepId(id)
                 datamaps.append(diskrow)
         return datamaps

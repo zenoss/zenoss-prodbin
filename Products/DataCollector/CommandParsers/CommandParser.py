@@ -17,13 +17,15 @@ import re
 from Products.DataCollector.ObjectMap import ObjectMap
 from Products.DataCollector.RelationshipMap import RelationshipMap
 
+from Products.ZenUtils.Utils import prepId as globalPrepId
+
 class CommandParser:
 
     #Subclasses must fill this in with appropriate command
     command = ''
    
-    prepId = re.compile(r'[^a-zA-Z0-9-_~,.$\(\)# ]')
-
+    def prepId(self, id, subchar='_'):
+        return globalPrepId(id, subchar)
 
     def newObjectMap(self, className=None):
         return ObjectMap(className)

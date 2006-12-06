@@ -23,6 +23,8 @@ from Products.CMFCore.utils import _verifyActionPermissions
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 
+from Products.ZenUtils.Utils import prepId as globalPrepId
+
 # Custom device properties start with c
 iscustprop = re.compile("^c[A-Z]").search
 
@@ -62,22 +64,8 @@ class ZenModelBase(object):
     def __hash__(self):
         return hash(self.id)
 
-
-    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
-    _cleanend = re.compile(r"_+$").sub
-    def prepId(self, id):
-        """Clean string for use as an id.
-        """
-        """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
-        with "_".  If id then starts with "_" it is removed.
-        """
-        id = self._prepId("_", id)
-        if id.startswith("_"):
-            if len(id) > 1: id = id[1:]
-            else: id = "-"
-        id = self._cleanend("",id)
-        return str(id)
-
+    def prepId(self, id, subchar='_'):
+        return globalPrepId(id, subchar)
 
     def getIdLink(self):
         """Return an A link to this object with its id as the name.

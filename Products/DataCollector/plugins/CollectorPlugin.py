@@ -11,6 +11,8 @@ import Products.ZenUtils.IpUtil as iputil
 
 from DataMaps import ObjectMap, RelationshipMap
 
+from Products.ZenUtils.Utils import prepId as globalPrepId
+
 class CollectorPlugin:
     """
 
@@ -25,20 +27,9 @@ class CollectorPlugin:
     classname = ""
 
     isip = iputil.isip
-
-    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
-    _cleanend = re.compile(r"_+$").sub
-    def prepId(self, id):
-        """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
-        with "_".  If id then starts with "_" it is removed.
-        """
-        id = self._prepId("_", id)
-        while id.startswith("_"):
-            if len(id) > 1: id = id[1:]
-            else: id = "-"
-        id = self._cleanend("",id)
-        return id
-
+    
+    def prepId(self, id, subchar='_'):
+        return globalPrepId(id, subchar)
 
     def maskToBits(self, mask):
         """Return the netmask as number of bits 255.255.255.0 -> 24.

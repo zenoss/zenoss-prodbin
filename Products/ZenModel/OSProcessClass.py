@@ -133,7 +133,6 @@ class OSProcessClass(ZenModelRM, Commandable):
         """
         Edit a ProductClass from a web page.
         """
-        self.name = name
         id = self.prepId(name)
         redirect = self.rename(id)
         self.regex = regex        

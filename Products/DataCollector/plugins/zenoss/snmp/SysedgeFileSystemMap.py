@@ -59,7 +59,7 @@ class SysedgeFileSystemMap(SnmpPlugin):
                 and re.search(dontcollectfsnames, fs['mount']))):
                 continue
             bsize = long(fs['blockSize'])
-            fs['id'] = self.prepId.sub('-', fs['mount'])
+            fs['id'] = self.prepId(fs['mount'], '-')
             fs['totalBytes'] = bsize * fs['totalBlocks']
             fs['availBytes'] = bsize * fs['freeBlocks']
             fs['usedBytes'] = fs['totalBytes'] - fs['availBytes']

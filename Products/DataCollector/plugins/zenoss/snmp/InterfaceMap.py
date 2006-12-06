@@ -112,7 +112,7 @@ class InterfaceMap(SnmpPlugin):
         if not hasattr(om, 'id'): return None
         om.id = cleanstring(om.id) #take off \x00 at end of string
         om.interfaceName = om.id
-        om.id = self.prepId(om.id)
+        om.id = self.prepId(om.interfaceName)
         if not om.id:
             return None
             

@@ -49,7 +49,7 @@ class DellCPUMap(SnmpPlugin):
             if not cpufam.startswith(om._manuf):
                 cpufam = om._manuf + " " + cpufam
             om.setProductKey =  cpufam + " " + om._version
-            om.id = self.prepId("%s_%s" % (om._manuf,om.socket))
+            om.id = self.prepId("%s_%s" % (om._manuf, om.socket))
             cpumap[om.socket] = om
             rm.append(om)
         
