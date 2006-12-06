@@ -37,7 +37,7 @@ class Timed:
         now = time.time()
         v, t = self.map[key]
         if t + self.timeout < now:
-            del self.map[v]
+            del self.map[key]
             raise KeyError
         return v
 
