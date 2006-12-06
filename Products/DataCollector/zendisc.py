@@ -68,18 +68,20 @@ class ZenDisc(ZenModeler):
                     ips.append(ip)
                 if ipobj.getStatus(PingStatus) > 0:
                     self.sendEvent(ipobj, sev=0)
+                transaction.commit()
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
                 if self.options.addInactive:
                     if not ipobj:
                         ipobj = net.createIp(ip)
+                    transaction.commit()
                     self.sendEvent(ipobj)
                 elif ipobj and ipobj.getStatus(PingStatus) > pingthresh:
                     net.ipaddresses.removeRelation(ipobj)
                 if ipobj and self.options.resetPtr:
                     ipobj.setPtrName()
-
-            transaction.commit()
+                transaction.commit()
+        transaction.commit()
         self.log.info("discovered %s active ips", goodCount)    
         return ips
        
@@ -166,7 +168,7 @@ class ZenDisc(ZenModeler):
                         if not self.options.nosnmp: 
                             self.discoverDevice(ip, self.options.deviceclass)
                 except Exception, ex:
-                    self.log.exception("Error performing net descovery on %s",
+                    self.log.exception("Error performing net discovery on %s",
                                        ex)
             return
         myname = socket.getfqdn()
