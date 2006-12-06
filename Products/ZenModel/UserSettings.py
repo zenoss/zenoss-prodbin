@@ -24,6 +24,9 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from AdministrativeRole import DeviceAdministrativeRole, \
                                DevOrgAdministrativeRole
+
+from Products.ZenUtils.Utils import sendEmail as GlobalSendEmail
+
 import smtplib
 from email.MIMEText import MIMEText
 import socket
@@ -571,9 +574,9 @@ class UserSettings(ZenModelRM):
             emsg['From'] = srcAddress
             emsg['To'] = destAddress
             try:
-                server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
-                server.sendmail(srcAddress, (destAddress,), emsg.as_string())
-                server.quit()
+                GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort,
+                                self.dmd.smtpUseTLS, self.dmd.smtpUser,
+                                self.dmd.smtpPass)
                 msg = 'Test email sent to %s' % destAddress
             except:
                 msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])

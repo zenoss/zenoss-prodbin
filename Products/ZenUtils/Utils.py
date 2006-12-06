@@ -325,3 +325,19 @@ def prepId(id, subchar='_'):
         else: id = "-"
     id = _cleanend("",id)
     return id
+
+def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
+    import smtplib
+    fromaddr = emsg['From']
+    toaddr = emsg['To']
+    server = smtplib.SMTP(host, port)
+    if usetls:
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+    if len(usr): server.login(usr, pwd)
+    server.sendmail(fromaddr, (toaddr,), emsg.as_string())
+    # Need to catch the quit because some servers using TLS throw an
+    # EOF error on quit, so the email gets sent over and over
+    try: server.quit()
+    except: pass

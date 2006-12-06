@@ -29,7 +29,7 @@ from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
-
+from Products.ZenUtils.Utils import sendEmail as GlobalSendEmail
 from twisted.internet import reactor
 
 def _capitalize(s):
@@ -345,11 +345,8 @@ class ZenActions(ZCmdBase):
         from email.MIMEMultipart import MIMEMultipart
         addr = action.getAddress()
         fmt, htmlbody = self.format(action, data, clear)
-        # Add breaks for HTML emails
         htmlbody = htmlbody.replace('\n','<br/>\n')
-        # Create a plaintext version
         body = self.stripTags(htmlbody)
-        # Build the message
         emsg = MIMEMultipart('related')
         emsgAlternative = MIMEMultipart('alternative')
         emsg.attach( emsgAlternative )
@@ -361,10 +358,8 @@ class ZenActions(ZCmdBase):
         emsg['Subject'] = fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
-        # Send the message
-        server = smtplib.SMTP(self.dmd.smtpHost, self.dmd.smtpPort)
-        server.sendmail(self.options.fromaddr, (addr,), emsg.as_string())
-        server.quit()
+        GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort, 
+                        self.dmd.smtpUseTLS, self.dmd.smtpUser, self.dmd.smtpPass)
         self.log.info("sent email:%s to:%s", fmt, addr)
 
 

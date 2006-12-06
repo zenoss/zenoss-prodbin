@@ -26,6 +26,28 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">SMTP Username (blank for none)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="smtpUser"
+            tal:attributes="value here/smtpUser|string:" />
+      </td>
+    </tr>    
+    <tr>
+      <td class="tableheader" align="left">SMTP Password (blank for none)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="smtpPass"
+            tal:attributes="value here/smtpPass|string:" />
+      </td>
+    </tr>
+    <tr>
+        <td class="tableheader" align="left">Use TLS?</td>
+        <td class="tablevalues">
+        <input type="hidden" name="smtpUseTLS:int:default" value="0">
+        <input type="checkbox" value="1" name="smtpUseTLS:int"
+         tal:attributes="checked request/smtpUseTLS | here/smtpUseTLS">
+        </td>
+    </tr>
+    <tr>
       <td class="tableheader" align="left">SNPP Host</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="snppHost"

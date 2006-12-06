@@ -60,6 +60,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
     snppHost = 'localhost'
     smtpPort = 25
     snppPort = 444
+    smtpUser = ''
+    smtpPass = ''
+    smtpUseTLS = 0
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -78,6 +81,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'snppHost', 'type': 'string', 'mode':'w'},
         {'id':'snppPort', 'type': 'int', 'mode':'w'},
+        {'id':'smtpUser', 'type': 'string', 'mode':'w'},
+        {'id':'smtpPass', 'type': 'string', 'mode':'w'},
+        {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         )
 
     # Screen action bindings (and tab definitions)
