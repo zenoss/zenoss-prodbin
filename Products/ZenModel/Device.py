@@ -714,15 +714,19 @@ class Device(ManagedEntity, Commandable):
     def manage_snmpCommunity(self):
         """Reset the snmp community using the zSnmpCommunities variable.
         """
-        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
-            findCommunity(self, self.manageIp, self.getDeviceClassPath(),
+        try:
+            zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
+                findCommunity(self, self.manageIp, self.getDeviceClassPath(),
                             port=self.zSnmpPort)
-        if self.zSnmpCommunity != zSnmpCommunity:
-            self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
-        if self.zSnmpPort != zSnmpPort:
-            self.setZenProperty("zSnmpPort", zSnmpPort)
-        if self.zSnmpVer != zSnmpVer:
-            self.setZenProperty("zSnmpVer", zSnmpVer)
+        except NoSnmp:
+            pass
+        else:
+            if self.zSnmpCommunity != zSnmpCommunity:
+                self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
+            if self.zSnmpPort != zSnmpPort:
+                self.setZenProperty("zSnmpPort", zSnmpPort)
+            if self.zSnmpVer != zSnmpVer:
+                self.setZenProperty("zSnmpVer", zSnmpVer)
 
 
     security.declareProtected('Change Device', 'manage_editDevice')
