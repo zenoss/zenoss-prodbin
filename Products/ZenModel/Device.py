@@ -343,7 +343,11 @@ class Device(ManagedEntity, Commandable):
 
     def availability(self, *args, **kw):
         from Products.ZenEvents import Availability
-        return Availability.query(self.dmd, device=self.id, *args, **kw)[0]
+        results = Availability.query(self.dmd, device=self.id, *args, **kw)
+        if results:
+            return results[0]
+        else:
+            return None
 
 
     def __getattr__(self, name):
