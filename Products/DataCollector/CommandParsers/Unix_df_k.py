@@ -41,6 +41,7 @@ class Unix_df_k(CommandParser):
                 om['capacity'] = cap
                 om['mount'] = aline[5]
                 om['id'] = self.prepId(om['mount'], '-')
+                om['title'] = om['mount']
                 rm.append(om)
             except ValueError: pass
         return rm

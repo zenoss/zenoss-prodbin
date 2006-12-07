@@ -60,6 +60,7 @@ class HRFileSystemMap(CustomRelMap):
                     and re.search(dontcollectfsnames, fs['mount']))):
                 continue
             bsize = long(fs['blockSize'])
+            fs['title'] = fs['mount']
             fs['id'] = self.prepId(fs['mount'], '-')
             fs['totalBytes'] = long(bsize * fs['totalBlocks'])
             fs['availBytes'] = long(bsize * 

@@ -46,6 +46,9 @@ class Linux_ifconfig(CommandPlugin):
                 else:
                     name, itype = m.groups()[3:]
                 iface.type = itype.strip()
+                # Left iface.name in place, but added
+                # iface.title for consistency
+                iface.title = name
                 iface.name = name
                 iface.id = self.prepId(name)
                 continue

@@ -133,6 +133,8 @@ class OSProcessClass(ZenModelRM, Commandable):
         """
         Edit a ProductClass from a web page.
         """
+        # Left in name, added title for consistency
+        self.title = name
         self.name = name
         id = self.prepId(name)
         redirect = self.rename(id)

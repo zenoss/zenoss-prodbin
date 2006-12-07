@@ -111,7 +111,10 @@ class InterfaceMap(SnmpPlugin):
         om = self.objectMap(iface)
         if not hasattr(om, 'id'): return None
         om.id = cleanstring(om.id) #take off \x00 at end of string
+        # Left in interfaceName, but added title for
+        # the sake of consistency
         om.interfaceName = om.id
+        om.title = om.id
         om.id = self.prepId(om.interfaceName)
         if not om.id:
             return None

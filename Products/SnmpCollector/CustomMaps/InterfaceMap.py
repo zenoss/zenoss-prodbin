@@ -107,7 +107,9 @@ class InterfaceMap(CustomRelMap):
         if nrow.has_key('_processed'): return nrow
         strindex = str(nrow['ifindex'])
         nrow['id'] = cleanstring(nrow['id']) #take off \x00 at end of string
+        # Left name, added title for consistency
         nrow['name'] = nrow['id']
+        nrow['title'] = nrow['id']
         nrow['id'] = self.prepId(nrow['id'])
         if nrow['id'].startswith('_'): nrow['id'] = nrow['id'][1:]
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
