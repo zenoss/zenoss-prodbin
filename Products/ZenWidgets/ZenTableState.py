@@ -79,7 +79,9 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
-        if self.URL != request.URL: self.start=0
+        if self.URL != request.URL:
+            self.start=0
+            self.filter = ''
         if request.get('tableName', None) != self.tableName:
             return
         for attname in self.requestAtts:
