@@ -41,7 +41,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'voltage','Volts')"/>
     </tr>
-    <tr tal:repeat="cpu batch">
+    <tal:block tal:repeat="cpu batch">
+    <tr tal:define="odd repeat/cpu/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" tal:content="cpu/socket"/>
         <td class="tablevalues" 
             tal:content="structure cpu/getManufacturerLink"/>
@@ -52,6 +54,7 @@
         <td class="tablevalues" tal:content="string:${cpu/cacheSizeL2} KB"/>
         <td class="tablevalues" tal:content="string:${cpu/voltage} mV"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="8" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -75,13 +78,16 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'snmpindex','Snmp Index')"/>
     </tr>
-    <tr tal:repeat="disk batch">
+    <tal:block tal:repeat="disk batch">
+    <tr tal:define="odd repeat/disk/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues">
           <a class=tablevalues tal:content="disk/getId" 
             tal:attributes="href disk/getPrimaryUrlPath">sd0</a>
       </td>
       <td class="tablevalues" tal:content="disk/snmpindex"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="2" class="tableheader">
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -107,12 +113,15 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getProductName','Model')"/>
     </tr>
-    <tr tal:repeat="card batch">
+    <tal:block tal:repeat="card batch">
+    <tr tal:define="odd repeat/card/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" tal:content="card/slot"/>
         <td class="tablevalues" 
             tal:content="structure card/getManufacturerLink"/>
         <td class="tablevalues" tal:content="structure card/getProductLink"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="3" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>

@@ -18,11 +18,14 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'installDate','Install Date')"/>
     </tr>
-    <tr tal:repeat="soft batch">
+    <tal:block tal:repeat="soft batch">
+    <tr tal:define="odd repeat/soft/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" tal:content="structure soft/getManufacturerLink"/>
       <td class="tablevalues" tal:content="structure soft/getProductLink"/>
       <td class="tablevalues" tal:content="soft/getInstallDate"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>

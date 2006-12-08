@@ -30,7 +30,9 @@
             No Interfaces
         </th>
     </tr>
-    <tr tal:repeat="intf batch">
+    <tal:block tal:repeat="intf batch">
+    <tr tal:define="odd repeat/intf/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
@@ -71,6 +73,7 @@
         A really nice interface
       </td>
     </tr>
+    </tal:block>
     <tr>
         <td colspan=7 class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -101,7 +104,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="srv batch">
+    <tal:block tal:repeat="srv batch">
+    <tr tal:define="odd repeat/srv/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td><a class="tablevalues" tal:content="srv/caption"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
@@ -112,6 +117,7 @@
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
@@ -142,7 +148,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
-    <tr tal:repeat="proc batch" class="tablevalues">
+    <tal:block tal:repeat="proc batch">
+    <tr tal:define="odd repeat/proc/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td tal:content="structure proc/getOSProcessClassLink"/>
         <td><a class="tablevalues" tal:content="python:proc.name()[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
@@ -153,6 +161,7 @@
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="6" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -192,7 +201,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
     </tr>
-    <tr tal:repeat="srv batch" class="tablevalues">
+    <tal:block tal:repeat="srv batch">
+    <tr tal:define="odd repeat/srv/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td><a class="tablevalues" tal:content="srv/name"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
@@ -207,6 +218,7 @@
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="6" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -253,7 +265,9 @@
             No File Systems
         </th>
     </tr>
-    <tr tal:repeat="fsys batch">
+    <tal:block tal:repeat="fsys batch">
+    <tr tal:define="odd repeat/fsys/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues">
           <a class=tablevalues tal:content="fsys/mount" 
             tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
@@ -276,6 +290,7 @@
       </td>
       -->
     </tr>
+    </tal:block>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
@@ -310,7 +325,9 @@
             No Routes
         </th>
     </tr>
-    <tr tal:repeat="route batch">
+    <tal:block tal:repeat="route batch">
+    <tr tal:define="odd repeat/route/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" tal:content="structure route/getTargetLink"/>
       <td class="tablevalues">
           <span tal:replace="structure route/getNextHopIpLink"/>
@@ -320,6 +337,7 @@
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
