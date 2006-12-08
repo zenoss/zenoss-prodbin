@@ -493,5 +493,6 @@ a.tablevalues:active {
 
 /* ALTERNATING ROWS */
 .odd,
+.odd a.tablevalues,
 .odd td.tablevalues { background-color:#dedeff }
 
