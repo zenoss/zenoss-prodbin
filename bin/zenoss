@@ -15,7 +15,7 @@ if [ -z "$ZENHOME" ] ; then
   done
 fi
 if [ -z "$ZENHOME" ] ; then
-  ZENHOME=/usr/local/zenoss
+  ZENHOME=/usr/local/zenoss; export ZENHOME
 fi
 
 if [ `id -u` -eq 0 ] ; then
