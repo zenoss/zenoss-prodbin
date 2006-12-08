@@ -55,7 +55,7 @@ def addMonth(secs, dayOfMonthHint=0):
 
 def minmax(value, minValue, maxValue, label, msgs):
     "add a message to msgs if not minValue <= value <= maxValue"
-    if not minValue <= value < maxValue:
+    if not minValue <= value <= maxValue:
         msgs.append("Bad value for %s: "
                     "must be between %s and %s, inclusive" %
                     (label, minValue, maxValue))
@@ -206,7 +206,7 @@ class MaintenanceWindow(ZenModelRM):
         if msgs:
             if REQUEST:
                 REQUEST['message'] = '; '.join(msgs)
-            return self.callZenScreen(REQUEST)
+                return self.callZenScreen(REQUEST)
         else:
             self.start = t
             self.duration = duration
