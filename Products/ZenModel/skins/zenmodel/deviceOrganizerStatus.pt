@@ -7,7 +7,6 @@
 
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
     <!-- Status Table -->
     <table class="zentable"  cellpadding="3" cellspacing="1"
         metal:define-macro="status">
@@ -62,8 +61,10 @@
             Snmp
         </th>
         </tr>
-        <tr tal:repeat="devorg batch">
-            <td class="tablevalues">
+        <tal:block tal:repeat="devorg batch">
+          <tr tal:define = "odd repeat/devorg/odd" 
+              tal:attributes="class python:test(odd, 'odd','even');">
+            <td class="tablevalues" >
                 <input tal:condition="here/isManager" 
                     type="checkbox" name="organizerPaths:list" 
                     tal:attributes="value devorg/getId"/>
@@ -89,6 +90,7 @@
             </table>
             </td>
         </tr>
+        </tal:block>
         <tr>
             <td colspan="6" class="tableheader">
                 <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

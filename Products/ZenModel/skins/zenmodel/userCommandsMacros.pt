@@ -20,7 +20,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Description')"/>
   </tr>
-  <tr tal:repeat="uc batch">
+    <tal:block tal:repeat="uc batch">
+  <tr tal:define="odd repeat/uc/odd"
+      tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
               tal:attributes="value uc/getId"/>
@@ -34,6 +36,7 @@
         tal:content="uc/description">
     </td>
   </tr>
+  </tal:block>
   <tr>
     <td colspan="5" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

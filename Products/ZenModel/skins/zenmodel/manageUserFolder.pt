@@ -43,7 +43,9 @@ function ConfirmPagerTest() {
         <th tal:replace="structure python:ztm.getTableHeader(
                             tableName,'roles','Roles')"/>
     </tr>
-    <tr tal:repeat="user batch">
+    <tal:block tal:repeat="user batch">
+    <tr tal:define="odd repeat/user/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues">
         <input type="checkbox" name="userids:list" 
             tal:condition="here/isManager" tal:attributes="value user/getId" />
@@ -70,6 +72,7 @@ function ConfirmPagerTest() {
         <td class="tablevalues" 
             tal:content="python:', '.join(user.getUserRoles())"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

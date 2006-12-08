@@ -15,7 +15,9 @@
                             tableName,'type','Type')"/>
     <th class="tableheader">Events</th>
     </tr>
-    <tr tal:repeat="view batch">
+    <tal:block tal:repeat="view batch">
+    <tr tal:define="odd repeat/view/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" tal:condition="here/iseditable">
             <input type="checkbox" name="ids:list" 
                 tal:attributes="value view/getId"/>
@@ -41,6 +43,7 @@
 
         </td>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

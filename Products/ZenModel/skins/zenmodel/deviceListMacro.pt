@@ -36,7 +36,9 @@
                     tableName,'getSnmpStatusNumber','Critical/Error','cmp')">Critical/Error
         </th>
 	</tr>
-	<tr tal:repeat="device batch">
+   <tal:block tal:repeat="device batch">
+	<tr tal:define="odd repeat/device/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
 		<td class="tablevalues" align="left">
             <input tal:condition="here/editableDeviceList" 
                 type="checkbox" name="deviceNames:list" 
@@ -72,6 +74,7 @@
         </table>
         </td>
     </tr>
+    </tal:block>
     </tbody>
     <tr>
         <td colspan=5 class="tableheader" align='center'>

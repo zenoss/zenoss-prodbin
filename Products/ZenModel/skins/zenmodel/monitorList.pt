@@ -24,7 +24,9 @@
     <tr tal:condition="python: not batch">
         <td colspan="3" class="tablevalues">No contents</td>
     </tr>
-    <tr tal:repeat="mon batch">
+    <tal:block tal:repeat="mon batch">
+    <tr tal:define="odd repeat/mon/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
         <input tal:condition="here/isManager" 
                type="checkbox" name="ids:list" 
@@ -38,6 +40,7 @@
         tal:content="python: mon.bobobase_modification_time().strftime(
                                             '%Y/%m/%d %H:%M:%S')"/>
     </tr>
+    </tal:block>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
         <input class="tableheader" type="text" name="id"/>

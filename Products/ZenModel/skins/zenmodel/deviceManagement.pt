@@ -116,7 +116,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'pager','Pager')"/>
   </tr>
-  <tr tal:repeat="mw batch">
+  <tal:block tal:repeat="mw batch">
+  <tr tal:define="odd repeat/mw/odd"
+      tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
               tal:attributes="value mw/getId"/>
@@ -141,6 +143,7 @@
     <td class="tablevalues" tal:content="mw/email"/>
     <td class="tablevalues" tal:content="mw/pager"/>
   </tr>
+  </tal:block>
   <tr>
     <td colspan="5" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

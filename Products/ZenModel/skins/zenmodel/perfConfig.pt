@@ -22,8 +22,10 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'description','Description')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="temp batch"
-        tal:define="lnames here/rrdTemplates/objectIds">
+    <tal:block tal:repeat="temp batch">
+    <tr tal:define="odd repeat/temp/odd;
+                    lnames here/rrdTemplates/objectIds"
+        tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
             <input tal:condition="python: here.isManager() 
                                     and temp.id in lnames" 
@@ -40,6 +42,7 @@
         </td>
         <td tal:content="temp/description"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

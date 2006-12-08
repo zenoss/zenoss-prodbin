@@ -17,7 +17,9 @@
             Description
         </th>
     </tr>
-    <tr tal:repeat="hist here/manage_change_history">
+    <tal:block tal:repeat="hist here/manage_change_history">
+    <tr tal:define="odd repeat/hist/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')"> 
         <td class="tablevalues"
             tal:content="python:hist['time']">
         </td>
@@ -26,6 +28,7 @@
         <td class="tablevalues" tal:content="hist/description">
         </td>
     </tr>
+    </tal:block>
 </table>
 </tal:block>
 </tal:block>

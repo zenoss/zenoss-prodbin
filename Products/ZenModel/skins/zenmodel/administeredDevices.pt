@@ -24,7 +24,9 @@
                     tableName,'level','Level')"/>
         <th class="tableheader">Events</th>
   </tr>
-  <tr tal:repeat="ur batch">
+  <tal:block tal:repeat="ur batch">
+  <tr tal:define="odd repeat/ur/odd"
+      tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
               tal:attributes="value ur/managedObjectName"/>
@@ -61,6 +63,7 @@
         </table>
   </td>
   </tr>
+  </tal:block>
   <tr>
     <td colspan="5" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

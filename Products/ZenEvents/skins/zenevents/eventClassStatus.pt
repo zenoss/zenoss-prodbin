@@ -51,7 +51,9 @@
             Snmp
         </th>
     </tr>
-    <tr tal:repeat="evdict batch">
+    <tal:block tal:repeat="evdict batch">
+    <tr tal:define="odd repeat/evdict/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" align="left" width="50%">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="organizerPaths:list" 
@@ -66,6 +68,7 @@
         <td class="tablevalues" tal:content="python:evdict.getStatus()"
             align="center">0</td>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="6" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
@@ -133,7 +136,9 @@
             Snmp
         </th>
     </tr>
-    <tr tal:repeat="evinst batch">
+    <tal:block tal:repeat="evinst batch">
+    <tr tal:define="odd repeat/evinst/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
@@ -146,6 +151,7 @@
         <td class="tablevalues" tal:content="python:evinst.getStatus()"
             align="center">0</td>
     </tr>
+    </tal:block>
     </tal:block>
     <tr>
         <td colspan="4" class="tableheader">

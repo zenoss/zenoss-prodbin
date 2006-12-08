@@ -16,7 +16,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'countReports','Reports')"/>
     </tr>
-    <tr tal:repeat="rorg batch">
+    <tal:block tal:repeat="rorg batch"> 
+    <tr tal:define="odd repeat/rorg/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues">
         <input tal:condition="here/isManager" 
             type="checkbox" name="organizerPaths:list" 
@@ -26,6 +28,7 @@
       <td class="tablevalues" tal:content="rorg/countChildren"/>
       <td class="tablevalues" tal:content="rorg/countReports"/>
     </tr>
+    </tal:block>
     <tr>
         <td class="tableheader" colspan="3">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
@@ -52,7 +55,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'description','Description')"/>
     </tr>
-    <tr tal:repeat="rpt batch">
+    <tal:block tal:repeat="rpt batch" tal:omit-tag="">
+    <tr tal:define="odd repeat/rpt/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues">
         <input tal:condition="here/isManager" type="checkbox" name="ids:list" 
             tal:attributes="value rpt/id"/>
@@ -60,6 +65,7 @@
       </td>
       <td class="tablevalues" tal:content="rpt/description"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="2" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

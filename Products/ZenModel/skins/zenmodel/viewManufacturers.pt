@@ -22,7 +22,9 @@
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'count','Count')">Count</th>
     </tr>
-    <tr tal:repeat="manuf batch">
+    <tal:block tal:repeat="manuf batch">
+    <tr tal:define="odd repeat/manuf/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
@@ -37,6 +39,7 @@
         <td class="tablevalues" tal:content="manuf/supportNumber"/>
         <td class="tablevalues" align="center" tal:content="manuf/count"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>

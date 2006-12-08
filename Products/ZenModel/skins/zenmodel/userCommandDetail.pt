@@ -18,11 +18,11 @@
         <th class=tabletitle colspan="2"
             tal:content="string: ${request/message} ${here/getNowString}"/>
     </tr>
-    <tr>
+    <tr class="even">
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:content="here/getId"/>
     </tr>
-    <tr>
+    <tr class="odd">
         <td class="tableheader">Description</td>
         <td class="tablevalues" tal:condition="editable">
             <textarea name="description:text" rows="4" cols="50"
@@ -32,7 +32,7 @@
         <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/description"/>
     </tr>
-    <tr>
+    <tr class="even">
         <td class="tableheader">Command</td>
         <td class="tablevalues" tal:condition="editable">
             <textarea name="command:text" rows="4" cols="50"

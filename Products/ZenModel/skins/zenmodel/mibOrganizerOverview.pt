@@ -23,7 +23,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'countClasses','Mibs')"/>
     </tr>
-    <tr tal:repeat="svcorg batch">
+    <tal:block tal:repeat="svcorg batch">
+    <tr tal:define="odd repeat/svcorg/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" width="50%">
             <input tal:condition="here/isManager" 
                 type="checkbox" name="organizerPaths:list" 
@@ -36,6 +38,7 @@
             tal:content="svcorg/countChildren"/>
         <td class="tablevalues" align=center tal:content="svcorg/countClasses"/>
     </tr>
+    </tal:block>
     <tr>
         <td colspan="6" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

@@ -13,9 +13,12 @@
         <th class="tableheader">Field</th>
         <th class="tableheader">Value</th>
     </tr>
-    <tr tal:repeat="field objects">
+    <tal:block tal:repeat="field objects">
+    <tr tal:define="odd repeat/field/odd"
+        tal:attributes="class python:test(odd,'odd','even')">
         <td class=tableheader tal:content="python:field[0]">field</td>
         <td class="tablevalues" tal:content="python:field[1]">value</td>
     </tr>
+    </tal:block>
 </table>
 </html>

@@ -17,7 +17,9 @@
       <th class="tableheader" align="center">Type</th>
       <th class="tableheader" align="center">Path</th>
     </tr>
-    <tr tal:repeat="prop props">
+    <tal:block tal:repeat="prop props"> 
+    <tr tal:define="odd repeat/prop/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" tal:content="prop">
         zPingInterfaceRegex
       </td>
@@ -59,6 +61,7 @@
         /Devices/Servers
       </td>
     </tr>
+    </tal:block>
     <tr class="tableheader" tal:condition="here/isManager">
     <td colspan="5">
         <input class="tableheader" type="submit" 
