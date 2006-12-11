@@ -28,7 +28,7 @@ class Availability:
     def __init__(self, device, component, downtime, total):
         self.device = device
         self.component = component
-        self.availability = 1 - (downtime / total)
+        self.availability = max(0, 1 - (downtime / total))
 
     def floatStr(self):
         return '%2.3f%%' % (self.availability * 100)
@@ -63,14 +63,14 @@ class Report:
     "Determine availability by counting the amount of time down"
 
     def __init__(self,
-                 start = None,
-                 end = None,
+                 startDate = None,
+                 endDate = None,
                  eventClass='/Status/Ping',
                  severity=5,
                  device=None,
                  component=''):
-        self.start = _round(start)
-        self.end = _round(end)
+        self.startDate = _round(startDate)
+        self.endDate = _round(endDate)
         self.eventClass = eventClass
         self.severity = severity
         self.device = device
@@ -78,7 +78,7 @@ class Report:
 
 
     def tuple(self):
-        return (self.start, self.end, self.eventClass,
+        return (self.startDate, self.endDate, self.eventClass,
                 self.severity, self.device, self.component)
 
     def __hash__(self):
@@ -93,16 +93,16 @@ class Report:
         # Note: we don't handle overlapping "down" events, so down
         # time could get get double-counted.
         cols = 'device, component, firstTime, lastTime'
-        end = self.end or time.time()
-        start = self.start
-        if not start:
+        endDate = self.endDate or time.time()
+        startDate = self.startDate
+        if not startDate:
             days = dmd.ZenEventManager.defaultAvailabilityDays
-            start = time.time() - days*60*60*24
+            startDate = time.time() - days*60*60*24
         env = self.__dict__.copy()
         env.update(locals())
         w =  ' WHERE severity >= %(severity)s '
-        w += ' AND lastTime > %(start)s '
-        w += ' AND firstTime <= %(end)s '
+        w += ' AND lastTime > %(startDate)s '
+        w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
         w += " AND eventClass = '%(eventClass)s' "
         if self.device:
@@ -125,8 +125,8 @@ class Report:
                 if not rows: break
                 for row in rows:
                     device, component, first, last = row
-                    last = min(last, end)
-                    first = max(first, start)
+                    last = min(last, endDate)
+                    first = max(first, startDate)
                     k = (device, component)
                     try:
                         devices[k] += last - first
@@ -134,11 +134,15 @@ class Report:
                         devices[k] = last - first
         finally:
             c.close()
-        total = end - start
+        total = endDate - startDate
         if self.device:
             deviceList = [dmd.Devices.findDevice(self.device)]
+            devices.setdefault( (self.device, self.component), 0)
         else:
             deviceList = [d for d in dmd.Devices.getSubDevices()]
+            if not self.component:
+                for d in dmd.Devices.getSubDevices():
+                    devices.setdefault( (d.id, self.component), 0)
         result = []
         for (d, c), v in devices.items():
             result.append( Availability(d, c, v, total) )

@@ -8,15 +8,24 @@
         src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 
+<span tal:define="
+      tableName string:availability;
+      tm here/ZenTableManager;
+      zem python:here.dmd.ZenEventManager;
+">
+
 <form id="availabilityForm" 
-      tal:define="device python:request.get('device', '');
-                  component python:request.get('component', '');
-                  severity python:request.get('severity', 'Error');
-                  eventClass python:request.get('eventClass', '/Status/Ping');
-                  start python:request.get('start', 
-                           here.dmd.ZenEventManager.defaultAvailabilityStart());
-                  end python:request.get('end', 
-                           here.dmd.ZenEventManager.defaultAvailabilityEnd());"
+      tal:define="
+      sts python:tm.setReqTableState;
+      device python:sts(tableName, 'device', '');
+      component python:sts(tableName, 'component', '');
+      severity python:sts(tableName, 'severity', 'Error');
+      eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
+      startDate python:sts(tableName, 'startDate', 
+                           zem.defaultAvailabilityStart());
+      endDate python:sts(tableName, 'endDate', 
+                           zem.defaultAvailabilityEnd());
+      "
       method="submit"
 >
 <table class="zentable" cellpadding="3" cellspacing="1">
@@ -34,17 +43,17 @@
     </tr><tr>
         <td class="tableheader">Start Date:</td>
         <td class="tablevalues"><input class="tablevalues" 
-                                  name="start" readonly="true" 
-                                  tal:attributes="value start"/>
+                                  name="startDate" readonly="true" 
+                                  tal:attributes="value startDate"/>
             <input class="tablevalues" type="button" value="select"
-                   onclick="displayDatePicker('start');"/>
+                   onclick="displayDatePicker('startDate');"/>
         </td>
         <td class="tableheader">End Date:</td>
-        <td class="tablevalues"><input class="tablevalues" name="end" 
+        <td class="tablevalues"><input class="tablevalues" name="endDate" 
                                        readonly="true" 
-                                       tal:attributes="value end"/>
+                                       tal:attributes="value endDate"/>
             <input class="tablevalues" type="button" value="select"
-                   onclick="displayDatePicker('end');"/>
+                   onclick="displayDatePicker('endDate');"/>
         </td>
     </tr><tr>
        <td class="tableheader">Event Class:</td>
@@ -74,17 +83,18 @@
 
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
-    objects  python:here.getDmdRoot('ZenEventManager').getAvailability(request);
-    tableName string: deviceavailabilityreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    objects python:zem.getAvailability(tm.getTableState(tableName));
+    batch python:tm.getBatch(tableName,objects, 
+                             sortedSence='asc',
+                             sortedHeader='availability');
     ">
   <tr><th class="tabletitle" colspan="3">Device Availability</th></tr>
   <tr>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+    <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'device','Device')"/>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+    <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'component','Component')"/>
-    <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+    <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'availability','Availability')"/>
   </tr>
   <tal:block tal:repeat="avail batch">
@@ -108,6 +118,12 @@
       <td class="tablevalues" tal:content="avail/floatStr"/>
    </tr>
   </tal:block>
+  <tr>
+      <td colspan="3" class="tableheader" align='center'>
+      <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+      </td>
+  </tr>
 </table>
+</span>
 </tal:block>
 </tal:block>f

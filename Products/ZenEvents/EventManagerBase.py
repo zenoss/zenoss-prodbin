@@ -553,21 +553,20 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         return Time.USDate(time.time())
 
 
-    def getAvailability(self, REQUEST=None, **kw):
+    def getAvailability(self, state, **kw):
         import Availability
-        if REQUEST:
-            for name in "device", "component", "eventClass":
-                if REQUEST.has_key(name):
-                    kw.setdefault(name, REQUEST[name])
-            try:
-                kw.setdefault('severity',
-                              self.severities.index(REQUEST['severity']))
-            except (ValueError, KeyError):
-                pass
-            for name in "start", "end":
-                if REQUEST.has_key(name):
-                    kw.setdefault(name, Time.ParseUSDate(REQUEST[name]))
-        kw.setdefault('start', time.time() - 60*60*24*self.defaultAvailabilityDays)
+        for name in "device", "component", "eventClass":
+            if hasattr(state, name):
+                kw.setdefault(name, getattr(state, name))
+        try:
+            kw.setdefault('severity', self.severities.index(state.severity))
+        except (ValueError, KeyError):
+            pass
+        for name in "startDate", "endDate":
+            if hasattr(state, name):
+                kw.setdefault(name, Time.ParseUSDate(getattr(state, name)))
+        kw.setdefault('startDate',
+                      time.time() - 60*60*24*self.defaultAvailabilityDays)
         return Availability.query(self.dmd, **kw)
 
 
