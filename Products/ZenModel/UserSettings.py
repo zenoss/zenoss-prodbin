@@ -16,6 +16,7 @@ from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from Products.PluggableAuthService import interfaces
 from zExceptions import Unauthorized
+from DateTime import DateTime
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
@@ -573,6 +574,7 @@ class UserSettings(ZenModelRM):
             emsg['Subject'] = 'Zenoss Email Test'
             emsg['From'] = srcAddress
             emsg['To'] = destAddress
+            emsg['Date'] = DateTime().rfc822()
             try:
                 GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort,
                                 self.dmd.smtpUseTLS, self.dmd.smtpUser,

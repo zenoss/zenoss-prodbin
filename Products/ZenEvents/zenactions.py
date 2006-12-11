@@ -31,6 +31,7 @@ from Schedule import Schedule
 from UpdateCheck import UpdateCheck
 from Products.ZenUtils.Utils import sendEmail as GlobalSendEmail
 from twisted.internet import reactor
+from DateTime import DateTime
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -358,6 +359,7 @@ class ZenActions(ZCmdBase):
         emsg['Subject'] = fmt
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
+        emsg['Date'] = DateTime().rfc822()
         GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort, 
                         self.dmd.smtpUseTLS, self.dmd.smtpUser, self.dmd.smtpPass)
         self.log.info("sent email:%s to:%s", fmt, addr)
