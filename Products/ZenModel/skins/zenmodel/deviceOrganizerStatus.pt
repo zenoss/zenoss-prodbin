@@ -27,6 +27,69 @@
 
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
+<script language="javascript">
+
+function toggleElement(elementid) {
+    var element = $(elementid);
+    if (element.visible == 0) {
+        element.style.display = "none";
+        element.visible = 1;
+    } else {
+        element.style.display = "";
+        element.visible = 0;
+    }
+}
+</script>
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:condition="python:here.id != here.dmdRootName">
+    <tbody>
+    <tr>
+        <th class="tabletitle" colspan="3" tal:content="python:here.dmdRootName[:-1]"/>
+    </tr>
+    <tr>
+        <td class="tableheader" style="width:20em;" >Name</td>
+        <td class="tablevalues" 
+            tal:content="string:${here/id}"/>
+    </tr>
+    <tr tal:condition="here/description">
+        <td class="tableheader">Description</td>
+        <td class="tablevalues">
+        <span
+            tal:content="structure python:here.description.replace('\n','<br/>')"/><br/>
+        <span tal:condition="here/isManager"> 
+            <a style="color:darkgrey;text-decoration:none;"
+               href="javascript:toggleElement('descriptioneditform')">[Edit]</a>
+        </span>
+    </tr>
+    </tbody>
+    <tbody id="descriptioneditform" tal:condition="here/isManager" 
+            visible="1" style="display:none;">
+    <tr>
+        <td class="tableheader">New Description</td>
+        <td class="tablevalues"> 
+            <textarea tal:condition="here/isManager" name="description"
+                    rows="4" cols="50" tal:content="here/description"/>
+            <tal:block tal:condition="not: here/isManager"
+                    tal:replace="here/description" />
+    </tr>
+    <tr>
+        <td class="tableheader" align="left">
+        </td>
+        <td align="left" class="tableheader">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method:method" />
+            <input class="tableheader" type="button" value=" Cancel "
+                onclick="javascript:toggleElement('descriptioneditform')"/>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</form>
+    <span metal:use-macro="here/templates/macros/contentSeparator"
+            tal:condition="python:here.id != here.dmdRootName"/>
+
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path">
     <table class="zentable" cellpadding="3" cellspacing="1"

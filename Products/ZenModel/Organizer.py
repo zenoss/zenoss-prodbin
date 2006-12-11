@@ -43,7 +43,6 @@ class Organizer(ZenModelRM, EventView):
     def __init__(self, id, description = ''):
         ZenModelRM.__init__(self, id)
         self.description = description
- 
 
     def childMoveTargets(self):
         """see IDeviceManager"""
