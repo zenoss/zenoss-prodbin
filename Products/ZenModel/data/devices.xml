@@ -1388,7 +1388,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type='lines' id='dsnames' mode='w' >
-['ssCpuRawIdle']
+['ssCpuRawIdle_ssCpuRawIdle']
 </property>
 <property type='string' id='minval' mode='w' >
 2
