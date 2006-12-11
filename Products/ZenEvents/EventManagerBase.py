@@ -40,10 +40,13 @@ from Exceptions import *
 
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenUtils import Time
+import StringIO
+import csv
 
 from ZenEventClasses import Unknown
 
 import time
+
 
 class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager, 
                         PropertyManager, Item):
@@ -1184,3 +1187,20 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 out.write(
                     "Skipping %s skin, 'zenevents' is already set up\n" % skin) 
         return out.getvalue()
+
+
+    #==========================================================================
+    # Misc
+    #==========================================================================
+
+    security.declareProtected('View', 'writeExportRows')
+    def writeExportRows(self, fields, objects):
+        '''Write out csv rows with the given objects and fields
+        '''
+        buffer = StringIO.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(fields)
+        for o in objects:
+            writer.writerow([str(getattr(o, f)) for f in fields])
+        return buffer.getvalue()
+        

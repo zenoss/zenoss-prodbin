@@ -4,6 +4,15 @@
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
+<script>
+function goExport(url) {
+	var sev = document.getElementById("severity").value;
+	var state = document.getElementById("state").value;
+	var filter = document.getElementById("filter").value;
+	url = url + "/exportEvents?state=" + state + "&severity=" + sev + "&filter=" + filter;
+	parent.location = url;
+}
+</script>
 <form name="control" method="post" 
     tal:attributes="action here/absolute_url_path"
     tal:define="
@@ -32,12 +41,12 @@
     <tr>
         <th class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
             Filter
-            <input class="tableheader" type="text" name="filter" 
+            <input class="tableheader" type="text" name="filter" id="filter"
                 size="20" onkeypress="getPageViaEnter(event)"
                 tal:attributes="value request/filter | string:">
             &nbsp; &nbsp;
             Sev
-            <select class="tableheader" name="severity:int"
+            <select class="tableheader" name="severity:int" id="severity"
                     onchange="getTablePage(this.form)">
                 <option tal:repeat="sev here/ZenEventManager/getSeverities"
                     tal:content="python:sev[0]"
@@ -46,7 +55,7 @@
             </select>
             &nbsp; &nbsp;
             State
-            <select class="tableheader" name="state:int"
+            <select class="tableheader" name="state:int" id="state"
                     onchange="getTablePage(this.form)">
                 <option tal:repeat="st here/ZenEventManager/getEventStates"
                     tal:content="python:st[0]"
@@ -99,6 +108,13 @@
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
+        |
+        <input class="tableheader" type="button"
+                name="export" value="Export All"
+				tal:define="severity request/severity | string:2;
+							state request/state | string:1;
+							filter request/filter | string:;"
+				tal:attributes="onClick string:goExport('${request/URL1}');" /> 
     </td>
     </tr>
     </tal:block>
