@@ -77,7 +77,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             hwManufacturer="", hwProductName="", 
             osManufacturer="", osProductName="", 
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], perfMonitor="localhost",
+            statusMonitors=["localhost"], performanceMonitor="localhost",
             discoverProto="snmp",REQUEST = None):
         """
         Load a device into the database connecting its major relations
@@ -99,7 +99,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 hwManufacturer, hwProductName, 
                 osManufacturer, osProductName, 
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, perfMonitor, discoverProto)
+                statusMonitors, performanceMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
