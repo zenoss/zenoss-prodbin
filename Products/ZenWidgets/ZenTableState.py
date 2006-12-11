@@ -52,6 +52,7 @@ class ZenTableState:
         self.sortedHeader = "primarySortKey"
         self.sortedSence="asc"
         self.sortRule = "cmp"
+       	self.defaultBatchSize = defaultBatchSize
         self.batchSize = defaultBatchSize
         self.start = 0
         self.lastindex = 0
@@ -79,6 +80,8 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request request"""
+        # Reset the batchSize
+        self.batchSize = self.defaultBatchSize
         if self.URL != request.URL:
             self.start=0
             self.filter = ''
