@@ -53,11 +53,12 @@ function toggleElement(elementid) {
         <td class="tablevalues" 
             tal:content="string:${here/id}"/>
     </tr>
-    <tr tal:condition="here/description">
+    <tr>
         <td class="tableheader">Description</td>
         <td class="tablevalues">
         <span
-            tal:content="structure python:here.description.replace('\n','<br/>')"/><br/>
+            tal:content="structure python:here.description.replace('\n','<br/>')"/>
+            <br tal:condition="here/description"  />
         <span tal:condition="here/isManager"> 
             <a style="color:darkgrey;text-decoration:none;"
                href="javascript:toggleElement('descriptioneditform')">[Edit]</a>
@@ -87,8 +88,10 @@ function toggleElement(elementid) {
     </tbody>
 </table>
 </form>
-    <span metal:use-macro="here/templates/macros/contentSeparator"
-            tal:condition="python:here.id != here.dmdRootName"/>
+
+<tal:block tal:condition="python:here.id != here.dmdRootName">
+    <span metal:use-macro="here/templates/macros/contentSeparator"/>
+</tal:block>
 
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path">
