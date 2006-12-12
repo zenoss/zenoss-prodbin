@@ -383,6 +383,9 @@ td.tablevalues {
     font-weight: normal; 
     background-color: #EEE;
 }
+a.tablevalues {
+    background-color: transparent;
+}
 a.tablevalues:link {  
     color: #000040;
 }
