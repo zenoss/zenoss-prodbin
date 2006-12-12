@@ -138,7 +138,9 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def getBatch(self, tableName, objects, **keys):
         """Filter, sort and batch objects and pass return set.
         """
-        tableState = self.setupTableState(tableName, **keys) 
+        tableState = self.setupTableState(tableName, **keys)
+        if tableState.onlyMonitored and objects:
+            objects = [o for o in objects if o.monitored()]
         if tableState.filter and objects:
             objects = self.filterObjects(objects, tableState.filter, 
                                         tableState.filterFields)

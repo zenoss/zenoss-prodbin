@@ -29,6 +29,7 @@ class ZenTableState:
         "filter",
         "sortedHeader",
         "sortedSence",
+        "onlyMonitored"
         ]
 
     requestAtts = [
@@ -40,6 +41,7 @@ class ZenTableState:
         "sortRule",
         "start",
         "URL",
+        "onlyMonitored"
         ]
 
     security = ClassSecurityInfo()
@@ -52,6 +54,7 @@ class ZenTableState:
         self.sortedHeader = "primarySortKey"
         self.sortedSence="asc"
         self.sortRule = "cmp"
+        self.onlyMonitored = 0
        	self.defaultBatchSize = defaultBatchSize
         self.batchSize = defaultBatchSize
         self.start = 0
@@ -79,7 +82,7 @@ class ZenTableState:
 
 
     def updateFromRequest(self, request):
-        """update table state based on request request"""
+        """update table state based on request"""
         # Reset the batchSize
         self.batchSize = self.defaultBatchSize
         if self.URL != request.URL:
@@ -90,6 +93,8 @@ class ZenTableState:
         for attname in self.requestAtts:
             if request.has_key(attname):
                 self.setTableState(attname, request[attname])
+        if not request.has_key('onlyMonitored'):
+            self.setTableState('onlyMonitored', 0)
         if request.get("first",False):
             self.resetStart = True
         elif request.get("last", False):

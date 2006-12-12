@@ -7,6 +7,9 @@ function submitViaEnter(evt) {
     if (charCode == 13 || charCode == 3) {
         form.submit();
         return false;
+    } else if (evt.type == "change") {
+        form.submit();
+        return false;
     }
     return true;
 }

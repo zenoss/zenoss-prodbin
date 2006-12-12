@@ -119,7 +119,8 @@
     </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'
+			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
@@ -220,7 +221,8 @@
     </tr>
     </tal:block>
     <tr>
-        <td colspan="6" class="tableheader" align='center'>
+        <td colspan="6" class="tableheader" align='center'
+			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
@@ -292,7 +294,8 @@
     </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'
+			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
