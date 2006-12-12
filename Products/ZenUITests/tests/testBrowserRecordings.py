@@ -6,9 +6,10 @@ from testgen.mechunit import MechanizeUnitTest
 def convertFilesToSuite(filenames):
     suites = []
     for filename in filenames:
+        if not filename.endswith('testDevicesCreateDelete.xml'): continue
         loader = unittest.TestLoader()
         test = MechanizeUnitTest
-        test.sourceFilename = filename
+        test.sf = filename
         suite = loader.loadTestsFromTestCase(test)
         suite = unittest.TestSuite([suite])
         suites.append(suite)

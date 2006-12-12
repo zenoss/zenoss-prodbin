@@ -15,7 +15,7 @@
         </action>
         <action type="fill" step="4">
             <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="password" and @NAME="__ac_password"]]]></xpath>
-            <value><![CDATA[admin]]></value>
+            <value><![CDATA[zenoss]]></value>
         </action>
         <action type="click" refresh="true" step="5">
             <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="submit"and @VALUE="Submit"]]]></xpath>
