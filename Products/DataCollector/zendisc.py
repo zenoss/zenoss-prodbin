@@ -64,24 +64,22 @@ class ZenDisc(ZenModeler):
                 ipobj = net.createIp(ip)
                 if self.options.resetPtr:
                     ipobj.setPtrName()
+                transaction.commit()
                 if not ipobj.device():
                     ips.append(ip)
                 if ipobj.getStatus(PingStatus) > 0:
                     self.sendEvent(ipobj, sev=0)
-                transaction.commit()
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
-                if self.options.addInactive:
-                    if not ipobj:
-                        ipobj = net.createIp(ip)
-                    transaction.commit()
-                    self.sendEvent(ipobj)
-                elif ipobj and ipobj.getStatus(PingStatus) > pingthresh:
-                    net.ipaddresses.removeRelation(ipobj)
-                if ipobj and self.options.resetPtr:
-                    ipobj.setPtrName()
+                if not ipobj and self.options.addInactive:
+                    ipobj = net.createIp(ip)
+                if ipobj:
+                    if self.options.resetPtr:
+                        ipobj.setPtrName()
+                    elif ipobj.getStatus(PingStatus) > pingthresh:
+                        net.ipaddresses.removeRelation(ipobj)
                 transaction.commit()
-        transaction.commit()
+                self.sendEvent(ipobj)
         self.log.info("discovered %s active ips", goodCount)    
         return ips
        
