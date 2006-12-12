@@ -334,6 +334,17 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         return [ dict(name=x) for x in self._getDaemonList() ]
 
+    def _readLogFile(self, filename, maxBytes):
+        fh = open(filename)
+        try:
+            size = os.path.getsize(filename)
+            if size > maxBytes:
+                fh.seek(-maxBytes, 2)
+                # the first line could be a partial line, so skip it
+                fh.readline()
+                return fh.read()
+        finally:
+           fh.close()
 
     def getLogData(self, daemon, kb=500):
         """
@@ -349,23 +360,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         elif daemon == 'zeoctl':
             daemon = 'zeo'
         filename = os.path.join(os.getenv('ZENHOME'), 'log', "%s.log" % daemon)
-        data = None
+        # if there is no data read, we don't want to return something that can
+        # be interptreted as "None", so we make the default a single white
+        # space
+        data = ' '
         try:
-            fh = open(filename)
-            size = os.stat(filename)[6]
-            if size <= maxBytes:
-                data = fh.read()
-            else:
-                fh.seek(size - maxBytes)
-                # the first line could be a partial line, so skip it
-                lines = fh.readlines()[1:]
-                data = ''.join(lines)
-                if not data:
-                    data = 'Empty file.'
-        finally:
-            if not data:
-                data = 'Could not read file.'
-            fh.close()
+            data = self._readLogFile(filename, maxBytes)
+        except IOError:
+            data = 'Error reading log file'
         return data
 
 
@@ -377,23 +379,26 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return os.path.join(os.getenv('ZENHOME'), 'etc',
             "%s.conf" % daemon)
 
-
+    def _readConfigFile(self, filename):
+       fh = open(filename)
+       try:
+           return fh.read()
+       finally:
+           fh.close()
+        
     def getConfigData(self, daemon):
         """
         Return the contents of the daemon's config file.
         """
         filename = self._getConfigFilename(daemon)
-        data = None
+        # if there is no data read, we don't want to return something that can
+        # be interptreted as "None", so we make the default a single white
+        # space
+        data = ' '
         try:
-            fh = open(filename)
-            data = fh.read()
-            if not data:
-                data = ' '
-            fh.close()
-        finally:
-            if not data:
-                data = 'Could not read file.'
-            fh.close()
+            data = self._readConfigFile(filename)
+        except IOError:
+            data = 'Unable to read config file'
         return data
 
 
