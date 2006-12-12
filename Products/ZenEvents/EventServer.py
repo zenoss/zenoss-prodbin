@@ -100,6 +100,7 @@ class EventServer(ZCmdBase):
 
     def sendEvent(self, evt):
         "wrapper for sending an event"
+        self.zem._p_jar.sync()
         self.zem.sendEvent(evt)
 
 
