@@ -25,8 +25,7 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from AdministrativeRole import DeviceAdministrativeRole, \
                                DevOrgAdministrativeRole
-
-from Products.ZenUtils.Utils import sendEmail as GlobalSendEmail
+import Products.ZenUtils.Utils as Utils
 
 import smtplib
 from email.MIMEText import MIMEText
@@ -575,13 +574,14 @@ class UserSettings(ZenModelRM):
             emsg['From'] = srcAddress
             emsg['To'] = destAddress
             emsg['Date'] = DateTime().rfc822()
-            try:
-                GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort,
+            result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost, 
+                                self.dmd.smtpPort,
                                 self.dmd.smtpUseTLS, self.dmd.smtpUser,
                                 self.dmd.smtpPass)
+            if result:
                 msg = 'Test email sent to %s' % destAddress
-            except:
-                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
+            else:
+                msg = 'Test failed: %s' % errorMsg
         else:
             msg = 'Test email not sent, user has no email address.'
         if REQUEST:
@@ -601,16 +601,14 @@ class UserSettings(ZenModelRM):
         if destPager:
             fqdn = socket.getfqdn()
             srcId = self.getUser().getId()
-            rcpt = Pager.Recipient(destPager)
-            pmsg = Pager.Message('Test sent by %s' % srcId +
+            msg = ('Test sent by %s' % srcId + 
                     ' from the Zenoss installation on %s.' % fqdn)
-            try:
-                page = Pager.Pager((rcpt,), pmsg,
-                                   self.dmd.snppHost, self.snppPort) 
-                page.send()
+            result, errorMsg = Utils.sendPage(destPager, msg, 
+                                    self.dmd.snppHost, self.dmd.snppPort)
+            if result:
                 msg = 'Test page sent to %s' % settings.pager
-            except:
-                msg = 'Test failed: %s %s' % tuple(sys.exc_info()[:2])
+            else:
+                msg = 'Test failed: %s' % errorMsg
         else:
             msg = 'Test page not sent, user has no pager number.'
         if REQUEST:

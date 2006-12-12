@@ -18,6 +18,7 @@ import types
 import struct
 import logging
 import re
+import socket
 log = logging.getLogger("zen.Utils")
 
 from Acquisition import aq_base
@@ -327,17 +328,46 @@ def prepId(id, subchar='_'):
     return id
 
 def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
+    ''' Send an email.  Return a tuple:
+    (sucess, message) where sucess is True or False.
+    '''
     import smtplib
     fromaddr = emsg['From']
     toaddr = emsg['To']
-    server = smtplib.SMTP(host, port)
-    if usetls:
-        server.ehlo()
-        server.starttls()
-        server.ehlo()
-    if len(usr): server.login(usr, pwd)
-    server.sendmail(fromaddr, (toaddr,), emsg.as_string())
-    # Need to catch the quit because some servers using TLS throw an
-    # EOF error on quit, so the email gets sent over and over
-    try: server.quit()
-    except: pass
+    try:
+        server = smtplib.SMTP(host, port)
+        if usetls:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+        if len(usr): server.login(usr, pwd)
+        server.sendmail(fromaddr, (toaddr,), emsg.as_string())
+        # Need to catch the quit because some servers using TLS throw an
+        # EOF error on quit, so the email gets sent over and over
+        try: server.quit()
+        except: pass
+    except socket.error: # Might be others we want to catch too.
+        result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
+    else:
+        result = (True, '')
+    return result
+    
+    
+def sendPage(recipient, msg, snppHost, snppPort):
+    ''' Send a page.  Return a tuple: (success, message) where
+    sucess is True or False.
+    '''
+    import Pager
+    try:
+        rcpt = Pager.Recipient(recipient)
+        pmsg = Pager.Message(msg)
+        page = Pager.Pager((rcpt,), pmsg, snppHost, snppPort)
+        page.send()
+    except socket.error:
+        # Need to figure out what exceptions might be thrown above
+        # and explicitly catch them here.
+        result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
+    else:
+        result = (True, '')
+    return result
+        

@@ -29,7 +29,7 @@ from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
-from Products.ZenUtils.Utils import sendEmail as GlobalSendEmail
+import Products.ZenUtils.Utils as Utils
 from twisted.internet import reactor
 from DateTime import DateTime
 
@@ -121,11 +121,11 @@ class ZenActions(ZCmdBase):
 
 
     def getAckUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_ackEvents?evid=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
+        return '%s/zport/dmd/Events/manage_ackEvents?evids=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
 
 
     def getDeleteUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_deleteEvents?evid=%s&zenScreenName=viewHistoryEvents' % (self.options.zopeurl, evid)
+        return '%s/zport/dmd/Events/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents' % (self.options.zopeurl, evid)
 
 
     def processRules(self, db, zem):
@@ -150,6 +150,7 @@ class ZenActions(ZCmdBase):
     def processActionRule(self, db, zem, ar):
         fields = ar.getEventFields()
         userid = ar.getUserid()
+        # call sendPage or sendEmail
         actfunc = getattr(self, "send"+ar.action.title())
         # get new events
         nwhere = ar.where.strip() or '1 = 1'
@@ -169,10 +170,9 @@ class ZenActions(ZCmdBase):
             data['deleteUrl'] = self.getDeleteUrl(evid)
             data['severityString'] = self.dmd.ZenEventManager.getSeverityString(
                 data.get('severity', -1))
-            actfunc = getattr(self, "send"+ar.action.title())
-            actfunc(ar, data, False)
-            addcmd = self.addstate % (evid, userid, ar.getId())
-            self.execute(db, addcmd)
+            if actfunc(ar, data, False):            
+                addcmd = self.addstate % (evid, userid, ar.getId())
+                self.execute(db, addcmd)
 
         # get clear events
         q = self.clearsel % (",".join(fields),userid,ar.getId())
@@ -324,22 +324,27 @@ class ZenActions(ZCmdBase):
         return data
 
     def sendPage(self, action, data, clear = None):
-        """Send and event to a pager.
+        """Send and event to a pager.  Return True if we think page was sent,
+        False otherwise.
         """
-        import Pager
         fmt, body = self.format(action, data, clear)
-        rcpt = Pager.Recipient(action.getAddress())
-        pmsg = Pager.Message(fmt % data)
-        page = Pager.Pager((rcpt,), pmsg,
-                           self.dmd.snppHost, 
-                           self.dmd.snppPort)
-        page.send()
         msg = fmt % data
-        self.log.info("sent page:%s to:%s", msg, action.getAddress())
+        recipient = action.getAddress()
+        
+        result, errorMsg = Utils.sendPage(recipient, msg,
+                                    self.dmd.snppHost,self.dmd.snppPort)
+        if result:
+            self.log.info('sent page to %s: %s', recipient, msg)
+        else:
+            self.log.info('failed to send page to %s: %s %s', recipient, msg,
+                                                                errorMsg)
+        return result
+        
         
 
     def sendEmail(self, action, data, clear = None):
         """Send an event to an email address.
+        Return True if we think the email was sent, False otherwise.
         """
         import smtplib
         from email.MIMEText import MIMEText
@@ -360,9 +365,15 @@ class ZenActions(ZCmdBase):
         emsg['From'] = self.options.fromaddr
         emsg['To'] = addr
         emsg['Date'] = DateTime().rfc822()
-        GlobalSendEmail(emsg, self.dmd.smtpHost, self.dmd.smtpPort, 
-                        self.dmd.smtpUseTLS, self.dmd.smtpUser, self.dmd.smtpPass)
-        self.log.info("sent email:%s to:%s", fmt, addr)
+        result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
+                    self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
+                    self.dmd.smtpPass)
+        if result:
+            self.log.info("sent email:%s to:%s", fmt, addr)
+        else:
+            self.log.info("failed to send email to %s: %s %s", addr, fmt, 
+                                                                    errorMsg)
+        return result
 
 
     def buildOptions(self):
