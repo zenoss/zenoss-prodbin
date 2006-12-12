@@ -365,7 +365,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # space
         data = ' '
         try:
-            data = self._readLogFile(filename, maxBytes)
+            data = self._readLogFile(filename, maxBytes) or ' '
         except IOError:
             data = 'Error reading log file'
         return data
@@ -396,7 +396,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         # space
         data = ' '
         try:
-            data = self._readConfigFile(filename)
+            data = self._readConfigFile(filename) or  ' '
         except IOError:
             data = 'Unable to read config file'
         return data
