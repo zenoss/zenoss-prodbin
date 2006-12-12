@@ -1,0 +1,12 @@
+<tal:dummy replace="python:request.response.setHeader('Content-Type', 'application/vnd.ms-excel')"/><tal:dummy replace="python:request.response.setHeader('Content-Disposition', 'attachment; filename=events.csv')"/><tal:block tal:define="
+        severity request/severity | python:2;
+        state request/state | python:1;
+        objects python:here.getEventList(severity=severity,state=state);
+        sortedHeader request/sortedHeader | string:;
+        resultFields request/ev_resultfields | here/getResultFields | 
+                        here/ZenEventManager/defaultResultFields;
+        filter request/filter | string:;
+        ztm here/ZenTableManager;
+        objects python:ztm.filterObjects(objects,filter,resultFields);
+        objects python:ztm.sortObjects(objects,request);
+        batch python:ztm.getBatchForm(objects,request);"><tal:dummy replace="python: here.ZenEventManager.writeExportRows(resultFields, objects)" /></tal:block>
