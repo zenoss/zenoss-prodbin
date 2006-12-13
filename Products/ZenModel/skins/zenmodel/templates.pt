@@ -106,7 +106,8 @@
         </a>
     </td>
     <td class="search">
-    <form action="/zport/dmd/deviceSearchResults" method="POST">
+    <form action="/zport/dmd/deviceSearchResults" method="POST"
+		name="searchform">
         <input type="text" name="query" size="18"
             tal:attributes="value request/query | string:"/>
         <input type="submit" name="submit" value="Search"/>

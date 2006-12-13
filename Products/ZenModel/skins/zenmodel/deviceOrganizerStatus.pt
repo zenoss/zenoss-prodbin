@@ -94,8 +94,10 @@ function toggleElement(elementid) {
 </tal:block>
 
     <!-- Sub-Devices Table -->
-    <form method="post" tal:attributes="action here/absolute_url_path">
+    <form method="post" tal:attributes="action here/absolute_url_path"
+		name="subdeviceForm">
     <table class="zentable" cellpadding="3" cellspacing="1"
+			name="subdeviceTable"
             tal:define="objects here/children;
             tableName string:children;
             batch python:here.ZenTableManager.getBatch(tableName,objects);">

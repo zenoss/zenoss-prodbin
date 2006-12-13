@@ -28,7 +28,7 @@ class ZeoPoolBaseTest(unittest.TestCase):
         app._p_jar.close()
         del app
         zpb.closeAll()
-        pdb.set_trace()
+        #pdb.set_trace()
         app = zpb.getConnection()
         app.unrestrictedTraverse("/zport/dmd")
         
