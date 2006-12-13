@@ -30,7 +30,7 @@ class RRDUtil:
                            "--step",  str(cycleTime),
                            str(dataSource), *rrdCommand.split())
         
-        if rrdType == 'COUNTER':
+        if rrdType == 'COUNTER' or rrdType == 'DERIVE':
             value = long(value)
         try:
             rrdtool.update(filename, 'N:%s' % value)
