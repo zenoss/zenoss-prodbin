@@ -67,7 +67,8 @@
             <tr>
                 <td align=center width=16%
                 tal:repeat="evt python:device.getEventSummary(severity)"
-                tal:attributes="class python:evt[0]">
+                tal:attributes="class python:test( evt[1]-evt[2]>=0,
+                                                  'tablevalues',evt[0] )">
                     <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                 </td>
           </tr>
