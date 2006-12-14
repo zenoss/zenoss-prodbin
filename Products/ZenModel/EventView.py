@@ -10,9 +10,11 @@ class EventView(object):
 
     security = ClassSecurityInfo()
    
-    def getEventManager(self):
+    def getEventManager(self, table='status'):
         """Return the current event manager for this object.
         """
+        if table=='history':
+            return self.ZenEventHistory
         return self.ZenEventManager
 
 
@@ -87,6 +89,14 @@ class EventView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected('Manage Events','manage_undeleteEvents')
+    def manage_undeleteEvents(self, evids=(), REQUEST=None):
+        """Delete events form this managed entity.
+        """
+        self.getEventManager().manage_undeleteEvents(evids)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, REQUEST=None):
         """Delete events form this managed entity.
@@ -113,11 +123,12 @@ class EventView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_setEventStates')
-    def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
+    security.declareProtected('Manage Events','manage_createEventMap')
+    def manage_createEventMap(self, eventClass=None, evids=(), 
+                              table='status', REQUEST=None):
         """Create an event map from an event or list of events.
         """
-        screen = self.getEventManager().manage_createEventMap(
+        screen = self.getEventManager(table).manage_createEventMap(
                                       eventClass, evids, REQUEST)
         if REQUEST:
             if screen: return screen

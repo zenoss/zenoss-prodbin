@@ -938,22 +938,24 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
     def eventControls(self):
         """Are there event controls on this event list.
         """
-        if self.isManager() and self.statusTable == "status":
+        if self.isManager() and self.statusTable in ["status","history"]:
             return 1
         return 0
 
-    def updateEvents(self, stmt, whereClause, reason):
+    def updateEvents(self, stmt, whereClause, reason, 
+                     table="status", toLog=True):
         userId = getSecurityManager().getUser().getId()
         insert = 'INSERT INTO log (evid, userName, text) ' + \
                  'SELECT evid, "%s", "%s" ' % (userId, reason) + \
-                 'FROM status ' + whereClause
-        delete = stmt + ' ' + whereClause
+                 'FROM %s ' % table + whereClause
+        query = stmt + ' ' + whereClause
         db = self.connect()
         curs = db.cursor()
-        curs.execute(insert);
-        curs.execute(delete);
+        if toLog: curs.execute(insert)
+        curs.execute(query)
         db.close()
         self.clearCache()
+        self.manage_clearCache()
         
     security.declareProtected('Manage Events','manage_addEvent')
     def manage_addEvent(self, REQUEST=None):
@@ -984,6 +986,26 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
             self.deleteEvents(whereClause, 'Deleted by user')
         if REQUEST: return self.callZenScreen(REQUEST)
 
+    def undeleteEvents(self, whereClause, reason):
+        fields = ','.join( self.getFieldList() )
+        # We want to blank clearid
+        fields = fields.replace('clearid','NULL')
+        self.updateEvents(  'INSERT status ' + \
+                            'SELECT %s FROM history' % fields, \
+                            whereClause, reason, 'history', toLog=False)
+        self.updateEvents( 'DELETE FROM history', whereClause, \
+                            reason, 'history')
+
+    security.declareProtected('Manage Events','manage_undeleteEvents')
+    def manage_undeleteEvents(self, evids=(), REQUEST=None):
+        "Move the given event ids into status and delete from history"
+        if type(evids) == type(''):
+            evids = [evids]
+        if evids:
+            evids = ",".join([ "'%s'" % evid for evid in evids])
+            whereClause = ' where evid in (%s)' % evids
+            self.undeleteEvents(whereClause, 'Undeleted by user')
+        if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteAllEvents')
     def manage_deleteAllEvents(self, devname, REQUEST=None):
@@ -1032,7 +1054,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
-    def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
+    def manage_createEventMap(self, eventClass=None, evids=(), 
+                              REQUEST=None):
         """Create an event map from an event or list of events.
         """
         evclass = None

@@ -17,6 +17,10 @@
         batch python:ztm.getBatchForm(objects,request);"
         tal:on-error="structure here/eventsError">
     <tr tal:repeat="event batch" tal:attributes="class event/getCssClass">
+    <td tal:condition="here/isManager">
+        <input type="checkbox" name="evids:list"
+            tal:attributes="value event/evid"/>
+    </td>
     <tal:block tal:define="evclick 
         string:javascript:eventWindow('${event/zem}','${event/evid}')">
     <td tal:repeat="data python:event.getDataListWithLinks(resultFields)"

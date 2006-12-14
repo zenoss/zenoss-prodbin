@@ -125,7 +125,13 @@ class ZenActions(ZCmdBase):
 
 
     def getDeleteUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_deleteEvents?evids=%s&zenScreenName=viewHistoryEvents' % (self.options.zopeurl, evid)
+        return '%s/zport/dmd/Events/manage_deleteEvents' + \
+               '?evids=%s&zenScreenName=viewHistoryEvents' % (self.options.zopeurl, evid)
+
+
+    def getUndeleteUrl(self, evid):
+        return '%s/zport/dmd/Events/manage_undeleteEvents' + \
+               '?evid=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
 
 
     def processRules(self, db, zem):
