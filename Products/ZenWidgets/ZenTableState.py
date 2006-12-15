@@ -83,8 +83,6 @@ class ZenTableState:
 
     def updateFromRequest(self, request):
         """update table state based on request"""
-        # Reset the batchSize
-        self.batchSize = self.defaultBatchSize
         if self.URL != request.URL:
             self.start=0
             self.filter = ''
