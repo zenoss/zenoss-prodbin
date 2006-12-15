@@ -1212,18 +1212,4 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         return out.getvalue()
 
 
-    #==========================================================================
-    # Misc
-    #==========================================================================
-
-    security.declareProtected('View', 'writeExportRows')
-    def writeExportRows(self, fields, objects):
-        '''Write out csv rows with the given objects and fields
-        '''
-        buffer = StringIO.StringIO()
-        writer = csv.writer(buffer)
-        writer.writerow(fields)
-        for o in objects:
-            writer.writerow([str(getattr(o, f)) for f in fields])
-        return buffer.getvalue()
         

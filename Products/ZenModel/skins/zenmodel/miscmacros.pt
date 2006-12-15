@@ -17,31 +17,41 @@
 <form metal:define-macro="navtool" class="tableheader"
     action="_" method="POST" tal:attributes="action request/URL"
     tal:define="totalobjs python:here.scGetSortedTableState(tableName,
-                                                           'totalobjs')"
-    tal:condition="python: totalobjs > 3 
-        or here.scGetSortedTableState(tableName, 'filter')">
-   
-    <input type='hidden' name='tableName' value="_"
-        tal:attributes="value tableName">
-    Number
-    <span tal:replace="python:here.scGetSortedTableState(tableName,'start')+1"/>
-    of
-    <span tal:replace="totalobjs"/>
-    &nbsp; &nbsp;
-    <span tal:replace="structure python:here.scSortedTableNavigation(
-                                tableName, totalobjs, batch)"/>
-    &nbsp; &nbsp; 
-    Filter
-    <input class="tableheader" type="text" name="filter" size=10 value="_"
-        tal:attributes="value python: here.scGetSortedTableState(tableName,
-                                                                'filter')">
-    &nbsp; &nbsp; 
-    Page Size
-    <input class="tableheader" type="text" name="batchSize:int" size=3 value=20
-        tal:attributes="value python: here.scGetSortedTableState(tableName,
-                                                                'batchSize')">
-    <input class=tableheader type="submit" name="submit" value="ok" img="_"
-        tal:attributes="src python:here.absolute_url()+'/transimg.gif'"/>
+                                                           'totalobjs');
+				showNav python:totalobjs > 3 or
+				 	here.scGetSortedTableState(tableName, 'filter');
+				showExport exists:exportable;
+				objStart python:here.scGetSortedTableState(tableName, 'start') 
+										or 0"
+    tal:condition="python: showNav or showExport">
+    <tal:block tal:condition="showNav">
+	    <input type='hidden' name='tableName' value="_"
+	        tal:attributes="value tableName">
+	    Number
+	    <span tal:replace="python:objStart+1"/>
+	    of
+	    <span tal:replace="totalobjs"/>
+	    &nbsp; &nbsp;
+	    <span tal:replace="structure python:here.scSortedTableNavigation(
+	                                tableName, totalobjs, batch)"/>
+	    &nbsp; &nbsp; 
+	</tal:block>
+	<tal:block condition="showExport">
+		<input class="navcontrol" type="submit" name="doExport" value="export all" tal:condition="showExport" />
+	</tal:block>
+	<tal:block tal:condition="showNav">
+	    Filter
+	    <input class="tableheader" type="text" name="filter" size=10 value="_"
+	        tal:attributes="value python: here.scGetSortedTableState(tableName,
+	                                                                'filter')">
+	    &nbsp; &nbsp; 
+	    Page Size
+	    <input class="tableheader" type="text" name="batchSize:int" size=3 value=20
+	        tal:attributes="value python: here.scGetSortedTableState(tableName,
+	                                                                'batchSize')">
+	    <input class=tableheader type="submit" name="submit" value="ok" img="_"
+	        tal:attributes="src python:here.absolute_url()+'/transimg.gif'"/>
+	</tal:block>
 </form>
 
 

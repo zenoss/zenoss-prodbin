@@ -873,7 +873,16 @@ class Device(ManagedEntity, Commandable):
         """Return the prodstate as a string.
         """
         return self.convertProdState(self.productionState)
+        
+    def getPingStatusString(self):
+        '''Return the pingStatus as a string
+        '''
+        return self.convertStatus(self.getPingStatus())
 
+    def getSnmpStatusString(self):
+        '''Return the snmpStatus as a string
+        '''
+        return self.convertStatus(self.getSnmpStatus())
 
     security.declareProtected('Change Device', 'setProdState')
     def setProdState(self, state):

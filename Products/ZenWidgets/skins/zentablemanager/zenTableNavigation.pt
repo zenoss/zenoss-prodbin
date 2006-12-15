@@ -1,5 +1,5 @@
 <form metal:define-macro="navtool" class="tableheader"
-    action="_" method="get" tal:attributes="action request/URL">
+    action="_" method="POST" tal:attributes="action request/URL">
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
@@ -8,58 +8,68 @@
         tal:attributes="value template/id" />
     <div metal:define-macro="navbody" 
         tal:define="ts python:here.ZenTableManager.getTableState(tableName);
-                    message request/SESSION/message | nothing;"
-        tal:condition="python: ts.totalobjs > 6 or ts.filter or ts.onlyMonitored"
+                    message request/SESSION/message | nothing;
+					showNav python: ts.totalobjs > 6 or ts.filter or ts.onlyMonitored;
+					showExport exists:exportable;"
+        tal:condition="python: showNav or showExport"
         style="border:0; padding-top:2px;margin-bottom:2px;">
-    <div style="padding-left: 10px; float: left; text-align:left;">
+	<div style="padding-left: 10px; float: left; text-align:left;">
+	<tal:block tal:condition="python: showNav">
         <span tal:replace="python:ts.start+1" />
         of
         <span tal:replace="ts/totalobjs" />
-    &nbsp;&nbsp;
-    <input class="navcontrol" type="submit"
-        alt="first" name="first" value="|<"
-        tal:attributes="disabled python:ts.start==0" />
-    <input class="navcontrol" type="submit"
-        alt="prev" name="prev" value="<"
-        tal:attributes="disabled python:ts.start==0" />
-    <select class="tableheader" name="start:int" valign="top"
-        tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
-        onchange="this.form.submit()">
-        <option tal:repeat="page ts/getPageNavigation" 
-            tal:content="page/label" 
-            tal:attributes="value page/index;
-                            selected python: page['index'] == ts.start" />
-    </select>
-    <input class="navcontrol" type="submit"
-        alt="next" name="next" value=">" 
-        tal:attributes="disabled not:batch/next" />
-    <input class="navcontrol" type="submit" 
-        alt="last" name="last" value=">|"
-        tal:attributes="disabled not:batch/next" />&nbsp;&nbsp;
-    <input class="navcontrol" type="submit" name="showAll" value="show all" />
-    </div>
-    <div style="padding-right: 10px; float: right; text-align:right;">
-    <span style="height:1em;line-height:1em;text-align:right;
-                 padding-right:2em;color:red;font-weight:bold;" tal:content="message"></span>
-	<tal:block tal:condition="exists: useOnlyMonitored">
-		Only Show Monitored
-		<input class="navcontrol" type="checkbox"
-			name="onlyMonitored"
-			onchange="submitViaEnter(event);"
-			value="1"
-			tal:attributes="checked ts/onlyMonitored" />
+	    &nbsp;&nbsp;
+	    <input class="navcontrol" type="submit"
+	        alt="first" name="first" value="|<"
+	        tal:attributes="disabled python:ts.start==0" />
+	    <input class="navcontrol" type="submit"
+	        alt="prev" name="prev" value="<"
+	        tal:attributes="disabled python:ts.start==0" />
+	    <select class="tableheader" name="start:int" valign="top"
+	        tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
+	        onchange="this.form.submit()">
+	        <option tal:repeat="page ts/getPageNavigation" 
+	            tal:content="page/label" 
+	            tal:attributes="value page/index;
+	                            selected python: page['index'] == ts.start" />
+	    </select>
+	    <input class="navcontrol" type="submit"
+	        alt="next" name="next" value=">" 
+	        tal:attributes="disabled not:batch/next" />
+	    <input class="navcontrol" type="submit" 
+	        alt="last" name="last" value=">|"
+	        tal:attributes="disabled not:batch/next" />&nbsp;&nbsp;
+	    <input class="navcontrol" type="submit" name="showAll" 
+			value="show all" />
 		&nbsp;&nbsp;
 	</tal:block>
-    Filter
-    <input class="tableheader" type="text" name="filter" size=15 value=""
-        onkeypress="submitViaEnter(event)"
-        tal:attributes="value ts/filter" />
-    &nbsp;&nbsp;
-    Page Size
-    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
-        onkeypress="submitViaEnter(event)"
-        tal:attributes="value ts/batchSize">
-    <input class="navcontrol" type="submit" value="ok" />
+	<input class="navcontrol" type="submit" name="doExport" value="export all"
+		tal:condition="showExport" />
+    </div>
+    <div style="padding-right: 10px; float: right; text-align:right;">
+	<tal:block tal:condition="python:showNav">
+	    <span style="height:1em;line-height:1em;text-align:right;
+	                 padding-right:2em;color:red;font-weight:bold;" tal:content="message"></span>
+		<tal:block tal:condition="exists: useOnlyMonitored">
+			Only Show Monitored
+			<input class="navcontrol" type="checkbox"
+				name="onlyMonitored"
+				onchange="submitViaEnter(event);"
+				value="1"
+				tal:attributes="checked ts/onlyMonitored" />
+			&nbsp;&nbsp;
+		</tal:block>
+	    Filter
+	    <input class="tableheader" type="text" name="filter" size=15 value=""
+	        onkeypress="submitViaEnter(event)"
+	        tal:attributes="value ts/filter" />
+	    &nbsp;&nbsp;
+	    Page Size
+	    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+	        onkeypress="submitViaEnter(event)"
+	        tal:attributes="value ts/batchSize">
+	    <input class="navcontrol" type="submit" value="ok" />
+	</tal:block>
     </div>
     </div>
 </form>
@@ -187,6 +197,9 @@
         alt="last" name="last" value=">|"
         tal:attributes="disabled not:batch/next" />&nbsp;&nbsp;
     <input class="navcontrol" type="submit" name="showAll" value="show all" />
+	&nbsp;&nbsp;
+	<input class="navcontrol" type="submit" name="doExport" value="export all"
+		tal:condition="exists: exportable" />
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
     &nbsp;&nbsp;

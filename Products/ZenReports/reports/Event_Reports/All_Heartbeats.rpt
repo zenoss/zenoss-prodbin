@@ -1,14 +1,18 @@
+<tal:block tal:define="
+	objects  python:here.ZenEventManager.getHeartbeat(failures=False,limit=0);
+    tableName string: allheartbeatreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+	exportFields python:[(0, 'device'), (1, 'component'), (2, 'seconds')];
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
-    objects  python:here.ZenEventManager.getHeartbeat(failures=False,limit=0);
-    tableName string: allheartbeatreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects)
-    ">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
       <th class=tabletitle align=left colspan="6">
@@ -31,5 +35,9 @@
         </td>
     </tr>
 </table>
+</tal:block>
+</tal:block>
+
+</tal:block>
 </tal:block>
 </tal:block>

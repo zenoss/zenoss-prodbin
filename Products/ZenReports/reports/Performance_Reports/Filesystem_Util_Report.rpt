@@ -1,14 +1,21 @@
+<tal:block tal:define="
+	objects python:here.getDmdRoot('Devices').getSubComponents('FileSystem');
+	objects python:[o for o in objects if o.device().monitorDevice()];
+	tableName string: filesystemutilreport;
+	batch python:here.ZenTableManager.getBatch(tableName,objects,
+	sortedHeader='capacity', sortedSence='desc');
+	exportFields python:['getDeviceName', 'mount', 'totalBytesString',
+						'usedBytesString', 'availBytesString', 'capacity'];">
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
-    objects  python:here.getDmdRoot('Devices').getSubComponents('FileSystem');
-    tableName string: filesystemutilreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='capacity', sortedSence='desc');
-    ">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <th class="tabletitle" colspan="6">All Monitored Components</th>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -25,7 +32,7 @@
                             tableName,'capacity','% Util')"/>
     </tr>
     <tal:block tal:repeat="fsys batch">
-    <tr tal:condition="python:fsys.device().monitorDevice()">
+    <tr>
         <td class="tablevalues" 
           tal:content="structure python:fsys.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
@@ -52,5 +59,9 @@
         </td>
     </tr>
 </table>
+</tal:block>
+</tal:block>
+
+</tal:block>
 </tal:block>
 </tal:block>

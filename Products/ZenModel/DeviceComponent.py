@@ -70,7 +70,11 @@ class DeviceComponent(object):
         if not statClass: statClass = "/Status/%s" % self.meta_type
         return self.getEventManager().getComponentStatus(
                 self.getParentDeviceName(), self.name(), statclass=statClass)
+
   
+    def getStatusString(self, statClass=None):
+        return self.convertStatus(self.getStatus(statClass))
+
 
     def getManageIp(self):
         """Return the manageIP of the device of this component.

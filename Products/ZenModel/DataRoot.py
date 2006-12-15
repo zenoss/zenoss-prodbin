@@ -312,4 +312,56 @@ class DataRoot(ZenModelRM, OrderedFolder):
         return getattr(self, 'errorEmailThankYou')()
 
 
+    #security.declareProtected('View', 'writeExportRows')
+    def writeExportRows(self, fieldsAndLabels, objects, out=None):
+        '''Write out csv rows with the given objects and fields.
+        If out is not None then call out.write() with the result and return None
+        otherwise return the result.
+        Each item in fieldsAndLabels is either a string representing a 
+         field/key/index (see getDataField) or it is a tuple of (field, label)
+         where label is the string to be used in the first row as label
+         for that column.
+        Objects can be either dicts, lists/tuples or other objects. Field
+         is interpreted as a key, index or attribute depending on what
+         object is.
+        Method names can be passed instead of attribute/key/indices as field.
+         In this case the method is called and the return value is used in
+         the export.
+        '''
+        import csv
+        import StringIO
+        if out:
+            buffer = out
+        else:
+            buffer = StringIO.StringIO()
+        fields = []
+        labels = []
+        for p in fieldsAndLabels:
+            if isinstance(p, tuple):
+                fields.append(p[0])
+                labels.append(p[1])
+            else:
+                fields.append(p)
+                labels.append(p)
+        writer = csv.writer(buffer)
+        writer.writerow(labels)
+        def getDataField(thing, field):
+            if isinstance(thing, dict):
+                value = thing.get(field, '')
+            elif isinstance(thing, list) or isinstance(thing, tuple):
+                value = thing[int(field)]
+            else:
+                value = getattr(thing, field, '')
+            if callable(value):
+                value = value()
+            return str(value)
+        for o in objects:
+            writer.writerow([getDataField(o,f) for f in fields])
+        if out:
+            result = None
+        else:
+            result = buffer.getvalue()
+        return result
+
+
 InitializeClass(DataRoot)

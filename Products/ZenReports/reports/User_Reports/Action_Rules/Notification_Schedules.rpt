@@ -1,15 +1,22 @@
+<tal:block tal:define="
+	objects  python:here.ZenUsers.getAllActionRules();
+	objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+    tableName string: allrulesreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects, 
+                                               sortedHeader='getUserid');
+	exportFields python:['getUserid', 'id', 'delay',
+						'enabled', 'nextActiveNice', 'nextDurationNice',
+						'repeatNice', 'where'];
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
-    objects  python:here.ZenUsers.getAllActionRules();
-    tableName string: allrulesreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects, 
-                                               sortedHeader='getUserid');
-    ">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr><th class="tabletitle" colspan="7">Notification Schedules</th><tr>
     <tr class="tableheader">
        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -52,5 +59,9 @@
         </td>
     </tr>
 </table>
+</tal:block>
+</tal:block>
+
+</tal:block>
 </tal:block>
 </tal:block>

@@ -1,0 +1,24 @@
+<tal:block metal:define-macro="exportableReport"
+	tal:define="exportable python:1">
+	<tal:block 
+		tal:condition="exists: request/doExport"
+		tal:define="defaultExportFields python:[
+			'id', 
+			('getDeviceClassPath', 'classPath'),
+			('getHWProductName', 'hwProductName'),
+			('getProdState', 'productionState'), 
+			('getPingStatusString', 'pingStatus'),
+			('getSnmpStatusString', 'snmpStatus')];
+			fields exportFields | defaultExportFields">
+		<tal:dummy replace="python:request.response.setHeader(
+			'Content-Type', 'application/vnd.ms-excel')"/>
+		<tal:dummy replace="python:request.response.setHeader(
+			'Content-Disposition', 'attachment; filename=events.csv')"/>
+		<tal:dummy replace="python: here.writeExportRows(fields, objects, 
+			request.response)"/>
+	</tal:block>
+	<tal:block tal:condition="not: exists: request/doExport">
+		<tal:block metal:define-slot="report">
+		</tal:block>
+	</tal:block>
+</tal:block>
