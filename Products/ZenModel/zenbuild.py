@@ -115,7 +115,7 @@ class zenbuild(CmdBase):
         
 
         # Load reports
-        from Products.ZenModel.ReportLoader import ReportLoader
+        from Products.ZenReports.ReportLoader import ReportLoader
         rl = ReportLoader(noopts=True, app=self.app)
         rl.loadDatabase()
 

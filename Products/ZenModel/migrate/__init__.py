@@ -51,3 +51,5 @@ import monitors
 import usercommands
 import rrdcpu
 import changeeventclasses
+import reportserver
+

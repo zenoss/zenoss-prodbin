@@ -49,6 +49,7 @@ from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
+from Products.ZenReport.ReportServer import manage_addReportServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
 from Products.CMFCore.DirectoryView import manage_addDirectoryView
@@ -140,6 +141,7 @@ class DmdBuilder:
         manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
+        manage_addReportServer(self.portal, "ReportServer")
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                     evtpass=self.evtpass, evtdb=self.evtdb)
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
