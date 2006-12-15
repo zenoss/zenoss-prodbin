@@ -583,7 +583,7 @@ class Device(ManagedEntity, Commandable):
         return self.perfServer()
 
 
-    security.declareProtected('View', 'getPerformanceServer')
+    security.declareProtected('View', 'getPerformanceServerName')
     def getPerformanceServerName(self):
         """return device performance server"""
         cr = self.perfServer()
