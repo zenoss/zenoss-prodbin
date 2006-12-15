@@ -1,0 +1,50 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="
+    objects python:here.ReportServer.plugin('interface', here.REQUEST);
+    tableName string: interfaceutilreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='percentUsed', sortedSence='desc');
+    ">
+    <th class="tabletitle" colspan="7">Monitored Interfaces</th>
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'device','Device')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'interface','Interface')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'speed','Speed')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'input','Input')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'output','Output')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'total','Total')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'percentUsed','% Util')"/>
+    </tr>
+    <tal:block tal:repeat="r batch">
+        <tr tal:define="odd repeat/r/odd"
+            tal:attributes="class python:test(odd,'odd','even')">
+           <td><a tal:attributes="href r/device/getPrimaryUrlPath"
+                  tal:content="r/device/id"/></td>
+           <td><a tal:attributes="href r/interface/getPrimaryUrlPath"
+                  tal:content="r/interface/id"/></td>
+           <td tal:content="python: r.humanBits(r.speed)"/>
+           <td tal:content="python: r.humanBits(r.input, 8)"/>
+           <td tal:content="python: r.humanBits(r.output, 8)"/>
+           <td tal:content="python: r.humanBits(r.total, 8)"/>
+           <td tal:content="python: r.percentString(r.percentUsed, 1)"/>
+        </tr>
+    </tal:block>
+    <tr>
+        <td colspan="7" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
+</table>
+</tal:block>
+</tal:block>

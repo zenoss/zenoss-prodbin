@@ -1,4 +1,4 @@
-"The file systems report"
+"The memory usage report"
 
 import Globals
 from Products.ZenReports.plugins import Plugin

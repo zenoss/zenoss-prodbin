@@ -30,6 +30,8 @@ UNAVAILABLE = 'Unknown'
 def percent(partial, total):
     if partial is None or total is None:
         return None
+    if not total:
+        return None
     return partial * 100 / total
 
 
@@ -78,3 +80,14 @@ class Record:
                 return '%.1f%s' % (float(value), units)
             value /= 1024.
         return '%.1f%s' % (float(value), units)
+
+    def humanBits(self, value, scale = 1):
+        if value is None:
+            return UNAVAILABLE
+        value *= scale
+        for units in '', 'Kb', 'Mb', 'Gb', 'Tb':
+            if value < 1000:
+                return '%.1f%s' % (float(value), units)
+            value /= 1000.
+        return '%.1f%s' % (float(value), units)
+
