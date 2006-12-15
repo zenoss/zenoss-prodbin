@@ -739,6 +739,322 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 <property visible='True' type='string' id='zCollectorCollectPlugins' >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
+
+<tomanycont id='rrdTemplates'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type='text' id='description' mode='w' >
+Cisco template that collects cpu, free mem, and temp
+</property>
+<tomanycont id='datasources'>
+<object id='cpu5min' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='string' id='oid' mode='w' >
+1.3.6.1.4.1.9.2.1.58.0
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='mem5minFree' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='string' id='oid' mode='w' >
+1.3.6.1.4.1.9.9.48.1.1.1.6.1
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='string' id='oid' mode='w' >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='tempInlet' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='string' id='oid' mode='w' >
+1.3.6.1.4.1.9.9.13.1.3.1.3.1
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='tempInlet' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='tempOutlet' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<property select_variable='sourcetypes' type='selection' id='sourcetype' mode='w' >
+SNMP
+</property>
+<property type='string' id='oid' mode='w' >
+1.3.6.1.4.1.9.9.13.1.3.1.3.3
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+<property type='boolean' id='usessh' mode='w' >
+False
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='cycletime' mode='w' >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='tempOutlet' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
+GAUGE
+</property>
+<property type='boolean' id='isrow' mode='w' >
+True
+</property>
+<property type='long' id='rrdmax' mode='w' >
+-1
+</property>
+<property type='long' id='limit' mode='w' >
+-1
+</property>
+<property type='string' id='format' mode='w' >
+%0.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='graphs'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['cpu5min_cpuPercentProcessorTime']
+</property>
+<property type='int' id='sequence' mode='w' >
+0
+</property>
+<property type='int' id='height' mode='w' >
+100
+</property>
+<property type='int' id='width' mode='w' >
+500
+</property>
+<property type='string' id='units' mode='w' >
+percentage
+</property>
+<property type='int' id='linewidth' mode='w' >
+1
+</property>
+<property type='boolean' id='log' mode='w' >
+False
+</property>
+<property type='boolean' id='base' mode='w' >
+False
+</property>
+<property type='boolean' id='stacked' mode='w' >
+False
+</property>
+<property type='boolean' id='summary' mode='w' >
+True
+</property>
+<property type='int' id='miny' mode='w' >
+-1
+</property>
+<property type='int' id='maxy' mode='w' >
+-1
+</property>
+<property type='lines' id='colors' mode='w' >
+('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
+</object>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<property type='lines' id='dsnames' mode='w' >
+['mem5minFree_memAvailReal']
+</property>
+<property type='int' id='sequence' mode='w' >
+1
+</property>
+<property type='int' id='height' mode='w' >
+100
+</property>
+<property type='int' id='width' mode='w' >
+500
+</property>
+<property type='int' id='linewidth' mode='w' >
+1
+</property>
+<property type='boolean' id='log' mode='w' >
+False
+</property>
+<property type='boolean' id='base' mode='w' >
+True
+</property>
+<property type='boolean' id='stacked' mode='w' >
+False
+</property>
+<property type='boolean' id='summary' mode='w' >
+True
+</property>
+<property type='int' id='miny' mode='w' >
+-1
+</property>
+<property type='int' id='maxy' mode='w' >
+-1
+</property>
+<property type='lines' id='colors' mode='w' >
+('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
+</property>
+<property type='boolean' id='hasSummary' mode='w' >
+True
+</property>
+</object>
+</tomanycont>
+<tomanycont id='thresholds'>
+<object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<property type='lines' id='dsnames' mode='w' >
+['cpmCPUTotal5min']
+</property>
+<property type='string' id='maxval' mode='w' >
+90
+</property>
+<property type='string' id='eventClass' mode='w' >
+/Perf/Snmp
+</property>
+<property type='int' id='severity' mode='w' >
+3
+</property>
+<property type='int' id='escalateCount' mode='w' >
+0
+</property>
+<property type='boolean' id='enabled' mode='w' >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+
+
 <object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='RSM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
