@@ -23,7 +23,7 @@
             tal:attributes="class python:test(odd,'odd','even')">
            <td><a tal:attributes="href python:r.device.getPrimaryUrlPath()+'/viewDevicePerformance'"
                   tal:content="r/device/id"/></td>
-           <td tal:content="python: r.humanBits(r.laLoadInt5)"/>
+           <td tal:content="python: r.fmt('%0.1f', r.laLoadInt5)"/>
            <td tal:content="python: r.percentString(r.cpuPercent, 1)"/>
         </tr>
     </tal:block>

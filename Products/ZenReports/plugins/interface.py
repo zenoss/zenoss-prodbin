@@ -8,6 +8,7 @@ report = []
 for d in dmd.Devices.getSubDevices():
     for i in d.os.interfaces():
         if not i.monitored(): continue
+        if i.snmpIgnore(): continue
         total = None
         input = i.cacheRRDValue('ifInOctets', None)
         output = i.cacheRRDValue('ifOutOctets', None)

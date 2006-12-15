@@ -1,5 +1,7 @@
 import Globals
 
+from Products.ZenUtils.Utils import convToUnits
+
 def args(g):
     if g.get('dmd', None) and g.get('args', None):
         return g['dmd'], g['args']
@@ -25,7 +27,7 @@ def pprint(report, g):
     import pprint
     pprint.pprint(report)
 
-UNAVAILABLE = 'Unknown'
+UNAVAILABLE = 'N/A'
 
 def percent(partial, total):
     if partial is None or total is None:
@@ -71,23 +73,19 @@ class Record:
     def percentString(self, n, decimals=0):
         return percentString(n, decimals)
 
-    def humanBytes(self, value, scale = 1):
+    def humanBytes(self, value, scale=1):
         if value is None:
             return UNAVAILABLE
-        value *= scale
-        for units in '', 'KB', 'MB', 'GB', 'TB':
-            if value < 1024:
-                return '%.1f%s' % (float(value), units)
-            value /= 1024.
-        return '%.1f%s' % (float(value), units)
+        return convToUnits(value * scale)
 
-    def humanBits(self, value, scale = 1):
+    def humanBits(self, value, scale=1):
         if value is None:
             return UNAVAILABLE
-        value *= scale
-        for units in '', 'Kb', 'Mb', 'Gb', 'Tb':
-            if value < 1000:
-                return '%.1f%s' % (float(value), units)
-            value /= 1000.
-        return '%.1f%s' % (float(value), units)
+        return convToUnits(value * scale, 1000)
+
+    def fmt(self, fmt, value):
+        if value is None:
+            return UNAVAILABLE
+        return fmt % value
+
 

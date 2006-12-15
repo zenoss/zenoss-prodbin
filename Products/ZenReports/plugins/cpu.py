@@ -15,10 +15,10 @@ for d in dmd.Devices.getSubDevices():
     if idle is not None:
         cpus = len(d.hw.cpus())
         if cpus:
-            cpuPercent = 100 - (idle / cpus)
+            cpuPercent = max(100 - (idle / cpus), 0)
     if cpuPercent is None:
         cpuPercent = d.cacheRRDValue('cpuPercentProcessorTime', None)
-        if cpuPercent:
+        if cpuPercent is not None:
             cpuPercent /= 100
     r = Plugin.Record(device=d,
                       laLoadInt5=laLoadInt5,
