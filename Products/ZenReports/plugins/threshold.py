@@ -6,8 +6,17 @@ from Products.ZenUtils.Time import Duration
 from Products.ZenReports.plugins import Plugin
 dmd, args = Plugin.args(locals())
 
-args.setdefault('startDate', (time.time() - 30*24*60*60))
-args.setdefault('endDate', time.time())
+def dateAsFloat(args, key, default):
+    from Products.ZenUtils.Time import ParseUSDate
+    if args.has_key(key):
+        args[key] = ParseUSDate(args[key])
+    else:
+        args[key] = default
+
+dateAsFloat(args, 'startDate', (time.time() - 30*24*60*60))
+dateAsFloat(args, 'endDate', time.time())
+
+# Get all the threshold related events from summary and history
 
 report = []
 w =  ' WHERE severity >= 3 '
@@ -27,7 +36,6 @@ c = dmd.ZenEventManager.connect()
 sum = {}
 try:
     e = c.cursor()
-    print query
     e.execute(query)
     startDate = args['startDate']
     endDate = args['endDate']
@@ -46,6 +54,8 @@ try:
                     sum[(device, component, eventClass)] = diff
 finally:
     c.close()
+    
+# Look up objects that correspond to the names
 find = dmd.Devices.findDevice
 totalTime = endDate - startDate
 for (deviceName, componentName, eventClassName), seconds in sum.items():
@@ -57,10 +67,9 @@ for (deviceName, componentName, eventClassName), seconds in sum.items():
             if c.name().find(componentName) >= 0:
                 component = c
                 break
+    # get some values useful for the report
     duration = Duration(seconds)
     percent = seconds * 100. / totalTime
-    if component:
-        print componentName, component, component.name()
     try:
         eventClass = dmd.Events.getOrganizer(eventClassName)
     except KeyError:
