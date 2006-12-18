@@ -3,6 +3,24 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" 
+        src="/zport/portal_skins/zenmodel/datePicker.js">
+</script>
+
+<form id="thesholdSummaryForm" 
+      tal:define="
+      tableName string:availability;
+      tm here/ZenTableManager;
+      zem python:here.dmd.ZenEventManager;
+      sts python:tm.setReqTableState;
+      startDate python:sts(tableName, 'startDate', 
+                           zem.defaultAvailabilityStart());
+      endDate python:sts(tableName, 'endDate', 
+                           zem.defaultAvailabilityEnd());
+      "
+      method="submit"
+>
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="
     objects python:here.ReportServer.plugin('threshold', here.REQUEST);
@@ -12,7 +30,24 @@
                                                sortedHeader='seconds', 
                                                sortedSence='desc');
     ">
-    <th class="tabletitle" colspan="5">All Monitored Components</th>
+    <tr><th class="tabletitle" colspan="6">All Monitored Components</th>
+    </tr>
+    <tr><td colspan="6" class="tableheader">
+      <span><span  class="tableheader">Start Date:</span>
+            <input class="tablevalues" 
+                   name="startDate" readonly="true" 
+                   tal:attributes="value startDate"/>
+            <input class="tablevalues" type="button" value="select"
+                   onclick="displayDatePicker('startDate');"/>
+            <span class="tableheader">End Date:</span>
+            <input class="tablevalues" name="endDate" 
+                                       readonly="true" 
+                                       tal:attributes="value endDate"/>
+            <input class="tablevalues" type="button" value="select"
+                   onclick="displayDatePicker('endDate');"/>
+            <input class="tablevalues" type="Submit" value="Update"/>
+      </span></td>
+    </tr><tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'deviceName','Device')"/>
@@ -20,6 +55,8 @@
                             tableName,'componentName','Component')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'eventClass','Event Class')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'count','Count')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'seconds','Duration')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -29,7 +66,7 @@
         <tr tal:define="odd repeat/r/odd"
             tal:attributes="class python:test(odd,'odd','even')">
            <td tal:condition="r/device">
-                 <a tal:attributes="href r/device/getPrimaryUrlPath"
+                 <a tal:attributes="href python:r.device.getPrimaryUrlPath() + '/viewDevicePerformance'"
                     tal:content="r/device/id"/>
            </td>
            <td tal:condition="not:r/device" tal:content='r/deviceName'/>
@@ -43,15 +80,17 @@
                     tal:content="r/eventClassName"/>
            </td>
            <td tal:condition="not:r/eventClass" tal:content='r/eventClassName'/>
+           <td tal:content="r/count"/>
            <td tal:content="r/duration"/>
            <td tal:content="python: r.percentString(r.percentTime, 1)"/>
         </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'>
+        <td colspan="6" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
 </table>
+</form>
 </tal:block>
 </tal:block>
