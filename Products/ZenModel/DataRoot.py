@@ -133,6 +133,15 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 'Decommissioned:-1',
                 ]
 
+    priorityConversions = [
+                'Highest:5',
+                'High:4',
+                'Normal:3',
+                'Low:2',
+                'Lowest:1',
+                'Trivial:0',
+                ]
+
     statusConversions = [
                 'Up:0',
                 'None:-1',
@@ -220,6 +229,13 @@ class DataRoot(ZenModelRM, OrderedFolder):
         """get text strings for status field"""
         return self.convertAttribute(status, self.statusConversions)
 
+    security.declareProtected('View', 'getPriorityConversions')
+    def getPriorityConversions(self):
+        return self.getConversions(self.priorityConversions)
+
+    security.declareProtected('View', 'convertPriority')
+    def convertPriority(self, priority):
+        return self.convertAttribute(priority, self.priorityConversions)
 
     security.declareProtected('View', 'getInterfaceStateConversions')
     def getInterfaceStateConversions(self):

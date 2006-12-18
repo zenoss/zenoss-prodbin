@@ -52,4 +52,4 @@ import usercommands
 import rrdcpu
 import changeeventclasses
 import reportserver
-
+import devicepriority

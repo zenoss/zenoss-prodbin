@@ -68,7 +68,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], performanceMonitor="localhost",
-            discoverProto="snmp"):
+            discoverProto="snmp", priority=3):
     """Device factory creates a device and sets up its relations and collects
     its configuration.  SNMP Community discovery also happens here.  If an
     IP is passed for deviceName it will be used for collection and the device
@@ -126,7 +126,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, performanceMonitor)
+                statusMonitors, performanceMonitor, priority)
     return device
 
 
@@ -202,6 +202,7 @@ class Device(ManagedEntity, Commandable):
     rackSlot = 0
     comments = ""
     sysedgeLicenseMode = ""
+    priority = 3
 
     _properties = ManagedEntity._properties + (
         {'id':'manageIp', 'type':'string', 'mode':'w'},
@@ -218,6 +219,7 @@ class Device(ManagedEntity, Commandable):
         {'id':'rackSlot', 'type':'int', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
         {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
+        {'id':'priority', 'type':'int', 'mode':'w'},
         )
 
     _relations = ManagedEntity._relations + (
@@ -738,7 +740,7 @@ class Device(ManagedEntity, Commandable):
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
                 statusMonitors=["localhost"], performanceMonitor="localhost",
-                REQUEST=None):
+                priority=3, REQUEST=None):
         """edit device relations and attributes"""
         self.hw.tag = tag
         self.hw.serialNumber = serialNumber
@@ -751,6 +753,7 @@ class Device(ManagedEntity, Commandable):
 
         self.rackSlot = rackSlot
         self.setProdState(productionState)
+        self.setPriority(priority)
         self.comments = comments
 
         if hwManufacturer and hwProductName:
@@ -898,6 +901,19 @@ class Device(ManagedEntity, Commandable):
         except OperationalError:
             log.exception("failed to update events with new prodState")
 
+    security.declareProtected('Change Device', 'setPriority')
+    def setPriority(self, priority):
+        """ Set a device's priority as an integer.
+        """
+        self.priority = int(priority)
+        try:
+            db = self.ZenEventManager.connect()
+            curs = db.cursor()
+            curs.execute("update status set DevicePriority=%d where device='%s'" % (
+                            self.priority, self.id))
+            db.close()
+        except OperationalError:
+            log.exception("failed to update events with new priority")
 
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):

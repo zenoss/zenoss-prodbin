@@ -45,6 +45,8 @@ class EventFilter(object):
         sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
         pconv = [d.split(':') for d in DataRoot.prodStateConversions]
         pconv = [(int(b), a) for a, b in pconv]
+        dpconv = [x.split(':') for x in DataRoot.priorityConversions]
+        dpconv = [(int(b), a) for a, b in dpconv]
         owners = [(n, n) for n in self.dmd.ZenUsers.getAllUserSettingsNames()]
         return dict(
             summary=Text("Summary"),
@@ -53,6 +55,7 @@ class EventFilter(object):
             eventState=Enumerated("Event State",esconv),
             device=Text("Device"),
             deviceClass=Text("Device Class"),
+            devicePriority=Enumerated("Device Priority",dpconv),
             eventClass=Text("Event Class"),
             eventClassKey=Text("Event Class Key"),
             count=Compare("Count"),

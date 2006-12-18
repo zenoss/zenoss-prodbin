@@ -118,6 +118,20 @@
             </td>
         </tr>
         <tr>
+            <td class="tableheader" align="left">Priority</td>
+            <td class="tablevalues" align="left">
+                <select class="tablevalues" name="priority:int"
+                    tal:define="
+                        priorities here/getPriorityConversions;
+                        curprior here/priority |
+                                 request/priority | python:3"
+                >
+                    <option tal:repeat="priority priorities"
+                            tal:attributes="value python:priority[1];
+                            selected python:curprior == priority[1]"
+                            tal:content="python:priority[0]">3</option>
+                </select>
+            </td>
             <td class="tableheader" align="left">Comments</td>
             <td class="tablevalues" align="left" colspan=3>
                 <textarea class="tablevalues" rows=3 cols=60
