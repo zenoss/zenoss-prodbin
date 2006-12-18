@@ -37,10 +37,10 @@
                  <a tal:attributes="href r/component/getPrimaryUrlPath"
                     tal:content="r/component/name"/>
            </td>
-           <td tal:condition="not:r/component" tal:content='string:N/A'/>
+           <td tal:condition="not:r/component" tal:content='r/componentName'/>
            <td tal:condition="r/eventClass">
-                 <a tal:attributes="href python:r.eventClass.getPrimaryUrlPath() + 'viewHistoryEvents'"
-                    tal:content="r/eventClass/id"/>
+                 <a tal:attributes="href python:r.eventClass.getPrimaryUrlPath() + '/viewHistoryEvents'"
+                    tal:content="r/eventClassName"/>
            </td>
            <td tal:condition="not:r/eventClass" tal:content='r/eventClassName'/>
            <td tal:content="r/duration"/>
