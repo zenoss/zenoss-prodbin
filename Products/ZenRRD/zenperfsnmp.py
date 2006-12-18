@@ -157,7 +157,7 @@ class SnmpStatus:
             summary='snmp agent down on device ' + deviceName
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
-                    severity=Event.Warning)
+                    severity=Event.Error)
             log.warn(summary)
             self.count += 1
 
