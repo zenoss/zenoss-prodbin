@@ -34,6 +34,7 @@ query = ('SELECT %(cols)s FROM ( '
          ') AS U ' % args)
 c = dmd.ZenEventManager.connect()
 sum = {}
+counts = {}
 try:
     e = c.cursor()
     e.execute(query)
@@ -50,15 +51,18 @@ try:
             if diff > 0.0:
                 try:
                     sum[(device, component, eventClass)] += diff
+                    counts[(device, component, eventClass)] += 1
                 except KeyError:
                     sum[(device, component, eventClass)] = diff
+                    counts[(device, component, eventClass)] = 1
 finally:
     c.close()
     
 # Look up objects that correspond to the names
 find = dmd.Devices.findDevice
 totalTime = endDate - startDate
-for (deviceName, componentName, eventClassName), seconds in sum.items():
+for k, seconds in sum.items():
+    deviceName, componentName, eventClassName = k
     component = None
     eventClass = None
     device = find(deviceName)
@@ -80,6 +84,7 @@ for (deviceName, componentName, eventClassName), seconds in sum.items():
                                 component=component,
                                 eventClassName=eventClassName,
                                 eventClass=eventClass,
+                                count=counts.get(k, 1),
                                 seconds=seconds,
                                 percentTime=percent,
                                 duration=duration))
