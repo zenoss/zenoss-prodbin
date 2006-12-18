@@ -219,9 +219,10 @@ class DeviceClass(DeviceOrganizer):
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            dev = self.devices._getOb(devname)
+            dev = self.findDevice(devname)
+            source = dev.deviceClass()
             dev._operation = 1 # moving object state
-            self.devices._delObject(devname)
+            source.devices._delObject(devname)
             target.devices._setObject(devname, dev)
             dev.setLastChange()
         if REQUEST:
@@ -620,8 +621,9 @@ class DeviceClass(DeviceOrganizer):
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            dev = self.devices._getOb(devname)
+            dev = self.findDevice(devname)
             dev.deleteDevice()
-        if REQUEST: return self()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 InitializeClass(DeviceClass)

@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action request/URL">
+<form method="post" tal:attributes="action here/absolute_url_path">
 <table class="zentable" 
     cellpadding=3 cellspacing=1
     
@@ -25,6 +25,9 @@
 	<form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"/>
 	</td>
 	</tr>
+	<tal:block tal:define="numColumns string:5">
+		<tal:block metal:use-macro="here/deviceListMacro/macros/deviceControl"/>
+	</tal:block>
 </table>
 </form>
 

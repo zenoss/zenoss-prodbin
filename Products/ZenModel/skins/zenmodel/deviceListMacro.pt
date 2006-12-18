@@ -1,3 +1,25 @@
+<tr metal:define-macro="deviceControl">
+    <td class="tableheader" align="left"
+		tal:attributes="colspan numColumns">
+        <input class="tableheader" type="submit" name="moveDevices:method"
+                value="Move To" />
+        <select class="tableheader" name="moveTarget"
+        tal:define="targets here/deviceMoveTargets">
+            <option value=""></option>
+            <option tal:repeat="target targets" 
+                tal:content="target">/Server/Linux</option>
+        </select>
+        |
+        <input class="tableheader" type="submit" 
+            name="removeDevices:method" value="Delete" />
+        |
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+    </td>
+</tr>
+
+
 <form method="post" tal:attributes="action here/absolute_url_path" 
     name="deviceListForm" metal:define-macro="devList" 
     tal:condition='here/devices/countObjects'>
@@ -82,25 +104,10 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    <tr tal:condition="here/editableDeviceList">
-        <td class="tableheader" align="left" colspan="5">
-            <input class="tableheader" type="submit" name="moveDevices:method"
-                    value="Move To" />
-            <select class="tableheader" name="moveTarget"
-            tal:define="targets here/deviceMoveTargets">
-                <option value=""></option>
-                <option tal:repeat="target targets" 
-                    tal:content="target">/Server/Linux</option>
-            </select>
-            |
-            <input class="tableheader" type="submit" 
-                name="removeDevices:method" value="Delete" />
-            |
-            <input class="tableheader" type="submit"
-                    name="SelectButton" value="Select All" 
-                    onClick="toggleSelect(this.form);return false"/>
-        </td>
-    </tr>
+	<tal:block tal:condition="here/editableDeviceList"
+			tal:define="numColumns string:5">
+		<span metal:use-macro="here/deviceListMacro/macros/deviceControl" />
+	</tal:block>
 </table>
 </form>
 
