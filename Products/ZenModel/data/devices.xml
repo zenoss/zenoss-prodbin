@@ -1828,7 +1828,7 @@ True
 here.totalBlocks * .9
 </property>
 <property type='string' id='eventClass' mode='w' >
-/OS/Filesystem
+/Perf/Filesystem
 </property>
 <property type='int' id='severity' mode='w' >
 3
