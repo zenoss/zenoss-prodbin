@@ -13,8 +13,8 @@
 		<tal:dummy replace="python:request.response.setHeader(
 			'Content-Type', 'application/vnd.ms-excel')"/>
 		<tal:dummy replace="python:request.response.setHeader(
-			'Content-Disposition', 'attachment; filename=events.csv')"/>
-		<tal:dummy replace="python: here.writeExportRows(fields, objects, 
+			'Content-Disposition', 'attachment; filename=zenoss_export.csv')"/>
+		<tal:dummy replace="python: here.writeExportRows(fields, batch, 
 			request.response)"/>
 	</tal:block>
 	<tal:block tal:condition="not: exists: request/doExport">

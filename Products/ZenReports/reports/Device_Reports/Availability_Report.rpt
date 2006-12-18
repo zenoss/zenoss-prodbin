@@ -1,3 +1,26 @@
+<tal:block tal:define="
+	tableName string:availability;
+	tm here/ZenTableManager;
+	zem python:here.dmd.ZenEventManager;
+    sts python:tm.setReqTableState;
+
+    device python:sts(tableName, 'device', '');
+    component python:sts(tableName, 'component', '');
+    severity python:sts(tableName, 'severity', 'Error');
+    eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
+    startDate python:sts(tableName, 'startDate', 
+                         zem.defaultAvailabilityStart());
+    endDate python:sts(tableName, 'endDate', 
+                         zem.defaultAvailabilityEnd());
+	objects python:zem.getAvailability(tm.getTableState(tableName));
+    batch python:tm.getBatch(tableName,objects, 
+                             sortedSence='asc',
+                             sortedHeader='availability');
+	exportFields python:['device', 'component', 'availability'];
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
@@ -8,26 +31,9 @@
         src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 
-<span tal:define="
-      tableName string:availability;
-      tm here/ZenTableManager;
-      zem python:here.dmd.ZenEventManager;
-">
+<span>
 
-<form id="availabilityForm" 
-      tal:define="
-      sts python:tm.setReqTableState;
-      device python:sts(tableName, 'device', '');
-      component python:sts(tableName, 'component', '');
-      severity python:sts(tableName, 'severity', 'Error');
-      eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
-      startDate python:sts(tableName, 'startDate', 
-                           zem.defaultAvailabilityStart());
-      endDate python:sts(tableName, 'endDate', 
-                           zem.defaultAvailabilityEnd());
-      "
-      method="submit"
->
+<form id="availabilityForm" method="submit">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
        <td class="tableheader">Device:</td>
@@ -81,13 +87,7 @@
 </table>
 </form>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
-    objects python:zem.getAvailability(tm.getTableState(tableName));
-    batch python:tm.getBatch(tableName,objects, 
-                             sortedSence='asc',
-                             sortedHeader='availability');
-    ">
+<table class="zentable" cellpadding="3" cellspacing="1">
   <tr><th class="tabletitle" colspan="3">Device Availability</th></tr>
   <tr>
     <th tal:replace="structure python:tm.getTableHeader(
@@ -126,4 +126,8 @@
 </table>
 </span>
 </tal:block>
-</tal:block>f
+</tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>

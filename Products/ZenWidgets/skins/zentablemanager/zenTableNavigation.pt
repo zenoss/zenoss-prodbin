@@ -197,7 +197,7 @@
         alt="last" name="last" value=">|"
         tal:attributes="disabled not:batch/next" />&nbsp;&nbsp;
     <input class="navcontrol" type="submit" name="showAll" value="show all" />
-	&nbsp;&nbsp;
+	&nbsp;
 	<input class="navcontrol" type="submit" name="doExport" value="export all"
 		tal:condition="exists: exportable" />
     </div>

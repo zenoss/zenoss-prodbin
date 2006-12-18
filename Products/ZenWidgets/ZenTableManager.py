@@ -152,7 +152,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             objects = list(objects)
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
-        if tableState.batchSize > 0:
+        if tableState.batchSize > 0 and not hasattr(self.REQUEST, 'doExport'):
             objects = ZTUtils.Batch(objects, tableState.batchSize,
                         start=tableState.start, orphan=0)
         return objects

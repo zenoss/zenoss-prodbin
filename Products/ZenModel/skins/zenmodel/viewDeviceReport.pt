@@ -1,14 +1,24 @@
+<tal:block tal:define="
+	objects here/getDevices;
+	objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+	exportHeaders python: (hasattr(request, 'doExport') 
+							and here.reportHeaders()) or None;
+	exportFields python:exportHeaders;
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable"  cellpadding="3" cellspacing="1"
-    tal:define="tableName here/title; objects here/getDevices;
-    batch python: here.ZenTableManager.getBatch(
-                    tableName, objects, 
-                    sortedHeader=here.sortedHeader, 
-                    sortedSence=here.sortedSence)"
+    tal:define="tableName here/title; 
+    			batch python: here.ZenTableManager.getBatch(
+						tableName, objects, 
+						sortedHeader=here.sortedHeader, 
+						sortedSence=here.sortedSence)"
     tal:on-error="string: Device Report ${here/title} has errors">
     <input type="hidden" name="tableName" tal:attributes="value tableName"/>
     <tr>
@@ -30,5 +40,9 @@
     </tr>
 </table>
 </form>
+</tal:block>
+</tal:block>
+
+</tal:block>
 </tal:block>
 </tal:block>

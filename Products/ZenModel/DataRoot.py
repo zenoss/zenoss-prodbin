@@ -23,6 +23,7 @@ from Acquisition import aq_base
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
 from ImageFile import ImageFile
+from Products.ZenModel.ZenModelBase import ZenModelBase
 import DateTime
 
 from AccessControl import Permissions as permissions
@@ -352,8 +353,12 @@ class DataRoot(ZenModelRM, OrderedFolder):
                 value = thing[int(field)]
             else:
                 value = getattr(thing, field, '')
-            if callable(value):
+            if isinstance(value, ZenModelBase):
+                value = value.id
+            elif callable(value):
                 value = value()
+            if value == None:
+                value = ''
             return str(value)
         for o in objects:
             writer.writerow([getDataField(o,f) for f in fields])
