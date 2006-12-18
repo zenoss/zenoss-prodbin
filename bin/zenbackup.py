@@ -105,7 +105,7 @@ class ZenBackup(CmdBase):
         
         # mysqldump to backup dir
         
-        cmd = 'mysqldump -u%s -p%s %s > %s' % (
+        cmd = 'mysqldump -u%s -p%s --routines %s > %s' % (
                     self.options.dbuser,
                     (self.options.dbpass or ''),
                     self.options.dbname,
