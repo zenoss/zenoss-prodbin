@@ -69,6 +69,8 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'title', 'type': 'string', 'mode':'w'},
         {'id':'prodStateDashboardThresh','type':'int','mode':'w'},
         {'id':'prodStateConversions','type':'lines','mode':'w'},
+        {'id':'priorityConversions','type':'lines','mode':'w'},
+        {'id':'priorityDashboardThresh','type':'int','mode':'w'},
         {'id':'statusConversions','type':'lines','mode':'w'},
         {'id':'interfaceStateConversions','type':'lines','mode':'w'},
         {'id':'administrativeRoles','type':'lines','mode':'w'},

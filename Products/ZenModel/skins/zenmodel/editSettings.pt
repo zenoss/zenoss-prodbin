@@ -63,18 +63,35 @@
     </tr>
 
     <tr>
-      <td class="tableheader" align="left">Dashboard Threshold</td>
+      <td class="tableheader" align="left">Dashboard Production State Threshold</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="prodStateDashboardThresh"
             tal:attributes="value here/prodStateDashboardThresh" />
       </td>
     </tr>
+
+    <tr>
+      <td class="tableheader" align="left">Dashboard Priority Threshold</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="priorityDashboardThresh"
+            tal:attributes="value here/priorityDashboardThresh" />
+      </td>
+    </tr>
+        
     <tr>
       <td class="tableheader" align="left">State Conversions</td>
       <td class="tablevalues">
         <textarea class="tablevalues" name="prodStateConversions:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.prodStateConversions)"></textarea>
+      </td>
+     </tr>
+     <tr>
+      <td class="tableheader" align="left">Priority Conversions</td>
+      <td class="tablevalues">
+        <textarea class="tablevalues" name="priorityConversions:lines"
+            rows="6" cols="35"
+            tal:content="python: '\n'.join(here.priorityConversions)"></textarea>
       </td>
     </tr>
     <!--
