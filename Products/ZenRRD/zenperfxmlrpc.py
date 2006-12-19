@@ -162,7 +162,7 @@ class XmlRpcData:
         self.points = []
         for point in points:
             thresholdObjs = [Threshold(*t) for t in point[-1]]
-            self.points.append(point[:-1] + [thresholdObjs])
+            self.points.append(list(point[:-1]) + [thresholdObjs])
 
 class zenperfxmlrpc(RRDDaemon):
     "Periodically query all devices for XMLRPC values to archive in RRD files"
@@ -220,7 +220,11 @@ class zenperfxmlrpc(RRDDaemon):
         'Periodically ask the Zope server for basic configuration data.'
         
         yield self.model.callRemote('getXmlRpcDevices', self.options.device)
-        self.updateDeviceList(driver.next())
+        try:
+            self.updateDeviceList(driver.next())
+        except Exception, ex:
+            self.log.exception(ex)
+            raise
 
         yield self.model.callRemote('propertyItems')
         self.setPropertyItems(driver.next())
@@ -283,6 +287,7 @@ class zenperfxmlrpc(RRDDaemon):
 
     def updateDeviceConfig(self, xmlRpcTargets):
         'Save the device configuration and create an XMLRPC proxy to talk to it'
+
         deviceName, xmlRpcState, xmlRpcData = xmlRpcTargets
         if not xmlRpcData: return
         self.log.debug("received config for %s", deviceName)
@@ -467,7 +472,8 @@ class zenperfxmlrpc(RRDDaemon):
         'store a value into an RRD file'
         xmlRpcData = self.devices[deviceName].proxyMap[url].methodMap[methodName]
         for count, parts in enumerate(xmlRpcData.points):
-            name, path, dataStorageType, rrdCreateCommand, thresholds = parts
+            (name, path, dataStorageType,
+             rrdCreateCommand, (min, max), thresholds) = parts
 
             # Decode the response
             vtype = type(value)
@@ -483,7 +489,8 @@ class zenperfxmlrpc(RRDDaemon):
             else:
                 log.warning('Cannot decode value %r for name %s', value, name)
                 continue
-            v = self.rrd.save(path, v, dataStorageType, rrdCreateCommand)
+            v = self.rrd.save(path, v, dataStorageType,
+                              rrdCreateCommand, min=min, max=max)
             for threshold in thresholds:
                 # use url+methodName+name as eventKey
                 threshold.check(deviceName,
