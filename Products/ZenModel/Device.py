@@ -876,6 +876,11 @@ class Device(ManagedEntity, Commandable):
         """Return the prodstate as a string.
         """
         return self.convertProdState(self.productionState)
+
+    def getPriorityString(self):
+        """Return the device priority as a string.
+        """
+        return self.convertPriority(self.priority)
         
     def getPingStatusString(self):
         '''Return the pingStatus as a string

@@ -738,6 +738,8 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
             if dev:
                 if dev.productionState < self.prodStateDashboardThresh: 
                     continue
+                if dev.priority < self.priorityDashboardThresh:
+                    continue
                 if simple:
                     alink = devname
                 else:

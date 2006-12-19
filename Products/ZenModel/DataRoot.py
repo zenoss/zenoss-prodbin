@@ -124,6 +124,9 @@ class DataRoot(ZenModelRM, OrderedFolder):
 
     # production state threshold at which devices show on dashboard
     prodStateDashboardThresh = 1000
+    
+    # priority threshold at which devices show on dashboard
+    priorityDashboardThresh = 2
 
     prodStateConversions = [
                 'Production:1000',
