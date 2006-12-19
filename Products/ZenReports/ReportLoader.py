@@ -12,6 +12,12 @@ from Products.ZenModel.Report import Report
 
 class ReportLoader(ZCmdBase):
 
+    def buildOptions(self):
+        ZCmdBase.buildOptions(self)
+        self.parser.add_option('-f', '--force', dest='force', 
+                               action='store_true', default=0,
+                               help="Force load all the reports")
+
     def loadDatabase(self):
         reproot = self.dmd.Reports
         repdir = os.path.join(os.path.dirname(__file__),"reports")
@@ -26,12 +32,16 @@ class ReportLoader(ZCmdBase):
                 orgpath = orgpath[idx:]
                 orgpath = "/" + "/".join(orgpath)
                 rorg = reproot.createOrganizer(orgpath)
-                if getattr(rorg, fid, False): continue
+                if getattr(rorg, fid, False):
+                    if self.options.force:
+                        rorg._delObject(fid)
+                    else:
+                        continue
                 self.log.info("loading: %s %s", orgpath, filename)
                 fdata = file(fullname).read()
                 rpt = Report(fid, text=fdata)
                 rorg._setObject(fid, rpt)
-        transaction.commit()              
+        transaction.commit()
 
 
 if __name__ == "__main__":
