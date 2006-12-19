@@ -2,7 +2,7 @@
     tableName string:availabilitytable;
     tm here/ZenTableManager;
     tableState python:tm.getTableState(tableName,  
-                                       sortedSence='desc',
+                                       sortedSence='asc',
                                        sortedHeader='availability');
     zem python:here.dmd.ZenEventManager;
     sts python:tm.setReqTableState;
