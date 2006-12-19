@@ -49,7 +49,7 @@ from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
-from Products.ZenReport.ReportServer import manage_addReportServer
+from Products.ZenReports.ReportServer import manage_addReportServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
 from Products.CMFCore.DirectoryView import manage_addDirectoryView
