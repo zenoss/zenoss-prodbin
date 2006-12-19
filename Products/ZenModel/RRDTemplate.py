@@ -281,8 +281,10 @@ class RRDTemplate(ZenModelRM):
         if seqmap and origseq:
             try:
                 origseq = tuple([long(s) for s in origseq])
+                seqmap = tuple([long(s) for s in seqmap])
             except ValueError:
                 origseq = ()
+                seqmap = ()
             if origseq:
                 graphs = self.getGraphs()
                 for oldSeq, newSeq in zip(origseq, seqmap):
