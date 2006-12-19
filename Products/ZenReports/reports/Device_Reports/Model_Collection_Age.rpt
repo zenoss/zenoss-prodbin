@@ -1,6 +1,6 @@
 <tal:block tal:define="
 	objects  python:here.getDmdRoot('Devices').getSubDevices(
-	                                   lambda x: x.snmpAgeCheck(48));
+           lambda x: x.snmpAgeCheck(48) and x.productionState > 0 and not x.zSnmpMonitorIgnore));
 	tableName string: modelcollreport;
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
                                    sortedHeader='getSnmpLastCollection');
