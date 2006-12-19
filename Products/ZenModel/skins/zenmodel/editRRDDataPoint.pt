@@ -56,6 +56,15 @@
         tal:content="here/rpn"/>
     </tr>
     <tr>
+        <td class="tableheader">RRD Min</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="rrdmin" size="40"
+            tal:attributes="value here/rrdmin" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rrdmin"/>
+    </tr>
+    <tr>
         <td class="tableheader">RRD Max</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="rrdmax" size="40"

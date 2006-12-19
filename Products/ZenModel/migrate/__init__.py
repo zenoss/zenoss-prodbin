@@ -53,3 +53,4 @@ import rrdcpu
 import changeeventclasses
 import reportserver
 import devicepriority
+import rrdmin2

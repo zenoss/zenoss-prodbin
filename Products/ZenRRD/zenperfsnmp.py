@@ -166,11 +166,13 @@ class OidData:
     def __init__(self):
         self.thresholds = ThresholdManager()
 
-    def update(self, name, path, dataStorageType, rrdCreateCommand, thresholds):
+    def update(self, name, path, dataStorageType, rrdCreateCommand, minmax,
+               thresholds):
         self.name = name
         self.path = path
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
+        self.minmax = minmax
         self.thresholds.update(thresholds)
 
 
@@ -299,11 +301,11 @@ class zenperfsnmp(SnmpDaemon):
         p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, str(community),
                                   version, timeout, tries)
-	for name, oid, path, dsType, createCmd, thresholds in oidData:
+	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
             oid = '.'+oid.lstrip('.')
             d = p.oidMap.setdefault(oid, OidData())
-            d.update(name, path, dsType, createCmd, thresholds)
+            d.update(name, path, dsType, createCmd, minmax, thresholds)
         self.proxies[deviceName] = p
 
 
@@ -456,10 +458,12 @@ class zenperfsnmp(SnmpDaemon):
         oidData = self.proxies[device].oidMap.get(oid, None)
         if not oidData: return
 
+        min, max = oidData.minmax
         value = self.rrd.save(oidData.path[1:],
                               value,
                               oidData.dataStorageType,
-                              oidData.rrdCreateCommand)
+                              oidData.rrdCreateCommand,
+                              min=min, max=max)
 
         for threshold in oidData.thresholds:
             threshold.check(device, oidData.name, oid, value,

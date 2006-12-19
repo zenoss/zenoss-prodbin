@@ -216,6 +216,7 @@ class RRDView(object):
                                      "/".join((basepath, dp.name())),
                                      dp.rrdtype,
                                      dp.createCmd,
+                                     (dp.rrdmin, dp.rrdmax),
                                      threshs.get(dp.name(),[])))
         except RRDObjectNotFound, e:
             log.warn(e)
@@ -240,6 +241,7 @@ class RRDView(object):
                      "/".join((basepath, dp.name())),
                      dp.rrdtype,
                      dp.createCmd,
+                     (dp.rrdmin, dp.rrdmax),
                      threshs.get(dp.name(),[])))
             key = ds.eventKey or ds.id
             result.append( (ds.usessh, ds.cycletime, ds.component,
@@ -280,6 +282,7 @@ class RRDView(object):
                              "/".join((basepath, dp.name())),
                              dp.rrdtype,
                              dp.createCmd,
+                             (dp.rrdmin, dp.rrdmax),
                              threshs.get(dp.name(),[])))
                     targets.append((cname,
                                     url,

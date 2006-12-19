@@ -58,7 +58,8 @@ class RRDDataPoint(ZenModelRM):
     rrdtype = 'GAUGE'
     isrow = True
     rpn = ""
-    rrdmax = -1
+    rrdmin = None
+    rrdmax = None
     color = ""
     linetype = ''
     limit = -1
@@ -70,7 +71,8 @@ class RRDDataPoint(ZenModelRM):
         {'id':'createCmd', 'type':'text', 'mode':'w'},
         {'id':'isrow', 'type':'boolean', 'mode':'w'},
         {'id':'rpn', 'type':'string', 'mode':'w'},
-        {'id':'rrdmax', 'type':'long', 'mode':'w'},
+        {'id':'rrdmin', 'type':'string', 'mode':'w'},
+        {'id':'rrdmax', 'type':'string', 'mode':'w'},
         {'id':'limit', 'type':'long', 'mode':'w'},
         {'id':'linetype', 'type':'selection', 
         'select_variable' : 'linetypes', 'mode':'w'},
@@ -213,3 +215,23 @@ class RRDDataPoint(ZenModelRM):
         """Include the data source name in our name,
         useful for lists of DataPoints"""
         return '%s%c%s' % (self.datasource().id, SEPARATOR, self.id)
+
+    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    def zmanage_editProperties(self, REQUEST=None):
+        """Edit a ZenModel object and return its proper page template
+        """
+        if REQUEST:
+            msgs = []
+            for optional in 'rrdmin', 'rrdmax':
+                v = REQUEST.form.get(optional, None)
+                if v:
+                    try:
+                        REQUEST.form[optional] = long(v)
+                    except ValueError:
+                        msgs.append('Unable to convert "%s" to a number' % v)
+            msgs = ', '.join(msgs)
+            if msgs:
+                REQUEST['message'] = msgs[0].capitalize() + msgs[1:] + ", at Time:"
+                return self.callZenScreen(REQUEST, False)
+        
+        return ZenModelRM.zmanage_editProperties(self, REQUEST)

@@ -4,6 +4,11 @@ log = logging.getLogger("zen.RRDUtil")
 
 from Products.ZenModel.PerformanceConf import performancePath
 
+def _checkUndefined(x):
+    if x is None or x == '':
+        return 'U'
+    return x
+
 class RRDUtil:
     def __init__(self, defaultRrdCreateCommand, defaultCycleTime):
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
@@ -24,8 +29,10 @@ class RRDUtil:
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
+
+            min, max = map(_checkUndefined, (min, max))
             dataSource = 'DS:%s:%s:%d:%s:%s' % ('ds0', rrdType,
-                                              3*cycleTime, min, max)
+                                                3*cycleTime, min, max)
             rrdtool.create(filename,
                            "--step",  str(cycleTime),
                            str(dataSource), *rrdCommand.split())
