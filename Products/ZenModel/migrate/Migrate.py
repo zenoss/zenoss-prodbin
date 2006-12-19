@@ -17,6 +17,7 @@ import Globals
 import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Version import Version as VersionBase
+from Products.ZenReports.ReportLoader import ReportLoader
 
 import sys
 import logging
@@ -123,6 +124,10 @@ class Migration(ZCmdBase):
 
         for m in steps:
             m.cleanup()
+
+        rl = ReportLoader(noopts=True, app=self.app)
+        rl.options.force = True
+        rl.loadDatabase()
 
 
     def cutover(self):
