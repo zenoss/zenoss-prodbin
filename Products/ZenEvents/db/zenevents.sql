@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS status
     ntevid          smallint unsigned default 0,
     ownerid         varchar(32) default "",
     clearid         char(25),
+    DevicePriority  smallint(6) default 3,
     PRIMARY KEY ( dedupid ),
     Index evididx (evid)
 ) ENGINE=INNODB;
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS history
     ownerid         varchar(32) default "",
     deletedTime     timestamp,
     clearid         char(25),
+    DevicePriority  smallint(6) default 3,
     PRIMARY KEY ( evid ),
     INDEX device (device),
     INDEX firstTime (firstTime),
@@ -105,7 +107,8 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             OLD.ntevid,
             OLD.ownerid,
             NULL,
-            OLD.clearid
+            OLD.clearid,
+            OLD.DevicePriority
             );
 
 
