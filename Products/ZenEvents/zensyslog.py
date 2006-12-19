@@ -25,9 +25,9 @@ import Globals
 
 import transaction
 
-from Products.ZenUtils.ZeoPoolBase import  ZeoPoolBase
 from Products.ZenUtils.Utils import basicAuthUrl
 
+from EventServer import EventServer
 from Event import Event, EventHeartbeat
 from SyslogProcessingThread import SyslogProcessingThread
 
@@ -36,16 +36,15 @@ from Products.ZenEvents.Exceptions import ZenBackendFailure
 
 SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
 
-class ZenSyslog(UDPServer, ZeoPoolBase):
+class ZenSyslog(UDPServer, EventServer):
 
 
     def __init__(self, addr=''):
-        ZeoPoolBase.__init__(self, keeproot=True)
+        EventServer.__init__(self)
         UDPServer.__init__(self, (addr, self.options.syslogport), None)
         self.changeUser()
         self.minpriority = self.options.minpriority
         self.phost = self.options.parsehost
-        self.maxthreads = self.options.maxthreads
         self.zempath = os.path.join(self.options.dmdpath, "ZenEventManager")
         self.evtcount=0L
         self.rcptqueue = Queue.Queue()
@@ -53,11 +52,9 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self._threadlist = []
         self._hostmap = {}       # client address/name mapping
 
-        for i in range(self.maxthreads):
-            spt = SyslogProcessingThread(self.rcptqueue, self.getZem(), 
-                     self.options.minpriority, self.options.parsehost)
-            self._threadlist.append(spt)
-            spt.start() 
+        spt = SyslogProcessingThread(self.rcptqueue, self.dmd.ZenEventManager, 
+                 self.options.minpriority, self.options.parsehost)
+        spt.start() 
 
         if self.options.logorig:
             self.olog = logging.getLogger("origsyslog")
@@ -152,29 +149,8 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
             self._lastheartbeat = time.time()
 
 
-    def sendEvent(self, evt):
-        zem = None
-        try:
-            try:
-                zem = self.getZem()
-                zem.sendEvent(evt)
-            except Exception, e:
-                self.log.error(e)
-        finally:
-            if zem: 
-                transaction.abort()
-                zem._p_jar.close()
-                del zem
-
-
-    def getZem(self):
-        """Return our ZenEventManager based on zempath option.
-        """
-        return self.getConnection(self.zempath)
-
-
     def buildOptions(self):
-        ZeoPoolBase.buildOptions(self)
+        EventServer.buildOptions(self)
         self.parser.add_option('--dmdpath',
             dest='dmdpath', default="/zport/dmd",
             help="zope path to our dmd /zport/dmd")
@@ -193,9 +169,6 @@ class ZenSyslog(UDPServer, ZeoPoolBase):
         self.parser.add_option('--minpriority',
             dest='minpriority', default=6, type="int",
             help="Minimum priority that syslog will accecpt")
-        self.parser.add_option('--maxthreads',
-            dest='maxthreads', default=1, type="int",
-            help="Max processing threads")
         self.parser.add_option('--heartbeat',
             dest='heartbeat', default=60,
             help="Number of seconds between heartbeats")

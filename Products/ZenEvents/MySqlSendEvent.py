@@ -123,7 +123,6 @@ class MySqlSendEventMixin:
         """Apply event and devices contexts to the event.
         Only valid if this object has zeo connection.
         """
-        self._p_jar.sync()
         events = self.getDmdRoot("Events")
         devices = self.getDmdRoot("Devices")
         device = None

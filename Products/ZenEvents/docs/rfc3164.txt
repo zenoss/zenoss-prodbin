@@ -1,31 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<HTML>
-<HEAD>
-<TITLE>RFC 3164 (rfc3164) - The BSD Syslog Protocol</TITLE>
-<META  name="description" content="RFC 3164 - The BSD Syslog Protocol">
-<script language="JavaScript1.2">
-function erfc(s)
-{document.write("<A href=\"/rfccomment.php?rfcnum="+s+"\" target=\"_blank\" onclick=\"window.open('/rfccomment.php?rfcnum="+s+"','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=680,height=530,left=30,top=43'); return false;\")>Comment on RFC "+s+"</A>\n");}
-//-->
-</script>
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
-<P ALIGN=CENTER><IMG SRC="/images/library.jpg" HEIGHT=62 WIDTH=150 BORDER="0" ALIGN="MIDDLE" ALT=""></P>
-<H1 ALIGN=CENTER>RFC 3164 (RFC3164)</H1>
-<P ALIGN=CENTER>Internet RFC/STD/FYI/BCP Archives</P>
-
-<DIV ALIGN=CENTER>[ <a href="/rfcs/">RFC Index</a> | <A HREF="/rfcs/rfcsearch.html">RFC Search</A> | <a href="/faqs/">Usenet FAQs</a> | <a href="/contrib/">Web FAQs</a> | <a href="/docs/">Documents</a> | <a href="http://www.city-data.com/">Cities</a> ]
-<P>
-<STRONG>Alternate Formats:</STRONG>
- <A HREF="/ftp/rfc/rfc3164.txt">rfc3164.txt</A> |
- <A HREF="/ftp/rfc/pdf/rfc3164.txt.pdf">rfc3164.txt.pdf</A></DIV>
-<p align=center><script language="JavaScript"><!--
-erfc("3164");
-// --></script></p>
-<h3 align=center>RFC 3164 - The BSD Syslog Protocol</h3>
-<HR SIZE=2 NOSHADE>
-<PRE>
-
 Network Working Group                                         C. Lonvick
 Request for Comments: 3164                                 Cisco Systems
 Category: Informational                                      August 2001

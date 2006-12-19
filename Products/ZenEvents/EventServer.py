@@ -98,10 +98,19 @@ class EventServer(ZCmdBase):
             if reactor.running:
                 reactor.stop()
 
+
     def sendEvent(self, evt):
         "wrapper for sending an event"
         self.zem._p_jar.sync()
         self.zem.sendEvent(evt)
+
+
+    def sendEvents(self, evts):
+        """Send multiple events to database syncing only one time.
+        """
+        self.zem._p_jar.sync()
+        for e in evts:
+            self.zem.sendEvent(e)
 
 
     def heartbeat(self):
@@ -118,7 +127,8 @@ class EventServer(ZCmdBase):
         try:
             ZCmdBase.sigTerm(self, signum, frame)
         except SystemExit:
-            reactor.stop()
+            if reactor.running:
+                reactor.stop()
 
     def report(self):
         'report some simple diagnostics at shutdown'
