@@ -1,9 +1,11 @@
 <tal:block tal:define="
-	tableName string:availability;
-	tm here/ZenTableManager;
-	zem python:here.dmd.ZenEventManager;
+    tableName string:availabilitytable;
+    tm here/ZenTableManager;
+    tableState python:tm.getTableState(tableName,  
+                                       sortedSence='desc',
+                                       sortedHeader='availability');
+    zem python:here.dmd.ZenEventManager;
     sts python:tm.setReqTableState;
-
     device python:sts(tableName, 'device', '');
     component python:sts(tableName, 'component', '');
     severity python:sts(tableName, 'severity', 'Error');
@@ -12,10 +14,8 @@
                          zem.defaultAvailabilityStart());
     endDate python:sts(tableName, 'endDate', 
                          zem.defaultAvailabilityEnd());
-	objects python:zem.getAvailability(tm.getTableState(tableName));
-    batch python:tm.getBatch(tableName,objects, 
-                             sortedSence='asc',
-                             sortedHeader='availability');
+    objects python:zem.getAvailability(tableState);
+    batch python:tm.getBatch(tableName,objects);
 	exportFields python:['device', 'component', 'availability'];
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
