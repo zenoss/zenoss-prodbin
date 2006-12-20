@@ -306,13 +306,12 @@ class DataRoot(ZenModelRM, OrderedFolder):
         ''' send an email to the zenoss error email address
             then send user to a thankyou page or an email error page.
         '''
-        import Products.ZenUtils.Version as Version
         mailSent = SiteError.sendErrorEmail(
                     self.REQUEST.errorType,
                     self.REQUEST.errorValue,
                     self.REQUEST.errorTrace,
                     self.REQUEST.errorUrl,
-                    Version.getZenossRevision(),
+                    self.About.getZenossRevision(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
                     self.REQUEST.comments)
@@ -323,7 +322,7 @@ class DataRoot(ZenModelRM, OrderedFolder):
                                 self.REQUEST.errorValue,
                                 self.REQUEST.errorTrace,
                                 self.REQUEST.errorUrl,
-                                Version.getZenossRevision(),
+                                self.About.getZenossRevision(),
                                 True,
                                 self.REQUEST.contactName,
                                 self.REQUEST.contactEmail,
