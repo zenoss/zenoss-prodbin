@@ -205,8 +205,9 @@ class MaintenanceWindow(ZenModelRM):
                 msgs.append('Maintenance Window must be at least 1')
         if msgs:
             if REQUEST:
+                if REQUEST.has_key('message'):
+                    del REQUEST['message']
                 REQUEST['message'] = '; '.join(msgs)
-                return self.callZenScreen(REQUEST)
         else:
             self.start = t
             self.duration = duration
@@ -217,6 +218,7 @@ class MaintenanceWindow(ZenModelRM):
             now = time.time()
             if self.started and self.nextEvent(now) < now:
                 self.end()
+        return self.callZenScreen(REQUEST)
 
 
     def nextEvent(self, now):
