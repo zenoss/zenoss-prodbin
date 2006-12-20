@@ -1,0 +1,65 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form id="clauseForm" 
+      method="post" 
+      tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1"
+    tal:define="
+        tableName string:eventCommands;
+        zem here/ZenTableManager;
+        objects here/commands;
+        batch python: here.ZenTableManager.getBatch(tableName,objects);">
+  <tr>
+    <th class="tableheader" colspan="5">Commands triggered by events:</th>
+  </tr>
+    <tr>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'primarySortKey','Name')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'delay','Enabled')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'action','Command')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'enabled','Event Filter')"/>
+    </tr>
+
+ <tal:block tal:repeat="command batch">
+ <tr tal:define="odd repeat/command/odd"
+    tal:attributes="class python:test(odd, 'odd', 'even')">
+    <td class="tablevalues">
+       <input type="checkbox" name="ids:list" 
+           tal:attributes="value command/getId"/>
+        <a tal:attributes='href command/getPrimaryUrlPath' 
+           tal:content="command/id"/>
+    </td>
+    <td class="tablevalues" tal:content="python:command.enabled"/>
+    <td class="tablevalues" tal:content="command/command"/>
+    <td class="tablevalues" tal:content="command/where"/>
+  </tr>
+  </tal:block>
+
+  <tr>
+      <td colspan="5" class="tableheader">
+          <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+      </td>
+  </tr>
+
+  <tr>
+      <td class="tableheader" align="left" colspan="5">
+          <input class="tablevalues" size="25" name="id" />
+          <input class="tableheader" type="submit" value=" Add "
+               name="manage_addCommand:method" />
+          <input class="tableheader" type="submit" 
+              name="manage_deleteCommands:method" value="Delete" />
+          |
+          <input class="tableheader" type="submit"
+                  name="SelectButton" value="Select All" 
+                  onClick="toggleSelect(this.form);return false"/>
+      </td>
+  </tr>
+</table>
+<input type="submit" name="manage_editCommands:method" value="Submit"/>
+</form>
+</tal:block>
+</tal:block>

@@ -36,9 +36,12 @@ from interfaces import IEventList, IEventStatus, ISendEvents
 from DbAccessBase import DbAccessBase
 from ZEvent import ZEvent
 from EventDetail import EventDetail
+from EventCommand import EventCommand
 from Exceptions import *
 
-from Products.ZenModel.ZenModelItem import ZenModelItem
+from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils import Time
 import StringIO
 import csv
@@ -47,9 +50,7 @@ from ZenEventClasses import Unknown
 
 import time
 
-
-class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager, 
-                        PropertyManager, Item):
+class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     """
     Data connector to backend of the event management system.
     """
@@ -161,6 +162,11 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         {'id':'clearthresh', 'type':'int', 'mode':'w'},
         {'id':'defaultAvailabilityDays', 'type':'int', 'mode':'w'},
         )
+
+    zenRelationsBaseModule = "Products.ZenEvents"
+    _relations =  (
+        ("commands", ToManyCont(ToOne, "EventCommand", "eventManager")),
+    )
     
     factory_type_information = ( 
         { 
@@ -180,6 +186,11 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 { 'id'            : 'history_edit'
                 , 'name'          : 'History Fields'
                 , 'action'        : 'editEventManagerHistoryFields'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'commands'
+                , 'name'          : 'Commands'
+                , 'action'        : 'listEventCommands'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'changes'
@@ -1170,8 +1181,25 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
         db.close()
         self.clearCache('evid' + evid)
         if REQUEST: return self.callZenScreen(REQUEST)
-        
-    
+
+    security.declareProtected('Manage EventManager', 'manage_addCommand')
+    def manage_addCommand(self, id, REQUEST=None):
+        "add a new EventCommand"
+        ec = EventCommand(id)
+        self.commands._setObject(id, ec)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+    security.declareProtected('Manage EventManager', 'manage_deleteCommands')
+    def manage_deleteCommands(self, ids, REQUEST=None):
+        "add a new EventCommand"
+        for id in ids:
+            try:
+                self.commands._delObject(id)
+            except (AttributeError, KeyError):
+                pass
+        if REQUEST: return self.callZenScreen(REQUEST)
+
+
     #==========================================================================
     # Utility functions
     #==========================================================================
@@ -1212,6 +1240,3 @@ class EventManagerBase(ZenModelItem, DbAccessBase, ObjectCache, ObjectManager,
                 out.write(
                     "Skipping %s skin, 'zenevents' is already set up\n" % skin) 
         return out.getvalue()
-
-
-        

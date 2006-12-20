@@ -66,6 +66,7 @@ class ActionRule(ZenModelRM, EventFilter):
     actionTypes = ("page", "email") 
     targetAddr = ""
 
+    zenRelationsBaseModule = "Products.ZenEvents"
     _properties = ZenModelRM._properties + (
         {'id':'where', 'type':'text', 'mode':'w'},
         {'id':'format', 'type':'text', 'mode':'w'},

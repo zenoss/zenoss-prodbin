@@ -25,16 +25,48 @@ from ZODB.POSException import POSError
 from _mysql_exceptions import OperationalError, ProgrammingError 
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
 import Products.ZenUtils.Utils as Utils
 from twisted.internet import reactor
+from twisted.internet.protocol import ProcessProtocol
 from DateTime import DateTime
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
+
+class EventCommandProtocol(ProcessProtocol):
+
+    def __init__(self, cmd, server):
+        self.cmd = cmd
+        self.server = server
+        self.data = ''
+        self.error = ''
+        self.timeout = reactor.callLater(cmd.defaultTimeout, self.timedOut)
+
+    def timedOut(self):
+        self.server.log.error("Command %s timed out" % self.cmd.id)
+        self.timeout = None
+
+    def processEnded(self, reason):
+        self.server.log.info("Command finished: %s" % reason)
+        if self.data:
+            self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
+        if self.error:
+            self.server.log.error("Command %s error: %s", self.cmd.id, self.error)
+        if self.timeout:
+            reactor.cancelCallLater(self.timeout)
+            self.timeout = None
+
+    def outReceived(self, text):
+        self.data += text
+
+    def errReceived(self, text):
+        self.error += text
+        
 
 class ZenActions(ZCmdBase):
     """
@@ -181,7 +213,7 @@ class ZenActions(ZCmdBase):
                 self.execute(db, addcmd)
 
         # get clear events
-        q = self.clearsel % (",".join(fields),userid,ar.getId())
+        q = self.clearsel % ('a.'+",a.".join(fields),userid,ar.getId())
         for result in self.query(db, q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
@@ -250,6 +282,65 @@ class ZenActions(ZCmdBase):
                             eventClass=HeartbeatStatus, 
                             summary="%s %s heartbeat clear" % (device, comp),
                             severity=Event.Clear))
+
+    def runEventCommand(self, cmd, evt):
+        device = self.dmd.Devices.findDevice(evt.get('device', ''))
+        component = None
+        if device:
+            componentName = evt.get('component')
+            for c in device.getMonitoredComponents():
+                if c.id == componentName:
+                    component = c
+                    break
+        compiled = talesCompile('string:' + cmd.command)
+        environ = {'dev':device, 'component':component, 'evt':evt }
+        res = compiled(getEngine().getContext(environ))
+        if isinstance(res, Exception):
+            raise res
+        prot = EventCommandProtocol(cmd, self)
+        reactor.spawnProcess(prot, '/bin/sh', ('/bin/sh', '-c', res))
+        
+
+    # FIXME: much duplication with above
+    def processEventCommand(self, db, zem, cmd):
+        fields = zem.getFieldList()
+        userid = ''
+        # get new events
+        nwhere = cmd.where.strip() or '1 = 1'
+        if cmd.delay > 0:
+            nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % cmd.delay
+        q = self.newsel % (",".join(fields), nwhere, userid, cmd.getId())
+        for result in self.query(db, q):
+            evid = result[-1]
+            data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            data['eventUrl'] = self.getUrl(evid)
+            device = self.dmd.Devices.findDevice(data.get('device', None))
+            if device:
+                data['eventsUrl'] = self.getEventsUrl(device)
+            else:
+                data['eventsUrl'] = 'n/a'
+            data['ackUrl'] = self.getAckUrl(evid)
+            data['deleteUrl'] = self.getDeleteUrl(evid)
+            severity = data.get('severity', -1)
+            data['severityString'] = zem.getSeverityString(severity)
+            try:
+                self.runEventCommand(cmd, data)
+                addcmd = self.addstate % (evid, userid, cmd.getId())
+                self.execute(db, addcmd)
+            except Exception, ex:
+                self.log.exception("Error running event command %s", cmd.id)
+
+        # get clear events
+        q = self.clearsel % ('clearid',userid,cmd.getId())
+        for clearid, evid, in self.query(db, q):
+            delcmd = self.clearstate % (evid, userid, cmd.getId())
+            self.execute(db, delcmd)
+
+
+    def eventCommands(self, db, zem):
+        for command in zem.commands():
+            if command.enabled:
+                self.processEventCommand(db, zem, command)
             
 
     def mainbody(self):
@@ -258,6 +349,7 @@ class ZenActions(ZCmdBase):
         self.loadActionRules()
         zem = self.dmd.ZenEventManager
         db = zem.connect()
+        self.eventCommands(db, zem)
         self.processRules(db, zem)
         self.checkVersion(self.dmd, zem)
         self.maintenance(db, zem)

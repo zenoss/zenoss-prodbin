@@ -5,7 +5,7 @@ log = logging.getLogger("zen.RRDUtil")
 from Products.ZenModel.PerformanceConf import performancePath
 
 def _checkUndefined(x):
-    if x is None or x == '':
+    if x is None or x == '' or x == -1 or x == '-1':
         return 'U'
     return x
 

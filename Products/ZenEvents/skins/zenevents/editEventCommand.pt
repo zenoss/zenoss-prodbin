@@ -1,0 +1,87 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form id="clauseForm" method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<table class="zentable"  cellpadding="3" cellspacing="1">
+   <colgroup>
+       <col width="20">
+       <col width="80">
+   </colgroup>
+<tr tal:define="message request/message | string:State at time:">
+    <th class=tabletitle colspan="2"
+        tal:content="string:${message} ${here/getNowString}" />
+</tr>
+<tr>
+  <td class="tableheader">Enabled</td>
+  <td class="tablevalues">
+    <select class="tablevalues" name="enabled:boolean">
+        <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.enabled"/>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td class="tableheader">Default Command Timeout (secs)</td>
+  <td class="tablevalues">
+    <input class="tablevalues" type="text" name="defaultTimeout:int" size="5"
+        tal:attributes="value here/defaultTimeout" />
+  </td>
+</tr>
+<tr>
+  <td class="tableheader">Delay</td>
+  <td class="tablevalues">
+    <input class="tablevalues" type="text" name="delay:int" size="5"
+        tal:attributes="value here/delay" />
+  </td>
+</tr>
+<tr>
+  <td class="tableheader" colspan="2">Command</td>
+</tr>
+<tr>
+  <td class="tablevalues" colspan="2">
+    <textarea class="tablevalues" rows="4" cols="70"
+        name="command" 
+        tal:content='here/command'/>
+  </td>
+</tr>
+<tr>
+<td class="tableheader" colspan="2">Where</td>
+</tr>
+
+<tr>
+  <td class="tablevalues" colspan="2">
+  <script type="text/javascript" src="/zport/js/query.js"></script>
+    <span id="query"><span id="filters">
+      <table summary="Action filters"><tbody>
+	  <tr><td colspan='4'>
+	     <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
+	     <select name="add_filter" id="add_filter" class="tablevalues"
+	       tal:content='structure here/getQueryElements'/>
+	     <input type="submit" name="add" value="+" class="tablevalues"/>
+	   </td></tr>
+       </tbody></table>
+    </span></span>
+  </td>
+</tr>
+<noscript>
+<tr><td colspan="2"><b>Unable to use javascript:</b><td></tr>
+<tr>
+  <td class="tablevalues" colspan="2">
+    <textarea class="tablevalues" rows="6" cols="75" name="where"
+        tal:content="here/where"/>
+  </td>
+</tr>
+</noscript>
+<tr>
+    <td class="tableheader" colspan="2">
+        <input class="tableheader" type="submit" value=" Save "
+            name="manage_editEventCommand:method" />
+    </td>
+</tr>
+</table>
+</form>
+
+<script tal:content="structure here/getWhereClauseAsJavaScript" type="text/javascript"/>
+
+</tal:block>
+</tal:block>
