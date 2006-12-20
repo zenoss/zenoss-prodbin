@@ -472,9 +472,10 @@ class zencommand(RRDDaemon):
             label = parts.group(1).replace("''", "'")
             value = float(parts.group(3))
             if cmd.points.has_key(label):
-                path, type, command, thresholds = cmd.points[label]
+                path, type, command, (min, max), thresholds = cmd.points[label]
                 log.debug("storing %s = %s in: %s" % (label, value, path))
-                value = self.rrd.save(path, value, type, command, cmd.cycleTime)
+                value = self.rrd.save(path, value, type, command, cmd.cycleTime,
+                                      min, max)
                 log.debug("rrd save result: %s" % value)
                 for t in thresholds:
                     t.check(cmd.device, cmd.component, cmd.eventKey, value,
