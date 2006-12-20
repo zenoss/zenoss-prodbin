@@ -63,7 +63,7 @@ class RRDDataPoint(ZenModelRM):
     color = ""
     linetype = ''
     limit = -1
-    format = '%8.2lf%s'
+    format = '%5.2lf%s'
 
     _properties = (
         {'id':'rrdtype', 'type':'selection',
@@ -158,7 +158,7 @@ class RRDDataPoint(ZenModelRM):
 
 
    
-    def summary(self, file, format="%8.2lf%s"):
+    def summary(self, file, format="%5.2lf%s"):
         """return only arguments to generate summary"""
         if self.getIndex() == -1: 
             raise "DataPointError", "Not part of a TargetType"
@@ -177,9 +177,9 @@ class RRDDataPoint(ZenModelRM):
         return graph
 
     
-    def _summary(self, src, format="%8.2lf%s", ongraph=1):
+    def _summary(self, src, format="%5.2lf%s", ongraph=1):
         """Add the standard summary opts to a graph"""
-        format = "%8.2lf%s"
+        format = "%5.2lf%s"
         gopts = []
         funcs = ("LAST", "AVERAGE", "MAX")
         tags = ("cur\:", "avg\:", "max\:")
@@ -190,7 +190,7 @@ class RRDDataPoint(ZenModelRM):
         return gopts
 
     
-    def summElement(self, src, function, format="%8.2lf%s", ongraph=1):
+    def summElement(self, src, function, format="%5.2lf%s", ongraph=1):
         """Make a single summary element"""
         if ongraph: opt = "GPRINT"
         else: opt = "PRINT"
