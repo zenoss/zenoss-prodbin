@@ -25,6 +25,17 @@ function datePickerClosed(targetInput) {
     return true;
 };
 </script>
+<script>
+function goExport(url) {
+	var sev = document.getElementById("severity").value;
+	var state = document.getElementById("state").value;
+	var filter = document.getElementById("filter").value;
+	var startdate = document.getElementById("startdate").value;
+	var enddate = document.getElementById("enddate").value;
+	url = url + "/exportEvents?state=" + state + "&severity=" + sev + "&filter=" + filter + "&startdate=" + startdate + "&enddate=" + enddate;
+	parent.location = url;
+}
+</script>
 
 <form method="post" tal:attributes="action here/absolute_url_path"
     tal:define="
@@ -43,13 +54,15 @@ function datePickerClosed(targetInput) {
     <input type='hidden' name='table' value='history'/>
     <tr class=tableheader>
     <td>Start Date: 
-    <input class="tableheader" type="text" name="startdate" readonly="true"
+    <input class="tableheader" type="text" name="startdate" id="startdate"
+		readonly="true"
         tal:attributes="value here/yesterdayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('startdate');"/>
     </td>
     <td>End Date: 
-    <input class="tableheader" type="text" name="enddate" readonly="true"
+    <input class="tableheader" type="text" name="enddate" id="enddate"
+		readonly="true"
         tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('enddate');" />

@@ -1,7 +1,13 @@
 <tal:dummy replace="python:request.response.setHeader('Content-Type', 'application/vnd.ms-excel')"/><tal:dummy replace="python:request.response.setHeader('Content-Disposition', 'attachment; filename=events.csv')"/><tal:block tal:define="
         severity request/severity | python:2;
         state request/state | python:1;
-        objects python:here.getEventList(severity=severity,state=state);
+		startdate request/startdate | nothing;
+		enddate request/enddate | nothing;
+		doHistory python:hasattr(request, 'startdate');
+        objects python:(doHistory and 
+				here.getEventHistoryList(severity=severity,state=state,
+					startdate=startdate,enddate=enddate)) or
+         		here.getEventList(severity=severity,state=state);
         sortedHeader request/sortedHeader | string:;
         resultFields request/ev_resultfields | here/getResultFields | 
                         here/ZenEventManager/defaultResultFields;
