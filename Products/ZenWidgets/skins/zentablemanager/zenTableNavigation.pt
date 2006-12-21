@@ -51,7 +51,7 @@
 	    <span style="height:1em;line-height:1em;text-align:right;
 	                 padding-right:2em;color:red;font-weight:bold;" tal:content="message"></span>
 		<tal:block tal:condition="exists: useOnlyMonitored">
-			Only Show Monitored
+			Monitored
 			<input class="navcontrol" type="checkbox"
 				name="onlyMonitored"
 				onchange="submitViaEnter(event);"
