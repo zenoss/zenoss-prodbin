@@ -33,7 +33,7 @@ function datePickerClosed(targetInput) {
     resultFields request/ev_resultfields | here/getHistResultFields |
                     here/ZenEventHistory/defaultResultFields;
     evcontrol here/ZenEventHistory/eventControls;
-    evcolspan python:len(resultFields)+1;
+    evcolspan python:len(resultFields)+2;
     severity request/severity | python:0;
     state request/state | python:2;
     sortedHeader request/sortedHeader | string:;

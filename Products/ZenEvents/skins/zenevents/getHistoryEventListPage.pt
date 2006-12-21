@@ -10,7 +10,7 @@
         resultFields request/ev_resultfields | here/getHistResultFields | 
                         here/ZenEventHistory/defaultResultFields;
         filter request/filter | string:;
-        evcolspan python:len(resultFields)+1;
+        evcolspan python:len(resultFields)+2;
         ztm here/ZenTableManager;
         objects python:ztm.filterObjects(objects,filter,resultFields);
         objects python:ztm.sortObjects(objects,request);
