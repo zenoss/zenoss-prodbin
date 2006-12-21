@@ -213,7 +213,7 @@ class ZenActions(ZCmdBase):
                 self.execute(db, addcmd)
 
         # get clear events
-        q = self.clearsel % ('a.'+",a.".join(fields),userid,ar.getId())
+        q = self.clearsel % ('h.'+",h.".join(fields),userid,ar.getId())
         for result in self.query(db, q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
