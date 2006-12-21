@@ -138,8 +138,7 @@
 </form>
 
 <form metal:define-macro="navfilter" class="tableheader"
-    action="_" method="POST" tal:attributes="action request/URL"
-    tal:define="message request/SESSION/message | nothing; ">
+    action="_" method="POST" tal:attributes="action request/URL">
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
     <input type='hidden' name='tableName'
@@ -147,7 +146,8 @@
     <input type='hidden' name='zenScreenName'
         tal:attributes="value template/id" />
     <div metal:define-macro="navbodyfilterdevice" 
-        tal:define="ts python:here.ZenTableManager.getTableState(tableName)"
+        tal:define="ts python:here.ZenTableManager.getTableState(tableName);
+					message request/SESSION/message | nothing;"
         style="border:0; padding-top:2px;margin-bottom:2px;">
     <div style="padding-left: 10px; float: left; text-align:left;">
     Filter

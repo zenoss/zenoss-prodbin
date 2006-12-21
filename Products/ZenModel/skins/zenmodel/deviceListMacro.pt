@@ -1,8 +1,16 @@
 <tr metal:define-macro="deviceControl">
+	<script>
+		function SetFormAction(evt, action) {
+			evt.target.form.action=action;
+			return true;
+		}
+	</script>
     <td class="tableheader" align="left"
 		tal:attributes="colspan numColumns">
         <input class="tableheader" type="submit" name="moveDevices:method"
-                value="Move To" />
+                value="Move To"
+				tal:attributes="onclick string:return SetFormAction(event, '${here/absolute_url_path}');"
+				/>
         <select class="tableheader" name="moveTarget"
         tal:define="targets here/deviceMoveTargets">
             <option value=""></option>
@@ -11,7 +19,9 @@
         </select>
         |
         <input class="tableheader" type="submit" 
-            name="removeDevices:method" value="Delete" />
+            name="removeDevices:method" value="Delete" 
+			tal:attributes="onclick string:return SetFormAction(event, '${here/absolute_url_path}');"
+/>
         |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
