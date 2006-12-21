@@ -8,7 +8,22 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
     <!-- Status Table -->
-    <table class="zentable"  cellpadding="3" cellspacing="1"
+<script language="javascript">
+
+function toggleElement(elementid) {
+    var element = $(elementid);
+    if (element.visible == 0) {
+        element.style.display = "none";
+        element.visible = 1;
+    } else {
+        element.style.display = "";
+        element.visible = 0;
+    }
+}
+</script>
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
+<table class="zentable"  cellpadding="3" cellspacing="1"
         metal:define-macro="status">
         <tr>
           <th class="tabletitle" align="left" colspan="6">Summary</th>
@@ -23,62 +38,32 @@
           <th class="tableheader" align="left">Device Count</th>
           <td class="tablevalues" tal:content="here/countDevices">100</td>
         </tr>
-    </table>
-
-    <span metal:use-macro="here/templates/macros/contentSeparator"/>
-
-<form method="post" tal:attributes="action here/absolute_url_path">
-<input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
-<script language="javascript">
-
-function toggleElement(elementid) {
-    var element = $(elementid);
-    if (element.visible == 0) {
-        element.style.display = "none";
-        element.visible = 1;
-    } else {
-        element.style.display = "";
-        element.visible = 0;
-    }
-}
-</script>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:condition="python:here.id != here.dmdRootName">
-    <tbody>
-    <tr>
-        <th class="tabletitle" colspan="3" tal:content="python:here.dmdRootName[:-1]"/>
-    </tr>
-    <tr>
-        <td class="tableheader" style="width:20em;" >Name</td>
-        <td class="tablevalues" 
-            tal:content="string:${here/id}"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Description</td>
-        <td class="tablevalues">
-        <span
-            tal:content="structure python:here.description.replace('\n','<br/>')"/>
-            <br tal:condition="here/description"  />
-        <span tal:condition="here/isManager"> 
+     <tr tal:condition="python:here.id != here.dmdRootName">
+        <td class="tableheader">Description 
+                <span tal:condition="here/isManager"> 
             <a style="color:darkgrey;text-decoration:none;"
                href="javascript:toggleElement('descriptioneditform')">[Edit]</a>
         </span>
+ </td>
+        <td class="tablevalues" colspan='5'>
+        <span
+            tal:content="structure python:here.description.replace('\n','<br/>')"/>
+            <br tal:condition="here/description"  />
     </tr>
-    </tbody>
-    <tbody id="descriptioneditform" tal:condition="here/isManager" 
+        <tbody id="descriptioneditform" tal:condition="here/isManager" 
             visible="1" style="display:none;">
     <tr>
         <td class="tableheader">New Description</td>
-        <td class="tablevalues"> 
+        <td class="tablevalues" colspan='5'> 
             <textarea tal:condition="here/isManager" name="description"
                     rows="4" cols="50" tal:content="here/description"/>
             <tal:block tal:condition="not: here/isManager"
                     tal:replace="here/description" />
-    </tr>
+     </tr>
     <tr>
         <td class="tableheader" align="left">
         </td>
-        <td align="left" class="tableheader">
+        <td align="left" class="tableheader" colspan='5'>
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method:method" />
             <input class="tableheader" type="button" value=" Cancel "
@@ -86,13 +71,9 @@ function toggleElement(elementid) {
         </td>
     </tr>
     </tbody>
-</table>
+    </table>
 </form>
-
-<tal:block tal:condition="python:here.id != here.dmdRootName">
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
-</tal:block>
-
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path"
 		name="subdeviceForm">
