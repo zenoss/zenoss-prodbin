@@ -25,7 +25,6 @@ class ReportServer(ZenModelRM):
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST):
         "Run a plugin to generate the report object"
-        print 'running plugin'
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
         report = None
