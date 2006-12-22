@@ -44,6 +44,12 @@ class EventCommand(ZenModelRM, Commandable, EventFilter):
 
     security = ClassSecurityInfo()
 
+    def getEventFields(self):
+        return self.eventManager.getFieldList()
+
+    def getUserid(self):
+        return ''
+
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
