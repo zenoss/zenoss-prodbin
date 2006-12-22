@@ -342,7 +342,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 fh.seek(-maxBytes, 2)
                 # the first line could be a partial line, so skip it
                 fh.readline()
-                return fh.read()
+            return fh.read()
         finally:
            fh.close()
 
