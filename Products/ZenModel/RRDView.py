@@ -48,16 +48,22 @@ class RRDView(object):
     def cacheRRDValue(self, dsname, default = "Unknown"):
         "read an RRDValue with and cache it"
         filename = self.getRRDFileName(dsname)
-        value = _cache.get(filename, None)
-        if value is None:
-            try:
-                perfServer = self.getPerformanceServer()
-                value = perfServer.currentValues([filename])[0]
-                _cache[filename] = value
-            except Exception:
-                log.error('Unable to cache value for %s', dsname)
+        value = None
+        try:
+            value = _cache[filename]
+            if value is None:
                 return default
+        except KeyError:
+            pass
+        try:
+            value = self.getRRDValue(dsname)
+        except Exception:
+            log.error('Unable to cache value for %s', dsname)
+        _cache[filename] = value
+        if value is None:
+            return default
         return value
+
 
     def getRRDValue(self, dsname, drange=None, function="LAST"):
         """Return a single rrd value from its file using function.
@@ -74,17 +80,35 @@ class RRDView(object):
         #if dsnames not in template: raise
         gopts = []
         for dsname in dsnames:
+            point = None
+            for ds in self.getRRDTemplate().datasources():
+                for dp in ds.datapoints():
+                    if dp.name().find(dsname) > -1:
+                        point = dp
+                        break
             filename = self.getRRDFileName(dsname)
+            rpn = ''
+            if not point:
+                res[dsname] = None
+                continue
+            filename = self.getRRDFileName(point.name())
+            if point.rpn:
+                rpn = ',%s' % str(point.rpn)
             gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
-            gopts.append("VDEF:%s=%s_r,%s" % (dsname,dsname,function))
+            gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
+            gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
             gopts.append("PRINT:%s:%%.2lf" % (dsname))
         perfServer = self.getPerformanceServer()
         if perfServer:
             vals = perfServer.performanceCustomSummary(gopts, drange)
         res = {}
-        for key,val in zip(dsnames, vals): res[key] = float(val)
+        def cvt(val):
+            val = float(val)
+            if val != val: return None
+            return val
+        for key,val in zip(dsnames, vals):
+            res[key] = cvt(val)
         return res
-        
         
     
     def getDefaultGraphs(self, drange=None):
@@ -124,7 +148,7 @@ class RRDView(object):
         *_sysUpTime.  This is to do a lame type of
         normalization accross different types of data collection.
         """
-        return self.rrdPath() + "/*_" + dsname + ".rrd"
+        return '%s/%s.rrd' % (self.rrdPath(), dsname)
 
 
     def getRRDNames(self):
