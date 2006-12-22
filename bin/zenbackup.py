@@ -127,7 +127,8 @@ class ZenBackup(CmdBase):
         # backup zopedb
         repozoDir = os.path.join(tempDir, 'repozo')
         os.mkdir(repozoDir)
-        cmd = ('repozo.py --backup --full '
+        cmd = ('%s --backup --full ' % 
+                os.path.join(self.zenhome, 'bin', 'repozo.py') +
                 '--repository %s --file %s/var/Data.fs' %
                 (repozoDir, self.zenhome))
         if os.system(cmd): return -1
@@ -198,12 +199,13 @@ class ZenBackup(CmdBase):
         # Maybe should read file location/name from zeo.conf
         # but we're going to assume the standard location for now.
         if not os.path.isfile(os.path.join(self.zenhome, 'var', 'Data.fs')):
-            os.system('zeoctl start')
-            os.system('zeoctl stop')
+            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl start'))
+            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl stop'))
         
         # Restore zopedb        
         repozoDir = os.path.join(tempDir, 'repozo')
-        cmd ='repozo.py --recover --repository %s --output %s' % (
+        cmd ='%s --recover --repository %s --output %s' % (
+                    os.path.join(self.zenhome, 'bin', 'repozo.py'),
                     repozoDir,
                     os.path.join(self.zenhome, 'var', 'Data.fs'))
         if os.system(cmd): return -1
