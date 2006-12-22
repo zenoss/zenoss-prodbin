@@ -87,12 +87,7 @@ class UpdateCheck:
                 return
         now = long(time.time())
         dmd.lastVersionCheckAttempt = now
-        try:
-            available = self.getUpdate(dmd, manual)
-        except Exception, ex:
-            raise
-            log.debug("Cannot fetch version information", ex)
-            return
+        available = self.getUpdate(dmd, manual)
         if not isinstance(available, Version):
             # We did not successfully get a version, don't continue
             return
