@@ -218,6 +218,9 @@ class zenperfxmlrpc(RRDDaemon):
 
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
+
+        self.syncdb()
+        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
         
         yield self.model.callRemote('getXmlRpcDevices', self.options.device)
         try:
@@ -233,8 +236,6 @@ class zenperfxmlrpc(RRDDaemon):
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.xmlrpcCycleInterval)
-
-        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
 
     def updateDeviceList(self, deviceList):

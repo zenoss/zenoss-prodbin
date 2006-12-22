@@ -217,6 +217,7 @@ class zenperfsnmp(SnmpDaemon):
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
         
+        self.syncdb()
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
         
         yield self.model.callRemote('getDevices', self.options.device)

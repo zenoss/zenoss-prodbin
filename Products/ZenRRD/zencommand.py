@@ -505,6 +505,7 @@ class zencommand(RRDDaemon):
             
 
     def start(self, driver):
+        self.syncdb()
         try:
             yield self.fetchConfig()
             driver.next()

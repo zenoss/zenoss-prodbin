@@ -243,6 +243,7 @@ class zenprocess(SnmpDaemon):
     def start(self, driver):
         'Read the basic config needed to do anything'
         log.debug("fetching config")
+        self.syncdb()
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
