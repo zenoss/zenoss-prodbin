@@ -218,13 +218,13 @@ class ZenTableManager(SimpleItem, PropertyManager):
             and getattr(aq_base(request),"sortedSence", False)):
             sortedHeader = request.sortedHeader
             sortedSence = request.sortedSence
-            sortRule = getattr(aq_base(request), "sortRule", "nocase")
+            sortRule = getattr(aq_base(request), "sortRule", "cmp")
             objects = sort(objects, ((sortedHeader, sortRule, sortedSence),))
         return objects
   
 
     def getTableHeader(self, tableName, fieldName, fieldTitle,
-                sortRule='nocase', style='tableheader',attributes=""):
+                sortRule='cmp', style='tableheader',attributes=""):
         """generate a <th></th> tag that allows column sorting"""
         href = self.getTableHeaderHref(tableName, fieldName, sortRule)
         style = self.getTableHeaderStyle(tableName, fieldName, style)
@@ -235,7 +235,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     
     def getTableHeaderHref(self, tableName, fieldName,
-                            sortRule='nocase',params=""):
+                            sortRule='cmp',params=""):
         """build the href attribute for the table table headers"""
 
         tableState = self.getTableState(tableName)
