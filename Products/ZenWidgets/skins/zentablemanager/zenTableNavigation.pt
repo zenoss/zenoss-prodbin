@@ -155,7 +155,10 @@
         onkeypress="submitViaEnter(event)"
         tal:attributes="value ts/filter" />
     <span style="height:1em;line-height:1em;padding-left:2em;
-                 color:red;font-weight:bold;" tal:content="message"></span>
+                 color:red;font-weight:bold;" 
+		tal:content="message"
+		tal:condition="message">
+		</span>
     </div>
     </div>
 </form>
