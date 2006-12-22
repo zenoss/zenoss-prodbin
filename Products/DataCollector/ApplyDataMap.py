@@ -36,17 +36,22 @@ class ApplyDataMap(object):
         to log.info and creates an event.
         '''
         log.info(msg)
-        if self.datacollector \
-            and getattr(self.datacollector, 'generateEvents', False) \
-            and getattr(self.datacollector, 'dmd', None):
+        if device.id != device.device().id:
+            component = device
+            device = component.device()
+        else:
+            component = ''
+        if (self.datacollector
+            and getattr(self.datacollector, 'generateEvents', False) 
+            and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
                 'device': device.id,
-                'component': 'zenmodeler',
+                'component': component and component.id or '',
                 'summary': msg,
                 'severity': Event.Info,
                 }
-            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+            self.datacollector.dmd.ZenEventHistory.sendEvent(eventDict)
 
         
     def processClient(self, device, collectorClient):

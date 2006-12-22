@@ -19,6 +19,7 @@ class ChangeEventClasses(Migrate.Step):
     def cutover(self, dmd):
         if 'Change' not in [c.id for c in dmd.Events.children()]:
             manage_addEventClass(dmd.Events, 'Change')
+        dmd.Events.Change.zEventAction = 'history'
         for name in ['Add', 'Remove', 'Set']:
             if name not in [c.id for c in dmd.Events.Change.children()]:
                 manage_addEventClass(dmd.Events.Change, name)

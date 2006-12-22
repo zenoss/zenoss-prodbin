@@ -54,5 +54,6 @@ import changeeventclasses
 import reportserver
 import devicepriority
 import rrdmin2
+import changeeventaction
 import event_commands
 
