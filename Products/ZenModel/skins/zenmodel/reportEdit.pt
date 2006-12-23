@@ -29,17 +29,6 @@
   </tr>
   <tr>
     <td align="left" valign="middle">
-    <div class="form-optional">
-    Description
-    </div>
-    </td>
-    <td align="left" valign="middle">
-    <input type="text" name="description" size="50" 
-           tal:attributes="value request/description | here/description" />
-    </td>  
-  </tr>
-  <tr>
-    <td align="left" valign="middle">
     <div class="form-label">
     Last Modified
     </div>
