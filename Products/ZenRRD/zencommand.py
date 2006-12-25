@@ -505,6 +505,8 @@ class zencommand(RRDDaemon):
             
 
     def start(self, driver):
+        driveLater(self.configCycleInterval * 60, self.start)
+
         self.syncdb()
         try:
             yield self.fetchConfig()
@@ -512,7 +514,6 @@ class zencommand(RRDDaemon):
         except Exception, ex:
             log.exception(ex)
             raise
-        driveLater(self.configCycleInterval * 60, self.start)
 
 
     def buildOptions(self):
