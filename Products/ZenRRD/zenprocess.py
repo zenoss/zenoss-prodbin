@@ -311,6 +311,16 @@ class zenprocess(SnmpDaemon):
                            severity=Event.Error)
             log.info(summary)
             return
+        if device.snmpStatus > 0:
+            device.snmpStatus = 0
+            summary = 'Good SNMP response from device %s' % device.name
+            self.sendEvent(self.statusEvent,
+                           eventClass='/Status/Snmp',
+                           component="snmp",
+                           device=device.name,
+                           summary=summary,
+                           severity=Event.Clear)
+        
             
         device.lastScan = time.time()
         procs = []
