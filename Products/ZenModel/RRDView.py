@@ -65,50 +65,58 @@ class RRDView(object):
         return value
 
 
-    def getRRDValue(self, dsname, drange=None, function="LAST"):
+    def getRRDValue(self, dsname, start=None, end=None, function="LAST"):
         """Return a single rrd value from its file using function.
         """
         dsnames = (dsname,)
-        return self.getRRDValues(dsnames, drange, function)[dsname]
+        results = self.getRRDValues(dsnames, start, end, function)
+        if results:
+            return results[dsname]
 
         
-    def getRRDValues(self, dsnames, drange=None, function="LAST"):
+    def getRRDValues(self, dsnames, start=None, end=None, function="LAST"):
         """Return a dict of key value pairs where dsnames are the keys.
         """
-        if not drange: drange = self.defaultDateRange
-        #template = Set(self.getRRDTemplate())
-        #if dsnames not in template: raise
-        gopts = []
-        for dsname in dsnames:
-            point = None
-            for ds in self.getRRDTemplate().datasources():
-                for dp in ds.datapoints():
+        try:
+            if not start:
+                start = time.time() - self.defaultDateRange
+            res = {}.fromkeys(dsnames, None)
+            gopts = []
+            names = list(dsnames[:])
+            for dsname in dsnames:
+                for dp in self.getRRDTemplate().getRRDDataPoints():
                     if dp.name().find(dsname) > -1:
-                        point = dp
                         break
-            filename = self.getRRDFileName(dsname)
-            rpn = ''
-            if not point:
-                res[dsname] = None
-                continue
-            filename = self.getRRDFileName(point.name())
-            if point.rpn:
-                rpn = ',%s' % str(point.rpn)
-            gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
-            gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
-            gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
-            gopts.append("PRINT:%s:%%.2lf" % (dsname))
-        perfServer = self.getPerformanceServer()
-        if perfServer:
-            vals = perfServer.performanceCustomSummary(gopts, drange)
-        res = {}
-        def cvt(val):
-            val = float(val)
-            if val != val: return None
-            return val
-        for key,val in zip(dsnames, vals):
-            res[key] = cvt(val)
-        return res
+                else:
+                    dp = None
+                if not dp:
+                    names.remove(dsname)
+                    continue
+                filename = self.getRRDFileName(dp.name())
+                rpn = str(dp.rpn)
+                if rpn:
+                    rpn = "," + rpn
+                gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
+                gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
+                gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
+                gopts.append("PRINT:%s:%%.2lf" % (dsname))
+                gopts.append("--start=%d" % start)
+                if end:
+                    gopts.append("--end=%d" % end)
+            perfServer = self.getPerformanceServer()
+            if perfServer:
+                vals = perfServer.performanceCustomSummary(gopts)
+                if vals is None:
+                    vals = [None] * len(gopts)
+            def cvt(val):
+                if val is None: return val
+                val = float(val)
+                if val != val: return None
+                return val
+            return dict(zip(names, map(cvt, vals)))
+        except Exception, ex:
+            log.exception(ex)
+        
         
     
     def getDefaultGraphs(self, drange=None):

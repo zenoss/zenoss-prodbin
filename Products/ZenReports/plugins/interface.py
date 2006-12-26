@@ -1,8 +1,10 @@
 "The interface usage report"
 
 import Globals
-from Products.ZenReports.plugins import Plugin
+from Products.ZenReports.plugins import Plugin, Utilization
+
 dmd, args = Plugin.args(locals())
+summary = Utilization.getSummaryArgs(dmd, args)
 
 report = []
 for d in dmd.Devices.getSubDevices():
@@ -10,8 +12,9 @@ for d in dmd.Devices.getSubDevices():
         if not i.monitored(): continue
         if i.snmpIgnore(): continue
         total = None
-        input = i.cacheRRDValue('ifInOctets', None)
-        output = i.cacheRRDValue('ifOutOctets', None)
+        input = i.getRRDValue('ifInOctets', **summary)
+        output = i.getRRDValue('ifOutOctets', **summary)
+
         if None not in [input, output]:
             total = input + output
         r = Plugin.Record(device=d,

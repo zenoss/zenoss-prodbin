@@ -22,3 +22,57 @@
 		</tal:block>
 	</tal:block>
 </tal:block>
+
+<tal:block 
+    metal:define-macro="utilizationForm"
+    tal:define="
+        sts python:here.ZenTableManager.setReqTableState;
+        zem python:here.dmd.ZenEventManager;
+        startDate python:sts(tableName, 'startDate', 
+                             zem.defaultAvailabilityStart());
+        endDate python:sts(tableName, 'endDate', 
+                           zem.defaultAvailabilityEnd());
+        how python:sts(tableName, 'how', 'AVERAGE');
+        summaryOptions python:('AVERAGE', 'MAXIMUM');
+">
+    <script type="text/javascript" 
+            src="/zport/portal_skins/zenmodel/datePicker.js">
+    </script>
+
+
+    <form id="utilizationForm" method="submit">
+    <table class="zentable" cellpadding="3" cellspacing="1">
+      <tr>
+        <td class="tableheader">Start Date:</td>
+        <td class="tablevalues">
+           <input class="tablevalues" name="startDate" readonly="true" 
+                  tal:attributes="value startDate"/>
+           <input class="tablevalues" type="button" value="select"
+                  onclick="displayDatePicker('startDate');"/>
+        </td>
+        <td class="tableheader">End Date:</td>
+        <td class="tablevalues">
+           <input class="tablevalues" name="endDate" readonly="true" 
+                  tal:attributes="value endDate"/>
+           <input class="tablevalues" type="button" value="select"
+                  onclick="displayDatePicker('endDate');"/>
+        </td>
+      </tr><tr>
+        <td class="tableheader">Summary Type:</td>
+        <td class="tablevalues" colspan="4">
+           <select class="tablevalues" name='how'>
+             <tal:block tal:repeat="summary summaryOptions">
+                <option tal:attributes="value summary; 
+                                        selected python:how==summary;"
+                        tal:content="python:summary.capitalize()"/>
+             </tal:block>
+           </select>
+        </td>
+      </tr><tr>
+        <td class="tablevalues" colspan="6">
+          <input class="tablevalues" type="Submit" value="Update"/>
+        </td> 
+      </tr>
+    </table>
+    </form>
+</tal:block>

@@ -108,13 +108,8 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('GenSummary', 'summary')
-    def summary(self, gopts, drange):
+    def summary(self, gopts):
         """return summary information as a list but no graph"""
-        drange = int(drange)
-        end = int(time.time())-300
-        start = end - drange
-        gopts.insert(0, '--end=%d' % end)
-        gopts.insert(0, '--start=%d' % start)
         gopts.insert(0, '/dev/null') #no graph generated
         try:
             values = rrdtool.graph(*gopts)[2]

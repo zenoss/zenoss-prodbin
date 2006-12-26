@@ -229,7 +229,7 @@ class PerformanceConf(Monitor, StatusColor):
         return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
 
-    def performanceCustomSummary(self, gopts, drange):
+    def performanceCustomSummary(self, gopts):
         "fill out full path for custom gopts and call to server"
         gopts = self._fullPerformancePath(gopts)
         if self.renderurl.startswith("http"):
@@ -238,7 +238,7 @@ class PerformanceConf(Monitor, StatusColor):
             server = xmlrpclib.Server(url)
         else:
             server = self.unrestrictedTraverse(self.renderurl)
-        return server.summary(gopts, drange)
+        return server.summary(gopts)
 
 
     def currentValues(self, paths):
@@ -249,12 +249,7 @@ class PerformanceConf(Monitor, StatusColor):
             server = xmlrpclib.Server(url)
         else:
             server = self.unrestrictedTraverse(self.renderurl)
-            npaths = []
-            for path in map(performancePath, paths):
-                path = glob.glob(path)
-                if not path: continue
-                npaths.append(path[0])
-        return server.currentValues(npaths)
+        return server.currentValues(map(performancePath, paths))
 
 
     def _fullPerformancePath(self, gopts):

@@ -1,8 +1,8 @@
 <tal:block tal:define="
-	objects python:here.ReportServer.plugin('cpu', here.REQUEST);
-	objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
-	exportFields python:['device', 'laLoadInt5', 'cpuPercent'];
-	tableName string: interfaceutilreport;
+    objects python:here.ReportServer.plugin('cpu', here.REQUEST);
+    objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+    exportFields python:['device', 'laLoadInt5', 'cpuPercent'];
+    tableName string: cpuutilreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='cpuPercent', sortedSence='desc');
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
@@ -13,6 +13,9 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
+
+<tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1">
     <th class="tabletitle" colspan="3">Monitored Interfaces</th>
     <tr>

@@ -1,11 +1,10 @@
 <tal:block tal:define="
-	objects python:here.ReportServer.plugin('interface', here.REQUEST);
-	objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
-	exportFields python:['device', 'speed', 'input', 'output', 'total',
-	 					'percentUsed'];
+    objects python:here.ReportServer.plugin('interface', here.REQUEST);
+    objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+    exportFields python:['device', 'speed', 'input', 'output', 'total', 'percentUsed'];
     tableName string: interfaceutilreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='percentUsed', sortedSence='desc');
-	">
+">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 
@@ -14,8 +13,11 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
+
+<tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1">
-    <th class="tabletitle" colspan="7">Monitored Interfaces</th>
+    <tr><th class="tabletitle" colspan="7">Monitored Interfaces</th></tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'device','Device')"/>

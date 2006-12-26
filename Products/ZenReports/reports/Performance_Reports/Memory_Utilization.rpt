@@ -3,12 +3,20 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
+
+<tal:block
     tal:define="
     objects python:here.ReportServer.plugin('memory', here.REQUEST);
     tableName string: memoryutilreport;
-    batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='availableReal', sortedSence='desc');
-    ">
+    batch python:here.ZenTableManager.getBatch(tableName,
+                                               objects,
+                                               sortedHeader='availableReal', 
+                                               sortedSence='desc');
+">
+
+<tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
+
+<table class="zentable" cellpadding="3" cellspacing="1">
     <th class="tabletitle" colspan="6">All Monitored Components</th>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -42,5 +50,6 @@
         </td>
     </tr>
 </table>
+</tal:block>
 </tal:block>
 </tal:block>
