@@ -45,7 +45,6 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
-from Products.ZenModel.PerformanceReport import manage_addPerformanceReport
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
@@ -136,7 +135,6 @@ class DmdBuilder:
         self.buildMonitors()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
-        manage_addPerformanceReport(self.dmd)
         manage_addZenTableManager(self.portal)
         manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')

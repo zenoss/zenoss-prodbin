@@ -3,6 +3,8 @@
 #   Copyright (c) 2002 Cablevision Corporation. All rights reserved.
 #
 #################################################################
+import warnings
+warnings.warn("PerformanceReport is deprecated", DeprecationWarning)
 
 __doc__="""PerformanceReport
 
