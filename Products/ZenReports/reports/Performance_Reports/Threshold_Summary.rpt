@@ -18,6 +18,7 @@
                            zem.defaultAvailabilityStart());
       endDate python:sts(tableName, 'endDate', 
                            zem.defaultAvailabilityEnd());
+      eventClass python:sts(tableName, 'eventClass', '/Perf/Snmp');
       "
       method="submit"
 >
@@ -30,25 +31,38 @@
                                                sortedHeader='seconds', 
                                                sortedSence='desc');
     ">
+    <colgroup>
+       <col/>
+       <col width='30'/>
+    </colgroup>
     <tr><th class="tabletitle" colspan="6">All Monitored Components</th>
     </tr>
     <tr><td colspan="6" class="tableheader">
-      <span><span  class="tableheader">Start Date:</span>
-            <input class="tablevalues" 
-                   name="startDate" readonly="true" 
-                   tal:attributes="value startDate"/>
-            <input class="tablevalues" type="button" value="select"
-                   onclick="displayDatePicker('startDate');"/>
-            <span class="tableheader">End Date:</span>
-            <input class="tablevalues" name="endDate" 
-                                       readonly="true" 
-                                       tal:attributes="value endDate"/>
-            <input class="tablevalues" type="button" value="select"
-                   onclick="displayDatePicker('endDate');"/>
-            <input class="tablevalues" type="Submit" value="Update"/>
-      </span></td>
+        <span  class="tableheader">Start Date:</span>
+        <input class="tablevalues" 
+               name="startDate" readonly="true" 
+               tal:attributes="value startDate"/>
+        <input class="tablevalues" type="button" value="select"
+               onclick="displayDatePicker('startDate');"/>
+        <span  class="tableheader">End Date:</span>
+        <input class="tablevalues" name="endDate" 
+                                   readonly="true" 
+                                   tal:attributes="value endDate"/>
+        <input class="tablevalues" type="button" value="select"
+               onclick="displayDatePicker('endDate');"/>
+        <span  class="tableheader">Event Class:</span>
+        <select class="tablevalues" name="eventClass">
+            <option 
+               tal:repeat="org python:[''] + [n for n in here.dmd.Events.getOrganizerNames() if n.startswith('/Perf/')]"
+               tal:content="org"
+               tal:attributes="selected python:org==eventClass"/>
+        </select>
+      </td>
     </tr><tr>
-    <tr>
+      <td colspan='6'>
+        <input class="tablevalues" type="Submit" value="Update"/>
+      </td>
+    </tr><tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'deviceName','Device')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(

@@ -5,6 +5,7 @@ import Globals
 from Products.ZenUtils.Time import Duration
 from Products.ZenReports.plugins import Plugin
 dmd, args = Plugin.args(locals())
+zem = dmd.ZenEventManager
 
 def dateAsFloat(args, key, default):
     from Products.ZenUtils.Time import ParseUSDate
@@ -13,8 +14,10 @@ def dateAsFloat(args, key, default):
     else:
         args[key] = default
 
-dateAsFloat(args, 'startDate', (time.time() - 30*24*60*60))
+dateAsFloat(args, 'startDate', (time.time() - zem.defaultAvailabilityDays*24*60*60))
 dateAsFloat(args, 'endDate', time.time())
+eventClass = args.get('eventClass', '')
+
 
 # Get all the threshold related events from summary and history
 
@@ -23,7 +26,11 @@ w =  ' WHERE severity >= 3 '
 w += ' AND lastTime > %(startDate)s '
 w += ' AND firstTime <= %(endDate)s '
 w += ' AND firstTime != lastTime '
-w += " AND eventClass like '/Perf/%%' "
+if eventClass:
+    w += " AND eventClass = '%s' " % eventClass
+else:
+    w += " AND eventClass like '/Perf/%%' "
+
 args['cols'] = 'device, component, eventClass,  firstTime, lastTime '
 w %= args
 args['w'] = w
