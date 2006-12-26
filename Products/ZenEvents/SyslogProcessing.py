@@ -1,18 +1,32 @@
-import os
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
+__doc__='''SyslogProcessing
+
+Class for turning syslog events into Zenoss Events
+
+$Id$
+'''
+
+__version__ = "$Revision$"[11:-2]
+
+
 import re
-import threading
-import Queue
-import pprint
 import logging
 slog = logging.getLogger("zen.Syslog")
 
+import Globals
 from Event import Event
 from Exceptions import ZenBackendFailure
 from syslog_h import *
 
 # Regular expressions that parse syslog tags from different sources
 parsers = (
-
+    
 # ntsyslog windows msg
 r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
@@ -50,57 +64,29 @@ class SyslogEvent(Event):
         return default
 
 
+class SyslogProcessor(object):
 
-
-class SyslogProcessingThread(threading.Thread):
-    """
-    This class does the actual processing of a syslog message.
-    """
-
-    def __init__(self, rcptqueue, zem, minpriority, parsehost): 
-        threading.Thread.__init__(self)
-        self.setDaemon(1)
-        self.rcptqueue = rcptqueue
+    def __init__(self, zem, minpriority, parsehost): 
         self.minpriority = minpriority
         self.parsehost = parsehost
         self.zem = zem
-        self.running=True
 
 
-    def run(self):
-        """Peform event processing after event is recieved.
-        """
-        slog.info("starting %s", self.getName())
-        while self.running:
-            host = ""
-            try:
-                msg, ipaddr, host, rtime = self.rcptqueue.get(True,1)
-                evt = SyslogEvent(device=host,ipAddress=ipaddr,
-                                  rcvtime=rtime)
-                slog.debug("host=%s, ip=%s", host, ipaddr)
-                slog.debug(msg)
+    def process(self, msg, ipaddr, host, rtime):
+        evt = SyslogEvent(device=host,ipAddress=ipaddr, rcvtime=rtime)
+        slog.debug("host=%s, ip=%s", host, ipaddr)
+        slog.debug(msg)
 
-                evt, msg = self.parsePRI(evt, msg) 
-                if evt.priority > self.minpriority: continue
+        evt, msg = self.parsePRI(evt, msg) 
+        if evt.priority > self.minpriority: return
 
-                evt, msg = self.parseHEADER(evt, msg)
-                evt = self.parseTag(evt, msg) 
-                #rest of msg now in summary of event
-                evt = self.buildEventClassKey(evt)
-                self.zem.sendEvent(evt)
-            except Queue.Empty: pass
-            except ZenBackendFailure, e:
-                #FIXME - need to save event for recovery when backend is up.
-                slog.error("ZenEvent backend failre: %s", e) 
-            except:
-                slog.exception("event processing failure: %s", host)
+        evt, msg = self.parseHEADER(evt, msg)
+        evt = self.parseTag(evt, msg) 
+        #rest of msg now in summary of event
+        evt = self.buildEventClassKey(evt)
+        self.zem.sendEvent(evt)
 
-
-    def stop(self):
-        slog.info("stopping %s...", self.getName())
-        self.running=False
-
-    
+        
     def parsePRI(self, evt, msg):
         """
         Parse RFC-3164 PRI part of syslog message to get facility and priority.
