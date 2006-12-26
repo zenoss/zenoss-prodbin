@@ -136,7 +136,7 @@ class EventServer(ZCmdBase):
         self.log.info("%d events processed in %.2f seconds",
                       totalEvents,
                       totalTime)
-        if self.totalEvents > 0:
+        if totalEvents > 0:
             self.log.info("%.5f average seconds per event",
                        (totalTime / totalEvents))
             self.log.info("Maximum processing time for one event was %.5f",
