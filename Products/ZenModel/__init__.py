@@ -35,7 +35,6 @@ confmon_globals = globals()
 productNames = (
     "Classifier",
     "ClassifierEntry",
-    "PerformanceReport",
     "CPU",
     "DataRoot",
     "Device",
