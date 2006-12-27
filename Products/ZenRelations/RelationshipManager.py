@@ -283,7 +283,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             if not value and type not in ("int","float","boolean"): continue
             stag = []
             stag.append('<property')
-            stag.extend(["%s='%s'" % (k,v) for k,v in prop.items()])
+            stag.extend(["%s=%s" % (k,saxutils.quoteattr(str(v))) \
+                         for k,v in prop.items()])
             stag.append('>')
             ofile.write(' '.join(stag)+"\n")
             ofile.write(saxutils.escape(str(value))+"\n")
