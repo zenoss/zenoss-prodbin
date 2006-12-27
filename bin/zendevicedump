@@ -1,0 +1,3 @@
+#! /usr/bin/env bash
+. $ZENHOME/bin/zenfunctions 
+$PYTHON $ZENHOME/Products/ZenRelations/ExportDevices.py "$CMD" $*
