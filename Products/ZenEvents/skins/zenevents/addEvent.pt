@@ -13,22 +13,12 @@
     <table class="zentable" cellpadding="3" cellspacing="1">
         <tr>
             <td class="tableheader" align="left">
-                Summary
-            </td>
-            <td class="tablevalues" align="left">
-                <input class="tablevalues" type="text" 
-		            size="50" name="summary"
-                    tal:attributes="value event/summary | nothing" />
-            </td>
-        </tr>
-        <tr>
-            <td class="tableheader" align="left">
                 Message
             </td>
             <td class="tablevalues" align="left">
-                <textarea rows="3" cols="60" name="message"
+                <textarea rows="3" cols="60" name="summary"
                     class="tablevalues"
-                    tal:content="event/message | nothing"></textarea>
+                    tal:content="event/summary | nothing"></textarea>
             </td>
         </tr>
         <tr>
