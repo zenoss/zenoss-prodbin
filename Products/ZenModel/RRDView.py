@@ -23,6 +23,8 @@ CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
+class RRDViewError(Exception): pass
+
 class RRDView(object):
     """
     Mixin to provide hooks to RRD management functions
@@ -117,6 +119,44 @@ class RRDView(object):
         except Exception, ex:
             log.exception(ex)
         
+        
+    
+    def getRRDSum(self, points, start=None, end=None, function="LAST"):
+        "Return a some of listed datapoints."
+        
+        try:
+            if not start:
+                start = time.time() - self.defaultDateRange
+            if not end:
+                end = time.time()
+            gopts = []
+            names = list(points[:])
+            for name in points:
+                for dp in self.getRRDTemplate().getRRDDataPoints():
+                    if dp.name().find(name) > -1:
+                        break
+                else:
+                    raise RRDViewError("Unable to find data point %s" % name)
+                filename = self.getRRDFileName(dp.name())
+                rpn = str(dp.rpn)
+                if rpn:
+                    rpn = "," + rpn
+                gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (name, filename))
+                gopts.append("CDEF:%s=%s_r%s" % (name, name, rpn))
+            gopts.append("CDEF:sum=%s%s" % (','.join(points),
+                                             ',+'*(len(points)-1)))
+            gopts.append("VDEF:agg=sum,%s" % function)
+            gopts.append("PRINT:agg:%.2lf")
+            gopts.append("--start=%d" % start)
+            gopts.append("--end=%d" % end)
+            perfServer = self.getPerformanceServer()
+            if perfServer:
+                vals = perfServer.performanceCustomSummary(gopts)
+                if vals is None:
+                    return None
+                return float(vals[0])
+        except Exception, ex:
+            log.exception(ex)
         
     
     def getDefaultGraphs(self, drange=None):

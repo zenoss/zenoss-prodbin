@@ -5,12 +5,11 @@ from Products.ZenReports.plugins import Plugin, Utilization
 dmd, args = Plugin.args(locals())
 
 summary = Utilization.getSummaryArgs(dmd, args)
+reversedSummary = Utilization.reversedSummary(summary)
 
 report = []
-fetchNames = [
-    'memoryAvailableKBytes',
-    'memAvailSwap ', 'memAvailReal', 'memBuffer', 'memCached'
-    ]
+freeNames = ['memAvailReal', 'memBuffer', 'memCached']
+fetchNames = ['memoryAvailableKBytes', 'memAvailSwap ', ] + freeNames
 for d in dmd.Devices.getSubDevices():
     totalReal = d.hw.totalMemory
     if not totalReal:
@@ -18,17 +17,19 @@ for d in dmd.Devices.getSubDevices():
     result = d.getRRDValues(fetchNames, **summary) or {}
     winMem = result.get('memoryAvailableKBytes', None)
     availableReal = result.get('memAvailReal', winMem)
-    percentUsed = None
     buffered = result.get('memBuffer', None)
     cached = result.get('memCached', None)
     availableSwap = result.get('memAvailSwap', None)
+    free = availableReal
+    try:
+        # max used space space is total - minimum free
+        free = d.getRRDSum(freeNames, **reversedSummary)
+    except Exception:
+        pass
     
-    if totalReal and availableReal:
-        percentUsed = Plugin.percent(totalReal -
-                                     (availableReal or 0) -
-                                     (buffered or 0) -
-                                     (cached or 0),
-                                     totalReal)
+    percentUsed = None
+    if totalReal and free:
+        percentUsed = Plugin.percent(totalReal - free, totalReal)
     report.append(Plugin.Record(device=d,
                                 totalReal=totalReal,
                                 percentUsed=percentUsed,

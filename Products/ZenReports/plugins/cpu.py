@@ -7,10 +7,8 @@ from Products.ZenUtils import Time
 dmd, args = Plugin.args(locals())
 summary = Utilization.getSummaryArgs(dmd, args)
 
-idleSummary = summary.copy()
-if idleSummary['function'] == 'MAXIMUM':
-    # minimum idle is maximum use
-    idleSummary['function'] = 'MINIMUM'
+# maximum use is minimum idle
+idleSummary = Utilization.reversedSummary(summary)
 
 report = []
 for d in dmd.Devices.getSubDevices():
