@@ -51,7 +51,7 @@ class RRDDataPoint(ZenModelRM):
 
     meta_type = 'RRDDataPoint'
   
-    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE')
+    rrdtypes = ('', 'COUNTER', 'GAUGE', 'DERIVE', 'ABSOLUTE')
     linetypes = ('', 'AREA', 'LINE')
     
     createCmd = ""

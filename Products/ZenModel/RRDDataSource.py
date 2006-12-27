@@ -50,6 +50,18 @@ def convertMethodParameter(value, type):
     else:
         raise TypeError('Unsupported method parameter type: %s' % type)
 
+def checkOid(oid):
+    import string
+    for c in string.whitespace:
+        oid = oid.replace(c, '')
+    oid = oid.strip('.')
+    numbers = oid.split('.')
+    map(int, numbers)
+    if len(numbers) < 3:
+        raise ValueError("OID too short")
+    return oid
+
+
 class RRDDataSourceError(Exception): pass
 
 class RRDDataSource(ZenModelRM):
@@ -214,14 +226,7 @@ class RRDDataSource(ZenModelRM):
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:
-            import string
-            try:
-                oid = REQUEST.get('oid')
-            except KeyError:
-                pass
-            else:
-                if oid:
-                    for c in string.whitespace:
-                        oid = oid.replace(c, '')
-                    REQUEST.form['oid'] = oid
+            oid = REQUEST.get('oid', '')
+            if oid:
+                REQUEST.form['oid'] = checkOid(oid)
         return ZenModelRM.zmanage_editProperties(self, REQUEST)
