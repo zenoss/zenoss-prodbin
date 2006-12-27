@@ -24,7 +24,11 @@ from twisted.python import failure
 from EventServer import EventServer
 from SyslogProcessing import SyslogProcessor
 
-SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
+SYSLOG_PORT = 514
+try:
+    SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
+except socket.error:
+    pass
 
 class ZenSyslog(DatagramProtocol, EventServer):
 

@@ -34,7 +34,11 @@ from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol
 from twistedsnmp import snmpprotocol
 
-TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
+TRAP_PORT = 162
+try:
+    TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
+except socket.error:
+    pass
 
 def grind(obj):
     '''Chase an object down to its value.
