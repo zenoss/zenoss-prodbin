@@ -82,11 +82,11 @@ class ProcessRunner(ProcessProtocol):
     def start(self, cmd):
         "Kick off the process: run it local"
         log.debug('running %r' % cmd.command)
+        reactor.spawnProcess(self, '/bin/sh',
+                             ('/bin/sh', '-c', 'exec ' + cmd.command))
         d = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
         self.stopped = d
         self.stopped.addErrback(self.timeout)
-        reactor.spawnProcess(self, '/bin/sh',
-                             ('/bin/sh', '-c', 'exec ' + cmd.command))
         return d
 
     def timeout(self, value):
@@ -277,12 +277,12 @@ class Cmd:
 
 
     def start(self, pool):
-        self.lastStart = time.time()
         if self.useSsh:
             pr = SshRunner(pool)
         else:
             pr = ProcessRunner()
         d = pr.start(self)
+        self.lastStart = time.time()
         log.debug('Process %s started' % self.name())
         d.addBoth(self.processEnded)
         return d
