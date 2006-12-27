@@ -1,11 +1,10 @@
 <tal:block tal:define="
-	objects python:here.getDmdRoot('Devices').getSubComponents('FileSystem');
-	objects python:[o for o in objects if o.device().monitorDevice()];
+        objects python:here.ReportServer.plugin('filesystems', here.REQUEST);
 	tableName string: filesystemutilreport;
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
-	sortedHeader='capacity', sortedSence='desc');
-	exportFields python:['getDeviceName', 'mount', 'totalBytesString',
-						'usedBytesString', 'availBytesString', 'capacity'];">
+	sortedHeader='percentFull', sortedSence='desc');
+	exportFields python:['deviceName', 'mount', 'totalBytes',
+        		     'usedBytes', 'availableBytes', 'percentFull'];">
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
@@ -15,11 +14,14 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
+
+<tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1">
     <th class="tabletitle" colspan="6">All Monitored Components</th>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'hostname','Device')"/>
+                            tableName,'deviceName','Device')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'mount','Mount')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -27,30 +29,26 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'usedBytes','Used bytes')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'availBytes','Free bytes')"/>
+                            tableName,'availableBytes','Free bytes')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'capacity','% Util')"/>
+                            tableName,'percentFull','% Util')"/>
     </tr>
-    <tal:block tal:repeat="fsys batch">
+    <tal:block tal:repeat="obj batch">
     <tr>
-        <td class="tablevalues" 
-          tal:content="structure python:fsys.getDeviceLink('deviceOsDetail')"/>
+      <td class="tablevalues" 
+          tal:content="structure python:obj.filesystem.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
-          <a class=tablevalues tal:content="fsys/mount" 
-            tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
+          <a class=tablevalues tal:content="obj/filesystem/mount" 
+             tal:attributes="href obj/filesystem/getPrimaryUrlPath"/>
       </td>
       <td class="tablevalues"
-        tal:content="fsys/totalBytesString">vol
-      </td>
+        tal:content="python:obj.humanBytes(obj.filesystem.totalBytes())"/>
       <td class="tablevalues"
-        tal:content="fsys/usedBytesString">vol
-      </td>
+        tal:content="python:obj.humanBytes(obj.usedBytes)"/>
       <td class="tablevalues"
-        tal:content="fsys/availBytesString">vol
-      </td>
+        tal:content="python:obj.humanBytes(obj.availableBytes)"/>
       <td class="tablevalues"
-        tal:content="fsys/capacity">vol
-      </td>
+        tal:content="python:obj.percentString(obj.percentFull)"/>
     </tr>
     </tal:block>
     <tr>

@@ -9,3 +9,9 @@ def getSummaryArgs(dmd, args):
     how = args.get('how', 'AVERAGE')
     return dict(start=startDate, end=endDate, function=how)
 
+def reversedSummary(summary):
+    swapper = { 'MAXIMUM':'MINIMUM', 'MINIMUM':'MAXIMUM'}
+    summary = summary.copy()
+    current = summary['function']
+    summary['function'] = swapper.get(current, current)
+    return summary
