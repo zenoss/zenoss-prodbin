@@ -64,10 +64,14 @@ def convToUnits(numb, divby=1024.0):
     """
     units = ('B','KB','MB','GB','TB','PB')
     numb = float(numb)
+    sign = 1
+    if numb < 0:
+        numb = abs(numb)
+        sign = -1
     for unit in units:
         if numb < divby: break
         numb /= divby
-    return "%.1f%s" % (numb, unit)
+    return "%.1f%s" % (numb * sign, unit)
         
 
 def travAndColl(obj, toonerel, collect, collectname):
