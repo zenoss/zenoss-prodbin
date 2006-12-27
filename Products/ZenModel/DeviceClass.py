@@ -590,6 +590,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
         devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceTest", "test -f %s")
+        devs._setProperty("zCommandPath", "/usr/local/zenoss/libexec")
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
         devs._setProperty("zTelnetSuccessRegexList",
@@ -613,7 +614,6 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
         
-        devs._setProperty("zCommandPath", "/usr/local/zenoss/libexec")
 
 
     def removeDevices(self, deviceNames=None, REQUEST=None):
