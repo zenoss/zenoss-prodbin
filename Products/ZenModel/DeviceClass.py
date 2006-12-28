@@ -574,6 +574,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zPingMonitorIgnore", False, type="boolean")
         devs._setProperty("zWmiMonitorIgnore", False, type="boolean")
         devs._setProperty("zXmlRpcMonitorIgnore", False, type="boolean")
+        devs._setProperty("zStatusConnectTimeout", 15.0, type="float")
 
         # DataCollector properties
         devs._setProperty("zTransportPreference", "snmp")

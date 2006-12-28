@@ -85,7 +85,8 @@ class ZenStatus(ZCmdBase):
                 continue
             self.log.debug("adding service:%s on:%s", svc.name(), dev.getId())
             self.count += 1
-            d = ZenTcpClient.test(svc)
+            timeout = dev.getattr('zStatusConnectTimeout', 15.0)
+            d = ZenTcpClient.test(svc, timeout=timeout)
             d.addCallback(self.processTest)
             d.addErrback(self.processError)
             key = (svc.getManageIp(), svc.name())

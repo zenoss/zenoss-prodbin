@@ -73,6 +73,9 @@ ssh
 <property visible='True' type='string' id='zCommandExistanceTest' >
 test -f %s
 </property>
+<property visible='True' type='float' id='zStatusConnectTimeout' >
+15.0
+</property>
 <property visible='True' type='string' id='zTelnetLoginRegex' >
 ogin:.$
 </property>

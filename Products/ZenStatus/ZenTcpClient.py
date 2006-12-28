@@ -45,13 +45,13 @@ class ZenTcpClient(protocol.ClientFactory):
     protocol = ZenTcpTest
     msg = "pass"
 
-    def __init__(self, svc):
+    def __init__(self, svc, timeout=15.0):
         self.svc = svc
         self.ip = svc.getManageIp()
         self.port = svc.getPort()
         self.sendString = svc.getSendString()
         self.expectRegex = svc.getExpectRegex()
-        self.timeout=15
+        self.timeout=timeout
         self.deferred = defer.Deferred()
 
 
@@ -101,10 +101,10 @@ class ZenTcpClient(protocol.ClientFactory):
 
     
 
-def test(svc):
+def test(svc, timeout=15):
     """Pass a Service object and return a deferred that will call back
     with results of service test.
     """
-    client = ZenTcpClient(svc)
+    client = ZenTcpClient(svc, timeout=timeout)
     reactor.connectTCP(client.ip, client.port, client, client.timeout)
     return client.deferred
