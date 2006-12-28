@@ -107,7 +107,7 @@ class CustomEventView(ZenModelRM, EventFilter):
     def getWhere(self):
         if self.where:
             return self.where
-        return self.getEventManager.defaultWhere
+        return self.getEventManager().defaultWhere
 
 
     def getOrderBy(self):
