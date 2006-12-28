@@ -77,7 +77,8 @@ class EventCommand(ZenModelRM, Commandable, EventFilter):
         db = self.ZenEventManager.connect()
         curs = db.cursor()
         delcmd = "delete from alert_state where %s" % self.sqlwhere()
-        log.debug("clear alert state '%s'", delcmd)
+        #is this an important logging message?
+        #log.debug("clear alert state '%s'", delcmd)
         curs.execute(delcmd)
         db.close()
 
