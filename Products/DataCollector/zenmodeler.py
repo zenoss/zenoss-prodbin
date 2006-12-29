@@ -302,6 +302,8 @@ class ZenModeler(ZCmdBase):
             try:
                 if not self.devicegen: raise StopIteration
                 device = self.devicegen.next()
+                if (device.productionState > 
+                    getattr(device,'zProdStateThreshold',0)): continue
                 self.collectDevice(device)
             except StopIteration:
                 break
