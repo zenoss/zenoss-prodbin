@@ -46,7 +46,7 @@ class HRSWRunMap(SnmpPlugin):
         procs = Set()
         for proc in fstable.values():
             om = self.objectMap(proc)
-            if not hasattr(om, 'procName'): 
+            if not hasattr(om, 'procName') or om.procName == "": 
                 log.warn("Your hrSWRun table is broken, "
                         " zenoss can't do process monitoring")
                 return rm
