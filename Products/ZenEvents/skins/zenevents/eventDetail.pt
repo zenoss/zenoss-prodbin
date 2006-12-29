@@ -1,0 +1,21 @@
+<tal:block metal:use-macro="here/viewEventMacros/macros/betterEventDetailPage">
+	<tal:block metal:fill-slot="eventContentPane"
+		tal:define="
+			objects event/getEventDetails;
+			fields event/getEventFields;"
+			>
+		<table class="zentable" cellpadding="3" cellspacing="1">
+		    <tr>
+		        <th class="tableheader">Field</th>
+		        <th class="tableheader">Value</th>
+		    </tr>
+		    <tal:block tal:repeat="field objects">
+		    <tr tal:define="odd repeat/field/odd"
+		        tal:attributes="class python:test(odd,'odd','even')">
+		        <td class=tableheader tal:content="python:field[0]">field</td>
+		        <td class="tablevalues" tal:content="python:field[1]">value</td>
+		    </tr>
+		    </tal:block>
+		</table>
+	</tal:block>
+</tal:block>

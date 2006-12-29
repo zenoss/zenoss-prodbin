@@ -143,7 +143,7 @@ class ZenActions(ZCmdBase):
 
 
     def getUrl(self, evid):
-        return '%s/zport/dmd/ZenEventManager/viewEventFields?evid=%s' % (
+        return '%s/zport/dmd/ZenEventManager/eventFields?evid=%s' % (
             self.options.zopeurl, evid)
 
             

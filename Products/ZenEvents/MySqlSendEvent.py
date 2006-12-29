@@ -79,12 +79,13 @@ class MySqlSendEventMixin:
             event.summary = event.summary[:128]
 
         cleanup = lambda : None
+        evid = None
         try:
             try:
                 if db == None:  
                     db = self.connect()
                     cleanup = db.close
-                self.doSendEvent(event, db)
+                evid = self.doSendEvent(event, db)
             except ProgrammingError, e:
                 log.exception(e)
             except OperationalError, e:
@@ -92,7 +93,7 @@ class MySqlSendEventMixin:
                 raise ZenBackendFailure(str(e))
         finally:
             cleanup()
-
+        return evid
 
     def doSendEvent(self, event, db):
         insert = ""
@@ -114,9 +115,19 @@ class MySqlSendEventMixin:
         rescount = execute(curs, stmt)
         if detaildata and rescount == 1:
             execute(curs, self.buildDetailInsert(evid, detaildata))
+        if rescount != 1:
+            sql = ('select evid from %s where dedupid="%s"' % (
+                    event._action, event.dedupid))
+            execute(curs, sql)
+            rs = curs.fetchone()
+            if rs:
+                evid = rs[0]
+            else:
+                evid = None
         delete = ('DELETE FROM %s WHERE clearid IS NOT NULL' %
                   self.statusTable)
         execute(curs, delete)
+        return evid
             
 
     def applyEventContext(self, evt):

@@ -20,6 +20,7 @@
     <script type="text/javascript" 
         src="/zport/js/MochiKit.js"></script>
 </head>
+<tal:block metal:define-macro="eventTabs">
 <div id="tabsPane">
 <table class="zentable" cellspacing="1">
     <tr>
@@ -51,6 +52,8 @@ if(tt) {
 }
 </script>
 </tal:block>
+</tal:block>
+<tal:block metal:define-macro="eventFields">
 <table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>
@@ -64,4 +67,5 @@ if(tt) {
             <pre tal:content="python:field[1]"></pre></td>
     </tr>
 </table>
+</tal:block>
 </html>

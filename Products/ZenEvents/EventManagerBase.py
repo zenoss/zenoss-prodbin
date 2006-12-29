@@ -36,6 +36,7 @@ from interfaces import IEventList, IEventStatus, ISendEvents
 from DbAccessBase import DbAccessBase
 from ZEvent import ZEvent
 from EventDetail import EventDetail
+from BetterEventDetail import BetterEventDetail
 from EventCommand import EventCommand
 from Exceptions import *
 
@@ -317,7 +318,17 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         raise NotImplementedError
 
 
-    def getEventDetail(self, evid=None, dedupid=None):
+    def getEventDetailFromStatusOrHistory(self, evid=None, dedupid=None, 
+                                                            better=False):
+        try:                                                    
+            event = self.dmd.ZenEventManager.getEventDetail(
+                                                    evid, dedupid, better)
+        except ZenEventNotFound:
+            event = self.dmd.ZenEventHistory.getEventDetail(evid, dedupid, 
+                                                                        better)
+        return event
+
+    def getEventDetail(self, evid=None, dedupid=None, better=False):
         """Return an EventDetail object for a particular event.
         """
         idfield = evid and "evid" or "dedupid"
@@ -340,7 +351,10 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         if not evrow:
             raise (ZenEventNotFound,"Event evid %s not found" % evid)
         evdata = map(self.convert, fields, evrow)
-        event = EventDetail(self, fields, evdata)
+        if better:
+            event = BetterEventDetail(self, fields, evdata)
+        else:
+            event = EventDetail(self, fields, evdata)
         event = event.__of__(self)
 
         selectdetail = "select name, value from %s where" % self.detailTable
@@ -980,9 +994,13 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             component = REQUEST['component'],
             severity = REQUEST['severity'],
             eventClass = REQUEST['eclass'])
-        self.sendEvent(eventDict)
+        evid = self.sendEvent(eventDict)
         if REQUEST:
-            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
+            if evid:
+                REQUEST['RESPONSE'].redirect(
+                    '/zport/dmd/ZenEventManager/eventFields?evid=%s' % evid)
+            else:
+                REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)

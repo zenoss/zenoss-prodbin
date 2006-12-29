@@ -1,0 +1,50 @@
+<tal:block
+	metal:define-macro="betterEventDetailPage"
+    tal:define="evid request/evid;
+    			event python:here.getEventDetailFromStatusOrHistory( 
+							evid,better=True);
+				here event/getContext;
+			    tableName string:eventdetail;
+				sesskey python:tableName+evid;
+    			params python:'&evid=%s' % evid;
+    			">
+    <tal:block metal:use-macro="here/templates/macros/page2">
+        <tal:block metal:fill-slot="breadCrumbPane">
+            <link rel="stylesheet" type="text/css"
+                href="/zport/portal_skins/zenevents.css" />
+            <script type="text/javascript" 
+                src="/zport/portal_skins/zenmodelfuncs.js"></script>
+            <script type="text/javascript" 
+                src="/zport/js/MochiKit.js"></script>
+        
+            <table class="zentable" cellspacing="1">
+                <tr>
+                    <td class="tabletitle" colspan="1" align="center"
+                        tal:repeat="tab python:event.zentinelTabs(template.id)">
+                        <a class="tabletitle"
+                        tal:attributes="href python:tab['action']+'?evid=%s'%evid;
+                           class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
+                        tal:content="tab/name">
+                        TabName
+                        </a>
+                    </td>
+                </tr>
+            </table>
+            <script>
+            var tt = document.getElementById("tabsPane")
+            if(tt) {
+                tabs = tt.getElementsByTagName("a");
+                for(var i=0; i<tabs.length; i++) {
+                    log("rounding element=",tabs[i]);
+                    roundElement(tabs[i],{corners:"tl tr"});
+                }
+            }
+            </script>
+
+        </tal:block>
+		<tal:block metal:fill-slot="contentPane">
+			<tal:block metal:define-slot="eventContentPane">
+			</tal:block>
+		</tal:block>
+	</tal:block>
+</tal:block>

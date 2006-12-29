@@ -25,25 +25,37 @@ class EventView(object):
 
 
     def getResultFields(self):
-        return self.getEventManager().lookupManagedEntityResultFields(
-                                                                self.event_key) 
+        if hasattr(self, 'event_key'):
+            return self.getEventManager().lookupManagedEntityResultFields(
+                                                                self.event_key)
+        else:
+            return self.getEventManager().defaultResultFields
         
 
     def getHistResultFields(self):
-        return self.getEventHistory().lookupManagedEntityResultFields(
+        if hasattr(self, 'event_key'):
+            return self.getEventHistory().lookupManagedEntityResultFields(
                                                                 self.event_key) 
+        else:
+            return self.getEventHistory().lookupResultFields()
         
 
     def getEventList(self, **kwargs):
         """Return the current event list for this managed entity.
         """
-        return self.getEventManager().getEventListME(self, **kwargs)
+        if hasattr(self, 'event_key'):
+            return self.getEventManager().getEventListME(self, **kwargs)
+        else:
+            return self.getEventManager().getEventList(**kwargs)
         
 
     def getEventHistoryList(self, **kwargs):
         """Return the current event list for this managed entity.
         """
-        return self.getEventHistory().getEventListME(self, **kwargs)
+        if hasattr(self, 'event_key'):            
+            return self.getEventHistory().getEventListME(self, **kwargs)
+        else:
+            return self.getEventHistory().getEventList(**kwargs)
         
 
     def getStatus(self, statusclass=None, **kwargs):

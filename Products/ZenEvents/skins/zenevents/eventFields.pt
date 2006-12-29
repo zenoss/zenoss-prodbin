@@ -1,0 +1,9 @@
+<tal:block metal:use-macro="here/viewEventMacros/macros/betterEventDetailPage">
+	<tal:block metal:fill-slot="eventContentPane"
+		tal:define="
+			objects event/getEventDetails;
+			fields event/getEventFields;"
+		>
+		<tal:block metal:use-macro="here/viewEventFields/macros/eventFields" />
+	</tal:block>
+</tal:block>
