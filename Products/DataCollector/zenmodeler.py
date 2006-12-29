@@ -125,7 +125,6 @@ class ZenModeler(ZCmdBase):
                 self.log.exception("failed to select plugin %s", pname)
         return [ p for p in plugins.values() if p.transport == transport ]
              
-   
     
     def collectDevices(self, deviceroot):
         """Main processing loop collecting command data from devices.
@@ -133,9 +132,7 @@ class ZenModeler(ZCmdBase):
         if type(deviceroot) == types.StringType:
             deviceroot = self.dmd.Devices.getOrganizer(deviceroot)
         self.devicegen = deviceroot.getSubDevicesGen()
-        for i, device in enumerate(self.devicegen):
-            if i >= self.options.parallel: break
-            client = self.collectDevice(device)
+        self.fillCollectionSlots()
         if len(self.clients) == 0: 
             self.log.warn("no valid clients found")
             
@@ -291,18 +288,23 @@ class ZenModeler(ZCmdBase):
                             collectorClient.hostname)
             device = collectorClient.device
             self.applyData.processClient(device, collectorClient)
-            while len(self.clients) < self.options.parallel:
-                try:
-                    if not self.devicegen: raise StopIteration
-                    device = self.devicegen.next()
-                    self.collectDevice(device)
-                except StopIteration:
-                    break
+            self.fillCollectionSlots()
         finally:
             try: self.clients.remove(collectorClient)
             except ValueError:
                 self.log.warn("client %s not found in active clients",
                                 collectorClient.hostname)
+
+    def fillCollectionSlots(self):
+        """If there are any free collection slots fill them up
+        """
+        while len(self.clients) <= self.options.parallel:
+            try:
+                if not self.devicegen: raise StopIteration
+                device = self.devicegen.next()
+                self.collectDevice(device)
+            except StopIteration:
+                break
 
 
     def buildOptions(self):
@@ -327,7 +329,7 @@ class ZenModeler(ZCmdBase):
         self.parser.add_option('-d', '--device', dest='device',
                 help="fully qualified device name ie www.confmon.com")
         self.parser.add_option('-a', '--collage',
-                dest='collage', default=0, type='int',
+                dest='collage', default=0, type='float',
                 help="do not collect from devices whose collect date " +
                         "is within this many minutes")
         self.parser.add_option('--writetries',
@@ -354,6 +356,7 @@ class ZenModeler(ZCmdBase):
         for client in self.clients:
             if client.timeout < time.time():
                 self.log.warn("client %s timeout", client.hostname)
+                self.fillCollectionSlots()
             else:
                 active.append(client)
         self.clients = active
