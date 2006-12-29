@@ -426,7 +426,10 @@ class UserSettings(ZenModelRM):
                 else:
                     raise ValueError("Passwords don't match")
             else:
-                userManager.updateUserPassword(self.id, password)
+                try: userManager.updateUserPassword(self.id, password)
+                except KeyError: 
+                    self.getPhysicalRoot().acl_users.userManager.updateUserPassword(
+                                    self.id, password)
                 loggedInUser = REQUEST['AUTHENTICATED_USER']
                 # we only want to log out the user if it's *their* passowrd
                 # they've changed, not, for example, if the admin user is
