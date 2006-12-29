@@ -14,7 +14,7 @@ import Migrate
 from Products.ZenEvents.EventClass import manage_addEventClass
 
 class ChangeEventClasses(Migrate.Step):
-    version = Migrate.Version(1, 0, 2)
+    version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
         if 'Change' not in [c.id for c in dmd.Events.children()]:

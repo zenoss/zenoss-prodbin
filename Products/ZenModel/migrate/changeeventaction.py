@@ -13,7 +13,7 @@ $Id:$
 import Migrate
 
 class ChangeEventAction(Migrate.Step):
-    version = Migrate.Version(1, 0, 3)
+    version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
         dmd.Events.Change.zEventAction = 'history'

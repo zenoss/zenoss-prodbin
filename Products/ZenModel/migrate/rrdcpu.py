@@ -8,7 +8,7 @@ import Migrate
 
 
 class RRDCpuType(Migrate.Step):
-    version = Migrate.Version(1, 0, 2)
+    version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
         import os

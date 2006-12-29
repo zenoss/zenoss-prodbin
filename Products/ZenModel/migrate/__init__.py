@@ -54,6 +54,6 @@ import changeeventclasses
 import reportserver
 import devicepriority
 import rrdmin2
-import changeeventaction
+#import changeeventaction
 import event_commands
 import statusconnecttimeout

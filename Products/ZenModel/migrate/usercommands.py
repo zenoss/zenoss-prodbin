@@ -13,7 +13,7 @@ $Id:$
 import Migrate
 
 class UserCommands(Migrate.Step):
-    version = Migrate.Version(1, 0, 2)
+    version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
         for dev in dmd.Devices.getSubDevices():
