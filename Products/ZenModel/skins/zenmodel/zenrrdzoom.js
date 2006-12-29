@@ -183,7 +183,8 @@ function buildTables(obj) {
                                 ),
                                 TD({'id' : obj.id + '_zin',
                                     'style':'cursor:pointer;background-color:grey;'+
-                                    'width:3em;text-align:center;',
+                                    'width:3em;text-align:center;' +
+                                    'border:1px solid grey;',
                                     'onclick':'toggleZoomMode("' + obj.id +
                                     '", "in")'},
                                     IMG({'src':'zoomin.gif'}, "Z+")
@@ -193,7 +194,8 @@ function buildTables(obj) {
                             TR(null,
                                 TD({'id':obj.id + '_zout',
                                     'style':'cursor:pointer;width:3em;'+
-                                    'text-align:center;',
+                                    'text-align:center;' +
+                                    'border:1px solid grey;',
                                     'onclick':'toggleZoomMode("' + obj.id +
                                     '", "out")'},
                                     IMG({'src':'zoomout.gif'}, "Z-"))
