@@ -9,7 +9,7 @@
 
 
 var zoom_factor = 1.5;
-var pan_factor = 10; // Fraction of graph to move
+var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
 var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
@@ -126,7 +126,7 @@ function panGraph(direction, id) {
     var obj = $(id);
     var href = parseUrl(obj.src);
     var tenth = Math.round(href[0]/(pan_factor));
-    var secs = Math.round(href[0]/6);
+    var secs = Math.round(href[0]);
     if (direction == "right") {
         newend = href[2] - tenth;
     } else {
