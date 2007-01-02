@@ -55,9 +55,9 @@ function generateNewUrl(cursor, obj) {
     var width = parsed[1];
     if ( x < 0 || x > width ) return obj.src ;
     var end = parsed[2];
-    var secs = Math.round(drange/6);
+    var secs = Math.round(drange);
     var newdrange = Math.round(drange/zoom_factor);
-    var newsecs = Math.round(newdrange/6);
+    var newsecs = Math.round(newdrange);
     var newurl = obj.src.replace(drange_re, '&drange=' + String(newdrange));
     var delta = ((width/2)-x)*(secs/width) + (secs-newsecs)/2;
     var newend = Math.round(end + delta >= 0 ? end + delta : 0);
@@ -125,14 +125,14 @@ function loadImage(obj, url) {
 function panGraph(direction, id) {
     var obj = $(id);
     var href = parseUrl(obj.src);
-    var tenth = Math.round(href[0]/(6*pan_factor));
+    var tenth = Math.round(href[0]/(pan_factor));
     var secs = Math.round(href[0]/6);
     if (direction == "right") {
         newend = href[2] - tenth;
     } else {
         newend = href[2] + tenth;
     };
-    newend = Math.round(newend);
+    //alert(String(tenth) + " " + String(newend) + " " + String(href[2]));
     nepart = '--end%3Dnow-' + String(newend) + 's%7C';
     nepart += '--start%3Dend-' + String(secs) + 's%7C';
     if (obj.src.match(end_re)) { 
@@ -146,8 +146,15 @@ function panGraph(direction, id) {
 
 // Replace the image with the table structure and buttons
 function buildTables(obj) {
+    var _height = function(thing){ 
+        return String(thing.height)+'px';
+    };
     var me = $(obj.id);
     var newme = me.cloneNode(true);
+    var drange = Number(drange_re.exec(me.src)[1]);
+    var x = String(Math.round(drange));
+    var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
+    newme.src = me.src.replace('--height', end + '--height');
     newme.onload = null;
     newme.style.cursor = 'crosshair';
     var table = TABLE({'id':obj.id + '_table'},
@@ -161,7 +168,7 @@ function buildTables(obj) {
                                      'style':'background-color:lightgrey;',
                                      'onclick':'panGraph("left","'+obj.id+'")'},
                                     INPUT({'type':'button',
-                                    'style':'height:14em;border:1px solid grey;' + 
+                                    'style':'height:'+_height(me)+';border:1px solid grey;' + 
                                     'cursor:pointer',
                                            'value':'<', 'onfocus':'this.blur();'},
                                         "<")
@@ -175,7 +182,7 @@ function buildTables(obj) {
                                      'style':'background-color:lightgrey;',
                                      'onclick':'panGraph("right","'+obj.id+'")'},
                                     INPUT({'type':'button',
-                                    'style':'height:14em;border:1px solid grey;'+
+                                    'style':'height:'+_height(me)+';border:1px solid grey;'+
                                     'cursor:pointer',
                                            'value':'>',
                                            'onfocus':'this.blur();'},
