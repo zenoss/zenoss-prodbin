@@ -60,7 +60,7 @@ function generateNewUrl(cursor, obj) {
     if ( x < 0 || x > width ) return obj.src ;
     var end = parsed[2];
     var secs = Math.round(drange);
-    var newdrange = Math.round(drange/zoom_factor);
+    var newdrange = Math.round(drange/obj.zoom_factor);
     var newsecs = Math.round(newdrange);
     var newurl = obj.src.replace(drange_re, '&drange=' + String(newdrange));
     var delta = ((width/2)-x)*(secs/width) + (secs-newsecs)/2;
@@ -101,11 +101,11 @@ function toggleZoomMode(id, dir){
     if (dir == 'out') {
         $(id + '_zin').style.backgroundColor = 'transparent';
         $(id + '_zout').style.backgroundColor = 'grey';
-        if (zoom_factor > 1) zoom_factor = 1/zoom_factor;
+        if ($(id).zoom_factor > 1) $(id).zoom_factor=1/$(id).zoom_factor;
     } else {
         $(id + '_zin').style.backgroundColor = 'grey';
         $(id + '_zout').style.backgroundColor = 'transparent';
-        if (zoom_factor < 1) zoom_factor = 1/zoom_factor;
+        if ($(id).zoom_factor < 1) $(id).zoom_factor=1/$(id).zoom_factor;
     }
     
 }
@@ -192,6 +192,7 @@ function buildTables(obj) {
     var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
     newme.src = me.src.replace('--height', gridUrl(drange) + end + '--height');
     newme.onload = null;
+    newme.zoom_factor = zoom_factor;
     newme.style.cursor = 'crosshair';
     var table = TABLE({'id':obj.id + '_table'},
                 TBODY(
