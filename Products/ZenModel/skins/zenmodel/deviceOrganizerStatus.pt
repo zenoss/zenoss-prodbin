@@ -125,15 +125,15 @@ function toggleElement(elementid) {
                 tal:content="devorg/countChildren"/>
             <td class="tablevalues" align=center 
                 tal:content="devorg/countDevices"/>
-            <td class="tablevalues">
-            <table width="100%" 
+            <td class="tablevalues rainbow">
+            <table width="100%" cellspacing='1' cellpadding='3'
                 tal:on-error="structure string:
                     <span class='errorvalues'>Events unavailable</span>">
                 <tr>
                     <td align=center width=16%
                     tal:repeat="evt python:devorg.getEventSummary()"
                     tal:attributes="class python:test(evt[1]-evt[2]>=0,
-                                    evt[0] + ' empty thin', evt[0])">
+                                    evt[0] + ' empty thin', evt[0] + ' thin')">
                         <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                     </td>
               </tr>
