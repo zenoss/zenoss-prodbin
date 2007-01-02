@@ -19,7 +19,7 @@
                 <td align=center width=16%
                 tal:repeat="evt python:here.getEventSummary(severity=severity)"
                 tal:attributes="class python:test(evt[1]-evt[2]>=0, 
-                                'tablevalues', evt[0])">
+                                evt[0]+' empty', evt[0])">
                     <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                 </td>
           </tr>

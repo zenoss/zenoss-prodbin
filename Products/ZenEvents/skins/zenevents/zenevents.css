@@ -10,6 +10,11 @@ color: #FFFFFF;
     color: #000000;
     background-color: #FF0000;
 }
+
+.zenevents_5_noack.empty {
+    border: 1px solid #FF0000;
+}
+
 .zenevents_5_noack a, .zenevents_5_noack a:visited, .zenevents_5_noack a:link {
 color: #000000;
 }
@@ -26,6 +31,11 @@ color: #FFFFFF
     color: #000000;
     background-color: #ffb329;
 }
+
+.zenevents_4_noack.empty{
+    border: 1px solid #ffb329;
+}
+
 .zenevents_4_noack a, .zenevents_4_noack a:visited, .zenevents_4_noack a:link {
 color: #000000
 }
@@ -42,6 +52,11 @@ color: #FFFFFF
     color: #000000;
     background-color: #ffff00;
 }
+
+.zenevents_3_noack.empty {
+    border: 1px solid #ffff00;
+}
+
 .zenevents_3_noack a, .zenevents_3_noack a:visited, .zenevents_3_noack a:link {
 color: #000000
 }
@@ -58,6 +73,11 @@ color: #FFFFFF
     color: #000000;
     background-color: #6368FF;
 }
+
+.zenevents_2_noack.empty {
+    border: 1px solid #6368FF;
+}
+
 .zenevents_2_noack a, .zenevents_2_noack a:visited, .zenevents_2_noack a:link {
 color: #000000
 }
@@ -74,6 +94,11 @@ color: #FFFFFF
     color: #000000;
     background-color: #AFAFAF;
 }
+
+.zenevents_1_noack.empty {
+    border: 1px solid #AFAFAF;
+}
+
 .zenevents_1_noack a, .zenevents_1_noack a:visited, .zenevents_1_noack a:link {
 color: #000000
 }
@@ -132,4 +157,8 @@ color: #000000
 .zenstatus_unknown {
     color: #000000;
     background-color: #D02090;
+}
+
+.empty {
+    background-color: transparent;
 }
