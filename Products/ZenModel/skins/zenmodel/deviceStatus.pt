@@ -7,8 +7,8 @@
     </tr>
     <tr>
       <td class="tableheader">Events</td>
-      <td class="tablevalues">
-        <table width='100%'
+      <td class="tablevalues rainbow">
+        <table width='100%' 
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>"

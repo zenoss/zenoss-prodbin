@@ -499,3 +499,7 @@ a.tablevalues:active {
 .odd a.tablevalues,
 .odd td.tablevalues { background-color:#dedeff }
 
+.rainbow {
+    padding:0px;
+    margin:0px;
+}
