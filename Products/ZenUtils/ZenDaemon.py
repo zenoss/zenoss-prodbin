@@ -37,6 +37,8 @@ else:
 
 
 class ZenDaemon(CmdBase):
+
+    pidfile = None
     
     def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
@@ -44,7 +46,6 @@ class ZenDaemon(CmdBase):
         self.zenhome = os.path.join(os.environ['ZENHOME'])
         self.zenvar = os.path.join(self.zenhome, "var")
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
-        self.pidfile = os.path.join(self.zenvar, myname)
         if not noopts:
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
@@ -125,6 +126,7 @@ class ZenDaemon(CmdBase):
         os.dup2(0, 1)			# standard output (1)
         os.dup2(0, 2)			# standard error (2)
         if os.path.exists(self.zenvar):
+            self.pidfile = os.path.join(self.zenvar, myname)
             fp = open(self.pidfile, 'w')
             fp.write(str(os.getpid()))
             fp.close()
@@ -136,7 +138,7 @@ class ZenDaemon(CmdBase):
     def sigTerm(self, *unused):
         stop = getattr(self, "stop", None)
         if callable(stop): stop()
-        if os.path.exists(self.pidfile):
+        if self.pidfile and os.path.exists(self.pidfile):
             self.log.info("delete pidfile %s", self.pidfile)
             os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
