@@ -13,6 +13,9 @@ var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
 var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
+var height_re = /--height%3D([0-9]*)%7C/;
+var start_re = /--start%3Dend-([0-9]*)s%7C/;
+var xgrid_re = /--x-grid(.*)%25x%20%25X%7C/;
 
 var url_cache = String();
 
@@ -21,7 +24,8 @@ function parseUrl(href) {
     var drange = Number(drange_re.exec(href)[1]);
     var width = Number(width_re.exec(href)[1]);
     var end = Number(end_re.exec(href)?end_re.exec(href)[1]:0);
-    return [drange, width, end];
+    var start = Number(start_re.exec(href)?start_re.exec(href)[1]:0);
+    return [drange, width, end, start];
 }
 
 // Determing the position of the cursor relative to the image
@@ -68,6 +72,8 @@ function generateNewUrl(cursor, obj) {
     } else {
         newurl = newurl.replace('--height', nepart + '--height');
     }
+    newurl = newurl.match(xgrid_re)?newurl.replace(xgrid_re, gridUrl(newdrange)):
+                      newurl.replace('--end',gridUrl(newdrange) + '--end');
     return newurl;
 }
 
@@ -104,18 +110,37 @@ function toggleZoomMode(id, dir){
     
 }
 
+function updateDateRange(obj) {
+    parts = parseUrl(obj.src);
+    var end = parts[2];
+    var start = parts[3] + end;
+    start = start * 1000;
+    end = end * 1000;
+    endDate = new Date();
+    startDate = new Date();
+    endDate.setMilliseconds(endDate.getMilliseconds() - end);
+    startDate.setMilliseconds(startDate.getMilliseconds() - start);
+    $(obj.id + '_start').value = toISOTimestamp(startDate);
+    $(obj.id + '_end').value = toISOTimestamp(endDate);
+}
+
+function updateFromDates(start,end) {
+
+}
+
 // Check the source URL for valid data and display the image if so
 function loadImage(obj, url) {
 
     if(url_cache==url) return;
     url_cache = url;
-    
-    var x = doSimpleXMLHttpRequest(url);
+    testurl = url.replace(height_re,'--only-graph%7C--height%3D10%7C');
+    var x = doSimpleXMLHttpRequest(testurl);
 
     x.addCallback(
         function(req) {
             if (req.responseText) {
               obj.src = url;
+              updateDateRange(obj);
             }
         }
     );
@@ -143,6 +168,17 @@ function panGraph(direction, id) {
     loadImage(obj, newurl);
 }
     
+function gridUrl(drange) {
+    var grid = String(Math.round( drange/21 + 1 ));
+    var maj  = String(Math.round( drange/3 + 1 ));
+    var lab  = String(Math.round( drange/3 + 1 ));
+    var url = "--x-grid%3DSECOND%3A" + grid + // Grid lines every x secs
+              "%3ASECOND%3A" + maj + // Major grid lines every x secs
+              "%3ASECOND%3A" + lab + // Labels every x secs
+              "%3A0%3A%25x%20%25X%7C";
+    return url
+}
+
 
 // Replace the image with the table structure and buttons
 function buildTables(obj) {
@@ -154,7 +190,7 @@ function buildTables(obj) {
     var drange = Number(drange_re.exec(me.src)[1]);
     var x = String(Math.round(drange));
     var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
-    newme.src = me.src.replace('--height', end + '--height');
+    newme.src = me.src.replace('--height', gridUrl(drange) + end + '--height');
     newme.onload = null;
     newme.style.cursor = 'crosshair';
     var table = TABLE({'id':obj.id + '_table'},
@@ -162,12 +198,40 @@ function buildTables(obj) {
                         {'id':obj.id + '_tbody'},
                         [
                             TR(null,
+                                TD({'colspan':'4',
+                                    'style':'padding-left:4em;'},
+                                [
+                                SPAN({'style':'font-weight:bold;color:darkgrey;'},
+                                    "Date Range:"),
+                                INPUT({
+                                    'id':obj.id + '_start',
+                                    'class':'tablevalues',
+                                    'style':'border:1px solid transparent;' +
+                                            'margin-left:1em;width:15em;' +
+                                            'color:indianred;font-weight:bold'
+                                },
+                                   null ),
+                                SPAN({'style':'font-weight:bold;color:darkgrey;'},
+                                    "to"),
+                                INPUT({
+                                      'id':obj.id + '_end',
+                                      'class':'tablevalues',
+                                      'style':'border:1px solid transparent;' +
+                                              'margin-left:1em;width:15em;' +
+                                              'color:indianred;font-weight:bold'},
+                                       null)
+                                ]
+                                )
+                                )
+                            ,
+                            TR(null,
                                 [
                                 TD(
                                     {'rowspan':'2',
                                      'style':'background-color:lightgrey;',
                                      'onclick':'panGraph("left","'+obj.id+'")'},
                                     INPUT({'type':'button',
+                                           'id':obj.id + '_panl',
                                     'style':'height:'+_height(me)+';border:1px solid grey;' + 
                                     'cursor:pointer',
                                            'value':'<', 'onfocus':'this.blur();'},
@@ -175,13 +239,14 @@ function buildTables(obj) {
                                 ),
                                 TD(
                                     {'rowspan':'2'},
-                                    newme
+                                    newme 
                                 ),
                                 TD(
                                     {'rowspan':'2',
                                      'style':'background-color:lightgrey;',
                                      'onclick':'panGraph("right","'+obj.id+'")'},
                                     INPUT({'type':'button',
+                                           'id':obj.id + '_panr',
                                     'style':'height:'+_height(me)+';border:1px solid grey;'+
                                     'cursor:pointer',
                                            'value':'>',
@@ -225,4 +290,3 @@ function doZoom(event, obj) {
 function registerGraph(id) {
     buildTables($(id));
 }
-
