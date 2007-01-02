@@ -754,10 +754,9 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         def evtprep(evts):
             evtsdata = "%d/%d" % (evts[1],evts[2])
             if evts[1]==evts[2] or evts[2]==0:
-                cssclass = ""
+                return evtsdata
             else:
-                cssclass = evts[0]
-            return {'cssclass':cssclass, 'data':evtsdata}
+                return {'cssclass':evts[0], 'data':evtsdata}
 
         for devname in devices:
             dev = devclass.findDevice(devname)
