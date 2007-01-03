@@ -37,15 +37,20 @@ class ZEvent(Event):
         data = []
         for field in fields:
             value = getattr(self, field)
+            _shortvalue = str(value) or ''
+            if len(_shortvalue) > 50:
+                _shortvalue = _shortvalue[:47]+'...'
             if field == "device":
                 value = ('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/deviceSearchResults'
-                            '?query=%s">%s</a>' % (value, value))
+                            '?query=%s">%s</a>' % (value, _shortvalue))
             elif field == 'eventClass':
                 value = ('<a class="%s" ' % (cssClass) +
-                        'href="/zport/dmd/Events%s">%s</a>' % (value,value))
+                        'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
             elif field == 'summary' or field == 'message':
-                value = cgi.escape(value)
+                value = cgi.escape(_shortvalue)
+            else:
+                value = _shortvalue
             data.append(value)
         return data
 
