@@ -1189,7 +1189,7 @@ class Device(ManagedEntity, Commandable):
             sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
             sc.generateEvents = generateEvents
-            sc.collectDevice(self, ip=self.manageIp)
+            sc.collectSingle(self)
             sc.reactorLoop()
         except:
             log.exception('exception collecting data for device %s',self.id)

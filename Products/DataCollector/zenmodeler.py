@@ -8,7 +8,6 @@ import sys
 import os
 import time
 import types
-import Queue
 import re
 import socket
 
@@ -40,6 +39,8 @@ def plfilter(f):
     return f.endswith(".py") and not (f.startswith("_") or f in pluginskip)
 
 class ZenModeler(ZCmdBase):
+
+    generateEvents = True
     
     def __init__(self,noopts=0,app=None,single=False,
                 threaded=True,keeproot=False):
@@ -48,13 +49,13 @@ class ZenModeler(ZCmdBase):
         if self.options.device:
             self.single = True
         self.threaded = threaded
-        self.generateEvents = True
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = []
         self.collectorPlugins = {}
         self.devicegen = None
         self.loadPlugins()
+        self.slowDown = False
         if self.threaded and not self.single:
             self.log.info("starting apply in separate thread.")
             self.applyData = ApplyDataMapThread(self, self.getConnection())
@@ -83,7 +84,7 @@ class ZenModeler(ZCmdBase):
                     const = importClass(modpath)
                     plugin = const()
                     self.collectorPlugins[plugin.name()] = plugin
-                except ImportError, e:
+                except ImportError:
                     self.log.exception("problem loading plugin:%s",modpath)
 
     
@@ -126,17 +127,6 @@ class ZenModeler(ZCmdBase):
         return [ p for p in plugins.values() if p.transport == transport ]
              
     
-    def collectDevices(self, deviceroot):
-        """Main processing loop collecting command data from devices.
-        """
-        if type(deviceroot) == types.StringType:
-            deviceroot = self.dmd.Devices.getOrganizer(deviceroot)
-        self.devicegen = deviceroot.getSubDevicesGen()
-        self.fillCollectionSlots()
-        if len(self.clients) == 0: 
-            self.log.warn("no valid clients found")
-            
-  
     def resolveDevice(self, device):
         """If device is a string look it up in the dmd.
         """
@@ -148,15 +138,13 @@ class ZenModeler(ZCmdBase):
         return device
 
 
-    def collectDevice(self, device, ip=None):
+    def collectDevice(self, device):
         """Collect data from a single device.
         """
-        device = self.resolveDevice(device)
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
+        ip = device.getManageIp()
         if not ip:
-            ip = device.getManageIp()
-            if not ip:
-                ip = device.setManageIp()
+            ip = device.setManageIp()
         timeout = clientTimeout + time.time()
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
@@ -273,7 +261,7 @@ class ZenModeler(ZCmdBase):
 
 
     def checkCollection(self, device):
-        age = device.getSnmpLastCollection()+self.collage
+        age = device.getSnmpLastCollection() + self.collage
         if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
             self.log.info("skipped collection of %s" % device.getId())
             return False
@@ -295,21 +283,49 @@ class ZenModeler(ZCmdBase):
                 self.log.warn("client %s not found in active clients",
                                 collectorClient.hostname)
 
+
+    def checkStop(self):
+        "if there's nothing left to do, maybe we should terminate"
+        if self.clients: return
+        if self.devicegen: return
+
+        if self.start:
+            runTime = time.time() - self.start
+            self.log.info("scan time: %0.2f seconds", runTime)
+            self.start = None
+            if self.options.cycle:
+                evt = dict(eventClass='/Heartbeat',
+                           component='zenmodeler',
+                           device=socket.getfqdn(),
+                           timeout=self.cycletime*3)
+                if self.dmd:
+                    self.dmd.ZenEventManager.sendEvent(evt)
+            else:
+                self.stop()
+
     def fillCollectionSlots(self):
         """If there are any free collection slots fill them up
         """
-        while len(self.clients) <= self.options.parallel:
+        count = len(self.clients)
+        while (count <= self.options.parallel and
+               self.devicegen and not self.slowDown):
             try:
-                if not self.devicegen: raise StopIteration
                 device = self.devicegen.next()
                 if (device.productionState <= 
                     getattr(device,'zProdStateThreshold',0)): 
                     self.log.info("skipping %s production state too low",
-                                    device.id)
+                                  device.id)
                     continue
+                # just collect one device, and let the timer add more
                 self.collectDevice(device)
             except StopIteration:
-                break
+                self.devicegen = None
+            break
+
+        update = len(self.clients)
+        if update != count and update != 1:
+            self.log.info('Running %d clients', update)
+        self.checkStop()
 
 
     def buildOptions(self):
@@ -357,55 +373,31 @@ class ZenModeler(ZCmdBase):
 
 
     def timeoutClients(self):
+        reactor.callLater(1, self.timeoutClients)
         active = []
         for client in self.clients:
             if client.timeout < time.time():
                 self.log.warn("client %s timeout", client.hostname)
-                self.fillCollectionSlots()
             else:
                 active.append(client)
         self.clients = active
+        self.fillCollectionSlots()
+        self.checkStop()
                 
 
     def reactorLoop(self):
-        """Our own reactor loop so we can control timeout.
-        """
-        start = time.time()
-        self.log.debug("starting reactor loop")
         reactor.startRunning(installSignalHandlers=False)
-        while self.clients:
+        while reactor.running:
             try:
-                reactor.runUntilCurrent()
-                reactor.doIteration(0)
-                self.timeoutClients()
-            except (SystemExit, KeyboardInterrupt): raise
+                while reactor.running:
+                    reactor.runUntilCurrent()
+                    reactor.doIteration(0)
+                    timeout = reactor.timeout()
+                    self.slowDown = timeout < 0.01
+                    reactor.doIteration(timeout)
             except:
-                self.log.exception("unexpected error in reactorLoop")
-        self.log.debug("ended reactor loop runtime=%s", time.time()-start)
-
-    
-    def mainLoop(self):
-        while 1:
-            startLoop = time.time()
-            runTime = 0
-            try:
-                try:
-                    self.log.info("starting collector loop")
-                    self.app._p_jar.sync()
-                    self.log.info("collecting for path %s", self.options.path)
-                    self.collectDevices(self.options.path)
-                    self.log.info("ending collector loop")
-                finally:
-                    transaction.abort()
-                runTime = time.time()-startLoop
-                self.log.info("loop time = %0.2f seconds",runTime)
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("problem in main loop")
-            self.reactorLoop()
-            if runTime < self.cycletime:
-                time.sleep(self.cycletime - runTime)
-
+                self.log.exception("Unexpected error in main loop.")
+        
 
     def stop(self):
         """Stop ZenModeler make sure reactor is stopped, join with 
@@ -414,22 +406,50 @@ class ZenModeler(ZCmdBase):
         self.log.info("stopping...")
         self.applyData.stop()
         transaction.abort()
-        self.closedb()
+        if reactor.running:
+            reactor.callLater(1, reactor.stop)
 
+
+    def mainLoop(self):
+        if self.options.cycle:
+            reactor.callLater(self.cycletime, self.mainLoop)
+
+        if self.clients:
+            self.log.error("modeling cycle taking too long")
+            return
+
+        self.log.info("starting collector loop")
+        self.app._p_jar.sync()
+        self.start = time.time()
+        if self.options.device:
+            self.log.info("collecting for device %s", self.options.device)
+            self.devicegen = iter([self.resolveDevice(self.options.device)])
+        else:
+            self.log.info("collecting for path %s", self.options.path)
+            root = self.dmd.Devices.getOrganizer(self.options.path)
+            self.devicegen = root.getSubDevicesGen()
+        self.fillCollectionSlots()
+        
+
+    def sigTerm(self, *unused):
+        'controlled shutdown of main loop on interrupt'
+        try:
+            ZCmdBase.sigTerm(self, *unused)
+        except SystemExit:
+            pass
 
     def main(self):
-        if self.options.device:
-            self.collectDevice(self.options.device)
-        elif self.options.cycle:
-            self.mainLoop()
-        else:
-            self.collectDevices(self.options.path)
-        if self.clients:
-            self.reactorLoop()
-        self.stop()
-                    
+        self.mainLoop()
+        self.timeoutClients()
+
+    def collectSingle(self, device):
+        self.start = time.time()
+        self.devicegen = iter([self.resolveDevice(device)])
+        self.fillCollectionSlots()
+        self.timeoutClients()
 
 if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
     dc.main()
+    dc.reactorLoop()
