@@ -7,6 +7,17 @@
 <property type='string' id='zEventAction' >
 status
 </property>
+<object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type='string' id='zEventAction' >
+history
+</property>
+<object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
