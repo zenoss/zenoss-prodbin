@@ -15,9 +15,14 @@ var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
-var xgrid_re = /--x-grid(.*)%25x%20%25X%7C/;
+var comment_re = /COMMENT%3A.*%5C[a-z]%7C/;
+
 
 var url_cache = String();
+
+_insertBefore = function(search, insert, source) {
+    return source.replace(search, insert+search);
+}
 
 // Pull relevant info from the image source URL
 function parseUrl(href) {
@@ -51,6 +56,21 @@ function getPosition(e, obj) {
     return cursor;
 }
 
+insertComment = function(url, comment) {
+    comment = comment.replace(/:/g, '\\:'); // escape colons
+    comment = escape("COMMENT:" + comment + "\\c|");
+    return url.match(comment_re)?url.replace(comment_re, comment):
+        _insertBefore("DEF", comment, url);
+}
+
+createDateComment = function(url) {
+    dates = updateDateRange(url);
+    comment = dates[0] + "\\t\\t\\t\\t to \\t\\t\\t" + dates[1];
+    newurl = insertComment(url, comment);
+    return newurl;
+}
+
+
 // Calculate the new image parameters and generate the source URL
 function generateNewUrl(cursor, obj) {
     var x = cursor.x - 67;
@@ -72,8 +92,7 @@ function generateNewUrl(cursor, obj) {
     } else {
         newurl = newurl.replace('--height', nepart + '--height');
     }
-    newurl = newurl.match(xgrid_re)?newurl.replace(xgrid_re, gridUrl(newdrange)):
-                      newurl.replace('--end',gridUrl(newdrange) + '--end');
+    newurl = createDateComment(newurl);
     return newurl;
 }
 
@@ -110,8 +129,8 @@ function toggleZoomMode(id, dir){
     
 }
 
-function updateDateRange(obj) {
-    parts = parseUrl(obj.src);
+function updateDateRange(href) {
+    parts = parseUrl(href);
     var end = parts[2];
     var start = parts[3] + end;
     start = start * 1000;
@@ -120,13 +139,9 @@ function updateDateRange(obj) {
     startDate = new Date();
     endDate.setMilliseconds(endDate.getMilliseconds() - end);
     startDate.setMilliseconds(startDate.getMilliseconds() - start);
-    $(obj.id + '_start').value = toISOTimestamp(startDate);
-    $(obj.id + '_end').value = toISOTimestamp(endDate);
+    return [toISOTimestamp(startDate), toISOTimestamp(endDate)];
 }
 
-function updateFromDates(start,end) {
-
-}
 
 // Check the source URL for valid data and display the image if so
 function loadImage(obj, url) {
@@ -165,13 +180,14 @@ function panGraph(direction, id) {
     } else {
         newurl = obj.src.replace('--height', nepart + '--height');
     };
+    newurl = createDateComment(newurl);
     loadImage(obj, newurl);
 }
     
 function gridUrl(drange) {
     var grid = String(Math.round( drange/21 + 1 ));
-    var maj  = String(Math.round( drange/3 + 1 ));
-    var lab  = String(Math.round( drange/3 + 1 ));
+    var maj  = String(Math.round( drange/4 + 1 ));
+    var lab  = String(Math.round( drange/4 + 1 ));
     var url = "--x-grid%3DSECOND%3A" + grid + // Grid lines every x secs
               "%3ASECOND%3A" + maj + // Major grid lines every x secs
               "%3ASECOND%3A" + lab + // Labels every x secs
@@ -183,14 +199,19 @@ function gridUrl(drange) {
 // Replace the image with the table structure and buttons
 function buildTables(obj) {
     var _height = function(thing){ 
-        return String(thing.height)+'px';
+        return String(thing.height + 14)+'px';
     };
     var me = $(obj.id);
     var newme = me.cloneNode(true);
     var drange = Number(drange_re.exec(me.src)[1]);
     var x = String(Math.round(drange));
     var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
-    newme.src = me.src.replace('--height', gridUrl(drange) + end + '--height');
+    newurl = obj.src.match(end_re)?obj.src.replace(end_re, end):
+                obj.src.replace('--height', end + '--height');
+    dates = updateDateRange(newurl);
+    comment = dates[0] + "\\t\\t\\t\\t to \\t\\t\\t" + dates[1];
+    newurl = insertComment(newurl, comment);
+    newme.src = newurl;
     newme.onload = null;
     newme.zoom_factor = zoom_factor;
     newme.style.cursor = 'crosshair';
@@ -198,12 +219,13 @@ function buildTables(obj) {
                 TBODY(
                         {'id':obj.id + '_tbody'},
                         [
+                            /*
                             TR(null,
                                 TD({'colspan':'4',
                                     'style':'padding-left:4em;'},
                                 [
                                 SPAN({'style':'font-weight:bold;color:darkgrey;'},
-                                    "Date Range:"),
+                                    "Graph Range:"),
                                 INPUT({
                                     'id':obj.id + '_start',
                                     'class':'tablevalues',
@@ -224,7 +246,7 @@ function buildTables(obj) {
                                 ]
                                 )
                                 )
-                            ,
+                            ,*/
                             TR(null,
                                 [
                                 TD(
