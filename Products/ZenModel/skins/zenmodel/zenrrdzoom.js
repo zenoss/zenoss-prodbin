@@ -17,12 +17,14 @@ var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
 var comment_re = /COMMENT%3A.*?%7C/;
 
+var url_cache = new Array();
+var graph_list = new Array();
+var linked_mode = 1;
 
-var graph_list = Array();
-var linked_mode = 0;
-
-_insertBefore = function(search, insert, source) {
-    return source.replace(search, insert+search);
+_insertAfterWidth = function(insert, source) {
+    width = width_re.exec(source)[0];
+    result = source.replace(width, insert+width);
+    return result;
 }
 
 // Pull relevant info from the image source URL
@@ -61,7 +63,7 @@ insertComment = function(url, comment) {
     comment = comment.replace(/:/g, '\\:'); // escape colons
     comment = escape("COMMENT:" + comment + "\\c|");
     return url.match(comment_re)?url.replace(comment_re, comment):
-        _insertBefore("DEF", comment, url);
+        _insertAfterWidth(comment, url);
 }
 
 createDateComment = function(url) {
@@ -150,7 +152,13 @@ function updateDateRange(href) {
 
 // Check the source URL for valid data and display the image if so
 function loadImage(obj, url) {
-
+    var is_cached = function(obj, url) {
+        newurl = url.replace(comment_re, '');
+        oldurl = url_cache[obj.id]?url_cache[obj.id].replace(comment_re, ''):'';
+        return newurl == oldurl;
+    }
+    if (is_cached(obj, url)) return;
+    url_cache[obj.id] = url;
     testurl = url.replace(height_re,'--only-graph%7C--height%3D10%7C');
     var x = doSimpleXMLHttpRequest(testurl);
 
@@ -312,9 +320,9 @@ function buildTables(obj) {
 
 // Zoom the image
 function doZoom(event, myobj) {
-    objlist = linked_mode?graph_list:[myobj];
+    var objlist = linked_mode?graph_list:[myobj];
     for (i=0;i<objlist.length;i++) {
-        obj = objlist[i];
+        var obj = objlist[i];
         var cursor = getPosition(event, obj);
         var newurl = generateNewUrl(cursor, obj);
         if (obj.src != newurl) loadImage(obj, newurl);
@@ -342,6 +350,7 @@ function resetGraphs(drange) {
                     obj.src.replace('--height', end + '--height');
         newurl = newurl.replace(drange_re, '&drange=' + x);
         newurl = createDateComment(newurl);
-        loadImage(obj, newurl);
+        if (obj.src != newurl) loadImage(obj, newurl);
     }
 }
+
