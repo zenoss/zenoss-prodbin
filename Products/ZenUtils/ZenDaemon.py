@@ -45,7 +45,6 @@ class ZenDaemon(CmdBase):
         self.keeproot=keeproot
         self.zenhome = os.path.join(os.environ['ZENHOME'])
         self.zenvar = os.path.join(self.zenhome, "var")
-        myname = sys.argv[0].split(os.sep)[-1] + ".pid"
         if not noopts:
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
@@ -126,6 +125,7 @@ class ZenDaemon(CmdBase):
         os.dup2(0, 1)			# standard output (1)
         os.dup2(0, 2)			# standard error (2)
         if os.path.exists(self.zenvar):
+            myname = sys.argv[0].split(os.sep)[-1] + ".pid"
             self.pidfile = os.path.join(self.zenvar, myname)
             fp = open(self.pidfile, 'w')
             fp.write(str(os.getpid()))
