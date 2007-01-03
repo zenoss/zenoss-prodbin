@@ -15,7 +15,7 @@ var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
-var comment_re = /COMMENT%3A.*%5C[a-z]%7C/;
+var comment_re = /COMMENT%3A.*?%5C[a-z]%7C/;
 
 
 var url_cache = String();
