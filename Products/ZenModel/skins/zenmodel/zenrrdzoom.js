@@ -15,10 +15,12 @@ var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
-var comment_re = /COMMENT%3A.*?%5C[a-z]%7C/;
+var comment_re = /COMMENT%3A.*?%7C/;
 
 
 var url_cache = String();
+var graph_list = Array();
+var linked_mode = 0;
 
 _insertBefore = function(search, insert, source) {
     return source.replace(search, insert+search);
@@ -116,15 +118,19 @@ function getElementPosition(obj) {
 
 // Handle the zoom buttons and invert the zoom_factor
 function toggleZoomMode(id, dir){
-    var obj = $(id);
-    if (dir == 'out') {
-        $(id + '_zin').style.backgroundColor = 'transparent';
-        $(id + '_zout').style.backgroundColor = 'grey';
-        if ($(id).zoom_factor > 1) $(id).zoom_factor=1/$(id).zoom_factor;
-    } else {
-        $(id + '_zin').style.backgroundColor = 'grey';
-        $(id + '_zout').style.backgroundColor = 'transparent';
-        if ($(id).zoom_factor < 1) $(id).zoom_factor=1/$(id).zoom_factor;
+    var myobj = $(id);
+    objlist = linked_mode?graph_list:[myobj];
+    for (i=0;i<objlist.length;i++) {
+        obj = objlist[i];
+        if (dir == 'out') {
+            $(obj.id + '_zin').style.backgroundColor = 'transparent';
+            $(obj.id + '_zout').style.backgroundColor = 'grey';
+            if (obj.zoom_factor > 1) obj.zoom_factor=1/obj.zoom_factor;
+        } else {
+            $(obj.id + '_zin').style.backgroundColor = 'grey';
+            $(obj.id + '_zout').style.backgroundColor = 'transparent';
+            if (obj.zoom_factor < 1) obj.zoom_factor=1/obj.zoom_factor;
+        }
     }
     
 }
@@ -163,25 +169,29 @@ function loadImage(obj, url) {
 
 // Pan the graph in either direction
 function panGraph(direction, id) {
-    var obj = $(id);
-    var href = parseUrl(obj.src);
-    var tenth = Math.round(href[0]/(pan_factor));
-    var secs = Math.round(href[0]);
-    if (direction == "right") {
-        newend = href[2] - tenth;
-    } else {
-        newend = href[2] + tenth;
-    };
-    //alert(String(tenth) + " " + String(newend) + " " + String(href[2]));
-    nepart = '--end%3Dnow-' + String(newend) + 's%7C';
-    nepart += '--start%3Dend-' + String(secs) + 's%7C';
-    if (obj.src.match(end_re)) { 
-        newurl = obj.src.replace(end_re, nepart);
-    } else {
-        newurl = obj.src.replace('--height', nepart + '--height');
-    };
-    newurl = createDateComment(newurl);
-    loadImage(obj, newurl);
+    myobj = $(id);
+    objlist = linked_mode?graph_list:[myobj];
+    for (i=0;i<objlist.length;i++) {
+        var obj = objlist[i];
+        var href = parseUrl(obj.src);
+        var tenth = Math.round(href[0]/(pan_factor));
+        var secs = Math.round(href[0]);
+        if (direction == "right") {
+            newend = href[2] - tenth;
+        } else {
+            newend = href[2] + tenth;
+        };
+        //alert(String(tenth) + " " + String(newend) + " " + String(href[2]));
+        nepart = '--end%3Dnow-' + String(newend) + 's%7C';
+        nepart += '--start%3Dend-' + String(secs) + 's%7C';
+        if (obj.src.match(end_re)) { 
+            newurl = obj.src.replace(end_re, nepart);
+        } else {
+            newurl = obj.src.replace('--height', nepart + '--height');
+        };
+        newurl = createDateComment(newurl);
+        loadImage(obj, newurl);
+    }
 }
     
 function gridUrl(drange) {
@@ -300,16 +310,26 @@ function buildTables(obj) {
                 );
     me.parentNode.appendChild(table);
     me.parentNode.removeChild(me);
+    return $(obj.id);
 }
 
 // Zoom the image
-function doZoom(event, obj) {
-    var cursor = getPosition(event, obj);
-    var newurl = generateNewUrl(cursor, obj);
-    if (obj.src != newurl) loadImage(obj, newurl);
+function doZoom(event, myobj) {
+    objlist = linked_mode?graph_list:[myobj];
+    for (i=0;i<objlist.length;i++) {
+        obj = objlist[i];
+        var cursor = getPosition(event, obj);
+        var newurl = generateNewUrl(cursor, obj);
+        if (obj.src != newurl) loadImage(obj, newurl);
+    }
 }
 
+function linkGraphs(bool) {
+    linked_mode = bool;
+    if (bool) { toggleZoomMode(graph_list[0], 'in'); }
+}
 
 function registerGraph(id) {
-    buildTables($(id));
+    newobj = buildTables($(id));
+    graph_list[graph_list.length] = newobj;
 }

@@ -25,6 +25,9 @@
         </select>
     <input class="tableheader" type="submit" value="Reset"
     style="margin-left:2em;"/>
+    <span style="margin-left:2em;">Link graphs?</span>
+    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
+           onchange="linkGraphs(this.checked)"/>
     </th>
 
     <tr tal:condition='python: hasattr(here, "description") 
