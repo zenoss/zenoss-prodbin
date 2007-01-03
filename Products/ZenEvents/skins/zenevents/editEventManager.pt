@@ -85,13 +85,28 @@
    <tr>
         <th class="tabletitle" colspan="4">Maintenance</th>
     </tr>
-    <tr tal:condition="python: here.statusTable == 'status'">
-        <td class="tableheader" width="25%">Stored Procedures</td>
-        <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="30"
-                name="maintenanceProcedures:lines" 
-                tal:content='python: "\n".join(here.maintenanceProcedures)'>
-            </textarea>
+    <tr class='tableheader'>
+        <td class="tableheader">
+            Event Aging Interval (hours)
+        </td>
+        <td class="tableheader" colspan="2">
+            <input class="tablevalues"
+                   type='int' name='eventAgingHours:int' 
+                   tal:attributes="value here/eventAgingHours"/>
+        </td>
+    </tr>
+    <tr class='tableheader'>
+        <td class="tableheader">
+            Don't Age This Severity and Above
+        </td>
+        <td class="tableheader" colspan="2">
+            <select class="tableheader" name="eventAgingSeverity:int">
+                <option tal:repeat="sev here/getSeverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1];
+							selected python:sev[1] == here.eventAgingSeverity"
+ 							/>
+            </select>
         </td>
     </tr>
     <tr class='tableheader'>

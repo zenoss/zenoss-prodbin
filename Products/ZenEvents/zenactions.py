@@ -249,11 +249,12 @@ class ZenActions(ZCmdBase):
     def maintenance(self, db, zem):
         """Run stored procedures that maintain the events database.
         """
-        for proc in zem.maintenanceProcedures:
-            try:
-                self.execute(db, "call %s();" % proc)
-            except ProgrammingError:
-                self.log.exception("problem with proc: '%s'", proc)
+        sql = 'call clean_old_events(%s, %s);' % (
+                zem.eventAgingHours, zem.eventAgingSeverity)
+        try:
+            self.execute(db, sql)
+        except ProgrammingError:
+            self.log.exception("problem with proc: '%s'" % sql)
 
 
     def heartbeatEvents(self, db):

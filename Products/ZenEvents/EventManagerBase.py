@@ -102,8 +102,6 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
-    maintenanceProcedures = ("clean_old_events",)
-
     defaultResultFields = ("device", "component", "eventClass", "summary", 
                            "firstTime", "lastTime", "count" )
 
@@ -124,7 +122,9 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                     Item.manage_options)
 
     defaultAvailabilityDays = 7
-
+    eventAgingHours = 4
+    eventAgingSeverity = 4
+    
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
         {'id':'username', 'type':'string', 'mode':'w'},
@@ -154,7 +154,6 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         {'id':'DeviceClassWhere', 'type':'string', 'mode':'w'},
         {'id':'LocationWhere', 'type':'string', 'mode':'w'},
         {'id':'SystemWhere', 'type':'string', 'mode':'w'},
-        {'id':'maintenanceProcedures', 'type':'lines', 'mode':'w'},
         {'id':'DeviceGroupWhere', 'type':'string', 'mode':'w'},
         {'id':'requiredEventFields', 'type':'lines', 'mode':'w'},
         {'id':'defaultEventId', 'type':'lines', 'mode':'w'},
@@ -162,6 +161,8 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         {'id':'timeout', 'type':'int', 'mode':'w'},
         {'id':'clearthresh', 'type':'int', 'mode':'w'},
         {'id':'defaultAvailabilityDays', 'type':'int', 'mode':'w'},
+        {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
+        {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         )
 
     zenRelationsBaseModule = "Products.ZenEvents"
@@ -1179,7 +1180,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             obj = self.dmd.ZenEventHistory
         else:
             obj = self
-        ZenModelItem.zmanage_editProperties(obj, REQUEST)
+        ZenModelRM.zmanage_editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager', 'manage_addLogMessage')
