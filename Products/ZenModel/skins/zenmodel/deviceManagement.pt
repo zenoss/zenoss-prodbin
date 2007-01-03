@@ -44,6 +44,7 @@
   <td class=tableheader>Reset the manage ip of this device</td>
   <td class=tableheader>
       <input class="tableheader" type="text" name="ip" size="15"
+            onkeypress="return submitViaEnter(event, 'setManageIp');"
             tal:attributes="value here/getManageIp"/>
       <input class="tableheader" type="submit" name="setManageIp:method"
           value=" reset ip " />
@@ -59,7 +60,8 @@
   <tr>
   <td class=tableheader>Change the name of this device</td>
   <td class=tableheader>
-      <input class="tableheader" type="text" name="newId" size="25"/>
+      <input class="tableheader" type="text" name="newId" size="25"
+            onkeypress="return submitViaEnter(event, 'renameDevice')" />
       <input class="tableheader" type="submit" name="renameDevice:method"
           value=" rename device " />
   </td>
