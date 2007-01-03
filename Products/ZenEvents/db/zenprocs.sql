@@ -11,11 +11,11 @@ DELIMITER ;
 
 DROP PROCEDURE IF EXISTS clean_history_events;
 DELIMITER //
-CREATE PROCEDURE clean_history_events()
+CREATE PROCEDURE clean_history_events(IN months INT)
 BEGIN
     DELETE h,j,d FROM history h
         LEFT JOIN log j ON h.evid = j.evid 
         LEFT JOIN detail d ON h.evid = d.evid
-        WHERE DATE_ADD(StateChange, INTERVAL 3 MONTH) < NOW();
+        WHERE DATE_ADD(StateChange, INTERVAL months MONTH) < NOW();
 END;//
 DELIMITER ;
