@@ -51,7 +51,7 @@ class ApplyDataMap(object):
                 'summary': msg,
                 'severity': Event.Info,
                 }
-            self.datacollector.dmd.ZenEventHistory.sendEvent(eventDict)
+            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
 
         
     def processClient(self, device, collectorClient):
