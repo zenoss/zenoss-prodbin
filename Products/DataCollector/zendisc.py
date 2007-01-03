@@ -105,13 +105,15 @@ class ZenDisc(ZenModeler):
         self.dmd.ZenEventManager.sendEvent(evt)
 
     
-    def discoverDevices(self, ips, devicepath="/Discovered"):
+    def discoverDevices(self, ips, 
+                        devicepath="/Discovered",
+                        prodState=1000):
         """Discover devices by active ips that are not associated with a device.
         """
-        for ip in ips: self.discoverDevice(ip)
+        for ip in ips: self.discoverDevice(ip, devicepath, prodState)
 
 
-    def discoverDevice(self, ip, devicepath="/Discovered"):
+    def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
         """Discover a device based on its ip address.
         """
         devname = ""
@@ -133,7 +135,8 @@ class ZenDisc(ZenModeler):
                     else:
                         self.log.info("ip '%s' on device '%s' remodel",
                                         ip, dev.id)
-            dev = manage_createDevice(self.dmd, ip, devicepath)
+            dev = manage_createDevice(self.dmd, ip, devicepath,
+            productionState=prodState)
             transaction.commit()
             dev.collectDevice()
             return dev
@@ -164,7 +167,8 @@ class ZenDisc(ZenModeler):
                     for ip in self.discoverIps((netobj,)):
                         self.dmd._p_jar.sync()
                         if not self.options.nosnmp: 
-                            self.discoverDevice(ip, self.options.deviceclass)
+                            self.discoverDevice(ip, self.options.deviceclass,
+                            self.options.productionState)
                 except Exception, ex:
                     self.log.exception("Error performing net discovery on %s",
                                        ex)
@@ -179,7 +183,9 @@ class ZenDisc(ZenModeler):
             self.log.warn("failed lookup of my ip for name %s", myname) 
         me = self.dmd.Devices.findDevice(myname)
         if not me or self.options.remodel:
-            me = self.discoverDevice(myname, devicepath="/") 
+            me = self.discoverDevice(myname, 
+                      devicepath=self.options.deviceclass, 
+                      prodState=self.options.productionState) 
         if not me:
             raise SystemExit("snmp discover of self '%s' failed" % myname)
         if not myip: myip = me.getManageIp()
@@ -202,6 +208,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--deviceclass', dest='deviceclass',
                     default="/Discovered",
                     help="default device class for discovered devices")
+        self.parser.add_option('--prod_state', dest='productionState',
+                    default=1000,
+                    help="initial production state for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
                     help="remodel existing objects")
