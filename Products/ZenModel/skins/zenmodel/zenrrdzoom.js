@@ -15,15 +15,16 @@ var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
-var comment_re = /COMMENT%3A.*?%7C/;
+var comment_re = /COMMENT%3A.*?%5Cc%7C/;
+var dashes_re = /(--.*?%7C)([^\-])/;
 
 var url_cache = new Array();
 var graph_list = new Array();
 var linked_mode = 1;
 
 _insertAfterWidth = function(insert, source) {
-    width = width_re.exec(source)[0];
-    result = source.replace(width, insert+width);
+    dashes = dashes_re.exec(source);
+    result = source.replace(dashes[1], dashes[1] + insert );
     return result;
 }
 
