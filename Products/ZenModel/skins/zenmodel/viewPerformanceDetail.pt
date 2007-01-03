@@ -17,13 +17,16 @@
         <a tal:content="here/viewName" 
         tal:attributes="href here/absolute_url_path">name</a>
         &nbsp;&nbsp;&nbsp;&nbsp;Range
-        <select class="tableheader" name="drange:int" onchange="form.submit()">
+        <select class="tableheader" name="drange:int"
+            onchange="resetGraphs(this.value)"
+            id="drange_select">
             <option tal:repeat="r here/performanceDateRanges" 
                 tal:content='python:r[0]' 
                 tal:attributes="value python:r[1]; 
                                 selected python:r[1]==drange"/>
         </select>
-    <input class="tableheader" type="submit" value="Reset"
+    <input class="tableheader" type="button" value="Reset"
+    onclick="resetGraphs($('drange_select').value);"
     style="margin-left:2em;"/>
     <span style="margin-left:2em;">Link graphs?</span>
     <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 

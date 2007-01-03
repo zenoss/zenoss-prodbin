@@ -18,7 +18,6 @@ var start_re = /--start%3Dend-([0-9]*)s%7C/;
 var comment_re = /COMMENT%3A.*?%7C/;
 
 
-var url_cache = String();
 var graph_list = Array();
 var linked_mode = 0;
 
@@ -152,8 +151,6 @@ function updateDateRange(href) {
 // Check the source URL for valid data and display the image if so
 function loadImage(obj, url) {
 
-    if(url_cache==url) return;
-    url_cache = url;
     testurl = url.replace(height_re,'--only-graph%7C--height%3D10%7C');
     var x = doSimpleXMLHttpRequest(testurl);
 
@@ -326,10 +323,25 @@ function doZoom(event, myobj) {
 
 function linkGraphs(bool) {
     linked_mode = bool;
-    if (bool) { toggleZoomMode(graph_list[0], 'in'); }
+    if (bool) { toggleZoomMode(graph_list[0], 'in'); 
+    resetGraphs($('drange_select').value);}
 }
 
 function registerGraph(id) {
-    newobj = buildTables($(id));
+    var newobj = buildTables($(id));
     graph_list[graph_list.length] = newobj;
+}
+
+function resetGraphs(drange) {
+    var objlist = graph_list;
+    for (i=0;i<objlist.length;i++) {
+        var obj = objlist[i];
+        var x = String(drange);
+        var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
+        var newurl = obj.src.match(end_re)?obj.src.replace(end_re, end):
+                    obj.src.replace('--height', end + '--height');
+        newurl = newurl.replace(drange_re, '&drange=' + x);
+        newurl = createDateComment(newurl);
+        loadImage(obj, newurl);
+    }
 }
