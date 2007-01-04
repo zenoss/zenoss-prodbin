@@ -36,6 +36,7 @@
             <span tal:condition="python: ptype=='selection'">
                 <select class="tablevalues" 
                     tal:attributes="name prop/id">
+                    <option tal:content="string:"/>
                     <option tal:repeat="v python:getattr(here, prop['select_variable'], [])" 
                         tal:content="v" 
                         tal:attributes="selected python:v==pvalue"/>
