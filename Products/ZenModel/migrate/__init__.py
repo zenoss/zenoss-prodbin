@@ -57,4 +57,5 @@ import rrdmin2
 #import changeeventaction
 import event_commands
 import statusconnecttimeout
+import procparams
 import keypath
