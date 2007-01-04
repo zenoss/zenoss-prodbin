@@ -252,10 +252,11 @@ class ActionRule(ZenModelRM, EventFilter):
     security.declareProtected('Change Settings', 'manage_addActionRuleWindow')
     def manage_addActionRuleWindow(self, newId, REQUEST=None):
         "Add a ActionRule Window to this device"
-        mw = ActionRuleWindow(newId)
-        self.windows._setObject(newId, mw)
+        if newId:
+            mw = ActionRuleWindow(newId)
+            self.windows._setObject(newId, mw)
+            if REQUEST: REQUEST['message'] = "Active Period Added"
         if REQUEST:
-            REQUEST['message'] = "Active Period Added"
             return self.callZenScreen(REQUEST)
                           
     security.declareProtected('Change Settings', 'manage_deleteActionRuleWindow')

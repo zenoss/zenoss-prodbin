@@ -128,7 +128,7 @@ class MonitorClass(ZenModelRM, Folder):
         exec('from Products.ZenModel.%s import %s' % (self.sub_class,
                                                       self.sub_class), values)
         ctor = values[self.sub_class]
-        self._setObject(id, ctor(id))
+        if id: self._setObject(id, ctor(id))
         if REQUEST: return self.callZenScreen(REQUEST)
 
 InitializeClass(MonitorClass)
