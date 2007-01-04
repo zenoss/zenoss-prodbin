@@ -1101,7 +1101,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             curs.execute(sel);
             for row in curs.fetchall():
                 evclasskey, curevclass, msg = row
-                if curevclass != Unknown: continue
+                if curevclass != Unknown or not evclasskey: continue
                 evmap = evclass.createInstance(evclasskey)
                 evmap.eventClassKey = evclasskey
                 evmap.example = msg
