@@ -600,6 +600,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zTelnetEnableRegex", "assword:")
         devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
+        devs._setProperty("zKeyPath", "~/.ssh/id_dsa")
 
         # Extra stuff for users
         devs._setProperty("zLinks", "")

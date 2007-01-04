@@ -94,7 +94,8 @@ class SimpleUserAuth(userauth.SSHUserAuthClient):
             getpass.getpass("%s@%s's password: " % (USER, HOST)))
 
     def getPublicKey(self):
-        path = os.path.expanduser('~/.ssh/id_dsa') 
+        log.debug('Getting Public Key from %s' % self.factory.keyPath)
+        path = os.path.expanduser(self.factory.keyPath)
         # this works with rsa too
         # just change the name here and in getPrivateKey
         if not os.path.exists(path) or hasattr(self, 'lastPublicKey'):
@@ -103,7 +104,8 @@ class SimpleUserAuth(userauth.SSHUserAuthClient):
         return keys.getPublicKeyString(path+'.pub')
 
     def getPrivateKey(self):
-        path = os.path.expanduser('~/.ssh/id_dsa')
+        log.debug('Getting Private Key from %s' % self.factory.keyPath)
+        path = os.path.expanduser(self.factory.keyPath)
         return defer.succeed(keys.getPrivateKeyObject(path))
 
 

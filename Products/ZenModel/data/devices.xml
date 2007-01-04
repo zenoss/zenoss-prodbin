@@ -97,6 +97,9 @@ True
 <property visible='True' type='float' id='zTelnetPromptTimeout' >
 10.0
 </property>
+<property visible='True' type='string' id='zKeyPath' >
+~/.ssh/id_dsa
+</property>
 <property visible='True' type='int' id='zWinEventlogMinSeverity' >
 2
 </property>

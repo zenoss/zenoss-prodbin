@@ -160,7 +160,8 @@ class SshPool:
         if result is None:
             log.debug("Creating connection to %s", cmd.device)
             options = Options(cmd.username, cmd.password,
-                              cmd.loginTimeout, cmd.commandTimeout)
+                              cmd.loginTimeout, cmd.commandTimeout, 
+                              cmd.keyPath)
             result = MySshClient(cmd.device, cmd.ipAddress, cmd.port,
                                  options=options)
             result.run()
@@ -303,6 +304,7 @@ class Cmd:
         self.password = cfg.password
         self.loginTimeout = cfg.loginTimeout
         self.commandTimeout = cfg.commandTimeout
+        self.keyPath = cfg.keyPath
         self.useSsh = cfg.useSsh
         self.cycleTime = max(cfg.cycleTime, 1)
         self.eventKey = cfg.eventKey
@@ -325,11 +327,12 @@ class Options:
     searchPath=''
     existenceTest=None
 
-    def __init__(self, username, password, loginTimeout, commandTimeout):
+    def __init__(self, username, password, loginTimeout, commandTimeout, keyPath):
         self.username = username
         self.password = password
         self.loginTimeout=loginTimeout
         self.commandTimeout=commandTimeout
+        self.keyPath=keyPath
 
 
 class zenagios(RRDDaemon):
@@ -357,7 +360,8 @@ class zenagios(RRDDaemon):
         for c in config:
             (device, ipAddress, port,
              username, password,
-             loginTimeout, commandTimeout, commandPart) = c
+             loginTimeout, commandTimeout, 
+             keyPath, commandPart) = c
             if self.options.device and self.options.device != device:
                 continue
             for cmd in commandPart:

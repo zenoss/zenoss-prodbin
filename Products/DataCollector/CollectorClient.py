@@ -36,6 +36,7 @@ defaultPassword = ""
 defaultLoginTries = 1
 defaultLoginTimeout = 10
 defaultCommandTimeout = 10 
+defaultKeyPath = '~/.ssh/id_dsa'
 defaultSearchPath = []
 defaultExistanceTest = 'test -f %s'
         
@@ -68,6 +69,7 @@ class CollectorClient(protocol.ClientFactory):
             defaultLoginTries = options.loginTries
             defaultLoginTimeout = options.loginTimeout
             defaultCommandTimeout = options.commandTimeout
+            defaultKeyPath = options.keyPath
             defaultSearchPath = options.searchPath
             defaultExistanceTest = options.existenceTest
             
@@ -82,6 +84,8 @@ class CollectorClient(protocol.ClientFactory):
                         'zCommandLoginTimeout', defaultLoginTimeout)
             self.commandTimeout = getattr(device, 
                         'zCommandCommandTimeout', defaultCommandTimeout)
+            self.keyPath = getattr(device, 
+                        'zKeyPath', defaultKeyPath)
             self.port = getattr(device, 'zCommandPort', self.port)
             self.searchPath = getattr(device, 
                         'zCommandSearchPath', defaultSearchPath)
@@ -93,6 +97,7 @@ class CollectorClient(protocol.ClientFactory):
             self.loginTries = defaultLoginTries
             self.loginTimeout = defaultLoginTimeout
             self.commandTimeout = defaultCommandTimeout
+            self.keyPath = defaultKeyPath
             self.searchPath = defaultSearchPath
             self.existenceTest = defaultExistanceTest
 
@@ -169,6 +174,10 @@ def buildOptions(parser=None, usage=None):
                 type = 'float',
                 default = defaultCommandTimeout,
                 help='timeout when issuing a command')
+    parser.add_option('-K', '--keyPath',
+                dest='keyPath',
+                default = defaultKeyPath,
+                help='Path to use when looking for keys')                
     parser.add_option('-s', '--searchPath',
                 dest='searchPath',
                 default=defaultSearchPath,

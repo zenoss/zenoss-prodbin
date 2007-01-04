@@ -446,6 +446,7 @@ class Device(ManagedEntity, Commandable):
             return (self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
+                    self.zKeyPath,
                     cmds)
 
     def getXmlRpcTargets(self):
