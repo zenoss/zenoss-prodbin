@@ -24,6 +24,7 @@ class ScanFactory(ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         self.deferred.errback(reason)
+        self.deferred = None
 
     def clientConnectionLost(self, connector, reason):
         pass
@@ -45,7 +46,7 @@ class Scanner(object):
     '''
     '''
     def __init__(self, hosts, portRange=(1, 10000), portList=[], 
-        queueCount=50):
+        queueCount=50, timeout=30):
         if isinstance(hosts, list):
             self.hosts = hosts
         else:
@@ -53,6 +54,7 @@ class Scanner(object):
         self.portRange = (portRange[0], portRange[1] + 1)
         self.portList = portList
         self.queueCount = queueCount
+        self.timeout = timeout
         self.data = {
             'success': {},
             'failure': {},
@@ -61,13 +63,10 @@ class Scanner(object):
     def prepare(self):
         '''
         The use of DeferredSemaphore() here allows us to control the
-        number of deferrds (and therefore connections) created at once,
+        number of deferreds (and therefore connections) created at once,
         thus providing a way for systems to use the script efficiently.
-
-        The try/except block is a work-around for backwards
-        compatibility, since Twisted 1.3 doesn't have support for
-        DeferredSemaphore().
         '''
+
         dl = []
         semaphore = defer.DeferredSemaphore(self.queueCount)
         if self.portList:
@@ -88,7 +87,7 @@ class Scanner(object):
 
     def doFactory(self, host, port):
         factory = ScanFactory()
-        reactor.connectTCP(host, port, factory)
+        reactor.connectTCP(host, port, factory, timeout=1)
         d = factory.deferred
         d.addCallback(self.recordConnection, host, port)
         d.addErrback(self.recordFailure, host, port)
