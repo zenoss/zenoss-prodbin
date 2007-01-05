@@ -757,7 +757,8 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         def evtprep(evts):
             evtsdata = "%d/%d" % (evts[1],evts[2])
             if evts[1]==evts[2] or evts[2]==0:
-                return evtsdata
+                return {'cssclass':evts[0] + " empty thin",
+                        'data':evtsdata}
             else:
                 return {'cssclass':evts[0], 'data':evtsdata}
 
