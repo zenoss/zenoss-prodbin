@@ -29,6 +29,7 @@ import PortscanClient
 
 from Exceptions import *
 
+defaultPortScanTimeout = 5
 defaultParallel = 40
 defaultProtocol = "ssh"
 defaultPort = 22
@@ -361,6 +362,9 @@ class ZenModeler(ZCmdBase):
                     dest="force", action='store_true', default=False,
                     help="force collection of config data " 
                          "(even without change to the device)")
+        self.parser.add_option('--portscantimeout', dest='portscantimeout', 
+                type='int', default=defaultPortScanTimeout,
+                help="time to wait for connection failures when port scanning")
         TelnetClient.buildOptions(self.parser, self.usage)
     
 

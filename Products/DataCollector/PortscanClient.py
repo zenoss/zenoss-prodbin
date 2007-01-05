@@ -32,6 +32,7 @@ class PortscanClient(object):
             kwds = {'portList': self.portList}
         else:
             kwds = {'portRange': self.portRange}
+        kwds.update(dict(timeout=self.options.portscantimeout))
         self.scanner = PortScan.Scanner(ipaddr, **kwds)
         
     def run(self):
