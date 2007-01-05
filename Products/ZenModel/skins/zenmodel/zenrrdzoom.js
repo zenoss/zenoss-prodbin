@@ -160,17 +160,15 @@ function loadImage(obj, url) {
     }
     if (is_cached(obj, url)) return;
     url_cache[obj.id] = url;
-    testurl = url.replace(height_re,'--only-graph%7C--height%3D10%7C');
-    var x = doSimpleXMLHttpRequest(testurl);
-
-    x.addCallback(
-        function(req) {
-            if (req.responseText) {
-              obj.src = url;
-              updateDateRange(obj);
-            }
-        }
-    );
+    var buffer = new Image();
+    buffer.src = url;
+    buffer.onload = function() {
+        obj.src = buffer.src;
+    };
+    buffer.onerror = function() {
+        // For later, in case we want an error message
+    }
+    delete buffer;
 }
 
 // Pan the graph in either direction
@@ -231,38 +229,16 @@ function buildTables(obj) {
     newme.onload = null;
     newme.zoom_factor = zoom_factor;
     newme.style.cursor = 'crosshair';
+    var createDOMFunc = function(){
+        var m = MochiKit.Base;
+        return m.partial.apply(this,
+                        m.extend([MochiKit.DOM.createDOM],arguments));
+    }
+    var IFRAME = createDOMFunc("iframe");
     var table = TABLE({'id':obj.id + '_table'},
                 TBODY(
                         {'id':obj.id + '_tbody'},
                         [
-                            /*
-                            TR(null,
-                                TD({'colspan':'4',
-                                    'style':'padding-left:4em;'},
-                                [
-                                SPAN({'style':'font-weight:bold;color:darkgrey;'},
-                                    "Graph Range:"),
-                                INPUT({
-                                    'id':obj.id + '_start',
-                                    'class':'tablevalues',
-                                    'style':'border:1px solid transparent;' +
-                                            'margin-left:1em;width:15em;' +
-                                            'color:indianred;font-weight:bold'
-                                },
-                                   null ),
-                                SPAN({'style':'font-weight:bold;color:darkgrey;'},
-                                    "to"),
-                                INPUT({
-                                      'id':obj.id + '_end',
-                                      'class':'tablevalues',
-                                      'style':'border:1px solid transparent;' +
-                                              'margin-left:1em;width:15em;' +
-                                              'color:indianred;font-weight:bold'},
-                                       null)
-                                ]
-                                )
-                                )
-                            ,*/
                             TR(null,
                                 [
                                 TD(
@@ -278,7 +254,7 @@ function buildTables(obj) {
                                 ),
                                 TD(
                                     {'rowspan':'2'},
-                                    newme 
+                                        newme
                                 ),
                                 TD(
                                     {'rowspan':'2',
