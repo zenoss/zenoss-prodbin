@@ -302,7 +302,9 @@ class UserSettings(ZenModelRM):
     oncallStart = 0
     oncallEnd = 0
     escalationMinutes = 0
-
+    dashboardRefresh = 30
+    dashboardTimeout = 10
+    
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -313,6 +315,8 @@ class UserSettings(ZenModelRM):
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
+        {'id':'dashboardRefresh', 'type':'int', 'mode':'w'},
+        {'id':'dashboardTimeout', 'type':'int', 'mode':'w'},
     )
  
 

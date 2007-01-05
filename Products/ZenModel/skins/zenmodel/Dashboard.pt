@@ -20,6 +20,9 @@
     </script>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" src="/zport/js/zenutils.js"></script>
+    <script type="text/javascript" 
+        tal:define="userSettings python:here.ZenUsers.getUserSettings()" 
+        tal:content="string:var refresh=${userSettings/dashboardRefresh}; var timeout=${userSettings/dashboardTimeout}"/>
     <script type="text/javascript" src="dashboard.js"></script>
     <table width=100%>
     <tr>

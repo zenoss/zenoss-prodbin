@@ -91,6 +91,20 @@ function ConfirmPagerTest() {
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Dashboard Refresh</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="dashboardRefresh:int" 
+            tal:attributes="value here/dashboardRefresh" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Dashboard Timeout</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="dashboardTimeout:int" 
+            tal:attributes="value here/dashboardTimeout" />
+      </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan=3>

@@ -6,6 +6,9 @@
         var dashurl='/zport/dmd/ZenEventManager/getSimpleDashboardInfo';
     </script>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" 
+        tal:define="userSettings python:here.ZenUsers.getUserSettings()" 
+        tal:content="string:var refresh=${userSettings/dashboardRefresh}; var timeout=${userSettings/dashboardTimeout}"/>
     <script type="text/javascript" src="dashboard.js"></script>
     </head>
 <body>

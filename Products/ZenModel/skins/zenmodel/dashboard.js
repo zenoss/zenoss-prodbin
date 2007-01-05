@@ -4,10 +4,6 @@
 //
 //################################################################
 
-
-// Refresh rate in seconds
-var refresh=30;
-var cancelSecs=10;
 //var url="data.json";
 
 // Look for stupid IE browsers
@@ -92,10 +88,10 @@ refreshData = function() {
     //logger.debuggingBookmarklet(true)
     //log("loading");
     var defr = cancelWithTimeout(
-        loadJSONDoc(dashurl), cancelSecs);
+        loadJSONDoc(dashurl), timeout); // timeout set on Dashboard
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
-    callLater(refresh, refreshData, dashurl);
+    callLater(refresh, refreshData, dashurl); // refresh set on Dashboard
 }
 
 addLoadEvent(refreshData)
