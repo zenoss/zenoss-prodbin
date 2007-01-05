@@ -91,7 +91,7 @@ class SyslogProcessor(object):
         """
         Parse RFC-3164 PRI part of syslog message to get facility and priority.
         """
-        pri = None
+        pri = self.zem.defaultPriority
         fac = None
         if msg[:1] == '<':
             pos = msg.find('>')

@@ -122,6 +122,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                     Item.manage_options)
 
     defaultAvailabilityDays = 7
+    defaultPriority = 3
     eventAgingHours = 4
     eventAgingSeverity = 4
     
@@ -161,6 +162,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         {'id':'timeout', 'type':'int', 'mode':'w'},
         {'id':'clearthresh', 'type':'int', 'mode':'w'},
         {'id':'defaultAvailabilityDays', 'type':'int', 'mode':'w'},
+        {'id':'defaultPriority', 'type':'int', 'mode':'w'},
         {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         )

@@ -120,6 +120,16 @@
         </td>
     </tr>
     <tr class='tableheader'>
+        <td class="tableheader">
+            Default Priority
+        </td>
+        <td class="tableheader" colspan="2">
+            <input class="tablevalues"
+                   type='int' name='defaultPriority' 
+                   tal:attributes="value here/defaultPriority"/>
+        </td>
+    </tr>
+    <tr class='tableheader'>
         <td class="tableheader" width='25%'>
             Refresh Event Schema
         </td>
