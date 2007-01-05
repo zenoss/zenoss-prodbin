@@ -124,8 +124,7 @@ class MySqlSendEventMixin:
                 evid = rs[0]
             else:
                 evid = None
-        delete = ('DELETE FROM %s WHERE clearid IS NOT NULL' %
-                  self.statusTable)
+        delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
         execute(curs, delete)
         return evid
             
