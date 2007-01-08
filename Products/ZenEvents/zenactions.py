@@ -53,13 +53,34 @@ class EventCommandProtocol(ProcessProtocol):
 
     def processEnded(self, reason):
         self.server.log.info("Command finished: %s" % reason)
-        if self.data:
+        code = 1
+        try:
+            code = reason.value.exitCode
+        except AttributeError, ex:
+            pass
+        if self.data and code == 0:
             self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
-        if self.error:
-            self.server.log.error("Command %s error: %s", self.cmd.id, self.error)
+            self.server.sendEvent(Event.Event(device=socket.getfqdn(),
+                                              eventClass="/Cmd/Ok",
+                                              summary=self.data,
+                                              severity=Event.Clear,
+                                              component="zenactions"))
+            return
         if self.timeout:
-            reactor.cancelCallLater(self.timeout)
+            self.timeout.cancel()
             self.timeout = None
+        else:
+            summary="Error running: %s: %s" % (self.cmd.id,
+                                               'command timed out')
+        if self.error:
+            self.server.log.error("Command %s, exit code %d: %s",
+                                  self.cmd.id, code, self.error)
+            summary="Error running: %s: %s" % (self.cmd.id, self.error)
+        self.server.sendEvent(Event.Event(device=socket.getfqdn(),
+                                          eventClass="/Cmd/Fail",
+                                          summary=summary,
+                                          severity=Event.Error,
+                                          component="zenactions"))
 
     def outReceived(self, text):
         self.data += text
@@ -286,7 +307,9 @@ class ZenActions(ZCmdBase):
 
     def runEventCommand(self, cmd, data, clear = None):
         try:
-            data['clear'] = (clear and '1') or '0'
+            command = cmd.command
+            if clear:
+                command = cmd.clearCommand
             device = self.dmd.Devices.findDevice(data.get('device', ''))
             component = None
             if device:
@@ -295,13 +318,16 @@ class ZenActions(ZCmdBase):
                     if c.id == componentName:
                         component = c
                         break
-            compiled = talesCompile('string:' + cmd.command)
+            compiled = talesCompile('string:' + command)
             environ = {'dev':device, 'component':component, 'evt':data }
             res = compiled(getEngine().getContext(environ))
             if isinstance(res, Exception):
                 raise res
             prot = EventCommandProtocol(cmd, self)
-            reactor.spawnProcess(prot, '/bin/sh', ('/bin/sh', '-c', res))
+            self.log.info('Running %s' % res)
+            reactor.spawnProcess(prot, '/bin/sh',
+                                 ('/bin/sh', '-c', res),
+                                 env=None)
         except Exception:
             self.log.exception('Error running command %s', cmd.id)
         return True

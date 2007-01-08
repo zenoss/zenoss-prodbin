@@ -45,6 +45,17 @@
   </td>
 </tr>
 <tr>
+<tr>
+  <td class="tableheader" colspan="2">Clear Command</td>
+</tr>
+<tr>
+  <td class="tablevalues" colspan="2">
+    <textarea class="tablevalues" rows="4" cols="70"
+        name="clearCommand" 
+        tal:content='here/clearCommand'/>
+  </td>
+</tr>
+<tr>
 <td class="tableheader" colspan="2">Where</td>
 </tr>
 

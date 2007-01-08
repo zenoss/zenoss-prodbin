@@ -13,11 +13,13 @@ class EventCommand(ZenModelRM, Commandable, EventFilter):
     
     where = ''
     command = ''
+    clearCommand = ''
     enabled = False
     delay = 0
     
     _properties = ZenModelRM._properties + (
         {'id':'command', 'type':'string', 'mode':'w'},
+        {'id':'clearCommand', 'type':'string', 'mode':'w'},
         {'id':'where', 'type':'string', 'mode':'w'},
         {'id':'defaultTimeout', 'type':'int', 'mode':'w'},
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
@@ -77,8 +79,6 @@ class EventCommand(ZenModelRM, Commandable, EventFilter):
         db = self.ZenEventManager.connect()
         curs = db.cursor()
         delcmd = "delete from alert_state where %s" % self.sqlwhere()
-        #is this an important logging message?
-        #log.debug("clear alert state '%s'", delcmd)
         curs.execute(delcmd)
         db.close()
 

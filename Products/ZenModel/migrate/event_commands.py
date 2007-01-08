@@ -7,6 +7,8 @@ class EventCommands(Migrate.Step):
     
     def cutover(self, dmd):
         dmd.Events.createOrganizer("/Status/Web")
+        dmd.Events.createOrganizer("/Cmd/Ok")
+        dmd.Events.createOrganizer("/Cmd/Fail")
         dmd.ZenEventManager.buildRelations()
 
 EventCommands()
