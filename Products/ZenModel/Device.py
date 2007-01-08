@@ -436,7 +436,7 @@ class Device(ManagedEntity, Commandable):
 
 
     def getDataSourceCommands(self):
-        """Return list of command definitions in the form.
+        """Return list of command definitions in the form
         (device, user, pass [(cmdinfo,),...])
         """
         cmds = (super(Device, self).getDataSourceCommands())

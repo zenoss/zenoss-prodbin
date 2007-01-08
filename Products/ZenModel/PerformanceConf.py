@@ -279,7 +279,7 @@ class PerformanceConf(Monitor, StatusColor):
 
     security.declareProtected('View','performanceDataSources')
     def performanceDataSources(self):
-        """Return a string that has all the definitions for the performance dses.
+        """Return a string that has all the definitions for the performance ds's.
         """
         dses = []
         oidtmpl = "OID %s %s"
