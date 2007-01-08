@@ -1035,11 +1035,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             eventClass = REQUEST['eclass'])
         evid = self.sendEvent(eventDict)
         if REQUEST:
-            if evid:
-                REQUEST['RESPONSE'].redirect(
-                    '/zport/dmd/ZenEventManager/eventFields?evid=%s' % evid)
-            else:
-                REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
+            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)
