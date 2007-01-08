@@ -69,13 +69,13 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     eventActions = ('status', 'history', 'drop')
 
     severityConversions = (
-        ('Default', -1),
-        ('Clear', 0), 
-        ('Debug', 1), 
-        ('Info', 2), 
-        ('Warning', 3), 
-        ('Error', 4), 
         ('Critical', 5),
+        ('Error', 4), 
+        ('Warning', 3), 
+        ('Info', 2), 
+        ('Debug', 1), 
+        ('Clear', 0), 
+        ('Default', -1),
     )
     severities = dict([(b, a) for a, b in severityConversions])
 
