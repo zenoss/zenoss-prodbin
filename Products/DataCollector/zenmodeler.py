@@ -411,7 +411,7 @@ class ZenModeler(ZCmdBase):
         self.applyData.stop()
         transaction.abort()
         if reactor.running:
-            reactor.callLater(1, reactor.stop)
+            reactor.stop()
 
 
     def mainLoop(self):
