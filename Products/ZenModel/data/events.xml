@@ -31,6 +31,8 @@ history
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
+<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 <object id='Wmi' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

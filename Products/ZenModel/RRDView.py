@@ -296,7 +296,7 @@ class RRDView(object):
 
 
     def getDataSourceCommands(self):
-        """Return list of nagios commands definitions in the form.
+        """Return list of command definitions in the form
         [(name,compname,eventClass,eventKey,severity,command),...]
         """
         templ = self.getRRDTemplate(self.getRRDTemplateName())
@@ -304,7 +304,10 @@ class RRDView(object):
         threshs = self.getThresholds(templ)
         result = []
         basepath = self.rrdPath()
-        for ds in templ.getRRDDataSources('COMMAND'):
+        commandTypes = ['COMMAND', 'PAGECHECK']
+        dataSources = []
+        [ dataSources.extend(templ.getRRDDataSources(x)) for x in commandTypes ]
+        for ds in dataSources:
             if not ds.enabled: continue
             points = []
             for dp in ds.getRRDDataPoints():
@@ -323,7 +326,7 @@ class RRDView(object):
     
 
     def getXmlRpcTargets(self):
-        """Return a list of XMLRPC targets in the form.
+        """Return a list of XMLRPC targets in the form
         [(name, url, methodName, methodParameters, path, type, 
         createCmd, thresholds),...]
         """

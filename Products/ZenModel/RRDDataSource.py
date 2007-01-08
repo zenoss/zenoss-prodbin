@@ -14,20 +14,21 @@ $Id: RRDDataSource.py,v 1.6 2003/06/03 18:47:49 edahl Exp $"""
 __version__ = "$Revision: 1.6 $"[11:-2]
 
 import os
+import md5
 
 from Globals import DTMLFile
 from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo, Permissions
+from DateTime import DateTime
 from Acquisition import aq_parent
+from AccessControl import ClassSecurityInfo, Permissions
 
 from Products.PageTemplates.Expressions import getEngine
-from Products.ZenUtils.ZenTales import talesCompile
 
+from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 
-from DateTime import DateTime
 
 def manage_addRRDDataSource(context, id, REQUEST = None):
     """make a RRDDataSource"""
@@ -62,13 +63,15 @@ def checkOid(oid):
     return oid
 
 
+
 class RRDDataSourceError(Exception): pass
+
 
 class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
 
-    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND')
+    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND', 'PAGECHECK')
     paramtypes = ('integer', 'string', 'float')
 
     sourcetype = 'SNMP'
@@ -89,6 +92,12 @@ class RRDDataSource(ZenModelRM):
     commandTemplate = ""
     cycletime = 300
 
+    # PAGECHECK-specific attrs
+    userAgent = ''
+    recording = None
+    initialURL = ''
+    commandHash = ''
+
     _properties = (
         {'id':'sourcetype', 'type':'selection',
         'select_variable' : 'sourcetypes', 'mode':'w'},
@@ -107,6 +116,11 @@ class RRDDataSource(ZenModelRM):
         {'id':'severity', 'type':'int', 'mode':'w'},
         {'id':'commandTemplate', 'type':'string', 'mode':'w'},
         {'id':'cycletime', 'type':'int', 'mode':'w'},
+        
+        # PAGECHECK-specific props
+        {'id':'userAgent', 'type':'string', 'mode':'w'},
+        {'id':'recording', 'type':'file', 'mode':'w'},
+        {'id':'initialURL', 'type':'string', 'mode':'w'},
         
         )
 
@@ -141,6 +155,11 @@ class RRDDataSource(ZenModelRM):
         crumbs = super(RRDDataSource, self).breadCrumbs(terminator)
         return crumbspath(self.rrdTemplate(), crumbs, -2)
 
+    def getCommandHash(self):
+        """The hash is used to generate unique ids and file names."""
+        md5hash = md5.new()
+        md5hash.update(self.commandTemplate)
+        return md5hash.hexdigest()
 
     def getOidOrUrl(self):
         if self.sourcetype == "SNMP":
@@ -152,7 +171,12 @@ class RRDDataSource(ZenModelRM):
                 return self.commandTemplate + " over SSH"
             else:
                 return self.commandTemplate
+        if self.sourcetype == 'PAGECHECK':
+            md5hash = self.getCommandHash()
+            url = "%s#%s" % (self.initialURL, md5hash)
+            return url
         return None
+
 
     def getXmlRpcMethodParameters(self):
         """Return the list of all parameters as a list.
@@ -164,8 +188,10 @@ class RRDDataSource(ZenModelRM):
             params.append(p)
         return params
 
+
     def getRRDDataPoints(self):
         return self.datapoints()
+
 
     def manage_addRRDDataPoint(self, id, REQUEST = None):
         """make a RRDDataPoint"""
@@ -198,11 +224,11 @@ class RRDDataSource(ZenModelRM):
         if REQUEST: 
             return self.callZenScreen(REQUEST)
 
+
     def getCommand(self, context):
         """Return localized command target.
         """
-        """Perform a TALES eval on the express using self
-        """
+        # Perform a TALES eval on the expression using self
         exp = "string:"+ self.commandTemplate
         compiled = talesCompile(exp)    
         d = context.device()
@@ -215,13 +241,27 @@ class RRDDataSource(ZenModelRM):
         res = compiled(getEngine().getContext(environ))
         if isinstance(res, Exception):
             raise res
-        if not res.startswith('/'):
+        if self.sourcetype == 'PAGECHECK':
+            exp = "string:" + self.initialURL
+            compiled = talesCompile(exp)
+            initialURL = compiled(getEngine().getContext(environ))
+            if isinstance(initialURL, Exception):
+                raise initialURL
+            go = "go %s\n" % initialURL
+            if self.userAgent:
+                go += 'agent "%s"\n' % self.userAgent
+            res = go + res
+            pgm = os.path.join(os.environ['ZENHOME'], 'bin', 'testgen-twill')
+            res = "%s -q - << EOF\n%s\nEOF\n" % (pgm, res)
+        elif not res.startswith('/'):
             if not res.startswith(context.zCommandPath):
                 res = os.path.join(context.zCommandPath, res)
         return res
 
+
     def getSeverityString(self):
         return self.ZenEventManager.getSeverityString(self.severity)
+
 
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
@@ -229,4 +269,23 @@ class RRDDataSource(ZenModelRM):
             oid = REQUEST.get('oid', '')
             if oid:
                 REQUEST.form['oid'] = checkOid(oid)
+            # convert recording to twill-sh commands; there's no need to save
+            # the TestGen4Web XML file in the ZODB
+            recording = REQUEST.get('recording')
+            if recording:
+                from testgen import twillshell
+                data = recording.read()
+                initialURL = twillshell.getInitialURL(data)
+                commands = twillshell.getTwillShellCommands(data,
+                    userAgent=False, debug=False, initialGo=False)
+                REQUEST.form['initialURL'] = initialURL
+                REQUEST.form['commandTemplate'] = commands
+                REQUEST.form['recording'] = ''
+            # ensure that PAGECHECK has the default datapoint
+            if REQUEST.get('sourcetype') == 'PAGECHECK':
+                if not hasattr(self.datapoints, 'totalTime'):
+                    self.manage_addRRDDataPoint('totalTime')
+                # and eventClass
+                if REQUEST.form.get('eventClass', '/') == '/':
+                    REQUEST.form['eventClass'] = '/Status/Web'
         return ZenModelRM.zmanage_editProperties(self, REQUEST)
