@@ -5,9 +5,11 @@
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
 
 <script src='zenrrdzoom.js' type='text/javascript'></script>
+<script language="javascript" type="text/javascript">
+var ZenGraphs = [];
+</script>
 <div id="debug"></div>
 <table 
-    onload="window.setTimeout('registerGraph()',100)"
     class="zentable" cellpadding=3 cellspacing=1
     tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600)">
@@ -45,10 +47,9 @@
         <tr><td class="tablevalues">
             <img src="_" 
             tal:attributes="src graph/url; 
-                            id graphid"
-            onclick="doZoom(event, this);"
-            onload="registerGraph(this);"
-            />
+                            id graphid"/>
+            <script language="javascript" type="text/javascript"
+            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
             </td>
 
         </tr>

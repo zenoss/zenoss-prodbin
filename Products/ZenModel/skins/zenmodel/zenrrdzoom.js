@@ -7,327 +7,380 @@
 #####################################################
 */
 
-
+if (typeof(isie)=='undefined') var isie = navigator.userAgent.indexOf('MSIE') != -1;
 var zoom_factor = 1.5;
 var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
-var end_re = /--end%3Dnow-([0-9]*)s%7C--start%3Dend-[0-9]*s%7C/;
+var end_re = /--end%3Dnow-([0-9]*)s%7C/;
 var width_re  = /--width%3D([0-9]*)%7C/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /--start%3Dend-([0-9]*)s%7C/;
 var comment_re = /COMMENT%3A.*?%5Cc%7C/;
 var dashes_re = /(--.*?%7C)([^\-])/;
 
-var url_cache = new Array();
-var graph_list = new Array();
 var linked_mode = 1;
+var ZenQueue;
 
-_insertAfterWidth = function(insert, source) {
-    dashes = dashes_re.exec(source);
-    result = source.replace(dashes[1], dashes[1] + insert );
-    return result;
-}
-
-// Pull relevant info from the image source URL
-function parseUrl(href) {
-    var drange = Number(drange_re.exec(href)[1]);
-    var width = Number(width_re.exec(href)[1]);
-    var end = Number(end_re.exec(href)?end_re.exec(href)[1]:0);
-    var start = Number(start_re.exec(href)?start_re.exec(href)[1]:0);
-    return [drange, width, end, start];
-}
-
-// Determing the position of the cursor relative to the image
-function getPosition(e, obj) {
-    e = e || window.event;
-    var cursor = { x:0, y:0 };
-    var element = getElementPosition(obj);
-    if (e.pageX || e.pageY) {
-        cursor.x = e.pageX;
-        cursor.y = e.pageY;
-    } 
-    else {
-        var de = document.documentElement;
-        var b = document.body;
-        cursor.x = e.clientX + 
-            (de.scrollLeft || b.scrollLeft) - (de.clientLeft || 0);
-        cursor.y = e.clientY + 
-            (de.scrollTop || b.scrollTop) - (de.clientTop || 0);
-    }
-    
-    cursor.x = cursor.x - element.x;
-    cursor.y = cursor.y - element.y; 
-    return cursor;
-}
-
-insertComment = function(url, comment) {
-    comment = comment.replace(/:/g, '\\:'); // escape colons
-    comment = escape("COMMENT:" + comment + "\\c|");
-    return url.match(comment_re)?url.replace(comment_re, comment):
-        _insertAfterWidth(comment, url);
-}
-
-createDateComment = function(url) {
-    dates = updateDateRange(url);
-    comment = dates[0] + "\\t\\t\\t\\t to \\t\\t\\t" + dates[1];
-    newurl = insertComment(url, comment);
-    return newurl;
-}
-
-
-// Calculate the new image parameters and generate the source URL
-function generateNewUrl(cursor, obj) {
-    var x = cursor.x - 67;
-    var parsed = parseUrl(obj.src);
-    var drange = parsed[0];
-    var width = parsed[1];
-    if ( x < 0 || x > width ) return obj.src ;
-    var end = parsed[2];
-    var secs = Math.round(drange);
-    var newdrange = Math.round(drange/obj.zoom_factor);
-    var newsecs = Math.round(newdrange);
-    var newurl = obj.src.replace(drange_re, '&drange=' + String(newdrange));
-    var delta = ((width/2)-x)*(secs/width) + (secs-newsecs)/2;
-    var newend = Math.round(end + delta >= 0 ? end + delta : 0);
-    var nepart = '--end%3Dnow-' + String(newend) + 's%7C';
-    nepart += '--start%3Dend-' + String(newsecs) + 's%7C';
-    if (newurl.match(end_re)) { 
-        newurl = newurl.replace(end_re, nepart);
-    } else {
-        newurl = newurl.replace('--height', nepart + '--height');
-    }
-    newurl = createDateComment(newurl);
-    return newurl;
-}
-
-// Get the absolute position of the image
-function getElementPosition(obj) {
-	var curleft = curtop = 0;
-	if (obj.offsetParent) {
-		curleft = obj.offsetLeft
-		curtop = obj.offsetTop
-		while (obj = obj.offsetParent) {
-			curleft += obj.offsetLeft
-			curtop += obj.offsetTop
-		}
-	}
-    var element = {x:0,y:0};
-    element.x = curleft;
-    element.y = curtop;
-	return element;
-}
-
-
-// Handle the zoom buttons and invert the zoom_factor
-function toggleZoomMode(id, dir){
-    var myobj = $(id);
-    objlist = linked_mode?graph_list:[myobj];
-    for (i=0;i<objlist.length;i++) {
-        obj = objlist[i];
-        if (dir == 'out') {
-            $(obj.id + '_zin').style.backgroundColor = 'transparent';
-            $(obj.id + '_zout').style.backgroundColor = 'grey';
-            if (obj.zoom_factor > 1) obj.zoom_factor=1/obj.zoom_factor;
-        } else {
-            $(obj.id + '_zin').style.backgroundColor = 'grey';
-            $(obj.id + '_zout').style.backgroundColor = 'transparent';
-            if (obj.zoom_factor < 1) obj.zoom_factor=1/obj.zoom_factor;
+var Class={
+    create:function(){
+        return function(){
+            this.__init__.apply(this,arguments);
         }
     }
-    
 }
 
-function updateDateRange(href) {
-    parts = parseUrl(href);
-    var end = parts[2];
-    var start = parts[3] + end;
-    start = start * 1000;
-    end = end * 1000;
-    endDate = new Date();
-    startDate = new Date();
-    endDate.setMilliseconds(endDate.getMilliseconds() - end);
-    startDate.setMilliseconds(startDate.getMilliseconds() - start);
-    return [toISOTimestamp(startDate), toISOTimestamp(endDate)];
-}
-
-
-// Check the source URL for valid data and display the image if so
-function loadImage(obj, url) {
-    var is_cached = function(obj, url) {
-        newurl = url.replace(comment_re, '');
-        oldurl = url_cache[obj.id]?url_cache[obj.id].replace(comment_re, ''):'';
-        return newurl == oldurl;
-    }
-    if (is_cached(obj, url)) return;
-    url_cache[obj.id] = url;
-    var buffer = new Image();
-    buffer.src = url;
-    buffer.onload = function() {
-        obj.src = buffer.src;
-    };
-    buffer.onerror = function() {
-        // For later, in case we want an error message
-    }
-    delete buffer;
-}
-
-// Pan the graph in either direction
-function panGraph(direction, id) {
-    myobj = $(id);
-    objlist = linked_mode?graph_list:[myobj];
-    for (i=0;i<objlist.length;i++) {
-        var obj = objlist[i];
-        var href = parseUrl(obj.src);
-        var tenth = Math.round(href[0]/(pan_factor));
-        var secs = Math.round(href[0]);
-        if (direction == "right") {
-            newend = href[2] - tenth;
-        } else {
-            newend = href[2] + tenth;
+Function.prototype.bind = function(obj) {
+    var method = this;
+    temp = function() {
+        return method.apply(obj, arguments);
         };
-        //alert(String(tenth) + " " + String(newend) + " " + String(href[2]));
-        nepart = '--end%3Dnow-' + String(newend) + 's%7C';
-        nepart += '--start%3Dend-' + String(secs) + 's%7C';
-        if (obj.src.match(end_re)) { 
-            newurl = obj.src.replace(end_re, nepart);
+    return temp;
+}
+var table = function(obj, newme) {
+    _height = function(o) { return String(o.height + 14)+'px'; };
+    return TABLE({'id':obj.id + '_table'},
+    TBODY({'id':obj.id + '_tbody'},
+    [TR(null,[TD({'rowspan':'2','style':'background-color:lightgrey;',
+    },INPUT({'type':'button',
+    'id':obj.id + '_panl','style':'height:'+_height(obj)+';border:1px solid grey;' + 
+    'cursor:pointer','value':'<', 'onfocus':'this.blur();'},"<")),
+    TD({'rowspan':'2'},newme),TD({'rowspan':'2','style':'background-color:lightgrey;',
+    },INPUT({'type':'button',
+    'id':obj.id + '_panr','style':'height:'+_height(obj)+';border:1px solid grey;'+
+    'cursor:pointer','value':'>','onfocus':'this.blur();'},">")),
+    TD({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:grey;'+
+    'width:3em;text-align:center;' +'border:1px solid grey;',},
+    IMG({'src':'zoomin.gif'}, "Z+"))]),TR(null,TD({'id':obj.id + '_zout',
+    'style':'cursor:pointer;width:3em;'+'text-align:center;'+'border:1px solid grey;',},
+    IMG({'src':'zoomout.gif'}, "Z-")))]));
+}
+
+ZenRRDGraph = Class.create();
+ZenRRDGraph.prototype = {
+
+    zoom_factor: 1.5,
+    pan_factor: 3,
+
+    __init__: function(obj) {
+        this.obj = obj;
+        this.updateFromUrl();
+        this.setDates();
+        this.buildTables();
+        this.registerListeners();
+    },
+
+    updateFromUrl: function() {
+        var href = this.obj.src;
+        this.drange = Number(drange_re.exec(href)[1]);
+        this.width  = Number(width_re.exec(href)[1]);
+        this.end    = Number(end_re.exec(href)?end_re.exec(href)[1]:0);
+        this.start  = Number(start_re.exec(href)?start_re.exec(href)[1]
+                             :this.drange);
+    },
+
+    imgPos: function() {
+        obj = this.obj;
+        var curleft = curtop = 0;
+        if (obj.offsetParent) {
+            curleft = obj.offsetLeft;
+            curtop = obj.offsetTop;
+            while (obj=obj.offsetParent) {
+                curleft += obj.offsetLeft;
+                curtop += obj.offsetTop;
+            }
+        }
+        var element = {x:curleft,y:curtop};
+        return element;
+    },
+
+    setxpos: function(e) {
+        e = e || window.event;
+        var cursor = {x:0,y:0};
+        var element = this.imgPos();
+        if (e.pageX || e.pageY) {
+            cursor.x = e.pageX;
+            cursor.y = e.pageY;
         } else {
-            newurl = obj.src.replace('--height', nepart + '--height');
-        };
-        newurl = createDateComment(newurl);
-        loadImage(obj, newurl);
-    }
-}
+            var de = document.documentElement;
+            var b = document.body;
+            cursor.x = e.mouse().client.x +
+                (de.scrollLeft||b.scrollLeft)-(de.clientLeft||0);
+            cursor.y = e.mouse().client.y +
+                (de.scrollTop||b.scrollTop)-(de.clientTop||0);
+        }
+        return cursor.x - element.x;
+    },
+
+    startString : function(s) {
+        s = s || this.start;
+        var x = "--start=end-" + String(s) + "s|";
+        return escape(x);
+    },
+
+    endString : function(e) {
+        e = e || this.end;
+        var x = "--end=now-" + String(e) + "s|";
+        return escape(x);
+    },
+
+    setZoom : function(e) {
+        var x = this.setxpos(e)-67;
+        var href = this.obj.src;
+        if (x<0||x>this.width){return href};
+        var drange = Math.round(this.drange/this.zoom_factor);
+        var delta = ((this.width/2)-x)*(this.drange/this.width) +
+                (this.drange-drange)/2;
+        var end = Math.round(this.end+delta>=0?this.end+delta:0);
+        this.drange = drange;
+        this.start = drange;
+        this.end = end;
+        return [this.drange, this.start, this.end];
+    },
+
+    pan_left : function() {
+        var delta = Math.round(this.drange/this.pan_factor);
+        this.end = this.end+delta>0?this.end+delta:0;
+        this.setDates();
+        this.setComment();
+        this.setUrl();
+        this.loadImage();
+    },
+
+    pan_right : function() {
+        var delta = Math.round(this.drange/this.pan_factor);
+        this.end = this.end-delta>0?this.end-delta:0;
+        this.setDates();
+        this.setComment();
+        this.setUrl();
+        this.loadImage();
+    },
+
+    setDates : function() {
+        var sD, eD;
+        sD=new Date(); eD=new Date();
+        eD.setMilliseconds(eD.getMilliseconds()-this.end*1000);
+        sD.setMilliseconds(sD.getMilliseconds()-(this.start+this.end)*1000);
+        this.sDate=toISOTimestamp(sD);
+        this.eDate=toISOTimestamp(eD);
+    },
+
+    setComment : function(comment) {
+        var com_ctr = "\\t\\t\\t\\t to \\t\\t\\t";
+        comment = comment || this.sDate + com_ctr + this.eDate;
+        comment = comment.replace(/:/g, '\\:');
+        this.comment = escape("COMMENT:" + comment + "\\c|");
+    },
     
-function gridUrl(drange) {
-    var grid = String(Math.round( drange/21 + 1 ));
-    var maj  = String(Math.round( drange/4 + 1 ));
-    var lab  = String(Math.round( drange/4 + 1 ));
-    var url = "--x-grid%3DSECOND%3A" + grid + // Grid lines every x secs
-              "%3ASECOND%3A" + maj + // Major grid lines every x secs
-              "%3ASECOND%3A" + lab + // Labels every x secs
-              "%3A0%3A%25x%20%25X%7C";
-    return url
-}
+    setUrl : function() {
+        var newurl, dashes;
+        var href = this.obj.src;
+        var start_url = this.startString();
+        var end_url = this.endString();
+        if ( href.match(end_re) ) {
+            newurl = href.replace(end_re, end_url);
+            newurl = newurl.replace(start_re, start_url);
+        } else {
+            newurl = href.replace("--height", start_url+end_url+'--height');
+        };
+        newurl = newurl.replace(drange_re, "&drange=" + String(this.drange));
+        this.setDates();
+        this.setComment();
+        dashes = dashes_re.exec(newurl);
+        comurl = newurl.replace(dashes[1], dashes[1] + this.comment);
+        newurl = newurl.match(comment_re)?
+                 newurl.replace(comment_re, this.comment):
+                 comurl;
+        this.url = newurl;
+    },
 
+    doZoom : function(e) {
+        this.setZoom(e);
+        this.setDates();
+        this.setComment();
+        this.setUrl();
+        this.loadImage();
+    },
+    
+    buildTables : function() {
+        this.setComment();
+        this.setUrl();
+        var newme = this.obj.cloneNode(false);
+        newme.src = this.url;
+        newme.style.cursor = 'crosshair';
+        var t = table(this.obj, newme);
+        this.obj.parentNode.appendChild(t);
+        this.obj.parentNode.removeChild(this.obj);
+        this.obj = newme;
+        this.zin = $(this.obj.id + '_zin');
+        this.zout = $(this.obj.id + '_zout');
+        this.panl = $(this.obj.id + '_panl');
+        this.panr = $(this.obj.id + '_panr');
+    },
 
-// Replace the image with the table structure and buttons
-function buildTables(obj) {
-    var _height = function(thing){ 
-        return String(thing.height + 14)+'px';
-    };
-    var me = $(obj.id);
-    var newme = me.cloneNode(true);
-    var drange = Number(drange_re.exec(me.src)[1]);
-    var x = String(Math.round(drange));
-    var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
-    newurl = obj.src.match(end_re)?obj.src.replace(end_re, end):
-                obj.src.replace('--height', end + '--height');
-    dates = updateDateRange(newurl);
-    comment = dates[0] + "\\t\\t\\t\\t to \\t\\t\\t" + dates[1];
-    newurl = insertComment(newurl, comment);
-    newme.src = newurl;
-    newme.onload = null;
-    newme.zoom_factor = zoom_factor;
-    newme.style.cursor = 'crosshair';
-    var createDOMFunc = function(){
-        var m = MochiKit.Base;
-        return m.partial.apply(this,
-                        m.extend([MochiKit.DOM.createDOM],arguments));
+    zoom_in : function() {
+        this.zin.style.backgroundColor = 'grey';
+        this.zout.style.backgroundColor = 'transparent';
+        if (this.zoom_factor < 1) this.zoom_factor=1/this.zoom_factor;
+    },
+
+    zoom_out: function() {
+        this.zin.style.backgroundColor = 'transparent';
+        this.zout.style.backgroundColor = 'grey';
+        if (this.zoom_factor > 1) this.zoom_factor=1/this.zoom_factor;
+    },
+
+    loadImage : function() {
+        this.buffer = new Image();
+        var obj = this.obj;
+        var onSuccess = function(e) {
+            this.obj.src = this.url;
+            disconnectAll(this.buffer);
+            delete this.buffer;
+        };
+        var x = connect(this.buffer, 'onload', onSuccess.bind(this));
+        this.buffer.src = this.url;
+    },
+
+    registerListeners : function() {
+        if (!this.listeners) this.listeners=[];
+        this.clearListeners();
+        var l = this.listeners;
+        l[0] = connect(this.obj, 'onclick', this.doZoom.bind(this));
+        l[1] = connect(this.zin, 'onclick', this.zoom_in.bind(this));
+        l[2] = connect(this.zout,'onclick', this.zoom_out.bind(this));
+        l[3] = connect(this.panl,'onclick', this.pan_left.bind(this));
+        l[4] = connect(this.panr,'onclick', this.pan_right.bind(this));
+    },
+
+    clearListeners : function() {
+        for (l in this.listeners) {
+            disconnect(this.listeners[l]);
+        }
     }
-    var IFRAME = createDOMFunc("iframe");
-    var table = TABLE({'id':obj.id + '_table'},
-                TBODY(
-                        {'id':obj.id + '_tbody'},
-                        [
-                            TR(null,
-                                [
-                                TD(
-                                    {'rowspan':'2',
-                                     'style':'background-color:lightgrey;',
-                                     'onclick':'panGraph("left","'+obj.id+'")'},
-                                    INPUT({'type':'button',
-                                           'id':obj.id + '_panl',
-                                    'style':'height:'+_height(me)+';border:1px solid grey;' + 
-                                    'cursor:pointer',
-                                           'value':'<', 'onfocus':'this.blur();'},
-                                        "<")
-                                ),
-                                TD(
-                                    {'rowspan':'2'},
-                                        newme
-                                ),
-                                TD(
-                                    {'rowspan':'2',
-                                     'style':'background-color:lightgrey;',
-                                     'onclick':'panGraph("right","'+obj.id+'")'},
-                                    INPUT({'type':'button',
-                                           'id':obj.id + '_panr',
-                                    'style':'height:'+_height(me)+';border:1px solid grey;'+
-                                    'cursor:pointer',
-                                           'value':'>',
-                                           'onfocus':'this.blur();'},
-                                    ">")
-                                ),
-                                TD({'id' : obj.id + '_zin',
-                                    'style':'cursor:pointer;background-color:grey;'+
-                                    'width:3em;text-align:center;' +
-                                    'border:1px solid grey;',
-                                    'onclick':'toggleZoomMode("' + obj.id +
-                                    '", "in")'},
-                                    IMG({'src':'zoomin.gif'}, "Z+")
-                                )
-                                ]
-                            ),
-                            TR(null,
-                                TD({'id':obj.id + '_zout',
-                                    'style':'cursor:pointer;width:3em;'+
-                                    'text-align:center;' +
-                                    'border:1px solid grey;',
-                                    'onclick':'toggleZoomMode("' + obj.id +
-                                    '", "out")'},
-                                    IMG({'src':'zoomout.gif'}, "Z-"))
-                            )
-                        ]
-                    )
-                );
-    me.parentNode.appendChild(table);
-    me.parentNode.removeChild(me);
-    return $(obj.id);
+
 }
 
-// Zoom the image
-function doZoom(event, myobj) {
-    var objlist = linked_mode?graph_list:[myobj];
-    for (i=0;i<objlist.length;i++) {
-        var obj = objlist[i];
-        var cursor = getPosition(event, obj);
-        var newurl = generateNewUrl(cursor, obj);
-        if (obj.src != newurl) loadImage(obj, newurl);
+
+ZenGraphQueue = Class.create();
+
+ZenGraphQueue.prototype = {
+    graphs : [],
+    __init__: function(graphs) {
+        for (g in graphs) {
+            graph = graphs[g];
+            this.add.bind(this)(graph);
+        }
+    },
+    add: function(graph) {
+        this.graphs[this.graphs.length] = graph;
+        this.registerListeners(graph);
+    },
+    reset: function(graph) {
+        for (g in this.graphs) {
+            this.registerListeners(this.graphs[g]);
+        }
+    },
+    registerListeners: function(graph) {
+        if (!graph.listeners) graph.listeners=[];
+        var l = graph.listeners;
+        graph.clearListeners();
+        l[0] = connect(graph.obj, 'onclick', this.doZoom.bind(this));
+        l[1] = connect(graph.zin, 'onclick', this.zoom_in.bind(this));
+        l[2] = connect(graph.zout,'onclick', this.zoom_out.bind(this));
+        l[3] = connect(graph.panl,'onclick', this.pan_left.bind(this));
+        l[4] = connect(graph.panr,'onclick', this.pan_right.bind(this));
+    },
+    remove: function(graph) {
+        graph.registerListeners();
+    },
+    removeAll: function() {
+        for (g in this.graphs) {
+            this.remove(this.graphs[g]);
+        }
+    },
+    updateAll: function(vars) {
+        var end = vars[2];
+        var start = vars[1];
+        var drange = vars[0];
+        for (g in this.graphs) {
+            x = this.graphs[g];
+            x.end = end;
+            x.start = start;
+            x.drange = drange;
+            x.setDates();
+            x.setComment();
+            x.setUrl();
+            x.loadImage();
+        }
+    },
+    doZoom: function(e) {
+        var g = this.find_graph(e.target());
+        var graph = this.graphs[g];
+        var vars = graph.setZoom.bind(graph)(e);
+        this.updateAll(vars);
+    },
+    zoom_in: function(e) {
+        for (g in this.graphs) {
+            graph = this.graphs[g];
+            graph.zoom_in.bind(graph)(e);
+        }
+    },
+    zoom_out: function(e) {
+        for (g in this.graphs) {
+            graph = this.graphs[g];
+            graph.zoom_out.bind(graph)(e);
+        }
+    },
+    pan_left: function(e) {
+        for (g in this.graphs) {
+            graph = this.graphs[g];
+            graph.pan_left.bind(graph)(e);
+        }
+    },
+    pan_right: function(e) {
+        for (g in this.graphs) {
+            graph = this.graphs[g];
+            graph.pan_right.bind(graph)(e);
+        }
+    },
+    find_graph: function(obj) {
+        for (g in this.graphs) {
+            if (this.graphs[g].obj==obj) return g;
+        }
     }
-}
+};
 
 function linkGraphs(bool) {
     linked_mode = bool;
-    if (bool) { toggleZoomMode(graph_list[0], 'in'); 
-    resetGraphs($('drange_select').value);}
-}
-
-function registerGraph(id) {
-    var newobj = buildTables($(id));
-    graph_list[graph_list.length] = newobj;
-}
-
-function resetGraphs(drange) {
-    var objlist = graph_list;
-    for (i=0;i<objlist.length;i++) {
-        var obj = objlist[i];
-        var x = String(drange);
-        var end = '--end%3Dnow-0s%7C--start%3Dend-' + x + 's%7C';
-        var newurl = obj.src.match(end_re)?obj.src.replace(end_re, end):
-                    obj.src.replace('--height', end + '--height');
-        newurl = newurl.replace(drange_re, '&drange=' + x);
-        newurl = createDateComment(newurl);
-        if (obj.src != newurl) loadImage(obj, newurl);
+    if (!linked_mode) {
+        ZenQueue.removeAll();
+    } else {
+        resetGraphs($('drange_select').value);
+        ZenQueue.reset();
     }
 }
 
+function resetGraphs(drange) {
+    if (!isie) {
+        var end = 0;
+        var start = drange;
+        var drange = drange;
+        ZenQueue.updateAll([drange, start, end]);
+    } else {
+        document.href = document.href;
+    }
+}
+
+function registerGraph(id) {
+    var graph = new ZenRRDGraph($(id));
+}
+
+function zenRRDInit() {
+    ZenQueue = new ZenGraphQueue();
+    for (graphid in ZenGraphs) {  // ZenGraphs is set in the template
+        graph = new ZenRRDGraph($(ZenGraphs[graphid]));
+        ZenQueue.add(graph);
+    }
+}
+
+addLoadEvent(zenRRDInit);
