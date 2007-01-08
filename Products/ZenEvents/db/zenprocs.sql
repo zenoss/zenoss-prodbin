@@ -1,5 +1,5 @@
 
-DROP PROCEDURE IF EXISTS clean_old_events;
+DROP PROCEDURE IF EXISTS age_events;
 DELIMITER //
 CREATE PROCEDURE age_events(IN hours INT, IN severity INT)
 BEGIN
@@ -9,7 +9,7 @@ END;//
 DELIMITER ;
 
 
-DROP PROCEDURE IF EXISTS clean_history_events;
+DROP PROCEDURE IF EXISTS clean_history;
 DELIMITER //
 CREATE PROCEDURE clean_history(IN months INT)
 BEGIN
