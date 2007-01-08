@@ -130,6 +130,7 @@ class PerformanceConf(Monitor, StatusColor):
             if dev.monitorDevice() and dev.getSnmpStatus() != -1:
                 try:
                     result.append(dev.getSnmpOidTargets())
+                    r
                 except POSError: raise
                 except:
                     log.exception("device %s", dev.id)

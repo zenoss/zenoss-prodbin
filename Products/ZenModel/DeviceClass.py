@@ -601,6 +601,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zTelnetTermLength", True, type="boolean")
         devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
         devs._setProperty("zKeyPath", "~/.ssh/id_dsa")
+        devs._setProperty("zMaxOIDPerRequest", 40, type="int")
 
         # Extra stuff for users
         devs._setProperty("zLinks", "")

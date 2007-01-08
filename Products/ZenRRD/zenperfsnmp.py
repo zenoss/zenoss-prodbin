@@ -264,7 +264,7 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateAgentProxy(self,
                          deviceName, snmpStatus, ip, port, community,
-                         version, timeout, tries):
+                         version, timeout, tries, maxoids=40):
         "create or update proxy"
         # find any cached proxy
         p = self.proxies.get(deviceName, None)
@@ -285,12 +285,13 @@ class zenperfsnmp(SnmpDaemon):
             p.snmpVersion = version
         p.timeout = timeout
         p.tries = tries
+        p.maxoids = maxoids
         return p
 
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        (deviceName, snmpStatus, hostPort, snmpConfig), oidData = snmpTargets
+        (deviceName, snmpStatus, hostPort, snmpConfig), oidData, maxOIDs = snmpTargets
         if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
@@ -301,7 +302,7 @@ class zenperfsnmp(SnmpDaemon):
             version = '2'
         p = self.updateAgentProxy(deviceName, snmpStatus,
                                   ip, port, str(community),
-                                  version, timeout, tries)
+                                  version, timeout, tries, maxOIDs)
 	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
             oid = '.'+oid.lstrip('.')
@@ -369,7 +370,7 @@ class zenperfsnmp(SnmpDaemon):
         if proxy is None:
             return
         # ensure that the request will fit in a packet
-        n = MAX_OIDS_PER_REQUEST
+        n = proxy.maxoids
         if proxy.singleOidMode:
             n = 1
         def getLater(oids):

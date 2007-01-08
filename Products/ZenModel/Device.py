@@ -429,10 +429,11 @@ class Device(ManagedEntity, Commandable):
          [(name, oid, path, type, createCmd, thresholds),])
         """
         oids = (super(Device, self).getSnmpOidTargets())
+        max = getattr(self, 'zMaxOIDPerRequest')
         for o in self.os.getMonitoredComponents():
             if o.meta_type != "OSProcess":
                 oids.extend(o.getSnmpOidTargets())
-        return (self.getSnmpConnInfo(), oids)
+        return (self.getSnmpConnInfo(), oids, max)
 
 
     def getDataSourceCommands(self):
@@ -446,7 +447,7 @@ class Device(ManagedEntity, Commandable):
             return (self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
-                    self.zKeyPath,
+                    self.zKeyPath,self.zMaxOIDPerRequest,
                     cmds)
 
     def getXmlRpcTargets(self):

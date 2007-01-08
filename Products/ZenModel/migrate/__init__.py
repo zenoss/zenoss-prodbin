@@ -59,3 +59,4 @@ import event_commands
 import statusconnecttimeout
 import procparams
 import keypath
+import maxoids
