@@ -87,7 +87,7 @@
     </tr>
     <tr class='tableheader'>
         <td class="tableheader">
-            Event Aging Interval (hours)
+            Event Aging Threshold (hours)
         </td>
         <td class="tableheader" colspan="2">
             <input class="tablevalues"
