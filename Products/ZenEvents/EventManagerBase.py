@@ -66,12 +66,32 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                 #('Bogus',       3),
                 )
 
-    severities = ['Clear', 'Debug', 'Info', 'Warning', 'Error', 'Critical']
+    eventActions = ('status', 'history', 'drop')
 
-    severityConversions = [(s, i) for i, s in enumerate(severities)]
-    severityConversions.reverse()
-    severityConversions = tuple(severityConversions)
-    
+    severityConversions = (
+        ('Default', -1),
+        ('Clear', 0), 
+        ('Debug', 1), 
+        ('Info', 2), 
+        ('Warning', 3), 
+        ('Error', 4), 
+        ('Critical', 5),
+    )
+    severities = dict([(b, a) for a, b in severityConversions])
+
+    priorityConversions = (
+        ('None', -1), 
+        ('Emergency', 0),
+        ('Alert', 1),
+        ('Critical', 2),
+        ('Error', 3),
+        ('Warning', 4),
+        ('Notice', 6),
+        ('Info', 8),
+        ('Debug', 10),
+    )
+    priorities = dict([(b, a) for a, b in priorityConversions])
+
     statusTable = "status"
     detailTable = "detail"
     logTable = "log"
@@ -875,12 +895,15 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                 db.close()
         return self._fieldlist
 
-
     def getEventStates(self):
         """Return a list of possible event states.
         """
         return self.eventStateConversions
 
+    def getEventActions(self):
+        """Return a list of possible event actions.
+        """
+        return self.eventActions
 
     security.declareProtected('View','getSeverities')
     def getSeverities(self):
@@ -896,7 +919,19 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         except IndexError:
             return "Unknown"
 
-   
+    def getPriorities(self):
+        """Return a list of tuples of priorities [('Warning', 3), ...] 
+        """
+        return self.priorityConversions
+
+    def getPriorityString(self, priority):
+        """Return the priority name 
+        """
+        try:
+            return self.priorities[priority]
+        except IndexError:
+            return "Unknown"
+
     def getStatusCssClass(self, status):
         if status < 0: status = "unknown"
         elif status > 3: status = 3

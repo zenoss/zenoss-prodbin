@@ -5,7 +5,7 @@
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="props here/zenPropertyIds">
+    tal:define="props here/zenPropertyIds; serverities /here/dmd/ZenEventManager/getSeverities; actions /here/dmd/ZenEventManager/getEventActions">
     <tr>
       <th class="tabletitle" colspan="4">
       zProperties Configuration
@@ -47,7 +47,23 @@
                 tal:content="pvalue">
             </textarea>        
             </span>
-            <span tal:condition="python: ptype not in 'boolean lines text'.split()">
+            <span tal:condition="python: prop=='zEventSeverity'">
+            <select class="tablevalues" 
+                tal:attributes="name python:prop+':'+ptype">
+                <option tal:repeat="sev serverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
+            </select>
+            </span>
+            <span tal:condition="python: prop=='zEventAction'">
+            <select class="tablevalues" 
+                tal:attributes="name python:prop+':'+ptype">
+                <option tal:repeat="a actions"
+                    tal:content="a"
+                    tal:attributes="value a; selected python:a==pvalue" />
+            </select>
+            </span>
+            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction'.split()">
             <input class="tablevalues" type="text" size="40"
                 tal:attributes="value pvalue;name python:prop+':'+ptype"/>
             </span>
