@@ -370,7 +370,7 @@ class zenperfsnmp(SnmpDaemon):
         if proxy is None:
             return
         # ensure that the request will fit in a packet
-        n = proxy.maxoids
+        n = int(proxy.maxoids)
         if proxy.singleOidMode:
             n = 1
         def getLater(oids):
