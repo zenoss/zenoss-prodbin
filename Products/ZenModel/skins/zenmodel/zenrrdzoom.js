@@ -36,24 +36,27 @@ Function.prototype.bind = function(obj) {
         };
     return temp;
 }
+
 var table = function(obj, newme) {
     _height = function(o) { return String(o.height + 14)+'px'; };
     return TABLE({'id':obj.id + '_table'},
     TBODY({'id':obj.id + '_tbody'},
-    [TR(null,[TD({'rowspan':'2','style':'background-color:lightgrey;',
+    [TR(null,[TD({'rowspan':'2','style':'background-color:lightgrey;'
     },INPUT({'type':'button',
     'id':obj.id + '_panl','style':'height:'+_height(obj)+';border:1px solid grey;' + 
     'cursor:pointer','value':'<', 'onfocus':'this.blur();'},"<")),
-    TD({'rowspan':'2'},newme),TD({'rowspan':'2','style':'background-color:lightgrey;',
+    TD({'rowspan':'2'},newme),TD({'rowspan':'2','style':'background-color:lightgrey;'
     },INPUT({'type':'button',
     'id':obj.id + '_panr','style':'height:'+_height(obj)+';border:1px solid grey;'+
     'cursor:pointer','value':'>','onfocus':'this.blur();'},">")),
     TD({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:grey;'+
-    'width:3em;text-align:center;' +'border:1px solid grey;',},
-    IMG({'src':'zoomin.gif'}, "Z+"))]),TR(null,TD({'id':obj.id + '_zout',
-    'style':'cursor:pointer;width:3em;'+'text-align:center;'+'border:1px solid grey;',},
-    IMG({'src':'zoomout.gif'}, "Z-")))]));
+    'width:3em;text-align:center;' +'border:1px solid grey;'},
+    IMG({'src':'zoomin.gif'}, "Z+"))]),TR(null,
+        TD({'id': obj.id + '_zout',
+            'style':'cursor:pointer;width:3em;'+'text-align:center;'+'border:1px solid grey;'},
+        IMG({'src':'zoomout.gif'}, "Z-")))]));
 }
+
 
 ZenRRDGraph = Class.create();
 ZenRRDGraph.prototype = {
@@ -242,7 +245,7 @@ ZenRRDGraph.prototype = {
     },
 
     registerListeners : function() {
-        if (!this.listeners) this.listeners=[];
+        if (!this.listeners) this.listeners=new Array();
         this.clearListeners();
         var l = this.listeners;
         l[0] = connect(this.obj, 'onclick', this.doZoom.bind(this));
@@ -264,7 +267,7 @@ ZenRRDGraph.prototype = {
 ZenGraphQueue = Class.create();
 
 ZenGraphQueue.prototype = {
-    graphs : [],
+    graphs : new Array(),
     __init__: function(graphs) {
         for (g in graphs) {
             graph = graphs[g];
@@ -281,7 +284,7 @@ ZenGraphQueue.prototype = {
         }
     },
     registerListeners: function(graph) {
-        if (!graph.listeners) graph.listeners=[];
+        if (!graph.listeners) graph.listeners=new Array();
         var l = graph.listeners;
         graph.clearListeners();
         l[0] = connect(graph.obj, 'onclick', this.doZoom.bind(this));
