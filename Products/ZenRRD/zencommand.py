@@ -82,9 +82,14 @@ class ProcessRunner(ProcessProtocol):
     def start(self, cmd):
         "Kick off the process: run it local"
         log.debug('running %r' % cmd.command)
-        reactor.spawnProcess(self, '/bin/sh',
-                             ('/bin/sh', '-c', 'exec ' + cmd.command),
-                             env=None)
+
+        import string
+        shell = '/bin/sh'
+        self.cmdline = (shell, '-c', 'exec %s' % cmd.command)
+        self.command = string.join(self.cmdline, ' ')
+        log.debug('cmd line: %r' % self.command)
+        reactor.spawnProcess(self, shell, self.cmdline, env=None)
+
         d = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
         self.stopped = d
         self.stopped.addErrback(self.timeout)
@@ -104,7 +109,10 @@ class ProcessRunner(ProcessProtocol):
     def processEnded(self, reason):
         "notify the starter that their process is complete"
         self.exitCode = reason.value.exitCode
-        log.debug('Received exit code %s for: %r' % (self.exitCode, self.output))
+        log.debug('Received exit code: %s' % self.exitCode)
+        log.debug('Command: %r' % self.command)
+        log.debug('Output: %r' % self.output)
+        
         self.output = [s.strip() for s in self.output.split('\n')][0]
         if self.stopped:
             d, self.stopped = self.stopped, None
@@ -267,8 +275,6 @@ class Cmd:
     def name(self):
         cmd, args = (self.command + ' ').split(' ', 1)
         cmd = cmd.split('/')[-1]
-        if len(args) > 10:
-            return '%s %s...%s' % (cmd, args[:10], args[-10:])
         return '%s %s' % (cmd, args)
 
 
