@@ -83,7 +83,8 @@ class ProcessRunner(ProcessProtocol):
         "Kick off the process: run it local"
         log.debug('running %r' % cmd.command)
         reactor.spawnProcess(self, '/bin/sh',
-                             ('/bin/sh', '-c', 'exec ' + cmd.command))
+                             ('/bin/sh', '-c', 'exec ' + cmd.command),
+                             env=None)
         d = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
         self.stopped = d
         self.stopped.addErrback(self.timeout)
@@ -360,7 +361,6 @@ class zencommand(RRDDaemon):
 
     def updateConfig(self, config):
         table = dict([((c.device,c.command), c) for c in self.schedule])
-
         for c in config:
             (device, ipAddress, port,
              username, password,
