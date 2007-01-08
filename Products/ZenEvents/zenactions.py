@@ -249,7 +249,7 @@ class ZenActions(ZCmdBase):
     def maintenance(self, db, zem):
         """Run stored procedures that maintain the events database.
         """
-        sql = 'call clean_old_events(%s, %s);' % (
+        sql = 'call age_events(%s, %s);' % (
                 zem.eventAgingHours, zem.eventAgingSeverity)
         try:
             self.execute(db, sql)
