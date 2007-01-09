@@ -111,6 +111,7 @@
     <select class="tableheader" name="nextstart:int" valign="top"
         tal:attributes="disabled python:totalobjs<=batchSize"
         onchange="getTablePage(this.form)">
+        <option value="0"/>
         <option tal:repeat="page pagenav" tal:content="page/label" 
                 tal:attributes="value page/index;
                                 selected python: page['index'] == start" />
