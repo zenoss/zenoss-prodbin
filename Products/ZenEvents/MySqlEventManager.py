@@ -16,9 +16,10 @@ def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
     if not id: 
         id = "ZenEventManager"
         if history: id = "ZenEventHistory"
-    evtmgr = MySqlEventManager(id,username=evtuser,password=evtpass,database=evtdb) 
+    evtmgr = MySqlEventManager(id,username=evtuser,password=evtpass,database=evtdb)
     context._setObject(id, evtmgr)
     evtmgr = context._getOb(id)
+    evtmgr.buildRelations()
     try:
         evtmgr.manage_refreshConversions()
     except:
