@@ -38,6 +38,15 @@ CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 
 MAX_CONNECTIONS=50
 
+EXIT_CODE_MAPPING = {
+    1:'General error',
+    2:'Misuse of shell builtins',
+    126:'Command invoked cannot execute, permissions problem or command is not an executable',
+    127:'Command not found',
+    128:'Invalid argument to exit, exit takes only integers in the range 0-255',
+    130:'Fatal error signal: 2, Command terminated by Control-C'
+}
+
 class CommandConfig:
     def __init__(self, dictionary):
         d = dictionary.copy()
@@ -356,7 +365,6 @@ class zenagios(RRDDaemon):
 
     def updateConfig(self, config):
         table = dict([((c.device,c.command), c) for c in self.schedule])
-
         for c in config:
             (device, ipAddress, port,
              username, password,
@@ -435,6 +443,14 @@ class zenagios(RRDDaemon):
         else:
             log.exception(err.value)
 
+    def getExitMessage(self, exitCode):
+        if exitCode in EXIT_CODE_MAPPING.keys():
+            return EXIT_CODE_MAPPING[exitCode]
+        elif exitCode >= 255:
+            return 'Exit status out of range, exit takes only integer arguments in the range 0-255'
+        elif exitCode > 128:
+            return 'Fatal error signal: %s' % (exitCode-128)
+
     def parseResults(self, cmd):
         output = cmd.result.output
         if output.find('|') >= 0:
@@ -447,7 +463,7 @@ class zenagios(RRDDaemon):
         exitCode = cmd.result.exitCode
         severity = cmd.severity
         issueKey = cmd.device, cmd.eventClass
-        msg = msg.strip() or ('exit code: %d' % exitCode)
+        msg = msg.strip() or self.getExitMessage(exitCode)
         if exitCode == 0:
             severity = 0
         elif exitCode == 2:

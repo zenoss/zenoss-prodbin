@@ -38,6 +38,15 @@ CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 
 MAX_CONNECTIONS=256
 
+EXIT_CODE_MAPPING = {
+    1:'General error',
+    2:'Misuse of shell builtins',
+    126:'Command invoked cannot execute, permissions problem or command is not an executable',
+    127:'Command not found',
+    128:'Invalid argument to exit, exit takes only integers in the range 0-255',
+    130:'Fatal error signal: 2, Command terminated by Control-C'
+}
+
 class CommandConfig:
     def __init__(self, dictionary):
         d = dictionary.copy()
@@ -443,6 +452,14 @@ class zencommand(RRDDaemon):
         else:
             log.exception(err.value)
 
+    def getExitMessage(self, exitCode):
+        if exitCode in EXIT_CODE_MAPPING.keys():
+            return EXIT_CODE_MAPPING[exitCode]
+        elif exitCode >= 255:
+            return 'Exit status out of range, exit takes only integer arguments in the range 0-255'
+        elif exitCode > 128:
+            return 'Fatal error signal: %s' % (exitCode-128)
+            
     def parseResults(self, cmd):
         log.debug('The result of "%s" was "%s"', cmd.command, cmd.result.output)
         output = cmd.result.output
@@ -455,7 +472,7 @@ class zencommand(RRDDaemon):
             msg, values = '', output
         else:
             msg, values = output, ''
-        msg = msg.strip() or ('exit code: %s' % exitCode)
+        msg = msg.strip() or self.getExitMessage(exitCode)
         if exitCode == 0:
             severity = 0
         elif exitCode == 2:
