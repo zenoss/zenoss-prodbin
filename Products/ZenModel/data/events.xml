@@ -1,23 +1,15 @@
 <?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventProperties' >
-['severity']
-</property>
-<property type='string' id='zEventAction' >
+<property select_variable="status" visible="True" type="string" id="zEventAction" >
 status
 </property>
-<object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='string' id='zEventAction' >
-history
+<property select_variable="-1" visible="True" type="int" id="zEventSeverity" >
+-1
 </property>
-<object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
-<object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
-<object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
-</object>
+<property visible="True" type="lines" id="zEventProperties" >
+['severity']
+</property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
@@ -31,15 +23,15 @@ history
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
-<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
 <object id='Wmi' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
-<object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Http' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
-<object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Database' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -47,21 +39,21 @@ history
 <object id='Security' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Login' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Exit' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventClearClasses' >
+<property visible="True" type="lines" id="zEventClearClasses" >
 ['/Security/Conn/Open']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 3
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 exit after auth \((?P&lt;eventKey&gt;\w+)\): Exited normally
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 exit after auth (root): Exited normally
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Exit'/>
@@ -69,73 +61,73 @@ exit after auth (root): Exited normally
 </tomanycont>
 </object>
 <object id='Success' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventClearClasses' >
+<property visible="True" type="lines" id="zEventClearClasses" >
 ['/Security/Login/BadPassword', '/Security/Login/Failure']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 2
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 password auth succeeded for '(?P&lt;eventKey&gt;\w+)'
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 password auth succeeded for 'root'
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
 </object>
-<object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-sshd
+<object id='dropbear_pubkey' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
-0
+<property type="int" id="sequence" mode="w" >
+1
 </property>
-<property type='string' id='regex' mode='w' >
-Accepted password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;port&gt;\d+) (?P&lt;protocol&gt;\S+)
+<property type="string" id="regex" mode="w" >
+pubkey auth succeeded for '(?P&lt;username&gt;\S+)' with key md5 (?P&lt;key&gt;\S+) from (?P&lt;eventKey&gt;\S+):(?P&lt;remotePort&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
-Accepted password for edahl from 1.1.1.1 port 53480 ssh2
+<property type="string" id="example" mode="w" >
+pubkey auth succeeded for 'root' with key md5 41:61:33:cc:73:61:53:ad:0e:6d:62:f5:56:c1:e7:ba from 1.1.1.1:55609
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
 </object>
-<object id='dropbear_pubkey' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-dropbear
+<object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+sshd
 </property>
-<property type='int' id='sequence' mode='w' >
-1
+<property type="int" id="sequence" mode="w" >
+0
 </property>
-<property type='string' id='regex' mode='w' >
-pubkey auth succeeded for '(?P&lt;username&gt;\S+)' with key md5 (?P&lt;key&gt;\S+) from (?P&lt;eventKey&gt;\S+):(?P&lt;remotePort&gt;\S+)
+<property type="string" id="regex" mode="w" >
+Accepted password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;port&gt;\d+) (?P&lt;protocol&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
-pubkey auth succeeded for 'root' with key md5 41:61:33:cc:73:61:53:ad:0e:6d:62:f5:56:c1:e7:ba from 1.1.1.1:55609
+<property type="string" id="example" mode="w" >
+Accepted password for edahl from 1.1.1.1 port 53480 ssh2
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Success'/>
 </object>
 </tomanycont>
 </object>
 <object id='NoUser' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 6
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 login attempt for nonexistent user from (?P&lt;eventKey&gt;\S+):\d+
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 login attempt for nonexistent user from 1.1.1.1:41448
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/NoUser'/>
@@ -143,36 +135,36 @@ login attempt for nonexistent user from 1.1.1.1:41448
 </tomanycont>
 </object>
 <object id='BadPass' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 4
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 bad password attempt for '(?P&lt;eventKey&gt;\w+)'
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 bad password attempt for 'root'
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPass'/>
 </object>
 <object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 sshd
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Failed password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;remotePort&gt;\d+) (?P&lt;protocol&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Failed password for edahl from 1.1.1.1 port 53529 ssh2
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPass'/>
@@ -180,21 +172,21 @@ Failed password for edahl from 1.1.1.1 port 53529 ssh2
 </tomanycont>
 </object>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 4
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 5
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 exit before auth \(user '(?P&lt;eventKey&gt;\S+)', (?P&lt;failures&gt;\S+) fails\): Max auth tries reached
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 exit before auth (user 'root', 3 fails): Max auth tries reached - user root
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Fail'/>
@@ -203,21 +195,21 @@ exit before auth (user 'root', 3 fails): Max auth tries reached - user root
 </object>
 </object>
 <object id='Sudo' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='string' id='zEventAction' >
+<property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
 <object id='sudo' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 sudo
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 (?P&lt;username&gt;\S+) : TTY=(?P&lt;tty&gt;\S+) ; PWD=(?P&lt;pwd&gt;\S+) ; USER=(?P&lt;targetUser&gt;\S+) ; COMMAND=(?P&lt;command&gt;.*)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 edahl : TTY=pts/4 ; PWD=/home/edahl ; USER=root ; COMMAND=/bin/su -
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Sudo'/>
@@ -226,122 +218,122 @@ edahl : TTY=pts/4 ; PWD=/home/edahl ; USER=root ; COMMAND=/bin/su -
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Open' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Child connection from (?P&lt;eventKey&gt;\S+):\d+
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Child connection from 1.1.1.1:55107
 </property>
-<property type='string' id='zEventAction' >
+<property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
-<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-ultravnc_1
+<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+sshd(pam_unix)
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
-(?P&lt;summary&gt;Connection received from (?P&lt;eventKey&gt;\S+))
+<property type="string" id="regex" mode="w" >
+session opened for user (?P&lt;eventKey&gt;\S+) by \(uid=(?P&lt;uid&gt;\d+)\)
 </property>
-<property type='string' id='example' mode='w' >
-29/11/2005 16:12 Connection received from 1.1.1.1
+<property type="string" id="example" mode="w" >
+session opened for user edahl by (uid=500)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
-<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-sshd(pam_unix)
+<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ultravnc_1
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
-session opened for user (?P&lt;eventKey&gt;\S+) by \(uid=(?P&lt;uid&gt;\d+)\)
+<property type="string" id="regex" mode="w" >
+(?P&lt;summary&gt;Connection received from (?P&lt;eventKey&gt;\S+))
 </property>
-<property type='string' id='example' mode='w' >
-session opened for user edahl by (uid=500)
+<property type="string" id="example" mode="w" >
+29/11/2005 16:12 Connection received from 1.1.1.1
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
 </tomanycont>
 </object>
 <object id='Close' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventClearClasses' >
+<property visible="True" type="lines" id="zEventClearClasses" >
 ['/Security/Conn/Open']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 7
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 exit before auth \(user '(?P&lt;eventKey&gt;\w+)'.*: Exited normally
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 exit before auth (user 'root', 1 fails): Exited normally
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
 <object id='dropbear_reset' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 8
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 ^exit before auth:
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 exit before auth: error reading: Connection reset by peer
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
-<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-ultravnc_3
+<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+sshd(pam_unix)
 </property>
-<property type='int' id='sequence' mode='w' >
-0
+<property type="int" id="sequence" mode="w" >
+1
 </property>
-<property type='string' id='regex' mode='w' >
-(?P&lt;summary&gt;Client (?P&lt;remoteIp&gt;\S+) disconnected)
+<property type="string" id="regex" mode="w" >
+session closed for user (?P&lt;eventKey&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
-29/11/2005 16:16 Client 1.1.1.1 disconnected
+<property type="string" id="example" mode="w" >
+session closed for user edahl
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
-<object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-sshd(pam_unix)
+<object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ultravnc_3
 </property>
-<property type='int' id='sequence' mode='w' >
-1
+<property type="int" id="sequence" mode="w" >
+0
 </property>
-<property type='string' id='regex' mode='w' >
-session closed for user (?P&lt;eventKey&gt;\S+)
+<property type="string" id="regex" mode="w" >
+(?P&lt;summary&gt;Client (?P&lt;remoteIp&gt;\S+) disconnected)
 </property>
-<property type='string' id='example' mode='w' >
-session closed for user edahl
+<property type="string" id="example" mode="w" >
+29/11/2005 16:16 Client 1.1.1.1 disconnected
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
@@ -350,607 +342,607 @@ session closed for user edahl
 </object>
 </object>
 <object id='Ignore' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='string' id='zEventAction' >
+<property visible="True" type="string" id="zEventAction" >
 drop
 </property>
 <tomanycont id='instances'>
-<object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-kernel
+<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+CROND
 </property>
-<property type='int' id='sequence' mode='w' >
-1
-</property>
-<property type='string' id='rule' mode='w' >
-evt.priority&gt;4
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
-</object>
-<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-defaultmapping
-</property>
-<property type='int' id='sequence' mode='w' >
-1
-</property>
-<property type='string' id='regex' mode='w' >
-message repeated \d+ times
-</property>
-<property type='string' id='example' mode='w' >
-message repeated 2 times
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
-</object>
-<object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-sendmail
-</property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='rule' mode='w' >
-evt.priority&gt;5
+<property type="string" id="regex" mode="w" >
+\(root\) CMD \(run-parts /etc/cron.\S+\)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
-</object>
-<object id='kernel_capture_card' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-kernel
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='regex' mode='w' >
-Setting full NTSC height|Hpsc: 0x00001|ivtv: Got DMA-done
-</property>
-<property type='string' id='example' mode='w' >
-Setting full NTSC height
+<property type="string" id="example" mode="w" >
+(root) CMD (run-parts /etc/cron.hourly)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='anacron' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 anacron
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Updated timestamp for job
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Updated timestamp for job `cron.daily' to 2005-12-13
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
-<object id='syslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-syslog
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
 </property>
-<property type='int' id='sequence' mode='w' >
-0
+<property type="int" id="sequence" mode="w" >
+1
 </property>
-<property type='string' id='regex' mode='w' >
-Time update:
+<property type="string" id="regex" mode="w" >
+message repeated \d+ times
 </property>
-<property type='string' id='example' mode='w' >
-Time update: 20051208 18:13:13
+<property type="string" id="example" mode="w" >
+message repeated 2 times
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
-<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-CROND
+<object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+kernel
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="rule" mode="w" >
+evt.priority&gt;4
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='kernel_capture_card' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+kernel
+</property>
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
-\(root\) CMD \(run-parts /etc/cron.\S+\)
+<property type="string" id="regex" mode="w" >
+Setting full NTSC height|Hpsc: 0x00001|ivtv: Got DMA-done
 </property>
-<property type='string' id='example' mode='w' >
-(root) CMD (run-parts /etc/cron.hourly)
+<property type="string" id="example" mode="w" >
+Setting full NTSC height
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+sendmail
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="rule" mode="w" >
+evt.priority&gt;5
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
+</object>
+<object id='syslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+syslog
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Time update:
+</property>
+<property type="string" id="example" mode="w" >
+Time update: 20051208 18:13:13
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 </tomanycont>
 <object id='Win' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
-<object id='excdo_8230' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-excdo_8230
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-An inconsistency was detected in email@email.com: /Calendar/OR 9 Progress Meeting.EML.  The calendar is being repaired.  If other errors occur with this calendar, please view the calendar using Microsoft Outlook Web Access.  If a problem persists, please recreate the calendar or the containing mailbox.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='Symantec Mail Security for SMTP_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-Symantec Mail Security for SMTP_2
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Error 0 receiving data from remote host. (1.1.1.1)
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
 <object id='Autoenrollment_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 Autoenrollment_13
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Automatic certificate enrollment for local system failed to enroll for one Domain Controller certificate (0x80070005). Access is denied.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='msexchangesa_9234' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangesa_9234
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Referral Interface was not able to find an msExchExchangeServer object with legacyExchangeDN '/o=Company/ou=MMCNT/cn=Configuration/cn=Servers/cn=MMC_MAIL'  in the Active Directory.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='store_1211' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-store_1211
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-User email@email.com used ROWLIST_REPLACE to delete all rules in folder 1-8B9EDD6. 12 rules got deleted and 11 rules were added.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-smtpsvc_5000
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_609ee2d701c5f09d00099d1d.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-store_1173
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Error 0x6bb deleting unused restricted view from folder 1-C604C2D on database "First Storage Group\Mailbox Store (BOXNAME)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval. For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='general_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-general_1173
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-NT AUTHORITY\ANONYMOUS LOGON  Internal event: Active Directory has encountered the following exception and associated parameters.    Exception: e0010004  Parameter: 0    Additional Data  Error value: -1603  Internal ID: 2050344
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='smtp_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-smtp_2
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='msexchangetransport_327' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangetransport_327
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147024891 (Message-ID &lt;C2B7606A703BBD44940F3CD8462068F506E0DB5D@BOXNAME&gt; will be NDR'd).  MDB : c423a872-af66-4188-9417-867ecd674fce. FID : b-1549FB. MID : 1-6E0DB5D. File : .   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='MetaframeEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-MetaframeEvents_1106
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (MMCNT-banthon2) Printer: (Client\MMCNT-banthon2#\Plant Ops - Kyocera Mita KM-1650 KX - 1.1.1.1)  Printer driver: (Kyocera Mita KM-1650 KX)
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='TermServDevices_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-TermServDevices_1106
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The printer could not be installed.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='NETLOGON_5722' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-NETLOGON_5722
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='NETLOGON_5723' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-NETLOGON_5723
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The session setup from computer 'PAY-DOC1-D785' failed because the security database does not contain a trust account 'PAY-DOC1-D785$' referenced by the specified computer.    USER ACTION   If this is the first occurrence of this event for the specified computer and account, this may be a transient issue that doesn't require any action at this time. Otherwise, the following steps may be taken to resolve this problem:    If 'PAY-DOC1-D785$' is a legitimate machine account for the computer 'PAY-DOC1-D785', then 'PAY-DOC1-D785' should be rejoined to the domain.    If 'PAY-DOC1-D785$' is a legitimate interdomain trust account, then the trust should be recreated.    Otherwise, assuming that 'PAY-DOC1-D785$' is not a legitimate account, the following action should be taken on 'PAY-DOC1-D785':    If 'PAY-DOC1-D785' is a Domain Controller, then the trust associated with 'PAY-DOC1-D785$' should be deleted.    If 'PAY-DOC1-D785' is not a Domain Controller, it should be disjoin
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='msexchangeis_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangeis_9646
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Mapi session "/o=Company/ou=MMCNT/cn=Recipients/cn=PVizzard"  exceeded the maximum of 32 objects of type "session".   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='MSExchangeTransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-MSExchangeTransport_3005
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-A non-delivery report with a status code of 4.4.6 was generated for recipient email@email.com (Message-ID email@email.com&gt;). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers. 
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='excdo_8206' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-excdo_8206
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Calendaring agent failed with error code 0x80070057 while saving appointment.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-service_102
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Unable to register COM class objects.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='dirxml remote loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-dirxml remote loader_1
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-%256: \ID_VAULT\org\services\DirXML\Driver-Set\NewADDriver %257: Subscriber Channel %258: \ID_VAULT\org\Users\Groups\AD\MetaFrame Users %259: &lt;ldap-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt; &lt;client-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt;Already Exists&lt;/client-err&gt; &lt;server-err&gt;00000562: UpdErr: DSID-031A0F4F, problem 6005 (ENTRY_EXISTS), data 0 &lt;/server-err&gt; &lt;server-err-ex win32-rc="1378"/&gt; &lt;/ldap-err&gt;
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='NETLOGON_5807' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-NETLOGON_5807
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-During the past 4.00 hours there have been 12 connections to this Domain Controller from client machines whose IP addresses don't map to any of the existing sites in the enterprise. Those clients, therefore, have undefined sites and may connect to any Domain Controller including those that are in far distant locations from the clients. A client's site is determined by the mapping of its subnet to one of the existing sites. To move the above clients to one of the sites, please consider creating subnet object(s) covering the above IP addresses with mapping to one of the existing sites. The names and IP addresses of the clients in question have been logged on this computer in the following log file 'SystemRoot\debug\netlogon.log' and, potentially, in the log file 'SystemRoot\debug\netlogon.bak' created if the former log becomes full. The log(s) may contain additional unrelated debugging information. To filter out the needed information, please search for lines which
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='excdo_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-excdo_8263
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The recurring appointment expansion in mailbox O'Connor, Sr Aine has taken too long. Some recurring appointment instances may not be visible at this time. To ensure that the calendar view is correct, please refresh the calendar view in Microsoft Outlook Web Access.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='NETLOGON_5805' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-NETLOGON_5805
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The session setup from the computer HLTHMDXTRAIN failed to authenticate. The following error occurred: %%5
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='Removable Storage Service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-Removable Storage Service_102
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-Unable to register COM class objects. 
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='msexchangesa_5008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangesa_5008
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-The message tracking log file G:\Program Files\Exchsrvr\BOXNAMElog\20060120.log was deleted.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
 <object id='Kerberos_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 Kerberos_3
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 A Kerberos Error Message was received: on logon session Client Time: Server Time: 14:57:1.0000 1/24/2006 Z Error Code: 0xd KDC_ERR_BADOPTION Extended Error: 0xc00000bb KLIN(0) Client Realm: Client Name: Server Realm: BOXNAME Server Name: host/BOXNAME Target Name: host/BOXNAME@BOXNAME Error Text: File: 9 Line: ae0 Error Data is in record data.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Kerberos_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 Kerberos_4
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The kerberos client received a KRB_AP_ERR_MODIFIED error from the server PR-1S-8CA7$.  The target name used was cifs/NURSI-1P-396A.mmcnt.mhs.med. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (MMCNT.MHS.MED), and the client realm.   Please contact your system administrator.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='store_1025' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-store_1025
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-An error occurred on database "First Storage Group\Public Folder Store (MHSMAIL1)".  Function name or description of problem: Restrict/SetSearchCriteria Error: -1102 Warning: fail to apply search optimization to folder (FID 1-3B3C7)   Retrying without optimization.   For more information, click http://www.microsoft.com/contentredirect.asp.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
-<object id='msexchangeactivesyncnotify_10306' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangeactivesyncnotify_10306
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd8462068f5-b3c0e6d@OMA&gt;', Recipient email@email.com'.  The global notifications to user specified SMTP addresses is disabled.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
-</object>
 <object id='MSExchangeIS Mailbox Store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1173
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Error 0x6bb deleting unused restricted view from folder 1-C8EA27F on database "First Storage Group\Mailbox Store (MHSMAIL1)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='norton antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-norton antivirus_6
+<object id='MSExchangeTransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+MSExchangeTransport_3005
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Scan could not access path C:\pagefile.sys
+<property type="string" id="example" mode="w" >
+A non-delivery report with a status code of 4.4.6 was generated for recipient email@email.com (Message-ID email@email.com&gt;). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='Print_8' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-Print_8
+<object id='MetaframeEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+MetaframeEvents_1106
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 was purged.
+<property type="string" id="example" mode="w" >
+Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (MMCNT-banthon2) Printer: (Client\MMCNT-banthon2#\Plant Ops - Kyocera Mita KM-1650 KX - 1.1.1.1)  Printer driver: (Kyocera Mita KM-1650 KX)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='msexchangesa_9040' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangesa_9040
+<object id='NETLOGON_5722' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+NETLOGON_5722
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
-</property>
-<property type='string' id='example' mode='w' >
-NSPI Proxy encountered an error while receiving a packet. The target Domain Controller or the network or a client might be down. The winsock subsystem returned the error:[0x2746]. The circuit that received this error is being closed.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='TermServDevices_1111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-TermServDevices_1111
+<object id='NETLOGON_5723' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+NETLOGON_5723
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Driver ActiveTouch Document Loader required for printer ActiveTouch Document Loader is unknown. Contact the administrator to install the driver before you log in again.
+<property type="string" id="example" mode="w" >
+The session setup from computer 'PAY-DOC1-D785' failed because the security database does not contain a trust account 'PAY-DOC1-D785$' referenced by the specified computer.    USER ACTION   If this is the first occurrence of this event for the specified computer and account, this may be a transient issue that doesn't require any action at this time. Otherwise, the following steps may be taken to resolve this problem:    If 'PAY-DOC1-D785$' is a legitimate machine account for the computer 'PAY-DOC1-D785', then 'PAY-DOC1-D785' should be rejoined to the domain.    If 'PAY-DOC1-D785$' is a legitimate interdomain trust account, then the trust should be recreated.    Otherwise, assuming that 'PAY-DOC1-D785$' is not a legitimate account, the following action should be taken on 'PAY-DOC1-D785':    If 'PAY-DOC1-D785' is a Domain Controller, then the trust associated with 'PAY-DOC1-D785$' should be deleted.    If 'PAY-DOC1-D785' is not a Domain Controller, it should be disjoin
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='Print_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-Print_4
+<object id='NETLOGON_5805' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+NETLOGON_5805
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 is pending deletion.
+<property type="string" id="example" mode="w" >
+The session setup from the computer HLTHMDXTRAIN failed to authenticate. The following error occurred: %%5
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='Print_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-Print_3
+<object id='NETLOGON_5807' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+NETLOGON_5807
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 was deleted.
+<property type="string" id="example" mode="w" >
+During the past 4.00 hours there have been 12 connections to this Domain Controller from client machines whose IP addresses don't map to any of the existing sites in the enterprise. Those clients, therefore, have undefined sites and may connect to any Domain Controller including those that are in far distant locations from the clients. A client's site is determined by the mapping of its subnet to one of the existing sites. To move the above clients to one of the sites, please consider creating subnet object(s) covering the above IP addresses with mapping to one of the existing sites. The names and IP addresses of the clients in question have been logged on this computer in the following log file 'SystemRoot\debug\netlogon.log' and, potentially, in the log file 'SystemRoot\debug\netlogon.bak' created if the former log becomes full. The log(s) may contain additional unrelated debugging information. To filter out the needed information, please search for lines which
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 Print_2
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 NT AUTHORITY\SYSTEM Printer Client\MMCNT-hmendenh#\Color Printer (Work Area) - 1.1.1.1 was created.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='replication_1232' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-replication_1232
+<object id='Print_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+Print_3
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-NT AUTHORITY\ANONYMOUS LOGON  Active Directory attempted to perform a remote procedure call (RPC) to the following server.  The call timed out and was cancelled.    Server: 56fedf38-c8c0-4328-a453-a12a8b9c08ea._msdcs.mhs.med  Call Timeout (Mins): 5  Thread ID: 408    Additional Data  Internal ID: 5001047
+<property type="string" id="example" mode="w" >
+NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 was deleted.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='symantec antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-symantec antivirus_6
+<object id='Print_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+Print_4
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Could not scan 492 files inside D:\Symantec SMTP 4.x\Symantec_Mail_Security_for_SMTP_1.1.1.1_Win_Sol.zip due to extraction errors encountered by the Decomposer Engines.
+<property type="string" id="example" mode="w" >
+NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 is pending deletion.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='msexchangeis_9548' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangeis_9548
+<object id='Print_8' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+Print_8
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Disabled user /o=Company/ou=MMCNT/cn=Recipients/cn=lgiles does not have a master account SID. Please use Active Directory MMC to set an active account as this user's master account.   For more information, click http://www.microsoft.com/contentredirect.asp.
+<property type="string" id="example" mode="w" >
+NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 1.1.1.1 was purged.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
-<object id='msexchangeis_9554' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-msexchangeis_9554
+<object id='Removable Storage Service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+Removable Storage Service_102
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Unable to update Mailbox SD in the DS. Mailbox Guid: 5e727f25-357b-4cd9-9714-d7159348b196. Error Code 0x8004010f   For more information, click http://www.microsoft.com/contentredirect.asp.
+<property type="string" id="example" mode="w" >
+Unable to register COM class objects.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='Symantec Mail Security for SMTP_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+Symantec Mail Security for SMTP_2
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Error 0 receiving data from remote host. (1.1.1.1)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='TermServDevices_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+TermServDevices_1106
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The printer could not be installed.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='TermServDevices_1111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+TermServDevices_1111
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Driver ActiveTouch Document Loader required for printer ActiveTouch Document Loader is unknown. Contact the administrator to install the driver before you log in again.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='dirxml remote loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+dirxml remote loader_1
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+%256: \ID_VAULT\org\services\DirXML\Driver-Set\NewADDriver %257: Subscriber Channel %258: \ID_VAULT\org\Users\Groups\AD\MetaFrame Users %259: &lt;ldap-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt; &lt;client-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt;Already Exists&lt;/client-err&gt; &lt;server-err&gt;00000562: UpdErr: DSID-031A0F4F, problem 6005 (ENTRY_EXISTS), data 0 &lt;/server-err&gt; &lt;server-err-ex win32-rc="1378"/&gt; &lt;/ldap-err&gt;
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='excdo_8206' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+excdo_8206
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Calendaring agent failed with error code 0x80070057 while saving appointment.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='excdo_8230' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+excdo_8230
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+An inconsistency was detected in email@email.com: /Calendar/OR 9 Progress Meeting.EML.  The calendar is being repaired.  If other errors occur with this calendar, please view the calendar using Microsoft Outlook Web Access.  If a problem persists, please recreate the calendar or the containing mailbox.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='excdo_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+excdo_8263
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The recurring appointment expansion in mailbox O'Connor, Sr Aine has taken too long. Some recurring appointment instances may not be visible at this time. To ensure that the calendar view is correct, please refresh the calendar view in Microsoft Outlook Web Access.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='general_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+general_1173
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+NT AUTHORITY\ANONYMOUS LOGON  Internal event: Active Directory has encountered the following exception and associated parameters.    Exception: e0010004  Parameter: 0    Additional Data  Error value: -1603  Internal ID: 2050344
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangeactivesyncnotify_10306' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangeactivesyncnotify_10306
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd8462068f5-b3c0e6d@OMA&gt;', Recipient email@email.com'.  The global notifications to user specified SMTP addresses is disabled.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangedsaccess_2110' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 msexchangedsaccess_2110
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Process STORE.EXE (PID=2456). Could not bind to DS server smmhsdc1.mhs.med, error 55 at port 389.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangedsaccess_2115' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 msexchangedsaccess_2115
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Domain Controller mmcdc3.mmcnt.mhs.med due to error 0x80040920.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangeis_9548' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangeis_9548
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Disabled user /o=Company/ou=MMCNT/cn=Recipients/cn=lgiles does not have a master account SID. Please use Active Directory MMC to set an active account as this user's master account.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangeis_9554' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangeis_9554
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Unable to update Mailbox SD in the DS. Mailbox Guid: 5e727f25-357b-4cd9-9714-d7159348b196. Error Code 0x8004010f   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangeis_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangeis_9646
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Mapi session "/o=Company/ou=MMCNT/cn=Recipients/cn=PVizzard"  exceeded the maximum of 32 objects of type "session".   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangesa_5008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangesa_5008
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The message tracking log file G:\Program Files\Exchsrvr\BOXNAMElog\20060120.log was deleted.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangesa_9040' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangesa_9040
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+NSPI Proxy encountered an error while receiving a packet. The target Domain Controller or the network or a client might be down. The winsock subsystem returned the error:[0x2746]. The circuit that received this error is being closed.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangesa_9234' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangesa_9234
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Referral Interface was not able to find an msExchExchangeServer object with legacyExchangeDN '/o=Company/ou=MMCNT/cn=Configuration/cn=Servers/cn=MMC_MAIL'  in the Active Directory.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='msexchangetransport_327' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangetransport_327
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147024891 (Message-ID &lt;C2B7606A703BBD44940F3CD8462068F506E0DB5D@BOXNAME&gt; will be NDR'd).  MDB : c423a872-af66-4188-9417-867ecd674fce. FID : b-1549FB. MID : 1-6E0DB5D. File : .   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='norton antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+norton antivirus_6
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Scan could not access path C:\pagefile.sys
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='replication_1232' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+replication_1232
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+NT AUTHORITY\ANONYMOUS LOGON  Active Directory attempted to perform a remote procedure call (RPC) to the following server.  The call timed out and was cancelled.    Server: 56fedf38-c8c0-4328-a453-a12a8b9c08ea._msdcs.mhs.med  Call Timeout (Mins): 5  Thread ID: 408    Additional Data  Internal ID: 5001047
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+service_102
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Unable to register COM class objects.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='smtp_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+smtp_2
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+smtpsvc_5000
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_609ee2d701c5f09d00099d1d.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='store_1025' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+store_1025
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+An error occurred on database "First Storage Group\Public Folder Store (MHSMAIL1)".  Function name or description of problem: Restrict/SetSearchCriteria Error: -1102 Warning: fail to apply search optimization to folder (FID 1-3B3C7)   Retrying without optimization.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+store_1173
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Error 0x6bb deleting unused restricted view from folder 1-C604C2D on database "First Storage Group\Mailbox Store (BOXNAME)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval. For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='store_1211' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+store_1211
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+User email@email.com used ROWLIST_REPLACE to delete all rules in folder 1-8B9EDD6. 12 rules got deleted and 11 rules were added.   For more information, click http://www.microsoft.com/contentredirect.asp.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
+</object>
+<object id='symantec antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+symantec antivirus_6
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+Could not scan 492 files inside D:\Symantec SMTP 4.x\Symantec_Mail_Security_for_SMTP_1.1.1.1_Win_Sol.zip due to extraction errors encountered by the Decomposer Engines.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
@@ -958,39 +950,39 @@ Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Dom
 </object>
 </object>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventProperties' >
+<property visible="True" type="lines" id="zEventProperties" >
 ['timeout']
 </property>
-<property type='None' id='zEvent_timeout' >
+<property visible="True" type="None" id="zEvent_timeout" >
 1400
 </property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 -- MARK --
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 -- MARK --
 </property>
-<property type='None' id='zEvent_timeout' >
+<property visible="True" type="None" id="zEvent_timeout" >
 1400
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Heartbeat'/>
 </object>
 <object id='evtsys' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 evtsys
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 -- MARK --
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Heartbeat'/>
@@ -998,43 +990,40 @@ evtsys
 </tomanycont>
 </object>
 <object id='App' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventClearClasses' >
+<property visible="True" type="lines" id="zEventClearClasses" >
 ['/App/Stop']
-</property>
-<property type='None' id='zEvent_severity' >
-0
 </property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 3
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 start.*succeeded
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 httpd startup succeeded
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 ntsyslog_0
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Service started.
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Service started.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
@@ -1042,36 +1031,36 @@ Service started.
 </tomanycont>
 </object>
 <object id='Stop' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 2
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 (shutdown|stop).*succeeded
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 httpd shutdown succeeded
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 ntsyslog_0
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Service shutdown.
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Service shutdown.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
@@ -1082,99 +1071,99 @@ Service shutdown.
 </object>
 <object id='Reload' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
-<object id='postfix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-postfix
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
 </property>
-<property type='int' id='sequence' mode='w' >
-0
+<property type="int" id="sequence" mode="w" >
+4
 </property>
-<property type='string' id='regex' mode='w' >
-succeeded
+<property type="string" id="regex" mode="w" >
+\S+ -HUP succeeded
 </property>
-<property type='string' id='example' mode='w' >
-succeeded
+<property type="string" id="example" mode="w" >
+http -HUP succeeded
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Reload'/>
 </object>
-<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-defaultmapping
+<object id='postfix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+postfix
 </property>
-<property type='int' id='sequence' mode='w' >
-4
+<property type="int" id="sequence" mode="w" >
+0
 </property>
-<property type='string' id='regex' mode='w' >
-\S+ -HUP succeeded
+<property type="string" id="regex" mode="w" >
+succeeded
 </property>
-<property type='string' id='example' mode='w' >
-http -HUP succeeded
+<property type="string" id="example" mode="w" >
+succeeded
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Reload'/>
 </object>
 </tomanycont>
 </object>
 <object id='Log' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='string' id='zEventAction' >
+<property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
-<object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-postfix/smtpd
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='regex' mode='w' >
-warning: (?P&lt;eventKey&gt;\S+):
-</property>
-<property type='string' id='example' mode='w' >
-warning: 1.1.1.1: hostname pcp0010796240pcs.anapol01.md.comcast.net verification failed: Host not found
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
-</object>
-<object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-pmta
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
-</object>
 <object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 CROND
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 \((?P&lt;username&gt;\S+)\) CMD \((?P&lt;command&gt;.*)\)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 (root) CMD (run-parts /etc/cron.hourly)
 </property>
-<property type='text' id='explanation' mode='w' >
+<property type="text" id="explanation" mode="w" >
 (mythtv) CMD (/usr/bin/mythfilldatabase&gt;/dev/null 2&gt;&amp;1)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
 </object>
-<object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-procmail
+<object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+pmta
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+<object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+postfix/smtpd
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+warning: (?P&lt;eventKey&gt;\S+):
+</property>
+<property type="string" id="example" mode="w" >
+warning: 1.1.1.1: hostname pcp0010796240pcs.anapol01.md.comcast.net verification failed: Host not found
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+<object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+procmail
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
 Descriptor 1 was not open
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Descriptor 1 was not open
 </property>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
@@ -1184,37 +1173,37 @@ Descriptor 1 was not open
 <object id='Email' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 smtpsvc_5000
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 The message file '.*'  in the queue directory '(?P&lt;eventkey&gt;.*)' is corrupt and has not been enumerated.
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801c5f24800007253.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 </tomanycont>
 <object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='string' id='zEventAction' >
+<property visible="True" type="string" id="zEventAction" >
 drop
 </property>
 <tomanycont id='instances'>
 <object id='msexchangetransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 msexchangetransport_3005
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 4.4.6 was generated for recipient rfc822;(?P&lt;eventKey&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 A non-delivery report with a status code of 4.4.6 was generated for recipient email@email.com (Message-ID &lt;281720.5566209930204.043952489222.LALP.3314@septuagenarian&gt; ). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Email/Loop'/>
@@ -1224,18 +1213,18 @@ A non-delivery report with a status code of 4.4.6 was generated for recipient em
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Max' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='termservice_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 termservice_1013
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The terminal server has exceeded the maximum number of allowed connections.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/App/Conn/Max'/>
@@ -1248,16 +1237,16 @@ The terminal server has exceeded the maximum number of allowed connections.
 <object id='Cisco' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='LINK-2-BADVCALL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 LINK-2-BADVCALL
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Interface (?P&lt;component&gt;\S+), undefined entry point
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Interface FastEthernet3/6, undefined entry point
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/Cisco'/>
@@ -1266,38 +1255,38 @@ Interface FastEthernet3/6, undefined entry point
 </object>
 <object id='DNS' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
-<object id='DNS_6525' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-DNS_6525
-</property>
-<property type='int' id='sequence' mode='w' >
-0
-</property>
-<property type='string' id='example' mode='w' >
-A zone transfer request for the secondary zone domain.com was refused by the master DNS server at 1.1.1.1. Check the zone at the master server 1.1.1.1 to verify that zone transfer is enabled to this server.  To do so, use the DNS console, and select master server 1.1.1.1 as the applicable server, then in secondary zone domain.com Properties, view the settings on the Zone Transfers tab.  Based on the settings you choose, make any configuration adjustments there (or possibly in the Name Servers tab) so that a zone transfer can be made to this server.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/DNS'/>
-</object>
 <object id='DNS_3000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 DNS_3000
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The DNS server has encountered numerous run-time events. To determine the initial cause of these run-time events, examine the DNS server event log entries that precede this event. To prevent the DNS server from filling the event log too quickly, subsequent events with Event IDs higher than 3000 will be suppressed until events are no longer being generated at a high rate.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/DNS'/>
 </object>
-<object id='DNS_6527' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
-DNS_6527
+<object id='DNS_6525' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+DNS_6525
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
+A zone transfer request for the secondary zone domain.com was refused by the master DNS server at 1.1.1.1. Check the zone at the master server 1.1.1.1 to verify that zone transfer is enabled to this server.  To do so, use the DNS console, and select master server 1.1.1.1 as the applicable server, then in secondary zone domain.com Properties, view the settings on the Zone Transfers tab.  Based on the settings you choose, make any configuration adjustments there (or possibly in the Name Servers tab) so that a zone transfer can be made to this server.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Net/DNS'/>
+</object>
+<object id='DNS_6527' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+DNS_6527
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
 Zone domain.com expired before it could obtain a successful zone transfer or update from a master server acting as its source for the zone.  The zone has been shut down.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/DNS'/>
@@ -1306,21 +1295,21 @@ Zone domain.com expired before it could obtain a successful zone transfer or upd
 </object>
 <object id='Dhcp' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ack' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='lines' id='zEventClearClasses' >
+<property visible="True" type="lines" id="zEventClearClasses" >
 ['/Net/Dhcp/Request']
 </property>
 <tomanycont id='instances'>
 <object id='udhcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 udhcpd
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 sending ACK of (?P&lt;eventKey&gt;\S+) to (?P&lt;macaddress&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 sending ACK of 1.1.1.1 to 00:0d:93:7e:96:7f
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Ack'/>
@@ -1330,16 +1319,16 @@ sending ACK of 1.1.1.1 to 00:0d:93:7e:96:7f
 <object id='Request' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='udhcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 udhcpd
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 received REQUEST for (?P&lt;eventKey&gt;\S+) from (?P&lt;macaddress&gt;\S+)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 received REQUEST for 1.1.1.1 from 00:0d:93:7e:96:7f
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Request'/>
@@ -1349,16 +1338,16 @@ received REQUEST for 1.1.1.1 from 00:0d:93:7e:96:7f
 <object id='Obtained' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='udhcpc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 udhcpc
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 1
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Lease of (?P&lt;eventKey&gt;\S+) obtained, lease time (?P&lt;leaseTime&gt;\d+)
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Lease of 1.1.1.1 obtained, lease time 343822
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Obtained'/>
@@ -1371,62 +1360,102 @@ Lease of 1.1.1.1 obtained, lease time 343822
 <object id='Time' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='W32Time_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 W32Time_22
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The time provider NtpServer encountered an error while digitally signing the  NTP response for peer 1.1.1.1:123.  NtpServer cannot provide secure (signed) time to the client and will ignore the request. The error was: The specified user does not exist. (0x80070525)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Net/Time'/>
 </object>
 </tomanycont>
 </object>
+<object id='Link' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='LINK-3-UPDOWN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+LINK-3-UPDOWN
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Interface (?P&lt;component&gt;[^\s]+), changed state to down
+</property>
+<property type="string" id="example" mode="w" >
+Interface FastEthernet2, changed state to down
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+3
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
+</object>
+<object id='LINK-3-UPDOWN_UP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+LINK-3-UPDOWN
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+Interface (?P&lt;component&gt;[^\s]+), changed state to up
+</property>
+<property type="string" id="example" mode="w" >
+Interface FastEthernet2, changed state to up
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
+</object>
+</tomanycont>
+</object>
 </object>
 <object id='Win' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='NetBios' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='BROWSER_8021' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 BROWSER_8021
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The browser was unable to retrieve a list of servers from the browser master \\MHSISA on the network \Device\NetBT_Tcpip_{D160DC6C-96D6-4C96-8F04-F6FEA5E9089B}. The data is the error code.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
 <object id='MRxSmb_8003' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 MRxSmb_8003
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 from the computer (?P&lt;eventKey&gt;\S+) that believes
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The master browser has received a server announcement from the computer MHSISA that believes that it is the master browser for the domain on transport NetBT_Tcpip_{2573E4DB-14E7-4292-82. The master browser is stopping or an election is being forced.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
 <object id='Userenv_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 Userenv_1000
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
-Windows cannot obtain the domain controller name for your computer network. Return value (59). 
+<property type="string" id="example" mode="w" >
+Windows cannot obtain the domain controller name for your computer network. Return value (59).
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
@@ -1435,13 +1464,13 @@ Windows cannot obtain the domain controller name for your computer network. Retu
 <object id='Exchange' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='msexchangeis_9665' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 msexchangeis_9665
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The memory settings for this server are not optimal for Exchange. For more information, click http://support.microsoft.com?kbid=815372
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
@@ -1449,21 +1478,21 @@ The memory settings for this server are not optimal for Exchange. For more infor
 </tomanycont>
 </object>
 <object id='evtsys' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property type='None' id='zEvent_severity' >
+<property visible="True" type="None" id="zEvent_severity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='evtsys' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 evtsys
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Eventlog to Syslog Service
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Eventlog to Syslog Service Started: Version 3.4.1
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/evtsys'/>
@@ -1474,16 +1503,16 @@ Eventlog to Syslog Service Started: Version 3.4.1
 <object id='License' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='exchange_292' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 exchange_292
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 Virus definition and content license for Symantec Mail Security for Microsoft Exchange on server MHSMAILCL1 will expire on (?P&lt;eventKey&gt;\S+).
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Virus definition and content license for Symantec Mail Security for Microsoft Exchange on server MHSMAILCL1 will expire on 3/14/2006.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/License'/>
@@ -1494,16 +1523,16 @@ Virus definition and content license for Symantec Mail Security for Microsoft Ex
 <object id='Store' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='vxsvc_perc2pro_580' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 vxsvc_perc2pro_580
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='regex' mode='w' >
+<property type="string" id="regex" mode="w" >
 PERC 3/Di Controller (?P&lt;eventKey&gt;\S+) , battery low.
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 PERC 3/Di Controller 0 , battery low.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
@@ -1513,25 +1542,25 @@ PERC 3/Di Controller 0 , battery low.
 <object id='Power' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='cpqasm2_4154' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4154
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 The power sub-system is no longer redundant.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='cpqasm2_4173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type='string' id='eventClassKey' mode='w' >
+<property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4173
 </property>
-<property type='int' id='sequence' mode='w' >
+<property type="int" id="sequence" mode="w" >
 0
 </property>
-<property type='string' id='example' mode='w' >
+<property type="string" id="example" mode="w" >
 Power supply #2 has failed.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
@@ -1551,6 +1580,23 @@ Power supply #2 has failed.
 <object id='Interface' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Process' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Cmd' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Ok' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 </object>
