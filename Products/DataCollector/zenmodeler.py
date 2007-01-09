@@ -204,17 +204,15 @@ class ZenModeler(ZCmdBase):
                 self.log.warn("no snmp plugins found for %s" % hostname)
                 return 
             if self.checkCollection(device):
-                # yield self.checkCiscoChange(device, community, port)
-                if True:
-                    self.log.info('snmp collection device %s' % hostname)
-                    self.log.info("plugins: %s", 
-                                  ", ".join(map(lambda p: p.name(), plugins)))
-                    client = SnmpClient.SnmpClient(device.id,
-                                                   ip,
-                                                   self.options, 
-                                                   device,
-                                                   self,
-                                                   plugins)
+                self.log.info('snmp collection device %s' % hostname)
+                self.log.info("plugins: %s", 
+                              ", ".join(map(lambda p: p.name(), plugins)))
+                client = SnmpClient.SnmpClient(device.id,
+                                               ip,
+                                               self.options, 
+                                               device,
+                                               self,
+                                               plugins)
             if not client or not plugins: 
                 self.log.warn("snmp client creation failed")
                 return
