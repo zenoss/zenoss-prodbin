@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zentinel Systems. All rights reserved.
 #
 #################################################################
+import warnings
+# actually, it doesn't work much at all any more
+warnings.warn("ZenDeviceLoad is deprecated", DeprecationWarning)
 
 __doc__="""CVDeviceUpload
 

@@ -3,6 +3,9 @@
 #   Copyright (c) 2005 Zenoss, Inc. All rights reserved.
 #
 #################################################################
+import warnings
+# actually, it doesn't work much at all any more
+warnings.warn("ZenDeviceDump is deprecated", DeprecationWarning)
 
 __doc__="""ZenDeviceDump
 
