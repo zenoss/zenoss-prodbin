@@ -65,9 +65,9 @@
 	        tal:attributes="value ts/filter" />
 	    &nbsp;&nbsp;
 	    Page Size
-	    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+	    <input class="tableheader" type="text" name="batchSize" size=3 value=""
 	        onkeypress="submitViaEnter(event)"
-	        tal:attributes="value ts/batchSize">
+	        tal:attributes="value python:ts.batchSize or ''">
 	    <input class="navcontrol" type="submit" value="ok" />
 	</tal:block>
     </div>
@@ -129,9 +129,9 @@
     </span>
     </div>
     <div style="padding-right: 10px; float: right; text-align:right;">
-    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+    <input class="tableheader" type="text" name="batchSize" size=3 value=""
         onkeypress="getPageViaEnter(event)"
-        tal:attributes="value batchSize">
+        tal:attributes="value python:batchSize or ''">
     <input class="navcontrol" type="submit" value="ok"
          onclick="submitAction(this.form, this.name)" />
     </div>
@@ -208,9 +208,9 @@
     <div style="padding-right: 10px; float: right; text-align:right;">
     &nbsp;&nbsp;
     Page Size
-    <input class="tableheader" type="text" name="batchSize:int" size=3 value=""
+    <input class="tableheader" type="text" name="batchSize" size=3 value=""
         onkeypress="submitViaEnter(event)"
-        tal:attributes="value ts/batchSize">
+        tal:attributes="value python:ts.batchSize or ''">
     <input class="navcontrol" type="submit" value="ok" />
     </div>
     </div>

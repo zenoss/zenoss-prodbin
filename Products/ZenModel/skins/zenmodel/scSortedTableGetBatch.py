@@ -79,7 +79,8 @@ else:
     sortedObjects = objects
 
 if usebatch:
-    batch = ZTUtils.Batch(sortedObjects, size=sortedTableState['batchSize'], 
+    batch = ZTUtils.Batch(sortedObjects, 
+                    size=sortedTableState['batchSize'] or len(sortedObjects), 
                     start=sortedTableState['start'], orphan=0)
 else:
     batch = sortedObjects

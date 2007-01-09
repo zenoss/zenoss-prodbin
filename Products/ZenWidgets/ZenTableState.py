@@ -108,6 +108,8 @@ class ZenTableState:
             else: self.start = pp
         elif request.get("showAll", False):
             self.showAll = True
+            self.start = 0
+            self.batchSize = 0
             # the batch size needs to be set to the total object/result count.
             # we don't have the objects here, so we will set the batchSize
             # where we do have the objects -- see buildPageNavigation() below.
@@ -124,10 +126,10 @@ class ZenTableState:
     def buildPageNavigation(self, objects):
         self.pagenav = []
         # this conditional is for setting the batchSize on a "showAll"
-        if self.showAll:
-            self.batchSize = len(objects)
-            self.start = 0
-            self.showAll = False
+        #if self.showAll:
+        #    self.batchSize = len(objects)
+        #    self.start = 0
+        #    self.showAll = False
         if self.batchSize == 0:
             return self.pagenav
         lastindex=0
@@ -145,8 +147,10 @@ class ZenTableState:
         pageLabel = ""
         if self.sortedHeader:
             pageLabel = self._buildTextLabel(objects[index])
-        else:
+        elif self.batchSize:
             pageLabel = str(1+index/self.batchSize)
+        else:
+            pageLabel = '1'
         return pageLabel
 
 
@@ -168,6 +172,11 @@ class ZenTableState:
 
 
     def setTableState(self, attname, value, default=None, reset=False):
+        if attname == 'batchSize':
+            if value in ['', '0']:
+                value = 0
+            else:
+                value = int(value)
         if not hasattr(self, attname) and default != None:
             setattr(self, attname, default)
             if reset and attname not in self.changesThatResetStart:

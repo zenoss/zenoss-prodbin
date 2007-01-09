@@ -152,8 +152,9 @@ class ZenTableManager(SimpleItem, PropertyManager):
             objects = list(objects)
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
-        if tableState.batchSize > 0 and not hasattr(self.REQUEST, 'doExport'):
-            objects = ZTUtils.Batch(objects, tableState.batchSize,
+        if not hasattr(self.REQUEST, 'doExport'):
+            objects = ZTUtils.Batch(objects, 
+                        tableState.batchSize or len(objects),
                         start=tableState.start, orphan=0)
         return objects
             
@@ -162,6 +163,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
         """Create batch based on objects no sorting for filter applied.
         """
         batchSize = request.get('batchSize',self.defaultBatchSize)
+        if batchSize in ['', '0']:
+            batchSize = 0
+        else:
+            batchSize = int(batchSize)
         start = int(request.get('start',0))
         resetStart = int(request.get('resetStart',0))
         lastindex = request.get('lastindex',0)
@@ -179,9 +184,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
             start = request.nextstart
         if 0 < start > len(objects): start = 0
         request.start = start
-        if batchSize > 0:
-            objects = ZTUtils.Batch(objects, batchSize,
-                        start=request.start, orphan=0)
+        objects = ZTUtils.Batch(objects, batchSize or len(objects),
+                    start=request.start, orphan=0)
         return objects
        
 
@@ -277,11 +281,17 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def getNavData(self, objects, batchSize, sortedHeader):
         pagenav = []
-        for index in range(0, len(objects), batchSize):
+        if batchSize in ['', '0']:
+            batchSize = 0
+        else:
+            batchSize = int(batchSize)
+        for index in range(0, len(objects), batchSize or len(objects)):
             if sortedHeader:
                 label = self._buildTextLabel(objects[index], sortedHeader)
-            else:
+            elif batchSize:
                 label = str(1+index/batchSize)
+            else:
+                label = '1'
             pagenav.append({ 'label': label, 'index': index })
         return pagenav
 

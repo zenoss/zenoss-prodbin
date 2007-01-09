@@ -1,6 +1,10 @@
-<dtml-if "error_type!='NotFound'">
+<dtml-try>
+
+    <dtml-if "error_type=='NotFound'">
+        <dtml-raise type='NotFound'></dtml-raise>
+    </dtml-if>
     <dtml-var "zport.dmd.zenoss_error_message(error_type=error_type, error_value=error_value, error_traceback=error_traceback, error_message=error_message)">
-<dtml-else>
+<dtml-except>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
     "http://www.w3.org/TR/html4/loose.dtd">
@@ -67,4 +71,4 @@ resource does not exist.</p>
 
 
 
-</dtml-if>
+</dtml-try>
