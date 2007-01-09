@@ -1,0 +1,10 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+
+<span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
+
+
+
+</tal:block>
+</tal:block>

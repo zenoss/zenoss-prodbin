@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>

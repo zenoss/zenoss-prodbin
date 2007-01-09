@@ -16,6 +16,7 @@ class UserCommands(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
+        dmd.buildRelations()
         for dev in dmd.Devices.getSubDevices():
             dev.buildRelations()
         for name in ['Devices', 'Systems', 'Groups', 'Locations',

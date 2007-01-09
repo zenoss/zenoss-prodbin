@@ -24,6 +24,8 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
 from ImageFile import ImageFile
 from Products.ZenModel.ZenModelBase import ZenModelBase
+from Products.ZenRelations.RelSchema import *
+from Commandable import Commandable
 import DateTime
 
 from AccessControl import Permissions as permissions
@@ -41,7 +43,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
-class DataRoot(ZenModelRM, OrderedFolder):
+class DataRoot(ZenModelRM, OrderedFolder, Commandable):
     meta_type = portal_type = 'DataRoot'
 
     manage_main = OrderedFolder.manage_main
@@ -89,6 +91,10 @@ class DataRoot(ZenModelRM, OrderedFolder):
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         )
 
+    _relations =  (
+        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+       )
+
     # Screen action bindings (and tab definitions)
     factory_type_information = (
         {
@@ -101,16 +107,15 @@ class DataRoot(ZenModelRM, OrderedFolder):
             'immediate_view' : 'Dashboard',
             'actions'        :
             (
-                { 'id'            : 'dashboard'
-                , 'name'          : 'Dashboard'
-                , 'action'        : 'Dashboard'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : 'editSettings'
                 , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'dataRootManage'
+                , 'permissions'   : ('Manage DMD',)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
@@ -387,6 +392,13 @@ class DataRoot(ZenModelRM, OrderedFolder):
         else:
             result = buffer.getvalue()
         return result
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        raise 'Not supported on DataRoot'
 
 
 InitializeClass(DataRoot)
