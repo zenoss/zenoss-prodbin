@@ -35,6 +35,12 @@ class CpuMap(SnmpPlugin):
 
     hrDeviceProcessor = ".1.3.6.1.2.1.25.3.1.3"
 
+
+    def condition(self, device, log):
+        """does device meet the proper conditions for this collector to run"""
+        return False
+
+
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing processor resources %s' % device.id)
