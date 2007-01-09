@@ -23,6 +23,7 @@ class ZenStatus(ZCmdBase):
 
     agent = "ZenTCP"
     eventGroup = "TCPTest"
+    stopping = False
 
     def __init__(self):
         ZCmdBase.__init__(self, keeproot=True)
@@ -48,11 +49,10 @@ class ZenStatus(ZCmdBase):
         self.log.debug("starting cycle loop")
         self.startTests()
         reactor.startRunning(installSignalHandlers=False)
-        while self.clients:
+        while self.clients and not self.stopping:
             try:
                 reactor.runUntilCurrent()
-                reactor.doIteration(0)
-                #self.timeoutClients()
+                reactor.doIteration(reactor.timeout())
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected error in reactorLoop")
@@ -108,8 +108,9 @@ class ZenStatus(ZCmdBase):
         
     def mainLoop(self):
         # for the first run, quit on failure
-        if self.options.cycle:
-            while 1:
+	try:
+          if self.options.cycle:
+            while not self.stopping:
                 start = time.time()
                 self.count = 0
                 try:
@@ -125,23 +126,24 @@ class ZenStatus(ZCmdBase):
                 runtime = time.time() - start
                 if runtime < self.options.cycletime:
                     time.sleep(self.options.cycletime - runtime)
-        else:
+          else:
             self.cycleLoop()
             self.sendHeartbeat()
-        self.stop()
-        self.log.info("stopped")
+        finally:
+          self._stop()
+          self.log.info("stopped")
 
 
     def stop(self):
         """Stop zenstatus and its child threads.
         """
+	self.stopping = True
+
+    def _stop(self):
         self.log.info("stopping...")
         if hasattr(self,"pingThread"):
             self.pingThread.stop()
-        self.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStop, 
-                        summary="zenstatus stopped",
-                        severity=4, component="zenstatus"))
+        self.log.info("stopped")
 
 
     def sendEvent(self, evt):
@@ -150,7 +152,7 @@ class ZenStatus(ZCmdBase):
         try:
             self.zem.sendEvent(evt)
         except OperationalError, e:
-            self.log.warn("failed sending heartbeat: %s", e)
+            self.log.warn("failed sending event: %s", e)
 
 
     def sendHeartbeat(self):
