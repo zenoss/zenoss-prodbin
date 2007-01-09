@@ -236,7 +236,11 @@ ZenRRDGraph.prototype = {
         this.buffer = new Image();
         var obj = this.obj;
         var onSuccess = function(e) {
-            this.obj.src = this.url;
+            if (this.obj.src!=this.url) {
+                this.obj.src = this.url;
+                log('Refreshing ' + this.obj.id + ' with start ' +
+                    this.start + ' end ' + this.end);
+            };
             disconnectAll(this.buffer);
             delete this.buffer;
         };
