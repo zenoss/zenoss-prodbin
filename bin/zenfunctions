@@ -17,7 +17,7 @@ if [ -d /usr/lib/zope ] ; then
 fi
 
 PYTHON=$ZOPEHOME/bin/python
-PYTHONPATH=$ZOPEHOME/lib/python:$ZENHOME
+PYTHONPATH=$ZENHOME/lib/python:$ZOPEHOME/lib/python
 export PYTHONPATH
 
 VARDIR=$ZENHOME/var
