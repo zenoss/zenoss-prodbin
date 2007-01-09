@@ -71,7 +71,7 @@ class RRDDataSource(ZenModelRM):
 
     meta_type = 'RRDDataSource'
 
-    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND', 'PAGECHECK')
+    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND') # , 'PAGECHECK')
     paramtypes = ('integer', 'string', 'float')
 
     sourcetype = 'SNMP'
