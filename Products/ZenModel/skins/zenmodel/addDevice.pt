@@ -96,14 +96,6 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">Rack Slot</td>
-            <td class="tablevalues" align="left">
-                <input class="tablevalues" type="text" 
-                    size="25" name="rackSlot:int"
-                    onkeypress="return submitViaEnter(event,'loadDevice');"
-                    tal:attributes="value device/rackSlot | 
-                            request/rackSlot | python:0"/>
-            </td>
             <td class="tableheader" align="left">Production State</td>
             <td class="tablevalues" align="left">
                 <select class="tablevalues" name="productionState:int"
@@ -118,10 +110,8 @@
                         tal:content="python:pstate[0]">localhost</option>
                 </select>
             </td>
-        </tr>
-        <tr>
             <td class="tableheader" align="left">Priority</td>
-            <td class="tablevalues" align="left" colspan="3">
+            <td class="tablevalues" align="left" >
                 <select class="tablevalues" name="priority:int"
                     tal:define="
                         priorities here/getPriorityConversions;
@@ -134,7 +124,18 @@
                             tal:content="python:priority[0]">3</option>
                 </select>
             </td>
-            </tr>
+
+        </tr>
+        <tr>
+             <td class="tableheader" align="left">Rack Slot</td>
+            <td class="tablevalues" align="left" colspan="3">
+                <input class="tablevalues" type="text" 
+                    size="25" name="rackSlot:int"
+                    onkeypress="return submitViaEnter(event,'loadDevice');"
+                    tal:attributes="value device/rackSlot | 
+                            request/rackSlot | python:0"/>
+            </td>
+           </tr>
             <tr>
             <td class="tableheader" align="left">Comments</td>
             <td class="tablevalues" align="left" colspan=3>

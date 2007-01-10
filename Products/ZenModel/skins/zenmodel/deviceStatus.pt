@@ -35,17 +35,22 @@
       <td class=tablevalues tal:content="here/getSnmpLastCollectionString"></td>
     </tr>
     <tr>
+      <td class="tableheader">Availability</td>
+      <td class="tablevalues" tal:content="here/availability"/>
+      <th class="tableheader">First Seen</th>
+      <td class="tablevalues" tal:content="here/getCreatedTimeString" />
+    </tr>
+    <tr>
       <td class="tableheader">State</td>
       <td class="tablevalues"
         tal:content="python:here.convertProdState(here.productionState)">
         device state
       </td>
-      <th class="tableheader">First Seen</th>
-      <td class="tablevalues" tal:content="here/getCreatedTimeString" />
-    </tr>
-    <tr>
-      <td class="tableheader">Availability</td>
-      <td class="tablevalues" colspan="3" tal:content="here/availability"/>
+      <td class="tableheader">Priority</td>
+      <td class="tablevalues"
+        tal:content="python:here.convertPriority(here.priority)">
+        device priority
+      </td>
     </tr>
 </table>
 
