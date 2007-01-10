@@ -97,7 +97,7 @@ class DeviceResultInt:
             if (not getattr(dev, 'zSnmpMonitorIgnore', False)
                 and getattr(dev, 'zSnmpCommunity', "")
                 and dev.monitorDevice()):
-                return dev.getStatus(SnmpStatus)
+                return dev.getStatus(Status_Snmp)
         return -1
     getSnmpStatusNumber = getSnmpStatus
     security.declareProtected('View', 'getSnmpStatusNumber')
@@ -112,7 +112,7 @@ class DeviceResultInt:
             dev = dev.primaryAq()
             if (not getattr(dev, 'zXmlRpcMonitorIgnore', False)
                 and dev.monitorDevice()):
-                return dev.getStatus(XmlRpcStatus)
+                return dev.getStatus(Status_XmlRpc)
         return -1
     getXmlRpcStatusNumber = getXmlRpcStatus
     security.declareProtected('View', 'getXmlRpcStatusNumber')
