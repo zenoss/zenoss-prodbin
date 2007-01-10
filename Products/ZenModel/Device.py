@@ -47,7 +47,7 @@ from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
-from Products.ZenEvents.ZenEventClasses import SnmpStatus
+from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from MaintenanceWindow import DeviceMaintenanceWindow
 from AdministrativeRole import DeviceAdministrativeRole
 from UserCommand import UserCommand

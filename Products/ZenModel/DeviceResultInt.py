@@ -73,7 +73,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getPingStatus')
     def getPingStatus(self):
         """get the ping status of the box if there is one"""
-        from Products.ZenEvents.ZenEventClasses import PingStatus
+        from Products.ZenEvents.ZenEventClasses import Status_Ping
         dev = self.device()
         if dev:
             dev = dev.primaryAq()
@@ -90,7 +90,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getSnmpStatus')
     def getSnmpStatus(self):
         """get the snmp status of the box if there is one"""
-        from Products.ZenEvents.ZenEventClasses import SnmpStatus
+        from Products.ZenEvents.ZenEventClasses import Status_Snmp
         dev = self.device()
         if dev:
             dev = dev.primaryAq()
@@ -106,7 +106,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getXmlRpcStatus')
     def getXmlRpcStatus(self):
         """get the xmlrpc status of the box if there is one"""
-        from Products.ZenEvents.ZenEventClasses import XmlRpcStatus
+        from Products.ZenEvents.ZenEventClasses import Status_XmlRpc
         dev = self.device()
         if dev:
             dev = dev.primaryAq()

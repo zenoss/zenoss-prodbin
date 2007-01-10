@@ -70,6 +70,7 @@ class MySqlSendEventMixin:
             for field in dedupfields:
                 value = getattr(event, field, "")
                 dedupid.append('%s' % value)
+            dedupid = map(self.escape, dedupid)
             event.dedupid = "|".join(dedupid)
 
         if getattr(event, "message", False):
