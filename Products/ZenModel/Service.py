@@ -52,12 +52,20 @@ class Service(OSComponent, Commandable):
         """
         return self.getAqProperty("zMonitor")
 
+    def getSeverities(self):
+        """Return a list of tuples with the possible severities
+        """
+        return self.ZenEventManager.getSeverities()
 
     def getFailSeverity(self):
         """Return the severity for this service when it fails.
         """
         return self.getAqProperty("zFailSeverity")
 
+    def getFailSeverityString(self):
+        """Return a string representation of zFailSeverity
+        """
+        return self.ZenEventManager.severities[self.getAqProperty("zFailSeverity")]
 
     def setServiceClass(self, name="", description=""):
         """Set the service class based on a dict describing the service.

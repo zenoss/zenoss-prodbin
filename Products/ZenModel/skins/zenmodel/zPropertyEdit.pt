@@ -47,7 +47,7 @@
                 tal:content="pvalue">
             </textarea>        
             </span>
-            <span tal:condition="python: prop=='zEventSeverity'">
+            <span tal:condition="python: prop in 'zEventSeverity zFailSeverity'.split()">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
                 <option tal:repeat="sev serverities"
@@ -63,7 +63,7 @@
                     tal:attributes="value a; selected python:a==pvalue" />
             </select>
             </span>
-            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction'.split()">
+            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split()">
             <input class="tablevalues" type="text" size="40"
                 tal:attributes="value pvalue;name python:prop+':'+ptype"/>
             </span>

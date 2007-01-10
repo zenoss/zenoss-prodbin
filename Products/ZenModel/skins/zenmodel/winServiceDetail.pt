@@ -36,12 +36,17 @@
         </td>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues">
-            <input class="tablevalues" type="text" name="severity:int" 
-                tal:condition="here/isManager"
-                tal:attributes="value here/getFailSeverity"/>
+            <select class="tableheader" name="severity:int"
+                tal:condition="here/isManager">
+                <option tal:repeat="sev here/getSeverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1];
+                        selected python:sev[1] == here.getFailSeverity()" />
+            </select>
             <tal:block tal:condition="not:here/isManager" 
-                tal:content="here/getFailSeverity"/>
+                tal:content="here/getFailSeverityString"/>
         </td>
+    </tr>
     <tr>
         <td class="tableheader">Service Type</td>
         <td class="tablevalues" tal:content="here/serviceType"/>
