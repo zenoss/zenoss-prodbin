@@ -61,8 +61,9 @@ class Select(WhereJavaScript):
     type = 'select'
     def __init__(self, label, options):
         WhereJavaScript.__init__(self, label)
-        if type(options[0]) != type(()):
-            options = zip(range(len(options)), options)
+        if options:
+            if type(options[0]) != type(()):
+                options = zip(range(len(options)), options)
         self.options = options
     def labelFromValue(self, value):
         return dict(self.options).get(value, 'Unknown')
