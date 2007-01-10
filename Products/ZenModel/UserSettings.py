@@ -303,7 +303,7 @@ class UserSettings(ZenModelRM):
     oncallEnd = 0
     escalationMinutes = 0
     dashboardRefresh = 30
-    dashboardTimeout = 10
+    dashboardTimeout = 25
     
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
