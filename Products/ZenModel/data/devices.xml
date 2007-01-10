@@ -71,7 +71,7 @@ ssh
 10.0
 </property>
 <property visible='True' type='float' id='zCommandCommandTimeout' >
-10.0
+15.0
 </property>
 <property visible='True' type='string' id='zCommandExistanceTest' >
 test -f %s
