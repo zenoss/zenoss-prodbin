@@ -121,7 +121,7 @@
     </tr>
     <tr class='tableheader'>
         <td class="tableheader">
-            Default Priority
+            Default Syslog Priority
         </td>
         <td class="tableheader" colspan="2">
             <input class="tablevalues"
