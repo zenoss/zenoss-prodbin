@@ -139,7 +139,11 @@ class Ping(object):
                 data, (host, port) = self.pingsocket.recvfrom(1024)
                 if not data: return
                 ipreply = ip.Packet(data)
-                icmppkt = icmp.Packet(ipreply.data)
+                try:
+                    icmppkt = icmp.Packet(ipreply.data)
+                except ValueError:
+                    plog.debug("checksum failure on packet %r", ipreply.data)
+                    icmppkt = icmp.Packet(ipreply.data, 0)
                 sip =  ipreply.src
                 if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
                     icmppkt.id == self.procId and
