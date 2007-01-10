@@ -13,6 +13,7 @@ import transaction
 import Products.ZenUtils.Version
 from Products.ZenUtils.Version import Version
 from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Status_Update
 import urllib
 import string
 import time
@@ -101,7 +102,7 @@ class UpdateCheck:
                 summary = ('A new version of Zenoss (%s) has been released' % 
                            available.short())
                 zem.sendEvent(Event.Event(device=socket.getfqdn(),
-                                          eventClass='/Status/Update',
+                                          eventClass=Status_Update,
                                           severity=Event.Info,
                                           summary=summary))
         return True

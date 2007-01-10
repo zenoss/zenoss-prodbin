@@ -20,6 +20,7 @@ log = logging.getLogger("zen.ZenTcpClient")
 
 from twisted.internet import reactor, protocol, defer
 from Products.ZenEvents.Event import Event
+from Products.ZenEvents.ZenEventClasses import Status_IpService
 
 hostname = socket.getfqdn()
 
@@ -94,7 +95,7 @@ class ZenTcpClient(protocol.ClientFactory):
                 ipAddress=self.ip, 
                 summary=self.msg, 
                 severity=sev,
-                eventClass="/Status/IpService",
+                eventClass=Status_IpService,
                 eventGroup="TCPTest", 
                 agent="ZenTCP", 
                 manager=hostname)

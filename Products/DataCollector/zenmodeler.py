@@ -19,6 +19,7 @@ from pysnmp.error import PySnmpError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from SnmpSession import SnmpSession, ZenSnmpError
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
@@ -293,7 +294,7 @@ class ZenModeler(ZCmdBase):
             self.log.info("scan time: %0.2f seconds", runTime)
             self.start = None
             if self.options.cycle:
-                evt = dict(eventClass='/Heartbeat',
+                evt = dict(eventClass=Heartbeat,
                            component='zenmodeler',
                            device=socket.getfqdn(),
                            timeout=self.cycletime*3)

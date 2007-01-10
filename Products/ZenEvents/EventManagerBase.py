@@ -44,6 +44,7 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils import Time
+from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 import StringIO
 import csv
 
@@ -517,7 +518,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def getDevicePingIssues(self, state=2, limit=0):
         """Return devices with ping problems.
         """
-        return self.getDeviceIssues(where="eventClass = '/Status/Ping'",
+        return self.getDeviceIssues(where="eventClass = '%'" % Status_Ping,
                                     severity=3,
                                     state=state,
                                     limit=limit)
@@ -526,8 +527,8 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def getWmiConnIssues(self, state=2, limit=0):
         """Return devices with WMI connection failures.
         """
-        where="severity>=3 and (eventClass = '/Status/Wmi/Conn'" \
-                " or eventClass = '/Status/Ping')"
+        where="severity>=3 and (eventClass = '%'" % Status_Wmi_Conn + \
+                " or eventClass = '%s')" % Status_Ping
         return self.getDeviceIssues(where=where,state=state,limit=limit)
         
 

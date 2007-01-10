@@ -8,7 +8,7 @@ import sys
 import socket
 import logging
 
-from Products.ZenEvents.ZenEventClasses import PingStatus
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 from AsyncPing import PingJob
 
 
@@ -24,7 +24,7 @@ log = logging.getLogger("zen.ZenStatus")
 
 def getStatus(device):
     # if there's a down event in the database, it must have failed twice
-    status = device.getStatus(PingStatus)
+    status = device.getStatus(Status_Ping)
     if status == 1:
         status += 2
     return status

@@ -14,6 +14,7 @@ from DateTime import DateTime
 from Products.PageTemplates.Expressions import getEngine
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenRelations.RelSchema import *
+from Products.ZenEvents.ZenEventClasses import Status_Nagios
 
 from ZenModelRM import ZenModelRM
 

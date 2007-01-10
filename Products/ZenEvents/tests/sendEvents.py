@@ -4,10 +4,11 @@ zodb = ZCmdBase(noopts=True)
 zem = zodb.dmd.ZenEventManager
 
 from Products.ZenEvents.Event import Event
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 
 evt = Event()
 evt.device = "gate.confmon.loc"
-evt.eventClass = "PingStatus"
+evt.eventClass = Status_Ping
 evt.summary = "device is down"
 evt.severity = 5
 zem.sendEvent(evt)

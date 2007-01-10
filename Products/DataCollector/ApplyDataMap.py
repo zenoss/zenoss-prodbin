@@ -15,15 +15,12 @@ from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass
 from Exceptions import *
+from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set
 import Products.ZenEvents.Event as Event
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
-
-EVCLASS_ADD = '/Change/Add'
-EVCLASS_REMOVE = '/Change/Remove'
-EVCLASS_SET = '/Change/Set'
 
 class ApplyDataMap(object):
 
@@ -155,7 +152,7 @@ class ApplyDataMap(object):
                     self._createRelObject(device, objmap, rname)
                     changed = True
             elif isinstance(objmap, ZenModelRM):
-                self.logChange(device, EVCLASS_ADD,
+                self.logChange(device, Change_Add,
                             "linking object %s to device %s relation %s" % (
                             objmap.id, device.id, rname))
                 device.addRelation(rname, objmap)
@@ -163,7 +160,7 @@ class ApplyDataMap(object):
             else:
                 log.warn("ignoring objmap no id found")
         for id in relids: 
-            self.logChange(device, EVCLASS_REMOVE,
+            self.logChange(device, Change_Remove,
                             "removing object %s from rel %s on device %s" % (
                             id, rname, device.id))
             rel._delObject(id)
@@ -201,13 +198,13 @@ class ApplyDataMap(object):
                                   "skipping", gettername, obj.id)
                 elif value != getter():
                     setter(value)
-                    self.logChange(device, EVCLASS_SET,
+                    self.logChange(device, Change_Set,
                                 "calling function '%s' with '%s' on "
                                 "object %s" % (attname, value, obj.id))
                     changed = True            
             elif att != value:
                 setattr(aq_base(obj), attname, value) 
-                self.logChange(device, EVCLASS_SET,
+                self.logChange(device, Change_Set,
                                 "set attribute '%s' to '%s' on object '%s'" % (
                                 attname, value, obj.id))
         if not changed:
@@ -236,7 +233,7 @@ class ApplyDataMap(object):
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
-        self.logChange(device, EVCLASS_ADD,
+        self.logChange(device, Change_Add,
                         "adding object %s to relationship %s" % (
                         remoteObj.id, relname))
         self._updateObject(remoteObj, objmap)

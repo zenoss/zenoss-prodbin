@@ -30,6 +30,7 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
 
 from RRDUtil import RRDUtil
 from RRDDaemon import Threshold, ThresholdManager
@@ -214,7 +215,7 @@ class Device:
 
 
 class zenprocess(SnmpDaemon):
-    statusEvent = { 'eventClass' : '/Status/OSProcess',
+    statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
 
     def __init__(self):
@@ -293,7 +294,7 @@ class zenprocess(SnmpDaemon):
     def deviceFailure(self, error, device):
         "Log exception for a single device"
         self.sendEvent(self.statusEvent,
-                       eventClass='/Status/Snmp',
+                       eventClass=Status_Snmp,
                        component="snmp",
                        device=device.name,
                        summary='Unable to read processes on device %s' % device.name,
@@ -315,7 +316,7 @@ class zenprocess(SnmpDaemon):
             device.snmpStatus = 0
             summary = 'Good SNMP response from device %s' % device.name
             self.sendEvent(self.statusEvent,
-                           eventClass='/Status/Snmp',
+                           eventClass=Status_Snmp,
                            component="snmp",
                            device=device.name,
                            summary=summary,

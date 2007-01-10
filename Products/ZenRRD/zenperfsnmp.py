@@ -29,6 +29,7 @@ from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
 
 from RRDUtil import RRDUtil
 from RRDDaemon import Threshold, ThresholdManager
@@ -134,7 +135,7 @@ class Status:
 class SnmpStatus:
     "track and report SNMP status failures"
 
-    snmpStatusEvent = {'eventClass': '/Status/Snmp',
+    snmpStatusEvent = {'eventClass': Status_Snmp,
                        'component': 'snmp',
                        'eventGroup': 'SnmpTest'}
 
@@ -390,7 +391,7 @@ class zenperfsnmp(SnmpDaemon):
         summary = 'Error reading value for "%s" on %s (oid %s is bad)' % (
             name, deviceName, oid)
         self.sendEvent(proxy.snmpStatus.snmpStatusEvent,
-                       eventClass='/Perf/Snmp',
+                       eventClass=Perf_Snmp,
                        device=deviceName,
                        summary=summary,
                        component=name,

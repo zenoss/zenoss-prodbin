@@ -25,8 +25,9 @@ from AsyncPing import Ping
 from TestPing import Ping as TestPing
 import pingtree
 
-from Products.ZenEvents.ZenEventClasses import AppStart, AppStop, DNSFail
-from Products.ZenEvents.ZenEventClasses import PingStatus
+
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
@@ -59,7 +60,7 @@ class ZenPing(ZCmdBase):
 
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=getfqdn(), 
-                               eventClass=AppStart, 
+                               eventClass=App_Start, 
                                summary="zenping started",
                                severity=0,
                                component="zenping"))
@@ -75,7 +76,7 @@ class ZenPing(ZCmdBase):
                     ipAddress=pj.ipaddr, 
                     summary=pj.message, 
                     severity=pj.severity,
-                    eventClass=PingStatus,
+                    eventClass=Status_Ping,
                     eventGroup=self.eventGroup, 
                     agent=self.agent, 
                     component='',
@@ -337,7 +338,7 @@ if __name__=='__main__':
     reactor.run(installSignalHandlers=False)
     pm.log.info("stopping...")
     pm.sendEvent(Event(device=getfqdn(), 
-                       eventClass=AppStop, 
+                       eventClass=App_Stop, 
                        summary="zenping stopped",
                        severity=4, component="zenping"))
     pm.log.info("stopped")

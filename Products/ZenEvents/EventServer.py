@@ -28,7 +28,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from Event import Event, EventHeartbeat
 
-from ZenEventClasses import AppStart, AppStop
+from ZenEventClasses import App_Start, App_Stop
 from twisted.internet import reactor, defer
 
 class Stats:
@@ -63,7 +63,7 @@ class EventServer(ZCmdBase):
         self.stats = Stats()
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=socket.getfqdn(), 
-                               eventClass=AppStart, 
+                               eventClass=App_Start, 
                                summary="%s started" % self.name,
                                severity=0,
                                component=self.name))
@@ -147,7 +147,7 @@ class EventServer(ZCmdBase):
         self.q.put(None)
         self.report()
         self.sendEvent(Event(device=socket.getfqdn(), 
-                             eventClass=AppStop, 
+                             eventClass=App_Stop, 
                              summary="%s stopped" % self.name,
                              severity=4,
                              component=self.name))

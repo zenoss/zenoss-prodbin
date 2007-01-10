@@ -14,7 +14,7 @@ from _mysql_exceptions import OperationalError
 
 import Globals # make zope imports work
 
-from Products.ZenEvents.ZenEventClasses import AppStart, AppStop
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 import ZenTcpClient 
@@ -36,7 +36,7 @@ class ZenStatus(ZCmdBase):
         self.smc = self.dmd.unrestrictedTraverse(self.configpath)
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=AppStart, 
+                        eventClass=App_Start, 
                         summary="zenstatus started",
                         severity=0, component="zenstatus"))
         self.log.info("started")

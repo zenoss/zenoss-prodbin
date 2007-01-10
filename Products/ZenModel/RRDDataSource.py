@@ -26,6 +26,7 @@ from Products.PageTemplates.Expressions import getEngine
 
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenRelations.RelSchema import *
+from Products.ZenEvents.ZenEventClasses import Status_Web
 
 from ZenModelRM import ZenModelRM
 
@@ -287,5 +288,5 @@ class RRDDataSource(ZenModelRM):
                     self.manage_addRRDDataPoint('totalTime')
                 # and eventClass
                 if REQUEST.form.get('eventClass', '/') == '/':
-                    REQUEST.form['eventClass'] = '/Status/Web'
+                    REQUEST.form['eventClass'] = Status_Web
         return ZenModelRM.zmanage_editProperties(self, REQUEST)

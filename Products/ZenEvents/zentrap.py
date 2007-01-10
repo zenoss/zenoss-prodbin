@@ -27,7 +27,7 @@ import Globals
 from EventServer import EventServer
 from Event import Event, EventHeartbeat
 
-from ZenEventClasses import SnmpStatus
+from ZenEventClasses import Status_Snmp
 from Products.ZenModel.IpAddress import findIpAddress
 
 from twisted.internet import reactor

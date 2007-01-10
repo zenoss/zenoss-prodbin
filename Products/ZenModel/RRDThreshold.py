@@ -12,6 +12,7 @@ from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.ZenTales import talesEval
+from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 
 
 def rpneval(value, rpn):
@@ -49,7 +50,7 @@ class RRDThreshold(ZenModelRM):
     dsnames = []
     minval = ""
     maxval = ""
-    eventClass = "/Perf/Snmp"
+    eventClass = Perf_Snmp
     severity = 3
     escalateCount = 0
     enabled = True

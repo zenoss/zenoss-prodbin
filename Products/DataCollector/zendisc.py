@@ -14,7 +14,7 @@ import transaction
 
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.IpUtil import isip
-from Products.ZenEvents.ZenEventClasses import PingStatus
+from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.Event import Event, Info
 from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
@@ -67,7 +67,7 @@ class ZenDisc(ZenModeler):
                 transaction.commit()
                 if not ipobj.device():
                     ips.append(ip)
-                if ipobj.getStatus(PingStatus) > 0:
+                if ipobj.getStatus(Status_Ping) > 0:
                     self.sendEvent(ipobj, sev=0)
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
@@ -76,7 +76,7 @@ class ZenDisc(ZenModeler):
                 if ipobj:
                     if self.options.resetPtr:
                         ipobj.setPtrName()
-                    elif ipobj.getStatus(PingStatus) > pingthresh:
+                    elif ipobj.getStatus(Status_Ping) > pingthresh:
                         net.ipaddresses.removeRelation(ipobj)
                 transaction.commit()
                 self.sendEvent(ipobj)
@@ -99,7 +99,7 @@ class ZenDisc(ZenModeler):
         else: 
             devname = comp = ip
         evt = Event(device=devname,ipAddress=ip,eventKey=ip,
-                    component=comp,eventClass=PingStatus,
+                    component=comp,eventClass=Status_Ping,
                     summary=msg, severity=sev,
                     agent="Discover")
         self.dmd.ZenEventManager.sendEvent(evt)
@@ -147,7 +147,7 @@ class ZenDisc(ZenModeler):
                         component=ip,
                         ipAddress=ip,
                         eventKey=ip,
-                        eventClass="/Status/Snmp",
+                        eventClass=Status_Snmp,
                         summary=str(e),
                         severity=Info,
                         agent="Discover")

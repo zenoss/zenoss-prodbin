@@ -26,7 +26,7 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
-from ZenEventClasses import AppStart, AppStop, HeartbeatStatus
+from ZenEventClasses import App_Start, App_Stop, Heartbeat, Cmd_Ok, Cmd_Fail
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
@@ -61,7 +61,7 @@ class EventCommandProtocol(ProcessProtocol):
         if self.data and code == 0:
             self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
             self.server.sendEvent(Event.Event(device=socket.getfqdn(),
-                                              eventClass="/Cmd/Ok",
+                                              eventClass=Cmd_Ok,
                                               summary=self.data,
                                               severity=Event.Clear,
                                               component="zenactions"))
@@ -77,7 +77,7 @@ class EventCommandProtocol(ProcessProtocol):
                                   self.cmd.id, code, self.error)
             summary="Error running: %s: %s" % (self.cmd.id, self.error)
         self.server.sendEvent(Event.Event(device=socket.getfqdn(),
-                                          eventClass="/Cmd/Fail",
+                                          eventClass=Cmd_Fail,
                                           summary=summary,
                                           severity=Event.Error,
                                           component="zenactions"))
@@ -132,7 +132,7 @@ class ZenActions(ZCmdBase):
             self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
         self.updateCheck = UpdateCheck()
         self.sendEvent(Event.Event(device=socket.getfqdn(), 
-                        eventClass=AppStart, 
+                        eventClass=App_Start, 
                         summary="zenactions started",
                         severity=0, component="zenactions"))
 
@@ -283,7 +283,7 @@ class ZenActions(ZCmdBase):
         """
         # build cache of existing heartbeat issues
         q = ("SELECT device, component "
-             "FROM status WHERE eventClass = '%s'" % HeartbeatStatus)
+             "FROM status WHERE eventClass = '%s'" % Heartbeat)
         heartbeatState = Set(self.query(db, q))
            
         # find current heartbeat failures
@@ -292,7 +292,7 @@ class ZenActions(ZCmdBase):
         for device, comp in self.query(db, sel):
             self.sendEvent(
                 Event.Event(device=device, component=comp,
-                            eventClass=HeartbeatStatus, 
+                            eventClass=Heartbeat, 
                             summary="%s %s heartbeat failure" % (device, comp),
                             severity=Event.Error))
             heartbeatState.discard((device, comp))
@@ -301,7 +301,7 @@ class ZenActions(ZCmdBase):
         for device, comp in heartbeatState:
             self.sendEvent(
                 Event.Event(device=device, component=comp, 
-                            eventClass=HeartbeatStatus, 
+                            eventClass=Heartbeat, 
                             summary="%s %s heartbeat clear" % (device, comp),
                             severity=Event.Clear))
 
@@ -397,7 +397,7 @@ class ZenActions(ZCmdBase):
         self.running = False
         self.log.info("stopping")
         self.sendEvent(Event.Event(device=socket.getfqdn(), 
-                        eventClass=AppStop, 
+                        eventClass=App_Stop, 
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))
 

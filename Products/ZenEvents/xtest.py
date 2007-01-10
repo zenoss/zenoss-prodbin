@@ -16,6 +16,7 @@ from Products.ZenUtils.CmdBase import CmdBase
 import xmlrpclib
 import time
 import sys
+from Products.ZenEvents.ZenEventClasses import Status_Perf
 
 # Input files must be in python format and contain a list named 'events'
 # that contains one dictionary per test event.
@@ -45,7 +46,7 @@ class XTest(CmdBase):
     # Sample event and corresponding clear event used by several methods.
     sampleEvent = dict(device='Sample device',
                         summary='Test event at %s' % time.time(),
-			eventClass='/Status/Perf',
+			eventClass=Status_Perf,
                         severity=4,
                         component='Sample component')
     sampleClear = sampleEvent.copy()

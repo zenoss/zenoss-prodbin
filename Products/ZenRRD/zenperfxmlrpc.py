@@ -30,6 +30,7 @@ from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Status_XmlRpc, Perf_XmlRpc
 
 from RRDUtil import RRDUtil
 from RRDDaemon import RRDDaemon, Threshold
@@ -118,7 +119,7 @@ class Status:
 class XmlRpcStatus:
     "track and report XMLRPC status failures"
 
-    xmlRpcStatusEvent = {'eventClass': '/Status/XmlRpc',
+    xmlRpcStatusEvent = {'eventClass': Status_XmlRpc,
                        'component': 'xmlrpc',
                        'eventGroup': 'XmlRpcTest'}
 
@@ -194,7 +195,7 @@ class zenperfxmlrpc(RRDDaemon):
         "Send the right event class for threshhold events"
         '''TODO /Perf/Snmp does not load as a filter in the GUI either. 
            Need to ask edahl about this.'''
-        kw.setdefault('eventClass', '/Perf/XmlRpc')
+        kw.setdefault('eventClass', Perf_XmlRpc)
         RRDDaemon.sendThresholdEvent(self, **kw)
 
     def setPropertyItems(self, items):

@@ -2,6 +2,8 @@ import time
 
 from Globals import InitializeClass
 from Products.ZenUtils import Map
+from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
+from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 
 from AccessControl import ClassSecurityInfo
 
@@ -65,7 +67,7 @@ class Report:
     def __init__(self,
                  startDate = None,
                  endDate = None,
-                 eventClass='/Status/Ping',
+                 eventClass=Status_Ping,
                  severity=5,
                  device=None,
                  component=''):
@@ -172,23 +174,23 @@ if __name__ == '__main__':
     start = time.time() - 60*60*24*30
     # r.component = 'snmp'
     r.component = None
-    r.eventClass = '/Status/Snmp'
+    r.eventClass = Status_Snmp
     r.severity = 3
     from Products.ZenUtils.ZCmdBase import ZCmdBase
     z = ZCmdBase()
     pprint.pprint(r.run(z.dmd))
-    a = query(z.dmd, start, device='gate.zenoss.loc', eventClass='/Status/Ping')
+    a = query(z.dmd, start, device='gate.zenoss.loc', eventClass=Status_Ping)
     assert 0 <= float(a[0]) <= 1.
-    b = query(z.dmd, start, device='gate.zenoss.loc', eventClass='/Status/Ping')
+    b = query(z.dmd, start, device='gate.zenoss.loc', eventClass=Status_Ping)
     assert a == b
     assert id(a) == id(b)
     pprint.pprint(r.run(z.dmd))
     r.component = 'httpd'
-    r.eventClass = '/Status/OSProcess'
+    r.eventClass = Status_OSProcess
     r.severity = 4
     pprint.pprint(r.run(z.dmd))
     r.device = 'gate.zenoss.loc'
     r.component = ''
-    r.eventClass = '/Status/Ping'
+    r.eventClass = Status_Ping
     r.severity = 4
     pprint.pprint(r.run(z.dmd))

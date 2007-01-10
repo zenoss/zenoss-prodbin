@@ -19,6 +19,10 @@ status
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
+<object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -1570,6 +1574,8 @@ Power supply #2 has failed.
 </object>
 <object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='CPU' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

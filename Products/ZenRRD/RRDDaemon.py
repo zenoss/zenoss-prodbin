@@ -18,6 +18,8 @@ import socket
 
 import Globals
 from Products.ZenEvents import Event
+from Products.ZenEvents.ZenEventClasses import Perf_Snmp, App_Start, App_Stop
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
 
@@ -42,7 +44,7 @@ class Threshold:
     label = ''
     minimum = None
     maximum = None
-    eventClass = "/Perf/Snmp"
+    eventClass = Perf_Snmp
     severity = Event.Info
     escalateCount = 0
 
@@ -133,13 +135,13 @@ class FakeProxy:
 class RRDDaemon(Base):
     'Holds the code common to performance gathering daemons.'
 
-    startevt = {'eventClass':'/App/Start', 
+    startevt = {'eventClass':App_Start, 
                 'summary': 'started',
                 'severity': Event.Clear}
-    stopevt = {'eventClass':'/App/Stop', 
+    stopevt = {'eventClass':App_Stop, 
                'summary': 'stopped',
                'severity': BAD_SEVERITY}
-    heartbeatevt = {'eventClass':'/Heartbeat'}
+    heartbeatevt = {'eventClass':Heartbeat}
     
     agent = None
     properties = ('configCycleInterval',)
