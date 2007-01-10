@@ -518,7 +518,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def getDevicePingIssues(self, state=2, limit=0):
         """Return devices with ping problems.
         """
-        return self.getDeviceIssues(where="eventClass = '%'" % Status_Ping,
+        return self.getDeviceIssues(where="eventClass = '%s'" % Status_Ping,
                                     severity=3,
                                     state=state,
                                     limit=limit)
@@ -527,8 +527,8 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def getWmiConnIssues(self, state=2, limit=0):
         """Return devices with WMI connection failures.
         """
-        where="severity>=3 and (eventClass = '%s'" % Status_Wmi_Conn + \
-                " or eventClass = '%s')" % Status_Ping
+        where="severity>=3 and (eventClass = '%s' or eventClass = '%s')" % (
+								Status_Wmi_Conn, Status_Ping)
         return self.getDeviceIssues(where=where,state=state,limit=limit)
         
 
