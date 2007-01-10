@@ -41,12 +41,11 @@ class RRDView(object):
             graph = template.graphs._getOb(graph)
         targetpath = self.rrdPath()
         objpaq = self.primaryAq()
-        perfServer = objpaq.getPerformanceServer()
+        perfServer = objpaq.device().getPerformanceServer()
         if perfServer:
             return perfServer.performanceGraphUrl(objpaq, targetpath, 
                                                   template, graph, drange)
 
-    
     def cacheRRDValue(self, dsname, default = "Unknown"):
         "read an RRDValue with and cache it"
         filename = self.getRRDFileName(dsname)
@@ -105,7 +104,7 @@ class RRDView(object):
                 gopts.append("--start=%d" % start)
                 if end:
                     gopts.append("--end=%d" % end)
-            perfServer = self.getPerformanceServer()
+            perfServer = self.device().getPerformanceServer()
             if perfServer:
                 vals = perfServer.performanceCustomSummary(gopts)
                 if vals is None:
@@ -149,7 +148,7 @@ class RRDView(object):
             gopts.append("PRINT:agg:%.2lf")
             gopts.append("--start=%d" % start)
             gopts.append("--end=%d" % end)
-            perfServer = self.getPerformanceServer()
+            perfServer = self.device().getPerformanceServer()
             if perfServer:
                 vals = perfServer.performanceCustomSummary(gopts)
                 if vals is None:
