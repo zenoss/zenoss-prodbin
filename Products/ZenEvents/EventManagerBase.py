@@ -611,7 +611,8 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
         try:
-            kw.setdefault('severity', self.severities.index(state.severity))
+            kw.setdefault('severity', 
+                        dict(self.severityConversions)[state.severity])
         except (ValueError, KeyError):
             pass
         for name in "startDate", "endDate":

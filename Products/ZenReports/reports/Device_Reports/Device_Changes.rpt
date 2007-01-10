@@ -4,6 +4,10 @@
 	tableName string: devicechangesreport;
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
             sortedHeader='getLastChange',sortedSence='desc');
+	exportFields python:[('id', 'Name'),
+						('getCreatedTimeString', 'FirstSeen'),
+						('getSnmpLastCollectionString', 'Collection'),
+						('getLastChangeString', 'Change')];
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
@@ -42,7 +46,7 @@
     </tr>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>
 </table>

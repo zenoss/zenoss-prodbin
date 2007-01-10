@@ -22,6 +22,7 @@ for d in dmd.Devices.getSubDevices():
                                         mount=f.mount,
                                         usedBytes=used,
                                         availableBytes=available,
-                                        percentFull=percent))
+                                        percentFull=percent,
+                                        totalBytes=f.totalBytes()))
 
 Plugin.pprint(report, globals())

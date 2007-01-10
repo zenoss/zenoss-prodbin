@@ -1,3 +1,27 @@
+<tal:block tal:define="
+	tableName string:availability;
+	tm here/ZenTableManager;
+	zem python:here.dmd.ZenEventManager;
+	sts python:tm.setReqTableState;
+	startDate python:sts(tableName, 'startDate', 
+	                     zem.defaultAvailabilityStart());
+	endDate python:sts(tableName, 'endDate', 
+	                     zem.defaultAvailabilityEnd());
+	eventClass python:sts(tableName, 'eventClass', '/Perf/Snmp');
+
+	objects python:here.ReportServer.plugin('threshold', here.REQUEST);
+    objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+	tableName string: thresholdsummaryreport;
+	batch python:here.ZenTableManager.getBatch(tableName,
+	                                           objects,
+	                                           sortedHeader='seconds', 
+	                                           sortedSence='desc');
+    exportFields python:['device', 'componentName', 'eventClassName', 
+						'count', 'duration', 'percentTime'];
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadCrumbPane">
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
@@ -8,29 +32,8 @@
         src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 
-<form id="thesholdSummaryForm" 
-      tal:define="
-      tableName string:availability;
-      tm here/ZenTableManager;
-      zem python:here.dmd.ZenEventManager;
-      sts python:tm.setReqTableState;
-      startDate python:sts(tableName, 'startDate', 
-                           zem.defaultAvailabilityStart());
-      endDate python:sts(tableName, 'endDate', 
-                           zem.defaultAvailabilityEnd());
-      eventClass python:sts(tableName, 'eventClass', '/Perf/Snmp');
-      "
-      method="submit"
->
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
-    objects python:here.ReportServer.plugin('threshold', here.REQUEST);
-    tableName string: thresholdsummaryreport;
-    batch python:here.ZenTableManager.getBatch(tableName,
-                                               objects,
-                                               sortedHeader='seconds', 
-                                               sortedSence='desc');
-    ">
+<form id="thesholdSummaryForm" method="submit">
+<table class="zentable" cellpadding="3" cellspacing="1">
     <colgroup>
        <col/>
        <col width='30'/>
@@ -106,5 +109,9 @@
     </tr>
 </table>
 </form>
+</tal:block>
+</tal:block>
+
+</tal:block>
 </tal:block>
 </tal:block>

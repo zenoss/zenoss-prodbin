@@ -42,7 +42,7 @@
              tal:attributes="href obj/filesystem/getPrimaryUrlPath"/>
       </td>
       <td class="tablevalues"
-        tal:content="python:obj.humanBytes(obj.filesystem.totalBytes())"/>
+        tal:content="python:obj.humanBytes(obj.totalBytes)"/>
       <td class="tablevalues"
         tal:content="python:obj.humanBytes(obj.usedBytes)"/>
       <td class="tablevalues"
