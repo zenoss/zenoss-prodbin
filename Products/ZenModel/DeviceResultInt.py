@@ -79,9 +79,9 @@ class DeviceResultInt:
             dev = dev.primaryAq()
             if (dev.monitorDevice() and 
                 not getattr(dev, 'zPingMonitorIgnore', False)):
-                return dev.getStatus(PingStatus)
+                return dev.getStatus(Status_Ping)
         else:
-            return self.getStatus(PingStatus)
+            return self.getStatus(Status_Ping)
         return -1
     security.declareProtected('View', 'getPingStatusNumber')
     getPingStatusNumber = getPingStatus
