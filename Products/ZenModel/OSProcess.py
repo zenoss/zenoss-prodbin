@@ -78,7 +78,7 @@ class OSProcess(OSComponent, Commandable):
         except RRDObjectNotFound, e:
             log.warn(e)
         return (self.id, self.name(), self.osProcessClass().ignoreParameters,
-                self.alertOnRestart(), self.failSeverity(),
+                self.alertOnRestart(), self.getFailSeverity(),
                 self.getStatus(), thresholds)
 
 
@@ -129,10 +129,20 @@ class OSProcess(OSComponent, Commandable):
         return self.getAqProperty("zAlertOnRestart")
 
 
-    def failSeverity(self):
+    def getSeverities(self):
+        """Return a list of tuples with the possible severities
+        """
+        return self.ZenEventManager.getSeverities()
+
+    def getFailSeverity(self):
         """Return the severity for this service when it fails.
         """
         return self.getAqProperty("zFailSeverity")
+
+    def getFailSeverityString(self):
+        """Return a string representation of zFailSeverity
+        """
+        return self.ZenEventManager.severities[self.getAqProperty("zFailSeverity")]
 
 
     def getClassObject(self):
