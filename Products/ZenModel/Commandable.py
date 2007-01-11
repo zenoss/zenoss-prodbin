@@ -37,7 +37,7 @@ class Commandable:
     security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'manage_addUserCommand')
-    def manage_addUserCommand(self, newId=None, REQUEST=None):
+    def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
         uc = None
         if newId:
@@ -45,6 +45,8 @@ class Commandable:
             self.userCommands._setObject(newId, uc)
             if self.meta_type == 'Device':
                 self.setLastChange()
+            uc.description = desc
+            uc.command = cmd
         if REQUEST:
             if uc:
                 REQUEST['message'] = "Command Added"
@@ -52,6 +54,7 @@ class Commandable:
                 #url = uc.getPrimaryUrlPath()
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
+        return uc
 
          
     security.declareProtected('Change Device', 'manage_deleteUserCommand')

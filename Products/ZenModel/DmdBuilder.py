@@ -117,7 +117,13 @@ class DmdBuilder:
         crk.renderurl = "/zport/RenderServer"
         manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
+    def buildUserCommands(self):
+        for id, cmd in (
+                ('ping', 'ping -c2'),
+                ('traceroute', 'traceroute -q1 -w2')):
+            self.dmd.manage_addUserCommand(id, cmd=cmd)
 
+        
     def addroots(self, base, rlist, classType=None, isInTree=False):
         for rname in rlist:
             ctype = classType or rname
@@ -133,6 +139,7 @@ class DmdBuilder:
     def build(self):
         self.buildRoots()
         self.buildMonitors()
+        self.buildUserCommands()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
@@ -147,4 +154,3 @@ class DmdBuilder:
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
-                                    

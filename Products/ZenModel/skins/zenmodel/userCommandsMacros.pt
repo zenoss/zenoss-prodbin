@@ -19,6 +19,8 @@
                     tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Description')"/>
+			        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+			                    tableName,'role','Command')"/>
   </tr>
     <tal:block tal:repeat="uc batch">
   <tr tal:define="odd repeat/uc/odd"
@@ -34,6 +36,9 @@
     </td>
     <td class="tablevalues" align="left"
         tal:content="uc/description">
+    </td>
+    <td class="tablevalues" align="left"
+        tal:content="uc/command">
     </td>
   </tr>
   </tal:block>

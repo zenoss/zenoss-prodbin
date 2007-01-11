@@ -7,10 +7,12 @@
 __doc__='''
 
 Add usercommands to all device organizers, OsProcesses, Services, etc
+Add some built-in commands
 
 $Id:$
 '''
 import Migrate
+from Products.ZenModel.UserCommand import UserCommand
 
 class UserCommands(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
@@ -39,12 +41,13 @@ class UserCommands(Migrate.Step):
                 if name == 'Processes':
                     for pc in o.osProcessClasses():
                         pc.buildRelations()
-    # when walking devices also to winserv ipserv and processes
-    # then when walking processes/services hit the classes but not the
-    # instances of the services
-                
-        #for us in dmd.ZenUsers.getAllUserSettings():
-        #    us.buildRelations()
 
+        # Add built-in commands
+        commands = (('ping', 'ping -c2'),
+                    ('traceroute', 'traceroute -q1 -w2'),)
+        commands = [c for c in commands 
+                    if c[0] not in [d.id for d in dmd.userCommands()]]
+        for id,cmd in commands:
+            dmd.manage_addUserCommand(id, cmd=cmd)
 
 UserCommands()
