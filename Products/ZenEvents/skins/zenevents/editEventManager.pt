@@ -100,7 +100,7 @@
             Don't Age This Severity and Above
         </td>
         <td class="tableheader" colspan="2">
-            <select class="tableheader" name="eventAgingSeverity:int">
+            <select class="tablevalues" name="eventAgingSeverity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];

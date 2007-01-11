@@ -46,7 +46,7 @@
                 Severity
             </td>
             <td class="tablevalues" align="left">
-                <select class="tableheader" name="severity:int">
+                <select class="tablevalues" name="severity:int">
                     <option tal:repeat="sev here/getSeverities"
                         tal:content="python:sev[0]"
                         tal:attributes="value python:sev[1]" />
@@ -59,7 +59,7 @@
                 Event Class
             </td>
             <td class="tablevalues" align="left">
-                <select class="tableheader" name="eclass">
+                <select class="tablevalues" name="eclass">
                     <option 
                         tal:repeat="eclass here/dmd/Events/getOrganizerNames"
                         tal:content="eclass"
