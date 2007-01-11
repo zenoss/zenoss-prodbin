@@ -85,6 +85,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
+        {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Device","perfServer")),
