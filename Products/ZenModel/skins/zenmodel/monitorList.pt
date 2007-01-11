@@ -28,7 +28,8 @@
     <tr tal:define="odd repeat/mon/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
-        <input tal:condition="here/isManager" 
+        <input tal:condition="python: here.isManager and
+                                    here.id!='Monitors'" 
                type="checkbox" name="ids:list" 
                tal:attributes="value mon/id"/>
         <a tal:attributes="href mon/getPrimaryUrlPath" 
@@ -41,7 +42,8 @@
                                             '%Y/%m/%d %H:%M:%S')"/>
     </tr>
     </tal:block>
-    <tr tal:condition="here/isManager">
+    <tr tal:condition="python: here.isManager and
+                                here.id!='Monitors'">
     <td class="tableheader" colspan="3">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
