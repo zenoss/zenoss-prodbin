@@ -17,37 +17,45 @@
     <tr>
         <td class="tableheader" width="25%">Default Result Fields</td>
         <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="7" cols="40"
-                name="defaultResultFields:lines" 
-                tal:content='python: "\n".join(here.defaultResultFields)'>
-            </textarea>
+            <select multiple size=10 class="tablevalues" name="defaultResultFields:lines">
+                <option tal:repeat="field here/getFieldList"
+                    tal:content="python:field"
+                    tal:attributes="value python:field;
+                        selected python:field in here.defaultResultFields" />
+            </select>
         </td>
     </tr>
     <tr>
         <td class="tableheader">Device Result Fields</td>
         <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="7" cols="40"
-                name="DeviceResultFields:lines" 
-                tal:content='python: "\n".join(here.DeviceResultFields)'>
-            </textarea>
+            <select multiple size=10 class="tablevalues" name="DeviceResultFields:lines">
+                <option tal:repeat="field here/getFieldList"
+                    tal:content="python:field"
+                    tal:attributes="value python:field;
+                        selected python:field in here.DeviceResultFields" />
+            </select>
         </td>
     </tr>
     <tr>
         <td class="tableheader">Default Event Id</td>
         <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="40"
-                name="defaultEventId:lines" 
-                tal:content='python: "\n".join(here.defaultEventId)'>
-            </textarea>
+            <select multiple size=10 class="tablevalues" name="defaultEventId:lines">
+                <option tal:repeat="field here/getFieldList"
+                    tal:content="python:field"
+                    tal:attributes="value python:field;
+                        selected python:field in here.defaultEventId" />
+            </select>
         </td>
     </tr>
-    <tr>
+    <tr>Å
         <td class="tableheader">Required Fields</td>
         <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="40"
-                name="requiredEventFields:lines" 
-                tal:content='python: "\n".join(here.requiredEventFields)'>
-            </textarea>
+            <select multiple size=10 class="tablevalues" name="requiredEventFields:lines">
+                <option tal:repeat="field here/getFieldList"
+                    tal:content="python:field"
+                    tal:attributes="value python:field;
+                        selected python:field in here.requiredEventFields" />
+            </select>
         </td>
     </tr>
     <tr>
