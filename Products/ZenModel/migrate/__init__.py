@@ -62,3 +62,4 @@ import keypath
 import maxoids
 import betterstandarderrormessage
 import event_newclasses
+import defaultcommandtimeout
