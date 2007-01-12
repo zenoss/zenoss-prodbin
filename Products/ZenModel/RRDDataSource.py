@@ -26,7 +26,7 @@ from Products.PageTemplates.Expressions import getEngine
 
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenRelations.RelSchema import *
-from Products.ZenEvents.ZenEventClasses import Status_Web
+from Products.ZenEvents.ZenEventClasses import Status_Web, Cmd_Fail
 
 from ZenModelRM import ZenModelRM
 
@@ -272,6 +272,9 @@ class RRDDataSource(ZenModelRM):
                 REQUEST.form['oid'] = checkOid(oid)
             # convert recording to twill-sh commands; there's no need to save
             # the TestGen4Web XML file in the ZODB
+            if REQUEST.get('sourcetype') == 'COMMAND':
+                if REQUEST.form.get('eventClass', '/') == '/':
+                    REQUEST.form['eventClass'] = Cmd_Fail
             recording = REQUEST.get('recording')
             if recording:
                 from testgen import twillshell
