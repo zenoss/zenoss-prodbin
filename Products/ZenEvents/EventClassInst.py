@@ -30,9 +30,6 @@ class EventClassPropertyMixin(object):
 
     def applyValues(self, evt):
         """Modify event with values taken from dict Inst.
-        Apply event properties from EventClass.  List of property names is
-        looked for in zProperty 'zEventProperties'. These properties are 
-        looked up using the key 'zEvent_'+prop name (to prevent name clashes). 
         Any non-None property values are applied to the event.
         """
         evt._clearClasses = copy.copy(getattr(self, "zEventClearClasses", []))
@@ -179,9 +176,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
 
     def applyValues(self, evt):
         """Modify event with values taken from dict Inst.
-        Apply event properties from EventClass.  List of property names is
-        looked for in zProperty 'zEventProperties'. These properties are 
-        looked up using the key 'zEvent_'+prop name (to prevent name clashes). 
         Any non-None property values are applied to the event.
         """
         evt.eventClass = self.getEventClass()

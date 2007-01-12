@@ -171,10 +171,7 @@ class MySqlSendEventMixin:
 
     def applyDeviceContext(self, device, evt):
         """
-        Apply event attributes from device context.  List of attribute names is
-        looked for in zProperty 'zEventProperties'. These attributes are 
-        looked up using the key 'zEvent_'+attr name (to prevent name clashes). 
-        Any non-None attribute values are applied to the event.
+        Apply event attributes from device context.
         """
         evt.prodState = device.productionState
         evt.Location = device.getLocationName()
