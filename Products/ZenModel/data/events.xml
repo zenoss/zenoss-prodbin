@@ -7,9 +7,6 @@ status
 <property select_variable="-1" visible="True" type="int" id="zEventSeverity" >
 -1
 </property>
-<property visible="True" type="lines" id="zEventProperties" >
-['severity']
-</property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
@@ -954,9 +951,6 @@ Could not scan 492 files inside D:\Symantec SMTP 4.x\Symantec_Mail_Security_for_
 </object>
 </object>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property visible="True" type="lines" id="zEventProperties" >
-['timeout']
-</property>
 <property visible="True" type="None" id="zEvent_timeout" >
 1400
 </property>
