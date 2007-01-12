@@ -70,11 +70,14 @@ class ZenModeler(ZCmdBase):
     def loadPlugins(self):
         """Load plugins from the plugin directory.
         """
-        for key in filter(lambda x: x.startswith("plugins"), sys.modules):
+        plugins = filter(lambda x: x.startswith("plugins"), sys.modules)
+        for key in ['zenoss'] + plugins:
             self.log.debug("clearing plugin %s", key)
             del sys.modules[key]
         pdir = os.path.join(os.path.dirname(__file__),"plugins")
-        sys.path.append(pdir)
+        if pdir in sys.path:
+            sys.path.remove(pdir)
+        sys.path.insert(0, pdir)
         lpdir = len(pdir)+1
         self.log.info("loading collector plugins from:%s", pdir)
         for path, dirname, filenames in os.walk(pdir):
