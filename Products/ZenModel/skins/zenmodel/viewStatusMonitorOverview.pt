@@ -1,4 +1,13 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="breadCrumbPane">
+<div id="breadCrumbPane">
+    <span tal:define="crumbinfo here/breadCrumbs"
+          tal:repeat="crumb python:[crumbinfo[0],crumbinfo[-1]]" tal:omit-tag="">
+        /<a href="_" tal:attributes="href python:crumb[0]"
+            tal:content="python: crumb[1]">link</a>
+    </span>
+</div>
+</tal:block>
 <tal:block metal:fill-slot="contentPane">
 
 <table class="zentable" cellpadding="3" cellspacing="1">

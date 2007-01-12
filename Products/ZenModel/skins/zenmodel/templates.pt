@@ -47,7 +47,9 @@
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
         <tal:block metal:fill-slot="rightPane">
+            <tal:block metal:define-slot="breadCrumbPane">
             <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+            </tal:block>
             <div metal:use-macro="here/templates/macros/tabsPane"/>
             <div id="contentPane">
                 <tal:block metal:define-slot="contentPane">

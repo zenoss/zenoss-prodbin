@@ -1,11 +1,20 @@
 <tal:block metal:use-macro="here/templates/macros/page3">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" 
+    tal:repeat="submonitor here/objectSubValues"
+    tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="submon"
+    tal:attributes="value submonitor/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1" 
-    tal:define="objects python:here.objectSubValues();
+    tal:define="objects python:submonitor.objectSubValues();
     tableName string:monitorlist;
+    submonname python:test(submonitor.id=='Performance',
+                'Performance Monitors', 'Status Monitors');
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<tr>
+<th class="tabletitle" colspan="3" tal:content="submonname"/>
+</tr>
     <tr tal:condition="batch">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp',
@@ -28,8 +37,7 @@
     <tr tal:define="odd repeat/mon/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" colspan="1" bgcolor="#ffffff">
-        <input tal:condition="python: here.isManager and
-                                    here.id!='Monitors'" 
+        <input tal:condition="here/isManager"
                type="checkbox" name="ids:list" 
                tal:attributes="value mon/id"/>
         <a tal:attributes="href mon/getPrimaryUrlPath" 
@@ -42,8 +50,7 @@
                                             '%Y/%m/%d %H:%M:%S')"/>
     </tr>
     </tal:block>
-    <tr tal:condition="python: here.isManager and
-                                here.id!='Monitors'">
+    <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
         <input class="tableheader" type="text" name="id"/>
         <input class="tableheader" type="submit" 
@@ -58,6 +65,7 @@
     </td>
     </tr>
 </table>
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
 </form>
 
 </tal:block>

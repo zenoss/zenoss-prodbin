@@ -112,23 +112,25 @@ class MonitorClass(ZenModelRM, Folder):
         return retdata
 
 
-    def manage_removeMonitor(self, ids = None, REQUEST=None):
+    def manage_removeMonitor(self, ids = None, submon = None, REQUEST=None):
         'Add an object of sub_class, from a module of the same name'
+        child = self._getOb(submon) or self
         if ids:
             for id in ids:
-                if self.hasObject(id):
-                    self._delObject(id)
+                if child.hasObject(id):
+                    child._delObject(id)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
-    def manage_addMonitor(self, id, REQUEST=None):
+    def manage_addMonitor(self, id, submon=None, REQUEST=None):
         'Remove an object from this one'
         values = {}
-        exec('from Products.ZenModel.%s import %s' % (self.sub_class,
-                                                      self.sub_class), values)
-        ctor = values[self.sub_class]
-        if id: self._setObject(id, ctor(id))
+        child = self._getOb(submon) or self
+        exec('from Products.ZenModel.%s import %s' % (child.sub_class,
+                                                      child.sub_class), values)
+        ctor = values[child.sub_class]
+        if id: child._setObject(id, ctor(id))
         if REQUEST: return self.callZenScreen(REQUEST)
 
 InitializeClass(MonitorClass)
