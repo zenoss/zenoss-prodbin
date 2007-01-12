@@ -32,7 +32,7 @@ def convert(evt):
 
 
 class EvtProps(Migrate.Step):
-    version = Migrate.Version(0, 20, 0)
+    version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
         for evt in dmd.Events.getSubEventClasses():
