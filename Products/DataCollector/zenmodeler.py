@@ -73,7 +73,7 @@ class ZenModeler(ZCmdBase):
         plugins = filter(lambda x: x.startswith("plugins"), sys.modules)
         for key in ['zenoss'] + plugins:
             self.log.debug("clearing plugin %s", key)
-            del sys.modules[key]
+            if sys.modules.has_key(key): del sys.modules[key]
         pdir = os.path.join(os.path.dirname(__file__),"plugins")
         if pdir in sys.path:
             sys.path.remove(pdir)
