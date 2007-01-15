@@ -53,9 +53,12 @@
 <tr>
 <td class="tableheader">Result Fields</td>
 <td class="tablevalues">
-    <textarea class="tablevalues" rows="7" cols="20" name="resultFields:lines"
-        tal:content="python:'\n'.join(here.getResultFields())">
-    </textarea>
+    <select multiple size=10 class="tablevalues" name="resultFields:list">
+         <option tal:repeat="field here/ZenEventManager/getFieldList"
+             tal:content="python:field"
+             tal:attributes="value python:field;
+                 selected python:field in here.getResultFields()" />
+     </select>
 </td>
 </tr>
 <tr>

@@ -16,7 +16,7 @@
     <tr>
         <td class="tableheader" width="25%">Default Result Fields</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="defaultResultFields:lines">
+            <select multiple size=10 class="tablevalues" name="defaultResultFields:list">
                 <option tal:repeat="field here/getFieldList"
                     tal:content="python:field"
                     tal:attributes="value python:field;
@@ -27,7 +27,7 @@
     <tr>
         <td class="tableheader">Device Result Fields</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="DeviceResultFields:lines">
+            <select multiple size=10 class="tablevalues" name="DeviceResultFields:list">
                 <option tal:repeat="field here/getFieldList"
                     tal:content="python:field"
                     tal:attributes="value python:field;
@@ -38,7 +38,7 @@
     <tr>
         <td class="tableheader">Default Event Id</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="defaultEventId:lines">
+            <select multiple size=10 class="tablevalues" name="defaultEventId:list">
                 <option tal:repeat="field here/getFieldList"
                     tal:content="python:field"
                     tal:attributes="value python:field;
@@ -49,7 +49,7 @@
     <tr>
         <td class="tableheader">Required Fields</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="requiredEventFields:lines">
+            <select multiple size=10 class="tablevalues" name="requiredEventFields:list">
                 <option tal:repeat="field here/getFieldList"
                     tal:content="python:field"
                     tal:attributes="value python:field;
