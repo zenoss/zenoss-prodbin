@@ -15,13 +15,16 @@ else
 fi
 
 # Create the database
-echo "creating database"
+echo "creating database" >&2
 mysql -u $1 --password=$2 << EOF
 	CREATE DATABASE IF NOT EXISTS $3;
 EOF
+
 # Load schema
-echo "loading schema"
+echo "loading schema" >&2
 mysql -u $1 --password=$2 $3 < zenevents.sql
+
 # Load stored procedures
-echo "loading stored procedures"
+echo "loading stored procedures" >&2
 mysql -u $1 --password=$2 $3 < zenprocs.sql
+echo "events database created and loaded" >&2
