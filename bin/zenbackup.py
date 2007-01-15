@@ -12,6 +12,7 @@ Creates backup of zope data files, zenoss conf files and the events database.
 
 import Globals
 from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 import sys
 import os
 import os.path
@@ -31,6 +32,7 @@ class ZenBackup(CmdBase):
 
 
     def __init__(self, noopts=0):
+        self.z = ZCmdBase(noopts=True)
         CmdBase.__init__(self, noopts)
         self.zenhome = os.getenv('ZENHOME')
 
@@ -58,17 +60,20 @@ class ZenBackup(CmdBase):
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
+
+        em = self.z.dmd.ZenEventManager
+
         self.parser.add_option('--dbname',
                                dest='dbname',
-                               default='events',
+                               default=getattr(em, 'database', 'events'),
                                help='MySQL events database name')
         self.parser.add_option('--dbuser',
                                dest='dbuser',
-                               default='root',
+                               default=getattr(em, 'username', 'root'),
                                help='MySQL username')
         self.parser.add_option('--dbpass',
                                dest='dbpass',
-                               default=None,
+                               default=getattr(em, 'password', None),
                                help='MySQL password (if not specified then'
                                     ' you may be prompted'
                                     ' during the backup/restore')
@@ -299,5 +304,3 @@ if __name__ == '__main__':
         else:
             # Perform backup
             zb.makeBackup()
-        
-        
