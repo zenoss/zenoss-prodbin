@@ -5,7 +5,7 @@
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="props here/zenPropertyIds; serverities /here/dmd/ZenEventManager/getSeverities; actions /here/dmd/ZenEventManager/getEventActions">
+    tal:define="props here/zenPropertyIds">
     <tr>
       <th class="tabletitle" colspan="4">
       zProperties Configuration
@@ -47,10 +47,18 @@
                 tal:content="pvalue">
             </textarea>        
             </span>
-            <span tal:condition="python: prop in 'zEventSeverity zFailSeverity'.split()">
+            <span tal:condition="python: prop=='zEventSeverity'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
-                <option tal:repeat="sev serverities"
+                <option tal:repeat="sev /here/getEventSeverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
+            </select>
+            </span>
+            <span tal:condition="python: prop=='zFailSeverity'">
+            <select class="tablevalues" 
+                tal:attributes="name python:prop+':'+ptype">
+                <option tal:repeat="sev /here/dmd/ZenEventManager/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
             </select>
@@ -58,7 +66,7 @@
             <span tal:condition="python: prop=='zEventAction'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
-                <option tal:repeat="a actions"
+                <option tal:repeat="a /here/dmd/ZenEventManager/getEventActions"
                     tal:content="a"
                     tal:attributes="value a; selected python:a==pvalue" />
             </select>

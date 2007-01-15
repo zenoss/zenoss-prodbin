@@ -109,6 +109,16 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     security = ClassSecurityInfo()
 
+    severityConversions = (
+        ('Critical', 5),
+        ('Error', 4), 
+        ('Warning', 3), 
+        ('Info', 2), 
+        ('Debug', 1), 
+        ('Clear', 0), 
+        ('Default', -1),
+    )
+    severities = dict([(b, a) for a, b in severityConversions])
 
     def getSubEventClasses(self):
         """Return all EventClass objects below this one.
@@ -232,6 +242,18 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
         edict._setProperty("zEventSeverity", -1, type="int")
         #edict._setProperty("zEventProperties", [], type="lines")
 
+    def getEventSeverities(self):
+        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """
+        return self.severityConversions
+
+    def getEventSeverityString(self, severity):
+        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """
+        try:
+            return self.severities[severity]
+        except IndexError:
+            return "Unknown"
 
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
