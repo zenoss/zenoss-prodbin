@@ -43,8 +43,8 @@ class UserCommands(Migrate.Step):
                         pc.buildRelations()
 
         # Add built-in commands
-        commands = (('ping', 'ping -c2'),
-                    ('traceroute', 'traceroute -q1 -w2', ''),
+        commands = (('ping', 'ping -c2 ${device/manageIp}'),
+                    ('traceroute', 'traceroute -q1 -w1 ${device/manageIp}', ''),
                     ('forward host lookup', 'host ${device/manageIp}'),
                     ('reverse host lookup', 'host ${device/id}'),
                     )
