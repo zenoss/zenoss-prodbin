@@ -16,6 +16,9 @@ from ZenEventClasses import Heartbeat, Unknown
 
 from Exceptions import *
 
+Severities = 'Clear Debug Info Warning Error Critical'.split() 
+Clear, Debug, Info, Warning, Error, Critical = range(6) 
+
 def buildEventFromDict(evdict):
     """Build an event object from a dictionary.
     """
