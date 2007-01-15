@@ -121,9 +121,9 @@ class DmdBuilder:
     def buildUserCommands(self):
         for id, cmd in (
                 ('ping', 'ping -c2 ${device/manageIp}'),
-                ('traceroute', 'traceroute -q1 -w1 ${device/manageIp}'),
-                ('forward host lookup', 'host ${device/manageIp}'),
-                ('reverse host lookup', 'host ${device/id}'),
+                ('traceroute', 'traceroute -q1 -w2 ${device/manageIp}'),
+                ('DNS forward', 'host ${device/manageIp}'),
+                ('DNS reverse', 'host ${device/id}'),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd)
 
