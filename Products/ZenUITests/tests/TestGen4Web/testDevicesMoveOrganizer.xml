@@ -34,11 +34,11 @@
             <value><![CDATA[Zenoss: Devices]]></value>
         </action>
         <action type="fill" window="." step="8">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
             <value><![CDATA[TestParent1]]></value>
         </action>
         <action type="click" refresh="." window="." step="9">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addOrganizer:method]]></value>
         </action>
         <action type="verify-title" window="." step="10">
@@ -46,11 +46,11 @@
             <value><![CDATA[Zenoss: Devices]]></value>
         </action>
         <action type="fill" window="." step="11">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
             <value><![CDATA[TestChild]]></value>
         </action>
         <action type="click" refresh="." window="." step="12">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addOrganizer:method]]></value>
         </action>
         <action type="verify-title" window="." step="13">
@@ -58,15 +58,15 @@
             <value><![CDATA[Zenoss: Devices]]></value>
         </action>
         <action type="check" window="." step="14">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestChild"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestChild"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
         <action type="select" window="." step="15">
-            <xpath><![CDATA[*/FORM[2]/*/SELECT[@NAME="moveTarget"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/SELECT[@NAME="moveTarget"]]]></xpath>
             <value><![CDATA[/TestParent1]]></value>
         </action>
         <action type="click" refresh="." window="." step="16">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="moveOrganizer:method" and @VALUE="Move To"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="moveOrganizer:method" and @VALUE="Move To"]]]></xpath>
             <value><![CDATA[moveOrganizer:method]]></value>
         </action>
         <action type="verify-title" window="." step="17">
@@ -74,7 +74,7 @@
             <value><![CDATA[Zenoss: TestParent1]]></value>
         </action>
         <action type="click" refresh="." window="." step="18">
-            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/TR[3]/TD[1]/A[@CDATA="TestChild"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[4]/*/A[@CDATA="TestChild"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="19">
@@ -102,11 +102,11 @@
             <value><![CDATA[Zenoss: Devices]]></value>
         </action>
         <action type="check" window="." step="25">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestParent1"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestParent1"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
         <action type="click" refresh="." window="." step="26">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_deleteOrganizers:method" and @VALUE=" Delete "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_deleteOrganizers:method" and @VALUE=" Delete "]]]></xpath>
             <value><![CDATA[manage_deleteOrganizers:method]]></value>
         </action>
         <action type="verify-title" window="." step="27">

@@ -34,7 +34,7 @@
             <value><![CDATA[Zenoss: Devices]]></value>
         </action>
         <action type="click" refresh="." window="." step="8">
-            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/TBODY[1]/TR[6]/TD[1]/A[@CDATA="Server"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/*/A[@CDATA="Server"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="9">
@@ -42,7 +42,7 @@
             <value><![CDATA[Zenoss: Server]]></value>
         </action>
         <action type="click" refresh="." window="." step="10">
-            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/TBODY[1]/TR[4]/TD[1]/A[@CDATA="Linux"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/*/A[@CDATA="Linux"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="11">
@@ -66,7 +66,7 @@
             <value><![CDATA[Zenoss: Linux]]></value>
         </action>
         <action type="click" refresh="." window="." step="16">
-            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/TBODY[1]/TR[5]/TD[1]/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/*/A[@CDATA="Test"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="17">

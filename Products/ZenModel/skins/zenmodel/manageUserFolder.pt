@@ -21,7 +21,7 @@ function ConfirmPagerTest() {
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" tal:attributes="action here/absolute_url_path" name="users">
 <table class="zentable" cellspacing="1" cellpadding="3"
        tal:define="tableName string:userlist;
        ztm here/ZenTableManager;

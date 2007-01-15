@@ -34,11 +34,11 @@
             <value><![CDATA[Zenoss: Groups]]></value>
         </action>
         <action type="fill" window="." step="8">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
             <value><![CDATA[Test]]></value>
         </action>
         <action type="click" refresh="." window="." step="9">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addOrganizer:method]]></value>
         </action>
         <action type="verify-title" window="." step="10">
@@ -46,7 +46,7 @@
             <value><![CDATA[Zenoss: Groups]]></value>
         </action>
         <action type="click" refresh="." window="." step="11">
-            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/TR[3]/TD[1]/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="Test"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="12">
@@ -54,11 +54,11 @@
             <value><![CDATA[Zenoss: Test]]></value>
         </action>
         <action type="fill" window="." step="13">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
             <value><![CDATA[Test]]></value>
         </action>
         <action type="click" refresh="." window="." step="14">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addOrganizer:method]]></value>
         </action>
         <action type="verify-title" window="." step="15">
@@ -66,7 +66,7 @@
             <value><![CDATA[Zenoss: Test]]></value>
         </action>
         <action type="click" refresh="." window="." step="16">
-            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/TR[3]/TD[1]/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="Test"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="17">
@@ -98,11 +98,11 @@
             <value><![CDATA[Zenoss: Groups]]></value>
         </action>
         <action type="check" window="." step="22">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
         <action type="click" refresh="." window="." step="25">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_deleteOrganizers:method" and @VALUE=" Delete "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_deleteOrganizers:method" and @VALUE=" Delete "]]]></xpath>
             <value><![CDATA[manage_deleteOrganizers:method]]></value>
         </action>
         <action type="verify-title" window="." step="26">

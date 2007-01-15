@@ -34,15 +34,15 @@
             <value><![CDATA[Zenoss: ZenUsers]]></value>
         </action>
         <action type="fill" step="8">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="userid"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@TYPE="text" and @NAME="userid"]]]></xpath>
             <value><![CDATA[testuser1024]]></value>
         </action>
         <action type="fill" step="9">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="email"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@TYPE="text" and @NAME="email"]]]></xpath>
             <value><![CDATA[ten24@zenoss.com]]></value>
         </action>
         <action type="click" refresh="true" step="10">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addUser:method"and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@NAME="manage_addUser:method"and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addUser:method]]></value>
         </action>
         <action type="verify-title" step="11">
@@ -158,11 +158,11 @@
             <value><![CDATA[]]></value>
         </action>
         <action type="select" step="43">
-            <xpath><![CDATA[*/FORM[@ID="actionRule"]/*/SELECT[@NAME="enabled:boolean"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@ID="clauseForm"]/*/SELECT[@NAME="enabled:boolean"]]]></xpath>
             <value><![CDATA[True]]></value>
         </action>
         <action type="click" refresh="true" step="45">
-            <xpath><![CDATA[*/FORM[@ID="actionRule"]/*/INPUT[@NAME="manage_editActionRule:method"and @VALUE=" Save "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@ID="clauseForm"]/*/INPUT[@NAME="manage_editActionRule:method"and @VALUE=" Save "]]]></xpath>
             <value><![CDATA[manage_editActionRule:method]]></value>
         </action>
         <action type="click" refresh="true" step="47">
@@ -226,7 +226,7 @@
         </action>
         <action type="fill" step="46">
             <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="password" and @NAME="__ac_password"]]]></xpath>
-            <value><![CDATA[admin]]></value>
+            <value><![CDATA[zenoss]]></value>
         </action>
         <action type="click" refresh="true" step="47">
             <xpath><![CDATA[*/FORM[@NAME="loginform"]/*/INPUT[@TYPE="submit"and @VALUE="Submit"]]]></xpath>
