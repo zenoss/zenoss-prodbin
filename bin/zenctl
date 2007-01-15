@@ -23,6 +23,9 @@ export ZENHOME="**ZENHOME**"
 export RUNUSER="**OS_USERNAME**"
 export SNMPD_CONF="**SNMPD_CONF**"
 export SUDOERS="**SUDOERS**"
+export ZOPE_USERNAME="admin"
+export ZOPE_PASSWORD="**ZOPE_PASSWD**"
+export ZOPE_LISTEN_PORT="8080"
 
 # signature of zenoss having been installed for the first time (but
 # not configured yet)
@@ -41,7 +44,8 @@ set_perms() {
 
 
 # these commands are run when zenoss was installed for the first time
-fresh_install() {
+# and BEFORE the zenoss processes are started
+fresh_install_pre() {
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
     # location of where we copy configuration items to
@@ -64,42 +68,67 @@ fresh_install() {
     fi
     cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
     
-    # run the first time initialization script
+    # run the first time initialization pre-run script
     set_perms
-    ${ZENHOME}/bin/zenoss_init
+    ${ZENHOME}/bin/zenoss_init_pre
     set_perms
 
     echo "Zenoss initialization complete."
 }
 
 
+# these commands are run when zenoss was installed for the first time
+# but AFTER the zenoss processes are started
+fresh_install_post() {
+    # run the first time initialization post-run script
+    ${ZENHOME}/bin/zenoss_init_post
+}
+
+
 # these commands are run when zenoss is started after being upgraded
-upgrade() {
+# and BEFORE the zenoss processes are started
+upgrade_pre() {
     echo "Zenoss upgraded.  Running data migration scripts..."
 
-    # run the first time initialization script
+    # run the first time initialization pre-run script
     set_perms
-    ${ZENHOME}/bin/zenoss_upgrade
+    ${ZENHOME}/bin/zenoss_upgrade_pre
     set_perms
 
     echo "Zenoss upgrade complete."
 }
 
 
+# these commands are run when zenoss is started after being upgraded
+# but AFTER the zenoss processes are started
+upgrade_post() {
+
+    # run the first time initialization post-run script
+    ${ZENHOME}/bin/zenoss_upgrade_post
+
+}
+
+
 #
 # main script starts here
+#
+# basically we check if the fresh_install/upgraded flag exists.  if it
+# does then we run the pre functions prior to starting up zenoss.
+# this allows us to do things like zeneventbuild, or zenmigrate.  then
+# we start up zenoss.  lastly we run the post functions after zenoss
+# is up and running.  this allows us to do things like "add localhost
+# to the zenoss database through the web UI"
 #
 
 # run the firstboot if this is the first time zenoss was started
 if [ -f ${FRESH_INSTALL} ]; then
-    fresh_install
-    rm ${FRESH_INSTALL}
+    fresh_install_pre
 fi
 
 # run the upgrade if this is the first time zenoss was started since
 # an upgrade occurred
 if [ -f ${UPGRADED} ]; then
-    upgrade
+    upgrade_pre
     rm ${UPGRADED}
 fi
 
@@ -107,3 +136,15 @@ fi
 # delegate to the main zenoss script for control functions
 sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss $@
 
+
+# run the post-script for firstboot and remove the firstboot flag
+if [ -f ${FRESH_INSTALL} ]; then
+    fresh_install_post
+    rm ${FRESH_INSTALL}
+fi
+
+# run the post-script for upgrade and remove the upgradeflag
+if [ -f ${UPGRADED} ]; then
+    upgrade_post
+    rm ${UPGRADED}
+fi
