@@ -313,10 +313,10 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def scanCycle(self, *unused):
+        reactor.callLater(self.snmpCycleInterval, self.scanCycle)
         self.log.debug("getting device ping issues")
         d = self.zem.callRemote('getDevicePingIssues')
         d.addBoth(self.setUnresponsiveDevices)
-        reactor.callLater(self.snmpCycleInterval, self.scanCycle)
 
 
     def setUnresponsiveDevices(self, arg):
@@ -339,7 +339,7 @@ class zenperfsnmp(SnmpDaemon):
                              self.status.outstanding())
             self.log.warning("Problem devices: %r",
                              list(self.status.outstandingNames()))
-            if age < self.configCycleInterval * 2:
+            if age < self.snmpCycleInterval * 2:
                 self.log.warning("Waiting one more cycle period")
                 return
             self.log.warning("Devices status is not clearing.  Restarting.")
