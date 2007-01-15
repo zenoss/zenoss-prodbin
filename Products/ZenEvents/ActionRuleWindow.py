@@ -78,16 +78,9 @@ class ActionRuleWindow(MaintenanceWindow):
                                      REQUEST=None, 
                                    **kw):
         "Update the ActionRuleWindow from GUI elements"
-        self.manage_editMaintenanceWindow(startDate,
-                                          startHours,
-                                          startMinutes,
-                                          durationDays,
-                                          durationHours,
-                                          durationMinutes,
-                                          repeat,
-                                          enabled,
-                                          REQUEST,
-                                          **kw)
+        args = locals().copy()
+        for name in 'self kw'.split(): del args[name]
+        result = self.manage_editMaintenanceWindow(**args)
         del self.startProductionState
         del self.stopProductionState
-        return
+        return result
