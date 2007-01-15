@@ -6,14 +6,23 @@
 #
 # Most of the time this script simply delegates to
 # ${ZENHOME}/bin/zenoss to actually execute the requested command
-# (start/stop).  But, in some situations it behaves differently.  When
-# this script encounters the FRESH_INSTALL flag (a file named
-# ${ZENHOME}/.fresh_install) the script runs
-# ${ZENHOME}/bin/zenoss_init in order to perform first-time
-# installation.  When this script encounters the UPGRADED flag (a file
-# named ${ZENHOME}/.upgraded) the script runs
-# ${ZENHOME}/bin/zenoss_upgrade in order to migrate the zeodb and push
-# around the rrd files.
+# (start/stop).  But, in some situations it behaves differently.  
+#
+# This script also checks for the fresh_install or upgraded flags.  If
+# they are present the script will delegate to the pre/post-install or
+# upgrade scripts as appropriate.  A normal chain of events is
+# documented below:
+#
+# <fresh install>
+# zenoss_init_pre
+# zenoss start
+# zenoss_init_post
+# ... time goes by ...
+# zenoss stop
+# <upgrade occurs>
+# zenoss_upgrade_pre
+# zenoss start
+# zenoss_upgrade_pos
 #
 # --Christopher Blunck
 #
