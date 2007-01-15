@@ -22,6 +22,10 @@ from DeviceManagerBase import DeviceManagerBase
 class Monitor(ZenModelRM, DeviceManagerBase):
     meta_type = 'Monitor'
     
+    def breadCrumbs(self, target='dmd'):
+        bc = ZenModelRM.breadCrumbs(self)
+        return [bc[0],bc[-1]]
+
     def deviceMoveTargets(self):
         """see IManageDevice"""
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
