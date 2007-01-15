@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+#
+# zenoss_upgrade_post
+#
+# This script is intended to be run after the zenoss processes have
+# been started for the first time after an upgrade.
+#
+
+# environment variables
+export OS_USERNAME="**OS_USERNAME**"
+export ZENHOME="**ZENHOME**"
+export MYSQLUSER="**MYSQL_USERNAME**"
+export MYSQLPASS="**MYSQL_PASSWD**"
+export MYSQLEVENTDB="**MYSQL_DATABASE**"
+export ZOPEPASSWORD="**ZOPE_PASSWD**"
+export ZOPEHOME=${ZENHOME}
+
+# load the installation functions
+. ${ZENHOME}/bin/shared-functions.sh
+. ${ZENHOME}/bin/install-functions.sh
+
+# do nothing...  this is left here for others to fill in later
