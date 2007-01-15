@@ -1,9 +1,10 @@
 #! /usr/bin/env bash
 
 #
-# zenoss_upgrade:  A script that performs the steps needed to safely
-#                  upgrade the zenoss database and rrd files from one 
-#                  version to another version.
+# zenoss_upgrade_pre
+#
+# This script is intended to be run before the zenoss processes have
+# been started for the first time after an upgrade.
 #
 
 # environment variables

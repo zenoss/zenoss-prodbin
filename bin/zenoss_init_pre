@@ -1,9 +1,11 @@
 #! /usr/bin/env bash
 
 #
-# zenoss_init      A script that performs the initialization required for zenoss
+# zenoss_init_pre
 #
-# description: Zenoss is a monitoring program written by Zenoss, Inc.
+# This script is intended to be run before the zenoss processes have
+# been started for the first time.
+#
 
 # environment variables
 export OS_USERNAME="**OS_USERNAME**"
