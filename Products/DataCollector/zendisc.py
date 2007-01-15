@@ -79,7 +79,8 @@ class ZenDisc(ZenModeler):
                     elif ipobj.getStatus(Status_Ping) > pingthresh:
                         net.ipaddresses.removeRelation(ipobj)
                 transaction.commit()
-                self.sendEvent(ipobj)
+                if ipobj:
+                    self.sendEvent(ipobj)
         self.log.info("discovered %s active ips", goodCount)    
         return ips
        
