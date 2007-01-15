@@ -117,10 +117,14 @@ class DmdBuilder:
         crk.renderurl = "/zport/RenderServer"
         manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
+
     def buildUserCommands(self):
         for id, cmd in (
                 ('ping', 'ping -c2'),
-                ('traceroute', 'traceroute -q1 -w2')):
+                ('traceroute', 'traceroute -q1 -w2'),
+                ('forward host lookup', 'host ${device/manageIp}'),
+                ('reverse host lookup', 'host ${device/id}'),
+                ):
             self.dmd.manage_addUserCommand(id, cmd=cmd)
 
         

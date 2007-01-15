@@ -44,7 +44,10 @@ class UserCommands(Migrate.Step):
 
         # Add built-in commands
         commands = (('ping', 'ping -c2'),
-                    ('traceroute', 'traceroute -q1 -w2'),)
+                    ('traceroute', 'traceroute -q1 -w2', ''),
+                    ('forward host lookup', 'host ${device/manageIp}'),
+                    ('reverse host lookup', 'host ${device/id}'),
+                    )
         commands = [c for c in commands 
                     if c[0] not in [d.id for d in dmd.userCommands()]]
         for id,cmd in commands:
