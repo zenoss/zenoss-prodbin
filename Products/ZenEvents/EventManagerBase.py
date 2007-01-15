@@ -222,11 +222,6 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( permissions.view, )
                 },
-                { 'id'            : 'addEvent'
-                , 'name'          : 'Add Event'
-                , 'action'        : 'addEvent'
-                , 'permissions'   : ( "Manage DMD", )
-                },
             )
           },
         )
