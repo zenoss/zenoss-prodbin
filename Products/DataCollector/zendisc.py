@@ -163,7 +163,7 @@ class ZenDisc(ZenModeler):
                 try:
                     netobj = self.dmd.Networks._getOb(net,None) 
                     if not netobj:
-                        raise SystemExit("network %s not found in dmd",net)
+                        raise SystemExit("network %s not found in dmd" % net)
                     for ip in self.discoverIps((netobj,)):
                         self.dmd._p_jar.sync()
                         if not self.options.nosnmp: 
