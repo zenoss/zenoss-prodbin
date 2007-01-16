@@ -22,4 +22,4 @@ export ZOPEHOME=${ZENHOME}
 
 
 # add localhost as a device to zenoss
-add_localhost_device()
+add_localhost_device
