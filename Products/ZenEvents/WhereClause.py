@@ -217,6 +217,7 @@ def fromFormVariables(meta, form):
 
 
 if __name__ == '__main__':
+
     toJavaScript(meta, 'severity = 3 or severity = 4')
     toJavaScript(meta, "severity >= 4 and eventState = 0 and prodState = 1000")
     toJavaScript(meta, "severity >= 2 and eventState = 0 and prodState = 1000")

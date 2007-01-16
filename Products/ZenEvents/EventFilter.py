@@ -41,6 +41,8 @@ class EventFilter(object):
             kw[column] = DeviceGroup(label, devices)
         addDevices('Systems', 'Systems', 'systems')
         addDevices('Groups', 'Device Groups', 'deviceGroups')
+        addDevices('Devices', 'Device Class', 'deviceClass')
+        addDevices('Events', 'Event Class', 'eventClass')
         esconv = [(b, a) for a, b in EventManagerBase.eventStateConversions]
         sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
         pconv = [d.split(':') for d in DataRoot.prodStateConversions]
@@ -54,14 +56,15 @@ class EventFilter(object):
             severity=Enumerated("Severity",sconv),
             eventState=Enumerated("Event State",esconv),
             device=Text("Device"),
-            deviceClass=Text("Device Class"),
             devicePriority=Enumerated("Device Priority",dpconv),
-            eventClass=Text("Event Class"),
             eventClassKey=Text("Event Class Key"),
             count=Compare("Count"),
             manager=Text("Manager"),
             agent=Select("Agent",[(x, x) for x in
-            "zentrap", "zenprocess", "zenstatus", "zenperfsnmp", "zensyslog"]),
+            "zentrap", "zenprocess", "zenstatus", 
+            "zenperfsnmp", "zensyslog", "zenxevent",
+            "zenmodeler","zenperfxmlrpc","zenping",
+            "zenactions","zencommand"]),
             facility=Select("Facility",[
             "auth","authpriv","cron","daemon","kern","lpr","mail",
             "mark","news","security","syslog","user","uucp",
