@@ -1,8 +1,8 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<script src="MochiKit.js"></script>
-<script src="DragAndDrop.js"></script>
-<script src="Sortable.js"></script>
+<script src="/zport/js/MochiKit.js"></script>
+<script src="/zport/js/DragAndDrop.js"></script>
+<script src="/zport/js/Sortable.js"></script>
 <script src="zendragdrop.js"></script>
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
