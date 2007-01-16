@@ -505,18 +505,25 @@ a.tablevalues:active {
 }
 
 .sortable_item {
-    padding: 0.3em 0;
-    cursor:pointer;
+    cursor:move;
+    padding-bottom:3px;
+    padding-top: 3px;
+    font-weight:bold;
+}
+.sortable_item fieldlist {
+    color: darkgrey;
 }
 .sortable_item:hover {
     background-color: #EFE;
 }
 .sortable_list {
+    border: 1px inset darkgrey;
     list-style-type:none;
     height:10em;
-    width:10em;
-    overflow:auto;
-    border:1px solid darkblue;
-    background-color: white;
     margin-top:0.5em;
+    height: 150px;
+    overflow:auto;
+    padding:0.5em;
+    padding-left:1em;
 }
+

@@ -42,7 +42,8 @@ ZenHiddenSelect.prototype = {
     update: function(vals) {
         var opts = vals.getElementsByTagName('li');
         var getText = function(li) {
-            return li.innerHTML
+            var x = li.innerHTML.replace(/<span.*<\/span>/,'');
+            return x;
         }
         var strs = map(getText, opts);
         this.obj.innerHTML = strs.join('\n');
@@ -50,13 +51,13 @@ ZenHiddenSelect.prototype = {
     toUL: function() {
         var options = this.values();
         var atts = nodeHash(this.obj);
-        atts['class'] = 'sortable_list';
+        atts['class'] = 'sortable_list resultfields';
         var ul = UL(atts,
                     map(this.toLI, options));
         return ul;
     },
     toLI: function(val) {
-        var atts = {'id':'li_' + val,'class':'sortable_item'};
+        var atts = {'id':'li_' + val,'class':'sortable_item resultfields'};
         var li = LI(atts, val);
         return li;
     }
@@ -72,7 +73,7 @@ ZenULSelect.prototype = {
         this.obj.obj.style.border="0";
         this.obj.obj.style.padding="0";
         this.obj.obj.style.visiblity = 'hidden';
-            }
+    }
 }
 
 ZenDragDropList = Class.create();
@@ -83,17 +84,70 @@ ZenDragDropList.prototype = {
         ul = $(ul);
         this.hiddenselect = new ZenHiddenSelect(ta);
         this.fields = ul;
-        var s = new ZenULSelect(this.hiddenselect); 
-        this.sortable1 = MochiKit.Sortable.Sortable.create(s.ul,
-        {onUpdate:s.obj.update.bind(s.obj),
+        var toggleme = function(){
+            toggle(this.fields.parentNode,'appear',{duration:0.2});
+            var x = this.toggle.innerHTML=="Add Fields";
+            this.toggle.innerHTML = x?"Hide Fields":"Add Fields";
+        }
+        this.toggle = DIV({'style':'float:left;width:8em;text-align:center;'+
+                             'padding:1em;color:darkgrey;cursor:pointer;'
+                             },
+                             "Add Fields");
+        hideElement(this.fields.parentNode);
+        insertSiblingNodesBefore(this.fields.parentNode, this.toggle);
+        connect(this.toggle, 'onclick', bind(toggleme, this));
+        this.s = new ZenULSelect(this.hiddenselect); 
+        this.addXspan(this.s.ul);
+        this.sortable1 = MochiKit.Sortable.Sortable.create(this.s.ul,
+        {onUpdate:bind(this.newField, this),
          dropOnEmpty:true,
-         containment:[s.ul, this.fields],
-         constraint:false});
+         containment:[this.s.ul, this.fields],
+         constraint:false,
+         scroll:true
+         //ghosting:true
+         });
         this.sortable2 = MochiKit.Sortable.Sortable.create(this.fields,
         {dropOnEmpty:true,
-         containment:[s.ul, this.fields],
-         constraint:false});
-
-    }
+         containment:[this.s.ul, this.fields],
+         constraint:false
+         //ghosting:true
+        });
+    },
+    addXspan: function(ul) {
+        var childs = ul.getElementsByTagName('li');
+        for (i=0;i<childs.length;i++) {
+            var xspan = SPAN({'style':'position:absolute;right:0;color:grey;'+
+                              'cursor:pointer;font-size:smaller;font-weight:normal;'
+                              }, "X");
+            appendChildNodes(childs[i], xspan);
+            connect(xspan, 'onclick', bind(this.removeField, this, childs[i]));
+        }
+    },
+    addSingleX: function(li) {
+        var xspan= SPAN({'style':'position:absolute;right:0;color:grey;'+
+                         'cursor:pointer;font-size:smaller;font-weight:normal;'
+                        }, "X");
+        appendChildNodes(li, xspan);
+        connect(xspan, 'onclick', bind(this.removeField, this, li));
+    },
+    removeXspan: function(li) {
+        var x = li.getElementsByTagName('span')[0];
+        removeElement(x);
+    },
+    newField: function() {
+        this.s.obj.update.bind(this.s.obj)(this.s.ul);
+        var lis = this.s.ul.getElementsByTagName('li');
+        for (i=0;i<lis.length;i++) {
+            if (!lis[i].getElementsByTagName('span').length){
+                this.addSingleX(lis[i]);
+            }
+        }
+    },
+    removeField: function(li) {
+        li = removeElement(li);
+        this.removeXspan(li);
+        insertSiblingNodesBefore(this.fields.firstChild, li);
+        this.s.obj.update.bind(this.s.obj)(this.s.ul);
+    }   
 }
 

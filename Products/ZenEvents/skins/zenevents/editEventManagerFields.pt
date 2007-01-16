@@ -1,5 +1,67 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+<tal:block tal:condition="python:'MSIE' in here.REQUEST.HTTP_USER_AGENT">
+<form method="post" tal:attributes="action here/getPrimaryUrlPath">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<table class="zentable" cellpadding="3" cellspacing="1">
+   <tr>
+        <th class="tabletitle" colspan="4">Connection Information</th>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Default Sort</td>
+        <td class="tablevalues"> 
+            <input class="tablevalues" type='text'
+                name="defaultOrderby" size="42"
+                tal:attributes="value here/defaultOrderby">
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" width="25%">Default Result Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="7" cols="40"
+                name="defaultResultFields:lines" 
+                tal:content='python: "\n".join(here.defaultResultFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Device Result Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="7" cols="40"
+                name="DeviceResultFields:lines" 
+                tal:content='python: "\n".join(here.DeviceResultFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Default Event Id</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="5" cols="40"
+                name="defaultEventId:lines" 
+                tal:content='python: "\n".join(here.defaultEventId)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Required Fields</td>
+        <td class="tablevalues"> 
+            <textarea class="tablevalues" rows="5" cols="40"
+                name="requiredEventFields:lines" 
+                tal:content='python: "\n".join(here.requiredEventFields)'>
+            </textarea>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader" colspan="2">
+            <input type='submit' value="Save"
+                name='zmanage_editProperties:method'>
+        </td>
+    </tr>
+</table>
+</form>
+</tal:block>
+
+<tal:block tal:condition="python:'MSIE' not in here.REQUEST.HTTP_USER_AGENT">
 <script src="/zport/js/MochiKit.js"></script>
 <script src="/zport/js/DragAndDrop.js"></script>
 <script src="/zport/js/Sortable.js"></script>
@@ -30,9 +92,9 @@
         </div>
         <div style="float:left;">
             <ul id="ul_defaultResultFields"
-                class="sortable_list">
+                class="sortable_list fieldlist">
                 <li 
-                class="sortable_item"
+                class="sortable_item fieldlist"
                 tal:repeat="field python:[x for x in here.getFieldList() if x
                 not in here.defaultResultFields]"
                     tal:content="field">item</li>
@@ -47,34 +109,83 @@
     <tr>
         <td class="tableheader">Device Result Fields</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="DeviceResultFields:list">
-                <option tal:repeat="field here/getFieldList"
-                    tal:content="python:field"
-                    tal:attributes="value python:field;
-                        selected python:field in here.DeviceResultFields" />
-            </select>
+        <div style="float:left;">
+                   <textarea
+                   tal:content="python:'\n'.join(here.DeviceResultFields)"
+                      name="DeviceResultFields:lines"
+                      id="ta_DeviceResultFields"></textarea>
+        <h5>Fields (drag to change order)</h5>
+
+        </div>
+        <div style="float:left;">
+            <ul id="ul_DeviceResultFields"
+                class="sortable_list fieldlist">
+                <li 
+                class="sortable_item fieldlist"
+                tal:repeat="field python:[x for x in here.getFieldList() if x
+                not in here.DeviceResultFields]"
+                    tal:content="field">item</li>
+            </ul>
+        <h5>Available fields (drag to other list to add)</h5>
+        </div>
+            <script> var x = new ZenDragDropList('ta_DeviceResultFields',
+                                                 'ul_DeviceResultFields');
+            </script>
         </td>
     </tr>
     <tr>
         <td class="tableheader">Default Event Id</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="defaultEventId:list">
-                <option tal:repeat="field here/getFieldList"
-                    tal:content="python:field"
-                    tal:attributes="value python:field;
-                        selected python:field in here.defaultEventId" />
-            </select>
+        <div style="float:left;">
+                   <textarea
+                   tal:content="python:'\n'.join(here.defaultEventId)"
+                      name="defaultEventId:lines"
+                      id="ta_defaultEventId"></textarea>
+        <h5>Fields (drag to change order)</h5>
+
+        </div>
+        <div style="float:left;">
+            <ul id="ul_defaultEventId"
+                class="sortable_list fieldlist">
+                <li 
+                class="sortable_item fieldlist"
+                tal:repeat="field python:[x for x in here.getFieldList() if x
+                not in here.defaultEventId]"
+                    tal:content="field">item</li>
+            </ul>
+        <h5>Available fields (drag to other list to add)</h5>
+        </div>
+            <script> var x = new ZenDragDropList('ta_defaultEventId',
+                                                 'ul_defaultEventId');
+            </script>
+
         </td>
     </tr>
     <tr>
         <td class="tableheader">Required Fields</td>
         <td class="tablevalues"> 
-            <select multiple size=10 class="tablevalues" name="requiredEventFields:list">
-                <option tal:repeat="field here/getFieldList"
-                    tal:content="python:field"
-                    tal:attributes="value python:field;
-                        selected python:field in here.requiredEventFields" />
-            </select>
+        <div style="float:left;">
+                   <textarea
+                   tal:content="python:'\n'.join(here.requiredEventFields)"
+                      name="requiredEventFields:lines"
+                      id="ta_requiredEventFields"></textarea>
+        <h5>Fields (drag to change order)</h5>
+
+        </div>
+        <div style="float:left;">
+            <ul id="ul_requiredEventFields"
+                class="sortable_list fieldlist">
+                <li 
+                class="sortable_item fieldlist"
+                tal:repeat="field python:[x for x in here.getFieldList() if x
+                not in here.requiredEventFields]"
+                    tal:content="field">item</li>
+            </ul>
+        <h5>Available fields (drag to other list to add)</h5>
+        </div>
+            <script> var x = new ZenDragDropList('ta_requiredEventFields',
+                                                 'ul_requiredEventFields');
+            </script>
         </td>
     </tr>
     <tr>
@@ -85,5 +196,6 @@
     </tr>
 </table>
 </form>
+</tal:block>
 </tal:block>
 </tal:block>
