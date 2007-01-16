@@ -503,3 +503,20 @@ a.tablevalues:active {
     padding:0px;
     margin:0px;
 }
+
+.sortable_item {
+    padding: 0.3em 0;
+    cursor:pointer;
+}
+.sortable_item:hover {
+    background-color: #EFE;
+}
+.sortable_list {
+    list-style-type:none;
+    height:10em;
+    width:10em;
+    overflow:auto;
+    border:1px solid darkblue;
+    background-color: white;
+    margin-top:0.5em;
+}
