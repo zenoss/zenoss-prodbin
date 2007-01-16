@@ -53,12 +53,43 @@
 <tr>
 <td class="tableheader">Result Fields</td>
 <td class="tablevalues">
+<tal:block tal:condition="python:'MSIE' in here.REQUEST.HTTP_USER_AGENT">
     <select multiple size=10 class="tablevalues" name="resultFields:list">
          <option tal:repeat="field here/ZenEventManager/getFieldList"
              tal:content="python:field"
              tal:attributes="value python:field;
                  selected python:field in here.getResultFields()" />
      </select>
+</tal:block>
+<tal:block tal:condition="python:'MSIE' not in here.REQUEST.HTTP_USER_AGENT">
+<script src="/zport/js/MochiKit.js"></script>
+<script src="/zport/js/DragAndDrop.js"></script>
+<script src="/zport/js/Sortable.js"></script>
+<script src="zendragdrop.js"></script>
+
+        <div style="float:left;">
+                   <textarea tal:content="python:'\n'.join(here.resultFields)"
+                      name="resultFields:lines"
+                      id="ta_resultFields"></textarea>
+        <h5>Fields (drag to change order)</h5>
+
+        </div>
+        <div style="float:left;">
+            <ul id="ul_resultFields"
+                class="sortable_list fieldlist">
+                <li 
+                class="sortable_item fieldlist"
+                tal:repeat="field python:[x for x in here.ZenEventManager.getFieldList() 
+                            if x not in here.resultFields]"
+                    tal:content="field">item</li>
+            </ul>
+        <h5>Available fields (drag to other list to add)</h5>
+        </div>
+            <script> var x = new ZenDragDropList('ta_resultFields',
+                                                 'ul_resultFields');
+            </script>
+
+</tal:block>
 </td>
 </tr>
 <tr>
