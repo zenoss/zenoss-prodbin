@@ -115,40 +115,6 @@ False
 <property visible='True' type='int' id='zCommandCycleTime' >
 60
 </property>
-<tomanycont id='maintenanceWindows'>
-<object id='weekly-restart' module='Products.ZenModel.MaintenanceWindow' class='OrganizerMaintenanceWindow'>
-<property type='date' id='start' mode='w' >
-2006/10/20 08:56:38.540 US/Eastern
-</property>
-<property type='int' id='duration' mode='w' >
-60
-</property>
-<property type='string' id='repeat' mode='w' >
-Never
-</property>
-<property type='int' id='skip' mode='w' >
-1
-</property>
-</object>
-</tomanycont>
-<tomanycont id='userCommands'>
-<object id='List Devices' module='Products.ZenModel.UserCommand' class='UserCommand'>
-<property type='text' id='description' mode='w' >
-echo all device names
-</property>
-<property type='text' id='command' mode='w' >
-echo ${device/id}
-</property>
-</object>
-<object id='Ping 5x' module='Products.ZenModel.UserCommand' class='UserCommand'>
-<property type='text' id='description' mode='w' >
-ping -c 5 for each device
-</property>
-<property type='text' id='command' mode='w' >
-ping -c 5 ${device/manageIp}
-</property>
-</object>
-</tomanycont>
 <tomanycont id='rrdTemplates'>
 <object id='CATV Downstream Interface' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 </object>
