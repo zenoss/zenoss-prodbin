@@ -65,7 +65,7 @@ class ZEvent(Event):
         """
         value = self.severity < 0 and "unknown" or self.severity
         acked = self.eventState > 0 and "acked" or "noack"
-        return "zenevents_%s_%s" % (value, acked)
+        return "zenevents_%s %s" % (value, acked)
 
     def zem(self):
         """return the id of our manager.
