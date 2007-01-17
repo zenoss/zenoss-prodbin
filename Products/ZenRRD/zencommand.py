@@ -1,4 +1,4 @@
-#################################################################
+################################################################
 #
 #   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
@@ -357,7 +357,6 @@ class Options:
 
 
 class zencommand(RRDDaemon):
-    properties = RRDDaemon.properties + ("configCycleInterval",)
 
 
     def __init__(self):
@@ -375,7 +374,8 @@ class zencommand(RRDDaemon):
 
 
     def updateConfig(self, config):
-        table = dict([((c.device,c.command), c) for c in self.schedule])
+        current = dict([((c.device,c.command), c) for c in self.schedule])
+        update = []
         for c in config:
             (device, ipAddress, port,
              username, password,
@@ -386,9 +386,10 @@ class zencommand(RRDDaemon):
             for cmd in commandPart:
                 (useSsh, cycleTime,
                  component, eventClass, eventKey, severity, command, points) = cmd
-                obj = table.setdefault((device,command), Cmd())
+                obj = current.setdefault((device,command), Cmd())
                 obj.updateConfig(CommandConfig(locals()))
-        self.schedule = table.values()
+                update.append(obj)
+        self.schedule = update
 
     def heartbeatCycle(self, *ignored):
         "There is no master 'cycle' to send the hearbeat"
@@ -447,8 +448,16 @@ class zencommand(RRDDaemon):
     def error(self, err):
         if isinstance(err.value, TimeoutError):
             cmd, = err.value.args
-            log.error("Command timed out on device %s: %s",
-                      cmd.device, cmd.command)
+            msg = "Command timed out on device %s: %s" % (cmd.device, cmd.command)
+            log.error(msg)
+            issueKey = cmd.device, cmd.eventClass, cmd.eventKey
+            self.deviceIssues.add(issueKey)
+            self.sendEvent(dict(device=cmd.device,
+                                eventClass=cmd.eventClass,
+                                eventKey=cmd.eventKey,
+                                component=cmd.component,
+                                severity=cmd.severity,
+                                summary=msg))
         else:
             log.exception(err.value)
 
@@ -532,15 +541,20 @@ class zencommand(RRDDaemon):
             
 
     def start(self, driver):
-        driveLater(self.configCycleInterval * 60, self.start)
-
+        """Fetch the configuration and return a deferred for its completion.
+        Also starts the config cycle"""
         self.syncdb()
+        ex = None
         try:
+            log.debug('Fetching config')
             yield self.fetchConfig()
             driver.next()
+            log.debug('Finished config fetch')
         except Exception, ex:
             log.exception(ex)
-            raise
+        driveLater(self.configCycleInterval * 60, self.start)
+        if ex:
+            raise ex
 
 
     def buildOptions(self):
