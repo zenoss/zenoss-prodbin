@@ -58,8 +58,12 @@ ZenHiddenSelect.prototype = {
     },
     toLI: function(val) {
         var atts = {'id':'li_' + val,'class':'sortable_item resultfields'};
-        var li = LI(atts, val);
-        return li;
+        if (val.length) {
+            var li = LI(atts, val);
+            return li;
+        } else {
+            return;
+        }
     }
 }
 
