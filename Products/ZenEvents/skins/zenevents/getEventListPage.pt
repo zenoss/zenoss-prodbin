@@ -35,8 +35,7 @@
         event data
     </td>
     <td tal:attributes="onclick evclick">
-        <img tal:condition="python: event.eventState<=0" src="/zport/dmd/icon_details_magnify.gif" />
-        <img tal:condition="python: event.eventState>0" src="/zport/dmd/icon_details_magnify_white.gif" />
+        <img src="/zport/dmd/icon_details_magnify.gif" />
     </td>
     </tal:block>
     </tr>
