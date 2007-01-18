@@ -457,7 +457,7 @@ MSExchangeIS Mailbox Store_1173
 0
 </property>
 <property type="string" id="example" mode="w" >
-Error 0x6bb deleting unused restricted view from folder 1-C8EA27F on database "First Storage Group\Mailbox Store (MHSMAIL1)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval.   For more information, click http://www.microsoft.com/contentredirect.asp.
+Error 0x6bb deleting unused restricted view from folder 1-C8EA27F on database "First Storage Group\Mailbox Store (BOX)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
@@ -481,7 +481,7 @@ MetaframeEvents_1106
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (MMCNT-banthon2) Printer: (Client\MMCNT-banthon2#\Plant Ops - Kyocera Mita KM-1650 KX - 1.1.1.1)  Printer driver: (Kyocera Mita KM-1650 KX)
+Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (BOX) Printer: (Client\BOX#\Plant Ops - Kyocera Mita KM-1650 KX - 1.1.1.1)  Printer driver: (Kyocera Mita KM-1650 KX)
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
@@ -772,48 +772,12 @@ The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801
 <toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 </tomanycont>
-<object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property visible="True" type="string" id="zEventAction" >
-drop
-</property>
-<tomanycont id='instances'>
-<object id='msexchangetransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="string" id="eventClassKey" mode="w" >
-msexchangetransport_3005
-</property>
-<property type="int" id="sequence" mode="w" >
-0
-</property>
-<property type="string" id="regex" mode="w" >
-4.4.6 was generated for recipient rfc822;(?P&lt;eventKey&gt;\S+)
-</property>
-<property type="string" id="example" mode="w" >
-A non-delivery report with a status code of 4.4.6 was generated for recipient email@email.com (Message-ID &lt;281720.5566209930204.043952489222.LALP.3314@septuagenarian&gt; ). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email/Loop'/>
-</object>
-</tomanycont>
-</object>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Max' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="None" id="zEvent_severity" >
 3
 </property>
-<tomanycont id='instances'>
-<object id='termservice_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="string" id="eventClassKey" mode="w" >
-termservice_1013
-</property>
-<property type="int" id="sequence" mode="w" >
-0
-</property>
-<property type="string" id="example" mode="w" >
-The terminal server has exceeded the maximum number of allowed connections.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn/Max'/>
-</object>
-</tomanycont>
 </object>
 </object>
 </object>
@@ -1008,7 +972,7 @@ MRxSmb_8003
 from the computer (?P&lt;eventKey&gt;\S+) that believes
 </property>
 <property type="string" id="example" mode="w" >
-The master browser has received a server announcement from the computer MHSISA that believes that it is the master browser for the domain on transport NetBT_Tcpip_{2573E4DB-14E7-4292-82. The master browser is stopping or an election is being forced.
+The master browser has received a server announcement from the computer BOX that believes that it is the master browser for the domain on transport NetBT_Tcpip_{2573E4DB-14E7-4292-82. The master browser is stopping or an election is being forced.
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
@@ -1023,22 +987,6 @@ Userenv_1000
 Windows cannot obtain the domain controller name for your computer network. Return value (59).
 </property>
 <toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
-</object>
-</tomanycont>
-</object>
-<object id='Exchange' module='Products.ZenEvents.EventClass' class='EventClass'>
-<tomanycont id='instances'>
-<object id='msexchangeis_9665' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="string" id="eventClassKey" mode="w" >
-msexchangeis_9665
-</property>
-<property type="int" id="sequence" mode="w" >
-0
-</property>
-<property type="string" id="example" mode="w" >
-The memory settings for this server are not optimal for Exchange. For more information, click http://support.microsoft.com?kbid=815372
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
 </object>
 </tomanycont>
 </object>
@@ -1067,21 +1015,6 @@ Eventlog to Syslog Service Started: Version 3.4.1
 </object>
 <object id='License' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
-<object id='exchange_292' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="string" id="eventClassKey" mode="w" >
-exchange_292
-</property>
-<property type="int" id="sequence" mode="w" >
-0
-</property>
-<property type="string" id="regex" mode="w" >
-Virus definition and content license for Symantec Mail Security for Microsoft Exchange on server MHSMAILCL1 will expire on (?P&lt;eventKey&gt;\S+).
-</property>
-<property type="string" id="example" mode="w" >
-Virus definition and content license for Symantec Mail Security for Microsoft Exchange on server MHSMAILCL1 will expire on 3/14/2006.
-</property>
-<toone id='eventClass' objid='/zport/dmd/Events/License'/>
-</object>
 </tomanycont>
 </object>
 <object id='HW' module='Products.ZenEvents.EventClass' class='EventClass'>
