@@ -40,14 +40,11 @@ False
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
 False
 </property>
-<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
+<property visible="True" type="boolean" id="zWmiMonitorIgoner" >
 False
 </property>
 <property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
 False
-</property>
-<property visible="True" type="float" id="zStatusConnectTimeout" >
-15.0
 </property>
 <property visible="True" type="string" id="zTransportPreference" >
 snmp
@@ -76,9 +73,6 @@ ssh
 <property visible="True" type="string" id="zCommandExistanceTest" >
 test -f %s
 </property>
-<property visible="True" type="string" id="zCommandPath" >
-/usr/local/zenoss/libexec
-</property>
 <property visible="True" type="string" id="zTelnetLoginRegex" >
 ogin:.$
 </property>
@@ -100,16 +94,16 @@ True
 <property visible="True" type="float" id="zTelnetPromptTimeout" >
 10.0
 </property>
-<property visible="True" type="string" id="zKeyPath" >
-~/.ssh/id_dsa
-</property>
-<property visible="True" type="int" id="zMaxOIDPerRequest" >
-40
-</property>
 <property visible="True" type="int" id="zWinEventlogMinSeverity" >
 2
 </property>
 <property visible="True" type="boolean" id="zWinEventlog" >
+False
+</property>
+<property visible="True" type="string" id="zCommandPath" >
+/usr/local/zenoss/libexec
+</property>
+<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
 False
 </property>
 <property visible="True" type="date" id="cDateTest" >
@@ -117,6 +111,15 @@ False
 </property>
 <property visible="True" type="int" id="zCommandCycleTime" >
 60
+</property>
+<property visible="True" type="float" id="zStatusConnectTimeout" >
+15.0
+</property>
+<property visible="True" type="string" id="zKeyPath" >
+~/.ssh/id_dsa
+</property>
+<property visible="True" type="int" id="zMaxOIDPerRequest" >
+40
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -329,66 +332,6 @@ True
 <property type="boolean" id="hasSummary" mode="w" >
 True
 </property>
-</object>
-</tomanycont>
-</object>
-<object id='OSProcessCmd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
-<property type="text" id="description" mode="w" >
-Monitors for OSProcess object
-</property>
-<tomanycont id='datasources'>
-<object id='zenproc' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-COMMAND
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
-</property>
-<property type="string" id="eventClass" mode="w" >
-/
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="commandTemplate" mode="w" >
-zenproc.py ${here/name}
-</property>
-<property type="int" id="cycletime" mode="w" >
-60
-</property>
-<tomanycont id='datapoints'>
-<object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="format" mode="w" >
-%0.2lf%s
-</property>
-</object>
-<object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="format" mode="w" >
-%0.2lf%s
-</property>
-</object>
-</tomanycont>
 </object>
 </tomanycont>
 </object>
