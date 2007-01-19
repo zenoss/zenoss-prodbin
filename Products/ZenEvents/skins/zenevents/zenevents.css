@@ -8,65 +8,65 @@
 
 }
 
-.zenevents_5.acked {
+.zenevents_5_acked {
     background-color: #f88880;
 }
 
 
-.zenevents_5.noack {
+.zenevents_5_noack {
     background-color: #e00;
     border: 1px solid #e00;
 }
 
-.zenevents_4.acked {
+.zenevents_4_acked {
     background-color: #ffba75;
 }
 
-.zenevents_4.noack {
+.zenevents_4_noack {
     background-color: #f82;
     border: 1px solid #f82;
 }
 
-.zenevents_3.acked {
+.zenevents_3_acked {
     background-color: #fff280;
 }
 
-.zenevents_3.noack {
+.zenevents_3_noack {
     background-color: #ffda00;
     border: 1px solid #ffda00;
 }
 
-.zenevents_2.acked {
+.zenevents_2_acked {
     background-color: #b3b3ff;
 }
 
-.zenevents_2.noack {
+.zenevents_2_noack {
     background-color: #56f;
     border: 1px solid #56f;
 }
 
-.zenevents_1.acked {
+.zenevents_1_acked {
     background-color: #C8C8C8;
 }
 
-.zenevents_1.noack {
+.zenevents_1_noack {
     background-color: #AFAFAF;
     border: 1px solid #AFAFAF;
 }
 
-.zenevents_0.acked {
+.zenevents_0_acked {
     background-color: #00CD00;
 }
 
-.zenevents_0.noack {
+.zenevents_0_noack {
     background-color: #00FF00;
 }
 
-.zenevents_unknown.acked {
+.zenevents_unknown_acked {
     background-color: #CD00CD;
 }
 
-.zenevents_unknown.noack {
+.zenevents_unknown_noack {
     background-color: #D02090;
 }
 
@@ -95,7 +95,8 @@
 }
 
 .empty {
-    background-color: transparent !important;
+/*    background-color: transparent !important;
+*/
 }
 
 .thin {

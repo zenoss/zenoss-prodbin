@@ -939,7 +939,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         """
         value = severity < 0 and "unknown" or severity
         acked = acked and "acked" or "noack"
-        return "zenevents_%s %s" % (value, acked)
+        return "zenevents_%s_%s %s" % (value, acked, acked)
 
 
     def isDate(self, colName):
