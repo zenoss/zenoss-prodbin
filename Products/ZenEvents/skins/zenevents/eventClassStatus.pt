@@ -59,7 +59,8 @@
                 type="checkbox" name="organizerPaths:list" 
                 tal:attributes="value evdict/getId"/>
             <a href="_" 
-            tal:attributes="href evdict/getPrimaryUrlPath"
+            tal:attributes="href 
+                string:${evdict/getPrimaryUrlPath}/eventClassStatus"
             tal:content="evdict/id">Name</a>
         </td>
         <td class="tablevalues" align=center 
