@@ -61,16 +61,20 @@
                  selected python:field in here.getResultFields()" />
      </select>
 </tal:block>
-<tal:block tal:condition="python:'MSIE' not in here.REQUEST.HTTP_USER_AGENT">
+<tal:block tal:condition="python:'MSIE' not in here.REQUEST.HTTP_USER_AGENT"
+           tal:define="resultfields python:'\n'.join(
+                                test(here.resultFields, here.resultFields, 
+                                here.ZenEventManager.defaultResultFields));
+                       sourcefields python:[x for x in 
+                                    here.ZenEventManager.getFieldList() 
+                                    if x not in resultfields]">
 <script src="/zport/js/MochiKit.js"></script>
 <script src="/zport/js/DragAndDrop.js"></script>
 <script src="/zport/js/Sortable.js"></script>
 <script src="zendragdrop.js"></script>
 
         <div style="float:left;">
-           <textarea tal:content="python:test(len(here.resultFields)>0,
-                                 '\n'.join(here.resultFields),
-           '\n'.join(here.ZenEventManager.defaultResultFields))"
+           <textarea tal:content="resultfields"
               name="resultFields:lines"
               id="ta_resultFields"></textarea>
         <h5>Fields (drag to change order)</h5>
@@ -81,8 +85,7 @@
                 class="sortable_list fieldlist">
                 <li 
                 class="sortable_item fieldlist"
-                tal:repeat="field python:[x for x in here.ZenEventManager.getFieldList() 
-                            if x not in here.resultFields]"
+                tal:repeat="field sourcefields"
                     tal:content="field">item</li>
             </ul>
         <h5>Available fields (drag to other list to add)</h5>
