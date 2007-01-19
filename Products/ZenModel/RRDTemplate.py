@@ -15,6 +15,8 @@ from Products.ZenRelations.RelSchema import *
 
 from RRDDataPoint import SEPARATOR
 
+class ConfigurationError(Exception): pass
+
 
 def manage_addRRDTemplate(context, id, REQUEST = None):
     """make a RRDTemplate"""
@@ -148,7 +150,7 @@ class RRDTemplate(ZenModelRM):
                 return results[0]
         else:
             return ds.datapoints._getOb(point)
-        return ds
+        raise ConfigurationError('Unknown data point "%s"' % name)
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
