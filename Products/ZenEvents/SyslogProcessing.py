@@ -58,7 +58,7 @@ class SyslogEvent(Event):
     def getDedupFields(self, default):
         """Return list of dedupid fields.
         """
-        default = list(default)
+        default = list(default[:])
         if not getattr(self, "eventKey", False):
             default.append("summary")
         return default
