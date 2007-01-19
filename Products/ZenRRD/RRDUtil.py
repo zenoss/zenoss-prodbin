@@ -37,7 +37,7 @@ class RRDUtil:
                            "--step",  str(cycleTime),
                            str(dataSource), *rrdCommand.split())
         
-        if rrdType == 'COUNTER' or rrdType == 'DERIVE':
+        if rrdType in ('COUNTER', 'DERIVE'):
             value = long(value)
         try:
             rrdtool.update(filename, 'N:%s' % value)
@@ -45,7 +45,7 @@ class RRDUtil:
             # may get update errors when updating too quickly
             log.error('rrd error %s %s', err, path)
 
-        if rrdType == 'COUNTER':
+        if rrdType in ('COUNTER', 'DERIVE'):
             startStop, names, values = \
                        rrdtool.fetch(filename, 'AVERAGE',
                                      '-s', 'now-%d' % (cycleTime*2),
