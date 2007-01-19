@@ -66,7 +66,7 @@ class MySqlSendEventMixin:
             if not getattr(event, "eventKey", ""):
                 if type(dedupfields) != types.ListType:
                     dedupfields = list(dedupfields)
-                dedupfields.append("summary")
+                dedupfields = dedupfields + ["summary"]
             for field in dedupfields:
                 value = getattr(event, field, "")
                 dedupid.append('%s' % value)
