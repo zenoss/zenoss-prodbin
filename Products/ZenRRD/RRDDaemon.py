@@ -197,8 +197,8 @@ class RRDDaemon(Base):
         ev.update(event)
         ev.update(kw)
         self.events.append(ev)
-	if now:
-	    self.sendEvents()
+        if now:
+            self.sendEvents()
         else:
             reactor.callLater(1, self.sendEvents)
 
