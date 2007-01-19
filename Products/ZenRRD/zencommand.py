@@ -39,6 +39,7 @@ CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 MAX_CONNECTIONS=256
 
 EXIT_CODE_MAPPING = {
+    0:'Success',
     1:'General error',
     2:'Misuse of shell builtins',
     126:'Command invoked cannot execute, permissions problem or command is not an executable',
@@ -136,7 +137,7 @@ class MySshClient(SshClient):
         SshClient.__init__(self, *args, **kw)
         self.defers = {}
 
-    
+
     def addCommand(self, command):
         "Run a command against the server"
         d = defer.Deferred()
@@ -192,8 +193,8 @@ class SshPool:
         c = self.pool.get(device, None)
         if c:
             log.debug("Closing connection to %s", device)
-            if c.connection and c.connection.transport:
-                c.connection.transport.loseConnection()
+            if c.transport:
+                c.transport.loseConnection()
             del self.pool[device]
 
         
@@ -230,7 +231,7 @@ class SshRunner:
         try:
             d = Timeout(c.addCommand(cmd.command), cmd.commandTimeout, cmd)
         except Exception, ex:
-            log.exception(ex)
+            log.error('Error starting command: %s', ex)
             self.pool.close(cmd)
             return defer.fail(ex)
         d.addErrback(self.timeout)
@@ -468,6 +469,7 @@ class zencommand(RRDDaemon):
             return 'Exit status out of range, exit takes only integer arguments in the range 0-255'
         elif exitCode > 128:
             return 'Fatal error signal: %s' % (exitCode-128)
+        return 'Unknown error code: %s' % exitCode
             
     def parseResults(self, cmd):
         log.debug('The result of "%s" was "%s"', cmd.command, cmd.result.output)

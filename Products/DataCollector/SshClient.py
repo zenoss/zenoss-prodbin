@@ -32,7 +32,11 @@ class SshClientTransport(transport.SSHClientTransport):
     def verifyHostKey(self, hostKey, fingerprint):
         #blowing off host key right now, should store and check
         log.debug('%s host key: %s' % (self.factory.hostname, fingerprint))
-        return defer.succeed(1) 
+        return defer.succeed(1)
+
+    def connectionMade(self):
+        self.factory.transport = self.transport
+        transport.SSHClientTransport.connectionMade(self)
 
     def connectionSecure(self): 
         sshconn = SshConnection(self.factory)
@@ -145,12 +149,13 @@ class SshClient(CollectorClient.CollectorClient):
                            commands, options, device, datacollector)
         self.protocol = SshClientTransport
         self.connection = None
+        self.transport = None
 
 
     def run(self):
         """Start ssh collection.
         """
-        reactor.connectTCP(self.ip, self.port, self)
+        reactor.connectTCP(self.ip, self.port, self, self.loginTimeout)
 
 
     def addCommand(self, commands):
