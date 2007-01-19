@@ -366,6 +366,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -402,6 +403,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -441,6 +443,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -513,6 +516,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -549,6 +553,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -588,6 +593,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -787,6 +793,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -823,6 +830,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -862,6 +870,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -934,6 +943,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -970,6 +980,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -1009,6 +1020,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -1964,6 +1976,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2000,6 +2013,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2036,6 +2050,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2072,6 +2087,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2755,6 +2771,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2791,6 +2808,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2827,6 +2845,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -2863,6 +2882,7 @@ False
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3251,6 +3271,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3265,6 +3286,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3279,6 +3301,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3293,6 +3316,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3307,6 +3331,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3321,6 +3346,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3335,6 +3361,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3349,6 +3376,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -3363,6 +3391,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4095,6 +4124,7 @@ ${zCommandPath}/zenplugin.py process ${here/name}
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4273,6 +4303,7 @@ ${zCommandPath}/zenplugin.py intf ${here/id}
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4287,6 +4318,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4301,6 +4333,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4315,6 +4348,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4329,6 +4363,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4343,6 +4378,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -4357,6 +4393,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5056,6 +5093,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5070,6 +5108,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5084,6 +5123,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5098,6 +5138,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5112,6 +5153,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5126,6 +5168,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5140,6 +5183,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5154,6 +5198,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
@@ -5168,6 +5213,7 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
+<property type="string" id="rrdmin" mode="w">0<property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
