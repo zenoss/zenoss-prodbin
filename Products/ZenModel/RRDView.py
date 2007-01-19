@@ -166,7 +166,10 @@ class RRDView(object):
         for g in template.getGraphs():
             graph = {}
             graph['title'] = g.getId()
-            graph['url'] = self.getRRDGraphUrl(g,drange,template=template)
+            try:
+                graph['url'] = self.getRRDGraphUrl(g,drange,template=template)
+            except ConfigurationError:
+                pass
             if graph['url']:
                 graphs.append(graph)
         return graphs
@@ -195,7 +198,7 @@ class RRDView(object):
         *_sysUpTime.  This is to do a lame type of
         normalization accross different types of data collection.
         """
-        return '%s/%s.rrd' % (self.rrdPath(), dsname)
+        return '%s/*%s.rrd' % (self.rrdPath(), dsname)
 
 
     def getRRDNames(self):
