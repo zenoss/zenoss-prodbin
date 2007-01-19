@@ -65,9 +65,15 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
             'icon'           : 'EventClass.gif',
             'product'        : 'ZenEvents',
             'factory'        : 'manage_addEventClass',
-            'immediate_view' : 'eventClassStatus',
+            'immediate_view' : 'viewEvents',
             'actions'        :
             ( 
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'eventClassStatus'
@@ -77,12 +83,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
                 { 'id'            : 'eventList'
                 , 'name'          : 'Mappings'
                 , 'action'        : 'eventMappingList'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   Permissions.view, )
                 },
