@@ -37,6 +37,15 @@ Function.prototype.bind = function(obj) {
     return temp;
 }
 
+
+Date.prototype.minus = function(secs) {
+    return new Date(this.valueOf()-(secs*1000));
+}
+Date.prototype.toPretty = function() {
+    return toISOTimestamp(this);
+}
+
+
 var table = function(obj, newme) {
     _height = function(o) { return String(o.height + 14)+'px'; };
     return TABLE({'id':obj.id + '_table'},
@@ -160,11 +169,12 @@ ZenRRDGraph.prototype = {
 
     setDates : function() {
         var sD, eD;
-        sD=new Date(); eD=new Date();
-        eD.setMilliseconds(eD.getMilliseconds()-this.end*1000);
-        sD.setMilliseconds(sD.getMilliseconds()-(this.start+this.end)*1000);
-        this.sDate=toISOTimestamp(sD);
-        this.eDate=toISOTimestamp(eD);
+        now = new Date();
+        eD = now.minus(this.end); 
+        sD = now.minus(this.start+this.end);
+        this.sDate=sD.toPretty();
+        this.eDate=eD.toPretty();
+        delete now;
     },
 
     setComment : function(comment) {
@@ -238,8 +248,6 @@ ZenRRDGraph.prototype = {
         var onSuccess = function(e) {
             if (this.obj.src!=this.url) {
                 this.obj.src = this.url;
-                log('Refreshing ' + this.obj.id + ' with start ' +
-                    this.start + ' end ' + this.end);
             };
             disconnectAll(this.buffer);
             delete this.buffer;
@@ -370,8 +378,8 @@ function linkGraphs(bool) {
 function resetGraphs(drange) {
     if (!isie) {
         var end = 0;
-        var start = drange;
-        var drange = drange;
+        var start = Number(drange);
+        var drange = Number(drange);
         ZenQueue.updateAll([drange, start, end]);
     } else {
         document.href = document.href;
