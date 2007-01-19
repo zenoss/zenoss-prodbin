@@ -68,9 +68,11 @@
 <script src="zendragdrop.js"></script>
 
         <div style="float:left;">
-                   <textarea tal:content="python:'\n'.join(here.resultFields)"
-                      name="resultFields:lines"
-                      id="ta_resultFields"></textarea>
+           <textarea tal:content="python:test(len(here.resultFields)>0,
+                                 '\n'.join(here.resultFields),
+           '\n'.join(here.ZenEventManager.defaultResultFields))"
+              name="resultFields:lines"
+              id="ta_resultFields"></textarea>
         <h5>Fields (drag to change order)</h5>
 
         </div>
