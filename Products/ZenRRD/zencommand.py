@@ -322,8 +322,8 @@ class Cmd:
         self.device = cfg.device
         self.ipAddress = cfg.ipAddress
         self.port = cfg.port
-        self.username = cfg.username
-        self.password = cfg.password
+        self.username = str(cfg.username)
+        self.password = str(cfg.password)
         self.loginTimeout = cfg.loginTimeout
         self.commandTimeout = cfg.commandTimeout
         self.keyPath = cfg.keyPath
