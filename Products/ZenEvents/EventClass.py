@@ -74,8 +74,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
+                { 'id'            : 'classes'
+                , 'name'          : 'Classes'
                 , 'action'        : 'eventClassStatus'
                 , 'permissions'   : (
                   Permissions.view, )

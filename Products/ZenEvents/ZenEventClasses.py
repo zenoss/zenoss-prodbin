@@ -9,6 +9,7 @@ Cmd_Ok = "/Cmd/Ok"
 Heartbeat = "/Heartbeat"
 Perf_Snmp = "/Perf/Snmp"
 Perf_XmlRpc = "/Perf/XmlRpc"
+Status_Heartbeat = "/Status/Heartbeat"
 Status_IpService = "/Status/IpService"
 Status_Nagios = "/Status/Nagios" # Deprecated, but included for consistency
 Status_OSProcess = "/Status/OSProcess"

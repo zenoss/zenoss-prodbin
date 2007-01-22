@@ -52,8 +52,8 @@ class OSProcessOrganizer(Organizer, Commandable):
             'immediate_view' : 'osProcessOrganizerOverview',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
+                { 'id'            : 'classes'
+                , 'name'          : 'Classes'
                 , 'action'        : 'osProcessOrganizerOverview'
                 , 'permissions'   : (
                   Permissions.view, )

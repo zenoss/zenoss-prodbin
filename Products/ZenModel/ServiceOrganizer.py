@@ -56,8 +56,8 @@ class ServiceOrganizer(Organizer, Commandable):
             'immediate_view' : 'serviceOrganizerOverview',
             'actions'        :
             ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
+                { 'id'            : 'classes'
+                , 'name'          : 'Classes'
                 , 'action'        : 'serviceOrganizerOverview'
                 , 'permissions'   : (
                   Permissions.view, )

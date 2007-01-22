@@ -8,6 +8,8 @@ status
 -1
 </property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='WinEventlog' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -23,6 +25,8 @@ status
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Wmi' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>

@@ -26,7 +26,8 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
-from ZenEventClasses import App_Start, App_Stop, Heartbeat, Cmd_Ok, Cmd_Fail
+from ZenEventClasses import App_Start, App_Stop, Heartbeat, Status_Heartbeat 
+from ZenEventClasses import Cmd_Ok, Cmd_Fail
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
@@ -283,7 +284,7 @@ class ZenActions(ZCmdBase):
         """
         # build cache of existing heartbeat issues
         q = ("SELECT device, component "
-             "FROM status WHERE eventClass = '%s'" % Heartbeat)
+             "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
         heartbeatState = Set(self.query(db, q))
            
         # find current heartbeat failures
@@ -292,7 +293,7 @@ class ZenActions(ZCmdBase):
         for device, comp in self.query(db, sel):
             self.sendEvent(
                 Event.Event(device=device, component=comp,
-                            eventClass=Heartbeat, 
+                            eventClass=Status_Heartbeat, 
                             summary="%s %s heartbeat failure" % (device, comp),
                             severity=Event.Error))
             heartbeatState.discard((device, comp))
@@ -301,7 +302,7 @@ class ZenActions(ZCmdBase):
         for device, comp in heartbeatState:
             self.sendEvent(
                 Event.Event(device=device, component=comp, 
-                            eventClass=Heartbeat, 
+                            eventClass=Status_Heartbeat, 
                             summary="%s %s heartbeat clear" % (device, comp),
                             severity=Event.Clear))
 

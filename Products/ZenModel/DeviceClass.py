@@ -97,8 +97,8 @@ class DeviceClass(DeviceOrganizer):
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
+                { 'id'            : 'classes'
+                , 'name'          : 'Classes'
                 , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : ( permissions.view, )
                 },
