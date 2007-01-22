@@ -106,8 +106,32 @@ function hideForms() {
      alt="Onos! Where is the graph?"/>
 
 
+<br/>
+<form name="upperLower" action="/zport/RenderServer/plugin" 
+      onsubmit="getImage(this); return false">
+    <input type="hidden" name="name" value="upperLower"/>
+    <input type="hidden" name="arg" value="--units-exponent=6"/>
+    <input type="hidden" name="title" value="Network Output/Input"/>
+    <input type="hidden" name="label" value="Mbs"/>
+    <input type="hidden" name="upper" value="ifOutOctets"/>
+    <input type="hidden" name="lower" value="ifInOctets"/>
+    <input type="hidden" name="upperLabel" value="Out"/>
+    <input type="hidden" name="lowerLabel" value="In "/>
+    <input type="hidden" name="rpn" value=",8,*"/>
+    <table class="zentable" cellpadding="3" cellspacing="1">
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphForm"
+             tal:omit-tag="" />  
+       <span metal:use-macro="here/graphMacro/macros/defaultGraphFormEnd"
+             tal:omit-tag="" />  
+   </table>
+</form>
+<img id="upperLower:image" onclick="toggleForm(this)" 
+     alt="Onos! Where is the graph?"/>
+
+
 <script language="javascript">
 <!--
+getImage(document.upperLower)
 getImage(document.aggregateCpu)
 getImage(document.aggregateDisks)
 getImage(document.aggregateFreeMemory)
