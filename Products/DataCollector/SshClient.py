@@ -40,7 +40,6 @@ class SshClientTransport(transport.SSHClientTransport):
 
     def connectionSecure(self): 
         sshconn = SshConnection(self.factory)
-        self.factory.connection = sshconn
         sshauth = SshUserAuth(self.factory.username, sshconn, self.factory)
         self.requestService(sshauth)
 
@@ -90,11 +89,7 @@ class SshConnection(connection.SSHConnection):
 
 
     def serviceStarted(self):
-        """run commands that are in the command queue"""
-        log.info("connected to device %s" % self.factory.hostname)
-        for cmd in self.factory.getCommands():
-            self.addCommand(cmd)
-
+        self.factory.serviceStarted(self)
 
     def addCommand(self, cmd):
         """open a new command channel for each command in queue"""
@@ -156,6 +151,14 @@ class SshClient(CollectorClient.CollectorClient):
         """Start ssh collection.
         """
         reactor.connectTCP(self.ip, self.port, self, self.loginTimeout)
+
+
+    def serviceStarted(self, sshconn):
+        """run commands that are in the command queue"""
+        log.info("connected to device %s" % self.hostname)
+        self.connection = sshconn
+        for cmd in self.getCommands():
+            sshconn.addCommand(cmd)
 
 
     def addCommand(self, commands):
