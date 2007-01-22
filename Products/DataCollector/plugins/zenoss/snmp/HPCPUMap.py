@@ -36,12 +36,13 @@ class HPCPUMap(SnmpPlugin):
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
-        if not cputable: return
+        if not cputable or not cachetable: return
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
             om = self.objectMap(cpu)
-            om.id = self.prepId("%s_%s" % (om.setProductKey,om.socket))
+            idx = getattr(om, 'socket', om._cpuidx)
+            om.id = self.prepId("%s_%s" % (om.setProductKey,idx))
             cpumap[cpu['_cpuidx']] = om
             rm.append(om)
         
@@ -49,7 +50,7 @@ class HPCPUMap(SnmpPlugin):
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
             if cache['level'] == 1: 
-                cpu.cacheSizeL1 = cache['size']
+                cpu.cacheSizeL1 = cache.get('size',0)
             elif cache['level'] == 2:
-                cpu.cacheSizeL2 = cache['size']
+                cpu.cacheSizeL2 = cache.get('size',0)
         return rm
