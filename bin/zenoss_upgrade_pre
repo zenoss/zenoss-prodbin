@@ -20,6 +20,10 @@ export ZOPEHOME=${ZENHOME}
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
+# copy the etc/*.conf.example files to etc/*.conf if etc/*.conf don't
+# already exist (we don't want to clobber people's configs)
+update_conf_files
+
 # migrate the zeo database
 start_zeodb
 run_zenmigrate
