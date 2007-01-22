@@ -196,17 +196,29 @@ class ApplyDataMap(object):
                 if not getter:
                     log.warn("getter '%s' not found on obj '%s', "
                                   "skipping", gettername, obj.id)
-                elif value != getter():
-                    setter(value)
+                else:
+                    try:
+                        change = value != getter()
+                    except UnicodeDecodeError:
+                        change = True
+                    if change:
+                        setter(value)
+                        self.logChange(device, Change_Set,
+                                    "calling function '%s' with '%s' on "
+                                    "object %s" % (attname, value, obj.id))
+                        changed = True            
+            else:
+                try:
+                    change = att != value
+                except UnicodeDecodeError:
+                    change = True
+                if change:
+                    setattr(aq_base(obj), attname, value) 
                     self.logChange(device, Change_Set,
-                                "calling function '%s' with '%s' on "
-                                "object %s" % (attname, value, obj.id))
-                    changed = True            
-            elif att != value:
-                setattr(aq_base(obj), attname, value) 
-                self.logChange(device, Change_Set,
-                                "set attribute '%s' to '%s' on object '%s'" % (
-                                attname, value, obj.id))
+                                   "set attribute '%s' "
+                                   "to '%s' on object '%s'" %
+                                   (attname, value, obj.id))
+                    changed = True
         if not changed:
             try: changed = obj._p_changed
             except: pass
