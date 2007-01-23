@@ -19,6 +19,8 @@ from Products.ZenUtils import Map
 
 from Products.ZenUtils.ZenTales import talesEval
 
+from RRDTemplate import ConfigurationError
+
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
