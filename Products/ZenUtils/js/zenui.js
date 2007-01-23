@@ -47,12 +47,13 @@ function setCookie( name, value, expires, path, domain, secure ) {
 }
 
 function deleteCookie(name,path,domain) {
-     if (getCookie(name))
+     if (getCookie(name)) {
          document.cookie =
          name + '=' +
          ( (path) ? ';path=' + path : '') +
          ( (domain) ? ';domain=' + domain : '') +
          ';expires=Thu, 01-Jan-1970 00:00:01 GMT';
+     }
 }
 
 function hideLeftPane() {
@@ -111,7 +112,7 @@ function cancelHover() {
         'margin':'5px 5px 10px 0',
         'top':'42px',
         'left':'4px',
-        'border':'1px solid transparent',
+        'border':'1px solid transparent'
     });
 }
 
