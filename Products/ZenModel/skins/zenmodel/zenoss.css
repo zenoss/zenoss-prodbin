@@ -85,6 +85,7 @@ td.search {
 }
 #leftPane {
     position: absolute;
+    z-index: 999;
 	left: 0px;
     margin: 5px 0px 0px 5px;
     padding: 25px 0px 0px 0px;
@@ -527,3 +528,12 @@ a.tablevalues:active {
     padding-left:1em;
 }
 
+.invisible {
+    display: none;
+}
+
+#paneToggle {
+    float:left;
+    z-index: 1000;
+    cursor: pointer;
+}

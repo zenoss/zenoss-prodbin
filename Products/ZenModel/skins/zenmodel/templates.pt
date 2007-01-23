@@ -18,6 +18,14 @@
 	<body>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
+            <div id="paneToggle">
+              <img src="hide.png" alt="Hide/Show" onclick="toggleLeftPane();"/>
+            </div>
+            <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
+                                    here.REQUEST.HTTP_COOKIE">
+                #leftPane { display:none;}
+                #rightPane { margin-left:12px;}
+            </style>
             <div metal:use-macro="here/templates/macros/leftPane"/>
 	        <div id="rightPane">
                 <tal:block metal:define-slot="rightPane">
@@ -94,6 +102,8 @@
         src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" 
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
+    <script type="text/javascript"
+        src="/zport/js/zenui.js"></script>
 </tal:block>
 
 <!-- ======================================================
@@ -133,8 +143,7 @@
     leftPane - standard left side and nav
  ====================================================== -->
 <div id="leftPane" metal:define-macro="leftPane">
-
-    <p>Main Views</p>
+    <p id="mainviews">Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
         <li><a href="/zport/dmd/Events">Events</a></li>
@@ -146,7 +155,7 @@
         <li><a href="/zport/dmd/Mibs">Mibs</a></li>
     </ul>
 
-    <p>Browse By</p>
+    <p id="browseby">Browse By</p>
     <ul>
         <li><a href="/zport/dmd/Systems">Systems</a></li>
         <li><a href="/zport/dmd/Groups">Groups</a></li>
@@ -156,7 +165,7 @@
 
 
     <tal:block tal:condition="here/isManager">
-    <p>Management</p>
+    <p id="Management">Management</p>
     <ul>
         <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
         <li><a href="/zport/dmd/ZenEventManager/addEvent">Add Event</a></li>
