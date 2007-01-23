@@ -198,7 +198,7 @@ class RRDView(object):
     def getRRDFileName(self, dsname):
         """Look up an rrd file based on its data point name"""
         names = [n for n in self.getRRDTemplate().getRRDDataPointNames()
-                 if n.endswith(dsname) > -1]
+                 if n.endswith(dsname)]
         if names:
             return '%s/%s.rrd' % (self.rrdPath(), names[0])
         else:
