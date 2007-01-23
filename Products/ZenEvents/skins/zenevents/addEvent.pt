@@ -56,10 +56,21 @@
         </tr>
         <tr>
             <td class="tableheader" align="left">
+                Event Class Key
+            </td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+		            size="50" name="eventClassKey"
+                    tal:attributes="value event/eventClassKey | nothing" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">
                 Event Class
             </td>
             <td class="tablevalues" align="left">
                 <select class="tablevalues" name="eclass">
+					<option value=""></option>
                     <option 
                         tal:repeat="eclass here/dmd/Events/getOrganizerNames"
                         tal:content="eclass"

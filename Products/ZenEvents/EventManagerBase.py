@@ -1028,7 +1028,9 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             device = REQUEST['device'],
             component = REQUEST['component'],
             severity = REQUEST['severity'],
-            eventClass = REQUEST['eclass'])
+            eventClassKey = REQUEST['eventClassKey'],
+            eventClass = REQUEST['eclass'],
+            )
         evid = self.sendEvent(eventDict)
         if REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
