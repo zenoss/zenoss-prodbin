@@ -42,7 +42,9 @@ class EventClassPropertyMixin(object):
     def applyTransform(self, evt, device):
         return evt
 
-        
+
+# Why is this a subclass of EventView?
+
 class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
     """
     EventClassInst.
@@ -179,6 +181,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         Any non-None property values are applied to the event.
         """
         evt.eventClass = self.getEventClass()
+        evt.eventClassMapping = '%s/%s' % (self.getEventClass(), self.id)
         return EventClassPropertyMixin.applyValues(self, evt)
 
     def applyTransform(self, evt, device):

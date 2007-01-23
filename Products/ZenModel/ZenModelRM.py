@@ -76,12 +76,17 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
             return self.callZenScreen(REQUEST, redirect)
 
 
-    def zmanage_addProperty(self, id, value, type, label, visible,REQUEST=None):
+    def zmanage_addProperty(self, id, value, type, label, visible,
+                                prefix='c', REQUEST=None):
         """Add a new property via the web.
         Sets a new property with the given id, type, and value.
+        Id must start with a 'c' for custom attributes added via the
+        Custom Schema tab.
         """
         if type_converters.has_key(type):
             value=type_converters[type](value)
+        if prefix and not id.startswith(prefix):
+            id = prefix + id
         self._setProperty(id.strip(), value, type, label, visible)
         if REQUEST:
             return self.callZenScreen(REQUEST)
