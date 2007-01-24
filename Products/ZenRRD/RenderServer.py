@@ -125,17 +125,23 @@ class RenderServer(RRDToolItem):
         """return latest values"""
         try:
             def value(p):
-                info = rrdtool.info(p)
-                last = info['last_update']
-                step = info['step']
-                v = rrdtool.graph('/dev/null',
-                                  'DEF:x=%s:ds0:AVERAGE' % p,
-                                  'VDEF:v=x,LAST',
-                                  'PRINT:v:%.2lf',
-                                  '--start=%d'%(last-step),
-                                  '--end=%d'%last)
-                v = float(v[2][0])
-                if str(v) == 'nan': v = None
+                v = None
+                info = None
+                try:
+                    info = rrdtool.info(p)
+                except:
+                    log.exception('%s not found' % p)
+                if info:
+                    last = info['last_update']
+                    step = info['step']
+                    v = rrdtool.graph('/dev/null',
+                                      'DEF:x=%s:ds0:AVERAGE' % p,
+                                      'VDEF:v=x,LAST',
+                                      'PRINT:v:%.2lf',
+                                      '--start=%d'%(last-step),
+                                      '--end=%d'%last)
+                    v = float(v[2][0])
+                    if str(v) == 'nan': v = None
                 return v
             return map(value, paths)
         except NameError:
