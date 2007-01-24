@@ -483,7 +483,7 @@ class zencommand(RRDDaemon):
             msg, values = '', output
         else:
             msg, values = output, ''
-        msg = msg.strip() or self.getExitMessage(exitCode)
+        msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (cmd.command, exitCode, self.getExitMessage(exitCode))
         if exitCode == 0:
             severity = 0
         elif exitCode == 2:
