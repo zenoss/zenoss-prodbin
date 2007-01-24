@@ -45,6 +45,7 @@ trigger = """
             OLD.ownerid,
             NULL,
             OLD.clearid,
+            OLD.DevicePriority,
             OLD.eventClassMapping
             )"""
             
