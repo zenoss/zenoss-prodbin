@@ -32,7 +32,7 @@ class ZenBackup(CmdBase):
 
 
     def __init__(self, noopts=0):
-        self.z = ZCmdBase(noopts=True)
+        #self.z = ZCmdBase(noopts=True)
         CmdBase.__init__(self, noopts)
         self.zenhome = os.getenv('ZENHOME')
 
@@ -61,7 +61,8 @@ class ZenBackup(CmdBase):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
 
-        em = self.z.dmd.ZenEventManager
+        #em = self.z.dmd.ZenEventManager
+        em = None
 
         self.parser.add_option('--dbname',
                                dest='dbname',
