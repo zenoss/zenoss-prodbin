@@ -37,6 +37,7 @@ class Step:
 
     # Every subclass should set this so we know when to run it
     version = -1
+    dependencies = None
 
 
     def __init__(self):
@@ -44,7 +45,31 @@ class Step:
         allSteps.append(self)
 
     def __cmp__(self, other):
-        return cmp((self.version, self.name()), (other.version, other.name()))
+        result = cmp(self.version, other.version)
+        if result:
+            return result
+        # if we're in the other dependency list, we are "less"
+        if self in other.getDependencies():
+            return -1
+        # if other is in the out dependency list, we are "greater"
+        if other in self.getDependencies():
+            return 1
+        # otherwise, let's just go with a nice repeatable but arbitrary name
+        return cmp(self.name(), other.name())
+
+    def getDependencies(self):
+        if not self.dependencies:
+            return []
+        result = []
+        for d in self.dependencies:
+            if d is not self:
+                result.append(d)
+                result.extend(d.getDependencies())
+            else:
+                log.error("Circular dependency among migration Steps: "
+                          "%s is listed as a dependency of %s ",
+                          self.name(), d.name())
+        return result
 
     def prepare(self):
         "do anything you must before running the cutover"
@@ -209,7 +234,8 @@ class Migration(ZCmdBase):
         for s in self.allSteps:
             doc = s.__doc__
             if not doc:
-                doc = sys.modules[s.__class__.__module__].__doc__.strip()
+                doc = sys.modules[s.__class__.__module__].__doc__ or 'Not Documented'
+                doc.strip()
             indent = ' '*22
             doc = '\n'.join(wrap(doc, width=80,
                                  initial_indent=indent,
