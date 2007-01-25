@@ -34,7 +34,7 @@ defaultPortScanTimeout = 5
 defaultParallel = 40
 defaultProtocol = "ssh"
 defaultPort = 22
-
+defaultStartSleep = 10 * 60
 
 pluginskip = ("CollectorPlugin.py", "DataMaps.py")
 def plfilter(f):
@@ -47,6 +47,17 @@ class ZenModeler(ZCmdBase):
     def __init__(self,noopts=0,app=None,single=False,
                 threaded=True,keeproot=False):
         ZCmdBase.__init__(self, noopts, app, keeproot)
+        
+        if self.options.daemon:
+            if self.options.now:
+                self.log.debug("Run as a daemon, starting immediately.")
+            else:
+                self.log.debug("Run as a daemon, waiting %s sec to start." % defaultStartSleep)
+                time.sleep(defaultStartSleep)
+                self.log.debug("Run as a daemon, slept %s sec, starting now." % defaultStartSleep)
+        else:
+            self.log.debug("Run in foreground, starting immediately.")
+            
         self.single = single
         if self.options.device:
             self.single = True
@@ -367,6 +378,9 @@ class ZenModeler(ZCmdBase):
         self.parser.add_option('--portscantimeout', dest='portscantimeout', 
                 type='int', default=defaultPortScanTimeout,
                 help="time to wait for connection failures when port scanning")
+        self.parser.add_option('--now', 
+                dest='now', action="store_true", default=False,
+                help="start daemon now, do not sleep before starting")
         TelnetClient.buildOptions(self.parser, self.usage)
     
 
