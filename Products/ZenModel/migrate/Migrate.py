@@ -32,6 +32,17 @@ class Version(VersionBase):
     def __init__(self, *args, **kw):
         VersionBase.__init__(self, 'Zenoss', *args, **kw)
 
+def cleanup():
+    "recursively remove all files ending with .pyc"
+    import os
+    for p, d, fs in os.walk(os.path.join(os.environ['ZENHOME'], 'Products')):
+        for f in fs: 
+            if f.endswith('.pyc'):
+                fullPath = os.path.join(p, f)
+                log.debug('removing %s', fullPath)
+                os.remove(fullPath)
+
+
 class Step:
     'A single migration step, to be subclassed for each new change'
 
@@ -149,6 +160,8 @@ class Migration(ZCmdBase):
 
         for m in steps:
             m.cleanup()
+
+        cleanup()
 
         rl = ReportLoader(noopts=True, app=self.app)
         rl.options.force = True
