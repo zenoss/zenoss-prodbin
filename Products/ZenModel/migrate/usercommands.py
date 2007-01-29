@@ -47,6 +47,8 @@ class UserCommands(Migrate.Step):
                     ('traceroute', 'traceroute -q1 -w2 ${device/manageIp}'),
                     ('DNS forward', 'host ${device/id}'),
                     ('DNS reverse', 'host ${device/manageIp}'),
+                    ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'
+				   ' ${here/manageIp} system'),
                     )
         commands = [c for c in commands 
                     if c[0] not in [d.id for d in dmd.userCommands()]]

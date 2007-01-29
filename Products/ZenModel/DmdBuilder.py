@@ -124,6 +124,8 @@ class DmdBuilder:
                 ('traceroute', 'traceroute -q1 -w2 ${device/manageIp}'),
                 ('DNS forward', 'host ${device/manageIp}'),
                 ('DNS reverse', 'host ${device/id}'),
+                ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'
+				' ${here/manageIp} system'),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd)
 

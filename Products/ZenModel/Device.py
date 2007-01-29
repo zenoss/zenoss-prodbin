@@ -1184,7 +1184,7 @@ class Device(ManagedEntity, Commandable):
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
-            response.write(dlh[:idx])
+            response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
         try:
             from Products.DataCollector.zenmodeler import ZenModeler

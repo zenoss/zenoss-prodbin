@@ -97,7 +97,7 @@ class Commandable:
         if REQUEST:
             REQUEST['cmd'] = command
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
-            REQUEST.RESPONSE.write(header)
+            REQUEST.RESPONSE.write(str(header))
             out = REQUEST.RESPONSE
         else:
             out = None
