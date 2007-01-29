@@ -132,86 +132,76 @@ def getObjByPath(base, path, restricted=0):
             and not securityManager.validate(None, None, None, base)):
             raise Unauthorized, name
 
-    try:
-        obj = base
-        while path:
-            name = path_pop()
-            __traceback_info__ = path, name
+    obj = base
+    while path:
+        name = path_pop()
+        __traceback_info__ = path, name
 
-            if name[0] == '_':
-                # Never allowed in a URL.
-                raise NotFound, name
+        if name[0] == '_':
+            # Never allowed in a URL.
+            raise NotFound, name
 
-            if name == '..':
-                next = aq_parent(obj)
-                if next is not _none:
-                    if restricted and not securityManager.validate(
-                        obj, obj,name, next):
-                        raise Unauthorized, name
-                    obj = next
-                    continue
+        if name == '..':
+            next = aq_parent(obj)
+            if next is not _none:
+                if restricted and not securityManager.validate(
+                    obj, obj,name, next):
+                    raise Unauthorized, name
+                obj = next
+                continue
 
-            bobo_traverse = _getattr(obj, '__bobo_traverse__', _none)
-            if bobo_traverse is not _none:
-                next = bobo_traverse(REQUEST, name)
-                if restricted:
-                    if aq_base(next) is not next:
-                        # The object is wrapped, so the acquisition
-                        # context is the container.
-                        container = aq_parent(aq_inner(next))
-                    elif _getattr(next, 'im_self', _none) is not _none:
-                        # Bound method, the bound instance
-                        # is the container
-                        container = next.im_self
-                    elif _getattr(aq_base(obj), name, marker) == next:
-                        # Unwrapped direct attribute of the object so
-                        # object is the container
-                        container = obj
-                    else:
-                        # Can't determine container
-                        container = _none
-                    try:
-                        validated = securityManager.validate(
-                                               obj, container, name, next)
-                    except Unauthorized:
-                        # If next is a simple unwrapped property, it's
-                        # parentage is indeterminate, but it may have been
-                        # acquired safely.  In this case validate will
-                        # raise an error, and we can explicitly check that
-                        # our value was acquired safely.
-                        validated = 0
-                        if container is _none and \
-                               guarded_getattr(obj, name, marker) is next:
-                            validated = 1
-                    if not validated:
-                        raise Unauthorized, name
-            else:
-                if restricted:
-                    next = guarded_getattr(obj, name, marker)
+        bobo_traverse = _getattr(obj, '__bobo_traverse__', _none)
+        if bobo_traverse is not _none:
+            next = bobo_traverse(REQUEST, name)
+            if restricted:
+                if aq_base(next) is not next:
+                    # The object is wrapped, so the acquisition
+                    # context is the container.
+                    container = aq_parent(aq_inner(next))
+                elif _getattr(next, 'im_self', _none) is not _none:
+                    # Bound method, the bound instance
+                    # is the container
+                    container = next.im_self
+                elif _getattr(aq_base(obj), name, marker) == next:
+                    # Unwrapped direct attribute of the object so
+                    # object is the container
+                    container = obj
                 else:
-                    next = _getattr(obj, name, marker)
-                if next is marker:
-                    try:
-                        next=obj[name]
-                    except AttributeError:
-                        # Raise NotFound for easier debugging
-                        # instead of AttributeError: __getitem__
-                        raise NotFound, name
-                    if restricted and not securityManager.validate(
-                        obj, obj, _none, next):
-                        raise Unauthorized, name
-
-            obj = next
-
-        return obj
-
-    except ConflictError:
-        raise
-    except:
-        if default is not marker:
-            return default
+                    # Can't determine container
+                    container = _none
+                try:
+                    validated = securityManager.validate(
+                                           obj, container, name, next)
+                except Unauthorized:
+                    # If next is a simple unwrapped property, it's
+                    # parentage is indeterminate, but it may have been
+                    # acquired safely.  In this case validate will
+                    # raise an error, and we can explicitly check that
+                    # our value was acquired safely.
+                    validated = 0
+                    if container is _none and \
+                           guarded_getattr(obj, name, marker) is next:
+                        validated = 1
+                if not validated:
+                    raise Unauthorized, name
         else:
-            raise
+            if restricted:
+                next = guarded_getattr(obj, name, marker)
+            else:
+                next = _getattr(obj, name, marker)
+            if next is marker:
+                try:
+                    next=obj[name]
+                except AttributeError:
+                    # Raise NotFound for easier debugging
+                    # instead of AttributeError: __getitem__
+                    raise NotFound, name
+                if restricted and not securityManager.validate(
+                    obj, obj, _none, next):
+                    raise Unauthorized, name
+        obj = next
+    return obj
+
 
 
 def checkClass(myclass, className):
