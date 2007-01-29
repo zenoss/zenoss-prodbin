@@ -1,8 +1,8 @@
 # Copyright (C) 2003 by Dr. Dieter Maurer, Eichendorffstr. 23, D-66386 St. Ingbert, Germany
 # see "LICENSE.txt" for details
-#       $Id: test_ManagableIndex.py,v 1.10 2006/05/17 19:53:07 dieter Exp $
+#       $Id: test_ManagableIndex.py,v 1.13 2006/11/23 19:43:05 dieter Exp $
 
-from TestBase import TestBase, genSuite, runSuite
+from TestBase import TestBase, genSuite, runSuite, TestCase
 
 from re import escape
 
@@ -13,7 +13,7 @@ from DateTime.DateTime import DateTime
 
 from Products.ManagableIndex.ValueProvider import ExpressionEvaluator
 from Products.ManagableIndex.ManagableIndex import _splitPrefixRegexp
-from Products.ManagableIndex.ManagableIndex import IFilter
+from Products.ManagableIndex.ManagableIndex import IFilter, ManagableIndex
 from Products.ManagableIndex.KeywordIndex import KeywordIndex_scalable
 
 
@@ -387,6 +387,8 @@ class TestManagableIndex(TestBase):
     c(pi, {'query':'a', 'depth':None}, '123')
     c(pi, {'query':[()], 'depth':-2}, '12')
     c(pi, {'query':'b', 'level':None, 'depth':-1}, '23')
+    obj.pi = '/a'; pi.index_object(4,obj)
+    c(pi, '/', '4')
 
 
   def test_ReverseOrder(self):
@@ -559,6 +561,27 @@ class TestWordIndex(TestBase):
     self.assertEqual(''.join(map(str, r.keys())), result)
 
 
+class TestProgrammaticSetup(TestCase):
+  def test_PropertySetup(self):
+    self.assertRaises(ValueError, ManagableIndex, 'mi', {'TermTypeExtra':'tte', 'X':None})
+    mi = ManagableIndex('mi', {'TermTypeExtra':'tte'})
+    self.assertEqual(mi.TermTypeExtra, 'tte')
+
+  def test_NoProvider(self):
+    mi = ManagableIndex('mi', {})
+    self.assertEqual(mi.objectIds(), [])
+
+  def test_ExpliciteProvidersWithProperties(self):
+    mi = ManagableIndex('mi', {
+      'ValueProviders': (
+      {'type':'AttributeLookup', 'id':'al', 'Name':'name',},
+      {'type':'ExpressionEvaluator', 'id':'el', 'Expression':'e',},
+      ),
+      }
+                        )
+    self.assertEqual(len(mi.objectIds()), 2)
+    self.assertEqual(mi.al.Name, 'name')
+    self.assertEqual(mi.el.Expression, 'e')
 
 
 
@@ -577,6 +600,7 @@ def test_suite():
     TestManagableIndex,
     TestMatching, TestMatching_Unicode,
     TestWordIndex,
+    TestProgrammaticSetup,
     ]
   if IFilter is not None:
     tests.extend([TestFiltering, TestMatching_Filtering])

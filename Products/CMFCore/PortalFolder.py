@@ -12,7 +12,7 @@
 ##############################################################################
 """ PortalFolder: CMF-enabled Folder objects.
 
-$Id: PortalFolder.py 40138 2005-11-15 17:47:37Z jens $
+$Id: PortalFolder.py 40136 2005-11-15 17:41:36Z jens $
 """
 
 import base64

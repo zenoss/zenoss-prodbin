@@ -13,7 +13,7 @@ import transaction
 
 from Acquisition import aq_base
 
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, getObjByPath
 from Exceptions import *
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set
 import Products.ZenEvents.Event as Event
@@ -290,7 +290,7 @@ class ApplyDataMapThread(threading.Thread, ApplyDataMap):
             try:
                 devpath, collectorClient = self.inputqueue.get(True,1)
                 self.app._p_jar.sync()
-                device = self.app.unrestrictedTraverse(devpath)
+                device = getObjByPath(self.app, devpath)
                 ApplyDataMap.processClient(self, device, collectorClient)
             except Queue.Empty: pass 
             except (SystemExit, KeyboardInterrupt): raise

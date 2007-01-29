@@ -151,7 +151,7 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
         brains = cat({'productKeys': query})
         if not brains: return None
         try:
-            return self.unrestrictedTraverse(brains[0].getPrimaryId)
+            return self.getObjByPath(brains[0].getPrimaryId)
         except KeyError:
             log.warn("bad path '%s' index '%s'", 
                         brains[0].getPrimaryId, self.default_catalog)

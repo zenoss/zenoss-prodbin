@@ -130,7 +130,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         Delete object by its absolute id (ie /zport/dmd/bla/bla)
         (this is sent out in the object*All API)
         """
-        obj = self.unrestrictedTraverse(id)
+        obj = self.getObjByPath(id)
         self.removeRelation(obj)
 
     
@@ -249,7 +249,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                     rrel._add(parobj)
             try:
                 ppath = obj.getPrimaryPath()
-                self.unrestrictedTraverse(ppath)
+                self.getObjByPath(ppath)
             except KeyError:
                 log.critical("obj:%s rel:%s obj:%s no longer exists",
                         self.getPrimaryId(), self.id, obj.getPrimaryId())
@@ -275,7 +275,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                     self._objects = [ o for o in self._objects \
                                         if o.getPrimaryId() != key ]
                     try:
-                        obj = self.unrestrictedTraverse(key)
+                        obj = self.getObjByPath(key)
                         self._objects.append(obj)
                     except KeyError:
                         log.critical("obj %s not found in database", key)

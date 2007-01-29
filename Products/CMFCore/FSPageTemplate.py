@@ -12,7 +12,7 @@
 ##############################################################################
 """ Customizable page templates that come from the filesystem.
 
-$Id: FSPageTemplate.py 38457 2005-09-13 18:15:07Z jens $
+$Id: FSPageTemplate.py 65899 2006-03-10 12:38:33Z mj $
 """
 
 import re, sys
@@ -78,7 +78,7 @@ class FSPageTemplate(FSObject, Script, PageTemplate):
 
     def _readFile(self, reparse):
         fp = expandpath(self._filepath)
-        file = open(fp, 'r')    # not 'rb', as this is a text file!
+        file = open(fp, 'rU')    # not 'rb', as this is a text file!
         try:
             data = file.read()
         finally:

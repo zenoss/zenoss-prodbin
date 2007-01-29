@@ -132,7 +132,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     def find(self, query):
         cat = self._getCatalog()
         brains = cat({'eventClassKey': query})
-        insts = [ self.unrestrictedTraverse(b.getPrimaryId) for b in brains ]
+        insts = [ self.getObjByPath(b.getPrimaryId) for b in brains ]
         insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
         return insts
 

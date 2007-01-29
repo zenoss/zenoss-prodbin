@@ -31,10 +31,13 @@ from Products.StandardCacheManagers import RAMCacheManager
 from Products.CMFCore.FSDTMLMethod import FSDTMLMethod
 from Products.CMFCore.FSMetadata import FSMetadata
 from Products.CMFCore.tests.base.dummy import DummyCachingManager
+from Products.CMFCore.tests.base.dummy import DummyCachingManagerWithPolicy
 from Products.CMFCore.tests.base.testcase import FSDVTest
 from Products.CMFCore.tests.base.testcase import RequestTest
 from Products.CMFCore.tests.base.testcase import SecurityTest
+from Products.CMFCore.tests.base.dummy import DummyContent
 
+from DateTime import DateTime
 
 class FSDTMLMaker(FSDVTest):
 
@@ -71,6 +74,36 @@ class FSDTMLMethodTests( RequestTest, FSDTMLMaker ):
         self.failUnless( 'foo' in self.RESPONSE.headers.keys() )
         self.failUnless( 'bar' in self.RESPONSE.headers.keys() )
 
+    def test_ownership( self ):
+        script = self._makeOne( 'testDTML', 'testDTML.dtml' )
+        script = script.__of__(self.root)
+        # fsdtmlmethod has no owner
+        owner_tuple = script.getOwnerTuple()
+        self.assertEqual(owner_tuple, None)
+
+        # and ownership is not acquired [CMF/450]
+        self.root._owner= ('/foobar', 'baz')
+        owner_tuple = script.getOwnerTuple()
+        self.assertEqual(owner_tuple, None)
+
+    def test_304_response_from_cpm( self ):
+        # test that we get a 304 response from the cpm via this template
+
+        from webdav.common import rfc1123_date
+
+        mod_time = DateTime()
+        self.root.caching_policy_manager = DummyCachingManagerWithPolicy()
+        content = DummyContent(id='content')
+        content.modified_date = mod_time
+        content = content.__of__(self.root)
+        script = self._makeOne('testDTML', 'testDTML.dtml')
+        script = script.__of__(content)
+        self.REQUEST.environ[ 'IF_MODIFIED_SINCE'
+                            ] = '%s;' % rfc1123_date( mod_time+3600 )
+        data = script(content, self.REQUEST, self.RESPONSE)
+
+        self.assertEqual( data, '' )
+        self.assertEqual( self.RESPONSE.getStatus(), 304 )
 
 class FSDTMLMethodCustomizationTests( SecurityTest, FSDTMLMaker ):
 

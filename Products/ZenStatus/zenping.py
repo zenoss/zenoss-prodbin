@@ -89,7 +89,7 @@ class ZenPing(ZCmdBase):
         "get the config data"
         self.dmd._p_jar.sync()
         changed = False
-        smc = self.dmd.unrestrictedTraverse(self.configpath)
+        smc = self.dmd.getObjByPath(self.configpath)
         for att in ("timeOut", "tries", "chunk",
                     "cycleInterval", "configCycleInterval",
                     "maxFailures",):

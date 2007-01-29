@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit tests for FSImage module.
 
-$Id: test_FSImage.py 37972 2005-08-16 20:54:10Z jens $
+$Id: test_FSImage.py 41663 2006-02-18 13:57:52Z jens $
 """
 import unittest
 import Testing
@@ -25,6 +25,7 @@ Zope2.startup()
 from os.path import join as path_join
 
 from Products.CMFCore.tests.base.dummy import DummyCachingManager
+from Products.CMFCore.tests.base.dummy import DummyCachingManagerWithPolicy
 from Products.CMFCore.tests.base.testcase import FSDVTest
 from Products.CMFCore.tests.base.testcase import RequestTest
 
@@ -133,6 +134,28 @@ class FSImageTests( RequestTest, FSDVTest):
         self.failUnless( data, '' )
         self.assertEqual( self.RESPONSE.getStatus(), 200 )
 
+    def test_index_html_with_304_from_cpm( self ):
+        self.root.caching_policy_manager = DummyCachingManagerWithPolicy()
+        path, ref = self._extractFile()
+
+        import os
+        from webdav.common import rfc1123_date
+        from base.dummy import FAKE_ETAG
+        
+        file = self._makeOne( 'test_file', 'test_image.gif' )
+        file = file.__of__( self.root )
+
+        mod_time = os.stat( path )[ 8 ]
+
+        self.REQUEST.environ[ 'IF_MODIFIED_SINCE'
+                            ] = '%s;' % rfc1123_date( mod_time )
+        self.REQUEST.environ[ 'IF_NONE_MATCH'
+                            ] = '%s;' % FAKE_ETAG
+
+        data = file.index_html( self.REQUEST, self.RESPONSE )
+        self.assertEqual( len(data), 0 )
+        self.assertEqual( self.RESPONSE.getStatus(), 304 )
+
     def test_caching( self ):
         self.root.caching_policy_manager = DummyCachingManager()
         original_len = len(self.RESPONSE.headers)
@@ -145,6 +168,30 @@ class FSImageTests( RequestTest, FSDVTest):
         self.failUnless('bar' in headers.keys())
         self.assertEqual(headers['test_path'], '/test_image')
 
+    def test_index_html_200_with_cpm( self ):
+        self.root.caching_policy_manager = DummyCachingManagerWithPolicy()
+        path, ref = self._extractFile()
+
+        import os
+        from webdav.common import rfc1123_date
+        
+        file = self._makeOne( 'test_file', 'test_image.gif' )
+        file = file.__of__( self.root )
+
+        mod_time = os.stat( path )[ 8 ]
+
+        data = file.index_html( self.REQUEST, self.RESPONSE )
+
+        # should behave the same as without cpm
+        self.assertEqual( len( data ), len( ref ) )
+        self.assertEqual( data, ref )
+        # ICK!  'HTTPResponse.getHeader' doesn't case-flatten the key!
+        self.assertEqual( self.RESPONSE.getHeader( 'Content-Length'.lower() )
+                        , str(len(ref)) )
+        self.assertEqual( self.RESPONSE.getHeader( 'Content-Type'.lower() )
+                        , 'image/gif' )
+        self.assertEqual( self.RESPONSE.getHeader( 'Last-Modified'.lower() )
+                        , rfc1123_date( mod_time ) )
 
     def test_index_html_with_304_and_caching( self ):
 

@@ -1,6 +1,6 @@
 # Copyright (C) 2004 by Dr. Dieter Maurer, Eichendorffstr. 23, D-66386 St. Ingbert, Germany
 # see "LICENSE.txt" for details
-#       $Id: PathIndex.py,v 1.3 2006/04/09 16:52:03 dieter Exp $
+#       $Id: PathIndex.py,v 1.4 2006/11/14 15:05:59 dieter Exp $
 '''Path Index.'''
 
 from BTrees.IOBTree import IOBTree
@@ -41,7 +41,9 @@ class PathIndex(ManagableIndex):
     '''convert into a tuple.'''
     value = PathIndex.inheritedAttribute('_normalize')(self, value, object)
     if value is None: return
-    if hasattr(value, 'upper'): value = value.split('/')
+    if hasattr(value, 'upper'):
+      value = value.split('/')
+      if not value[-1]: del value[-1]
     return tuple(value)
 
   # basic methods

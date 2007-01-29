@@ -89,7 +89,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
-            response.write(dlh[:idx])
+            response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
         try:
             device = manage_createDevice(self, deviceName, devicePath,

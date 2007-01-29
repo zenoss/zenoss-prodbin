@@ -12,7 +12,7 @@
 ##############################################################################
 """ Customizable Python scripts that come from the filesystem.
 
-$Id: FSPythonScript.py 41759 2006-02-23 13:59:08Z mj $
+$Id: FSPythonScript.py 41760 2006-02-23 14:02:19Z mj $
 """
 
 import new

@@ -238,7 +238,7 @@ class PerformanceConf(Monitor, StatusColor):
                                 self.renderurl)
             server = xmlrpclib.Server(url)
         else:
-            server = self.unrestrictedTraverse(self.renderurl)
+            server = self.getObjByPath(self.renderurl)
         return server.summary(gopts)
 
 
@@ -249,7 +249,7 @@ class PerformanceConf(Monitor, StatusColor):
                                 self.renderurl)
             server = xmlrpclib.Server(url)
         else:
-            server = self.unrestrictedTraverse(self.renderurl)
+            server = self.getObjByPath(self.renderurl)
         return server.currentValues(map(performancePath, paths))
 
 

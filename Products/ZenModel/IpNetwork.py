@@ -339,7 +339,7 @@ class IpNetwork(DeviceOrganizer):
         if len(ret) > 1:
             raise IpAddressConflict, "IP address conflict for IP: %s" % ip
         try:
-            return self.unrestrictedTraverse(ret[0].getPrimaryId)
+            return self.getObjByPath(ret[0].getPrimaryId)
         except KeyError:
             log.warn("bad path '%s' in index ipSearch" % ret[0].getPrimaryId)
 

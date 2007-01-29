@@ -17,6 +17,10 @@ from AccessControl.SecurityManagement import noSecurityManager
 
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
+from Utils import getObjByPath
+
+import zope.component
+import zope.traversing.adapters
 
 import os
 defaultCacheDir = os.getenv('ZENHOME')
@@ -33,6 +37,10 @@ class ZCmdBase(ZenDaemon):
         self.dataroot = None
         self.app = app
         self.db = None
+        zope.component.provideAdapter(
+            zope.traversing.adapters.DefaultTraversable,
+            [None],
+        )
         if not app:
             from ZEO import ClientStorage
             from ZODB import DB
@@ -110,7 +118,7 @@ class ZCmdBase(ZenDaemon):
     def getDataRoot(self):
         if not self.app: self.opendb()
         if not self.dataroot:
-            self.dataroot = self.app.unrestrictedTraverse(self.options.dataroot)
+            self.dataroot = getObjByPath(self.app, self.options.dataroot)
             self.dmd = self.dataroot
 
 
@@ -130,7 +138,7 @@ class ZCmdBase(ZenDaemon):
 
     def getDmdObj(self, path):
         """return an object based on a path starting from the dmd"""
-        return self.app.unrestrictedTraverse(self.options.dataroot+path)
+        return getObjByPath(self.app, self.options.dataroot+path)
 
 
     def findDevice(self, name):

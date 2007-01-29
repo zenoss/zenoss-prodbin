@@ -12,7 +12,7 @@
 ##############################################################################
 """ Common pieces of the workflow architecture.
 
-$Id: WorkflowCore.py 40594 2005-12-06 15:30:24Z tseaver $
+$Id: WorkflowCore.py 40595 2005-12-06 15:32:13Z tseaver $
 """
 
 from warnings import warn

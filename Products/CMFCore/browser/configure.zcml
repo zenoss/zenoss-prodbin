@@ -1,0 +1,31 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    >
+
+  <five:traversable class="Products.CMFCore.TypesTool.TypesTool"/>
+
+  <five:traversable class="Products.CMFCore.WorkflowTool.WorkflowTool"/>
+
+  <configure package="Products.GenericSetup.browser">
+
+    <browser:page
+        for="zope.app.container.interfaces.IAdding"
+        name="addFactoryTypeInformation.html"
+        template="addWithPresettings.pt"
+        class="Products.CMFCore.browser.typeinfo.FactoryTypeInformationAddView"
+        permission="cmf.ManagePortal"
+        />
+
+    <browser:page
+        for="zope.app.container.interfaces.IAdding"
+        name="addScriptableTypeInformation.html"
+        template="addWithPresettings.pt"
+        class="Products.CMFCore.browser.typeinfo.ScriptableTypeInformationAddView"
+        permission="cmf.ManagePortal"
+        />
+
+  </configure>
+
+</configure>

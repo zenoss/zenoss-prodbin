@@ -12,18 +12,15 @@
 ##############################################################################
 """ Unit tests for ActionInformation module.
 
-$Id: test_ActionInformation.py 38418 2005-09-09 08:40:13Z yuppie $
+$Id: test_ActionInformation.py 40450 2005-12-01 16:56:13Z yuppie $
 """
 
-from unittest import TestCase, TestSuite, makeSuite, main
+import unittest
 import Testing
-try:
-    import Zope2
-except ImportError: # BBB: for Zope 2.7
-    import Zope as Zope2
-Zope2.startup()
 
+import Products.Five
 from OFS.Folder import manage_addFolder
+from Products.Five import zcml
 from Products.PythonScripts.PythonScript import manage_addPythonScript
 
 from Products.CMFCore.Expression import createExprContext
@@ -31,11 +28,13 @@ from Products.CMFCore.Expression import Expression
 from Products.CMFCore.tests.base.dummy import DummyContent
 from Products.CMFCore.tests.base.dummy import DummySite
 from Products.CMFCore.tests.base.dummy import DummyTool as DummyMembershipTool
+from Products.CMFCore.tests.base.testcase import _TRAVERSE_ZCML
+from Products.CMFCore.tests.base.testcase import PlacelessSetup
 from Products.CMFCore.tests.base.testcase import SecurityTest
 from Products.CMFCore.tests.base.testcase import TransactionalTest
 
 
-class ActionInfoTests(TestCase):
+class ActionInfoTests(unittest.TestCase):
 
     def _makeOne(self, *args, **kw):
         from Products.CMFCore.ActionInformation import ActionInfo
@@ -51,13 +50,9 @@ class ActionInfoTests(TestCase):
         verifyClass(IActionInfo, ActionInfo)
 
     def test_z3interfaces(self):
-        try:
-            from zope.interface.verify import verifyClass
-            from Products.CMFCore.interfaces import IActionInfo
-        except ImportError:
-            # BBB: for Zope 2.7
-            return
+        from zope.interface.verify import verifyClass
         from Products.CMFCore.ActionInformation import ActionInfo
+        from Products.CMFCore.interfaces import IActionInfo
 
         verifyClass(IActionInfo, ActionInfo)
 
@@ -200,7 +195,6 @@ class ActionInfoSecurityTests(SecurityTest):
         self.assertEqual( ai['allowed'], WANTED['allowed'] )
 
     def test_copy(self):
-
         action = {'name': 'foo', 'url': '', 'permissions': ('View',)}
         ec = createExprContext(self.site, self.site, None)
         ai = self._makeOne(action, ec)
@@ -213,11 +207,16 @@ class ActionInfoSecurityTests(SecurityTest):
         self.assertEqual( ai2['allowed'], True )
 
 
-class ActionInformationTests(TransactionalTest):
+class ActionInformationTests(PlacelessSetup, TransactionalTest):
 
-    def setUp( self ):
-
-        TransactionalTest.setUp( self )
+    def setUp(self):
+        import Products.CMFCore
+        PlacelessSetup.setUp(self)
+        TransactionalTest.setUp(self)
+        zcml.load_config('meta.zcml', Products.Five)
+        zcml.load_config('permissions.zcml', Products.Five)
+        zcml.load_config('configure.zcml', Products.CMFCore)
+        zcml.load_string(_TRAVERSE_ZCML)
 
         root = self.root
         root._setObject('portal', DummyContent('portal', 'url_portal'))
@@ -225,6 +224,10 @@ class ActionInformationTests(TransactionalTest):
         portal.portal_membership = DummyMembershipTool()
         self.folder = DummyContent('foo', 'url_foo')
         self.object = DummyContent('bar', 'url_bar')
+
+    def tearDown(self):
+        TransactionalTest.tearDown(self)
+        PlacelessSetup.tearDown(self)
 
     def _makeOne(self, *args, **kw):
         from Products.CMFCore.ActionInformation import ActionInformation
@@ -314,11 +317,11 @@ class ActionInformationTests(TransactionalTest):
 
 
 def test_suite():
-    return TestSuite((
-        makeSuite(ActionInfoTests),
-        makeSuite(ActionInfoSecurityTests),
-        makeSuite(ActionInformationTests),
+    return unittest.TestSuite((
+        unittest.makeSuite(ActionInfoTests),
+        unittest.makeSuite(ActionInfoSecurityTests),
+        unittest.makeSuite(ActionInformationTests),
         ))
 
 if __name__ == '__main__':
-    main(defaultTest='test_suite')
+    unittest.main(defaultTest='test_suite')

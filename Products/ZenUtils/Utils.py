@@ -22,6 +22,12 @@ import socket
 log = logging.getLogger("zen.Utils")
 
 from Acquisition import aq_base
+from zExceptions import NotFound
+from AccessControl import getSecurityManager
+from AccessControl import Unauthorized
+from AccessControl.ZopeGuards import guarded_getattr
+from ZODB.POSException import ConflictError
+from Acquisition import Acquired, aq_inner, aq_parent, aq_base
 
 from Products.ZenUtils.Exceptions import ZenPathError
 
@@ -88,31 +94,124 @@ def travAndColl(obj, toonerel, collect, collectname):
     return collect
 
 
-def getObjByPath(base, path):
-    """walk our path to see if it still is valid
-    path can be a string in the form /dmd/Devices/Servers/Linux/b.zetinel.net
-    or it can be sequence of strings that starts with the dmd object ie:
-    ('dmd', 'Devices', 'Servers', 'Linux', 'b.zentinel.net')
-    maybe this can be replaced by unrestrictedtraverse?"""
-    #from Acquisition import aq_base
-    if path:
-        if type(path) == types.StringType or type(path) == types.UnicodeType:
-            if path[0] == "/": path=path[1:]
-            path = path.split('/')
-        if hasattr(aq_base(base), path[0]):
-            nobj = getattr(base, path[0])
-            # if we have to skip over a relationship to find the children
-            #if hasattr(nobj, "subObjectsName"):
-            #    subObjectsName = getattr(nobj, "subObjectsName") 
-            #    if len(path) > 1 and path[1] != subObjectsName:
-            #        nobj = getattr(nobj, subObjectsNameone)
-            return getObjByPath(nobj, path[1:])
-        #Look for related object with full id in ToManyRelation
-        elif hasattr(aq_base(base), "/"+"/".join(path)):
-            base = getattr(base, "/"+"/".join(path))
+def getObjByPath(base, path, restricted=0):
+    """Get a Zope object by its path (e.g. '/Devices/Server/Linux').
+       Mostly a stripdown of unrestrictedTraverse method from Zope 2.8.8.
+    """
+    if not path:
+        return base
+
+    _getattr = getattr
+    _none = None
+    marker = object()
+
+    if isinstance(path, str):
+        # Unicode paths are not allowed
+        path = path.split('/')
+    else: 
+        path = list(path)
+
+    REQUEST = {'TraversalRequestNameStack': path}
+    path.reverse()
+    path_pop=path.pop
+
+    if len(path) > 1 and not path[0]:
+        # Remove trailing slash
+        path.pop(0)
+
+    if restricted: 
+        securityManager = getSecurityManager()
+    else: 
+        securityManager = _none
+
+    if not path[-1]:
+        # If the path starts with an empty string, go to the root first.
+        path_pop()
+        base = base.getPhysicalRoot()
+        if (restricted 
+            and not securityManager.validate(None, None, None, base)):
+            raise Unauthorized, name
+
+    try:
+        obj = base
+        while path:
+            name = path_pop()
+            __traceback_info__ = path, name
+
+            if name[0] == '_':
+                # Never allowed in a URL.
+                raise NotFound, name
+
+            if name == '..':
+                next = aq_parent(obj)
+                if next is not _none:
+                    if restricted and not securityManager.validate(
+                        obj, obj,name, next):
+                        raise Unauthorized, name
+                    obj = next
+                    continue
+
+            bobo_traverse = _getattr(obj, '__bobo_traverse__', _none)
+            if bobo_traverse is not _none:
+                next = bobo_traverse(REQUEST, name)
+                if restricted:
+                    if aq_base(next) is not next:
+                        # The object is wrapped, so the acquisition
+                        # context is the container.
+                        container = aq_parent(aq_inner(next))
+                    elif _getattr(next, 'im_self', _none) is not _none:
+                        # Bound method, the bound instance
+                        # is the container
+                        container = next.im_self
+                    elif _getattr(aq_base(obj), name, marker) == next:
+                        # Unwrapped direct attribute of the object so
+                        # object is the container
+                        container = obj
+                    else:
+                        # Can't determine container
+                        container = _none
+                    try:
+                        validated = securityManager.validate(
+                                               obj, container, name, next)
+                    except Unauthorized:
+                        # If next is a simple unwrapped property, it's
+                        # parentage is indeterminate, but it may have been
+                        # acquired safely.  In this case validate will
+                        # raise an error, and we can explicitly check that
+                        # our value was acquired safely.
+                        validated = 0
+                        if container is _none and \
+                               guarded_getattr(obj, name, marker) is next:
+                            validated = 1
+                    if not validated:
+                        raise Unauthorized, name
+            else:
+                if restricted:
+                    next = guarded_getattr(obj, name, marker)
+                else:
+                    next = _getattr(obj, name, marker)
+                if next is marker:
+                    try:
+                        next=obj[name]
+                    except AttributeError:
+                        # Raise NotFound for easier debugging
+                        # instead of AttributeError: __getitem__
+                        raise NotFound, name
+                    if restricted and not securityManager.validate(
+                        obj, obj, _none, next):
+                        raise Unauthorized, name
+
+            obj = next
+
+        return obj
+
+    except ConflictError:
+        raise
+    except:
+        if default is not marker:
+            return default
         else:
-            base = None
-    return base
+            raise
 
 
 def checkClass(myclass, className):

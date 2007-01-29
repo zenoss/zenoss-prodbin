@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit tests for WorkflowTool module.
 
-$Id: test_WorkflowTool.py 39511 2005-10-19 13:32:29Z tseaver $
+$Id: test_WorkflowTool.py 40364 2005-11-24 18:23:00Z yuppie $
 """
 
 from unittest import TestCase, TestSuite, makeSuite, main

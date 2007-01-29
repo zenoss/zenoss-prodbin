@@ -183,7 +183,7 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         log.info("checking relation: %s", self.id)
         try:
             ppath = self.obj.getPrimaryPath()
-            self.unrestrictedTraverse(ppath)
+            self.getObjByPath(ppath)
         except KeyError:
             log.critical("obj:%s rel:%s robj:%s no longer exists",
                     self.getPrimaryId(), self.id, self.obj.getPrimaryId())

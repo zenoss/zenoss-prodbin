@@ -90,6 +90,9 @@
 <tal:block metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:Zenoss: ${here/getId}"/>
+    <link rel="shortcut icon"
+          href="/zport/dmd/favicon.ico"
+          type="image/x-icon"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/zenoss.css" >
     <link rel="stylesheet" type="text/css" title="zenoss"

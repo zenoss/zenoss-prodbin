@@ -27,6 +27,7 @@ from DateTime import DateTime
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenRelations.Exceptions import *
 
@@ -97,7 +98,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         obj = None
         try:
             if callable(self.context().id):
-                obj = self.app.unrestrictedTraverse(id)
+                obj = getObjByPath(self.app, id)
             else:
                 obj = self.context()._getOb(id)
         except (KeyError, AttributeError): pass
@@ -106,7 +107,7 @@ class ImportRM(ZCmdBase, ContentHandler):
             if id.find("/") > -1:
                 contextpath, id = os.path.split(id)
                 self.objstack.append(
-                    self.context().unrestrictedTraverse(contextpath))
+                    getObjByPath(self.context(), contextpath))
             obj = klass(id)
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
@@ -156,8 +157,8 @@ class ImportRM(ZCmdBase, ContentHandler):
             try:
                 self.log.debug("Linking relation %s to object %s",
                                 relid,objid)
-                rel = self.app.unrestrictedTraverse(relid)
-                obj = self.app.unrestrictedTraverse(objid)
+                rel = getObjByPath(self.app, relid)
+                obj = getObjByPath(self.app, objid)
                 if not rel.hasobject(obj):
                     rel.addRelation(obj)
             except:

@@ -50,7 +50,7 @@
             <span tal:condition="python: prop=='zEventSeverity'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
-                <option tal:repeat="sev /here/getEventSeverities"
+                <option tal:repeat="sev dmd/getEventSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
             </select>
@@ -58,7 +58,7 @@
             <span tal:condition="python: prop=='zFailSeverity'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
-                <option tal:repeat="sev /here/dmd/ZenEventManager/getSeverities"
+                <option tal:repeat="sev dmd/ZenEventManager/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
             </select>
@@ -66,7 +66,7 @@
             <span tal:condition="python: prop=='zEventAction'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
-                <option tal:repeat="a /here/dmd/ZenEventManager/getEventActions"
+                <option tal:repeat="a dmd/ZenEventManager/getEventActions"
                     tal:content="a"
                     tal:attributes="value a; selected python:a==pvalue" />
             </select>

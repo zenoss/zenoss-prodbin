@@ -145,7 +145,7 @@ class Organizer(ZenModelRM, EventView):
     def getOrganizer(self, path):
         """Return and an Organizer from its path."""
         if path.startswith("/"): path = path[1:]
-        return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path) 
+        return self.getDmdRoot(self.dmdRootName).getObjByPath(path) 
 
 
     def getOrganizerName(self):

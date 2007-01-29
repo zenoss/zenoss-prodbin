@@ -337,7 +337,7 @@ class DeviceClass(DeviceOrganizer):
         devices = []
         for brain in results:
             try:
-                devobj = self.unrestrictedTraverse(brain.getPrimaryId)
+                devobj = self.getObjByPath(brain.getPrimaryId)
                 devices.append(devobj)
             except KeyError:
                 log.warn("bad path '%s' in index" % brain.getPrimaryId)
@@ -351,7 +351,7 @@ class DeviceClass(DeviceOrganizer):
         ret = self._getCatalog().evalAdvancedQuery(query)
         if not ret: return None
         try:
-            devobj = self.unrestrictedTraverse(ret[0].getPrimaryId)
+            devobj = self.getObjByPath(ret[0].getPrimaryId)
             return devobj
         except KeyError:
             log.warn("bad path '%s' in index deviceSearch", ret[0].getPrimaryId)
@@ -370,7 +370,7 @@ class DeviceClass(DeviceOrganizer):
         res = zcat({'meta_type': meta_type, 'monitored': monitored})
         for b in res:
             try:
-                yield self.unrestrictedTraverse(b.getPrimaryId)
+                yield self.getObjByPath(b.getPrimaryId)
             except KeyError:
                 log.warn("bad path '%s' in index 'componentSearch'", 
                             b.getPrimaryId)

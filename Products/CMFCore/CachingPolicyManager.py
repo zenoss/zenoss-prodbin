@@ -12,7 +12,7 @@
 ##############################################################################
 """Caching tool implementation.
 
-$Id: CachingPolicyManager.py 40138 2005-11-15 17:47:37Z jens $
+$Id: CachingPolicyManager.py 40256 2005-11-19 20:12:41Z rafrombrc $
 """
 
 from AccessControl import ClassSecurityInfo
@@ -33,6 +33,8 @@ from interfaces.CachingPolicyManager \
 from utils import _dtmldir
 from utils import getToolByName
 
+from zope.interface import implements
+from interfaces import ICachingPolicy
 
 def createCPContext( content, view_method, keywords, time=None ):
     """
@@ -150,6 +152,8 @@ class CachingPolicy:
             Unfortunately these are needed to make IE behave correctly.
 
     """
+
+    implements(ICachingPolicy)
 
     def __init__( self
                 , policy_id

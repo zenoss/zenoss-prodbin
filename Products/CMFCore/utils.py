@@ -12,7 +12,7 @@
 ##############################################################################
 """ Utility functions.
 
-$Id: utils.py 41229 2006-01-08 17:33:39Z yuppie $
+$Id: utils.py 41663 2006-02-18 13:57:52Z jens $
 """
 
 from os import path as os_path
@@ -27,7 +27,6 @@ from AccessControl import ModuleSecurityInfo
 from AccessControl.Permission import Permission
 from AccessControl.PermissionRole import rolesForPermissionOn
 from AccessControl.Role import gather_permissions
-from Acquisition import aq_base
 from Acquisition import aq_get
 from Acquisition import aq_inner
 from Acquisition import aq_parent
@@ -49,7 +48,7 @@ from Products.PageTemplates.Expressions import getEngine
 from Products.PageTemplates.Expressions import SecureModuleImporter
 from StructuredText.StructuredText import HTML
 from thread import allocate_lock
-
+from webdav.common import rfc1123_date
 from exceptions import AccessControl_Unauthorized
 from exceptions import NotFound
 
@@ -115,40 +114,12 @@ def tuplize( valueName, value ):
 #   Security utilities, callable only from unrestricted code.
 #
 security.declarePrivate('_getAuthenticatedUser')
-def _getAuthenticatedUser( self ):
+def _getAuthenticatedUser(self):
     return getSecurityManager().getUser()
 
 security.declarePrivate('_checkPermission')
 def _checkPermission(permission, obj):
-    """ Check if the current user has the permission on the given object.
-    """
-    # this code is ported from Zope 2.8's ZopeSecurityPolicy.checkPermission
-    roles = rolesForPermissionOn(permission, obj)
-    if isinstance(roles, basestring):
-        roles = [roles]
-    context = getSecurityManager()._context
-
-    # check executable owner and proxy roles
-    stack = context.stack
-    if stack:
-        eo = stack[-1]
-        owner = eo.getOwner()
-        if owner is not None:
-            if not owner.allowed(obj, roles):
-                return 0
-            proxy_roles = getattr(eo, '_proxy_roles', None)
-            if proxy_roles:
-                owner = eo.getWrappedOwner()
-                if owner is not None:
-                    if obj is not aq_base(obj):
-                        if not owner._check_context(obj):
-                            return 0
-                for r in proxy_roles:
-                    if r in roles:
-                        return 1
-                return 0
-
-    return context.user.allowed(obj, roles)
+    return getSecurityManager().checkPermission(permission, obj)
 
 security.declarePrivate('_verifyActionPermissions')
 def _verifyActionPermissions(obj, action):
@@ -219,6 +190,38 @@ def _getViewFor(obj, view='view'):
         raise NotFound('Cannot find default view for "%s"' %
                             '/'.join(obj.getPhysicalPath()))
 
+def _FSCacheHeaders(obj):
+
+    REQUEST = getattr(obj, 'REQUEST', None)
+    if REQUEST is None:
+        return False
+
+    RESPONSE = REQUEST.RESPONSE
+    header = REQUEST.get_header('If-Modified-Since', None)
+    last_mod = obj._file_mod_time
+
+    if header is not None:
+        header = header.split(';')[0]
+        # Some proxies seem to send invalid date strings for this
+        # header. If the date string is not valid, we ignore it
+        # rather than raise an error to be generally consistent
+        # with common servers such as Apache (which can usually
+        # understand the screwy date string as a lucky side effect
+        # of the way they parse it).
+        try:
+            mod_since=DateTime(header)
+            mod_since=long(mod_since.timeTime())
+        except TypeError:
+            mod_since=None
+               
+        if mod_since is not None:
+            if last_mod > 0 and last_mod <= mod_since:
+                RESPONSE.setStatus(304)
+                return True
+
+    #Last-Modified will get stomped on by a cache policy if there is
+    #one set....
+    RESPONSE.setHeader('Last-Modified', rfc1123_date(last_mod))
 
 # If Zope ever provides a call to getRolesInContext() through
 # the SecurityManager API, the method below needs to be updated.
@@ -859,21 +862,3 @@ class SimpleRecord:
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
-
-
-# BBB: for Zope 2.7
-class BBBTransaction:
-
-    def begin(self):
-        get_transaction().begin()
-
-    def commit(self, sub=False):
-        get_transaction().commit(sub)
-
-    def abort(self, sub=False):
-        get_transaction().abort(sub)
-
-    def get(self):
-        return get_transaction()
-
-transaction = BBBTransaction()

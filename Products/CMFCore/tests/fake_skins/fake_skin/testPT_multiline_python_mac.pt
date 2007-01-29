@@ -1,0 +1,1 @@
+<div tal:replace="python: ' '.join(('foo',                                    'bar',                                    'spam',                                    'eggs'))" />

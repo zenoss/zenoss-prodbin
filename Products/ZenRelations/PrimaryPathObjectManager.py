@@ -18,6 +18,8 @@ from OFS.SimpleItem import Item
 
 from Acquisition import aq_base
 
+from Products.ZenUtils.Utils import getObjByPath
+
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2
 
 
@@ -62,7 +64,7 @@ class PrimaryPathManager(object):
     def primaryAq(self):
         """Return self with is acquisition path set to primary path"""
         app = self.getPhysicalRoot()
-        return app.unrestrictedTraverse(self.getPrimaryPath())
+        return getObjByPath(app, self.getPrimaryPath())
        
 
     def getPrimaryParent(self):
@@ -99,7 +101,6 @@ class PrimaryPathObjectManagerBase(PrimaryPathManager):
         obj.__primary_parent__ = None
 
 
-
 class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager,
                                 RelCopyContainer, RoleManager, Item):
     """
@@ -108,7 +109,6 @@ class PrimaryPathObjectManager(PrimaryPathObjectManagerBase, ObjectManager,
     manage_options = (ObjectManager.manage_options +
                       RoleManager.manage_options +
                       Item.manage_options)
-
 
 
 class PrimaryPathBTreeFolder2(PrimaryPathObjectManagerBase, BTreeFolder2):

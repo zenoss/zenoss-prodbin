@@ -1,6 +1,6 @@
 # Copyright (C) 2003-2006 by Dr. Dieter Maurer, Eichendorffstr. 23, D-66386 St. Ingbert, Germany
 # see "LICENSE.txt" for details
-#       $Id: ManagableIndex.py,v 1.14 2006/05/05 18:06:48 dieter Exp $
+#       $Id: ManagableIndex.py,v 1.16 2006/11/23 19:43:04 dieter Exp $
 '''Managable Index abstract base class.'''
 
 import copy
@@ -119,10 +119,23 @@ class ManagableIndex(OFolder,Normalize, Ignore):
 
   __implements__= PluggableIndexInterface
 
-  def __init__(self,name):
+  def __init__(self, name, extra=None, caller=None):
     self.id= name
+    def setProperties(obj, values, special):
+      __traceback_info__ = obj
+      allowed = dict.fromkeys(special)
+      allowed.update(dict.fromkeys([p['id'] for p in obj._properties]))
+      for k in values.keys():
+        if k not in allowed: raise ValueError('not a known property: %s' % k)
+      obj.manage_changeProperties(**values)
+    if extra: setProperties(self, extra, ('ValueProviders',))
+    providers = extra and extra.get('ValueProviders')
+    if providers is None: self._createDefaultValueProvider()
+    else:
+      for p in providers:
+        vp = self.addValueProvider(p['id'], p['type'])
+        setProperties(vp, p, ('id', 'type',))
     self.clear()
-    self._createDefaultValueProvider()
 
   def clear(self):
     '''clear the index.'''
@@ -626,7 +639,9 @@ class ManagableIndex(OFolder,Normalize, Ignore):
 
   def addValueProvider(self,id,type, RESPONSE=None):
     '''add a value provider with *id* of *type*.'''
-    cl= _mdict[type] # ATT: maybe, we should check allowed types?
+    if type not in ('AttributeLookup', 'ExpressionEvaluator'):
+      raise ValueError('unknown type')
+    cl= _mdict[type]
     # try to avaid a name conflict
     eid= id
     if not id.endswith('_') and hasattr(aq_base(self),id): eid= id + '_'
@@ -704,10 +719,7 @@ def _checkUnicode(index,value,object, encode=None):
   try:
     nv= unicode(value, encode or getdefaultencoding())
   except:
-    fh = open('/tmp/err.txt', 'w+')
-    fh.write(value)
-    fh.close()
-    raise TypeError("cannot get default encoding for the given value")
+    raise TypeError("cannot convert %s to string" % str(value))
   return nv
 
 def _checkUnicode_encode(index, value, object):

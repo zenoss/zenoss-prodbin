@@ -12,19 +12,24 @@
 ##############################################################################
 """ Customizable image objects that come from the filesystem.
 
-$Id: FSFile.py 41777 2006-02-24 17:06:57Z shh $
+$Id: FSFile.py 68537 2006-06-09 13:40:32Z efge $
 """
 
+import codecs
 import Globals
 from AccessControl import ClassSecurityInfo
 from DateTime import DateTime
 from OFS.Cache import Cacheable
 from OFS.Image import File
-from webdav.common import rfc1123_date
 try:
-    from zope.app.content_types import guess_content_type
-except ImportError: # BBB: for Zope < 2.9
-    from OFS.content_types import guess_content_type
+    from zope.contenttype import guess_content_type
+except ImportError:
+    # BBB: for Zope < 2.10
+    try:
+        from zope.app.content_types import guess_content_type
+    except ImportError:
+        # BBB: for Zope < 2.9
+        from OFS.content_types import guess_content_type
 
 from DirectoryView import registerFileExtension
 from DirectoryView import registerMetaType
@@ -34,7 +39,7 @@ from permissions import View
 from permissions import ViewManagementScreens
 from utils import _dtmldir
 from utils import _setCacheHeaders, _ViewEmulator
-from utils import expandpath
+from utils import expandpath, _FSCacheHeaders, _checkConditionalGET
 
 
 class FSFile(FSObject):
@@ -82,6 +87,11 @@ class FSFile(FSObject):
                 body = body.data
             content_type, enc=guess_content_type(
                 getattr(file, 'filename',id), body, content_type)
+            if (enc is None
+                and (content_type.startswith('text/') or
+                     content_type.startswith('application/'))
+                and body.startswith(codecs.BOM_UTF8)):
+                content_type += '; charset=utf-8'
 
         return content_type
 
@@ -101,6 +111,9 @@ class FSFile(FSObject):
         self._updateFromFS()
         return str( self._readFile( 0 ) )
 
+    def modified(self):
+        return self.getModTime()
+
     security.declareProtected(View, 'index_html')
     def index_html(self, REQUEST, RESPONSE):
         """
@@ -110,41 +123,24 @@ class FSFile(FSObject):
         Content-Type HTTP header to the objects content type.
         """
         self._updateFromFS()
-        data = self._readFile(0)
-        data_len = len(data)
-        last_mod = self._file_mod_time
-        status = 200
-        # HTTP If-Modified-Since header handling.
-        header=REQUEST.get_header('If-Modified-Since', None)
-        if header is not None:
-            header = header.split(';')[0]
-            # Some proxies seem to send invalid date strings for this
-            # header. If the date string is not valid, we ignore it
-            # rather than raise an error to be generally consistent
-            # with common servers such as Apache (which can usually
-            # understand the screwy date string as a lucky side effect
-            # of the way they parse it).
-            try:
-                mod_since=long(DateTime(header).timeTime())
-            except:
-                mod_since=None
-                
-            if mod_since is not None:
-                if last_mod > 0 and last_mod <= mod_since:
-                    status = 304
-                    data = ''
+        view = _ViewEmulator().__of__(self)
 
-        #Last-Modified will get stomped on by a cache policy it there is
-        #one set....
-        RESPONSE.setStatus(status)
-        RESPONSE.setHeader('Last-Modified', rfc1123_date(last_mod))
+        # If we have a conditional get, set status 304 and return
+        # no content
+        if _checkConditionalGET(view, extra_context={}):
+            return ''
+
         RESPONSE.setHeader('Content-Type', self.content_type)
 
-        if status != 304:
-            # Avoid setting content-length for a 304. See RFC 2616.
-            # Zope might still, for better or for worse, set a 
-            # content-length header with value "0".
-            RESPONSE.setHeader('Content-Length', data_len)
+        # old-style If-Modified-Since header handling.
+        if self._setOldCacheHeaders():
+            # Make sure the CachingPolicyManager gets a go as well
+            _setCacheHeaders(view, extra_context={})
+            return ''
+
+        data = self._readFile(0)
+        data_len = len(data)
+        RESPONSE.setHeader('Content-Length', data_len)
 
         #There are 2 Cache Managers which can be in play....
         #need to decide which to use to determine where the cache headers
@@ -152,8 +148,12 @@ class FSFile(FSObject):
         if self.ZCacheable_getManager() is not None:
             self.ZCacheable_set(None)
         else:
-            _setCacheHeaders(_ViewEmulator().__of__(self), extra_context={})
+            _setCacheHeaders(view, extra_context={})
         return data
+
+    def _setOldCacheHeaders(self):
+        # return False to disable this simple caching behaviour
+        return _FSCacheHeaders(self)
 
     security.declareProtected(View, 'getContentType')
     def getContentType(self):

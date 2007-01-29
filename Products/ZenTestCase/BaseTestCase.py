@@ -9,6 +9,9 @@ import unittest
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
 
+import zope.component
+import zope.traversing.adapters
+
 from Products import ZenModel
 from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator
@@ -88,6 +91,12 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
     def setUp(self):
         """setup schema manager and add needed permissions"""
         ZopeTestCase.ZopeTestCase.setUp(self)
+        try: zope.component.getAdapter('')
+        except:
+            zope.component.provideAdapter(
+                zope.traversing.adapters.DefaultTraversable,
+                [None],
+            )
         gen = PortalGenerator()
         gen.create(self.app, 'zport', True)
         # builder params:

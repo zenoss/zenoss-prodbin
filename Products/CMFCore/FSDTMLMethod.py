@@ -12,7 +12,7 @@
 ##############################################################################
 """ Customizable DTML methods that come from the filesystem.
 
-$Id: FSDTMLMethod.py 38463 2005-09-14 13:32:32Z tseaver $
+$Id: FSDTMLMethod.py 69479 2006-08-14 15:56:27Z tseaver $
 """
 
 import Globals
@@ -29,7 +29,7 @@ from permissions import FTPAccess
 from permissions import View
 from permissions import ViewManagementScreens
 from utils import _dtmldir
-from utils import _setCacheHeaders
+from utils import _setCacheHeaders, _checkConditionalGET
 from utils import expandpath
 
 
@@ -41,6 +41,7 @@ class FSDTMLMethod(RestrictedDTML, RoleManager, FSObject, Globals.HTML):
     modifiable from the management interface."""
 
     meta_type = 'Filesystem DTML Method'
+    _owner = None
 
     manage_options=(
         (
@@ -112,14 +113,18 @@ class FSDTMLMethod(RestrictedDTML, RoleManager, FSObject, Globals.HTML):
 
         self._updateFromFS()
 
+        kw['document_id']   =self.getId()
+        kw['document_title']=self.title
+
+        if client is not None:
+            if _checkConditionalGET(self, kw):
+                return ''
+
         if not self._cache_namespace_keys:
             data = self.ZCacheable_get(default=_marker)
             if data is not _marker:
                 # Return cached results.
                 return data
-
-        kw['document_id']   =self.getId()
-        kw['document_title']=self.title
 
         __traceback_info__ = self._filepath
         security=getSecurityManager()

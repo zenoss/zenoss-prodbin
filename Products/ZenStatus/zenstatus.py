@@ -33,7 +33,7 @@ class ZenStatus(ZCmdBase):
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):
             self.configpath = self.configpath[1:]
-        self.smc = self.dmd.unrestrictedTraverse(self.configpath)
+        self.smc = self.dmd.getObjByPath(self.configpath)
         self.zem = self.dmd.ZenEventManager
         self.sendEvent(Event(device=socket.getfqdn(), 
                         eventClass=App_Start, 

@@ -48,7 +48,7 @@ class ZeoPoolBase(ZenDaemon):
             self._getContext(app)
             app._p_jar.sync()
             if path:
-                return app.unrestrictedTraverse(path)
+                return app.getObjByPath(path)
             else:
                 return app
             self.openconn -= 1
