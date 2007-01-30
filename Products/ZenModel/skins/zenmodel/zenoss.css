@@ -87,8 +87,8 @@ td.search {
     position: absolute;
     z-index: 999;
 	left: 0px;
-    margin: 5px 0px 0px 5px;
-    padding: 25px 0px 0px 0px;
+    margin: 25px 0px 0px 5px;
+    padding: 5px 0px 0px 0px;
 	width: 8.6em;
 	border: 0px solid red;
 }

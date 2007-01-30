@@ -84,7 +84,7 @@ function doHover() {
     var lpPopup = leftPane;
     var elemPos = getElementPosition(paneToggle);
     elemPos.x += 5;
-    elemPos.y += 5;
+    elemPos.y += -25;
     setElementPosition(lpPopup, elemPos);
     setStyle(lpPopup, {
         'position':'absolute',
@@ -106,13 +106,8 @@ function cancelHover() {
     disconnectAll(paneToggle);
     disconnectAll(leftPane);
     deleteCookie('Zenoss_Collapsed_Menu','/','');
-    setStyle(leftPane, {
-        'background-color':'transparent',
-        'padding':'25px 0 0 0',
-        'margin':'5px 5px 10px 0',
-        'top':'42px',
-        'left':'4px',
-        'border':'1px solid transparent'
+    updateNodeAttributes(leftPane, {
+        'style':'display:block'
     });
 }
 
