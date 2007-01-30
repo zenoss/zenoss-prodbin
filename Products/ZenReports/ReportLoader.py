@@ -19,29 +19,45 @@ class ReportLoader(ZCmdBase):
                                help="Force load all the reports")
 
     def loadDatabase(self):
-        reproot = self.dmd.Reports
         repdir = os.path.join(os.path.dirname(__file__),"reports")
-        self.log.info("loading reports from:%s", repdir)
-        for path, dirname, filenames in os.walk(repdir):
-            for filename in filter(lambda f: f.endswith(".rpt"), filenames):
-                fullname = os.path.join(path,filename)
-                fid = filename[:-4].replace("_"," ")
-                orgpath = path.replace("_", " ")
-                orgpath = orgpath.split("/")
-                idx = orgpath.index("reports") + 1
-                orgpath = orgpath[idx:]
-                orgpath = "/" + "/".join(orgpath)
-                rorg = reproot.createOrganizer(orgpath)
-                if getattr(rorg, fid, False):
-                    if self.options.force:
-                        rorg._delObject(fid)
-                    else:
-                        continue
-                self.log.info("loading: %s %s", orgpath, filename)
-                fdata = file(fullname).read()
-                rpt = Report(fid, text=fdata)
-                rorg._setObject(fid, rpt)
+        self.loadDirectory(repdir)
         transaction.commit()
+
+    def reports(self, directory):
+        def normalize(f):
+            return f.replace("_", " ")
+        def toOrg(path):
+            path = normalize(path).split("/")
+            path = path[path.index("reports") + 1:]
+            return "/" + "/".join(path)
+        return [(toOrg(p), normalize(f[:-4]), os.path.join(p, f))
+                for p, ds, fs in os.walk(directory)
+                for f in fs
+                if f.endswith(".rpt")]
+
+    def unloadDirectory(self, repdir):
+        self.log.info("removing reports from:%s", repdir)
+        reproot = self.dmd.Reports
+        for orgpath, fid, fullname in self.reports(repdir):
+            rorg = reproot.createOrganizer(orgpath)
+            if getattr(rorg, fid, False):
+                rorg._delObject(fid)
+        
+
+    def loadDirectory(self, repdir):
+        self.log.info("loading reports from:%s", repdir)
+        reproot = self.dmd.Reports
+        for orgpath, fid, fullname in self.reports(repdir):
+            rorg = reproot.createOrganizer(orgpath)
+            if getattr(rorg, fid, False):
+                if self.options.force:
+                    rorg._delObject(fid)
+                else:
+                    continue
+            self.log.info("loading: %s/%s", orgpath, fid)
+            fdata = file(fullname).read()
+            rpt = Report(fid, text=fdata)
+            rorg._setObject(fid, rpt)
 
 
 if __name__ == "__main__":
