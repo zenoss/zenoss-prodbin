@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+
+NAME=zenpack
+PRGHOME=$ZENHOME/Products/ZenUtils
+PRGNAME=$NAME.py
+CFGFILE=$CFGDIR/$NAME.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+notdaemon "$@"
+
