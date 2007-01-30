@@ -324,6 +324,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             skins = skinstool.getSkinSelections()
             for skin in skins:
                 path = skinstool.getSkinPath(skin)
+                import pdb; pdb.set_trace()
                 path = map(string.strip, string.split(path,','))
                 for layer in layers:
                     if layer not in path:
