@@ -5,6 +5,7 @@ from Products.ZenModel import interfaces
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenReports.ReportLoader import ReportLoader
 
 import transaction
 
@@ -30,7 +31,7 @@ class ZenPackBase(ZenPack):
 
     def install(self, cmd):
         self.loadObjects(cmd)
-        self.loadReportPages()
+        self.loadReportPages(cmd)
         def executable(f):
             os.chmod(f, 0755)
         map(executable, self.daemons())
@@ -38,7 +39,7 @@ class ZenPackBase(ZenPack):
 
     def remove(self, cmd):
         self.removeObjects(cmd)
-        self.removeReportPages()
+        self.removeReportPages(cmd)
 
 
     def _findFiles(self, directory, filter=None):
@@ -99,11 +100,15 @@ class ZenPackBase(ZenPack):
             parser.parse(open(f))
 
 
-    def loadReportPages(self):
+    def loadReportPages(self, cmd):
         "load pages in using ReportLoader.py"
+        rl = ReportLoader(noopts=True, app=cmd.app)
+        rl.loadDirectory(zenPackPath(self.id, 'reports'))
 
-    def removeReportPages(self):
+    def removeReportPages(self, cmd):
         "remove reports in our report tree"
+        rl = ReportLoader(noopts=True, app=cmd.app)
+        rl.unloadDirectory(zenPackPath(self.id, 'reports'))
 
     
 InitializeClass(ZenPack)
