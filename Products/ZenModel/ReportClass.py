@@ -77,9 +77,10 @@ class ReportClass(Organizer):
     def manage_addDeviceReport(self, id, REQUEST=None):
         """Add an action rule to this object.
         """
-        from Products.ZenModel.DeviceReport import DeviceReport
-        dr = DeviceReport(id)
-        self._setObject(id, dr)
+        if id:
+            from Products.ZenModel.DeviceReport import DeviceReport
+            dr = DeviceReport(id)
+            self._setObject(id, dr)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
