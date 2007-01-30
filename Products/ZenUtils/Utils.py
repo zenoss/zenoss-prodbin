@@ -418,7 +418,7 @@ def prepId(id, subchar='_'):
         if len(id) > 1: id = id[1:]
         else: id = "-"
     id = _cleanend("",id)
-    return id
+    return str(id)
 
 def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     ''' Send an email.  Return a tuple:
