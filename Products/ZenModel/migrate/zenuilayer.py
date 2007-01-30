@@ -18,30 +18,20 @@ import os
 from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.DirectoryView import addDirectoryViews
 from Products.CMFCore.DirectoryView import registerDirectory
+from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 
 class ZenUILayer(Migrate.Step):
     "Add a new skin layer to manage UI elements"
     version = Migrate.Version(1, 2, 0)
 
     def cutover(self, dmd):
-        zenhome = os.environ['ZENHOME']
-        zenui = os.path.join(zenhome, 'Products', 
-                            'ZenWidgets', 'skins', 'zenui')
-        ps = getToolByName(dmd.getParentNode(), 'portal_skins')
-        if 'zenui' not in ps.objectIds():
-            registerDirectory(zenui, globals())
-            import pdb; pdb.set_trace()
-            addDirectoryViews(ps, zenui, globals())
-        path = ps.getSkinPath('Basic')
-        path = [x.strip() for x in path.split(',')]
-        if not 'zenui' in path:
-            try:
-                path.insert(path.index('custom')+1, 'zenui')
-            except ValueError:
-                path.append('zenui')
-            path = ', '.join(path)
-            ps.addSkinSelection('Basic', path)
-
-            
+        layers = ('zentablemanager','zenui')
+        zport = dmd.getParentNode()
+        try:zport._delObject('ZenTableManager')
+        except AttributeError: pass
+        for layer in layers:
+            try: zport.portal_skins._delObject(layer)
+            except AttributeError: pass
+        manage_addZenTableManager(zport)
         
 ZenUILayer()

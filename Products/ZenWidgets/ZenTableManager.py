@@ -312,21 +312,27 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def initTableManagerSkins(self):
         """setup the skins that come with ZenTableManager"""
+        layers = ('zentablemanager','zenui')
         try:
             import string 
             from Products.CMFCore.utils import getToolByName
             from Products.CMFCore.DirectoryView import addDirectoryViews
             skinstool = getToolByName(self, 'portal_skins') 
-            if 'zentablemanager' not in skinstool.objectIds():
-                addDirectoryViews(skinstool, 'skins', globals())
+            for layer in layers:
+                if layer not in skinstool.objectIds():
+                    addDirectoryViews(skinstool, 'skins', globals())
             skins = skinstool.getSkinSelections()
             for skin in skins:
                 path = skinstool.getSkinPath(skin)
                 path = map(string.strip, string.split(path,','))
-                if 'zentablemanager' not in path:
-                    path.append('zentablemanager')
-                    path = string.join(path, ', ')
-                    skinstool.addSkinSelection(skin, path)
+                for layer in layers:
+                    if layer not in path:
+                        try:
+                            path.insert(path.index('custom')+1, layer)
+                        except ValueError:
+                            path.append(layer)
+                path = ','.join(path)
+                skinstool.addSkinSelection(skin, path)
         except ImportError, e:
             if "Products.CMFCore.utils" in e.args: pass
             else: raise
