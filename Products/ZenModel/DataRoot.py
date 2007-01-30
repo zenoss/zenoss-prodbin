@@ -92,6 +92,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable):
 
     _relations =  (
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+        ('packs',        ToManyCont(ToOne, 'ZenPack',     'root')),
        )
 
     # Screen action bindings (and tab definitions)
@@ -190,7 +191,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable):
 
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
-
+    
 
     def getResultFields(self):
         """Result fields for dashboard.

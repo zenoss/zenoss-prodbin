@@ -1,8 +1,8 @@
-
+import zope.interface
 
 class IDeviceManager:
     """
-    Interface implemented for objects taht manage devices, like DeviceOrganizers
+    Interface implemented for objects that manage devices, like DeviceOrganizers
     or monitor configurations.
     """
 
@@ -26,3 +26,16 @@ class IDeviceManager:
         """
         Remove devices from this DeviceManager.
         """
+
+
+class IZenPack(zope.interface.Interface):
+    "Interface for ZenPack additions"
+
+    id = zope.interface.Attribute("The name of the ZenPack")
+
+    def install(self, zcmd):
+        "Add whatever is necessary to be included into Zenoss"
+
+    def remove(self, zcmd):
+        "Extricate yourself from Zenoss"
+        
