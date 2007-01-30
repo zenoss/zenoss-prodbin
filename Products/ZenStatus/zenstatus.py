@@ -49,9 +49,11 @@ class ZenStatus(ZCmdBase):
         self.log.debug("starting cycle loop")
         self.startTests()
         reactor.startRunning(installSignalHandlers=False)
-        while self.clients and not self.stopping:
+        while 1:
             try:
                 reactor.runUntilCurrent()
+                if not self.clients or self.stopping:
+                    break
                 reactor.doIteration(reactor.timeout())
             except (SystemExit, KeyboardInterrupt): raise
             except:
