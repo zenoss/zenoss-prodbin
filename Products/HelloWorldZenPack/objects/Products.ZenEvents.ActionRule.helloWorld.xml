@@ -1,0 +1,44 @@
+<object id='helloWorld' module='Products.ZenEvents.ActionRule' class='ActionRule'>
+<property type="text" id="where" mode="w" >
+(prodState = 1000) and (severity &gt;= 4) and (eventState = 0)
+</property>
+<property type="text" id="format" mode="w" >
+[zenoss] %(device)s %(summary)s
+</property>
+<property type="text" id="body" mode="w" >
+Device: %(device)s
+Component: %(component)s
+Severity: %(severityString)s
+Time: %(firstTime)s
+Message:
+%(message)s
+&lt;a href="%(eventUrl)s"&gt;Event Detail&lt;/a&gt;
+&lt;a href="%(ackUrl)s"&gt;Acknowledge&lt;/a&gt;
+&lt;a href="%(deleteUrl)s"&gt;Delete&lt;/a&gt;
+&lt;a href="%(eventsUrl)s"&gt;Device Events&lt;/a&gt;
+
+</property>
+<property type="text" id="clearFormat" mode="w" >
+[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s
+</property>
+<property type="text" id="clearBody" mode="w" >
+Event: '%(summary)s'
+Cleared by: '%(clearSummary)s'
+At: %(clearFirstTime)s
+Device: %(device)s
+Component: %(component)s
+Severity: %(severityString)s
+Message:
+%(message)s
+
+</property>
+<property type="int" id="delay" mode="w" >
+0
+</property>
+<property select_variable="actionTypes" type="selection" id="action" mode="w" >
+email
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+</object>

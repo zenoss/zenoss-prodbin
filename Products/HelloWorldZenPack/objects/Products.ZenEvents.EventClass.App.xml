@@ -1,0 +1,247 @@
+<object id='App' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="lines" id="zEventClearClasses" >
+['/App/Stop']
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+3
+</property>
+<property type="string" id="regex" mode="w" >
+start.*succeeded
+</property>
+<property type="string" id="example" mode="w" >
+httpd startup succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
+</object>
+<object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ntsyslog_0
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+Service started.
+</property>
+<property type="string" id="example" mode="w" >
+Service started.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
+</object>
+</tomanycont>
+</object>
+<object id='Stop' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+2
+</property>
+<property type="string" id="regex" mode="w" >
+(shutdown|stop).*succeeded
+</property>
+<property type="string" id="example" mode="w" >
+httpd shutdown succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
+</object>
+<object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ntsyslog_0
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Service shutdown.
+</property>
+<property type="string" id="example" mode="w" >
+Service shutdown.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
+</object>
+</tomanycont>
+</object>
+<object id='Failed' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Reload' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+4
+</property>
+<property type="string" id="regex" mode="w" >
+\S+ -HUP succeeded
+</property>
+<property type="string" id="example" mode="w" >
+http -HUP succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Reload'/>
+</object>
+<object id='postfix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+postfix
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+succeeded
+</property>
+<property type="string" id="example" mode="w" >
+succeeded
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Reload'/>
+</object>
+</tomanycont>
+</object>
+<object id='Log' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<tomanycont id='instances'>
+<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+CROND
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+\((?P&lt;username&gt;\S+)\) CMD \((?P&lt;command&gt;.*)\)
+</property>
+<property type="string" id="example" mode="w" >
+(root) CMD (run-parts /etc/cron.hourly)
+</property>
+<property type="text" id="explanation" mode="w" >
+(mythtv) CMD (/usr/bin/mythfilldatabase&gt;/dev/null 2&gt;&amp;1)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+<object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+pmta
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+<object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+postfix/smtpd
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+warning: (?P&lt;eventKey&gt;\S+):
+</property>
+<property type="string" id="example" mode="w" >
+warning: 1.1.1.1: hostname pcp0010796240pcs.anapol01.md.comcast.net verification failed: Host not found
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+<object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+procmail
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Descriptor 1 was not open
+</property>
+<property type="string" id="example" mode="w" >
+Descriptor 1 was not open
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
+</tomanycont>
+</object>
+<object id='Email' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+smtpsvc_5000
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+The message file '.*'  in the queue directory '(?P&lt;eventkey&gt;.*)' is corrupt and has not been enumerated.
+</property>
+<property type="string" id="example" mode="w" >
+The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801c5f24800007253.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
+</object>
+</tomanycont>
+<object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="string" id="zEventAction" >
+drop
+</property>
+<tomanycont id='instances'>
+<object id='msexchangetransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+msexchangetransport_3005
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+4.4.6 was generated for recipient rfc822;(?P&lt;eventKey&gt;\S+)
+</property>
+<property type="string" id="example" mode="w" >
+A non-delivery report with a status code of 4.4.6 was generated for recipient email@email.com (Message-ID &lt;281720.5566209930204.043952489222.LALP.3314@septuagenarian&gt; ). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Email/Loop'/>
+</object>
+</tomanycont>
+</object>
+</object>
+<object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Max' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="int" id="zEventSeverity" >
+3
+</property>
+<tomanycont id='instances'>
+<object id='termservice_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+termservice_1013
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+The terminal server has exceeded the maximum number of allowed connections.
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Conn/Max'/>
+</object>
+</tomanycont>
+</object>
+</object>
+</object>

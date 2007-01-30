@@ -1,0 +1,20 @@
+<object id='helloWorld' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+helloWorld
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('helloWorld',)
+</property>
+<property type="int" id="port" mode="w" >
+225
+</property>
+<tomany id='instances'>
+<link objid='/zport/dmd/Devices/Server/Linux/Remote/devices/darwin.zenoss.com/os/ipservices/helloWorld'/>
+<link objid='/zport/dmd/Devices/Server/Linux/Remote/devices/pub.zenoss.com/os/ipservices/helloWorld'/>
+<link objid='/zport/dmd/Devices/Server/Linux/Remote/devices/dev.zenoss.org/os/ipservices/helloWorld'/>
+</tomany>
+<tomanycont id='userCommands'>
+<object id='cmd for helloWorld' module='Products.ZenModel.UserCommand' class='UserCommand'>
+</object>
+</tomanycont>
+</object>

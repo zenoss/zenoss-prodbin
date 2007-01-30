@@ -1,0 +1,5 @@
+<object id='helloWorld' module='Products.ZenModel.UserCommand' class='UserCommand'>
+<property type="text" id="command" mode="w" >
+echo 'HELLO WORLD'
+</property>
+</object>

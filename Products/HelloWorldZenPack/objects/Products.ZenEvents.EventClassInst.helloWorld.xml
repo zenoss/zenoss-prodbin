@@ -1,0 +1,18 @@
+<object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+helloWorld
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+\((?P&lt;username&gt;\S+)\) CMD \((?P&lt;command&gt;.*)\)
+</property>
+<property type="string" id="example" mode="w" >
+(root) CMD (run-parts /etc/cron.hourly)
+</property>
+<property type="text" id="explanation" mode="w" >
+(mythtv) CMD (/usr/bin/mythfilldatabase&gt;/dev/null 2&gt;&amp;1)
+</property>
+<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
+</object>
