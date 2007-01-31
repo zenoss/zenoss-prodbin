@@ -1,4 +1,9 @@
-"Manage ZenPacks"
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+__doc__ = "Manage ZenPacks"
 
 import Globals
 from Products.ZenModel.ZenPack import ZenPackBase, zenPackPath
@@ -21,6 +26,10 @@ class ZenPackCmd(ZCmdBase):
         if self.options.list:
             for zp in self.dmd.packs():
                 print '%s (%s)' % (zp.id, sys.modules[zp.__module__].__file__)
+                for extensionType, lst in zp.list(self):
+                    print '  %s:' % extensionType
+                    for item in lst:
+                        print '    %s' % item
             
         transaction.commit()
 

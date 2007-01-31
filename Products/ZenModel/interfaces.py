@@ -40,5 +40,9 @@ class IZenPack(zope.interface.Interface):
         "Extricate yourself from Zenoss"
         
     def list(self, zcmd):
-        "List of all the parts loaded by this ZenPack"
+        """List of all the parts loaded by this ZenPack in this form:
+        [('ExtensionType', ['name', 'name', 'name']),
+         ('ExtensionType', ['name', 'name', 'name']),
+        ...]
+        """
         
