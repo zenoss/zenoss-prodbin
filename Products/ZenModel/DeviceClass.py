@@ -97,14 +97,14 @@ class DeviceClass(DeviceOrganizer):
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             (
-                { 'id'            : 'classes'
-                , 'name'          : 'Classes'
-                , 'action'        : 'deviceOrganizerStatus'
-                , 'permissions'   : ( permissions.view, )
-                },
                 { 'id'            : 'devicelist'
                 , 'name'          : 'Devices'
                 , 'action'        : 'deviceList'
+                , 'permissions'   : ( permissions.view, )
+                },
+                { 'id'            : 'classes'
+                , 'name'          : 'Classes'
+                , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : ( permissions.view, )
                 },
                 { 'id'            : 'events'
