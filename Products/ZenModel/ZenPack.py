@@ -1,18 +1,20 @@
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
 import zope.interface
 
 from Globals import InitializeClass
-from Products.ZenModel import interfaces
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel import interfaces
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import getObjByPath
-from Products.ZenReports.ReportLoader import ReportLoader
 
 import transaction
 
 import os
 
-def zenPackPath(*parts):
-    return os.path.join(os.environ['ZENHOME'], 'Products', *parts)
+__doc__="ZenPacks base definitions"
 
 class ZenPack(ZenModelRM):
     '''The root of all ZenPacks: has no implementation,
@@ -21,94 +23,39 @@ class ZenPack(ZenModelRM):
         ('root', ToOne(ToManyCont, 'DataRoot', 'packs')),
         )
 
+from Products.ZenModel.ZenPackLoader import *
+
+def zenPackPath(*parts):
+    return os.path.join(os.environ['ZENHOME'], 'Products', *parts)
+
 class ZenPackBase(ZenPack):
     
     zope.interface.implements(interfaces.IZenPack)
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons())
 
     def __init__(self, id):
         ZenPack.__init__(self, id)
 
+    def path(self, *args):
+        return zenPackPath(self.id, *args)
+
 
     def install(self, cmd):
-        self.loadObjects(cmd)
-        self.loadReportPages(cmd)
-        def executable(f):
-            os.chmod(f, 0755)
-        map(executable, self.daemons())
-
-
-    def remove(self, cmd):
-        self.removeObjects(cmd)
-        self.removeReportPages(cmd)
-
-
-    def _findFiles(self, directory, filter=None):
-        return [os.path.join(p, f)
-                for p, ds, fs in os.walk(zenPackPath(self.id, directory))
-                for f in fs
-                if filter and filter(f)]
-                    
-
-    def daemons(self):
-        return self._findFiles('daemons')
-
-
-    def modelers(self):
-        pass
-
-
-    def reports(self):
-        pass
-
-
-    def objectFiles(self):
-        def isXml(f): return f.endswith('.xml')
-        return self._findFiles('objects', isXml)
-
-
-    def loadObjects(self, cmd):
-        "load data from xml files"
-        from Products.ZenRelations.ImportRM import ImportRM
-        importer = ImportRM(noopts=True, app=cmd.app)
-        importer.options.noindex = True
-        for f in self.objectFiles():
-            importer.loadObjectFromXML(xmlfile=f)
+        for loader in self.loaders:
+            loader.load(self, cmd)
         transaction.commit()
 
 
-    def removeObjects(self, cmd):
-        "remove objects that would come from xml"
-        from xml.sax import make_parser, saxutils
-        from xml.sax.handler import ContentHandler
-        class Deleter(ContentHandler):
-            def __init__(self):
-                self.stack = []
-            def startElement(self, name, attrs):
-                if name == 'object':
-                    self.stack.append(attrs.get('id', None))
-            def endElement(self, name):
-                if name == 'object':
-                    id = self.stack.pop()
-                    if id:
-                        path = id.split('/')
-                        id = path.pop()
-                        obj = getObjByPath(cmd.app, path)
-                        obj._delObject(id)
-        for f in self.objectFiles():
-            parser = make_parser()
-            parser.setContentHandler(Deleter())
-            parser.parse(open(f))
+    def remove(self, cmd):
+        for loader in self.loaders:
+            loader.unload(self, cmd)
 
 
-    def loadReportPages(self, cmd):
-        "load pages in using ReportLoader.py"
-        rl = ReportLoader(noopts=True, app=cmd.app)
-        rl.loadDirectory(zenPackPath(self.id, 'reports'))
+    def list(self, cmd):
+        result = []
+        for loader in self.loaders:
+            result.append((loader.name,
+                           [item for item in loader.list(self, cmd)]))
+        return result
 
-    def removeReportPages(self, cmd):
-        "remove reports in our report tree"
-        rl = ReportLoader(noopts=True, app=cmd.app)
-        rl.unloadDirectory(zenPackPath(self.id, 'reports'))
-
-    
 InitializeClass(ZenPack)

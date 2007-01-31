@@ -39,3 +39,6 @@ class IZenPack(zope.interface.Interface):
     def remove(self, zcmd):
         "Extricate yourself from Zenoss"
         
+    def list(self, zcmd):
+        "List of all the parts loaded by this ZenPack"
+        
