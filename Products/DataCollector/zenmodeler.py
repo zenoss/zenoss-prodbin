@@ -76,6 +76,21 @@ class ZenModeler(ZCmdBase):
         else:
             self.log.debug("in debug mode starting apply in main thread.")
             self.applyData = ApplyDataMap(self)
+
+    def loadPluginDir(self, pdir):
+        self.log.info("loading collector plugins from: %s", pdir)
+        lpdir = len(pdir)+1
+        for path, dirname, filenames in os.walk(pdir):
+            path = path[lpdir:]
+            for filename in filter(plfilter, filenames):
+                modpath = os.path.join(path,filename[:-3]).replace("/",".")
+                self.log.debug("loading: %s", modpath)
+                try:
+                    const = importClass(modpath)
+                    plugin = const()
+                    self.collectorPlugins[plugin.name()] = plugin
+                except ImportError:
+                    self.log.exception("problem loading plugin:%s",modpath)
  
 
     def loadPlugins(self):
@@ -89,19 +104,10 @@ class ZenModeler(ZCmdBase):
         if pdir in sys.path:
             sys.path.remove(pdir)
         sys.path.insert(0, pdir)
-        lpdir = len(pdir)+1
         self.log.info("loading collector plugins from:%s", pdir)
-        for path, dirname, filenames in os.walk(pdir):
-            path = path[lpdir:]
-            for filename in filter(plfilter, filenames):
-                modpath = os.path.join(path,filename[:-3]).replace("/",".")
-                self.log.debug("loading:%s", modpath)
-                try:
-                    const = importClass(modpath)
-                    plugin = const()
-                    self.collectorPlugins[plugin.name()] = plugin
-                except ImportError:
-                    self.log.exception("problem loading plugin:%s",modpath)
+        self.loadPluginDir(pdir)
+        for pack in self.dmd.packs:
+            self.loadPluginDir(pack.path('modeler', 'plugins'))
 
     
     def selectPlugins(self, device, transport):
