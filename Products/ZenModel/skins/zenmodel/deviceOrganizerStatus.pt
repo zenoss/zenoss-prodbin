@@ -118,7 +118,7 @@ function toggleElement(elementid) {
                     type="checkbox" name="organizerPaths:list" 
                     tal:attributes="value devorg/getId"/>
                 <a href="_" 
-                tal:attributes="href devorg/getPrimaryUrlPath"
+                tal:attributes="href string: ${devorg/getPrimaryUrlPath}/deviceOrganizerStatus"
                 tal:content="devorg/id">Name</a>
             </td>
             <td class="tablevalues" align=center 
