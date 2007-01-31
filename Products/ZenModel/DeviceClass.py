@@ -94,7 +94,7 @@ class DeviceClass(DeviceOrganizer):
             'icon'           : 'DeviceClass_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceClass',
-            'immediate_view' : 'deviceOrganizerStatus',
+            'immediate_view' : 'deviceList',
             'actions'        :
             (
                 { 'id'            : 'devicelist'
