@@ -28,7 +28,7 @@ from OFS.PropertyManager import PropertyManager
 from DocumentTemplate.DT_Util import safe_callable
 from ZODB.POSException import ConflictError
 
-from Products.PageTemplates.TALES import CompilerError
+from zope.tales.tales import CompilerError
 
 from Evaluation import EvalAndCall, Ignore, Normalize
 
