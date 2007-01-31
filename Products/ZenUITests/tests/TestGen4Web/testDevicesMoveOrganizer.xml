@@ -83,7 +83,7 @@
         </action>
         <action type="assert-text-exists" window="." step="20">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[/Devices /TestParent1 /TestChild]]></value>
+            <value><![CDATA[/Devices/TestParent1/TestChild]]></value>
         </action>
         <action type="click" refresh="." window="." step="21">
             <xpath><![CDATA[*/A[@CDATA="TestParent1"]]]></xpath>

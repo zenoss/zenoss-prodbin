@@ -35,7 +35,7 @@
         </action>
         <action type="fill" window="." step="8">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
-            <value><![CDATA[Test]]></value>
+            <value><![CDATA[TestSystem]]></value>
         </action>
         <action type="click" refresh="." window="." step="9">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
@@ -46,16 +46,16 @@
             <value><![CDATA[Zenoss: Systems]]></value>
         </action>
         <action type="click" refresh="." window="." step="11">
-            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="TestSystem"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="12">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Zenoss: Test]]></value>
+            <value><![CDATA[Zenoss: TestSystem]]></value>
         </action>
         <action type="fill" window="." step="13">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
-            <value><![CDATA[Test]]></value>
+            <value><![CDATA[TestSystem2]]></value>
         </action>
         <action type="click" refresh="." window="." step="14">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
@@ -63,23 +63,15 @@
         </action>
         <action type="verify-title" window="." step="15">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Zenoss: Test]]></value>
-        </action>
-        <action type="assert-text-exists" window="." step="16">
-            <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[/Systems /Test]]></value>
+            <value><![CDATA[Zenoss: TestSystem]]></value>
         </action>
         <action type="click" refresh="." window="." step="17">
-            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[4]/TBODY[1]/*/A[@CDATA="TestSystem2"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="18">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Zenoss: Test]]></value>
-        </action>
-        <action type="assert-text-exists" window="." step="19">
-            <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[/Systems /Test /Test]]></value>
+            <value><![CDATA[Zenoss: TestSystem2]]></value>
         </action>
         <action type="click" refresh="." window="." step="20">
             <xpath><![CDATA[*/A[@CDATA="Systems"]]]></xpath>
@@ -90,7 +82,7 @@
             <value><![CDATA[Zenoss: Systems]]></value>
         </action>
         <action type="check" window="." step="22">
-            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestSystem"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
         <action type="click" refresh="." window="." step="23">
@@ -103,7 +95,7 @@
         </action>
         <action type="assert-text-does-not-exist" window="." step="25">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Test]]></value>
+            <value><![CDATA[TestSystem]]></value>
         </action>
         <action type="click" refresh="." window="." step="26">
             <xpath><![CDATA[TD[@ID="settings"]/*/A[@CDATA="Logout"]]]></xpath>

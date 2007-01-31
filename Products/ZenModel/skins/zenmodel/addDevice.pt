@@ -16,7 +16,7 @@
         src="/zport/portal_skins/zenmodel/getProdSelectList.js"></script>
 
     <form tal:define="myurl string:/zport/dmd/DeviceLoader" 
-        action="/zport/dmd/DeviceLoader" method="post">
+        action="/zport/dmd/DeviceLoader" method="post" name="addDevice">
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id" /> 
 

@@ -6,7 +6,6 @@ from testgen.mechunit import MechanizeUnitTest
 def convertFilesToSuite(filenames):
     suites = []
     for filename in filenames:
-        if not filename.endswith('testDevicesCreateDelete.xml'): continue
         loader = unittest.TestLoader()
         test = MechanizeUnitTest
         test.sf = filename
@@ -16,9 +15,11 @@ def convertFilesToSuite(filenames):
     return unittest.TestSuite(suites)
 
 def test_suite():
+    #import pdb; pdb.set_trace()
     from Products import ZenUITests
     basePath = ZenUITests.__path__[0]
     filenames = glob('%s/tests/TestGen4Web/*.xml' % basePath)
+    filenames = [f for f in filenames if not f.split('/')[-1].startswith('ignore-')]
     return convertFilesToSuite(filenames)
 
 def nonZopeSuite():

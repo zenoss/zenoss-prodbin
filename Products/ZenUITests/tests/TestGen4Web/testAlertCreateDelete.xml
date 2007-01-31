@@ -34,15 +34,15 @@
             <value><![CDATA[Zenoss: ZenUsers]]></value>
         </action>
         <action type="fill" step="8">
-            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@TYPE="text" and @NAME="userid"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@ID="users"]/*/INPUT[@TYPE="text" and @NAME="userid"]]]></xpath>
             <value><![CDATA[testuser1024]]></value>
         </action>
         <action type="fill" step="9">
-            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@TYPE="text" and @NAME="email"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@ID="users"]/*/INPUT[@TYPE="text" and @NAME="email"]]]></xpath>
             <value><![CDATA[ten24@zenoss.com]]></value>
         </action>
         <action type="click" refresh="true" step="10">
-            <xpath><![CDATA[*/FORM[@NAME="users"]/*/INPUT[@NAME="manage_addUser:method"and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@ID="users"]/*/INPUT[@NAME="manage_addUser:method"and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addUser:method]]></value>
         </action>
         <action type="verify-title" step="11">
@@ -50,7 +50,7 @@
             <value><![CDATA[Zenoss: ZenUsers]]></value>
         </action>
         <action type="click" refresh="true" step="12">
-            <xpath><![CDATA[*/TABLE[2]/TBODY[1]/TR[4]/TD[1]/A[@CDATA="testuser1024"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[2]/TBODY[1]/*/A[@CDATA="testuser1024"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" step="13">
@@ -142,11 +142,11 @@
             <value><![CDATA[Zenoss: testuser1024]]></value>
         </action>
         <action type="fill" step="34">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="id"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="actionRules"]/*/INPUT[@TYPE="text" and @NAME="id"]]]></xpath>
             <value><![CDATA[testAlertRule]]></value>
         </action>
         <action type="click" refresh="true" step="35">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="manage_addActionRule:method"and @VALUE=" Add "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="actionRules"]/*/INPUT[@NAME="manage_addActionRule:method"and @VALUE=" Add "]]]></xpath>
             <value><![CDATA[manage_addActionRule:method]]></value>
         </action>
         <action type="assert-text-exists" step="40">
@@ -154,7 +154,7 @@
             <value><![CDATA[False]]></value>
         </action>
         <action type="click" refresh="true" step="37">
-            <xpath><![CDATA[*/TABLE[3]/TBODY[1]/TR[2]/TD[1]/A[@CDATA="testAlertRule"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[3]/TBODY[1]/*/A[@CDATA="testAlertRule"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="select" step="43">

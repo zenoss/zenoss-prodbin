@@ -34,35 +34,35 @@
             <value><![CDATA[Zenoss: DeviceLoader]]></value>
         </action>
         <action type="fill" window="." step="8">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="deviceName"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/INPUT[@TYPE="text" and @NAME="deviceName"]]]></xpath>
             <value><![CDATA[localhost]]></value>
         </action>
         <action type="select" window="." step="9">
-            <xpath><![CDATA[*/FORM[2]/*/SELECT[@NAME="devicePath"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/SELECT[@NAME="devicePath"]]]></xpath>
             <value><![CDATA[/Discovered]]></value>
         </action>
         <action type="select" window="." step="10">
-            <xpath><![CDATA[*/FORM[2]/*/SELECT[@NAME="discoverProto"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/SELECT[@NAME="discoverProto"]]]></xpath>
             <value><![CDATA[none]]></value>
         </action>
         <action type="fill" window="." step="11">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="tag"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/INPUT[@TYPE="text" and @NAME="tag"]]]></xpath>
             <value><![CDATA[tag1234]]></value>
         </action>
         <action type="fill" window="." step="12">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="serialNumber"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/INPUT[@TYPE="text" and @NAME="serialNumber"]]]></xpath>
             <value><![CDATA[serial1234]]></value>
         </action>
         <action type="fill" window="." step="13">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@TYPE="text" and @NAME="rackSlot:int"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/INPUT[@TYPE="text" and @NAME="rackSlot:int"]]]></xpath>
             <value><![CDATA[999]]></value>
         </action>
         <action type="fill" window="." step="14">
-            <xpath><![CDATA[*/FORM[2]/*/TEXTAREA[@NAME="comments:text"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/TEXTAREA[@NAME="comments:text"]]]></xpath>
             <value><![CDATA[A Comment]]></value>
         </action>
         <action type="click" refresh="." window="." step="15">
-            <xpath><![CDATA[*/FORM[2]/*/INPUT[@NAME="loadDevice:method" and @VALUE=" Add Device "]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="addDevice"]/*/INPUT[@NAME="loadDevice:method" and @VALUE=" Add Device "]]]></xpath>
             <value><![CDATA[loadDevice:method]]></value>
         </action>
         <action type="verify-title" window="." step="16">
@@ -74,7 +74,7 @@
             <value><![CDATA[device localhost loaded!]]></value>
         </action>
         <action type="click" refresh="." window="." step="18">
-            <xpath><![CDATA[*/TABLE[3]/TBODY[1]/TR[7]/TD[1]/A[@CDATA="localhost"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[3]/TBODY[1]/*/A[@CDATA="localhost"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="19">
@@ -98,7 +98,7 @@
             <value><![CDATA[A Comment]]></value>
         </action>
         <action type="click" refresh="." window="." step="20">
-            <xpath><![CDATA[*/TABLE[2]/TBODY[1]/TR[1]/TD[10]/A[@CDATA="Manage"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[2]/TBODY[1]/*/A[@CDATA="Manage"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="21">
@@ -115,7 +115,7 @@
         </action>
         <action type="assert-text-exists" window="." step="24">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[/Devices /Discovered]]></value>
+            <value><![CDATA[/Devices/Discovered]]></value>
         </action>
         <action type="assert-text-does-not-exist" window="." step="25">
             <xpath><![CDATA[*]]></xpath>

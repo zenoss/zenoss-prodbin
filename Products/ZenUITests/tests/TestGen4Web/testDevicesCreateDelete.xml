@@ -55,7 +55,7 @@
         </action>
         <action type="fill" window="." step="13">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="text" and @NAME="newPath"]]]></xpath>
-            <value><![CDATA[Test]]></value>
+            <value><![CDATA[TestDevClass]]></value>
         </action>
         <action type="click" refresh="." window="." step="14">
             <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@NAME="manage_addOrganizer:method" and @VALUE=" Add "]]]></xpath>
@@ -66,16 +66,16 @@
             <value><![CDATA[Zenoss: Linux]]></value>
         </action>
         <action type="click" refresh="." window="." step="16">
-            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/*/A[@CDATA="Test"]]]></xpath>
+            <xpath><![CDATA[*/TABLE[@NAME="subdeviceTable"]/*/A[@CDATA="TestDevClass"]]]></xpath>
             <value><![CDATA[]]></value>
         </action>
         <action type="verify-title" window="." step="17">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Zenoss: Test]]></value>
+            <value><![CDATA[Zenoss: TestDevClass]]></value>
         </action>
         <action type="assert-text-exists" window="." step="18">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[/Devices/Server/Linux/Test]]></value>
+            <value><![CDATA[/Devices/Server/Linux/TestDevClass]]></value>
         </action>
         <action type="click" refresh="." window="." step="19">
             <xpath><![CDATA[*/A[@CDATA="Linux"]]]></xpath>
@@ -86,7 +86,7 @@
             <value><![CDATA[Zenoss: Linux]]></value>
         </action>
         <action type="check" window="." step="21">
-            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="Test"]]]></xpath>
+            <xpath><![CDATA[*/FORM[@NAME="subdeviceForm"]/*/INPUT[@TYPE="checkbox" and @NAME="organizerPaths:list" and @VALUE="TestDevClass"]]]></xpath>
             <value><![CDATA[true]]></value>
         </action>
         <action type="click" refresh="." window="." step="22">
@@ -99,7 +99,7 @@
         </action>
         <action type="assert-text-does-not-exist" window="." step="24">
             <xpath><![CDATA[*]]></xpath>
-            <value><![CDATA[Test]]></value>
+            <value><![CDATA[TestDevClass]]></value>
         </action>
         <action type="click" refresh="." window="." step="25">
             <xpath><![CDATA[TD[@ID="settings"]/*/A[@CDATA="Logout"]]]></xpath>
