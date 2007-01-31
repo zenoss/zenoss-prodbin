@@ -42,6 +42,11 @@ class ReportLoader(ZCmdBase):
             rorg = reproot.createOrganizer(orgpath)
             if getattr(rorg, fid, False):
                 rorg._delObject(fid)
+            while rorg.id != 'Reports':
+                if not rorg.objectValues():
+                    id = rorg.id
+                    rorg = rorg.getPrimaryParent()
+                    rorg._delObject(id)
         
 
     def loadDirectory(self, repdir):
