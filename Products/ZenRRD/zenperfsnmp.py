@@ -323,7 +323,7 @@ class zenperfsnmp(SnmpDaemon):
         "remember all the unresponsive devices"
         if isinstance(arg, list):
             deviceList = arg
-            self.log.info('Unresponsive devices: %r' % deviceList)
+            self.log.debug('unresponsive devices: %r' % deviceList)
             self.unresponsiveDevices = Set(firsts(deviceList))
         else:
             self.log.error('Could not get unresponsive devices: %s', arg)
@@ -357,9 +357,9 @@ class zenperfsnmp(SnmpDaemon):
     def reportRate(self, *unused):
         'Finished reading all the devices, report stats and maybe stop'
         total, success, failed, runtime = self.status.stats()
+        self.log.info("sent %d OID requests", self.snmpOidsRequested)
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
-        self.log.debug("Sent %d SNMP OID requests", self.snmpOidsRequested)
         self.snmpOidsRequested = 0
         self.heartbeat()
 
