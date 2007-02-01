@@ -19,12 +19,13 @@ from AccessControl import Permissions as permissions
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
 from Commandable import Commandable
+from ZenMenuable import ZenMenuable
 
 from MaintenanceWindow import OrganizerMaintenanceWindow
 
 from Products.ZenRelations.RelSchema import *
 
-class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable):
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -77,7 +78,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable):
          ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
-       )
+       ) + ZenMenuable._relations
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under an instance of a DeviceGroup"""
