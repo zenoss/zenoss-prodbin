@@ -106,7 +106,7 @@ class ZenModeler(ZCmdBase):
         sys.path.insert(0, pdir)
         self.log.info("loading collector plugins from:%s", pdir)
         self.loadPluginDir(pdir)
-        for pack in self.dmd.packs:
+        for pack in self.dmd.packs():
             self.loadPluginDir(pack.path('modeler', 'plugins'))
 
     
