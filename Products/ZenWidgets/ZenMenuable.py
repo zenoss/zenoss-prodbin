@@ -5,8 +5,7 @@ from Acquisition import aq_base, aq_parent, aq_chain
 from Products.ZenRelations.RelSchema import *
 
 class ZenMenuable:
-    """ ZenMenuManager is a Zope object that deals with
-        menuing.
+    """ ZenMenuable is a mixin providing menuing.
     """
 
     security = ClassSecurityInfo()
