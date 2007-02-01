@@ -26,9 +26,8 @@ class ZenMenuItem(ZenModelRM):
         {'id':'action', 'type':'text', 'mode':'w'},
         )
 
-    zenRelationsBaseModule = 'Products.ZenWidgets'
     _relations =  (
-        ("zenMenus", ToManyCont(ToOne, 'ZenMenu', 'zenMenuItems')),
+        ("zenMenus", ToManyCont(ToOne, 'Products.ZenWidgets.ZenMenu', 'zenMenuItems')),
         )
 
     security = ClassSecurityInfo()

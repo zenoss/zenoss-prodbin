@@ -23,6 +23,7 @@ from Acquisition import aq_base
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
+from Products.ZenWidgets.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
@@ -42,7 +43,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
-class DataRoot(ZenModelRM, OrderedFolder, Commandable):
+class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     meta_type = portal_type = 'DataRoot'
 
     manage_main = OrderedFolder.manage_main
@@ -93,6 +94,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable):
     _relations =  (
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         ('packs',        ToManyCont(ToOne, 'ZenPack',     'root')),
+        ('zenMenus', ToManyCont(
+            ToOne, 'Products.ZenWidgets.ZenMenu', 'menuable')),
        )
 
     # Screen action bindings (and tab definitions)

@@ -11,11 +11,6 @@ class ZenMenuable:
 
     security = ClassSecurityInfo()
 
-    zenRelationsBaseModule = 'Products.ZenWidgets'
-    _relations = (
-                    ('zenMenus', ToManyCont(ToOne, 'ZenMenu', 'zenMenuables')),
-                 )
-
     security.declareProtected('Change Device', 'manage_addZenMenu')
     def manage_addZenMenu(self, id=None, desc='', REQUEST=None):
         """ Add a menu item to this device organizer """

@@ -19,7 +19,7 @@ from AccessControl import Permissions as permissions
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
 from Commandable import Commandable
-from ZenMenuable import ZenMenuable
+from Products.ZenWidgets.ZenMenuable import ZenMenuable
 
 from MaintenanceWindow import OrganizerMaintenanceWindow
 
@@ -78,7 +78,9 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
          ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
-       ) + ZenMenuable._relations
+        ('zenMenus', ToManyCont(
+            ToOne, 'Products.ZenWidgets.ZenMenu', 'menuable')),
+       ) 
 
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under an instance of a DeviceGroup"""
