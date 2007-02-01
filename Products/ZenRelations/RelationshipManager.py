@@ -91,10 +91,11 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
 
     manage_main=DTMLFile('dtml/RelationshipManagerMain', globals())
 
+    # are we being deleted or moved
+    _operation = -1
 
     def __init__(self, id, title=None, buildRelations=True):
         self.id = id
-        self._operation = -1
         if buildRelations: self.buildRelations()
 
 

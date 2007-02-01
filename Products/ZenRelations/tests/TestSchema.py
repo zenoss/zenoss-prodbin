@@ -24,7 +24,8 @@ class Device(TestBaseClass, PropertyManager):
         {'id':'communities', 'type':'lines', 'mode':'w'},
         )
     _relations = (
-        ("location", ToOne(ToMany, "TestSchema.Location", "devices")),
+        ("location", ToOne(ToMany, 
+            "Products.ZenRelations.tests.TestSchema.Location", "devices")),
         ("groups", ToMany(ToMany, "TestSchema.Group", "devices")),
         ("interfaces", ToManyCont(ToOne, "TestSchema.IpInterface", "device")),
         )
@@ -61,8 +62,10 @@ class Location(TestBaseClass):
         )
 
 class Admin(TestBaseClass):
+    zenRelationsBaseModule = "Products"
     _relations = (
-        ("server", ToOne(ToOne, "TestSchema.Server", "admin")),
+        ("server", ToOne(ToOne, 
+            "ZenRelations.tests.TestSchema.Server", "admin")),
         )
 
 class Organizer(TestBaseClass):

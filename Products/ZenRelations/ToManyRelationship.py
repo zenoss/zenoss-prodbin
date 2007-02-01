@@ -16,6 +16,8 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 
+from Products.ZenUtils.Utils import getObjByPath
+
 from ToManyRelationshipBase import ToManyRelationshipBase
 
 from Products.ZenRelations.Exceptions import *
@@ -130,7 +132,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         Delete object by its absolute id (ie /zport/dmd/bla/bla)
         (this is sent out in the object*All API)
         """
-        obj = self.getObjByPath(id)
+        obj = getObjByPath(self, id)
         self.removeRelation(obj)
 
     
