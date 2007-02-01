@@ -32,24 +32,5 @@ class ZenMenuItem(ZenModelRM):
 
     security = ClassSecurityInfo()
 
-    security.declareProtected('Change Device', 'manage_addZenMenuItem')
-    def manage_addZenMenuItem(self, id=None, desc='', action='', REQUEST=None):
-        """ Add a menu item to a menu """
-        mi = None
-        if id:
-            mu = ZenMenuItem(id)
-            self.zenMenuItems._setObject(id, mi)
-            if self.meta_type == 'Device':
-                self.setLastChange()
-            mi.description = desc
-            mi.action = action
-        if REQUEST:
-            if mi:
-                REQUEST['message'] = 'Menu Item Added'
-                url = '%s/zenMenuItems/%s' % (self.getPrimaryUrlPath(), mi.id)
-                REQUEST['RESPONSE'].redirect(url)
-            return self.callZenScreen(REQUEST)
-        return mi
-
 InitializeClass(ZenMenuItem)
 
