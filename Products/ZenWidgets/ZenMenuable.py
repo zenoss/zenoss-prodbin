@@ -66,8 +66,9 @@ class ZenMenuable:
         """ Build menus for this context, acquiring ZenMenus
             which in turn acquire ZenMenuItems.
 
-            Pass it a menu id, a sequence of menuids, or nothing
-            for all available menus.
+            Pass it a menuid for a list of menuitems, 
+            a sequence of menuids for a dict of lists of items, 
+            or nothing for a dict of all available menus.
         """
         menus = {}
         if isinstance(menuids, (str,unicode)): menuids=[menuids]
@@ -87,13 +88,33 @@ class ZenMenuable:
         keys = menus.keys()
         for key in keys:
             menus[key] = menus[key].values()
-        if len(menus.keys())==1: 
-            return menus.values()[0]
-        elif not menus: 
+        if not menus: 
             return None
+        elif len(menus.keys())==1: 
+            return menus.values()[0]
         else: 
             return menus
 
+    security.declareProtected('View', 'getMenuHtml')
+    def getMenuHtml(self, menuid=None):
+        def _tag(tagname, content, **kwargs):
+            attrs = ['%s="%s"' % (x, kwargs[x]) for x in kwargs.keys()]
+            html = '<%s %s>%s</%s>' % (tagname, ' '.join(attrs).replace(
+                                                    'klass','class'), 
+                                      content, tagname)
+            return html
+        html = ''
+        if menuid:
+            menuitems = self.getMenus(menuid)
+            if menuitems:
+                lis = [_tag('li', x.description or x.id, 
+                        action=x.action)
+                       for x in menuitems]
+                html = _tag('ul', '\n'.join(lis),
+                            klass='zenMenu',
+                            id="menu_%s" % self.id
+                           )
+        return html
 
 InitializeClass(ZenMenuable)
 

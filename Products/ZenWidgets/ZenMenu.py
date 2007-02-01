@@ -53,23 +53,5 @@ class ZenMenu(ZenModelRM):
             self.zenMenuItems._delObject(id)
         
 
-    security.declareProtected('View', 'getMenuHtml')
-    def getMenuHtml(self):
-        def _tag(tagname, content, **kwargs):
-            attrs = ['%s="%s"' % (x, kwargs[x]) for x in kwargs.keys()]
-            html = '<%s %s>%s</%s>' % (tagname, ' '.join(attrs).replace(
-                                                    'klass','class'), 
-                                      content, tagname)
-            return html
-        menuitems = self.getMenuItems()
-        lis = [_tag('li', x.description, 
-                action=x.action)
-               for x in menuitems]
-        html = _tag('ul', '\n'.join(lis),
-                    klass='zenMenu',
-                    id="menu_%s" % self.id
-                   )
-        return html
-
 InitializeClass(ZenMenu)
 
