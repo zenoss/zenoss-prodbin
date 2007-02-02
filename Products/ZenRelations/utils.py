@@ -11,19 +11,25 @@ def importClass(classpath, baseModule=None):
     try:
         cp = classpath.split('.')
         mod = __import__(cp[0])
-        classpath = cp[1:]
-    except ImportError:
+        clist = cp[1:]
+    except (ImportError, ValueError):
         if baseModule is None:
-            raise ZenImportError("failed importing class %s" % classpath)
+            raise ZenImportError("failed importing class '%s'" % classpath)
         try:
             cp = baseModule.split('.')
             mod = __import__(cp[0])
-            classpath = cp[1:] + classpath.split('.')
+            clist = cp[1:] + classpath.split('.')
         except:
             raise ZenImportError(
-                "failed importing class %s base %s" % (classpath, baseModule))
-    for comp in classpath:
-        mod = getattr(mod, comp)
+                "failed importing class '%s' base '%s'" % (
+                    classpath, baseModule))
+    if not clist: return mod
+    for comp in clist:
+        try: mod = getattr(mod, comp)
+        except AttributeError:
+            raise ZenImportError(
+                "failed importing class '%s' base '%s'" % (
+                    classpath, baseModule))
     return getattr(mod, comp, mod)
 
 
