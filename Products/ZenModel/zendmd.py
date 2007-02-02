@@ -69,21 +69,33 @@ if __name__ == '__main__':
         '''Logs out.'''
         noSecurityManager()
 
-    def addFortyK():
+    def addDevicesTest(numDevices=40000, prefix="d"):
         '''Add 40,000 devices'''
         from Device import Device
         import time
         context = zendmd.dmd.Devices.Devices
         print 'Started %s' % time.ctime()
-        for i in range(0,10000):
+        for i in range(0, numDevices):
             if not i % 5000: transaction.commit()
             if not i % 1000: print 'At %s: %s' % (i, time.ctime())
-            id = 'd%s' % i
+            id = '%s%s' % (prefix, i)
             d = Device(id)
             d.setManageIp('192.168.1.1')
             context._setObject(id, d)
         transaction.commit()
         print 'Ended %s' % time.ctime()
+    
+    def grepdir(obj, regex="", exact=""):
+        if regex:
+            import re
+            pattern = re.compile(regex)
+            for key in dir(obj):
+                if pattern.search(key):
+                    print key
+        if exact:
+            for key in dir(obj):
+                if key == exact:
+                    print key
     
     print "Welcome to zenoss dmd command shell!"
     print "use zhelp() to list commands"
