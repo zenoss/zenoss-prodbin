@@ -1,36 +1,20 @@
 from Exceptions import ZenImportError
 
 def importClass(classpath, baseModule=None):
-    """
-    Import a class by its path use baseModule path if passed
-    First try and import top package.  If it failes and baseModule hasn't been 
-    passed we raise. If baseModule exists, which is just a shorthand way of 
-    specifying classes in relationships using the zenRelationsBaseModule 
-    attribute trying importing the class using baseModule + classpath.
-    """
+    """lookup a class by its path use baseModule path if passed"""
+    if baseModule: classpath = ".".join((baseModule, classpath))
     try:
-        cp = classpath.split('.')
-        mod = __import__(cp[0])
-        clist = cp[1:]
-    except (ImportError, ValueError):
-        if baseModule is None:
-            raise ZenImportError("failed importing class '%s'" % classpath)
+        mod = __import__(classpath)
+    except ImportError:
         try:
-            cp = baseModule.split('.')
-            mod = __import__(cp[0])
-            clist = cp[1:] + classpath.split('.')
+            mod = __import__(".".join(classpath.split(".")[:-1]))
         except:
-            raise ZenImportError(
-                "failed importing class '%s' base '%s'" % (
-                    classpath, baseModule))
-    if not clist: return mod
-    for comp in clist:
-        try: mod = getattr(mod, comp)
-        except AttributeError:
-            raise ZenImportError(
-                "failed importing class '%s' base '%s'" % (
-                    classpath, baseModule))
-    return getattr(mod, comp, mod)
+            raise ZenImportError("failed importing class %s" % classpath)
+    for comp in classpath.split(".")[1:]:
+        mod = getattr(mod, comp)
+    classdef = getattr(mod, comp, None)
+    if classdef: mod = classdef
+    return mod
 
 
 def importClasses(basemodule=None, skipnames=()):
