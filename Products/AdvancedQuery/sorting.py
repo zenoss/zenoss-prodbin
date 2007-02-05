@@ -1,5 +1,5 @@
 # Copyright (C) 2003-2006 by Dr. Dieter Maurer, Eichendorffstr. 23, D-66386 St. Ingbert, Germany
-#       $Id: sorting.py,v 1.3 2006/11/09 19:27:33 dieter Exp $
+#       $Id: sorting.py,v 1.2 2006/06/25 19:11:24 dieter Exp $
 '''Auxiliary sorting module'''
 
 from BTrees.IIBTree import difference, IISet, IITreeSet
@@ -32,7 +32,6 @@ class _SortAccess:
     self._iter = generator
 
   def __getitem__(self,index):
-    if index >= self._len: raise IndexError
     if index != self._index:
       raise SystemError('unconsequtive access')
     self._index += 1

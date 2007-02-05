@@ -12,7 +12,7 @@
 ##############################################################################
 """ Cookie Crumbler: Enable cookies for non-cookie user folders.
 
-$Id: CookieCrumbler.py 68523 2006-06-08 16:23:41Z efge $
+$Id: CookieCrumbler.py 36556 2004-09-19 18:27:54Z yuppie $
 """
 
 from base64 import encodestring, decodestring
@@ -25,12 +25,11 @@ from AccessControl import getSecurityManager, ClassSecurityInfo, Permissions
 from ZPublisher import BeforeTraverse
 import Globals
 from Globals import HTMLFile
+from zLOG import LOG, ERROR
 from ZPublisher.HTTPRequest import HTTPRequest
 from OFS.Folder import Folder
 from zExceptions import Redirect
 
-from zope.interface import implements
-from interfaces import ICookieCrumbler
 
 # Constants.
 ATTEMPT_NONE = 0       # No attempt at authentication
@@ -51,8 +50,6 @@ class CookieCrumbler (Folder):
     authentication headers.
     '''
     meta_type = 'Cookie Crumbler'
-
-    implements(ICookieCrumbler)
 
     security = ClassSecurityInfo()
     security.declareProtected(ModifyCookieCrumblers, 'manage_editProperties')

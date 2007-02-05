@@ -16,12 +16,13 @@ import re
 from AccessControl import ClassSecurityInfo
 from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
-from App import ImageFile
+from ImageFile import ImageFile
 from Globals import HTMLFile, DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
+from ImageFile import ImageFile
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenWidgets.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *

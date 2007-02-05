@@ -1,6 +1,6 @@
 # Copyright (C) 2004-2006 by Dr. Dieter Maurer, Eichendorffstr. 23, D-66386 St. Ingbert, Germany
 # see "LICENSE.txt" for details
-#       $Id: testAdvancedQuery.py,v 1.7 2006/11/09 19:27:33 dieter Exp $
+#       $Id: testAdvancedQuery.py,v 1.6 2006/06/25 19:11:24 dieter Exp $
 
 # as specified by "ZopeTestCase.framework"
 import os, sys
@@ -13,12 +13,6 @@ from Products.AdvancedQuery import *
 from TestBase import TestCase, getSuite
 
 class TestAdvancedQuery(TestCase):
-
-  def testSlicing(self):
-    c = self.catalog
-    r = c.evalAdvancedQuery(Eq('I1', 'a'), ('I1',))
-    # must not raise an exception
-    r[1:]
 
   def testEq(self):
     self._checkQuery(Eq('I1','a'), '13')

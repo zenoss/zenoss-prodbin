@@ -12,7 +12,7 @@
 ##############################################################################
 """Unit tests for CMFCatalogAware.
 
-$Id: test_CMFCatalogAware.py 68619 2006-06-13 19:08:29Z yuppie $
+$Id: test_CMFCatalogAware.py 38390 2005-09-08 12:49:28Z anguenot $
 """
 
 import unittest
@@ -112,7 +112,6 @@ class CMFCatalogAwareTests(unittest.TestCase, LogInterceptor):
 
     def tearDown(self):
         self._ignore_log_errors()
-        self._ignore_log_errors(subsystem='CMFCore.CMFCatalogAware')
 
     def test_indexObject(self):
         foo = self.site.foo
@@ -194,7 +193,7 @@ class CMFCatalogAwareTests(unittest.TestCase, LogInterceptor):
 
     def test_reindexObjectSecurity_missing_noraise(self):
         # Raising disabled
-        self._catch_log_errors(subsystem='CMFCore.CMFCatalogAware')
+        self._catch_log_errors()
         foo = self.site.foo
         missing = TheClass('missing').__of__(foo)
         missing.GETOBJECT_RAISES = False
@@ -208,7 +207,7 @@ class CMFCatalogAwareTests(unittest.TestCase, LogInterceptor):
 
     def test_reindexObjectSecurity_missing_oldbrain(self):
         # Missing object is swallowed by old Zope brains
-        self._catch_log_errors(subsystem='CMFCore.CMFCatalogAware')
+        self._catch_log_errors()
         self.site.portal_catalog.brain_class = DummyOldBrain
         foo = self.site.foo
         missing = TheClass('missing').__of__(foo)
@@ -238,4 +237,4 @@ def test_suite():
         ))
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+    main(defaultTest='test_suite')

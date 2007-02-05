@@ -12,7 +12,7 @@
 ##############################################################################
 """ Basic workflow tool.
 
-$Id: WorkflowTool.py 40346 2005-11-23 17:15:03Z yuppie $
+$Id: WorkflowTool.py 40138 2005-11-15 17:47:37Z jens $
 """
 
 import sys
@@ -24,10 +24,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Globals import PersistentMapping
 from OFS.Folder import Folder
-from OFS.ObjectManager import IFAwareObjectManager
 
 from ActionProviderBase import ActionProviderBase
-from interfaces import IWorkflowDefinition
 from interfaces.portal_workflow import portal_workflow as IWorkflowTool
 from permissions import ManagePortal
 from utils import _dtmldir
@@ -61,16 +59,13 @@ class WorkflowInformation:
         raise KeyError, name
 
 
-class WorkflowTool(UniqueObject, IFAwareObjectManager, Folder,
-                   ActionProviderBase):
-
+class WorkflowTool(UniqueObject, Folder, ActionProviderBase):
     """ Mediator tool, mapping workflow objects
     """
     id = 'portal_workflow'
     meta_type = 'CMF Workflow Tool'
     __implements__ = (IWorkflowTool,
                       ActionProviderBase.__implements__)
-    _product_interfaces = (IWorkflowDefinition,)
 
     _chains_by_type = None  # PersistentMapping
     _default_chain = ('default_workflow',)
@@ -114,6 +109,12 @@ class WorkflowTool(UniqueObject, IFAwareObjectManager, Folder,
         if RESPONSE is not None:
             RESPONSE.redirect(self.absolute_url() +
                               '/manage_main?management_view=Contents')
+
+    def all_meta_types(self):
+        return (
+            {'name': 'Workflow',
+             'action': 'manage_addWorkflowForm',
+             'permission': ManagePortal },)
 
     _manage_selectWorkflows = DTMLFile('selectWorkflows', _dtmldir)
 
@@ -452,7 +453,8 @@ class WorkflowTool(UniqueObject, IFAwareObjectManager, Folder,
         self._default_chain = tuple(ids)
 
     security.declareProtected( ManagePortal, 'setChainForPortalTypes')
-    def setChainForPortalTypes(self, pt_names, chain, verify=True):
+    def setChainForPortalTypes(self, pt_names, chain):
+
         """ Set a chain for a specific portal type.
         """
         cbt = self._chains_by_type
@@ -462,12 +464,12 @@ class WorkflowTool(UniqueObject, IFAwareObjectManager, Folder,
         if isinstance(chain, basestring):
             chain = [ wf.strip() for wf in chain.split(',') if wf.strip() ]
 
-        ti_ids = [ t.getId() for t in self._listTypeInfo() ]
+        ti = self._listTypeInfo()
+        for t in ti:
+            id = t.getId()
+            if id in pt_names:
+                cbt[id] = tuple(chain)
 
-        for type_id in pt_names:
-            if verify and not (type_id in ti_ids):
-                continue
-            cbt[type_id] = tuple(chain)
 
     security.declareProtected( ManagePortal, 'updateRoleMappings')
     def updateRoleMappings(self, REQUEST=None):
@@ -489,11 +491,11 @@ class WorkflowTool(UniqueObject, IFAwareObjectManager, Folder,
 
     security.declarePrivate('getWorkflowById')
     def getWorkflowById(self, wf_id):
+
         """ Retrieve a given workflow.
         """
         wf = getattr(self, wf_id, None)
-        if getattr(wf, '_isAWorkflow', False) or \
-                IWorkflowDefinition.providedBy(wf):
+        if getattr(wf, '_isAWorkflow', 0):
             return wf
         else:
             return None

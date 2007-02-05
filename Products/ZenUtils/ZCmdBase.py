@@ -14,13 +14,10 @@ from threading import Lock
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
+from Utils import getObjByPath
 
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
-from Utils import getObjByPath
-
-import zope.component
-import zope.traversing.adapters
 
 import os
 defaultCacheDir = os.getenv('ZENHOME')
@@ -37,10 +34,6 @@ class ZCmdBase(ZenDaemon):
         self.dataroot = None
         self.app = app
         self.db = None
-        zope.component.provideAdapter(
-            zope.traversing.adapters.DefaultTraversable,
-            [None],
-        )
         if not app:
             from ZEO import ClientStorage
             from ZODB import DB

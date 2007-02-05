@@ -12,28 +12,21 @@
 ##############################################################################
 """ Basic portal catalog.
 
-$Id: CatalogTool.py 69316 2006-07-31 16:54:39Z shh $
+$Id: CatalogTool.py 38289 2005-09-03 13:40:17Z yuppie $
 """
-
-from warnings import warn
 
 from AccessControl import ClassSecurityInfo
 from AccessControl.PermissionRole import rolesForPermissionOn
-from Acquisition import aq_base
 from DateTime import DateTime
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Products.PluginIndexes.common import safe_callable
+from Products.ZCatalog.ZCatalog import LOG
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZCTextIndex.HTMLSplitter import HTMLWordSplitter
 from Products.ZCTextIndex.Lexicon import CaseNormalizer
 from Products.ZCTextIndex.Lexicon import Splitter
 from Products.ZCTextIndex.Lexicon import StopWordRemover
 from Products.ZCTextIndex.ZCTextIndex import PLexicon
-from zope.interface import providedBy
-from zope.interface.declarations import getObjectSpecification
-from zope.interface.declarations import ObjectSpecification
-from zope.interface.declarations import ObjectSpecificationDescriptor
 
 from ActionProviderBase import ActionProviderBase
 from interfaces.portal_catalog \
@@ -51,32 +44,13 @@ from utils import SimpleRecord
 from utils import UniqueObject
 
 
-class IndexableObjectSpecification(ObjectSpecificationDescriptor):
-
-    def __get__(self, inst, cls=None):
-        if inst is None:
-            return getObjectSpecification(cls)
-        else:
-            provided = providedBy(inst._IndexableObjectWrapper__ob)
-            cls = type(inst)
-            return ObjectSpecification(provided, cls)
-
-
-class IndexableObjectWrapper(object):
+class IndexableObjectWrapper:
 
     __implements__ = IIndexableObjectWrapper
-    __providedBy__ = IndexableObjectSpecification()
 
     def __init__(self, vars, ob):
         self.__vars = vars
         self.__ob = ob
-
-    def __str__(self):
-        try:
-            # __str__ is used to get the data of File objects
-            return self.__ob.__str__()
-        except AttributeError:
-            return object.__str__(self)
 
     def __getattr__(self, name):
         vars = self.__vars
@@ -102,16 +76,6 @@ class IndexableObjectWrapper(object):
             del allowed['Owner']
         return list(allowed.keys())
 
-    def cmf_uid(self):
-        """
-        Return the CMFUid UID of the object while making sure
-        it is not accidentally acquired.
-        """
-        cmf_uid = getattr(aq_base(self.__ob), 'cmf_uid', '')
-        if safe_callable(cmf_uid):
-            return cmf_uid()
-        return cmf_uid
-
 
 class CatalogTool(UniqueObject, ZCatalog, ActionProviderBase):
     """ This is a ZCatalog that filters catalog queries.
@@ -134,9 +98,6 @@ class CatalogTool(UniqueObject, ZCatalog, ActionProviderBase):
 
     def __init__(self):
         ZCatalog.__init__(self, self.getId())
-        warn('CatalogTool._initIndexes is deprecated and will be removed in '
-             'CMF 2.0.',
-             DeprecationWarning)
         self._initIndexes()
 
     #
@@ -390,5 +351,64 @@ class CatalogTool(UniqueObject, ZCatalog, ActionProviderBase):
             valid_indexes = self._catalog.indexes.keys()
             idxs = [i for i in idxs if i in valid_indexes]
         self.catalog_object(object, uid, idxs, update_metadata)
+
+    # BBB: for Zope 2.8.0
+    # copied from revision 31005 of ZCatalog.py
+    def manage_convertIndexes(self, REQUEST=None, RESPONSE=None, URL1=None):
+        """Recreate indexes derived from UnIndex because the implementation of
+           __len__ changed in Zope 2.8. Pre-Zope 2.7 installation used to implement
+           __len__ as persistent attribute of the index instance which is totally
+           incompatible with the new extension class implementation based on new-style
+           classes. 
+        """
+
+        LOG.info('Start migration of indexes for %s' % self.absolute_url(1))
+        
+        reindex_ids = []
+
+        for idx in self.Indexes.objectValues():
+            bases = [str(name) for name in idx.__class__.__bases__]
+            found = False
+
+            if idx.meta_type  == 'PathIndex':
+                found = True
+            else:
+                for base in bases:
+                    if 'UnIndex' in base:
+                        found = True
+                        break
+
+            if found:
+                idx_type = idx.meta_type
+                idx_id = idx.getId()
+                LOG.info('processing index %s' % idx_id)
+
+                indexed_attrs = getattr(idx, 'indexed_attrs', None)
+
+                if idx.meta_type == 'DateRangeIndex':
+                    since_field = getattr(idx, '_since_field', None)
+                    until_field = getattr(idx, '_until_field', None)
+
+                self.delIndex(idx.getId())
+                self.addIndex(idx_id, idx_type)
+                new_idx = self.Indexes[idx_id]
+
+                if indexed_attrs:
+                    setattr(new_idx, 'indexed_attrs', indexed_attrs)
+                if idx.meta_type == 'DateRangeIndex':
+                    setattr(new_idx, '_since_field',  since_field)
+                    setattr(new_idx, '_until_field', until_field)
+                reindex_ids.append(idx_id)
+        
+        if reindex_ids:
+            LOG.info('Reindexing %s' % ', '.join(reindex_ids))
+            self.manage_reindexIndex(reindex_ids, REQUEST)
+
+        self._migrated_280 = True
+        LOG.info('Finished migration of indexes for %s' % self.absolute_url(1))
+
+        if RESPONSE:
+            RESPONSE.redirect( URL1 +
+            '/manage_main?manage_tabs_message=Indexes%20converted%20and%20reindexed')
 
 InitializeClass(CatalogTool)

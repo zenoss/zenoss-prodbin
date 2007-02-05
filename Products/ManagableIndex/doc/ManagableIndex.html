@@ -406,43 +406,12 @@ and
 <code>convertToDateInteger(value, round_dir=-1)</code>.
 Please see the source documentation, for details.</p>
 
-<h2>Programmatic Creation</h2>
-<p>A primary goal for <code>ManagableIndex</code> is the easy and flexible
-configuration via the Zope Management Interface (ZMI). Occasionally, however,
-you want to create your ManagableIndexes programmatically and want to
-configure them in the same step. The <code>ZCatalog</code>'s
-<code>[manage_]addIndex</code> allow you to pass configuration information
-down to the index construction in the <code>extra</code> argument.</p>
-
-<p>For the creation of a ManagableIndex, <code>extra</code> must have
-a dict value.
-Its key <code>'ValueProviders'</code> determines the indexes'
-value providers. All other keys can provide values for the indexes
-properties.</p>
-
-<p>If the key <code>'ValueProviders'</code> is present, its value
-must be a sequence of value provider specifications which define
-the value providers for the index. If the key is not present, a
-default value provider is created.</p>
-
-<p>A value provider specification is a dict with the mandatory keys
-<code>'id'</code> and <code>'type'</code>. <code>type</code>
-specifies the value provider's type (<code>'AttributeLookup'</code> or
-<code>'ExpressionEvaluator'</code>). Additional keys can defined values
-for the value providers properties.</p>
-
-<p>If the configuration dicts contain keys different from the above mentioned
-special ones and not corresponding to a property,
-a <code>ValueError</code> exception is raised.</p>
-
-<p>Look for the <code>_properties</code> definitions in the source, to
-determine the available properties for the various types of objects.</p>
 
     <hr>
     <address><a href="mailto:dieter@handshake.de">Dieter Maurer</a></address>
 <!-- Created: Tue Sep  2 21:02:52 CEST 2003 -->
 <!-- hhmts start -->
-Last modified: Thu Nov 23 20:42:04 CET 2006
+Last modified: Sat Sep 17 10:43:21 CEST 2005
 <!-- hhmts end -->
   </body>
 </html>

@@ -1,2 +1,2 @@
-1.6.1 for Zope 2.7+, Python 2.3+/Python 2.4 // Zope 2.8
+1.4 for Zope 2.7+, Python 2.3+/Python 2.4 // Zope 2.8
 requires "OFolder", see <http://www.dieter.handskake.de/pyprojects/zope>

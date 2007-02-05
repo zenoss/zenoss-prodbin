@@ -12,19 +12,16 @@
 ##############################################################################
 """ Handles reading the properties for an object that comes from the filesystem.
 
-$Id: FSMetadata.py 68524 2006-06-08 16:54:49Z efge $
+$Id: FSMetadata.py 40138 2005-11-15 17:47:37Z jens $
 """
 
-import logging
+from zLOG import LOG, ERROR
+from sys import exc_info
 from os.path import exists
 from ConfigParser import ConfigParser
 from warnings import warn
 
 import re
-
-
-logger = logging.getLogger('CMFCore.FSMetadata')
-
 
 class CMFConfigParser(ConfigParser):
     """ This our wrapper around ConfigParser to
@@ -93,7 +90,10 @@ class FSMetadata:
             self._security = self._getSectionDict(cfg, 'security',
                                                   self._securityParser)
         except:
-            logger.exception("Error parsing .metadata file")
+            LOG('FSMetadata',
+                 ERROR,
+                'Error parsing .metadata file',
+                 error=exc_info())
 
         # to add in a new value such as proxy roles,
         # just add in the section, call it using getSectionDict
@@ -169,7 +169,10 @@ class FSMetadata:
                 if len(kv) == 2:
                     props[kv[0].strip()] = kv[1].strip()
                 else:
-                    logger.exception("Error parsing .properties file")
+                    LOG('FSMetadata',
+                        ERROR,
+                        'Error parsing .properties file',
+                        error=exc_info())
 
             return props
 
@@ -204,7 +207,10 @@ class FSMetadata:
                         if role:
                             roles.append(role)
                 except:
-                    logger.exception("Error reading permission "
-                                     "from .security file")
+                    LOG('DirectoryView',
+                        ERROR,
+                        'Error reading permission from .security file',
+                        error=exc_info())
+                        # warning use of exc_info is deprecated
                 prm[permission]=(acquire,roles)
             return prm

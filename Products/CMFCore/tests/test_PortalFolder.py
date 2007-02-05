@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit tests for PortalFolder module.
 
-$Id: test_PortalFolder.py 40496 2005-12-02 18:03:47Z yuppie $
+$Id: test_PortalFolder.py 40497 2005-12-02 18:03:52Z yuppie $
 """
 
 from unittest import TestCase, TestSuite, makeSuite, main

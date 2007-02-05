@@ -1,0 +1,38 @@
+Profiling
+=========
+
+The testrunner includes the ability to profile the test execution with hotshot
+via the --profile option.
+
+    >>> import os.path, sys
+    >>> directory_with_tests = os.path.join(this_directory, 'testrunner-ex')
+    >>> sys.path.append(directory_with_tests)
+
+    >>> defaults = [
+    ...     '--path', directory_with_tests,
+    ...     '--tests-pattern', '^sampletestsf?$',
+    ...     ]
+
+    >>> sys.argv = [testrunner_script, '--profile']
+
+When the tests are run, we get profiling output.
+
+    >>> from Products.Five.testing import testrunner
+    >>> testrunner.run(defaults)
+    Running unit tests:
+    ...
+    Running samplelayers.Layer1 tests:
+    ...
+    Running samplelayers.Layer11 tests:
+    ...
+    Total: ... tests, 0 failures, 0 errors
+    ...
+       ncalls  tottime  percall  cumtime  percall filename:lineno(function)...
+
+Profiling also works across layers.
+
+    >>> sys.argv = [testrunner_script, '-ssample2', '--profile', '--tests-pattern', 'sampletests_ntd']
+    >>> testrunner.run(defaults)
+    Running...
+      Tear down ... not supported...
+       ncalls  tottime  percall  cumtime  percall filename:lineno(function)...

@@ -12,14 +12,14 @@
 ##############################################################################
 """ Customizable ZSQL methods that come from the filesystem.
 
-$Id: FSZSQLMethod.py 68523 2006-06-08 16:23:41Z efge $
+$Id: FSZSQLMethod.py 38006 2005-08-19 15:06:40Z urbanape $
 """
 
-import logging
 import Globals
 from AccessControl import ClassSecurityInfo
 from Acquisition import ImplicitAcquisitionWrapper
 from Products.ZSQLMethods.SQL import SQL
+from zLOG import LOG, ERROR
 
 from DirectoryView import registerFileExtension
 from DirectoryView import registerMetaType
@@ -28,9 +28,6 @@ from permissions import View
 from permissions import ViewManagementScreens
 from utils import _dtmldir
 from utils import expandpath
-
-
-logger = logging.getLogger('CMFCore.FSZSQLMethod')
 
 
 class FSZSQLMethod(SQL, FSObject):
@@ -140,7 +137,11 @@ class FSZSQLMethod(SQL, FSObject):
                 self._updateFromFS()
                 return self
             except:
-                logger.error("Error during __of__", exc_info=True)
+                import sys
+                LOG('FS Z SQL Method',
+                    ERROR,
+                    'Error during __of__',
+                    error=sys.exc_info())
                 raise
 
 Globals.InitializeClass(FSZSQLMethod)

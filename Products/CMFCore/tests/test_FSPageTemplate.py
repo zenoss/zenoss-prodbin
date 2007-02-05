@@ -105,14 +105,6 @@ class FSPageTemplateTests( RequestTest, FSPTMaker ):
         self.assertEqual( script.pt_source_file(), 'file:%s'
                                % path_join(self.skin_path_name, 'testPT.pt') )
 
-    def test_foreign_line_endings( self ):
-        # Lead the various line ending files and get their output
-        for fformat in ('unix', 'dos', 'mac'):
-            script = self._makeOne(fformat,
-                                   'testPT_multiline_python_%s.pt' % fformat)
-            script = script.__of__(self.root)
-            self.assertEqual(script(), 'foo bar spam eggs\n')
-
 class FSPageTemplateCustomizationTests( SecurityTest, FSPTMaker ):
 
     def setUp( self ):

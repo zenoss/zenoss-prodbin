@@ -12,9 +12,27 @@
 ##############################################################################
 """ Contentish type interface.
 
-$Id: Contentish.py 38590 2005-09-24 15:24:32Z yuppie $
+$Id: Contentish.py 36457 2004-08-12 15:07:44Z jens $
 """
 
-# BBB: module will be removed in CMF 2.2
-#      zope2 interfaces created on runtime:
-#      - Contentish
+from Interface import Interface
+
+
+class Contentish(Interface):
+    """
+    General interface for "contentish" items.
+
+    These methods need to be implemented by any class that wants to be a
+    first-class citizen in the Portal Content world.
+
+    PortalContent implements this interface.
+    """
+
+    def SearchableText():
+        """
+        SearchableText is called to provide the Catalog with textual
+        information about your object. It is a string usually generated
+        by concatenating the string attributes of your content class. This
+        string can then be used by the catalog to index your document and
+        make it findable through the catalog.
+        """

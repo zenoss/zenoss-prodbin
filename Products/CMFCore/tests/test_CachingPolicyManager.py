@@ -12,30 +12,33 @@
 ##############################################################################
 """ Unit tests for CachingPolicyManager module.
 
-$Id: test_CachingPolicyManager.py 40450 2005-12-01 16:56:13Z yuppie $
+$Id: test_CachingPolicyManager.py 38666 2005-09-28 16:16:48Z davisg $
 """
-
-import unittest
-import Testing
-
 import base64
 import os
 
-import Products.Five
-from AccessControl.SecurityManagement import newSecurityManager
+from unittest import TestCase, TestSuite, makeSuite, main
+import Testing
+try:
+    import Zope2
+except ImportError: # BBB: for Zope 2.7
+    import Zope as Zope2
+Zope2.startup()
+
 from App.Common import rfc1123_date
 from DateTime.DateTime import DateTime
-from Products.Five import zcml
+from AccessControl.SecurityManagement import newSecurityManager
 
-from Products.CMFCore.FSPageTemplate import FSPageTemplate
-from Products.CMFCore.tests.base.dummy import DummyContent
-from Products.CMFCore.tests.base.dummy import DummySite
-from Products.CMFCore.tests.base.dummy import DummyTool
-from Products.CMFCore.tests.base.dummy import DummyUserFolder
-from Products.CMFCore.tests.base.testcase import _TRAVERSE_ZCML
-from Products.CMFCore.tests.base.testcase import FSDVTest
-from Products.CMFCore.tests.base.testcase import PlacelessSetup
 from Products.CMFCore.tests.base.testcase import RequestTest
+from Products.CMFCore.tests.base.testcase import FSDVTest
+from Products.CMFCore.tests.test_FSPageTemplate import FSPTMaker
+from Products.CMFCore.tests.base.dummy import DummySite
+from Products.CMFCore.tests.base.dummy import DummyUserFolder
+from Products.CMFCore.tests.base.dummy import DummyContent
+from Products.CMFCore.tests.base.dummy import DummyTool
+from Products.CMFCore.FSPageTemplate import FSPageTemplate
+from Products.CMFCore import CachingPolicyManager
+
 
 ACCLARK = DateTime( '2001/01/01' )
 portal_owner = 'portal_owner'
@@ -55,7 +58,7 @@ class DummyContent2:
         return self.modified
 
 
-class CachingPolicyTests(unittest.TestCase):
+class CachingPolicyTests(TestCase):
 
     def setUp(self):
         self._epoch = DateTime(0)
@@ -69,13 +72,6 @@ class CachingPolicyTests(unittest.TestCase):
         from Products.CMFCore.CachingPolicyManager import createCPContext
         return createCPContext( DummyContent2(self._epoch)
                               , 'foo_view', kw, self._epoch )
-
-    def test_z3interfaces(self):
-        from zope.interface.verify import verifyClass
-        from Products.CMFCore.CachingPolicyManager import CachingPolicy
-        from Products.CMFCore.interfaces import ICachingPolicy
-
-        verifyClass(ICachingPolicy, CachingPolicy)
 
     def test_empty( self ):
         policy = self._makePolicy( 'empty' )
@@ -388,7 +384,7 @@ class CachingPolicyTests(unittest.TestCase):
         self.assertEqual( headers[2][1] , 'no-cache, no-store' )
 
 
-class CachingPolicyManagerTests(unittest.TestCase):
+class CachingPolicyManagerTests(TestCase):
 
     def _makeOne(self, *args, **kw):
         from Products.CMFCore.CachingPolicyManager import CachingPolicyManager
@@ -411,9 +407,13 @@ class CachingPolicyManagerTests(unittest.TestCase):
         verifyClass(ICachingPolicyManager, CachingPolicyManager)
 
     def test_z3interfaces(self):
-        from zope.interface.verify import verifyClass
+        try:
+            from zope.interface.verify import verifyClass
+            from Products.CMFCore.interfaces import ICachingPolicyManager
+        except ImportError:
+            # BBB: for Zope 2.7
+            return
         from Products.CMFCore.CachingPolicyManager import CachingPolicyManager
-        from Products.CMFCore.interfaces import ICachingPolicyManager
 
         verifyClass(ICachingPolicyManager, CachingPolicyManager)
 
@@ -429,17 +429,15 @@ class CachingPolicyManagerTests(unittest.TestCase):
                                            )
         self.assertEqual( len( headers ), 0 )
 
-        self.assertRaises( KeyError, mgr._updatePolicy,
-                           'xyzzy', None, None, None, None, None, None, '',
-                           '', None, None, None, None, None )
+        self.assertRaises( KeyError, mgr._updatePolicy
+                         , 'xyzzy', None, None, None, None, None, None, '', '', None, None, None, None, None )
         self.assertRaises( KeyError, mgr._removePolicy, 'xyzzy' )
         self.assertRaises( KeyError, mgr._reorderPolicy, 'xyzzy', -1 )
 
     def test_addAndUpdatePolicy( self ):
 
         mgr = self._makeOne()
-        mgr.addPolicy('first', 'python:1', 'mtime', 1, 0, 1, 0, 'vary',
-                      'etag', None, 2, 1, 0, 1, 0, 1, 0, 2, 3)
+        mgr.addPolicy( 'first', 'python:1', 'mtime', 1, 0, 1, 0, 'vary', 'etag', None, 2, 1, 0, 1, 0, 1, 0, 2, 3 )
         p = mgr._policies['first']
         self.assertEqual(p.getPolicyId(), 'first')
         self.assertEqual(p.getPredicate(), 'python:1')
@@ -460,8 +458,7 @@ class CachingPolicyManagerTests(unittest.TestCase):
         self.assertEqual(p.getPreCheck(), 2)
         self.assertEqual(p.getPostCheck(), 3)
         
-        mgr.updatePolicy('first', 'python:0', 'mtime2', 2, 1, 0, 1, 'vary2',
-                         'etag2', None, 1, 0, 1, 0, 1, 0, 1, 3, 2)
+        mgr.updatePolicy( 'first', 'python:0', 'mtime2', 2, 1, 0, 1, 'vary2', 'etag2', None, 1, 0, 1, 0, 1, 0, 1, 3, 2 )
         p = mgr._policies['first']
         self.assertEqual(p.getPolicyId(), 'first')
         self.assertEqual(p.getPredicate(), 'python:0')
@@ -602,18 +599,11 @@ class CachingPolicyManagerTests(unittest.TestCase):
         self.assertEqual( headers[2][1] , 'max-age=86400' )
 
 
-class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
+class CachingPolicyManager304Tests(RequestTest, FSDVTest):
 
     def setUp(self):
-        from Products.CMFCore import CachingPolicyManager
-
-        PlacelessSetup.setUp(self)
         RequestTest.setUp(self)
         FSDVTest.setUp(self)
-        zcml.load_config('meta.zcml', Products.Five)
-        zcml.load_config('permissions.zcml', Products.Five)
-        zcml.load_config('configure.zcml', Products.CMFCore)
-        zcml.load_string(_TRAVERSE_ZCML)
 
         now = DateTime()
 
@@ -685,10 +675,11 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
                       etag_func = 'string:abc',
                       enable_304s = 0)
 
+
     def tearDown(self):
         RequestTest.tearDown(self)
         FSDVTest.tearDown(self)
-        PlacelessSetup.tearDown(self)
+
 
     def _cleanup(self):
         # Clean up request and response
@@ -703,6 +694,7 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
 
         req.RESPONSE.setStatus(200)
 
+
     def testUnconditionalGET(self):
         # In this case the Request does not specify any if-modified-since
         # value to take into account, thereby completely circumventing any
@@ -711,6 +703,7 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
         self.portal.doc1()
         response = self.portal.REQUEST.RESPONSE
         self.assertEqual(response.getStatus(), 200)
+
 
     def testConditionalGETNoETag(self):
         yesterday = DateTime() - 1
@@ -750,6 +743,7 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
         doc1()
         self.assertEqual(response.getStatus(), 200)
         self._cleanup()
+
 
     def testConditionalGETETag(self):
         yesterday = DateTime() - 1
@@ -820,6 +814,7 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
         doc2()
         self.assertEqual(response.getStatus(), 304)
         self._cleanup()
+
         
     def testConditionalGETDisabled(self):
         yesterday = DateTime() - 1
@@ -847,11 +842,12 @@ class CachingPolicyManager304Tests(PlacelessSetup, RequestTest, FSDVTest):
 
         
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(CachingPolicyTests),
-        unittest.makeSuite(CachingPolicyManagerTests),
-        unittest.makeSuite(CachingPolicyManager304Tests),
+    return TestSuite((
+        makeSuite(CachingPolicyTests),
+        makeSuite(CachingPolicyManagerTests),
+        makeSuite(CachingPolicyManager304Tests),
         ))
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+    main(defaultTest='test_suite')
+

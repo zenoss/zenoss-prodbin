@@ -12,12 +12,15 @@
 ##############################################################################
 """ Unit tests for CatalogTool module.
 
-$Id: test_CatalogTool.py 66324 2006-04-02 21:13:25Z yuppie $
+$Id: test_CatalogTool.py 38418 2005-09-09 08:40:13Z yuppie $
 """
 
-import unittest
+from unittest import TestCase, TestSuite, makeSuite, main
 import Testing
-import Zope2
+try:
+    import Zope2
+except ImportError: # BBB: for Zope 2.7
+    import Zope as Zope2
 Zope2.startup()
 
 from AccessControl.SecurityManagement import newSecurityManager
@@ -30,93 +33,60 @@ from Products.CMFCore.tests.base.security import UserWithRoles
 from Products.CMFCore.tests.base.testcase import SecurityTest
 
 
-class IndexableObjectWrapperTests(unittest.TestCase):
-
-    def _getTargetClass(self):
-        from Products.CMFCore.CatalogTool import IndexableObjectWrapper
-
-        return IndexableObjectWrapper
-
-    def _makeOne(self, *args, **kw):
-        return self._getTargetClass()(*args, **kw)
+class IndexableObjectWrapperTests(TestCase):
 
     def test_z2interfaces(self):
         from Interface.Verify import verifyClass
+        from Products.CMFCore.CatalogTool import IndexableObjectWrapper
         from Products.CMFCore.interfaces.portal_catalog \
                 import IndexableObjectWrapper as IIndexableObjectWrapper
 
-        verifyClass(IIndexableObjectWrapper, self._getTargetClass())
+        verifyClass(IIndexableObjectWrapper, IndexableObjectWrapper)
 
     def test_z3interfaces(self):
-        from zope.interface.verify import verifyClass
-        from Products.CMFCore.interfaces import IIndexableObjectWrapper
+        try:
+            from zope.interface.verify import verifyClass
+            from Products.CMFCore.interfaces import IIndexableObjectWrapper
+        except ImportError:
+            # BBB: for Zope 2.7
+            return
+        from Products.CMFCore.CatalogTool import IndexableObjectWrapper
 
-        verifyClass(IIndexableObjectWrapper, self._getTargetClass())
-
-    def test_allowedRolesAndUsers(self):
-        obj = DummyContent()
-        w = self._makeOne({}, obj)
-        self.assertEqual(w.allowedRolesAndUsers(), ['Manager'])
-
-    def test___str__(self):
-        obj = DummyContent('foo')
-        w = self._makeOne({}, obj)
-        self.assertEqual(str(w), str(obj))
-
-    def test_proxied_attributes(self):
-        obj = DummyContent('foo')
-        obj.title = 'Foo'
-        w = self._makeOne({}, obj)
-        self.assertEqual(w.getId(), 'foo')
-        self.assertEqual(w.Title(), 'Foo')
-
-    def test_vars(self):
-        obj = DummyContent()
-        w = self._makeOne({'bar': 1, 'baz': 2}, obj)
-        self.assertEqual(w.bar, 1)
-        self.assertEqual(w.baz, 2)
-
-    def test_provided(self):
-        from Products.CMFCore.interfaces import IContentish
-        from Products.CMFCore.interfaces import IIndexableObjectWrapper
-
-        obj = DummyContent()
-        w = self._makeOne({}, obj)
-        self.failUnless(IContentish.providedBy(w))
-        self.failUnless(IIndexableObjectWrapper.providedBy(w))
+        verifyClass(IIndexableObjectWrapper, IndexableObjectWrapper)
 
 
 class CatalogToolTests(SecurityTest):
 
-    def _getTargetClass(self):
+    def _makeOne(self, *args, **kw):
         from Products.CMFCore.CatalogTool import CatalogTool
 
-        return CatalogTool
-
-    def _makeOne(self, *args, **kw):
-        return self._getTargetClass()(*args, **kw)
+        return CatalogTool(*args, **kw)
 
     def test_z2interfaces(self):
         from Interface.Verify import verifyClass
+        from Products.CMFCore.CatalogTool import CatalogTool
         from Products.CMFCore.interfaces.portal_actions \
                 import ActionProvider as IActionProvider
         from Products.CMFCore.interfaces.portal_catalog \
                 import portal_catalog as ICatalogTool
         from Products.ZCatalog.IZCatalog import IZCatalog
 
-        verifyClass(IActionProvider, self._getTargetClass())
-        verifyClass(ICatalogTool, self._getTargetClass())
-        verifyClass(IZCatalog, self._getTargetClass())
+        verifyClass(IActionProvider, CatalogTool)
+        verifyClass(ICatalogTool, CatalogTool)
+        verifyClass(IZCatalog, CatalogTool)
 
     def test_z3interfaces(self):
-        from zope.interface.verify import verifyClass
-        from Products.CMFCore.interfaces import IActionProvider
-        from Products.CMFCore.interfaces import ICatalogTool
-        from Products.ZCatalog.interfaces import IZCatalog
+        try:
+            from zope.interface.verify import verifyClass
+            from Products.CMFCore.interfaces import IActionProvider
+            from Products.CMFCore.interfaces import ICatalogTool
+        except ImportError:
+            # BBB: for Zope 2.7
+            return
+        from Products.CMFCore.CatalogTool import CatalogTool
 
-        verifyClass(IActionProvider, self._getTargetClass())
-        verifyClass(ICatalogTool, self._getTargetClass())
-        verifyClass(IZCatalog, self._getTargetClass())
+        verifyClass(IActionProvider, CatalogTool)
+        verifyClass(ICatalogTool, CatalogTool)
 
     def loginWithRoles(self, *roles):
         user = UserWithRoles(*roles).__of__(self.root)
@@ -347,10 +317,10 @@ class CatalogToolTests(SecurityTest):
 
 
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(IndexableObjectWrapperTests),
-        unittest.makeSuite(CatalogToolTests),
+    return TestSuite((
+        makeSuite(IndexableObjectWrapperTests),
+        makeSuite(CatalogToolTests),
         ))
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+    main(defaultTest='test_suite')

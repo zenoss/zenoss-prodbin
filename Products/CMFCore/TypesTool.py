@@ -12,11 +12,11 @@
 ##############################################################################
 """ Type registration tool.
 
-$Id: TypesTool.py 68524 2006-06-08 16:54:49Z efge $
+$Id: TypesTool.py 40161 2005-11-16 17:13:16Z efge $
 """
 
+from sys import exc_info
 from warnings import warn
-import logging
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
@@ -25,19 +25,16 @@ from Acquisition import aq_get
 from Globals import DTMLFile
 from Globals import InitializeClass
 from OFS.Folder import Folder
-from OFS.ObjectManager import IFAwareObjectManager
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from zLOG import LOG, ERROR
 import Products
 
 from ActionProviderBase import ActionProviderBase
 from exceptions import AccessControl_Unauthorized
 from exceptions import BadRequest
 from exceptions import zExceptions_Unauthorized
-from interfaces import ITypeInformation
-from interfaces import ITypesTool
-from interfaces.portal_types \
-     import ContentTypeInformation as z2ITypeInformation
-from interfaces.portal_types import portal_types as z2ITypesTool
+from interfaces.portal_types import ContentTypeInformation as ITypeInformation
+from interfaces.portal_types import portal_types as ITypesTool
 from permissions import AccessContentsInformation
 from permissions import ManagePortal
 from permissions import View
@@ -48,11 +45,6 @@ from utils import cookString
 from utils import getActionContext
 from utils import SimpleItemWithProperties
 from utils import UniqueObject
-from utils import getToolByName
-
-from zope.interface import implements
-
-logger = logging.getLogger('CMFCore.TypesTool')
 
 
 _marker = []  # Create a new marker.
@@ -478,8 +470,7 @@ class FactoryTypeInformation(TypeInformation):
     Portal content factory.
     """
 
-    implements(ITypeInformation)
-    __implements__ = z2ITypeInformation
+    __implements__ = ITypeInformation
 
     meta_type = 'Factory-based Type Information'
     security = ClassSecurityInfo()
@@ -526,7 +517,8 @@ class FactoryTypeInformation(TypeInformation):
         try:
             p = dispatcher[self.product]
         except AttributeError:
-            logger.exception("_queryFactoryMethod raised an exception")
+            LOG('Types Tool', ERROR, '_queryFactoryMethod raised an exception',
+                error=exc_info())
             return default
 
         m = getattr(p, self.factory, None)
@@ -585,8 +577,7 @@ class ScriptableTypeInformation( TypeInformation ):
     Invokes a script rather than a factory to create the content.
     """
 
-    implements(ITypeInformation)
-    __implements__ = z2ITypeInformation
+    __implements__ = ITypeInformation
 
     meta_type = 'Scriptable Type Information'
     security = ClassSecurityInfo()
@@ -642,6 +633,18 @@ ContentFactoryMetadata = FactoryTypeInformation
 ContentTypeInformation = ScriptableTypeInformation
 
 
+typeClasses = [
+    {'class':FactoryTypeInformation,
+     'name':FactoryTypeInformation.meta_type,
+     'action':'manage_addFactoryTIForm',
+     'permission':ManagePortal},
+    {'class':ScriptableTypeInformation,
+     'name':ScriptableTypeInformation.meta_type,
+     'action':'manage_addScriptableTIForm',
+     'permission':ManagePortal},
+    ]
+
+
 allowedTypes = [
     'Script (Python)',
     'Python Method',
@@ -650,18 +653,15 @@ allowedTypes = [
     ]
 
 
-class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
-                ActionProviderBase):
+class TypesTool(UniqueObject, Folder, ActionProviderBase):
     """
         Provides a configurable registry of portal content types.
     """
 
-    implements(ITypesTool)
-    __implements__ = (z2ITypesTool, ActionProviderBase.__implements__)
+    __implements__ = (ITypesTool, ActionProviderBase.__implements__)
 
     id = 'portal_types'
     meta_type = 'CMF Types Tool'
-    _product_interfaces = (ITypeInformation,)
 
     security = ClassSecurityInfo()
 
@@ -687,12 +687,20 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
     #   ObjectManager methods
     #
     def all_meta_types(self):
-        # this is a workaround and should be removed again if allowedTypes
-        # have an interface we can use in _product_interfaces
+        """Adds TypesTool-specific meta types."""
         all = TypesTool.inheritedAttribute('all_meta_types')(self)
-        others = [ mt for mt in Products.meta_types
-                   if mt['name'] in allowedTypes ]
-        return tuple(all) + tuple(others)
+        return tuple(typeClasses) + tuple(all)
+
+    def filtered_meta_types(self, user=None):
+        # Filters the list of available meta types.
+        allowed = {}
+        for tc in typeClasses:
+            allowed[tc['name']] = 1
+        for name in allowedTypes:
+            allowed[name] = 1
+
+        all = TypesTool.inheritedAttribute('filtered_meta_types')(self)
+        return tuple( [ mt for mt in all if mt['name'] in allowed ] )
 
     #
     #   other methods
@@ -727,17 +735,11 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
 
         return res
 
-    # BBB: DTML based ZMI form and the following add methods are for
-    #      CMF-1.5 compatibility
     _addTIForm = DTMLFile( 'addTypeInfo', _dtmldir )
 
     security.declareProtected(ManagePortal, 'manage_addFactoryTIForm')
     def manage_addFactoryTIForm(self, REQUEST):
         ' '
-        warn('Please use the manage_addFactoryTIForm function in the '
-             'TypesTool module; this method on the TypesTool itself '
-             'will disappear in CMF 2.0', DeprecationWarning,
-             stacklevel=2)
         return self._addTIForm(
             self, REQUEST,
             add_meta_type=FactoryTypeInformation.meta_type,
@@ -746,10 +748,6 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
     security.declareProtected(ManagePortal, 'manage_addScriptableTIForm')
     def manage_addScriptableTIForm(self, REQUEST):
         ' '
-        warn('Please use the manage_addScriptableTIForm function in the '
-             'TypesTool module; this method on the TypesTool itself '
-             'will disappear in CMF 2.0', DeprecationWarning,
-             stacklevel=2)
         return self._addTIForm(
             self, REQUEST,
             add_meta_type=ScriptableTypeInformation.meta_type,
@@ -765,7 +763,7 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
         if typeinfo_name:
             info = self.listDefaultTypeInformation()
 
-            # Nasty workaround to stay backwards-compatible
+            # Nasty orkaround to stay backwards-compatible
             # This workaround will disappear in CMF 2.0
             if typeinfo_name.endswith(')'):
                 # This is a new-style name. Proceed normally.
@@ -778,11 +776,10 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
                 # This attempt harbors the problem that the first match on
                 # meta_type will be used. There could potentially be more
                 # than one TypeInformation sharing the same meta_type.
-                warn("Please switch to the new format "
-                     "'product_id: type_id (meta_type)' "
-                     "for typeinfo name %r, the old "
-                     "spelling will disappear in CMF 2.0" % typeinfo_name,
-                     DeprecationWarning, stacklevel=2)
+                warn('Please switch to the new format for typeinfo names '
+                     '\"product_id: type_id (meta_type)\", the old '
+                     'spelling will disappear in CMF 2.0', DeprecationWarning,
+                     stacklevel=2)
 
                 ti_prod, ti_mt = [x.strip() for x in typeinfo_name.split(':')]
 
@@ -793,20 +790,14 @@ class TypesTool(UniqueObject, IFAwareObjectManager, Folder,
                         break
 
             if fti is None:
-                warn("Typeinfo name %r not found. "
-                     "Note that the typeinfo_name "
-                     "argument will not be used at all "
-                     "in CMF 2.0." % typeinfo_name,
-                     DeprecationWarning, stacklevel=2)
-            else:
-                if not id:
-                    id = fti.get('id', None)
-
+                raise BadRequest('%s not found.' % typeinfo_name)
+            if not id:
+                id = fti.get('id', None)
         if not id:
             raise BadRequest('An id is required.')
-        for mt in Products.meta_types:
+        for mt in typeClasses:
             if mt['name'] == add_meta_type:
-                klass = mt['instance']
+                klass = mt['class']
                 break
         else:
             raise ValueError, (

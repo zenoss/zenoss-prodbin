@@ -23,11 +23,8 @@ from Products.CMFCore.utils import _verifyActionPermissions
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
+
 from Products.ZenUtils.Utils import prepId as globalPrepId
-
-import zope.component
-import zope.traversing.adapters
-
 
 # Custom device properties start with c
 iscustprop = re.compile("^c[A-Z]").search
@@ -46,12 +43,6 @@ class ZenModelBase(object):
         """
         Invokes the default view.
         """
-        try: zope.component.getAdapter('')
-        except:
-            zope.component.provideAdapter(
-                zope.traversing.adapters.DefaultTraversable,
-                [None],
-            )
         view = "view"
         if hasattr(self, "factory_type_information"):
             view = self.factory_type_information[0]['immediate_view']
@@ -202,7 +193,7 @@ class ZenModelBase(object):
         """get object from path that starts at dmd ie. /Devices/Servers/box"""
         if path.startswith("/"): path = path[1:]
         return self.getDmd().getObjByPath(path)
-
+   
 
     def getZopeObj(self, path):
         "get object from path tat starts at zope root ie. /zport/dmd/Devices"
@@ -268,10 +259,8 @@ class ZenModelBase(object):
         """
         return self.saveZenProperties(iscustprop, REQUEST)
 
-
     def getObjByPath(self, path):
         return getObjByPath(self, path)
-
 
     def isLocalName(self, name):
         """Check to see if a name is local to our current context.

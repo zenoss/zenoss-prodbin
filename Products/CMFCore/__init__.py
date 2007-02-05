@@ -12,7 +12,7 @@
 ##############################################################################
 """ Portal services base objects
 
-$Id: __init__.py 40391 2005-11-28 16:21:21Z yuppie $
+$Id: __init__.py 37146 2005-07-13 02:48:12Z tseaver $
 """
 
 from sys import modules
@@ -100,7 +100,7 @@ def initialize(context):
     utils.initializeBasesPhase2(z_tool_bases, context)
 
     context.registerClass(
-        DirectoryView.DirectoryView,
+        DirectoryView.DirectoryViewSurrogate,
         constructors=(('manage_addDirectoryViewForm',
                        DirectoryView.manage_addDirectoryViewForm),
                       DirectoryView.manage_addDirectoryView,
@@ -128,10 +128,6 @@ def initialize(context):
         icon = 'images/registry.gif'
         )
 
-    utils.registerIcon(TypesTool.FactoryTypeInformation,
-                       'images/typeinfo.gif', globals())
-    utils.registerIcon(TypesTool.ScriptableTypeInformation,
-                       'images/typeinfo.gif', globals())
     utils.registerIcon(FSDTMLMethod.FSDTMLMethod,
                        'images/fsdtml.gif', globals())
     utils.registerIcon(FSPythonScript.FSPythonScript,

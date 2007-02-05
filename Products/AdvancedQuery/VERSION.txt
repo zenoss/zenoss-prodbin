@@ -1,1 +1,1 @@
-2.2 for Zope 2.7+/2.8, Python 2.3/2.4
+2.1 for Zope 2.7+/2.8, Python 2.3/2.4

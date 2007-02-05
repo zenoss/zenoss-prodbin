@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit tests for FSFile module.
 
-$Id: test_FSFile.py 41663 2006-02-18 13:57:52Z jens $
+$Id: test_FSFile.py 37972 2005-08-16 20:54:10Z jens $
 """
 import unittest
 import Testing
@@ -24,7 +24,6 @@ Zope2.startup()
 
 from os.path import join as path_join
 
-from Products.CMFCore.tests.base.dummy import DummyCachingManagerWithPolicy
 from Products.CMFCore.tests.base.dummy import DummyCachingManager
 from Products.CMFCore.tests.base.testcase import FSDVTest
 from Products.CMFCore.tests.base.testcase import RequestTest
@@ -146,53 +145,6 @@ class FSFileTests( RequestTest, FSDVTest):
         self.failUnless( data, '' )
         self.assertEqual( self.RESPONSE.getStatus(), 200 )
 
-    def test_index_html_with_304_from_cpm( self ):
-        self.root.caching_policy_manager = DummyCachingManagerWithPolicy()
-        path, ref = self._extractFile('test_file.swf')
-
-        import os
-        from webdav.common import rfc1123_date
-        from base.dummy import FAKE_ETAG
-        
-        file = self._makeOne( 'test_file', 'test_file.swf' )
-        file = file.__of__( self.root )
-
-        mod_time = os.stat( path )[ 8 ]
-
-        self.REQUEST.environ[ 'IF_MODIFIED_SINCE'
-                            ] = '%s;' % rfc1123_date( mod_time )
-        self.REQUEST.environ[ 'IF_NONE_MATCH'
-                            ] = '%s;' % FAKE_ETAG
-
-        data = file.index_html( self.REQUEST, self.RESPONSE )
-        self.assertEqual( len(data), 0 )
-        self.assertEqual( self.RESPONSE.getStatus(), 304 )
-
-    def test_index_html_200_with_cpm( self ):
-        # should behave the same as without cpm installed
-        self.root.caching_policy_manager = DummyCachingManager()
-        path, ref = self._extractFile('test_file.swf')
-
-        import os
-        from webdav.common import rfc1123_date
-        
-        file = self._makeOne( 'test_file', 'test_file.swf' )
-        file = file.__of__( self.root )
-
-        mod_time = os.stat( path )[ 8 ]
-
-        data = file.index_html( self.REQUEST, self.RESPONSE )
-
-        self.assertEqual( len( data ), len( ref ) )
-        self.assertEqual( data, ref )
-        # ICK!  'HTTPResponse.getHeader' doesn't case-flatten the key!
-        self.assertEqual( self.RESPONSE.getHeader( 'Content-Length'.lower() )
-                        , str(len(ref)) )
-        self.assertEqual( self.RESPONSE.getHeader( 'Content-Type'.lower() )
-                        , 'application/octet-stream' )
-        self.assertEqual( self.RESPONSE.getHeader( 'Last-Modified'.lower() )
-                        , rfc1123_date( mod_time ) )
-
     def test_caching( self ):
         self.root.caching_policy_manager = DummyCachingManager()
         original_len = len(self.RESPONSE.headers)
@@ -228,14 +180,6 @@ class FSFileTests( RequestTest, FSDVTest):
                         , 'application/x-shockwave-flash' )
         self.assertEqual( self.RESPONSE.getHeader( 'Last-Modified'.lower() )
                         , rfc1123_date( mod_time ) )
-
-    def test_utf8charset_detection( self ):
-        file_name = 'testUtf8.js'
-        file = self._makeOne(file_name, file_name)
-        file = file.__of__(self.root)
-        data = file.index_html(self.REQUEST, self.RESPONSE)
-        self.assertEqual(self.RESPONSE.getHeader('content-type'),
-                         'application/x-javascript; charset=utf-8')
 
 
 def test_suite():

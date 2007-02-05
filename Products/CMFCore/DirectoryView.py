@@ -12,14 +12,13 @@
 ##############################################################################
 """ Views of filesystem directories as folders.
 
-$Id: DirectoryView.py 68524 2006-06-08 16:54:49Z efge $
+$Id: DirectoryView.py 40138 2005-11-15 17:47:37Z jens $
 """
 
 import re
 from os import path, listdir, stat
 from sys import exc_info
 from sys import platform
-import logging
 from warnings import warn
 
 from AccessControl import ClassSecurityInfo
@@ -32,20 +31,16 @@ from Globals import package_home
 from Globals import Persistent
 from OFS.Folder import Folder
 from OFS.ObjectManager import bad_id
-from zope.interface import implements
+from zLOG import LOG, ERROR
 
 from FSMetadata import FSMetadata
 from FSObject import BadFile
-from interfaces import IDirectoryView
 from permissions import AccessContentsInformation
 from permissions import ManagePortal
 from utils import _dtmldir
 from utils import expandpath as _new_expandpath
 from utils import minimalpath
 from utils import normalize
-
-
-logger = logging.getLogger('CMFCore.DirectoryView')
 
 
 def expandpath(p):
@@ -155,7 +150,10 @@ class DirectoryInformation:
                     path.walk(self._filepath, self._walker, filelist)
                     filelist.sort()
             except:
-                logger.exception("Error checking for directory modification")
+                LOG('DirectoryView',
+                    ERROR,
+                    'Error checking for directory modification',
+                    error=exc_info())
 
             if mtime != self._v_last_read or filelist != self._v_last_filelist:
                 self._v_last_read = mtime
@@ -177,7 +175,10 @@ class DirectoryInformation:
                 self.data, self.objects = self.prepareContents(registry,
                     register_subdirs=changed)
             except:
-                logger.exception("Error during prepareContents")
+                LOG('DirectoryView',
+                    ERROR,
+                    'Error during prepareContents:',
+                    error=exc_info())
                 self.data = {}
                 self.objects = ()
 
@@ -246,11 +247,12 @@ class DirectoryInformation:
                         import traceback
                         typ, val, tb = exc_info()
                         try:
-                            logger.exception("prepareContents")
-
                             exc_lines = traceback.format_exception( typ,
                                                                     val,
                                                                     tb )
+                            LOG( 'DirectoryView', ERROR,
+                                 '\n'.join(exc_lines) )
+
                             ob = BadFile( name,
                                           entry_minimal_fp,
                                           exc_str='\r\n'.join(exc_lines),
@@ -266,14 +268,20 @@ class DirectoryInformation:
                             try:
                                 ob.manage_permission(name,roles,acquire)
                             except ValueError:
-                                logger.exception("Error setting permissions")
+                                LOG('DirectoryView',
+                                    ERROR,
+                                    'Error setting permissions',
+                                    error=exc_info())
 
                     # only DTML Methods and Python Scripts can have proxy roles
                     if hasattr(ob, '_proxy_roles'):
                         try:
                             ob._proxy_roles = tuple(metadata.getProxyRoles())
                         except:
-                            logger.exception("Error setting proxy role")
+                            LOG('DirectoryView',
+                                ERROR,
+                                'Error setting proxy role',
+                                error=exc_info())
 
                     ob_id = ob.getId()
                     data[ob_id] = ob
@@ -386,14 +394,11 @@ def listFolderHierarchy(ob, path, rval, adding_meta_type=None):
 class DirectoryView (Persistent):
     """ Directory views mount filesystem directories.
     """
-
-    implements(IDirectoryView)
-
     meta_type = 'Filesystem Directory View'
     _dirpath = None
     _objects = ()
 
-    def __init__(self, id, dirpath='', fullname=None):
+    def __init__(self, id, dirpath, fullname=None):
         self.id = id
         self._dirpath = dirpath
 
@@ -413,7 +418,7 @@ class DirectoryView (Persistent):
             if info is not None:
                 # update the directory view with a corrected path
                 self._dirpath = dirpath
-            elif self._dirpath:
+            else:
                 warn('DirectoryView %s refers to a non-existing path %s'
                      % (self.id, dirpath), UserWarning)
         if info is None:
@@ -434,8 +439,6 @@ InitializeClass(DirectoryView)
 class DirectoryViewSurrogate (Folder):
     """ Folderish DirectoryView.
     """
-
-    implements(IDirectoryView)
 
     meta_type = 'Filesystem Directory View'
     all_meta_types = ()
