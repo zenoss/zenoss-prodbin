@@ -6,7 +6,7 @@
 
 __doc__="""Device
 
-Device is a base class that represents the idea of a single compter
+Device is a base class that represents the idea of a single computer
 system that is made up of software running on hardware.  It currently
 must be IP enabled but maybe this will change.
 
