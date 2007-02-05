@@ -27,11 +27,23 @@ class ReportServer(ZenModelRM):
         "Run a plugin to generate the report object"
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
-        report = None
         m = os.path.join(os.environ['ZENHOME'],
                          'Products/ZenReports/plugins/%s.py' % name)
         exec open(m)
         return report
+        report = None
+        reportDirectores = [
+            pack.path('report', 'plugins') for p in self.packs
+            ] + [os.path.join(os.environ['ZENHOME'],
+                              'Products/ZenReports/plugins')]
+        for d in reportDirectores:
+            try:
+                m = os.path.join(d, '%s.py' % name)
+                exec open(m)
+                return report
+            except IOError:
+                pass
+        raise IOError('Unable to find plugin named "%s"' % name)
 
 def manage_addReportServer(context, id, REQUEST = None):
     """make a ReportServer"""

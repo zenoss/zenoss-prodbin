@@ -35,6 +35,12 @@ class ZenPackCmd(ZCmdBase):
 
 
     def install(self, packName):
+                    
+        if self.options.force:
+            try:
+                self.dmd.packs._delObject(packName)
+            except AttributeError:
+                pass
         try:
             zp = self.dmd.packs._getOb(packName)
             self.stop('A ZenPack "%s" already exists' % packName)
@@ -80,13 +86,14 @@ class ZenPackCmd(ZCmdBase):
         name = zf.namelist()[0]
         packName = name.split('/')[0]
         root = zenPackPath(packName)
-        if os.path.isdir(root):
+        if os.path.isdir(root) and not self.options.force:
             self.stop("%s already exists" % root)
         self.log.debug('Extracting ZenPack "%s"' % packName)
         for name in zf.namelist():
             self.log.debug('Extracting %s' % name)
             if name.endswith('/'):
-                os.makedirs(name)
+                if not os.path.exists(name):
+                    os.makedirs(name)
             else:
                 file(name, 'wb').write(zf.read(name))
         return packName
@@ -113,6 +120,11 @@ class ZenPackCmd(ZCmdBase):
                                action="store_true",
                                default=False,
                                help="name of the pack to remove")
+        self.parser.add_option('--force',
+                               dest='force',
+                               action="store_true",
+                               default=False,
+                               help="ignore an existing pack installation")
 
 if __name__ == '__main__':
     zp = ZenPackCmd()

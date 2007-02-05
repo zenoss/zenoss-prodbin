@@ -86,7 +86,9 @@ class ZenModeler(ZCmdBase):
                 modpath = os.path.join(path,filename[:-3]).replace("/",".")
                 self.log.debug("loading: %s", modpath)
                 try:
+                    sys.path.insert(0, pdir)
                     const = importClass(modpath)
+                    sys.path.remove(pdir)
                     plugin = const()
                     self.collectorPlugins[plugin.name()] = plugin
                 except ImportError:
@@ -101,9 +103,6 @@ class ZenModeler(ZCmdBase):
             self.log.debug("clearing plugin %s", key)
             if sys.modules.has_key(key): del sys.modules[key]
         pdir = os.path.join(os.path.dirname(__file__),"plugins")
-        if pdir in sys.path:
-            sys.path.remove(pdir)
-        sys.path.insert(0, pdir)
         self.log.info("loading collector plugins from:%s", pdir)
         self.loadPluginDir(pdir)
         for pack in self.dmd.packs():

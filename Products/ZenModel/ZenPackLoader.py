@@ -11,17 +11,22 @@ from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import getObjByPath
 
 import os
+import logging
+log = logging.getLogger('zen.ZPLoader')
 
 def findFiles(pack, directory, filter=None):
-    return [os.path.join(p, f)
-            for p, ds, fs in os.walk(pack.path(directory))
-            for f in fs
-            if filter is None or filter(f)]
+    result = []
+    for p, ds, fs in os.walk(pack.path(directory)):
+        if not os.path.split(p)[-1].startswith('.'):
+            for f in fs:
+                if filter is None or filter(f):
+                    result.append(os.path.join(p, f))
+    return result
 
-def branchAfter(filename, directory):
+def branchAfter(filename, directory, prefix = ""):
     "return the branch after the given directory name"
     path = filename.split('/')
-    return '/'.join(path[path.index(directory):])
+    return prefix + '/'.join(path[path.index(directory)+1:])
 
 
 class ZenPackLoader:
@@ -41,6 +46,23 @@ class ZenPackLoader:
 from xml.sax import saxutils, make_parser
 from xml.sax.handler import ContentHandler
 
+class PathTracker(ContentHandler):
+    "Keep the object path as we navigate XML"
+    def __init__(self):
+        self.stack = ['']
+    def startElement(self, name, attrs):
+        id = attrs.get('id', None)
+        if id:
+            if self.stack[-1]:
+                id = self.stack[-1] + '/' + id
+        else:
+            id = self.stack[-1]
+        self.stack.append(id)
+    def endElement(self, name):
+        id = self.stack.pop()
+    def path(self):
+        return self.stack[-1]
+
 class ZPLObject(ZenPackLoader):
 
     name = "Objects"
@@ -50,6 +72,7 @@ class ZPLObject(ZenPackLoader):
         importer = ImportRM(noopts=True, app=cmd.app)
         importer.options.noindex = True
         for f in self.objectFiles(pack):
+            log.info("Loading %s", f)
             importer.loadObjectFromXML(xmlfile=f)
 
     def parse(self, filename, handler):
@@ -59,29 +82,30 @@ class ZPLObject(ZenPackLoader):
         
 
     def unload(self, pack, cmd):
-        class Deleter(ContentHandler):
-            def __init__(self):
-                self.stack = []
-            def startElement(self, name, attrs):
-                if name == 'object':
-                    self.stack.append(attrs.get('id', None))
+        class Deleter(PathTracker):
             def endElement(self, name):
-                if name == 'object':
-                    id = self.stack.pop()
-                    if id:
-                        path = id.split('/')
-                        id = path.pop()
+                PathTracker.endElement(self, name)
+                id = self.path()
+                if name == 'object' and id:
+                    log.info("Removing %s", id)
+                    path = id.split('/')
+                    id = path.pop()
+                    try:
                         obj = getObjByPath(cmd.app, path)
                         obj._delObject(id)
+                    except (AttributeError, KeyError), ex:
+                        log.warning("Unable to remove %s on %s", id,
+                                    '/'.join(path))
         for f in self.objectFiles(pack):
             self.parse(f, Deleter())
 
     def list(self, pack, cmd):
         objs = []
-        class Collector(ContentHandler):
+        class Collector(PathTracker):
             def startElement(self, name, attrs):
-                if name == 'object':
-                    objs.append(attrs.get('id', None))
+                PathTracker.startElement(self, name, attrs)
+                if name == 'object' and self.path():
+                    objs.append(self.path())
         for f in self.objectFiles(pack):
             self.parse(f, Collector())
         return objs
@@ -98,6 +122,7 @@ class ZPLReport(ZenPackLoader):
 
     def load(self, pack, cmd):
         rl = ReportLoader(noopts=True, app=cmd.app)
+        rl.options = cmd.options
         rl.loadDirectory(pack.path('reports'))
 
     def unload(self, pack, cmd):
@@ -107,7 +132,7 @@ class ZPLReport(ZenPackLoader):
     def list(self, pack, cmd):
         def rpt(f):
             return f.endswith('.rpt')
-        return [branchAfter(fs[:-4], 'reports')
+        return [branchAfter(fs[:-4], 'reports', "/zport/dmd/Reports/")
                 for fs in findFiles(pack, 'reports', rpt)]
 
 

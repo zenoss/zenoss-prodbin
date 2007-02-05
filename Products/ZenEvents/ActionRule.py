@@ -143,7 +143,7 @@ class ActionRule(ZenModelRM, EventFilter):
     def checkFormat(self):
         """Check that the format string has valid fields.
         """
-        evtfields = self.ZenEventManager.getFieldList()
+        evtfields = self.dmd.ZenEventManager.getFieldList()
         for field in self.getEventFields():
             if field not in evtfields:
                 return False
@@ -195,7 +195,7 @@ class ActionRule(ZenModelRM, EventFilter):
     def _clearAlertState(self):
         """Clear state in alert_state before we are deleted.
         """
-        db = self.ZenEventManager.connect()
+        db = self.dmd.ZenEventManager.connect()
         curs = db.cursor()
         delcmd = "delete from alert_state where %s" % self.sqlwhere()
         log.debug("clear alert state '%s'", delcmd)
