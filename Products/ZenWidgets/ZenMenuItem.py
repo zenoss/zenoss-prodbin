@@ -20,6 +20,7 @@ class ZenMenuItem(ZenModelRM):
     security = ClassSecurityInfo()
     description = ""
     action = ""
+    permissions = (Permissions.view,)
     
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},

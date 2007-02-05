@@ -1,9 +1,10 @@
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from ZenMenu import ZenMenu
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
 from Products.ZenRelations.RelSchema import *
 from zExceptions import NotFound
+
 
 class ZenMenuable:
     """ ZenMenuable is a mixin providing menuing.
@@ -44,9 +45,9 @@ class ZenMenuable:
     security.declareProtected('Change Device', 'buildMenus')
     def buildMenus(self, menudict={}):
         """ Build menus from a dictionary. """
-        menus = menudict.values()
+        menus = menudict.keys()
         while menus:
-            menu = menudict.pop()
+            menu = menus.pop()
             self.manage_addItemsToZenMenu(menu, menudict[menu])
         
     security.declareProtected('Change Device', 'manage_deleteZenMenu')
@@ -71,6 +72,7 @@ class ZenMenuable:
             or nothing for a dict of all available menus.
         """
         menus = {}
+        user = getSecurityManager().getUser()
         if isinstance(menuids, (str,unicode)): menuids=[menuids]
         mychain = aq_chain(self.primaryAq())
         mychain.reverse()
@@ -84,6 +86,10 @@ class ZenMenuable:
                     its = c.zenMenuItems()
                     while its:
                         i = its.pop()
+                        def permfilter(p): return user.has_permission(p,self)
+                        permok = filter(permfilter,
+                            getattr(i,'permissions',({},)))
+                        if not i.get('visible', True) or not permok: continue
                         menu[i.id] = i
         keys = menus.keys()
         for key in keys:
@@ -96,23 +102,29 @@ class ZenMenuable:
             return menus
 
     security.declareProtected('View', 'getMenuHtml')
-    def getMenuHtml(self, menuid=None):
+    def getMenuHtml(self, menuid=None, context=None):
+        if not context: context = self
         def _tag(tagname, content, **kwargs):
-            attrs = ['%s="%s"' % (x, kwargs[x]) for x in kwargs.keys()]
-            html = '<%s %s>%s</%s>' % (tagname, ' '.join(attrs).replace(
-                                                    'klass','class'), 
-                                      content, tagname)
+            attrs = ['%s="%s"' % (x.replace('klass','class'), 
+                                  kwargs[x],
+                                 ) for x in kwargs.keys()]
+            html = '<%s %s>%s</%s>' % (tagname, ' '.join(attrs), 
+                                       content, tagname)
             return html
         html = ''
         if menuid:
-            menuitems = self.getMenus(menuid)
+            menuitems = context.getMenus(menuid)
             if menuitems:
-                lis = [_tag('li', x.description or x.id, 
-                        action=x.action)
-                       for x in menuitems]
-                html = _tag('ul', '\n'.join(lis),
+                lis = [_tag('li', 
+                         _tag('a', x.description or x.id,
+                            href='/'.join(
+                                [context.absolute_url_path(), x.action]),
+                           )) for x in menuitems]
+                html = _tag(
+                            'ul', 
+                            ''.join(lis),
                             klass='zenMenu',
-                            id="menu_%s" % self.id
+                            id="menu_%s" % self.id,
                            )
         return html
 
