@@ -1202,7 +1202,7 @@ http://www.zenoss.com
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
-InterfaceMap|RouteMap|\.DeviceMap|IpServceMap
+InterfaceMap|RouteMap|DeviceMap|IpServceMap
 </property>
 <property visible="True" type="boolean" id="zIfDescription" >
 True
