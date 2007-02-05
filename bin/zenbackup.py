@@ -19,22 +19,65 @@ import os.path
 import tempfile
 from datetime import date
 import getpass
+import ConfigParser
+import select
 
-# This is written in Python because in was originally a subclass of ZCmdBase.
-# Since that is no longer the case this would probably be cleaner now if done
-# as a shell script.
+from zenbackupcommon import *
+MAX_UNIQUE_NAME_ATTEMPTS = 1000
+
 
 class ZenBackup(CmdBase):
 
 
-    BACKUP_DIR = 'zenbackup'
-    MAX_UNIQUE_NAME_ATTEMPTS = 1000
-
-
     def __init__(self, noopts=0):
-        #self.z = ZCmdBase(noopts=True)
         CmdBase.__init__(self, noopts)
         self.zenhome = os.getenv('ZENHOME')
+        
+    
+    def isZeoUp(self):
+        ''' Returns True is zeo appears to be running, false otherwise.
+        '''
+        pollPeriod = 0.5
+        cmd = '%s/bin/zeoup.py -p 8100' % self.zenhome
+        child = popen2.Popen4(cmd)
+        firstPass = True
+        while time.time() < endtime and (firstPass or child.poll() == -1):
+            firstPass = False
+            r, w, e = select.select([
+        i, o = os.popen2('%s/bin/zeoup.py -p 8100' % self.zenhome)
+        zeoup = False
+        try:
+            zeoup = o.readline().startswith('Elapsed time')
+        finally:        
+            i.close()
+            o.close()
+        return zeoup
+
+
+    def readSettingsFromZeo(self):
+        ''' Return dbname, dbuser, dbpass from saved settings
+        '''
+        zcmd = ZCmdBase(noopts=True)
+        zem = zcmd.dmd.ZenEventManager
+        for key, default, zemAttr in CONFIG_FIELDS:
+            if not getattr(self.options, key, None):
+                setattr(self.options, key, 
+                            getattr(zem, zemAttr, None) or default)
+
+            
+    def saveSettings(self, tempDir):
+        ''' Save some of the options to a file for use during restore
+        '''
+        config = ConfigParser.SafeConfigParser()
+        config.add_section(CONFIG_SECTION)
+        config.set(CONFIG_SECTION, 'dbname', self.options.dbname or '')
+        config.set(CONFIG_SECTION, 'dbuser', self.options.dbuser or '')
+        config.set(CONFIG_SECTION, 'dbpass', self.options.dbpass or '')
+        f = open(os.path.join(tempDir, CONFIG_FILE), 'w')
+        try:
+            config.write(f)
+        finally:
+            f.close()
 
 
     def getDefaultBackupFile(self):
@@ -44,7 +87,7 @@ class ZenBackup(CmdBase):
         backupDir = os.path.join(self.zenhome, 'backups')
         if not os.path.exists(backupDir):
             os.mkdir(backupDir)
-        for i in range(self.MAX_UNIQUE_NAME_ATTEMPTS):
+        for i in range(MAX_UNIQUE_NAME_ATTEMPTS):
             name = os.path.join(backupDir, getName(i))
             if not os.path.exists(name):
                 break
@@ -60,42 +103,44 @@ class ZenBackup(CmdBase):
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         CmdBase.buildOptions(self)
-
-        #em = self.z.dmd.ZenEventManager
-        em = None
-
         self.parser.add_option('--dbname',
                                dest='dbname',
-                               default=getattr(em, 'database', 'events'),
-                               help='MySQL events database name')
+                               default=None,
+                               help='MySQL events database name.  If'
+                                    ' --dont-fetch-args or zenoss is not'
+                                    ' available then defaults to "events"')
         self.parser.add_option('--dbuser',
                                dest='dbuser',
-                               default=getattr(em, 'username', 'root'),
-                               help='MySQL username')
+                               default=None,
+                               help='MySQL username.  If'
+                                    ' --dont-fetch-args or zenoss is not'
+                                    ' available then defaults to "root"')
         self.parser.add_option('--dbpass',
                                dest='dbpass',
-                               default=getattr(em, 'password', None),
-                               help='MySQL password (if not specified then'
-                                    ' you may be prompted'
-                                    ' during the backup/restore')
+                               default=None,
+                               help='MySQL password.')
+        self.parser.add_option('--dont-fetch-args',
+                                dest='fetchArgs',
+                                default=True,
+                                action='store_false',
+                                help='By default dbname, dbuser and dbpass'
+                                    ' are retrieved from zenoss if not'
+                                    ' specified and if zenoss is available.'
+                                    ' This disables fetching of these values'
+                                    ' from zenoss.')
         self.parser.add_option('--file',
                                dest="file",
                                default=None,
-                               help='File to backup to or restore from.'
+                               help='File to backup to.'
                                      ' Backups will by default be placed'
-                                     ' in %ZENHOME/backups/')
-        self.parser.add_option('--restore',
-                               dest="restore",
-                               default=False,
-                               action='store_true',
-                               help='Restore from a previous backup.')
-        self.parser.add_option('--quick',
-                               dest="quick",
-                               default=False,
-                               action='store_true',
-                               help='A backup is by default performed before'
-                                    ' each restore.'
-                                    ' --quick skips this backup.')
+                                     ' in $ZENHOME/backups/')
+        self.parser.add_option('--dont-save-settings',
+                                dest='saveSettings',
+                                default=True,
+                                action='store_false',
+                                help='Do not store dbname, dbuser and dbpass'
+                                    ' in backup'
+                                    ' file for use during restore.')
 
 
     def makeBackup(self):
@@ -103,32 +148,36 @@ class ZenBackup(CmdBase):
         getWhatYouCan == True means to continue without reporting errors even
         if this appears to be an incomplete zenoss install.
         '''
+        
+        import pdb; pdb.set_trace()
+        
+        # Setup defaults for db info
+        if self.options.fetchArgs and self.isZeoUp():
+            self.readSettingsFromZeo()
+                        
+        if self.options.dbname == None:
+            self.options.dbname = 'events'
+        if self.options.dbuser == None:
+            self.options.dbuser = 'root'
+        if self.options.dbpass == None:
+            self.options.dbpass = ''
     
         # Create temp backup dir
         rootTempDir = tempfile.mkdtemp()
-        tempDir = os.path.join(rootTempDir, self.BACKUP_DIR)
+        tempDir = os.path.join(rootTempDir, BACKUP_DIR)
         os.mkdir(tempDir)
         
-        # mysqldump to backup dir
+        # Save options to a file for use during restore
+        if self.options.saveSettings:
+            self.saveSettings(tempDir)
         
+        # mysqldump to backup dir
         cmd = 'mysqldump -u%s -p%s --routines %s > %s' % (
                     self.options.dbuser,
                     (self.options.dbpass or ''),
                     self.options.dbname,
                     os.path.join(tempDir, 'events.sql'))
-        if os.system(cmd):
-            sys.stderr.write('The database "%s" does not appear to exist.\n' %
-                                self.options.dbname)
-            if self.options.restore \
-                and not self.options.quick \
-                and not self.doesMySqlDbExist():
-                sys.stderr.write('You may wish to use --quick.\n')
-            return -1
-                    
-        # save db name to a file
-        cmd = 'echo "%s" > %s' % (self.options.dbname, 
-                                os.path.join(tempDir, 'dbname.txt'))
-        if os.system(cmd): return -1                                
+        if os.system(cmd): return -1
 
         # backup zopedb
         repozoDir = os.path.join(tempDir, 'repozo')
@@ -140,22 +189,25 @@ class ZenBackup(CmdBase):
         if os.system(cmd): return -1
         
         # /etc to backup dir (except for sockets)
-        etcSrc = os.path.join(self.zenhome, 'etc')
-        etcBak = os.path.join(tempDir, 'etc')
-        os.mkdir(etcBak)
-        files = os.listdir(etcSrc)
-        for f in files:
-            if not f.endswith('sock'):
-                cmd = 'cp %s %s/' % (os.path.join(etcSrc, f), etcBak)
-                if os.system(cmd): return -1
+        cmd = 'tar -cf %s --exclude *.zdsock --directory %s %s' % (
+                    os.path.join(tempDir, 'etc.tar'),
+                    self.zenhome,
+                    'etc')        
+        if os.system(cmd): return -1
 
         # /perf to backup dir
-        cmd = 'cp -r %s %s/' % (os.path.join(self.zenhome, 'perf'), tempDir)
+        cmd = 'tar Ccf %s %s %s' % (
+                    self.zenhome,
+                    os.path.join(tempDir, 'perf.tar'),
+                    'perf')
         if os.system(cmd): return -1
                                 
         # tar, gzip and send to outfile
         if self.options.file:
-            outfile = self.options.file
+            if self.options.file == '-':
+                outfile = sys.stdout
+            else:
+                outfile = self.options.file
         else:
             outfile = self.getDefaultBackupFile()
         tempHead, tempTail = os.path.split(tempDir)
@@ -169,139 +221,6 @@ class ZenBackup(CmdBase):
         return 0
 
 
-    def restore(self):
-        ''' Restore from a previous backup
-        '''
-        # Arguably it would be better to tear down all existing
-        # data, files, etc before starting the restore instead of
-        # doing it all piecemeal like this.  If a restore failed along the
-        # way it would be clear what was restored and what wasn't.  As it
-        # is, if a restore fails the installation might be left with a mix 
-        # of restored and unrestored state.
-        
-        # Check for running processes
-        i, o = os.popen2('ps -Ao pid,command '
-                            '| grep python '
-                            '| grep -v "zenbackup" '
-                            '| grep -v "do not match self" '
-                            '| egrep "zope|zeo"'
-                            )
-        try:
-            if len(o.readlines()):
-                print ('It looks like one or more zenoss processes are running.'
-                        '  Please quit zenoss before attempting to restore.')
-                sys.exit(-1)
-        finally:        
-            i.close()
-            o.close()
-        
-        # Create temp dir and untar backup into it
-        rootTempDir = tempfile.mkdtemp()
-        cmd = 'tar xzfC %s %s' % (self.options.file, rootTempDir)
-        if os.system(cmd): return -1
-        tempDir = os.path.join(rootTempDir, self.BACKUP_DIR)
-        
-        # If there is not a Data.fs then create an empty one
-        # Maybe should read file location/name from zeo.conf
-        # but we're going to assume the standard location for now.
-        if not os.path.isfile(os.path.join(self.zenhome, 'var', 'Data.fs')):
-            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl start'))
-            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl stop'))
-        
-        # Restore zopedb        
-        repozoDir = os.path.join(tempDir, 'repozo')
-        cmd ='%s --recover --repository %s --output %s' % (
-                    os.path.join(self.zenhome, 'bin', 'repozo.py'),
-                    repozoDir,
-                    os.path.join(self.zenhome, 'var', 'Data.fs'))
-        if os.system(cmd): return -1
-
-        # Copy etc files
-        cmd = 'cp %s %s' % (os.path.join(tempDir, 'etc', '*'),
-                            os.path.join(self.zenhome, 'etc'))
-        if os.system(cmd): return -1
-        
-        # Copy perf files
-        cmd = 'cp -r %s %s' % (os.path.join(tempDir, 'perf', '*'),
-                            os.path.join(self.zenhome, 'perf'))
-        if os.system(cmd): return -1
-        
-        # Create the mysql db if it doesn't exist already
-        if self.createMySqlDb(): return -1
-        
-        # Restore the mysql tables
-        cmd='mysql -u%s -p%s %s < %s' % (
-                            self.options.dbuser,
-                            self.options.dbpass or '',
-                            self.options.dbname,
-                            os.path.join(tempDir, 'events.sql'))
-        if os.system(cmd): return -1
-        
-        # clean up
-        cmd = 'rm -r %s' % rootTempDir
-        if os.system(cmd): return -1
-        
-        return 0
-
-    def createMySqlDb(self):
-        ''' Create the mysql db if it does not exist
-        '''
-        # The original dbname is stored in the backup within dbname.txt
-        # For now we ignore it and use the database specified on the command
-        # line.
-        
-        # Try to create the mysql database, ignore failure if the database
-        # aleady exists.
-        #cmd = 'mysqladmin -u %s -p %s create %s' % (
-        #            self.options.dbuser,
-        #            self.options.dbpass or '',
-        #            self.options.dbname)
-        sql = 'create database if not exists %s' % self.options.dbname
-        cmd = 'echo "%s" | mysql -u%s -p%s' % (
-                    sql,
-                    self.options.dbuser,
-                    self.options.dbpass or '')
-        result = os.system(cmd)
-        if result not in [0, 256]:
-            return -1
-        return 0
-    
-    def doesMySqlDbExist(self):
-        ''' Return true if the mysqldb appears to exist, false otherwise.
-        '''
-        cmd = 'echo "show databases" | mysql -u%s -p%s | grep %s' % (
-                self.options.dbuser,
-                self.options.dbpass or '',
-                self.options.dbname)
-        i, o = os.popen2(cmd)
-        out = o.read()
-        i.close()
-        o.close()
-        return out != ''
-
 if __name__ == '__main__':
-
-    # Instantiate ZenBackup to get access to options
     zb = ZenBackup()
-    
-    # Check for required fields
-    required = ['dbname', 'dbuser']
-    if zb.options.restore:
-        required.append('file')
-    missing = [a for a in required if not getattr(zb.options, a, None)]
-    if missing:
-        # Print usage message
-        print 'You must provide %s for %s' % (
-            (len(missing) == 1 and 'a value') or 'values', ', '.join(missing))
-        zb.parser.print_help();
-    else:
-        if not zb.options.dbpass:
-            zb.options.dbpass = getpass.getpass(
-                    'MySQL password for %s: ' % zb.options.dbuser)
-        if zb.options.restore:
-            # Perform restore, maybe doing a backup first
-            if zb.options.quick or not zb.makeBackup():
-                zb.restore()
-        else:
-            # Perform backup
-            zb.makeBackup()
+    if (zb.makeBackup()): sys.exit(-1)
