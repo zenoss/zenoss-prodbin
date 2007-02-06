@@ -68,7 +68,7 @@ class ZenDisc(ZenModeler):
                 if not ipobj.device():
                     ips.append(ip)
                 if ipobj.getStatus(Status_Ping) > 0:
-                    self.sendEvent(ipobj, sev=0)
+                    self.sendIpStatusEvent(ipobj, sev=0)
             for ip in badips:
                 ipobj = self.dmd.Networks.findIp(ip)
                 if not ipobj and self.options.addInactive:
@@ -80,12 +80,12 @@ class ZenDisc(ZenModeler):
                         net.ipaddresses.removeRelation(ipobj)
                 transaction.commit()
                 if ipobj:
-                    self.sendEvent(ipobj)
+                    self.sendIpStatusEvent(ipobj)
         self.log.info("discovered %s active ips", goodCount)    
         return ips
        
 
-    def sendEvent(self, ipobj, sev=2):
+    def sendIpStatusEvent(self, ipobj, sev=2):
         """Send an ip down event.  These are used to cleanup unused ips.
         """
         ip = ipobj.id
@@ -105,6 +105,24 @@ class ZenDisc(ZenModeler):
                     agent="Discover")
         self.dmd.ZenEventManager.sendEvent(evt)
 
+
+    def sendDiscoveredEvent(self, ipobj, sev=2):
+        """Send an device discovered event.
+        """
+        ip = ipobj.id
+        dev = ipobj.device()
+        if dev: 
+            devname = dev.id
+            comp = ipobj.interface().id
+        else: 
+            devname = comp = ip
+        msg = "'Discovered device name '%s' for ip '%s'" % (devname, ip)
+        evt = Event(device=devname,ipAddress=ip,eventKey=ip,
+                    component=comp,eventClass=Status_Snmp,
+                    summary=msg, severity=sev,
+                    agent="Discover")
+        self.dmd.ZenEventManager.sendEvent(evt)
+    
     
     def discoverDevices(self, ips, 
                         devicepath="/Discovered",
@@ -140,6 +158,7 @@ class ZenDisc(ZenModeler):
             productionState=prodState)
             transaction.commit()
             dev.collectDevice()
+            self.sendDiscoveredEvent(ipobj)
             return dev
         except ZentinelException, e:
             self.log.warn(e)
