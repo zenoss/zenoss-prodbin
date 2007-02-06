@@ -31,6 +31,7 @@
 export ZENHOME="**ZENHOME**"
 export RUNUSER="**OS_USERNAME**"
 export SNMPD_CONF="**SNMPD_CONF**"
+export MY_CNF="**MY_CNF**"
 export SUDOERS="**SUDOERS**"
 export ZOPE_USERNAME="admin"
 export ZOPE_PASSWORD="**ZOPE_PASSWD**"
@@ -65,6 +66,12 @@ fresh_install_pre() {
     BACKUP=`dirname ${SUDOERS}`/`basename ${SUDOERS}`.orig
     cp ${SUDOERS} ${BACKUP}
     cp ${ZEN_ETC}/sudoers ${SUDOERS}
+
+    # update the my.cnf file
+    MY_CNF=/etc/my.cnf
+    BACKUP=`dirname ${MY_CNF}`/`basename ${MY_CNF}`.orig
+    cp ${MY_CNF} ${BACKUP}
+    cp ${ZEN_ETC}/my.cnf ${MY_CNF}
 
     # update the snmpd.conf file
     SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
