@@ -24,7 +24,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
 from ImageFile import ImageFile
 from Products.ZenModel.ZenModelBase import ZenModelBase
-from Products.ZenWidgets.ZenMenuable import ZenMenuable
+from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
@@ -96,7 +96,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         ('packs',        ToManyCont(ToOne, 'ZenPack',     'root')),
         ('zenMenus', ToManyCont(
-            ToOne, 'Products.ZenWidgets.ZenMenu', 'menuable')),
+            ToOne, 'ZenMenu', 'menuable')),
        )
 
     # Screen action bindings (and tab definitions)

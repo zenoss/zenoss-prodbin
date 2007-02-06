@@ -33,7 +33,7 @@ class ZenMenuable:
     security.declareProtected('Change Device', 'manage_addItemsToZenMenu')
     def manage_addItemsToZenMenu(self, menuid, items=[()]):
         """ Add ZenMenuItems to a ZenMenu. 
-            item is a list of tuples:[(id, description, action)]
+            item is a list of tuples:[(id, description, action, perms)]
         """
         menu = getattr(self.zenMenus, menuid, None)
         if not menu: menu = self.manage_addZenMenu(menuid)
@@ -73,6 +73,7 @@ class ZenMenuable:
         """
         menus = {}
         user = getSecurityManager().getUser()
+        if not isinstance(self, ZenMenuable): return None
         if isinstance(menuids, (str,unicode)): menuids=[menuids]
         mychain = aq_chain(self.primaryAq())
         mychain.reverse()
@@ -88,8 +89,8 @@ class ZenMenuable:
                         i = its.pop()
                         def permfilter(p): return user.has_permission(p,self)
                         permok = filter(permfilter,
-                            getattr(i,'permissions',({},)))
-                        if not i.get('visible', True) or not permok: continue
+                            getattr(i,'permissions',('',)))
+                        if not getattr(i, 'visible', True) or not permok: continue
                         menu[i.id] = i
         keys = menus.keys()
         for key in keys:

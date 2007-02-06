@@ -9,7 +9,7 @@ from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from ZenMenuItem import ZenMenuItem
 from Products.ZenRelations.RelSchema import *
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, Permissions
 import logging
 log = logging.getLogger("zen.Menu")
 
@@ -27,15 +27,16 @@ class ZenMenu(ZenModelRM):
 
     _relations =  (
         ("zenMenuItems", ToManyCont(
-            ToOne, 'Products.ZenWidgets.ZenMenuItem', 'zenMenus')),
+            ToOne, 'ZenMenuItem', 'zenMenus')),
         ("menuable", ToOne(
-            ToManyCont, 'Products.ZenWidgets.ZenMenuable', 'zenMenus')),
+            ToManyCont, 'ZenMenuable', 'zenMenus')),
         ) 
 
     security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'manage_addZenMenuItem')
-    def manage_addZenMenuItem(self, id=None, desc='', action='', REQUEST=None):
+    def manage_addZenMenuItem(self, id=None, desc='', action='',
+            permissions=(Permissions.view,), REQUEST=None):
         """ Add a menu item to a menu """
         mi = None
         if id:
@@ -43,6 +44,7 @@ class ZenMenu(ZenModelRM):
             self.zenMenuItems._setObject(id, mi)
             mi.description = desc
             mi.action = action
+            mi.permissions = permissions
         return mi
  
     security.declareProtected('Change Device', 'manage_deleteZenMenuItem')

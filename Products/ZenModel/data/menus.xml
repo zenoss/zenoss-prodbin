@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<objects>
+<object id='/zport/dmd' module='Products.ZenModel.DataRoot' class='DataRoot'>
+<tomanycont id='zenMenus'>
+<object id='Edit' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='manageob' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Manage
+</property>
+<property type="text" id="action" mode="w" >
+dataRootManage
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='View' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='viewHistory' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Changes
+</property>
+<property type="text" id="action" mode="w" >
+viewHistory
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+</object>
+
+<object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<tomanycont id='zenMenus'>
+<object id='Edit' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='manageob' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Manage
+</property>
+<property type="text" id="action" mode="w" >
+deviceOrganizerManage
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+<object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Custom Schema
+</property>
+<property type="text" id="action" mode="w" >
+editCustSchema
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+</object>
+<object id='perfConfig' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+PerfConf
+</property>
+<property type="text" id="action" mode="w" >
+perfConfig
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+</object>
+<object id='zproperties' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+zProperties
+</property>
+<property type="text" id="action" mode="w" >
+zPropertyEdit
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='View' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='devicelist' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Devices
+</property>
+<property type="text" id="action" mode="w" >
+deviceList
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+<object id='events' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Events
+</property>
+<property type="text" id="action" mode="w" >
+viewEvents
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+<object id='historyEvents' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+History
+</property>
+<property type="text" id="action" mode="w" >
+viewHistoryEvents
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+<object id='status' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Status
+</property>
+<property type="text" id="action" mode="w" >
+deviceOrganizerStatus
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+</object>
+</objects>

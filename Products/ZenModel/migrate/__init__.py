@@ -66,3 +66,4 @@ import defaultcommandtimeout
 import eventclassmapping
 import zenuilayer
 import packs
+import menus

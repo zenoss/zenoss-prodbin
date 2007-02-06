@@ -186,8 +186,12 @@
 <!-- ======================================================
     BreadCrumbsPane
  ====================================================== -->
-<div id="breadCrumbPane" metal:define-macro="breadCrumbPane">
+<div id="breadCrumbPane" metal:define-macro="breadCrumbPane"
+    style="position:relative">
     <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    <div id="menuBlock" metal:define-macro="menuBlock">
+        <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
+    </div>
 </div>
 
 <!-- ======================================================

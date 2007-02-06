@@ -25,10 +25,11 @@ class ZenMenuItem(ZenModelRM):
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'action', 'type':'text', 'mode':'w'},
+        {'id':'permissions', 'type':'lines', 'mode':'w'},
         )
 
     _relations =  (
-        ("zenMenus", ToManyCont(ToOne, 'Products.ZenWidgets.ZenMenu', 'zenMenuItems')),
+        ("zenMenus", ToOne(ToManyCont, 'ZenMenu', 'zenMenuItems')),
         )
 
     security = ClassSecurityInfo()

@@ -1,0 +1,99 @@
+<tal:block metal:define-macro="contextmenu"
+    tal:condition="python:hasattr(here, 'getMenuHtml')"
+    tal:define="menu_ids menu_ids | python:['View','Edit']">
+
+<style>
+    #menuBlock {
+        position:relative;
+        float:right;
+        width: 12em;
+        z-index: 2000;
+    }
+    .contextmenu * {
+        padding: 0;
+        margin:0;
+    }
+    .contextmenu {
+        position:relative;
+        top: 3px;
+    }
+    .contextmenubutton {
+        display: inline;
+        min-width: 5em;
+        text-align: center;
+        height: 2em;
+        line-height: 2em;
+        cursor: pointer;
+        float:right;
+        margin-right:10px;
+        background-color: #E0E0E0;
+        border: 1px solid #5A6F8F;
+        border-bottom-width: 0px;
+    }
+    .contextmenuitems {
+        position: absolute;
+        right: 5px;
+        width: 12em;
+        top: 25px;
+        border: 1px solid #5A6F8F;
+        background-color: white;
+    }
+    .contextmenuitems ul.zenMenu {
+        list-style-type: none;
+    }
+    ul.zenMenu li {
+        border-bottom: 1px dotted grey;
+    }
+    .contextmenuitems ul.zenMenu li a {
+        text-align: justify;
+        text-decoration: none;
+        display:block;
+        padding: 5px;
+        height: 100%;
+    }
+    .contextmenuitems ul li a:hover {
+        background-color: #DEDEFF;
+    }
+    div.menuselected {
+        background-color: red;
+    }
+</style>
+
+<tal:block tal:repeat="menu_id menu_ids">
+<div class="contextmenu" tal:attributes="id menu_id"
+    tal:define="menuhtml python:here.getMenuHtml(menu_id)"
+    tal:condition="menuhtml">
+
+        <div class="contextmenubutton"
+             tal:attributes="id string:${menu_id}_btn"
+             tal:content="menu_id">
+        BUTTON
+        </div>
+
+        <div class="contextmenuitems invisible"
+            tal:attributes="id string:${menu_id}_items"
+            tal:content="structure menuhtml">
+        CONTENT
+        </div>
+
+        <script tal:content="string:
+            connect('${menu_id}_btn','onmouseover',function() {
+                makeVisible('${menu_id}_items');
+                addElementClass('${menu_id}_btn','menuselected');});
+            connect('${menu_id}_items', 'onmouseout',function() {
+                removeElementClass('${menu_id}_btn','menuselected');
+                makeInvisible('${menu_id}_items'); });
+            connect('${menu_id}_btn', 'onmouseout',function() {
+                removeElementClass('${menu_id}_btn','menuselected');
+                makeInvisible('${menu_id}_items'); });
+            connect('${menu_id}_items','onmouseover',function() {
+                addElementClass('${menu_id}_btn','menuselected');
+                makeVisible('${menu_id}_items'); });
+            connect('${menu_id}_items','onclick',function() {
+                makeInvisible('${menu_id}_items');
+            });
+        ">
+        </script>
+    </div>
+    </tal:block>
+</tal:block>
