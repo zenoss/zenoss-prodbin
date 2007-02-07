@@ -83,7 +83,9 @@ class RenderServer(RRDToolItem):
             log.debug(" ".join(gopts))
             try:
                 rrdtool.graph(*gopts)
-            except:    
+            except Exception, ex:    
+                if ex.args[0].find('No such file or directory') > -1:
+                    return None
                 log.exception("failed generating graph")
                 log.warn(" ".join(gopts))
                 raise
@@ -113,7 +115,9 @@ class RenderServer(RRDToolItem):
         gopts.insert(0, '/dev/null') #no graph generated
         try:
             values = rrdtool.graph(*gopts)[2]
-        except:
+        except Exception, ex:
+            if ex.args[0].find('No such file or directory') > -1:
+                return None
             log.exception("failed generating summary")
             log.warn(" ".join(gopts))
             raise
@@ -147,7 +151,9 @@ class RenderServer(RRDToolItem):
         except NameError:
             log.warn("It appears that the rrdtool bindings are not installed properly.")
             values = []
-        except:
+        except Exception, ex:
+            if ex.args[0].find('No such file or directory') > -1:
+                return None
             log.exception("failed generating summary")
             raise
         
