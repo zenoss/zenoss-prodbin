@@ -2,31 +2,6 @@ import Globals
 
 from Products.ZenUtils.Utils import convToUnits
 
-def args(g):
-    if g.get('dmd', None) and g.get('args', None):
-        return g['dmd'], g['args']
-    
-    import sys
-    result = {}
-    for a in sys.argv[1:]:
-        k, v = a.split('=', 1)
-        if k:
-            if result.has_key(k):
-                if type(result[k]) != type(()):
-                    result[k] = tuple(result[k], v)
-                else:
-                    result[k] = result[k] + (v, )
-            else:
-                result[k] = v
-    from Products.ZenUtils.ZCmdBase import ZCmdBase
-    return ZCmdBase(noopts=True).dmd, result
-
-def pprint(report, g):
-    if g.get('REQUEST', None):
-        return
-    import pprint
-    pprint.pprint(report)
-
 UNAVAILABLE = 'N/A'
 
 def percent(partial, total):

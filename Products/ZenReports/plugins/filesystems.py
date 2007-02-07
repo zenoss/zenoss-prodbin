@@ -1,28 +1,30 @@
-"The file systems report"
+
 
 import Globals
-from Products.ZenReports.plugins import Plugin, Utilization
-dmd, args = Plugin.args(locals())
+from Products.ZenReports import Utils, Utilization
 
-summary = Utilization.getSummaryArgs(dmd, args)
+class filesystems:
+    "The file systems report"
 
-report = []
-for d in dmd.Devices.getSubDevices():
-    for f in d.os.filesystems():
-        if f.monitored():
-            available, used = None, None
-            used = f.getRRDValue('usedBlocks', **summary)
-            if used:
-                used = long(used * f.blockSize)
-                available = f.totalBytes() - used
-            percent = Plugin.percent(used, f.totalBytes())
-            report.append(Plugin.Record(device=d,
-                                        deviceName=d.id,
-                                        filesystem=f,
-                                        mount=f.mount,
-                                        usedBytes=used,
-                                        availableBytes=available,
-                                        percentFull=percent,
-                                        totalBytes=f.totalBytes()))
-
-Plugin.pprint(report, globals())
+    def run(self, dmd, args):
+        report = []
+        summary = Utilization.getSummaryArgs(dmd, args)
+        for d in dmd.Devices.getSubDevices():
+            for f in d.os.filesystems():
+                if not f.monitored(): continue
+                available, used = None, None
+                used = f.getRRDValue('usedBlocks', **summary)
+                if used:
+                    used = long(used * f.blockSize)
+                    available = f.totalBytes() - used
+                percent = Utils.percent(used, f.totalBytes())
+                r = Utils.Record(device=d,
+                                 deviceName=d.id,
+                                 filesystem=f,
+                                 mount=f.mount,
+                                 usedBytes=used,
+                                 availableBytes=available,
+                                 percentFull=percent,
+                                 totalBytes=f.totalBytes())
+                report.append(r)
+        return report

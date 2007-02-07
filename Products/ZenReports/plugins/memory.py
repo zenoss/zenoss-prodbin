@@ -1,41 +1,42 @@
-"The memory usage report"
-
 import Globals
-from Products.ZenReports.plugins import Plugin, Utilization
-dmd, args = Plugin.args(locals())
+from Products.ZenReports import Utils, Utilization
 
-summary = Utilization.getSummaryArgs(dmd, args)
-reversedSummary = Utilization.reversedSummary(summary)
+class memory:
+    "The memory usage report"
 
-report = []
-freeNames = ['memAvailReal', 'memBuffer', 'memCached']
-fetchNames = ['memoryAvailableKBytes', 'memAvailSwap ', ] + freeNames
-for d in dmd.Devices.getSubDevices():
-    totalReal = d.hw.totalMemory
-    if not totalReal:
-        totalReal = None
-    result = d.getRRDValues(fetchNames, **summary) or {}
-    winMem = result.get('memoryAvailableKBytes', None)
-    availableReal = result.get('memAvailReal', winMem)
-    buffered = result.get('memBuffer', None)
-    cached = result.get('memCached', None)
-    availableSwap = result.get('memAvailSwap', None)
-    free = availableReal
-    try:
-        # max used space space is total - minimum free
-        free = d.getRRDSum(freeNames, **reversedSummary)
-    except Exception:
-        pass
-    
-    percentUsed = None
-    if totalReal and free:
-        percentUsed = Plugin.percent(totalReal - free, totalReal)
-    report.append(Plugin.Record(device=d,
-                                totalReal=totalReal,
-                                percentUsed=percentUsed,
-                                availableReal=availableReal,
-                                availableSwap=availableSwap,
-                                buffered=buffered,
-                                cached=cached))
+    def run(self, dmd, args):
+        summary = Utilization.getSummaryArgs(dmd, args)
+        reversedSummary = Utilization.reversedSummary(summary)
 
-Plugin.pprint(report, locals())
+        report = []
+        freeNames = ['memAvailReal', 'memBuffer', 'memCached']
+        fetchNames = ['memoryAvailableKBytes', 'memAvailSwap ', ] + freeNames
+        for d in dmd.Devices.getSubDevices():
+            totalReal = d.hw.totalMemory
+            if not totalReal:
+                totalReal = None
+            result = d.getRRDValues(fetchNames, **summary) or {}
+            winMem = result.get('memoryAvailableKBytes', None)
+            availableReal = result.get('memAvailReal', winMem)
+            buffered = result.get('memBuffer', None)
+            cached = result.get('memCached', None)
+            availableSwap = result.get('memAvailSwap', None)
+            free = availableReal
+            try:
+                # max used space space is total - minimum free
+                free = d.getRRDSum(freeNames, **reversedSummary)
+            except Exception:
+                pass
+
+            percentUsed = None
+            if totalReal and free:
+                percentUsed = Utils.percent(totalReal - free, totalReal)
+            r = Utils.Record(device=d,
+                             totalReal=totalReal,
+                             percentUsed=percentUsed,
+                             availableReal=availableReal,
+                             availableSwap=availableSwap,
+                             buffered=buffered,
+                             cached=cached)
+            report.append(r)
+        return report
