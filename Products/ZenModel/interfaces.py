@@ -33,16 +33,23 @@ class IZenPack(zope.interface.Interface):
 
     id = zope.interface.Attribute("The name of the ZenPack")
 
-    def install(self, zcmd):
+    def install(zcmd):
         "Add whatever is necessary to be included into Zenoss"
 
-    def remove(self, zcmd):
+    def remove(zcmd):
         "Extricate yourself from Zenoss"
         
-    def list(self, zcmd):
+    def list(zcmd):
         """List of all the parts loaded by this ZenPack in this form:
         [('ExtensionType', ['name', 'name', 'name']),
          ('ExtensionType', ['name', 'name', 'name']),
         ...]
         """
+        
+class IReport(zope.interface.Interface):
+
+    def run(dmd, args):
+        """Dmd is the DataRoot, args are the REQUEST args, this command
+        returns a sequence"""
+
         
