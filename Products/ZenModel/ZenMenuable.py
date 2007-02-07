@@ -31,15 +31,23 @@ class ZenMenuable:
         return mu
 
     security.declareProtected('Change Device', 'manage_addItemsToZenMenu')
-    def manage_addItemsToZenMenu(self, menuid, items=[()]):
+    def manage_addItemsToZenMenu(self, menuid, items=[{}]):
         """ Add ZenMenuItems to a ZenMenu. 
-            item is a list of tuples:[(id, description, action, isglobal, perms)]
+            Accepts a list of dictionaries.
+            Available keyword args:
+              id
+              description
+              action
+              permissions
+              isglobal
+              banned_classes
+              allowed_classes
         """
         menu = getattr(self.zenMenus, menuid, None)
         if not menu: menu = self.manage_addZenMenu(menuid)
-        if type(items)==type(()): items = [items]
+        if type(items)==type({}): items = [items]
         while items:
-            menu.manage_addZenMenuItem(*items.pop())
+            menu.manage_addZenMenuItem(**items.pop())
         return menu
 
     security.declareProtected('Change Device', 'buildMenus')
@@ -63,7 +71,7 @@ class ZenMenuable:
             return self.callZenScreen(REQUEST)
     
     security.declareProtected('View', 'getMenus')
-    def getMenus(self, menuids=None):
+    def getMenus(self, menuids=None, context=None):
         """ Build menus for this context, acquiring ZenMenus
             which in turn acquire ZenMenuItems.
 
@@ -71,11 +79,12 @@ class ZenMenuable:
             a sequence of menuids for a dict of lists of items, 
             or nothing for a dict of all available menus.
         """
+        if not context: context=self
         menus = {}
         user = getSecurityManager().getUser()
         if not isinstance(self, ZenMenuable): return None
         if isinstance(menuids, (str,unicode)): menuids=[menuids]
-        mychain = aq_chain(self.primaryAq())
+        mychain = aq_chain(context.primaryAq())
         mychain.reverse()
         for obj in mychain:
             if getattr(aq_base(obj), 'zenMenus', None):
@@ -90,8 +99,12 @@ class ZenMenuable:
                         def permfilter(p): return user.has_permission(p,self)
                         permok = filter(permfilter,
                             getattr(i,'permissions',('',)))
-                        if not getattr(i, 'visible', True) or not permok \
-                                or not getattr(i, 'isglobal', True): 
+                        if not permok \
+                           or (not getattr(i, 'isglobal', True) and \
+                               not context==i.getMenuItemOwner())\
+                           or ( i.allowed_classes and not isinstance(
+                                  context, i.allowed_classes) ) \
+                           or isinstance(context, i.banned_classes): 
                             continue
                         menu[i.id] = i
         keys = menus.keys()
@@ -103,33 +116,6 @@ class ZenMenuable:
             return menus.values()[0]
         else: 
             return menus
-
-    security.declareProtected('View', 'getMenuHtml')
-    def getMenuHtml(self, menuid=None, context=None):
-        if not context: context = self
-        def _tag(tagname, content, **kwargs):
-            attrs = ['%s="%s"' % (x.replace('klass','class'), 
-                                  kwargs[x],
-                                 ) for x in kwargs.keys()]
-            html = '<%s %s>%s</%s>' % (tagname, ' '.join(attrs), 
-                                       content, tagname)
-            return html
-        html = ''
-        if menuid:
-            menuitems = context.getMenus(menuid)
-            if menuitems:
-                lis = [_tag('li', 
-                         _tag('a', x.description or x.id,
-                            href='/'.join(
-                                [context.absolute_url_path(), x.action]),
-                           )) for x in menuitems]
-                html = _tag(
-                            'ul', 
-                            ''.join(lis),
-                            klass='zenMenu',
-                            id="menu_%s" % self.id,
-                           )
-        return html
 
 InitializeClass(ZenMenuable)
 

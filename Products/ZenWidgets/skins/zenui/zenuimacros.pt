@@ -1,5 +1,5 @@
 <tal:block metal:define-macro="contextmenu"
-    tal:condition="python:hasattr(here, 'getMenuHtml')"
+    tal:condition="python:hasattr(here, 'getMenus')"
     tal:define="menu_ids menu_ids | python:['View','Edit']">
 
 <style>
@@ -61,8 +61,13 @@
 
 <tal:block tal:repeat="menu_id menu_ids">
 <div class="contextmenu" tal:attributes="id menu_id"
-    tal:define="menuhtml python:here.getMenuHtml(menu_id)"
-    tal:condition="menuhtml">
+    tal:define="menuitems python:here.getMenus(menu_id, here);
+                pathtrans here/REQUEST/PATH_TRANSLATED;
+                basepath python:test(
+                      pathtrans.endswith(template.id),
+                      '/'.join(pathtrans.split('/')[:-1]),
+                      pathtrans)"
+    tal:condition="menuitems">
 
         <div class="contextmenubutton"
              tal:attributes="id string:${menu_id}_btn"
@@ -71,9 +76,13 @@
         </div>
 
         <div class="contextmenuitems invisible"
-            tal:attributes="id string:${menu_id}_items"
-            tal:content="structure menuhtml">
-        CONTENT
+            tal:attributes="id string:${menu_id}_items">
+        <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
+            <li tal:repeat="i menuitems">
+                <a tal:attributes="href string:${basepath}/${i/action}"
+                   tal:content="i/description">description</a>
+            </li>
+        </ul>
         </div>
 
         <script tal:content="string:

@@ -1276,14 +1276,6 @@ class Device(ManagedEntity, Commandable):
         '''
         return [self]
 
-    def getMenus(self, *args):
-        """ Overriding (for now) the DeviceClass menus"""
-        return None
-
-    def getMenuHtml(self, *args):
-        """ Overriding (for now) the DeviceClass menus"""
-        return None
-
     def getUserCommandEnvironment(self):
         environ = Commandable.getUserCommandEnvironment(self)
         context = self.primaryAq()

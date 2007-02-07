@@ -14,6 +14,8 @@ $Id:$
 import Migrate
 import os
 from Products.ZenRelations.ImportRM import ImportRM
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.Device import Device
 
 zenhome = os.environ['ZENHOME']
 menuxml = os.path.join(zenhome, "Products/ZenModel/data/menus.xml")
@@ -49,28 +51,97 @@ class MenuRelations(Migrate.Step):
         # Add menus.
         dmd.buildMenus(
             {'Edit':[
-                ('manageob','Manage','dataRootManage',('View',)),
+                dict(
+                     id=         'manageob',
+                     description='Manage',
+                     action=     'dataRootManage',
+                     permissions=('View',),
+                     isglobal=   False
+                    )
              ],
              'View':[
-                ('viewHistory','Changes','viewHistory',('View',)),
+                dict(
+                     id=         'viewHistory',
+                     description='Changes',
+                     action=     'viewHistory',
+                     permissions=('View',)
+                    )
              ]
             })
+
+
         dmd.Devices.buildMenus(
             {'Edit':[
-                ('manageob','Manage','deviceOrganizerManage'),
-                ('editCustSchema','Custom Schema','editCustSchema',(
-                    'Change Device',)),
-                ('perfConfig','PerfConf','perfConfig',(
-                    'Change Device',)),
-                ('zproperties','zProperties','zPropertyEdit',(
-                    'Change Device',)),
+                dict(
+                     id=         'manageob',
+                     description='Manage',
+                     action=     'deviceOrganizerManage',
+                     permissions=('View',)
+                    ),
+                dict(
+                     id=         'editCustSchema',
+                     description='Custom Schema',
+                     action=     'editCustSchema',
+                     permissions=('Change Device',)
+                    ),
+                dict(
+                     id=         'perfConfig',
+                     description='perfConf',
+                     action=     'perfConfig',
+                     permissions=('Change Device',),
+                     allowed_classes=(DeviceClass,)
+                    ),
+                dict(
+                     id=         'perfConfigDevice',
+                     description='perfConf',
+                     action=     'objRRDTemplate',
+                     permissions=('Change Device',),
+                     allowed_classes=(Device,)
+                    ),
+                dict(
+                     id=         'zproperties',
+                     description='zProperties',
+                     action=     'zPropertyEdit',
+                     permissions=('Change Device',)
+                    ),
                 ],
              'View':[
-                ('devicelist','Devices','deviceList'),
-                ('events','Events','viewEvents'),
-                ('historyEvents','History','viewHistoryEvents'),
-                ('status','Status','deviceOrganizerStatus')
-                ]})
+                dict(
+                     id=         'devicelist',
+                     description='Devices',
+                     action=     'deviceList',
+                     permissions=('View',),
+                     allowed_classes=(DeviceClass,)
+                    ),
+                dict(
+                     id=         'events',
+                     description='Events',
+                     action=     'viewEvents',
+                     permissions=('View',)
+                    ),
+                dict(
+                     id=         'historyEvents',
+                     description='History',
+                     action=     'viewHistoryEvents',
+                     permissions=('View',)
+                    ),
+                dict(
+                     id=         'classes',
+                     description='Classes',
+                     action=     'deviceOrganizerStatus',
+                     permissions=('View',),
+                     allowed_classes=(DeviceClass,)
+                    ),
+                dict(
+                     id=         'status',
+                     description='Status',
+                     action=     'deviceStatus',
+                     permissions=('View',),
+                     allowed_classes=(Device,)
+                    ),
+
+                ]
+            })
 
 
 MenuRelations()

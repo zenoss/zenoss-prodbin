@@ -22,6 +22,8 @@ class ZenMenuItem(ZenModelRM):
     action = ""
     permissions = (Permissions.view,)
     isglobal = True
+    banned_classes = ()
+    allowed_classes = ()
     
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
@@ -35,6 +37,12 @@ class ZenMenuItem(ZenModelRM):
         )
 
     security = ClassSecurityInfo()
+
+    def getMenuItemOwner(self):
+        parent = self
+        for x in range(4):
+            parent = parent.getParentNode()
+        return parent
 
 InitializeClass(ZenMenuItem)
 

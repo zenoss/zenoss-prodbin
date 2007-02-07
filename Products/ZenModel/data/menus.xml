@@ -11,6 +11,9 @@ Manage
 <property type="text" id="action" mode="w" >
 dataRootManage
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+False
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
 </property>
@@ -25,6 +28,9 @@ Changes
 </property>
 <property type="text" id="action" mode="w" >
 viewHistory
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
