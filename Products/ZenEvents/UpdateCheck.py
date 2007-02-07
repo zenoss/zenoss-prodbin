@@ -88,7 +88,10 @@ class UpdateCheck:
                 return
         now = long(time.time())
         dmd.lastVersionCheckAttempt = now
-        available = self.getUpdate(dmd, manual)
+        try:
+            available = self.getUpdate(dmd, manual)
+        except IOError:
+            available = None
         if not isinstance(available, Version):
             # We did not successfully get a version, don't continue
             return
