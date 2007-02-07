@@ -21,10 +21,12 @@ class ZenMenuItem(ZenModelRM):
     description = ""
     action = ""
     permissions = (Permissions.view,)
+    isglobal = True
     
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'action', 'type':'text', 'mode':'w'},
+        {'id':'isglobal', 'type':'boolean','mode':'w'},
         {'id':'permissions', 'type':'lines', 'mode':'w'},
         )
 

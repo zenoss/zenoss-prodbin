@@ -35,7 +35,7 @@ class ZenMenu(ZenModelRM):
     security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'manage_addZenMenuItem')
-    def manage_addZenMenuItem(self, id=None, desc='', action='',
+    def manage_addZenMenuItem(self, id=None, desc='', action='', isglobal=True,
             permissions=(Permissions.view,), REQUEST=None):
         """ Add a menu item to a menu """
         mi = None
@@ -45,6 +45,7 @@ class ZenMenu(ZenModelRM):
             mi.description = desc
             mi.action = action
             mi.permissions = permissions
+            mi.isglobal = isglobal
         return mi
  
     security.declareProtected('Change Device', 'manage_deleteZenMenuItem')
