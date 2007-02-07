@@ -16,7 +16,10 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenUtils.Utils import importClass
+
 import os
+import sys
 
 class ReportServer(ZenModelRM):
     security = ClassSecurityInfo()
@@ -28,22 +31,23 @@ class ReportServer(ZenModelRM):
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
         m = os.path.join(os.environ['ZENHOME'],
-                         'Products/ZenReports/plugins/%s.py' % name)
-        exec open(m)
-        return report
-        report = None
-        reportDirectores = [
-            pack.path('report', 'plugins') for p in self.packs
-            ] + [os.path.join(os.environ['ZENHOME'],
-                              'Products/ZenReports/plugins')]
-        for d in reportDirectores:
-            try:
-                m = os.path.join(d, '%s.py' % name)
-                exec open(m)
-                return report
-            except IOError:
-                pass
-        raise IOError('Unable to find plugin named "%s"' % name)
+                         'Products/ZenReports/plugins')
+        directories = [
+            p.path('report', 'plugins') for p in self.packs()
+            ] + [m]
+        
+        klass = None
+        for d in directories:
+            if os.path.exists('%s/%s.py' % (d, name)):
+                try:
+                    sys.path.insert(0, d)
+                    klass = importClass(name)
+                finally:
+                    sys.path.remove(d)
+        if not klass:
+            raise IOError('Unable to find plugin named "%s"' % name)
+        instance = klass()
+        return instance.run(dmd, args)
 
 def manage_addReportServer(context, id, REQUEST = None):
     """make a ReportServer"""
