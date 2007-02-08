@@ -113,6 +113,7 @@ class InterfaceMap(SnmpPlugin):
         om.id = cleanstring(om.id) #take off \x00 at end of string
         # Left in interfaceName, but added title for
         # the sake of consistency
+        if not om.id: om.id = '%s' % iface['ifindex']
         om.interfaceName = om.id
         om.title = om.id
         om.id = self.prepId(om.interfaceName)
