@@ -16,6 +16,7 @@
         <tal:block metal:define-slot="head-local"/>
     </head>
 	<body>
+    <tal:block metal:use-macro="here/dialogmacros/macros/dialog_buttons"/>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div id="paneToggle">

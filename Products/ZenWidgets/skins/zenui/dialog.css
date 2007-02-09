@@ -1,0 +1,40 @@
+.dialog {
+    min-height: 200px;
+    min-width: 300px;
+    background-color: lightyellow;
+    border: 2px solid darkgrey;
+    position: absolute;
+    padding: 2em;
+}
+
+.dialog_close {
+    width: 1.2em;
+    height: 1.2em;
+    background-color: lightgrey;
+    color: grey;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.2em;
+    border: 1px solid grey;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    cursor: pointer;
+}
+
+#dialog_buttons {
+    position:absolute;
+    bottom: 0px;
+    right:0px;
+    padding: 1em;
+    text-align:center;
+}
+
+#dialog_buttons input {
+    border: 1px solid darkgrey;
+}
+
+
+#dialog_buttons input:hover {
+    background-color: lightgrey;
+}

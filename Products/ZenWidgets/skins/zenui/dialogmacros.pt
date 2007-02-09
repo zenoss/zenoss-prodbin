@@ -1,0 +1,35 @@
+<!--============Basic dialog box wrapper===============-->
+<tal:block metal:define-macro="dialog">
+<script src="dialog.js"></script>
+<link href="dialog.css" rel="stylesheet" type="text/css" />
+<div id="dialog" class="dialog"> 
+<div id="dialog_close" class="dialog_close">X</div>
+<div id="dialog_content">
+    <tal:block metal:define-slot="dialog_content">
+        This is a dialog box.
+	</tal:block>
+</div>
+</div>
+<script>
+new Dialog.Box($('dialog'));
+connect('dialog_close','onclick',function(){$('dialog').hide()});
+</script>
+</tal:block>
+
+<tal:block metal:define-macro="dialog_buttons">
+<tal:block metal:use-macro="here/dialogmacros/macros/dialog">
+<tal:block metal:fill-slot="dialog_content">
+<tal:block metal:define-slot="dialog_content">
+Content.
+</tal:block>
+<div id="dialog_buttons" >
+<input id="dialog_ok" type="button" value="OK" />
+<input id="dialog_cancel" type="button" value="Cancel" />
+<script>
+connect('dialog_ok', 'onclick', function(){$('dialog').hide()});
+connect('dialog_cancel', 'onclick', function(){$('dialog').hide()});
+</script>
+</div>
+</tal:block>
+</tal:block>
+</tal:block>
