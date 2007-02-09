@@ -33,7 +33,7 @@ class ReportServer(ZenModelRM):
         m = os.path.join(os.environ['ZENHOME'],
                          'Products/ZenReports/plugins')
         directories = [
-            p.path('report', 'plugins') for p in self.packs()
+            p.path('reports', 'plugins') for p in self.packs()
             ] + [m]
         
         klass = None
@@ -42,6 +42,7 @@ class ReportServer(ZenModelRM):
                 try:
                     sys.path.insert(0, d)
                     klass = importClass(name)
+                    break
                 finally:
                     sys.path.remove(d)
         if not klass:
