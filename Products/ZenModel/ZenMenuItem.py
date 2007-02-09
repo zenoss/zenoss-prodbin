@@ -22,7 +22,7 @@ class ZenMenuItem(ZenModelRM):
     action = ""
     permissions = (Permissions.view,)
     isglobal = True
-    banned_classes = ()
+    banned_classes = () 
     allowed_classes = ()
     
     _properties = (

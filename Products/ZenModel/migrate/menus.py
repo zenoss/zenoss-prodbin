@@ -96,7 +96,7 @@ class MenuRelations(Migrate.Step):
                      description='perfConf',
                      action=     'objRRDTemplate',
                      permissions=('Change Device',),
-                     allowed_classes=('Device')
+                     allowed_classes=('Device',)
                     ),
                 dict(
                      id=         'zproperties',
@@ -137,7 +137,7 @@ class MenuRelations(Migrate.Step):
                      description='Status',
                      action=     'deviceStatus',
                      permissions=('View',),
-                     allowed_classes=('Device')
+                     allowed_classes=('Device',)
                     ),
 
                 ]
