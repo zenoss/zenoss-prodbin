@@ -1,0 +1,55 @@
+    #menuBlock {
+        position:relative;
+        float:right;
+        width: 12em;
+        z-index: 2000;
+    }
+    .contextmenu * {
+        padding: 0;
+        margin:0;
+        font-weight: normal;
+    }
+    .contextmenu {
+        position:relative;
+        top: 3px;
+    }
+    .contextmenubutton {
+        display: inline;
+        min-width: 5em;
+        text-align: center;
+        height: 2em;
+        line-height: 2em;
+        cursor: pointer;
+        float:right;
+        margin-right:10px;
+        background-color: #E0E0E0;
+        border: 1px solid #5A6F8F;
+        border-bottom-width: 0px;
+    }
+    .contextmenuitems {
+        position: absolute;
+        right: 5px;
+        width: 12em;
+        top: 25px;
+        border: 1px solid #5A6F8F;
+        background-color: white;
+    }
+    .contextmenuitems ul.zenMenu {
+        list-style-type: none;
+    }
+    ul.zenMenu li {
+        border-bottom: 1px dotted grey;
+    }
+    .contextmenuitems ul.zenMenu li a {
+        text-align: justify;
+        text-decoration: none;
+        display:block;
+        padding: 5px;
+        height: 100%;
+    }
+    .contextmenuitems ul li a:hover {
+        background-color: #DEDEFF;
+    }
+    div.menuselected {
+        background-color: red;
+    }

@@ -19,8 +19,7 @@ Dialog.Box.prototype = {
         this.parentElem = this.box.parentNode;
         setStyle(this.box, {
             'position':'absolute',
-            'z-index':'3001',
-            'display':'none'});
+            'z-index':'3001'});
     },
     makeDimBg: function() {
         if($('dialog_dim_bg')) {
