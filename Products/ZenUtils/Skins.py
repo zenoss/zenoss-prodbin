@@ -2,15 +2,11 @@ import sys, os
 
 def registerSkin(self, base, positionAfter='custom'):
     """setup the skins in a product"""
-    from Products.CMFCore.DirectoryView import registerDirectory
-    registerDirectory('skins', base)
-
     layers = []
     for p, ds, fs in os.walk(os.path.join(base, 'skins')):
         for d in ds:
             if not d.startswith('.'):
                 layers.append(d)
-        # just get dirs below skins
         break
     try:
         import string 
@@ -19,7 +15,7 @@ def registerSkin(self, base, positionAfter='custom'):
         skinstool = getToolByName(self, 'portal_skins')
         for layer in layers:
             if layer not in skinstool.objectIds():
-                addDirectoryViews(skinstool, 'skins', context)
+                addDirectoryViews(skinstool, 'skins', base)
         skins = skinstool.getSkinSelections()
         for skin in skins:
             path = skinstool.getSkinPath(skin)
