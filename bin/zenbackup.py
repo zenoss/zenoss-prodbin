@@ -21,6 +21,10 @@ from datetime import date
 import getpass
 import ConfigParser
 import select
+import popen2
+import signal
+import fcntl
+import time
 
 from zenbackupcommon import *
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
@@ -37,21 +41,30 @@ class ZenBackup(CmdBase):
     def isZeoUp(self):
         ''' Returns True is zeo appears to be running, false otherwise.
         '''
-        pollPeriod = 0.5
         cmd = '%s/bin/zeoup.py -p 8100' % self.zenhome
         child = popen2.Popen4(cmd)
-        firstPass = True
-        while time.time() < endtime and (firstPass or child.poll() == -1):
-            firstPass = False
-            r, w, e = select.select([
-        i, o = os.popen2('%s/bin/zeoup.py -p 8100' % self.zenhome)
-        zeoup = False
+        read = ''
         try:
-            zeoup = o.readline().startswith('Elapsed time')
-        finally:        
-            i.close()
-            o.close()
-        return zeoup
+            flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
+            fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
+            timeout = 10
+            endtime = time.time() + timeout
+            pollPeriod = 1
+            firstPass = True
+            out = ''
+            while time.time() < endtime and (firstPass or child.poll() == -1):
+                firstPass = False
+                r, w, e = select.select([child.fromchild], [], [], pollPeriod)
+                if r:
+                    t = child.fromchild.read()
+                    if t:
+                        read += t
+        finally:                    
+            if child.poll() == -1:
+                os.kill(child.pid, signal.SIGKILL)
+            
+        return read.startswith('Elapsed time:')
+
 
 
     def readSettingsFromZeo(self):
@@ -147,10 +160,7 @@ class ZenBackup(CmdBase):
         ''' Create a backup of the data and configuration for a zenoss install.
         getWhatYouCan == True means to continue without reporting errors even
         if this appears to be an incomplete zenoss install.
-        '''
-        
-        import pdb; pdb.set_trace()
-        
+        '''        
         # Setup defaults for db info
         if self.options.fetchArgs and self.isZeoUp():
             self.readSettingsFromZeo()
