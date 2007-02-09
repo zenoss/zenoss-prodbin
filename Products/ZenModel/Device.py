@@ -127,6 +127,12 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, performanceMonitor, priority)
+    if discoverProto == "none":
+        from Products.ZenModel.IpInterface import IpInterface
+        tmpInterface = IpInterface('eth0')
+        device.os.interfaces._setObject('eth0', tmpInterface)
+        interface = device.getDeviceComponents()[0]
+        interface.addIpAddress(device.getManageIp())
     return device
 
 
