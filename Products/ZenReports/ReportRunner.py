@@ -9,8 +9,8 @@ class ReportRunner(ZCmdBase):
         plugin =  self.args[0]
         args = {}
         for a in self.args[1:]:
-            if args.find('=') > -1:
-                key, value = args.split('=', 1)
+            if a.find('=') > -1:
+                key, value = a.split('=', 1)
                 args[key] = value
         self.log.debug("Running '%s' with %r", plugin, args)
         result = self.dmd.ReportServer.plugin(plugin, args)
