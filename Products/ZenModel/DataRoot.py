@@ -104,7 +104,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {
             'id'             : 'DataRoot',
             'meta_type'      : 'DataRoot',
-            'description'    : """Arbitrary devlastVersionice grouping class""",
+            'description'    : """Arbitrary device grouping class""",
             'icon'           : 'DataRoot_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addStatusMonitorconf',
