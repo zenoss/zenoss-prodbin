@@ -30,6 +30,8 @@ class ZenMenuItem(ZenModelRM):
         {'id':'action', 'type':'text', 'mode':'w'},
         {'id':'isglobal', 'type':'boolean','mode':'w'},
         {'id':'permissions', 'type':'lines', 'mode':'w'},
+        {'id':'banned_classes','type':'lines','mode':'w'},
+        {'id':'allowed_classes','type':'lines','mode':'w'},
         )
 
     _relations =  (

@@ -89,14 +89,14 @@ class MenuRelations(Migrate.Step):
                      description='perfConf',
                      action=     'perfConfig',
                      permissions=('Change Device',),
-                     allowed_classes=(DeviceClass,)
+                     allowed_classes=('DeviceClass',)
                     ),
                 dict(
                      id=         'perfConfigDevice',
                      description='perfConf',
                      action=     'objRRDTemplate',
                      permissions=('Change Device',),
-                     allowed_classes=(Device,)
+                     allowed_classes=('Device')
                     ),
                 dict(
                      id=         'zproperties',
@@ -111,7 +111,7 @@ class MenuRelations(Migrate.Step):
                      description='Devices',
                      action=     'deviceList',
                      permissions=('View',),
-                     allowed_classes=(DeviceClass,)
+                     allowed_classes=('DeviceClass',)
                     ),
                 dict(
                      id=         'events',
@@ -130,14 +130,14 @@ class MenuRelations(Migrate.Step):
                      description='Classes',
                      action=     'deviceOrganizerStatus',
                      permissions=('View',),
-                     allowed_classes=(DeviceClass,)
+                     allowed_classes=('DeviceClass',)
                     ),
                 dict(
                      id=         'status',
                      description='Status',
                      action=     'deviceStatus',
                      permissions=('View',),
-                     allowed_classes=(Device,)
+                     allowed_classes=('Device')
                     ),
 
                 ]

@@ -40,22 +40,10 @@ True
 </object>
 </tomanycont>
 </object>
-
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <tomanycont id='zenMenus'>
 <object id='Edit' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='manageob' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Manage
-</property>
-<property type="text" id="action" mode="w" >
-deviceOrganizerManage
-</property>
-<property type="lines" id="permissions" mode="w" >
-('View',)
-</property>
-</object>
 <object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Custom Schema
@@ -63,19 +51,59 @@ Custom Schema
 <property type="text" id="action" mode="w" >
 editCustSchema
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
 </object>
+<object id='manageob' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Manage
+</property>
+<property type="text" id="action" mode="w" >
+deviceOrganizerManage
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+</object>
 <object id='perfConfig' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-PerfConf
+perfConf
 </property>
 <property type="text" id="action" mode="w" >
 perfConfig
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+('DeviceClass',)
+</property>
+</object>
+<object id='perfConfigDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+perfConf
+</property>
+<property type="text" id="action" mode="w" >
+objRRDTemplate
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+Device
 </property>
 </object>
 <object id='zproperties' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -85,6 +113,9 @@ zProperties
 <property type="text" id="action" mode="w" >
 zPropertyEdit
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
@@ -93,6 +124,23 @@ zPropertyEdit
 </object>
 <object id='View' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
+<object id='classes' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Classes
+</property>
+<property type="text" id="action" mode="w" >
+deviceOrganizerStatus
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+('DeviceClass',)
+</property>
+</object>
 <object id='devicelist' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Devices
@@ -100,8 +148,14 @@ Devices
 <property type="text" id="action" mode="w" >
 deviceList
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+('DeviceClass',)
 </property>
 </object>
 <object id='events' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -110,6 +164,9 @@ Events
 </property>
 <property type="text" id="action" mode="w" >
 viewEvents
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
@@ -122,6 +179,9 @@ History
 <property type="text" id="action" mode="w" >
 viewHistoryEvents
 </property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
 </property>
@@ -131,10 +191,16 @@ viewHistoryEvents
 Status
 </property>
 <property type="text" id="action" mode="w" >
-deviceOrganizerStatus
+deviceStatus
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+Device
 </property>
 </object>
 </tomanycont>

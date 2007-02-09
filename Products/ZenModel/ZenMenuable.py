@@ -102,9 +102,9 @@ class ZenMenuable:
                         if not permok \
                            or (not getattr(i, 'isglobal', True) and \
                                not context==i.getMenuItemOwner())\
-                           or ( i.allowed_classes and not isinstance(
-                                  context, i.allowed_classes) ) \
-                           or isinstance(context, i.banned_classes): 
+                           or (i.allowed_classes and not \
+                              context.__class__.__name__ in i.allowed_classes)\
+                           or context.__class__.__name__ in i.banned_classes: 
                             continue
                         menu[i.id] = i
         keys = menus.keys()
