@@ -18,6 +18,7 @@ Dialog.Box.prototype = {
 
         this.parentElem = this.box.parentNode;
         setStyle(this.box, {
+            'position':'absolute',
             'z-index':'3001',
             'display':'none'});
     },

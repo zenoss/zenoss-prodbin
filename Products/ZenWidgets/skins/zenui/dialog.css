@@ -5,6 +5,7 @@
     border: 2px solid darkgrey;
     position: absolute;
     padding: 2em;
+    display:none;
 }
 
 .dialog_close {
