@@ -60,7 +60,6 @@ class ZenRestore(CmdBase):
         try:
             f = open(os.path.join(tempDir, CONFIG_FILE), 'r')
         except:
-            raise
             return
         try:
             config = ConfigParser.SafeConfigParser()
