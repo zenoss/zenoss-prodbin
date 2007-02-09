@@ -54,7 +54,9 @@ class ZenStatus(ZCmdBase):
                 reactor.runUntilCurrent()
                 if not self.clients or self.stopping:
                     break
-                reactor.doIteration(reactor.timeout())
+                secs = reactor.timeout()
+                if secs is None: break
+                reactor.doIteration(secs)
             except (SystemExit, KeyboardInterrupt): raise
             except:
                 self.log.exception("unexpected error in reactorLoop")
