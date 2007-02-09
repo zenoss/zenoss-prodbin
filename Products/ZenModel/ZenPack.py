@@ -31,7 +31,7 @@ def zenPackPath(*parts):
 class ZenPackBase(ZenPack):
     
     zope.interface.implements(interfaces.IZenPack)
-    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons())
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins())
 
     def __init__(self, id):
         ZenPack.__init__(self, id)

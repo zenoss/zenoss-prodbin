@@ -23,6 +23,14 @@ def findFiles(pack, directory, filter=None):
                     result.append(os.path.join(p, f))
     return result
 
+def findDirectories(pack, directory):
+    result = []
+    for p, ds, fs in os.walk(pack.path(directory)):
+        if not os.path.split(p)[-1].startswith('.'):
+            for d in ds:
+                result.append(os.path.join(p, d))
+    return result
+
 def branchAfter(filename, directory, prefix = ""):
     "return the branch after the given directory name"
     path = filename.split('/')
@@ -145,15 +153,28 @@ class ZPLDaemons(ZenPackLoader):
             os.chmod(fs, 0755)
 
     def list(self, pack, cmd):
-        return [branchAfter(d, 'daemons')
-                for d in findFiles(pack, 'daemons')]
+        return [branchAfter(d, 'daemons') for d in findFiles(pack, 'daemons')]
 
 
 class ZPLModelers(ZenPackLoader):
 
     name = "Modeler Plugins"
 
+
     def list(self, pack, cmd):
         return [branchAfter(d, 'plugins')
                 for d in findFiles(pack, 'modeler/plugins')]
 
+
+class ZPLSkins(ZenPackLoader):
+
+    name = "Skins"
+
+
+    def load(self, pack, cmd):
+        from Products.ZenUtils.Skins import registerSkin
+        registerSkin(cmd.dmd, pack.path(''))
+
+
+    def list(self, pack, cmd):
+        return [branchAfter(d, 'skins') for d in findDirectories(pack, 'skins')]

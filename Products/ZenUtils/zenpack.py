@@ -90,12 +90,15 @@ class ZenPackCmd(ZCmdBase):
             self.stop("%s already exists" % root)
         self.log.debug('Extracting ZenPack "%s"' % packName)
         for name in zf.namelist():
+            fullname = os.path.join(os.environ['ZENHOME'], 'Products', name)
             self.log.debug('Extracting %s' % name)
+            if name.find('/.svn') > -1: continue
+            if name.endswith('~'): continue
             if name.endswith('/'):
-                if not os.path.exists(name):
-                    os.makedirs(name)
+                if not os.path.exists(fullname):
+                    os.makedirs(fullname)
             else:
-                file(name, 'wb').write(zf.read(name))
+                file(fullname, 'wb').write(zf.read(name))
         return packName
         
 
