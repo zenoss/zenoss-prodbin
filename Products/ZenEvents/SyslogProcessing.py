@@ -73,7 +73,7 @@ class SyslogProcessor(object):
 
 
     def process(self, msg, ipaddr, host, rtime):
-        evt = SyslogEvent(device=host,ipAddress=ipaddr, rcvtime=rtime)
+        evt = SyslogEvent(device=host, ipAddress=ipaddr, rcvtime=rtime)
         slog.debug("host=%s, ip=%s", host, ipaddr)
         slog.debug(msg)
 
@@ -137,6 +137,7 @@ class SyslogProcessor(object):
         msglist = msg.split()
         if self.parsehost and not self.notHostSearch(msglist[0]):
             evt.hostname = msglist[0]
+            evt.device = evt.hostname
             slog.debug("parseHEADER hostname=%s", evt.hostname)
             msg = " ".join(msglist[1:])
         return evt, msg
