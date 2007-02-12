@@ -295,12 +295,12 @@ class ZenModeler(ZCmdBase):
                             collectorClient.hostname)
             device = collectorClient.device
             self.applyData.processClient(device, collectorClient)
-            self.fillCollectionSlots()
         finally:
             try: self.clients.remove(collectorClient)
             except ValueError:
                 self.log.warn("client %s not found in active clients",
                                 collectorClient.hostname)
+        self.fillCollectionSlots()
 
 
     def checkStop(self):
@@ -326,7 +326,7 @@ class ZenModeler(ZCmdBase):
         """If there are any free collection slots fill them up
         """
         count = len(self.clients)
-        while (count <= self.options.parallel and
+        while (count < self.options.parallel and
                self.devicegen and not self.slowDown):
             try:
                 device = self.devicegen.next()
