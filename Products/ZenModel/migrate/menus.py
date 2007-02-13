@@ -140,6 +140,14 @@ class MenuRelations(Migrate.Step):
                      allowed_classes=('Device',)
                     ),
 
+                ],
+            'Device':[
+                dict(
+                    id=         'moveclass',
+                    description='Move to Class...',
+                    action=     'dialog_moveDevices',
+                    permissions=('View',)
+                    )
                 ]
             })
 

@@ -21,7 +21,11 @@ connect('dialog_close','onclick',function(){$('dialog').hide()});
 <tal:block metal:use-macro="here/dialogmacros/macros/dialog">
 <tal:block metal:fill-slot="dialog_content">
 <tal:block metal:define-slot="dialog_content">
-Content.
+<div style="text-align:center">
+<h2>Loading...</h2>
+<br/>
+<img src="spinning_wheel_throbber.gif"/>
+</div>
 </tal:block>
 <div id="dialog_buttons" >
 <input id="dialog_ok" type="button" value="OK" />
