@@ -10,12 +10,10 @@
     margin:0;
     font-weight: normal;
 }
+.littlemenu,
 .contextmenu {
-    position:relative;
-    top:3px;
-}
-.littlemenu {
-    position:relative;
+    position: relative;
+    cursor:pointer;
 }
 .contextmenubutton {
     display: inline;
@@ -33,9 +31,9 @@
 .devmovemenuitems,
 .contextmenuitems {
     position: absolute;
-    right: 5px;
+    right: 2px;
     width: 12em;
-    top: 25px;
+    top: 22px;
     border: 1px solid #5A6F8F;
     background-color: white;
 }
@@ -60,7 +58,6 @@ ul.zenMenu li a:hover {
     background-color: #DEDEFF;
 }
 div.menuselected {
-    background-color: red;
 }
 
 div.devmovemenu {

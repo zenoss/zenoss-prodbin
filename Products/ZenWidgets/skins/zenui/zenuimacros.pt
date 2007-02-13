@@ -5,6 +5,7 @@
 <link href="menus.css" rel="stylesheet" type="text/css" />
 
 <tal:block tal:repeat="menu_id menu_ids">
+<td>
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
                 pathtrans here/REQUEST/PATH_TRANSLATED;
@@ -14,10 +15,8 @@
                       pathtrans)"
     tal:condition="menuitems">
 
-        <div class="contextmenubutton"
-             tal:attributes="id string:${menu_id}_btn"
-             tal:content="menu_id">
-        BUTTON
+        <div tal:attributes="id string:${menu_id}_btn">
+        <a class="tabletitle" tal:content="string:${menu_id}...">Stuff</a>
         </div>
 
         <div class="contextmenuitems invisible"
@@ -49,6 +48,7 @@
         ">
         </script>
     </div>
+</td>
     </tal:block>
 </tal:block>
 

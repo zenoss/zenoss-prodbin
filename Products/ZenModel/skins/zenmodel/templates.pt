@@ -190,9 +190,6 @@
 <div id="breadCrumbPane" metal:define-macro="breadCrumbPane"
     style="position:relative">
     <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
-    <div id="menuBlock" metal:define-macro="menuBlock">
-        <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
-    </div>
 </div>
 
 <!-- ======================================================
@@ -209,6 +206,7 @@
                    '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);"
                 >TabName</a>
            </td>
+        <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
        </tr>
    </table>
 </div>
