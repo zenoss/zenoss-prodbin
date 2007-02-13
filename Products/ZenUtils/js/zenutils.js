@@ -10,13 +10,13 @@ postJSONDoc = function (url, postVars) {
 }
 var cancelWithTimeout = function (deferred, timeout) { 
     var canceller = callLater(timeout, function () { 
-        // cancel the deferred after timeout seconds 
-        deferred.cancel(); 
+        // cancel the deferred after timeout seconds 
+        deferred.cancel(); 
         //log("cancel load data")
-    }); 
-    return deferred.addCallback(function (res) { 
-        // if the deferred fires successfully, cancel the timeout 
-        canceller.cancel(); 
-        return res; 
-    }); 
+    }); 
+    return deferred.addCallback(function (res) { 
+        // if the deferred fires successfully, cancel the timeout 
+        canceller.cancel(); 
+        return res; 
+    }); 
 }; 
