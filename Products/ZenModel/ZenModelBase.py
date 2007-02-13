@@ -31,7 +31,7 @@ iscustprop = re.compile("^c[A-Z]").search
 
 class ZenModelBase(object):
     """
-    All ZenModel Persistent classes inherit from this class.  It profides
+    All ZenModel Persistent classes inherit from this class.  It provides
     some screen management functionality, and general utility methods.
     """
     sub_meta_types = ()
