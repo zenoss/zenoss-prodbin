@@ -271,7 +271,6 @@ class zenprocess(SnmpDaemon):
 
     def findPids(self, devices):
         "Scan all devices for process names and args"
-        devices = [d for d in devices if d.snmpStatus <= 1]
         jobs = NJobs(PARALLEL_JOBS, self.scanDevice, devices)
         return jobs.start()
 
