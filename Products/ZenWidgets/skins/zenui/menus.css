@@ -36,6 +36,7 @@
     top: 22px;
     border: 1px solid #5A6F8F;
     background-color: white;
+    z-index: 3000;
 }
 .devmovemenuitems {
     top: 20px;
@@ -69,6 +70,7 @@ div.devmovemenu {
     color: white;
     text-align:center;
     border-left: 1px dotted darkgrey;
+    z-index: 2000;
 }
 div.devmovemenu:hover {
     background-color: #222;
