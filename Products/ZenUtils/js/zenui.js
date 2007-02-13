@@ -77,7 +77,7 @@ function toggleLeftPane() {
     if (!isVisible(leftPane)) { showLeftPane() }
     else { hideLeftPane() }
 }
-
+var t;
 function doHover() {
     var leftPane = $('leftPane');
     var paneToggle = $('paneToggle');
@@ -93,10 +93,20 @@ function doHover() {
         'padding-top':'2px',
         'border':'1px solid darkgrey'
     });
-    connect(paneToggle, 'onmouseover', function(){showElement(lpPopup)});
-    connect(leftPane, 'onmouseover', function(){showElement(lpPopup)});
-    connect(paneToggle, 'onmouseout', function(){hideElement(lpPopup)});
-    connect(leftPane, 'onmouseout', function(){hideElement(lpPopup)});
+    connect(paneToggle, 'onmouseover', function(){
+        clearTimeout(t);
+        showElement(lpPopup)
+    });
+    connect(leftPane, 'onmouseover', function(){
+        clearTimeout(t);
+        showElement(lpPopup)
+    });
+    connect(paneToggle,'onmouseout',function(){
+        t=setTimeout('hideElement($("leftPane"))',500);
+    });
+    connect(leftPane, 'onmouseout', function(){
+        t=setTimeout('hideElement($("leftPane"))',500);
+    });
     setCookie('Zenoss_Collapsed_Menu', 'true',30,'/','','');
 }
 
