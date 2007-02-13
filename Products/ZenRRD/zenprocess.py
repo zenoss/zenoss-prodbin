@@ -283,6 +283,7 @@ class zenprocess(SnmpDaemon):
         """
         if time.time() - device.lastScan < self.snmpCycleInterval:
             return defer.succeed(None)
+        device.lastScan = time.time()
         tables = [NAMETABLE, ARGSTABLE]
         d = device.getTables(tables)
         d.addCallback(self.storeProcessNames, device)
@@ -322,7 +323,6 @@ class zenprocess(SnmpDaemon):
                            severity=Event.Clear)
         
             
-        device.lastScan = time.time()
         procs = []
         for namePart, argsPart in zip(sorted(results[NAMETABLE].items()),
                                       sorted(results[ARGSTABLE].items())):
