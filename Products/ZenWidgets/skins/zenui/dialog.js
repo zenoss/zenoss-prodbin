@@ -60,7 +60,7 @@ Dialog.Box.prototype = {
             y:(dims.h/2)-(bdims.h/2)
         });
         this.moveBox('front');
-        connect(this.dimbg, 'onclick', bind(this.hide, this));
+        //connect(this.dimbg, 'onclick', bind(this.hide, this));
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.5});
         showElement(this.box);
     },
