@@ -40,9 +40,6 @@ False
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
 False
 </property>
-<property visible="True" type="boolean" id="zWmiMonitorIgoner" >
-False
-</property>
 <property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
 False
 </property>
