@@ -8,6 +8,12 @@
     display:none;
 }
 
+.dialog input,
+.dialog select{
+    border: 1px solid darkgrey;
+    font-size: 1.2em;
+}
+
 .dialog_close {
     width: 1.2em;
     height: 1.2em;

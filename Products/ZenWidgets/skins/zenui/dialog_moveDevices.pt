@@ -1,12 +1,21 @@
-
-<input class="tableheader" type="submit" name="moveDevices:method"
-    value="Move To"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')"
-    />
+<h2>Edit Device Class</h2>
+<p>
+To which class would you like to move these devices?<br/>
+</p>
+<br/>
+<p style="text-align:center;">
 <select class="tableheader" name="moveTarget"
     tal:define="targets here/deviceMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
 </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="moveDevices:method"
+    value="Move"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'deviceList', '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

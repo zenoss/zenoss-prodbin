@@ -27,15 +27,23 @@ connect('dialog_close','onclick',function(){$('dialog').hide()});
 <img src="spinning_wheel_throbber.gif"/>
 </div>
 </tal:block>
-<div id="dialog_buttons" >
-<input id="dialog_ok" type="button" value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel" />
-<script>
-connect('dialog_ok', 'onclick', function(){$('dialog').hide()});
-connect('dialog_cancel', 'onclick', function(){$('dialog').hide()});
-</script>
-</div>
 </tal:block>
 </tal:block>
 </tal:block>
 
+
+<tal:block metal:define-macro="dialog_moveDevices">
+
+
+<input class="tableheader" type="submit" name="moveDevices:method"
+    value="Move To"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'deviceList', '${here/absolute_url_path}')"
+    />
+<select class="tableheader" name="moveTarget"
+    tal:define="targets here/deviceMoveTargets">
+    <option value=""></option>
+    <option tal:repeat="target targets"
+        tal:content="target">/Thing</option>
+</select>
+</tal:block>
