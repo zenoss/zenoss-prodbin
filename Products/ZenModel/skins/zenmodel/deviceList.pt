@@ -3,7 +3,7 @@
 <script type="text/javascript" 
     src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 
-<form method="POST" tal:attributes="action request/URL"
+<form method="POST" tal:attributes="action request/URL; name string:deviceList"
     tal:define="
         tableName string:devicelist;
         objects here/devices/getSubDevicesGen;
@@ -14,7 +14,10 @@
 <table class="zentable" cellpadding=3 cellspacing=1>
     
     <tr>
-      <th class="tabletitle" colspan="5">Device List</th>
+      <th class="tabletitle" colspan="5">Device List
+      </th>
+      <div class="devmovemenu"
+      metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
     </tr>
 	<tr>
 		<td colspan="5" class="tableheader" align='center'>

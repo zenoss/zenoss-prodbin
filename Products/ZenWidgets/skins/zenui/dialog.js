@@ -15,11 +15,13 @@ Dialog.Box.prototype = {
         this.box = $(id);
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
-
+        this.box.submit_form = bind(this.submit_form, this);
         this.parentElem = this.box.parentNode;
+        log(this.parentElem);
         setStyle(this.box, {
             'position':'absolute',
-            'z-index':'3001'});
+            'z-index':'3001',
+            'display':'none'});
     },
     makeDimBg: function() {
         if($('dialog_dim_bg')) {
@@ -46,9 +48,12 @@ Dialog.Box.prototype = {
             this.box = this.dimbg.parentNode.insertBefore(this.box, this.dimbg);
         }
     },
-    show: function() {
+    show: function(url) {
+        if (url) this.fetch(url);
         var dims = getViewportDimensions();
+        setStyle(this.box, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.box);
+        setStyle(this.box, {'z-index':'3001','display':'none'});
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.box, {
             x:(dims.w/2)-(bdims.w/2),
@@ -63,7 +68,21 @@ Dialog.Box.prototype = {
         fade(this.dimbg, {duration:0.1});
         hideElement(this.box);
         this.moveBox('back');
+    },
+    fetch: function(url) {
+        var d = doSimpleXMLHttpRequest(url);
+        d.addCallback(this.fill);
+    },
+    fill: function(request) {
+        $('dialog_content').innerHTML = request.responseText;
+    },
+    submit_form: function(formname, action) {
+        var f = document.forms[formname];
+        setStyle(this.box, {'z-index':'-1'});
+        this.box = removeElement(this.box);
+        f.action = action;
+        f.appendChild(this.box);
+        return true;
     }
 }
 
-        

@@ -39,3 +39,10 @@
 #dialog_buttons input:hover {
     background-color: lightgrey;
 }
+
+/* IE HACKS */
+
+* html .dialog {
+   height: 200px;
+   width: 300px;
+}

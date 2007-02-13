@@ -16,7 +16,8 @@ connect('dialog_close','onclick',function(){$('dialog').hide()});
 </script>
 </tal:block>
 
-<tal:block metal:define-macro="dialog_buttons">
+<!--=============Dialog with buttons===============-->
+<tal:block metal:define-macro="dialog_with_buttons">
 <tal:block metal:use-macro="here/dialogmacros/macros/dialog">
 <tal:block metal:fill-slot="dialog_content">
 <tal:block metal:define-slot="dialog_content">
@@ -33,3 +34,4 @@ connect('dialog_cancel', 'onclick', function(){$('dialog').hide()});
 </tal:block>
 </tal:block>
 </tal:block>
+

@@ -31,7 +31,7 @@
         </div>
 
         <script tal:content="string:
-            connect('${menu_id}_btn','onmouseover',function() {
+            connect('${menu_id}_btn','onclick',function() {
                 makeVisible('${menu_id}_items');
                 addElementClass('${menu_id}_btn','menuselected');});
             connect('${menu_id}_items', 'onmouseout',function() {
@@ -50,4 +50,56 @@
         </script>
     </div>
     </tal:block>
+</tal:block>
+
+<tal:block metal:define-macro="devmovemenu"
+    tal:define="menu_id string:Device">
+
+<link href="menus.css" rel="stylesheet" type="text/css" />
+
+<div class="littlemenu" tal:attributes="id menu_id"
+    tal:define="menuitems python:here.getMenus(menu_id, here);
+                pathtrans here/REQUEST/PATH_TRANSLATED;
+                basepath python:test(
+                      pathtrans.endswith(template.id),
+                      '/'.join(pathtrans.split('/')[:-1]),
+                      pathtrans)"
+    tal:condition="menuitems">
+
+        <div class="devmovemenu"
+             tal:attributes="id string:${menu_id}_btn"
+             tal:content="menu_id">
+        BUTTON
+        </div>
+
+        <div class="devmovemenuitems invisible"
+            tal:attributes="id string:${menu_id}_items">
+        <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
+            <li tal:repeat="i menuitems">
+                <a tal:attributes="href
+                string:javascript:$$('dialog').show('${basepath}/${i/action}')"
+                   tal:content="i/description">description</a>
+            </li>
+        </ul>
+        </div>
+
+        <script tal:content="string:
+            connect('${menu_id}_btn','onclick',function() {
+                makeVisible('${menu_id}_items');
+                addElementClass('${menu_id}_btn','menuselected');});
+            connect('${menu_id}_items', 'onmouseout',function() {
+                removeElementClass('${menu_id}_btn','menuselected');
+                makeInvisible('${menu_id}_items'); });
+            connect('${menu_id}_btn', 'onmouseout',function() {
+                removeElementClass('${menu_id}_btn','menuselected');
+                makeInvisible('${menu_id}_items'); });
+            connect('${menu_id}_items','onmouseover',function() {
+                addElementClass('${menu_id}_btn','menuselected');
+                makeVisible('${menu_id}_items'); });
+            connect('${menu_id}_items','onclick',function() {
+                makeInvisible('${menu_id}_items');
+            });
+        ">
+        </script>
+    </div>
 </tal:block>

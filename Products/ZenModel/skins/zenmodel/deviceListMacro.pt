@@ -1,5 +1,5 @@
 <tr metal:define-macro="deviceControl">
-	<script>
+	<!--<script>
 		function SetFormAction(evt, action) {
 			evt.target.form.action=action;
 			return true;
@@ -26,7 +26,7 @@
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
-    </td>
+    </td>-->
 </tr>
 
 
