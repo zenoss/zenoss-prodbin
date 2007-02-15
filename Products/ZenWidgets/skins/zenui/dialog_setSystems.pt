@@ -1,0 +1,20 @@
+<h2>Set Systems</h2>
+<p>
+Which systems would you like to set for these devices?
+</p>
+<p style="text-align:center;font-size:0.8em;">
+    <select class="tablevalues" name="systemPaths:list" multiple
+    tal:define="systems python:here.getDmdRoot('Systems').getOrganizerNames(True)" >
+        <option tal:repeat="system systems" 
+            tal:attributes="value system"
+            tal:content="system">localhost</option>
+    </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setSystems:method"
+    value="Set Systems"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'deviceList', '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

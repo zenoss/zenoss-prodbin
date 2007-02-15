@@ -1,0 +1,21 @@
+<h2>Set Groups</h2>
+<p>
+Which groups would you like to set for these devices?<br/>
+</p>
+<br/>
+<p style="text-align:center;font-size:0.8em;">
+    <select class="tablevalues" name="groupPaths:list" multiple
+    tal:define="groups python:here.getDmdRoot('Groups').getOrganizerNames(True)" >
+        <option tal:repeat="group groups" 
+            tal:attributes="value group"
+            tal:content="group">localhost</option>
+    </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setGroups:method"
+    value="Set Groups"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'deviceList', '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

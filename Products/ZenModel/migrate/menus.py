@@ -149,6 +149,24 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',)
                     ),
                 dict(
+                    id=         'setGroups',
+                    description='Set Groups...',
+                    action=     'dialog_setGroups',
+                    permissions=('Change Device',)
+                    ),
+                dict(
+                    id=         'setSystems',
+                    description='Set Systems...',
+                    action=     'dialog_setSystems',
+                    permissions=('Change Device',)
+                    ),
+                dict(
+                    id=         'setLocation',
+                    description='Set Location...',
+                    action=     'dialog_setLocation',
+                    permissions=('Change Device',)
+                    ),
+                dict(
                     id=         'removeDevices',
                     description='Delete devices...',
                     action=     'dialog_removeDevices',

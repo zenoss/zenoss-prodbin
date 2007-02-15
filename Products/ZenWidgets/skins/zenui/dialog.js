@@ -18,6 +18,7 @@ Dialog.Box.prototype = {
         this.box.submit_form = bind(this.submit_form, this);
         this.parentElem = this.box.parentNode;
         log(this.parentElem);
+        this.defaultContent = this.box.innerHTML
         setStyle(this.box, {
             'position':'absolute',
             'z-index':'3001',
@@ -66,6 +67,7 @@ Dialog.Box.prototype = {
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
+        this.box.innerHTML = this.defaultContent;
         hideElement(this.box);
         this.moveBox('back');
     },

@@ -12,11 +12,10 @@ class DeviceManagerBase:
         """see IManageDevice"""
         raise NotImplementedError
 
-    
     def getDeviceMoveTarget(self, moveTargetName):
         """see IManageDevice"""
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
-        
+
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
         """see IManageDevice"""

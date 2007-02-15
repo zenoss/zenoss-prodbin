@@ -228,7 +228,32 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
-    
+    def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
+        """ Provide a method to set device groups from any organizer """
+        if not groupPaths or not deviceNames: return self()
+        if type(deviceNames) == type(''): deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.setGroups(groupPaths)
+        if REQUEST: REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
+
+    def setSystems(self, systemPaths=None, deviceNames=None, REQUEST=None):
+        """ Provide a method to set device systems from any organizer """
+        if not systemPaths or not deviceNames: return self()
+        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.setSystems(systemPaths)
+        if REQUEST: return self()
+
+    def setLocation(self, locationPath=None, deviceNames=None, REQUEST=None):
+        """ Provide a method to set device location from any organizer """
+        if not locationPath or not deviceNames: return self()
+        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.setLocation(locationPath)
+        if REQUEST: return self()
 
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
