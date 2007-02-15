@@ -41,9 +41,6 @@ class BatchDeviceLoader(ZCmdBase):
         self.parser.add_option('-i', '--infile',
             dest="infile", default="",
             help="input file for import (default stdin)")
-        self.parser.add_option('--rate',
-            dest='rate', type="int", default=80,
-            help="events per sec to send")
 
     def parseDevices(self, rawDevices):
         _slash = re.compile(r'\s*/', re.M)
