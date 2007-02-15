@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+$PYTHON $ZENHOME/Products/ZenModel/BatchDeviceLoader.py "$CMD" $*
