@@ -13,6 +13,8 @@ $Id: IpNetwork.py,v 1.22 2004/04/12 16:21:25 edahl Exp $"""
 
 __version__ = "$Revision: 1.22 $"[11:-2]
 
+import os
+import sys
 import math
 import transaction
 import logging
@@ -34,6 +36,8 @@ from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import *
 
+from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
     net = IpNetwork(id, netmask=netmask)
@@ -42,12 +46,13 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
         net = context._getOb(net.id)
         net.buildZProperties()
         net.createCatalog()
+        #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
-
 addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
+
 
 # when an ip is added the defaul location will be
 # into class A->B->C network tree
@@ -385,6 +390,64 @@ class IpNetwork(DeviceOrganizer):
         cat = zcat._catalog
         cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
         zcat.addColumn('getPrimaryId')
-    
-     
+
+
+    def discoverDevices(self,REQUEST = None):
+        """
+        Load a device into the database connecting its major relations
+        and collecting its configuration. 
+        """
+        if REQUEST:
+            response = REQUEST.RESPONSE
+            dlh = self.deviceLoggingHeader()
+            idx = dlh.rindex("</table>")
+            response.write(str(dlh[:idx]))
+            handler = setWebLoggingStream(response)
+        try:
+            zendiscCmd = "zendisc run --net=%s" % self.id
+            log.info('Executing command: %s' % zendiscCmd)
+            from popen2 import Popen4
+            f = Popen4(zendiscCmd)
+            while 1:
+                s = f.fromchild.readline()
+                if not s: break
+                else: log.info(s)
+            log.info('Done')
+        except (SystemExit, KeyboardInterrupt): raise
+        except ZentinelException, e:
+            log.critical(e)
+        except: raise
+        if REQUEST:
+            self.loaderFooter(response)
+            clearWebLoggingStream(handler)
+
+
+    def setupLog(self, response):
+        """setup logging package to send to browser"""
+        from logging import StreamHandler, Formatter
+        root = logging.getLogger()
+        self._v_handler = StreamHandler(response)
+        fmt = Formatter("""<tr class="tablevalues">
+        <td>%(asctime)s</td><td>%(levelname)s</td>
+        <td>%(name)s</td><td>%(message)s</td></tr>
+        """, "%Y-%m-%d %H:%M:%S")
+        self._v_handler.setFormatter(fmt)
+        root.addHandler(self._v_handler)
+        root.setLevel(10)
+
+
+    def clearLog(self):
+        log = logging.getLogger()
+        if getattr(self, "_v_handler", False):
+            log.removeHandler(self._v_handler)
+
+
+    def loaderFooter(self, response):
+        """add navigation links to the end of the loader output"""
+        response.write("""<tr class="tableheader"><td colspan="4">
+            Navigate to network <a href=%s>%s</a></td></tr>""" 
+            % (self.absolute_url(), self.id))
+        response.write("</table></body></html>")
+
+
 InitializeClass(IpNetwork)

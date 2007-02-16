@@ -139,7 +139,6 @@ class MenuRelations(Migrate.Step):
                      permissions=('View',),
                      allowed_classes=('Device',)
                     ),
-
                 ],
             'Device':[
                 dict(
@@ -182,4 +181,15 @@ class MenuRelations(Migrate.Step):
             })
 
 
+        dmd.Networks.buildMenus(
+            {'Tools':[
+                dict(
+                    id=             'discover',
+                    description=    'Discover Devices', 
+                    action=         'discoverDevices', 
+                    allowed_classes='IpNetwork'
+                    ),
+                ]
+            })
+            
 MenuRelations()

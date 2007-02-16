@@ -1,6 +1,6 @@
 <tal:block metal:define-macro="contextmenu"
     tal:condition="python:hasattr(here, 'getMenus')"
-    tal:define="menu_ids menu_ids | python:['View','Edit']">
+    tal:define="menu_ids menu_ids | python:['View','Edit','Tools']">
 
 <link href="menus.css" rel="stylesheet" type="text/css" />
 
