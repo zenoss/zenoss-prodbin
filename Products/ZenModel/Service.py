@@ -22,11 +22,12 @@ from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
+from ZenPackable import ZenPackable
 
-class Service(OSComponent, Commandable):
+class Service(OSComponent, Commandable, ZenPackable):
     portal_type = meta_type = 'Service'
    
-    _relations = OSComponent._relations + (
+    _relations = OSComponent._relations + ZenPackable._relations + (
         ("serviceclass", ToOne(ToMany,"ServiceClass","instances")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )

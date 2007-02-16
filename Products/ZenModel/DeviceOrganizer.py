@@ -73,7 +73,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
          },
         )
 
-    _relations =  (
+    _relations =  Organizer._relations + (
         ("maintenanceWindows",
          ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
         ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),

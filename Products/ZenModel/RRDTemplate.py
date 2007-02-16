@@ -14,6 +14,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 
 from RRDDataPoint import SEPARATOR
+from ZenPackable import ZenPackable
 
 class ConfigurationError(Exception): pass
 
@@ -46,7 +47,7 @@ def crumbspath(templ, crumbs, idx=-1):
 
 
 
-class RRDTemplate(ZenModelRM):
+class RRDTemplate(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDTemplate'
 
@@ -58,7 +59,7 @@ class RRDTemplate(ZenModelRM):
         {'id':'description', 'type':'text', 'mode':'w'},
         )
 
-    _relations =  (
+    _relations =  ZenPackable._relations + (
         ("deviceClass", ToOne(ToManyCont,"RRDTemplate", "rrdTemplates")),
         ("datasources", ToManyCont(ToOne,"RRDDataSource", "rrdTemplate")),
         ("graphs", ToManyCont(ToOne,"RRDGraph", "rrdTemplate")),

@@ -23,6 +23,7 @@ from Acquisition import aq_parent
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
 def manage_addRRDDataPoint(context, id, REQUEST = None):
     """make a RRDDataPoint"""
@@ -47,7 +48,7 @@ def convertMethodParameter(value, type):
 
 class RRDDataPointError(Exception): pass
 
-class RRDDataPoint(ZenModelRM):
+class RRDDataPoint(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataPoint'
   
@@ -81,7 +82,7 @@ class RRDDataPoint(ZenModelRM):
         )
 
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("datasource", ToOne(ToManyCont,"RRDDataSource","datapoints")),
         )
     

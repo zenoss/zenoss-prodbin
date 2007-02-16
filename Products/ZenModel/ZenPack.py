@@ -19,9 +19,47 @@ __doc__="ZenPacks base definitions"
 class ZenPack(ZenModelRM):
     '''The root of all ZenPacks: has no implementation,
     but sits here to be the target of the Relation'''
+
+    objectPaths = None
+    author = ''
+    organization = ''
+    url = ''
+
+    _properties = ZenModelRM._properties + (
+        {'id':'objectPaths','type':'lines','mode':'w'},
+        {'id':'author', 'type':'string', 'mode':'w'},
+        {'id':'organization', 'type':'string', 'mode':'w'},
+        {'id':'url', 'type':'string', 'mode':'w'},
+    )
+    
     _relations =  (
         ('root', ToOne(ToManyCont, 'DataRoot', 'packs')),
+        ("packables", ToMany(ToOne, "ZenPackable", "pack")),
         )
+
+    factory_type_information = (
+        { 'immediate_view' : 'viewPackDetail',
+          'actions'        :
+          (
+           { 'id'            : 'viewPackDetail'
+             , 'name'          : 'Detail'
+             , 'action'        : 'viewPackDetail'
+             , 'permissions'   : ( "Manage DMD", )
+             },
+           )
+          },
+        )
+
+    def manage_deletePackable(self, packables=(), REQUEST=None):
+        "Delete objects from this ZenPack"
+        from sets import Set
+        packables = Set(packables)
+        for obj in self.packables():
+            if obj.getPrimaryUrlPath() in packables:
+                self.packables.removeRelation(obj)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
+            
 
 from Products.ZenModel.ZenPackLoader import *
 
@@ -40,22 +78,23 @@ class ZenPackBase(ZenPack):
         return zenPackPath(self.id, *args)
 
 
-    def install(self, cmd):
+    def install(self, app):
         for loader in self.loaders:
-            loader.load(self, cmd)
-        transaction.commit()
+            loader.load(self, app)
 
 
-    def remove(self, cmd):
+    def remove(self, app):
         for loader in self.loaders:
-            loader.unload(self, cmd)
+            loader.unload(self, app)
 
 
-    def list(self, cmd):
+    def list(self, app):
         result = []
         for loader in self.loaders:
             result.append((loader.name,
-                           [item for item in loader.list(self, cmd)]))
+                           [item for item in loader.list(self, app)]))
         return result
+
+
 
 InitializeClass(ZenPack)

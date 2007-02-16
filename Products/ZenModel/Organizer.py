@@ -21,8 +21,9 @@ from Products.ZenUtils.Exceptions import ZenPathError
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
         
-class Organizer(ZenModelRM, EventView):
+class Organizer(ZenModelRM, EventView, ZenPackable):
     """
     OrganizerBase class is base for all hierarchical organization classes.
     It allows Organizers to be addressed and created with file system like
@@ -34,7 +35,9 @@ class Organizer(ZenModelRM, EventView):
 
     _properties = (
                     {'id':'description', 'type':'string', 'mode':'w'},
-                   ) 
+                   )
+
+    _relations = ZenPackable._relations
     
  
     security = ClassSecurityInfo()

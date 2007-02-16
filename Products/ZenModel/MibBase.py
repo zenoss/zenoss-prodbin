@@ -5,8 +5,9 @@
 #################################################################
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
-class MibBase(ZenModelRM):
+class MibBase(ZenModelRM, ZenPackable):
     
     default_catalog = 'mibSearch'
 

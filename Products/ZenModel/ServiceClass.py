@@ -19,6 +19,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
 from Commandable import Commandable
+from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
 
@@ -39,7 +40,7 @@ def manage_addServiceClass(context, id=None, REQUEST = None):
 
 addServiceClass = DTMLFile('dtml/addServiceClass',globals())
 
-class ServiceClass(ZenModelRM, Commandable):
+class ServiceClass(ZenModelRM, Commandable, ZenPackable):
     meta_type = "ServiceClass"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -57,7 +58,7 @@ class ServiceClass(ZenModelRM, Commandable):
         {'id':'contact', 'type':'string', 'mode':'w'},
         ) 
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("instances", ToMany(ToOne, "Service", "serviceclass")),
         ("serviceorganizer", 
             ToOne(ToManyCont,"ServiceOrganizer","serviceclasses")),

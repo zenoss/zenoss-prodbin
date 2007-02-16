@@ -12,8 +12,9 @@ from Products.ZenRelations.RelSchema import *
 from Acquisition import aq_chain
 
 from OSComponent import OSComponent
+from ZenPackable import ZenPackable
 
-class OSProcess(OSComponent, Commandable):
+class OSProcess(OSComponent, Commandable, ZenPackable):
     """Hardware object"""
     portal_type = meta_type = 'OSProcess'
 
@@ -28,7 +29,7 @@ class OSProcess(OSComponent, Commandable):
         {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
     )
 
-    _relations = OSComponent._relations + (
+    _relations = OSComponent._relations + ZenPackable._relations + (
         ("os", ToOne(ToManyCont, "OperatingSystem", "processes")),
         ("osProcessClass", ToOne(ToMany, "OSProcessClass", "instances")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),

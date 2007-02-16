@@ -41,47 +41,44 @@ class ZenPackLoader:
 
     name = "Set This Name"
 
-    def load(self, pack, cmd):
+    def load(self, pack, app):
         """Load things from the ZenPack and put it 
-        into the app available on cmd"""
+        into the app"""
 
-    def unload(self, pack, cmd):
+    def unload(self, pack, app):
         """Remove things from Zenoss defined in the ZenPack"""
 
-    def list(self, pack, cmd):
+    def list(self, pack, app):
         "List the items that would be loaded from the given (unpacked) ZenPack"
 
 from xml.sax import saxutils, make_parser
 from xml.sax.handler import ContentHandler
 
-class PathTracker(ContentHandler):
-    "Keep the object path as we navigate XML"
-    def __init__(self):
-        self.stack = ['']
-    def startElement(self, name, attrs):
-        id = attrs.get('id', None)
-        if id:
-            if self.stack[-1]:
-                id = self.stack[-1] + '/' + id
-        else:
-            id = self.stack[-1]
-        self.stack.append(id)
-    def endElement(self, name):
-        id = self.stack.pop()
-    def path(self):
-        return self.stack[-1]
-
 class ZPLObject(ZenPackLoader):
 
     name = "Objects"
 
-    def load(self, pack, cmd):
+    def load(self, pack, app):
         from Products.ZenRelations.ImportRM import ImportRM
-        importer = ImportRM(noopts=True, app=cmd.app)
+        class AddToPack(ImportRM):
+            def endElement(self, name):
+                if name == 'object':
+                    obj = self.objstack[-1]
+                    log.debug('Now adding %s', obj.getPrimaryUrlPath())
+                    try:
+                        obj.buildRelations()
+                        obj.addRelation('pack', pack)
+                    except Exception, ex:
+                        log.exception("Error adding pack to %s",
+                                      obj.getPrimaryUrlPath())
+                    
+                ImportRM.endElement(self, name)
+        importer = AddToPack(noopts=True, app=app)
         importer.options.noindex = True
         for f in self.objectFiles(pack):
             log.info("Loading %s", f)
             importer.loadObjectFromXML(xmlfile=f)
+
 
     def parse(self, filename, handler):
         parser = make_parser()
@@ -89,34 +86,21 @@ class ZPLObject(ZenPackLoader):
         parser.parse(open(filename))
         
 
-    def unload(self, pack, cmd):
-        class Deleter(PathTracker):
-            def endElement(self, name):
-                PathTracker.endElement(self, name)
-                id = self.path()
-                if name == 'object' and id:
-                    log.info("Removing %s", id)
-                    path = id.split('/')
-                    id = path.pop()
-                    try:
-                        obj = getObjByPath(cmd.app, path)
-                        obj._delObject(id)
-                    except (AttributeError, KeyError), ex:
-                        log.warning("Unable to remove %s on %s", id,
-                                    '/'.join(path))
-        for f in self.objectFiles(pack):
-            self.parse(f, Deleter())
+    def unload(self, pack, app):
+        dmd = app.zport.dmd
+        for obj in pack.packables():
+            path = obj.getPrimaryPath()
+            path, id = path[:-1], path[-1]
+            try:
+                obj = dmd.getObjByPath(path)
+                obj._delObject(id)
+            except (AttributeError, KeyError), ex:
+                log.warning("Unable to remove %s on %s", id,
+                            '/'.join(path))
 
-    def list(self, pack, cmd):
-        objs = []
-        class Collector(PathTracker):
-            def startElement(self, name, attrs):
-                PathTracker.startElement(self, name, attrs)
-                if name == 'object' and self.path():
-                    objs.append(self.path())
-        for f in self.objectFiles(pack):
-            self.parse(f, Collector())
-        return objs
+
+    def list(self, pack, app):
+        return [obj.getPrimaryUrlPath() for obj in pack.packables()]
         
 
     def objectFiles(self, pack):
@@ -124,35 +108,29 @@ class ZPLObject(ZenPackLoader):
         return findFiles(pack, 'objects', isXml)
 
 
-class ZPLReport(ZenPackLoader):
+class ZPLReport(ZPLObject):
 
     name = "Reports"
 
-    def load(self, pack, cmd):
-        rl = ReportLoader(noopts=True, app=cmd.app)
-        rl.options = cmd.options
+    def load(self, pack, app):
+        class HookReportLoader(ReportLoader):
+            def loadFile(self, root, id, fullname):
+                rpt = ReportLoader.loadFile(self, root, id, fullname)
+                rpt.addRelation('pack', pack)
+                return rpt
+        rl = HookReportLoader(noopts=True, app=app)
+        rl.options.force = True
         rl.loadDirectory(pack.path('reports'))
-
-    def unload(self, pack, cmd):
-        rl = ReportLoader(noopts=True, app=cmd.app)
-        rl.unloadDirectory(pack.path('reports'))
-
-    def list(self, pack, cmd):
-        def rpt(f):
-            return f.endswith('.rpt')
-        return [branchAfter(fs[:-4], 'reports', "/zport/dmd/Reports/")
-                for fs in findFiles(pack, 'reports', rpt)]
-
 
 class ZPLDaemons(ZenPackLoader):
 
     name = "Daemons"
 
-    def load(self, pack, cmd):
+    def load(self, pack, app):
         for fs in findFiles(pack, 'daemons'):
             os.chmod(fs, 0755)
 
-    def list(self, pack, cmd):
+    def list(self, pack, app):
         return [branchAfter(d, 'daemons') for d in findFiles(pack, 'daemons')]
 
 
@@ -161,7 +139,7 @@ class ZPLModelers(ZenPackLoader):
     name = "Modeler Plugins"
 
 
-    def list(self, pack, cmd):
+    def list(self, pack, app):
         return [branchAfter(d, 'plugins')
                 for d in findFiles(pack, 'modeler/plugins')]
 
@@ -171,10 +149,11 @@ class ZPLSkins(ZenPackLoader):
     name = "Skins"
 
 
-    def load(self, pack, cmd):
+    def load(self, pack, app):
         from Products.ZenUtils.Skins import registerSkin
-        registerSkin(cmd.dmd, pack.path(''))
+        from Products.ZenUtils.Utils import getObjByPath
+        registerSkin(app.zport.dmd, pack.path(''))
 
 
-    def list(self, pack, cmd):
+    def list(self, pack, app):
         return [branchAfter(d, 'skins') for d in findDirectories(pack, 'skins')]

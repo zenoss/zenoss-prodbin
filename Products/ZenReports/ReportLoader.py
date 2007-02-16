@@ -60,9 +60,14 @@ class ReportLoader(ZCmdBase):
                 else:
                     continue
             self.log.info("loading: %s/%s", orgpath, fid)
-            fdata = file(fullname).read()
-            rpt = Report(fid, text=fdata)
-            rorg._setObject(fid, rpt)
+            self.loadFile(rorg, fid, fullname)
+
+
+    def loadFile(self, root, id, fullname):
+        fdata = file(fullname).read()
+        rpt = Report(id, text=fdata)
+        root._setObject(id, rpt)
+        return rpt
 
 
 if __name__ == "__main__":

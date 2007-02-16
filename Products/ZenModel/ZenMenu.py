@@ -13,8 +13,10 @@ from AccessControl import ClassSecurityInfo, Permissions
 import logging
 log = logging.getLogger("zen.Menu")
 
+from ZenPackable import ZenPackable
 
-class ZenMenu(ZenModelRM):
+
+class ZenMenu(ZenModelRM, ZenPackable):
     """ A Menu object that holds Menu Items. 
     """
     
@@ -25,7 +27,7 @@ class ZenMenu(ZenModelRM):
         {'id':'description', 'type':'text', 'mode':'w'},
         )
 
-    _relations =  (
+    _relations =  ZenPackable._relations + (
         ("zenMenuItems", ToManyCont(
             ToOne, 'ZenMenuItem', 'zenMenus')),
         ("menuable", ToOne(

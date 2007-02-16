@@ -54,6 +54,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : 'zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'packs'
+                , 'name'          : 'ZenPacks'
+                , 'action'        : 'viewZenPacks'
+                , 'permissions'   : ( "Manage DMD", )
+                },
            )
           },
         )

@@ -3,14 +3,13 @@ from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.Commandable import Commandable
+from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
 from EventFilter import EventFilter
 
-class EventCommand(ZenModelRM, Commandable, EventFilter):
+class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
 
-    zenRelationsBaseModule = "Products.ZenEvents"
-    
     where = ''
     command = ''
     clearCommand = ''
@@ -26,8 +25,8 @@ class EventCommand(ZenModelRM, Commandable, EventFilter):
         {'id':'delay', 'type':'int', 'mode':'w'},
     )
     
-    _relations =  (
-        ("eventManager", ToOne(ToManyCont, "EventManagerBase", "commands")),
+    _relations =  ZenPackable._relations + (
+        ("eventManager", ToOne(ToManyCont, "Products.ZenEvents.EventManagerBase", "commands")),
     )
 
     factory_type_information = ( 

@@ -41,7 +41,7 @@ class ServiceOrganizer(Organizer, Commandable):
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
 
-    _relations = (
+    _relations = Organizer._relations + (
         ("serviceclasses", ToManyCont(ToOne,"ServiceClass","serviceorganizer")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
         )

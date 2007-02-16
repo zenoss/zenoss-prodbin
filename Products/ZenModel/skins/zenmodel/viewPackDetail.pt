@@ -1,0 +1,41 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+  <tal:block metal:fill-slot="contentPane">
+    <form method="post"
+	  tal:attributes="action string:${here/absolute_url_path}"
+	  tal:define="tableName string:packlistdetail;
+		      objects here/packables;
+		      batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);">
+      <input type="hidden" name="zenScreenName" 
+	     tal:attributes="value template/id"/>
+      <input type="hidden" name="tableName" tal:attributes="value tableName"/>
+      <table class="zentable" cellpadding=3 cellspacing=1>
+	<tr>
+	  <th class="tabletitle" colspan="1">Objects</th>
+	</tr>
+	<tr tal:repeat='obj batch'>
+	   <td class="tablevalues">
+	      <input type="checkbox" name="packables:list" 
+	         tal:attributes="value obj/getPrimaryUrlPath"/>
+	      <a tal:attributes="href obj/getPrimaryUrlPath" 
+	         tal:content="obj/getPrimaryUrlPath"/>
+	    </td>
+	</tr>
+	<tr>
+	  <td class="tableheader">
+            <input class="tableheader" type="submit" 
+		   name="manage_deletePackable:method" value=" Delete " />
+            |
+            <input class="tableheader" type="submit"
+                   name="SelectButton" value="Select All" 
+                   onClick="toggleSelect(this.form);return false"/>
+	</tr>
+	<tr>
+	  <td class="tableheader" align='center'>
+	    <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+	  </td>
+	</tr>
+      </table>
+    </form>
+
+  </tal:block>
+</tal:block>

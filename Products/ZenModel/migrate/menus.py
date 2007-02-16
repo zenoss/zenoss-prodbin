@@ -171,7 +171,13 @@ class MenuRelations(Migrate.Step):
                     description='Delete devices...',
                     action=     'dialog_removeDevices',
                     permissions=('Change Device',)
-                    )
+                    ),
+                dict(
+                    id=         'addToZenPack',
+                    description='Add to ZenPack...',
+                    action=     'dialog_addToZenPack',
+                    permissions=('View',)
+                    ),
                 ]
             })
 

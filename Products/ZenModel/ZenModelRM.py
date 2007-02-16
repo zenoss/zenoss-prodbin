@@ -308,3 +308,20 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
             for item in sub:
                 self.reindex_all(item)
         return 'done!'
+
+    security.declareProtected('Manage DMD', 'addToZenPack')
+    def addToZenPack(self, ids=(), organizerPaths=(), pack=None, REQUEST=None):
+        "Add elements from a displayed list of objects to a ZenPack"
+        ids = list(ids) + list(organizerPaths)
+        if ids and pack:
+            pack = self.dmd.packs._getOb(pack)
+            for id in ids:
+                obj = self._getOb(id)
+                obj.buildRelations()
+                if pack.objectPaths: 
+                    pack.objectPaths = pack.objectPaths[:]
+                else:
+                    pack.objectPaths = []
+                pack.packables._setObject(id, obj)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)

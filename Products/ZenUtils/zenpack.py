@@ -26,7 +26,7 @@ class ZenPackCmd(ZCmdBase):
         if self.options.list:
             for zp in self.dmd.packs():
                 print '%s (%s)' % (zp.id, sys.modules[zp.__module__].__file__)
-                for extensionType, lst in zp.list(self):
+                for extensionType, lst in zp.list(self.app):
                     print '  %s:' % extensionType
                     for item in lst:
                         print '    %s' % item
@@ -55,7 +55,8 @@ class ZenPackCmd(ZCmdBase):
                            ex)
             zp = ZenPackBase(packName)
         self.dmd.packs._setObject(packName, zp)
-        zp.install(self)
+        zp.install(self.app)
+        transaction.commit()
 
 
     def remove(self, packName):
@@ -65,7 +66,7 @@ class ZenPackCmd(ZCmdBase):
             zp = self.dmd.packs._getOb(packName)
         except AttributeError, ex:
             self.stop('There is no ZenPack named "%s"' % packName)
-        zp.remove(self)
+        zp.remove(self.app)
         self.dmd.packs._delObject(packName)
         root = zenPackPath(packName)
         for p, ds, fs in os.walk(root, topdown=False):
@@ -102,8 +103,8 @@ class ZenPackCmd(ZCmdBase):
         return packName
         
 
-    def stop(self, *args):
-        self.log.error(*args)
+    def stop(self, why):
+        self.log.error("zenpack stopped: %s", why)
         import sys
         sys.exit(1)
         

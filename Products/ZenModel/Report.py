@@ -21,7 +21,8 @@ from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from ZenModelItem import ZenModelItem
+from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
 def manage_addReport(context, id, title = None, text=None,
                     REQUEST = None, submit=None):
@@ -58,12 +59,14 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
                             __name__='addReport')
 
 
-class Report(ZopePageTemplate, ZenModelItem):
+class Report(ZenModelRM, ZopePageTemplate, ZenPackable):
     """Report object"""
     meta_type = 'Report'
 
-    # this is depricated don't use!!!
+    # this is deprecated don't use!!!
     description = ""
+
+    _relations = ZenPackable._relations
 
     security = ClassSecurityInfo()
 
@@ -73,6 +76,7 @@ class Report(ZopePageTemplate, ZenModelItem):
                                   
 
     def __init__(self, id, title = None, text=None, content_type=None):
+        ZenModelRM.__init__(self, id);
         ZopePageTemplate.__init__(self, id, text, content_type)
         self.title = title
 

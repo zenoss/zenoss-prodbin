@@ -9,6 +9,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.ZenTales import talesEval
@@ -41,7 +42,7 @@ def manage_addRRDThreshold(context, id, REQUEST = None):
 
 addRRDThreshold = DTMLFile('dtml/addRRDThreshold',globals())
 
-class RRDThreshold(ZenModelRM):
+class RRDThreshold(ZenModelRM, ZenPackable):
     
     meta_type = 'RRDThreshold'
     
@@ -65,7 +66,7 @@ class RRDThreshold(ZenModelRM):
                  {'id':'enabled', 'type':'boolean', 'mode':'w'},
                 )
 
-    _relations =  (
+    _relations =  ZenPackable._relations + (
         ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate", "thresholds")),
         )
 

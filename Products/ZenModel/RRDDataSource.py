@@ -29,6 +29,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenEvents.ZenEventClasses import Status_Web, Cmd_Fail
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
 
 def manage_addRRDDataSource(context, id, REQUEST = None):
@@ -68,7 +69,7 @@ def checkOid(oid):
 class RRDDataSourceError(Exception): pass
 
 
-class RRDDataSource(ZenModelRM):
+class RRDDataSource(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataSource'
 
@@ -125,7 +126,7 @@ class RRDDataSource(ZenModelRM):
         
         )
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate","datasources")),
         ("datapoints", ToManyCont(ToOne,"RRDDataPoint","datasource")),
         )

@@ -21,6 +21,8 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
+
 
 def manage_addManufacturer(context, id=None, REQUEST = None):
     """make a Manufacturer"""
@@ -34,7 +36,7 @@ def manage_addManufacturer(context, id=None, REQUEST = None):
 
 addManufacturer = DTMLFile('dtml/addManufacturer',globals())
 
-class Manufacturer(ZenModelRM):
+class Manufacturer(ZenModelRM, ZenPackable):
     """Manufacturer object"""
     portal_type = meta_type = 'Manufacturer'
 
@@ -56,7 +58,7 @@ class Manufacturer(ZenModelRM):
         {'id':'zip', 'type':'string', 'mode':'w'},
         )
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("products", ToManyCont(ToOne,"ProductClass","manufacturer")),
     )
  

@@ -17,6 +17,7 @@ from Products.ZenRelations.RelSchema import *
 from EventClassInst import EventClassInst, EventClassPropertyMixin
 
 from Products.ZenModel.Organizer import Organizer
+from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenModel.ManagedEntity import ManagedEntity
 
 
@@ -49,10 +50,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
 
     default_catalog = "eventClassSearch"
 
-    zenRelationsBaseModule = "Products.ZenEvents"
-
-    _relations = (
-        ("instances", ToManyCont(ToOne,"EventClassInst","eventClass")),
+    _relations = ZenPackable._relations + (
+        ("instances", ToManyCont(ToOne,"Products.ZenEvents.EventClassInst","eventClass")),
         )
 
 

@@ -14,6 +14,7 @@ from AccessControl import Permissions
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
+from Products.ZenModel.ZenPackable import ZenPackable
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -45,7 +46,8 @@ class EventClassPropertyMixin(object):
 
 # Why is this a subclass of EventView?
 
-class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
+class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
+                     ZenPackable):
     """
     EventClassInst.
     """
@@ -53,8 +55,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
     event_key = meta_type = "EventClassInst"
 
     default_catalog = "eventClassSearch"
-
-    zenRelationsBaseModule = "Products.ZenEvents"
 
     actions = ("status", "history", "heartbeat", "drop")
 
@@ -72,8 +72,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView):
         )
 
 
-    _relations = (
-        ("eventClass", ToOne(ToMany,"EventClass","instances")),
+    _relations = ZenPackable._relations + (
+        ("eventClass", ToOne(ToMany,"Products.ZenEvents.EventClass","instances")),
         )
 
 
