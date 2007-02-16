@@ -111,7 +111,7 @@ class Schedule:
 
         work = self.makeWorkList(now, self.workList)
         if work:
-            wait = work[0][0] - now
+            wait = max(0, work[0][0] - now)
             self.log.debug("Waiting %f seconds", wait)
             self.timer = self.callLater(wait)
         self.commit()
