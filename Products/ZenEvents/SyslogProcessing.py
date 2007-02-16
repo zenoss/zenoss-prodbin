@@ -136,9 +136,8 @@ class SyslogProcessor(object):
             msg = m.group(2).strip()
         msglist = msg.split()
         if self.parsehost and not self.notHostSearch(msglist[0]):
-            evt.hostname = msglist[0]
-            evt.device = evt.hostname
-            slog.debug("parseHEADER hostname=%s", evt.hostname)
+            evt.device = msglist[0]
+            slog.debug("parseHEADER hostname=%s", evt.device)
             msg = " ".join(msglist[1:])
         return evt, msg
 
