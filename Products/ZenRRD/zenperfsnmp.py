@@ -220,10 +220,13 @@ class zenperfsnmp(SnmpDaemon):
         
         self.syncdb()
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
-        
+
         yield self.model.callRemote('getDevices', self.options.device)
         self.updateDeviceList(driver.next())
 
+        yield self.model.callRemote('getSnmpStatus', self.options.device)
+        self.updateSnmpStatus(driver.next())
+        
         yield self.model.callRemote('propertyItems')
         self.setPropertyItems(driver.next())
         
@@ -264,7 +267,7 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def updateAgentProxy(self,
-                         deviceName, snmpStatus, ip, port, community,
+                         deviceName, ip, port, community,
                          version, timeout, tries, maxoids=40):
         "create or update proxy"
         # find any cached proxy
@@ -277,7 +280,7 @@ class zenperfsnmp(SnmpDaemon):
                            protocol=self.snmpPort.protocol,
                            allowCache=True)
             p.oidMap = {}
-            p.snmpStatus = SnmpStatus(snmpStatus)
+            p.snmpStatus = SnmpStatus(0)
             p.singleOidMode = False
         else:
             p.ip = ip
@@ -289,10 +292,16 @@ class zenperfsnmp(SnmpDaemon):
         p.maxoids = maxoids
         return p
 
+    def updateSnmpStatus(self, status):
+        "Update the Snmp failure counts from Status database"
+        countMap = dict(status)
+        for name, proxy in self.proxies.items():
+            proxy.snmpStatus.count = countMap.get(name, 0)
+
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        (deviceName, snmpStatus, hostPort, snmpConfig), oidData, maxOIDs = snmpTargets
+        (deviceName, hostPort, snmpConfig), oidData, maxOIDs = snmpTargets
         if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
@@ -301,7 +310,7 @@ class zenperfsnmp(SnmpDaemon):
             version = '1'
         else:
             version = '2'
-        p = self.updateAgentProxy(deviceName, snmpStatus,
+        p = self.updateAgentProxy(deviceName, 
                                   ip, port, str(community),
                                   version, timeout, tries, maxOIDs)
 	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:

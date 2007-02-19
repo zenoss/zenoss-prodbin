@@ -412,7 +412,7 @@ class Device(ManagedEntity, Commandable):
         return cmps
 
     def getSnmpConnInfo(self):
-        return (self.id, self.getSnmpStatus(),
+        return (self.id, 
                 (self.manageIp, self.zSnmpPort),
                 (self.zSnmpCommunity, self.zSnmpVer,
                  self.zSnmpTimeout, self.zSnmpTries))

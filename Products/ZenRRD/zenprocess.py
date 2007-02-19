@@ -248,7 +248,7 @@ class zenprocess(SnmpDaemon):
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self.devices.keys())
-        for (name, snmpStatus, addr, snmpConf), procs in n:
+        for (name, addr, snmpConf), procs in n:
             community, version, timeout, tries = snmpConf
             removed.discard(name)
             d = self.devices.setdefault(name, Device())
@@ -260,13 +260,22 @@ class zenprocess(SnmpDaemon):
             d.tries = tries
             d.updateConfig(procs)
             d.protocol = self.snmpPort.protocol
-            d.snmpStatus = snmpStatus
         for r in removed:
             del self.devices[r]
+
+        yield self.model.callRemote('getSnmpStatus', self.options.device)
+        self.updateSnmpStatus(driver.next())
 
         # fetch pids with an SNMP scan
         yield self.findPids(self.devices.values()); driver.next()
         driveLater(self.configCycleInterval * 60, self.start)
+
+
+    def updateSnmpStatus(self, updates):
+        for name, count in updates:
+            d = self.devices.get(name)
+            if d:
+                d.snmpStatus = count
 
 
     def findPids(self, devices):

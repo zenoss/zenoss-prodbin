@@ -34,6 +34,8 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import basicAuthUrl
 
+from Products.ZenEvents.ZenEventClasses import Status_Snmp
+
 from Monitor import Monitor
 from StatusColor import StatusColor
 
@@ -128,13 +130,39 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devname and dev.id != devname: continue
             dev = dev.primaryAq()
-            if dev.monitorDevice() and dev.getSnmpStatus() != -1:
+            if dev.monitorDevice():
                 try:
                     result.append(dev.getSnmpOidTargets())
                 except POSError: raise
                 except:
                     log.exception("device %s", dev.id)
         return result
+
+
+    security.declareProtected('View','getDevices')
+    def getSnmpStatus(self, devname=None):
+        "Return the failure counts for Snmp" 
+        result = []
+        counts = {}
+        try:
+            # get all the events with /Status/Snmp
+            db = self.ZenEventManager.connect()
+            curs = db.cursor()
+            cmd = ('SELECT device, sum(count)  ' +
+                   '  FROM status ' +
+                   ' WHERE eventClass = "%s"' % Status_Snmp)
+            if devname:
+                cmd += ' AND device = "%s"' % devname
+            cmd += ' GROUP BY device'
+            curs.execute(cmd);
+            counts = dict([(d, c) for d, c in curs.fetchall()])
+            db.close()
+        except Exception, ex:
+            log.exception('Unable to get Snmp Status')
+            raise
+        if devname:
+            return [(devname, counts.get(devname, 0))]
+        return [(dev.id, counts.get(dev.id, 0)) for dev in self.devices()]
 
 
     def getOSProcessConf(self, devname=None):
@@ -144,7 +172,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devname and dev.id != devname: continue
             dev = dev.primaryAq()
-            if dev.monitorDevice() and dev.getSnmpStatus() != -1:
+            if dev.monitorDevice():
                 try:
                     procinfo = dev.getOSProcessConf()
                     if procinfo is None: continue
