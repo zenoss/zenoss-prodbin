@@ -5,7 +5,8 @@ import DateTime
 
 class DbAccessBase(object):
 
-    def __init__(self, backend, host, port, username, password, database):
+    def __init__(self, backend=None, host=None, port=None, username=None, 
+                    password=None, database=None):
         self.backend = backend
         self.host = host
         self.port = port

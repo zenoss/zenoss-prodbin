@@ -20,12 +20,13 @@ class DbConnectionPool(Queue):
     def __init__(self):
         Queue.__init__(self, POOL_SIZE)
 
-    def get(self, backend, host, port, username, password, database, block=0):
+    def get(self, backend=None, host=None, port=None, username=None, 
+            password=None, database=None, block=0):
 
         try:
             putstamp,obj = Queue.get(self, block)
 
-            # don't return stale connection, this needs to match whatever your 
+            # don't return stale connection, this needs to match whatever your
             # connection keep alive value is in MySQL            
 
             if time.time() - putstamp >= KEEP_ALIVE: 
