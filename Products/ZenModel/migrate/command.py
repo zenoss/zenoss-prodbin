@@ -22,10 +22,20 @@ class Commands(Migrate.Step):
                     os.path.join(os.environ['ZENHOME'], 'libexec'))
         if dmd.Devices.hasProperty("zNagiosCycleTime"):
             dmd.Devices._delProperty("zNagiosCycleTime")
-        c = dmd.ZenEventManager.connect()
-        s = c.cursor()
-        for name in 'zenagios', 'zencacti':
-            s.execute('DELETE FROM heartbeat where component = "%s"' % name)
-        
+        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
+                        host=self.dmd.ZenEventManager.host, 
+                        port=self.dmd.ZenEventManager.port, 
+                        username=self.dmd.ZenEventManager.username, 
+                        password=self.dmd.ZenEventManager.password, 
+                        database=self.dmd.ZenEventManager.database)
+        curs = conn.cursor()
+        try:
+            for name in 'zenagios', 'zencacti':
+                curs.execute('DELETE FROM heartbeat where component = "%s"' % name)
+        finally:
+            curs.close()
+            cpool.put(conn)
 
 Commands()

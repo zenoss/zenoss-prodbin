@@ -64,12 +64,24 @@ class ClearId(Migrate.Step):
             pass
 
     def cutover(self, dmd):
-        c = dmd.ZenEventManager.connect()
-        s = c.cursor()
-        cmd = 'ALTER TABLE %s ADD COLUMN (clearid char(25))'
-        self.execute(s, cmd % 'status')
-        self.execute(s, cmd % 'history')
-        self.execute(s, 'DROP TRIGGER status_delete')
-        self.execute(s, trigger)
+        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
+                        host=self.dmd.ZenEventManager.host, 
+                        port=self.dmd.ZenEventManager.port, 
+                        username=self.dmd.ZenEventManager.username, 
+                        password=self.dmd.ZenEventManager.password, 
+                        database=self.dmd.ZenEventManager.database)
+        curs = conn.cursor()
+        try:
+            cmd = 'ALTER TABLE %s ADD COLUMN (clearid char(25))'
+            self.execute(curs, cmd % 'status')
+            self.execute(curs, cmd % 'history')
+            self.execute(curs, 'DROP TRIGGER status_delete')
+            self.execute(curs, trigger)
+        finally:
+            curs.close()
+            cpool.put(conn)
+
 
 ClearId()

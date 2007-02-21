@@ -9,7 +9,6 @@ from _mysql_exceptions import ProgrammingError, OperationalError
 from ZEO.Exceptions import ClientDisconnected
 
 import Products.ZenUtils.guid as guid
-from DbAccessBase import DbAccessBase
 from Event import Event, EventHeartbeat, buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
@@ -30,14 +29,14 @@ class MySqlSendEventMixin:
     send the event to the backend.
     """
 
-    def sendEvent(self, event, db=None):
+    def sendEvent(self, event, conn):
         """Send an event to the backend.
         """
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
-            return self._sendHeartbeat(event, db)
+            return self._sendHeartbeat(event, conn)
         
         for field in self.requiredEventFields:
             if not hasattr(event, field):
@@ -57,7 +56,7 @@ class MySqlSendEventMixin:
         
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
-            return self._sendHeartbeat(event, db)
+            return self._sendHeartbeat(event, conn)
             
 
         if not hasattr(event, 'dedupid'):
@@ -83,10 +82,7 @@ class MySqlSendEventMixin:
         evid = None
         try:
             try:
-                if db == None:  
-                    db = self.connect()
-                    cleanup = db.close
-                evid = self.doSendEvent(event, db)
+                evid = self.doSendEvent(event, conn)
             except ProgrammingError, e:
                 log.exception(e)
             except OperationalError, e:
@@ -96,37 +92,40 @@ class MySqlSendEventMixin:
             cleanup()
         return evid
 
-    def doSendEvent(self, event, db):
+    def doSendEvent(self, event, conn):
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
-        curs = db.cursor()
-        evid = guid.generate()
-        event.evid = evid
-        if event.severity == 0:
-            event._action = "history"
-            clearcls = event.clearClasses()
-            if clearcls:
-                execute(curs, self.buildClearUpdate(event, clearcls))
-                insert = ('insert into log '
-                          '(evid, userName, text) '
-                          'select evid, "admin", "auto cleared"'
-                          ' from status where clearid = "%s"'  % evid)
-                execute(curs, insert)
-        stmt = self.buildStatusInsert(statusdata, event._action, evid)
-        rescount = execute(curs, stmt)
-        if detaildata and rescount == 1:
-            execute(curs, self.buildDetailInsert(evid, detaildata))
-        if rescount != 1:
-            sql = ('select evid from %s where dedupid="%s"' % (
-                    event._action, event.dedupid))
-            execute(curs, sql)
-            rs = curs.fetchone()
-            if rs:
-                evid = rs[0]
-            else:
-                evid = None
-        delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
-        execute(curs, delete)
+        curs = conn.cursor()
+        try:
+            evid = guid.generate()
+            event.evid = evid
+            if event.severity == 0:
+                event._action = "history"
+                clearcls = event.clearClasses()
+                if clearcls:
+                    execute(curs, self.buildClearUpdate(event, clearcls))
+                    insert = ('insert into log '
+                              '(evid, userName, text) '
+                              'select evid, "admin", "auto cleared"'
+                              ' from status where clearid = "%s"'  % evid)
+                    execute(curs, insert)
+            stmt = self.buildStatusInsert(statusdata, event._action, evid)
+            rescount = execute(curs, stmt)
+            if detaildata and rescount == 1:
+                execute(curs, self.buildDetailInsert(evid, detaildata))
+            if rescount != 1:
+                sql = ('select evid from %s where dedupid="%s"' % (
+                        event._action, event.dedupid))
+                execute(curs, sql)
+                rs = curs.fetchone()
+                if rs:
+                    evid = rs[0]
+                else:
+                    evid = None
+            delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
+            execute(curs, delete)
+        finally:
+            curs.close()
         return evid
             
 
@@ -181,7 +180,7 @@ class MySqlSendEventMixin:
         return evt
 
 
-    def _sendHeartbeat(self, event, db=None):
+    def _sendHeartbeat(self, event, conn):
         """Build insert to add heartbeat record to heartbeat table.
         """
         evdict = {}
@@ -203,19 +202,16 @@ class MySqlSendEventMixin:
         insert += " on duplicate key update lastTime=Null"
         insert += ", timeout=%s" % evdict['timeout']
         try:
-            close = False
-            if db == None:  
-                db = self.connect()
-                close = True
-            curs = db.cursor()
-            execute(curs, insert)
-            if close: db.close()
+            curs = conn.cursor()
+            try:
+                execute(curs, insert)
+            finally:
+                curs.close()
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)
         except OperationalError, e:
             raise ZenBackendFailure(str(e))
-
 
     def buildStatusInsert(self, statusdata, table, evid):
         """
@@ -314,7 +310,7 @@ class MySqlSendEventMixin:
 
 
 
-class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
+class MySqlSendEvent(MySqlSendEventMixin):
     """
     class that can connect to backend must be passed:
         username - backend username to use
@@ -348,8 +344,7 @@ class MySqlSendEvent(DbAccessBase, MySqlSendEventMixin):
             value = getattr(zem, att)
             setattr(self, att, value)
         self._fieldlist = zem.getFieldList()
-  
-
+        
     def stop(self): pass
 
 
@@ -368,7 +363,6 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         self.setName("SendEventThread")
         self._evqueue = Queue()
 
-
     def sendEvent(self, evt):
         """Called from main thread to put an event on to the send queue.
         """
@@ -377,17 +371,15 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
 
     def run(self):
         log.info("starting")
-        db = self.connect()
         while not self._evqueue.empty() or self.running:
             try:
-                evt = self._evqueue.get(True,1)        
-                MySqlSendEvent.sendEvent(self, evt, db) 
+                evt = self._evqueue.get(True,1)
+                MySqlSendEvent.sendEvent(self, evt)
             except Empty: pass
             except OperationalError:
                 log.warn(e)
-            except Exception, e: 
-                log.exception(e) 
-        db.close()
+            except Exception, e:
+                log.exception(e)
         log.info("stopped")
                 
     

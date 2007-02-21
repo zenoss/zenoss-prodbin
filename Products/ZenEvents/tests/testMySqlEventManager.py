@@ -6,6 +6,7 @@ import transaction
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.Exceptions import *
+from DbConnectionPool import DbConnectionPool
 
 zodb = ZCmdBase(noopts=True)
 
@@ -29,13 +30,22 @@ class MySqlEventMangerTest(unittest.TestCase):
 
     def tearDown(self):
         transaction.abort()
-        db = self.zem.connect()
-        curs = db.cursor()
-        curs.execute("truncate status")
-        curs.execute("truncate detail")
-        curs.execute("truncate log")
-        curs.execute("truncate history")
-        db.close()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
+                        host=self.dmd.ZenEventManager.host, 
+                        port=self.dmd.ZenEventManager.port, 
+                        username=self.dmd.ZenEventManager.username, 
+                        password=self.dmd.ZenEventManager.password, 
+                        database=self.dmd.ZenEventManager.database)
+        curs = conn.cursor()
+        try:
+            curs.execute("truncate status")
+            curs.execute("truncate detail")
+            curs.execute("truncate log")
+            curs.execute("truncate history")
+        finally:
+            curs.close()
+            cpool.put(conn)
         zodb.closedb()
         self.dmd = None
         self.zem = None

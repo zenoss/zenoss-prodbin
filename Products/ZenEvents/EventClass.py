@@ -20,6 +20,7 @@ from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenModel.ManagedEntity import ManagedEntity
 
+from Products.ZenUtils.Utils import prepId as globalPrepId
 
 def manage_addEventClass(context, id="Events", REQUEST=None):
     """make a event class"""
@@ -184,11 +185,14 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
             idx = insts[-1].sequence + 1
         return idx
 
-
+    def prepId(self, id, subchar='_'):
+        return globalPrepId(id, subchar)
+            
     def createInstance(self, id=None, REQUEST=None):
         """Add an EventClassInst to this EventClass.
         """
         if id:
+            id = self.prepId(id)
             c=0
             while self.instances._getOb(id,False):
                 c+=1

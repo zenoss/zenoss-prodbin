@@ -5,11 +5,28 @@ import DateTime
 
 class DbAccessBase(object):
 
+    def __init__(self, backend, host, port, username, password, database):
+        self.backend = backend
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.database = database
+        self.connect()
+
+    def cursor(self):
+        return self.conn.cursor()
+
+    def close(self):
+        self.conn.close()
+        self.conn = None
+
     def connect(self):
         """Load our database driver and connect to the database.""" 
+        self.conn = None
         if self.backend == "omnibus":
             import Sybase
-            db = Sybase.connect(self.database,self.username,
+            self.conn = Sybase.connect(self.database,self.username,
                                         self.password)
         elif self.backend == "mysql": 
             import MySQLdb
@@ -24,18 +41,17 @@ class DbAccessBase(object):
                 host, database = self.host, self.database
             else:
                 host, database = self.database, 'events'
-            db = MySQLdb.connect(host=host, user=self.username,
+            self.conn = MySQLdb.connect(host=host, user=self.username,
                                  port=self.port, passwd=self.password, 
                                  db=database, conv=mysqlconv)
-            db.autocommit(1)
+            self.conn.autocommit(1)
         elif self.backend == "oracle":
             import DCOracle2
             connstr = "%s/%s@%s" % (self.username, self.password, self.database)
-            db = DCOracle2.connect(connstr)
-        return db
+            self.conn = DCOracle2.connect(connstr)
 
 
-    def cleanstring(self, value):
+    def cleanstring(value):
         """Remove the trailing \x00 off the end of a string."""
         if type(value) in types.StringTypes:
             return value.rstrip("\x00")

@@ -10,6 +10,8 @@ from EventManagerBase import EventManagerBase
 from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 
+from DbConnectionPool import DbConnectionPool
+
 def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
                                 evtdb="events", history=False, REQUEST=None):
     '''make an MySqlEventManager'''
@@ -65,26 +67,37 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         #print select
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
-        db = self.connect()
-        curs = db.cursor()
-        curs.execute(select)
-        sumdata = {}
-        ownerids = ""
-        for row in curs.fetchall():
-            sev, count, acks = row[:3]
-            if hasattr(acks, 'tostring'):
-                acks = acks.tostring()
-            if type(acks) in types.StringTypes:
-                acks = acks.split(",")
-            ackcount = sum([int(n) for n in acks if n.strip()])
-            sumdata[sev] = (ackcount, count)
-        sevsum = []
-        for name, value in self.getSeverities():
-            if value < severity: continue
-            css = self.getEventCssClass(value)
-            ackcount, count = sumdata.get(value, [0,0])
-            sevsum.append([css, ackcount, int(count)])
-        db.close()
+        
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
+                        host=self.dmd.ZenEventManager.host, 
+                        port=self.dmd.ZenEventManager.port, 
+                        username=self.dmd.ZenEventManager.username, 
+                        password=self.dmd.ZenEventManager.password, 
+                        database=self.dmd.ZenEventManager.database)
+        curs = conn.cursor()
+        try:
+            curs.execute(select)
+            sumdata = {}
+            ownerids = ""
+            for row in curs.fetchall():
+                sev, count, acks = row[:3]
+                if hasattr(acks, 'tostring'):
+                    acks = acks.tostring()
+                if type(acks) in types.StringTypes:
+                    acks = acks.split(",")
+                ackcount = sum([int(n) for n in acks if n.strip()])
+                sumdata[sev] = (ackcount, count)
+            sevsum = []
+            for name, value in self.getSeverities():
+                if value < severity: continue
+                css = self.getEventCssClass(value)
+                ackcount, count = sumdata.get(value, [0,0])
+                sevsum.append([css, ackcount, int(count)])
+        finally:
+            curs.close()
+            cpool.put(conn)
+        
         self.addToCache(select, sevsum)
         self.cleanCache()
         return sevsum
@@ -93,8 +106,14 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         ''' since is number of seconds since epoch, see documentation
         for python time.time()
         '''
-        db = self.connect()
-        curs = db.cursor()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
+                        host=self.dmd.ZenEventManager.host, 
+                        port=self.dmd.ZenEventManager.port, 
+                        username=self.dmd.ZenEventManager.username, 
+                        password=self.dmd.ZenEventManager.password, 
+                        database=self.dmd.ZenEventManager.database)
+        curs = conn.cursor()
         count = 0
         try:
             for table in ('status', 'history'):
@@ -108,7 +127,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
             count += curs.fetchall()[0][0]
         finally:
             curs.close()
-            db.close()
+            cpool.put(conn)
         return count
 
 InitializeClass(MySqlEventManager)

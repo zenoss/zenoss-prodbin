@@ -33,7 +33,6 @@ from Products.ZenModel.Organizer import Organizer
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
-from DbAccessBase import DbAccessBase
 from ZEvent import ZEvent
 from EventDetail import EventDetail
 from BetterEventDetail import BetterEventDetail
@@ -52,7 +51,10 @@ from ZenEventClasses import Unknown
 
 import time
 
-class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
+from DbConnectionPool import DbConnectionPool
+from Products.ZenUtils.Utils import cleanstring
+
+class EventManagerBase(ZenModelRM, ObjectCache):
     """
     Data connector to backend of the event management system.
     """
@@ -234,13 +236,12 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
         self.id = id
         self.title = title
-        self.username = username
-        self.password = password
-        self.database = database
-        self.host = host
-        self.port = port
+        self.username=username
+        self.password=password
+        self.database=database
+        self.host=host
+        self.port=port
         self.defaultWhere = defaultWhere
-
         self.defaultOrderby="%s desc, %s desc" % (
                             self.severityField, self.lastTimeField)
 
@@ -296,17 +297,26 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             #print select
             retdata = self.checkCache(select)
             if not retdata:
-                db = self.connect()
-                curs = db.cursor()
-                curs.execute(select)
-                retdata = []
-                # iterate through the data results and convert to python
-                # objects
-                for row in curs.fetchall():
-                    row = map(self.convert, resultFields, row)
-                    evt = ZEvent(self, resultFields, row)
-                    retdata.append(evt)
-                db.close()
+                cpool = DbConnectionPool()
+                conn = cpool.get(backend=self.backend, 
+                                           host=self.host, 
+                                           port=self.port, 
+                                           username=self.username, 
+                                           password=self.password, 
+                                           database=self.database)
+                curs = conn.cursor()
+                try:
+                    curs.execute(select)
+                    retdata = []
+                    # iterate through the data results and convert to python
+                    # objects
+                    for row in curs.fetchall():
+                        row = map(self.convert, resultFields, row)
+                        evt = ZEvent(self, resultFields, row)
+                        retdata.append(evt)
+                finally:
+                    curs.close()
+                    cpool.put(conn)
                 self.addToCache(select, retdata)
                 self.cleanCache()
             return retdata
@@ -354,49 +364,58 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         cachekey = '%s%s' % (idfield, evid)
         event = self.checkCache(cachekey)
         if event: return event
-        db = self.connect()
         fields = self.getFieldList()
         selectevent = "select " 
         selectevent += ", ".join(fields)
         selectevent += " from %s where" % self.statusTable
         selectevent += " %s = '%s'" % (idfield, evid)
         if self.backend=="omnibus": selectevent += ";"
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, 
+                                   host=self.host, 
+                                   port=self.port, 
+                                   username=self.username, 
+                                   password=self.password, 
+                                   database=self.database)
+        curs = conn.cursor()
+        try:
+            #print selectevent
+            curs.execute(selectevent)
+            evrow = curs.fetchone()
+            if not evrow:
+                raise (ZenEventNotFound,"Event evid %s not found" % evid)
+            evdata = map(self.convert, fields, evrow)
+            if better:
+                event = BetterEventDetail(self, fields, evdata)
+            else:
+                event = EventDetail(self, fields, evdata)
+            event = event.__of__(self)
+
+            selectdetail = "select name, value from %s where" % self.detailTable
+            selectdetail += " evid = '%s'" % event.evid
+            if self.backend=="omnibus": selectevent += ";"
+            #print selectdetail
+            curs.execute(selectdetail)
+            event._details = curs.fetchall()
+
+            selectlogs = "select userName, ctime, text"
+            selectlogs += " from %s where" % self.logTable
+            selectlogs += " evid = '%s' order by ctime desc" % event.evid
+            if self.backend=="omnibus": selectevent += ";"
+            #print selectlogs
+            curs.execute(selectlogs)
+            jrows = curs.fetchall()
+            logs = []
+            for row in jrows:
+                user = cleanstring(row[0])
+                date = self.dateString(row[1])
+                text = row[2]
+                logs.append((user, date, text))
+            event._logs = logs
+        finally:
+            curs.close()
+            cpool.put(conn)
         
-        #print selectevent
-        curs = db.cursor()
-        curs.execute(selectevent)
-        evrow = curs.fetchone()
-        if not evrow:
-            raise (ZenEventNotFound,"Event evid %s not found" % evid)
-        evdata = map(self.convert, fields, evrow)
-        if better:
-            event = BetterEventDetail(self, fields, evdata)
-        else:
-            event = EventDetail(self, fields, evdata)
-        event = event.__of__(self)
-
-        selectdetail = "select name, value from %s where" % self.detailTable
-        selectdetail += " evid = '%s'" % event.evid
-        if self.backend=="omnibus": selectevent += ";"
-        #print selectdetail
-        curs.execute(selectdetail)
-        event._details = curs.fetchall()
-
-        selectlogs = "select userName, ctime, text"
-        selectlogs += " from %s where" % self.logTable
-        selectlogs += " evid = '%s' order by ctime desc" % event.evid
-        if self.backend=="omnibus": selectevent += ";"
-        #print selectlogs
-        curs.execute(selectlogs)
-        jrows = curs.fetchall()
-        logs = []
-        for row in jrows:
-            user = self.cleanstring(row[0])
-            date = self.dateString(row[1])
-            text = row[2]
-            logs.append((user, date, text))
-        event._logs = logs
-        db.close()
         self.addToCache(cachekey, event)
         self.cleanCache()
         return event
@@ -426,13 +445,21 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         select = "select count(*) from %s where %s" % (self.statusTable, where)
         statusCount = self.checkCache(select)
         if not statusCount:
-            db = self.connect()
-            curs = db.cursor()
-            #print select
-            curs.execute(select)
-            statusCount = curs.fetchone()[0]
-            curs.close()
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, 
+                                       host=self.host, 
+                                       port=self.port, 
+                                       username=self.username, 
+                                       password=self.password, 
+                                       database=self.database)
+            curs = conn.cursor()
+            try:
+                #print select
+                curs.execute(select)
+                statusCount = curs.fetchone()[0]
+            finally:
+                curs.close()
+                cpool.put(conn)
             self.addToCache(select,statusCount)
         return statusCount 
     
@@ -450,21 +477,30 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         #print select
         statusCache = self.checkCache(select)
         if not statusCache:
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(select)
-            statusCache=[]
-            orgdict={}
-            for row in curs.fetchall():
-                orgfield = self.cleanstring(row[0])
-                if not orgfield: continue
-                if orgfield.startswith("|"): orgfield = orgfield[1:]
-                for orgname in orgfield.split("|"):
-                    orgdict.setdefault(orgname, 0)
-                    orgdict[orgname] += 1
-            statusCache = orgdict.items()
-            self.addToCache(select,statusCache)
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, 
+                                       host=self.host, 
+                                       port=self.port, 
+                                       username=self.username, 
+                                       password=self.password, 
+                                       database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(select)
+                statusCache=[]
+                orgdict={}
+                for row in curs.fetchall():
+                    orgfield = cleanstring(row[0])
+                    if not orgfield: continue
+                    if orgfield.startswith("|"): orgfield = orgfield[1:]
+                    for orgname in orgfield.split("|"):
+                        orgdict.setdefault(orgname, 0)
+                        orgdict[orgname] += 1
+                statusCache = orgdict.items()
+                self.addToCache(select,statusCache)
+            finally:
+                curs.close()
+                cpool.put(conn)
         countevts = 0
         for key, value  in statusCache:
             if key.startswith(org.getOrganizerName()):
@@ -484,28 +520,32 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         select += where
         statusCache = self.checkCache(select)
         if not statusCache:
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(select)
-            statusCache=[]
-            orgdict={}
-            for row in curs.fetchall():
-                orgfield = self.cleanstring(row[0])
-                if not orgfield: continue
-                if orgfield.startswith("|"): orgfield = orgfield[1:]
-                for orgname in orgfield.split("|"):
-                    if not orgname: continue
-                    count, total = orgdict.setdefault(orgname, (0,0))
-                    count+=1
-                    total+=row[1]
-                    orgdict[orgname] = (count,total)
-            statusCache = [ [n, c[0], int(c[1])] for n, c in orgdict.items() ]
-            statusCache.sort(lambda x,y: cmp(x[1],y[1]))
-            statusCache.reverse()
-            if limit:
-                statusCache = statusCache[:limit]
-            self.addToCache(select,statusCache)
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(select)
+                statusCache=[]
+                orgdict={}
+                for row in curs.fetchall():
+                    orgfield = cleanstring(row[0])
+                    if not orgfield: continue
+                    if orgfield.startswith("|"): orgfield = orgfield[1:]
+                    for orgname in orgfield.split("|"):
+                        if not orgname: continue
+                        count, total = orgdict.setdefault(orgname, (0,0))
+                        count+=1
+                        total+=row[1]
+                        orgdict[orgname] = (count,total)
+                statusCache = [ [n, c[0], int(c[1])] for n, c in orgdict.items() ]
+                statusCache.sort(lambda x,y: cmp(x[1],y[1]))
+                statusCache.reverse()
+                if limit:
+                    statusCache = statusCache[:limit]
+                self.addToCache(select,statusCache)
+            finally:
+                curs.close()
+                cpool.put(conn)
         return statusCache
 
 
@@ -545,16 +585,20 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
-                db = self.connect()
-                curs = db.cursor()
-                curs.execute(select)
-                statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
-                #statusCache = list(curs.fetchall())
-                statusCache.sort(lambda x,y: cmp(x[1],y[1]))
-                statusCache.reverse()
-                if limit:
-                    statusCache = statusCache[:limit]
-                db.close()
+                cpool = DbConnectionPool()
+                conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+                curs = conn.cursor()
+                try:
+                    curs.execute(select)
+                    statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
+                    #statusCache = list(curs.fetchall())
+                    statusCache.sort(lambda x,y: cmp(x[1],y[1]))
+                    statusCache.reverse()
+                    if limit:
+                        statusCache = statusCache[:limit]
+                finally:
+                    curs.close()
+                    cpool.put(conn)
             except:
                 log.exception(select)
                 raise
@@ -576,15 +620,19 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
-                db = self.connect()
-                curs = db.cursor()
-                curs.execute(select)
-                statusCache = {}
-                for dev, count in curs.fetchall():
-                    dev = self.cleanstring(dev)
-                    statusCache[dev] = count
-                self.addToCache(select,statusCache)
-                db.close()
+                cpool = DbConnectionPool()
+                conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+                curs = conn.cursor()
+                try:
+                    curs.execute(select)
+                    statusCache = {}
+                    for dev, count in curs.fetchall():
+                        dev = cleanstring(dev)
+                        statusCache[dev] = count
+                    self.addToCache(select,statusCache)
+                finally:
+                    curs.close()
+                    cpool.put(conn)
             except:
                 log.exception("status failed for device %s", device)
                 return -1
@@ -628,25 +676,28 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         cleanup = lambda : None
         if not statusCache:
             statusCache = []
-            if db is None:
-                db = self.connect()
-                cleanup = db.close
-            curs = db.cursor()
-            curs.execute(sel)
-            res = list(curs.fetchall())
-            res.sort(lambda x,y: cmp(x[2],y[2]))
-            devclass = self.getDmdRoot("Devices")
-            for devname, comp, dtime in res:
-                dtime = "%d" % int(time.time()-dtime.timeTime())
-                dev = devclass.findDevice(devname)
-                if dev and not simple:
-                    alink = "<a href='%s'>%s</a>" % (
-                            dev.getPrimaryUrlPath(), dev.id) 
-                else: alink = devname
-                statusCache.append([alink, comp, dtime])
-            if limit:
-                statusCache = statusCache[:limit]
-            cleanup()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(sel)
+                res = list(curs.fetchall())
+                res.sort(lambda x,y: cmp(x[2],y[2]))
+                devclass = self.getDmdRoot("Devices")
+                for devname, comp, dtime in res:
+                    dtime = "%d" % int(time.time()-dtime.timeTime())
+                    dev = devclass.findDevice(devname)
+                    if dev and not simple:
+                        alink = "<a href='%s'>%s</a>" % (
+                                dev.getPrimaryUrlPath(), dev.id) 
+                    else: alink = devname
+                    statusCache.append([alink, comp, dtime])
+                if limit:
+                    statusCache = statusCache[:limit]
+                cleanup()
+            finally:
+                curs.close()
+                cpool.put(conn)
         return statusCache
 
         
@@ -664,16 +715,20 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         select += where
         statusCache = self.checkCache(select)
         if not statusCache:
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(select)
-            statusCache ={}
-            for dev, comp, count in curs.fetchall():
-                dev = self.cleanstring(dev)
-                comp = self.cleanstring(comp)
-                statusCache[dev+comp] = count
-            self.addToCache(select,statusCache)
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(select)
+                statusCache ={}
+                for dev, comp, count in curs.fetchall():
+                    dev = cleanstring(dev)
+                    comp = cleanstring(comp)
+                    statusCache[dev+comp] = count
+                self.addToCache(select,statusCache)
+            finally:
+                curs.close()
+                cpool.put(conn)
         return statusCache.get(device+component, 0)
 
 
@@ -700,12 +755,16 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         #print select
         statusCache = self.checkCache(select)
         if statusCache: return statusCache
-        db = self.connect()
-        curs = db.cursor()
-        curs.execute(select)
-        statusCache = [ uid[0] for uid in curs.fetchall() if uid[0] ]
-        self.addToCache(select,statusCache)
-        db.close()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        curs = conn.cursor()
+        try:
+            curs.execute(select)
+            statusCache = [ uid[0] for uid in curs.fetchall() if uid[0] ]
+            self.addToCache(select,statusCache)
+        finally:
+            curs.close()
+            cpool.put(conn)
         return statusCache
 
 
@@ -842,19 +901,22 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         """Send a group of events to the backend.
         """
         count = 0
-        db = self.connect()
         for event in events:
             try:
-                self.sendEvent(event, db)
+                cpool = DbConnectionPool()
+                conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+                try:
+                    self.sendEvent(event, conn)
+                finally:
+                    cpool.put(conn)
                 count += 1
             except Exception, ex:
                 log.exception(ex)
-        db.close()
         return count
 
 
     security.declareProtected('Send Events', 'sendEvent')
-    def sendEvent(self, event, db=None):
+    def sendEvent(self, event, conn):
         """Send an event to the backend.
         """
         raise NotImplementedError
@@ -867,7 +929,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def convert(self, field, value):
         """Perform convertion of value coming from database value if nessesary.
         """
-        value = self.cleanstring(value)
+        value = cleanstring(value)
         #FIXME this is commented out because we often need severity as a
         # number (like in ZEvent.getCssClass) and sorting.  Need to have
         # both fields at some point
@@ -884,11 +946,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         """Return a list of all fields in the status table of the  backend.
         """
         if not getattr(self, '_fieldlist', None):
-            db = self.connect()
-            try:
-                self.loadSchema(db)
-            finally:
-                db.close()
+            self.loadSchema()
         return self._fieldlist
 
     def getEventStates(self):
@@ -975,17 +1033,19 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         raise NotImplementedError
 
 
-    def loadSchema(self, db):
+    def loadSchema(self):
         """Load schema from database. If field is a date set value to true."""
         schema = {}
         fieldlist = []
         sql = "describe %s;" % self.statusTable
-        curs = db.cursor()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        curs = conn.cursor()
         try:
             curs.execute(sql)
             for row in curs.fetchall():
                 fieldlist.append(row[0])
-                col = self.cleanstring(row[0])
+                col = cleanstring(row[0])
                 if self.backend == "omnibus":
                     type = row[1] in (1, 4, 7, 8) #different date types
                 elif self.backend == "mysql":
@@ -995,6 +1055,7 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             self._fieldlist = fieldlist
         finally:
             curs.close()
+            cpool.put(conn)
 
 
     def eventControls(self):
@@ -1011,11 +1072,15 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
                  'SELECT evid, "%s", "%s" ' % (userId, reason) + \
                  'FROM %s ' % table + whereClause
         query = stmt + ' ' + whereClause
-        db = self.connect()
-        curs = db.cursor()
-        if toLog: curs.execute(insert)
-        curs.execute(query)
-        db.close()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        curs = conn.cursor()
+        try:
+            if toLog: curs.execute(insert)
+            curs.execute(query)
+        finally:
+            curs.close()
+            cpool.put(conn)
         self.clearCache()
         self.manage_clearCache()
         
@@ -1031,7 +1096,12 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             eventClassKey = REQUEST['eventClassKey'],
             eventClass = REQUEST['eclass'],
             )
-        evid = self.sendEvent(eventDict)
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        try:
+            evid = self.sendEvent(eventDict, conn)
+        finally:
+            cpool.put(conn)
         if REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
@@ -1082,10 +1152,14 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
         if devname:
             delete = "delete from heartbeat where device = '%s'" % devname
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(delete);
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(delete);
+            finally:
+                curs.close()
+                cpool.put(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -1128,16 +1202,20 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
             sel = """select eventClassKey, eventClass, message 
                     from %s where evid in ('%s')"""
             sel = sel % (self.statusTable, "','".join(evids))
-            db = self.connect()
-            curs = db.cursor()
-            curs.execute(sel);
-            for row in curs.fetchall():
-                evclasskey, curevclass, msg = row
-                if curevclass != Unknown or not evclasskey: continue
-                evmap = evclass.createInstance(evclasskey)
-                evmap.eventClassKey = evclasskey
-                evmap.example = msg
-            db.close()
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+            curs = conn.cursor()
+            try:
+                curs.execute(sel);
+                for row in curs.fetchall():
+                    evclasskey, curevclass, msg = row
+                    if curevclass != Unknown or not evclasskey: continue
+                    evmap = evclass.createInstance(evclasskey)
+                    evmap.eventClassKey = evclasskey
+                    evmap.example = msg
+            finally:
+                curs.close()
+                cpool.put(conn)
         if REQUEST: 
             if len(evids) == 1 and evmap: return evmap()
             elif evclass and evmap: return evclass()
@@ -1147,10 +1225,13 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     def manage_refreshConversions(self, REQUEST=None):
         """get the conversion information from the omnibus server"""
         assert(self == self.dmd.ZenEventManager)
-        db = self.connect()
-        self.loadSchema(db)
-        self.dmd.ZenEventHistory.loadSchema(db)
-        db.close()
+        self.loadSchema()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        try:
+            self.dmd.ZenEventHistory.loadSchema(conn)
+        finally:
+            cpool.put(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -1193,14 +1274,15 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
     security.declareProtected('Manage EventManager','manage_clearHeartbeats')
     def manage_clearHeartbeats(self, REQUEST=None):
         """truncate heartbeat table"""
-        db = self.connect()
-        cursor = db.cursor()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        cursor = conn.cursor()
         try:
             sql = 'truncate table heartbeat'
             cursor.execute(sql)
         finally:
             cursor.close()
-            db.close()
+            cpool.put(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager','zmanage_editProperties')
@@ -1221,14 +1303,18 @@ class EventManagerBase(ZenModelRM, DbAccessBase, ObjectCache):
         if not evid:
             return
         userId = getSecurityManager().getUser().getId()
-        db = self.connect()
-        insert = 'INSERT INTO log (evid, userName, text) '
-        insert += 'VALUES ("%s", "%s", "%s")' % (evid,
-                                                 userId,
-                                                 db.escape_string(message))
-        curs = db.cursor()
-        curs.execute(insert)
-        db.close()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.backend, host=self.host, port=self.port, username=self.username, password=self.password, database=self.database)
+        curs = conn.cursor()
+        try:
+            insert = 'INSERT INTO log (evid, userName, text) '
+            insert += 'VALUES ("%s", "%s", "%s")' % (evid,
+                                                     userId,
+                                                     conn.escape_string(message))
+            curs.execute(insert)
+        finally:
+            curs.close()
+            cpool.put(conn)
         self.clearCache('evid' + evid)
         if REQUEST: return self.callZenScreen(REQUEST)
 

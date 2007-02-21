@@ -7,6 +7,7 @@ from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 
 from AccessControl import ClassSecurityInfo
 
+from DbConnectionPool import DbConnectionPool
 
 CACHE_TIME = 60.
 
@@ -117,13 +118,20 @@ class Report:
              '  UNION '
              ' SELECT %(cols)s FROM status %(w)s '
              ') AS U  ' % env)
-        c = dmd.ZenEventManager.connect()
+                  
         devices = {}
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=dmd.ZenEventManager.backend, 
+                        host=dmd.ZenEventManager.host, 
+                        port=dmd.ZenEventManager.port, 
+                        username=dmd.ZenEventManager.username, 
+                        password=dmd.ZenEventManager.password, 
+                        database=dmd.ZenEventManager.database)
+        curs = conn.cursor()
         try:
-            e = c.cursor()
-            e.execute(s)
+            curs.execute(s)
             while 1:
-                rows = e.fetchmany()
+                rows = curs.fetchmany()
                 if not rows: break
                 for row in rows:
                     device, component, first, last = row
@@ -135,7 +143,8 @@ class Report:
                     except KeyError:
                         devices[k] = last - first
         finally:
-            c.close()
+            curs.close()
+            cpool.put(conn)
         total = endDate - startDate
         if self.device:
             deviceList = [dmd.Devices.findDevice(self.device)]

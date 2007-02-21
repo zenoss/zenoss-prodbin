@@ -35,6 +35,7 @@ import Products.ZenUtils.Utils as Utils
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from DateTime import DateTime
+from DbConnectionPool import DbConnectionPool
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -349,13 +350,21 @@ class ZenActions(ZCmdBase):
         """
         self.loadActionRules()
         zem = self.dmd.ZenEventManager
-        db = zem.connect()
-        self.eventCommands(db, zem)
-        self.processRules(db, zem)
-        self.checkVersion(self.dmd, zem)
-        self.maintenance(db, zem)
-        self.heartbeatEvents(db)
-        db.close()
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=zem.backend, 
+                        host=zem.host, 
+                        port=zem.port, 
+                        username=zem.username, 
+                        password=zem.password, 
+                        database=zem.database)
+        try:
+            self.eventCommands(conn, zem)
+            self.processRules(conn, zem)
+            self.checkVersion(self.dmd, zem)
+            self.maintenance(conn, zem)
+            self.heartbeatEvents(conn)
+        finally:
+            cpool.put(conn)
 
 
     def runCycle(self):

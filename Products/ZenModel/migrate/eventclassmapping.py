@@ -57,22 +57,31 @@ class EventClassMapping(Migrate.Step):
     version = Migrate.Version(1, 2, 0)
 
     def cutover(self, dmd):
-        conn = dmd.ZenEventManager.connect()
+        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=dmd.ZenEventManager.backend, 
+                        host=dmd.ZenEventManager.host, 
+                        port=dmd.ZenEventManager.port, 
+                        username=dmd.ZenEventManager.username, 
+                        password=dmd.ZenEventManager.password, 
+                        database=dmd.ZenEventManager.database)
+        curs = conn.cursor()
         try:
             tables = ('status', 'history')
-            cur = conn.cursor()
             for table in tables:
-                cur.execute('desc %s' % table)
-                r = cur.fetchall()
+                curs.execute('desc %s' % table)
+                r = curs.fetchall()
                 if not [f for f in r if f[0] == 'eventClassMapping']:
-                    cur.execute('alter table %s ' % table +
+                    curs.execute('alter table %s ' % table +
                                 'add column eventClassMapping '
                                 'varchar(128) default ""')
             try:
-                cur.execute('drop trigger status_delete')
+                curs.execute('drop trigger status_delete')
             except OperationalError:
                 pass
-            cur.execute(trigger)
+            curs.execute(trigger)
         finally:
-            conn.close()
+            curs.close()
+            cpool.put(conn)
+
 EventClassMapping()
