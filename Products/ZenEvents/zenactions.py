@@ -392,7 +392,18 @@ class ZenActions(ZCmdBase):
     def sendEvent(self, evt):
         """Send event to the system.
         """
-        self.dmd.ZenEventManager.sendEvent(evt)
+        zem = self.dmd.ZenEventManager
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=zem.backend, 
+                        host=zem.host, 
+                        port=zem.port, 
+                        username=zem.username, 
+                        password=zem.password, 
+                        database=zem.database)
+        try:
+            zem.sendEvent(evt, conn)
+        finally:
+            cpool.put(conn)
 
 
     def sendHeartbeat(self):

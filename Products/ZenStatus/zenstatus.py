@@ -17,6 +17,7 @@ import Globals # make zope imports work
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 import ZenTcpClient 
 
 class ZenStatus(ZCmdBase):
@@ -154,7 +155,17 @@ class ZenStatus(ZCmdBase):
         """Send an event for this monitor.
         """
         try:
-            self.zem.sendEvent(evt)
+            cpool = DbConnectionPool()
+            conn = cpool.get(backend=self.zem.backend, 
+                           host=self.zem.host, 
+                           port=self.zem.port, 
+                           username=self.zem.username, 
+                           password=self.zem.password, 
+                           database=self.zem.database)
+            try:
+                self.zem.sendEvent(evt, conn)
+            finally:
+               cpool.put(conn)
         except OperationalError, e:
             self.log.warn("failed sending event: %s", e)
 

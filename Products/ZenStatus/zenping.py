@@ -30,6 +30,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 
 from twisted.internet import reactor, defer
 
@@ -68,7 +69,18 @@ class ZenPing(ZCmdBase):
 
     def sendEvent(self, evt):
         "wrapper for sending an event"
-        self.zem.sendEvent(evt)
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=self.zem.backend, 
+                       host=self.zem.host, 
+                       port=self.zem.port, 
+                       username=self.zem.username, 
+                       password=self.zem.password, 
+                       database=self.zem.database)
+        try:
+            self.zem.sendEvent(evt, conn)
+        finally:
+           cpool.put(conn)
+
 
     def sendPingEvent(self, pj):
         "Send an event based on a ping job to the event backend."
