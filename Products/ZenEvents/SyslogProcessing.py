@@ -23,6 +23,7 @@ import Globals
 from Event import Event
 from Exceptions import ZenBackendFailure
 from syslog_h import *
+from DbConnectionPool import DbConnectionPool
 
 # Regular expressions that parse syslog tags from different sources
 parsers = (
@@ -84,7 +85,18 @@ class SyslogProcessor(object):
         evt = self.parseTag(evt, msg) 
         #rest of msg now in summary of event
         evt = self.buildEventClassKey(evt)
-        self.zem.sendEvent(evt)
+        zem = self.dmd.ZenEventManager
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=zem.backend, 
+                        host=zem.host, 
+                        port=zem.port, 
+                        username=zem.username, 
+                        password=zem.password, 
+                        database=zem.database)
+        try:
+            zem.sendEvent(evt, conn)
+        finally:
+            cpool.put(conn)
 
         
     def parsePRI(self, evt, msg):

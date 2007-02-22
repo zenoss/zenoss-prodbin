@@ -18,6 +18,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.Event import Event, Info
 from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
+from DbConnectionPool import DbConnectionPool
 
 from zenmodeler import ZenModeler
 
@@ -103,7 +104,18 @@ class ZenDisc(ZenModeler):
                     component=comp,eventClass=Status_Ping,
                     summary=msg, severity=sev,
                     agent="Discover")
-        self.dmd.ZenEventManager.sendEvent(evt)
+        zem = self.dmd.ZenEventManager
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=zem.backend, 
+                        host=zem.host, 
+                        port=zem.port, 
+                        username=zem.username, 
+                        password=zem.password, 
+                        database=zem.database)
+        try:
+            zem.sendEvent(evt, conn)
+        finally:
+            cpool.put(conn)
 
 
     def sendDiscoveredEvent(self, ipobj, sev=2):
@@ -121,8 +133,18 @@ class ZenDisc(ZenModeler):
                     component=comp,eventClass=Status_Snmp,
                     summary=msg, severity=sev,
                     agent="Discover")
-        self.dmd.ZenEventManager.sendEvent(evt)
-    
+        zem = self.dmd.ZenEventManager
+        cpool = DbConnectionPool()
+        conn = cpool.get(backend=zem.backend, 
+                        host=zem.host, 
+                        port=zem.port, 
+                        username=zem.username, 
+                        password=zem.password, 
+                        database=zem.database)
+        try:
+            zem.sendEvent(evt, conn)
+        finally:
+            cpool.put(conn)    
     
     def discoverDevices(self, ips, 
                         devicepath="/Discovered",
@@ -172,7 +194,18 @@ class ZenDisc(ZenModeler):
                         severity=Info,
                         agent="Discover")
             if self.options.snmpMissing:
-                self.dmd.ZenEventManager.sendEvent(evt)
+                zem = self.dmd.ZenEventManager
+                cpool = DbConnectionPool()
+                conn = cpool.get(backend=zem.backend, 
+                                host=zem.host, 
+                                port=zem.port, 
+                                username=zem.username, 
+                                password=zem.password, 
+                                database=zem.database)
+                try:
+                    zem.sendEvent(evt, conn)
+                finally:
+                    cpool.put(conn)
         except Exception, e:
             self.log.exception("failed device discovery for '%s'", ip)
 
