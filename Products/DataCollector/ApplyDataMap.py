@@ -20,7 +20,7 @@ import Products.ZenEvents.Event as Event
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
-from DbConnectionPool import DbConnectionPool
+from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 
 zenmarker = "__ZENMARKER__"
 
