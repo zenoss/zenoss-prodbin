@@ -18,7 +18,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.Event import Event, Info
 from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
-from DbConnectionPool import DbConnectionPool
+from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 
 from zenmodeler import ZenModeler
 

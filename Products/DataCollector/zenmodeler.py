@@ -30,7 +30,7 @@ import PortscanClient
 
 from Exceptions import *
 
-from DbConnectionPool import DbConnectionPool
+from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 
 defaultPortScanTimeout = 5
 defaultParallel = 40
