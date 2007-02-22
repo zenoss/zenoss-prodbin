@@ -14,8 +14,6 @@ __version__ = '$Revision: 1.24 $'[11:-2]
 
 import transaction
 
-from Products.ZenUtils.Utils import cleanstring
-
 from CollectorPlugin import SnmpPlugin, GetTableMap
 
 class CiscoHSRP(SnmpPlugin):

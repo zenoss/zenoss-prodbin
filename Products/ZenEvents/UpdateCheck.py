@@ -17,7 +17,6 @@ from Products.ZenEvents.ZenEventClasses import Status_Update
 import urllib
 import string
 import time
-from DbConnectionPool import DbConnectionPool
 
 URL = 'http://update.zenoss.org/cgi-bin/version'
 
@@ -105,21 +104,10 @@ class UpdateCheck:
                 import socket
                 summary = ('A new version of Zenoss (%s) has been released' % 
                            available.short())
-                zem = self.dmd.ZenEventManager
-                cpool = DbConnectionPool()
-                conn = cpool.get(backend=zem.backend, 
-                               host=zem.host, 
-                               port=zem.port, 
-                               username=zem.username, 
-                               password=zem.password, 
-                               database=zem.database)
-                try:
-                    zem.sendEvent(Event.Event(device=socket.getfqdn(),
+                self.dmd.ZenEventManager.sendEvent(Event.Event(device=socket.getfqdn(),
                                               eventClass=Status_Update,
                                               severity=Event.Info,
-                                              summary=summary), conn)
-                finally:
-                   cpool.put(conn)
+                                              summary=summary))
                 
         return True
 

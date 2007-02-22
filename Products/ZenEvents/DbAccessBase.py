@@ -1,58 +1,44 @@
 import types
-import struct
-import DateTime
 
+from DbConnectionPool import DbConnectionPool
 
 class DbAccessBase(object):
+    
+    _cpool = DbConnectionPool()
+    _currConn = None
 
-    def __init__(self, backend=None, host=None, port=None, username=None, 
-                    password=None, database=None):
-        self.backend = backend
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
-        self.database = database
-        self.connect()
-
+    def __init__(self):
+        try:
+            self.connect() # Create a connection (and Pool)
+        finally: self.close() # Return the connection
+        
+    def conn(self):
+        if not self._currConn: 
+            #self.connect()
+            raise Exception, "Stray conn() or cursor() call: Call connect() before and close() after"
+        return self._currConn
+    
     def cursor(self):
-        return self.conn.cursor()
+        return self.conn().cursor()
 
     def close(self):
-        self.conn.close()
-        self.conn = None
+        if self._currConn:
+            self._cpool.put(self._currConn)
+            self._currConn = None
 
     def connect(self):
-        """Load our database driver and connect to the database.""" 
-        self.conn = None
-        if self.backend == "omnibus":
-            import Sybase
-            self.conn = Sybase.connect(self.database,self.username,
-                                        self.password)
-        elif self.backend == "mysql": 
-            import MySQLdb
-            import MySQLdb.converters
-            mysqlconv = MySQLdb.converters.conversions.copy()
-            from MySQLdb.constants import FIELD_TYPE
-            mysqlconv[FIELD_TYPE.DATETIME] = DateTime.DateTime
-            mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime
-            # FIXME for some reason it thinks my int is a long -EAD
-            mysqlconv[FIELD_TYPE.LONG] = int
-            if hasattr(self, 'host'):
-                host, database = self.host, self.database
-            else:
-                host, database = self.database, 'events'
-            self.conn = MySQLdb.connect(host=host, user=self.username,
-                                 port=self.port, passwd=self.password, 
-                                 db=database, conv=mysqlconv)
-            self.conn.autocommit(1)
-        elif self.backend == "oracle":
-            import DCOracle2
-            connstr = "%s/%s@%s" % (self.username, self.password, self.database)
-            self.conn = DCOracle2.connect(connstr)
-
-
-    def cleanstring(value):
+        """Load our database driver and connect to the database."""
+        if self._currConn:
+            raise Exception, "A connection has already been retrieved, call close() when finished."
+        else:
+            self._currConn = self._cpool.get(backend=self.backend, 
+                               host=self.host,
+                               port=self.port,
+                               username=self.username,
+                               password=self.password,
+                               database=self.database)
+    
+    def cleanstring(self, value):
         """Remove the trailing \x00 off the end of a string."""
         if type(value) in types.StringTypes:
             return value.rstrip("\x00")

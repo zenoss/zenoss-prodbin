@@ -7,8 +7,6 @@ from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 
 from AccessControl import ClassSecurityInfo
 
-from DbConnectionPool import DbConnectionPool
-
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
@@ -95,11 +93,12 @@ class Report:
         """Run the report, returning an Availability object for each device"""
         # Note: we don't handle overlapping "down" events, so down
         # time could get get double-counted.
+        zem = dmd.ZenEventManager
         cols = 'device, component, firstTime, lastTime'
         endDate = self.endDate or time.time()
         startDate = self.startDate
         if not startDate:
-            days = dmd.ZenEventManager.defaultAvailabilityDays
+            days = zem.defaultAvailabilityDays
             startDate = time.time() - days*60*60*24
         env = self.__dict__.copy()
         env.update(locals())
@@ -120,15 +119,9 @@ class Report:
              ') AS U  ' % env)
                   
         devices = {}
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=dmd.ZenEventManager.backend, 
-                        host=dmd.ZenEventManager.host, 
-                        port=dmd.ZenEventManager.port, 
-                        username=dmd.ZenEventManager.username, 
-                        password=dmd.ZenEventManager.password, 
-                        database=dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem.connect()
+            curs = zem.cursor()
             curs.execute(s)
             while 1:
                 rows = curs.fetchmany()
@@ -142,9 +135,7 @@ class Report:
                         devices[k] += last - first
                     except KeyError:
                         devices[k] = last - first
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
         total = endDate - startDate
         if self.device:
             deviceList = [dmd.Devices.findDevice(self.device)]

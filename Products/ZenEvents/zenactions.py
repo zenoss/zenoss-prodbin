@@ -35,7 +35,6 @@ import Products.ZenUtils.Utils as Utils
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from DateTime import DateTime
-from DbConnectionPool import DbConnectionPool
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -151,18 +150,31 @@ class ZenActions(ZCmdBase):
                 self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
 
 
-    def execute(self, db, stmt):
+    def execute(self, stmt):
+        result = None
         self.lastCommand = stmt
         self.log.debug(stmt)
-        return db.cursor().execute(stmt)
+        zem = self.dmd.ZenEventManager
+        try:
+            zem.connect()
+            curs = zem.cursor()
+            result = curs.execute(stmt)
+        finally: zem.close()
+        return result
 
 
-    def query(self, db, stmt):
+    def query(self, stmt):
+        result = None
         self.lastCommand = stmt
         self.log.debug(stmt)
-        curs = db.cursor()
-        curs.execute(stmt)
-        return curs.fetchall()
+        zem = self.dmd.ZenEventManager
+        try:
+            zem.connect()
+            curs = zem.cursor()
+            curs.execute(stmt)
+            result = curs.fetchall()
+        finally: zem.close()
+        return result
 
 
     def getUrl(self, evid):
@@ -189,7 +201,7 @@ class ZenActions(ZCmdBase):
                '?evid=%s&zenScreenName=viewEvents' % evid
 
 
-    def processRules(self, db, zem):
+    def processRules(self, zem):
         """Run through all rules matching them against events.
         """
         for ar in self.actions:
@@ -197,7 +209,7 @@ class ZenActions(ZCmdBase):
                 self.lastCommand = None
                 # call sendPage or sendEmail
                 actfunc = getattr(self, "send"+ar.action.title())
-                self.processEvent(db, zem, ar, actfunc)
+                self.processEvent(zem, ar, actfunc)
             except (SystemExit, KeyboardInterrupt, OperationalError, POSError):
                 raise
             except:
@@ -205,12 +217,12 @@ class ZenActions(ZCmdBase):
                     self.log.warning(self.lastCommand)
                 self.log.exception("action:%s",ar.getId())
 
-    def checkVersion(self, db, zem):
-        self.updateCheck.check(db, zem)
+    def checkVersion(self, zem):
+        self.updateCheck.check(self.dmd, zem)
         import transaction
         transaction.commit()
 
-    def processEvent(self, db, zem, context, action):
+    def processEvent(self, zem, context, action):
         fields = context.getEventFields()
         userid = context.getUserid()
         # get new events
@@ -218,7 +230,7 @@ class ZenActions(ZCmdBase):
         if context.delay > 0:
             nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % context.delay
         q = self.newsel % (",".join(fields), nwhere, userid, context.getId())
-        for result in self.query(db, q):
+        for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
             data['eventUrl'] = self.getUrl(evid)
@@ -233,13 +245,13 @@ class ZenActions(ZCmdBase):
             data['severityString'] = zem.getSeverityString(severity)
             if action(context, data, False):            
                 addcmd = self.addstate % (evid, userid, context.getId())
-                self.execute(db, addcmd)
+                self.execute(addcmd)
 
         # get clear events
         historyFields = [("h.%s" % f) for f in fields]
         historyFields = ','.join(historyFields)
         q = self.clearsel % (historyFields, userid, context.getId())
-        for result in self.query(db, q):
+        for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
             
@@ -254,7 +266,7 @@ class ZenActions(ZCmdBase):
             data.update({}.fromkeys(cfields, ""))
 
             # pull in the clear event data
-            for values in self.query(db, q):
+            for values in self.query(q):
                 values = map(zem.convert, fields, values)
                 data.update(dict(zip(cfields, values)))
 
@@ -267,31 +279,31 @@ class ZenActions(ZCmdBase):
             data['severityString'] = zem.getSeverityString(severity)
             action(context, data, True)
             delcmd = self.clearstate % (evid, userid, context.getId())
-            self.execute(db, delcmd)
+            self.execute(delcmd)
 
-    def maintenance(self, db, zem):
+    def maintenance(self, zem):
         """Run stored procedures that maintain the events database.
         """
         sql = 'call age_events(%s, %s);' % (
                 zem.eventAgingHours, zem.eventAgingSeverity)
         try:
-            self.execute(db, sql)
+            self.execute(sql)
         except ProgrammingError:
             self.log.exception("problem with proc: '%s'" % sql)
 
 
-    def heartbeatEvents(self, db):
+    def heartbeatEvents(self):
         """Create events for failed heartbeats.
         """
         # build cache of existing heartbeat issues
         q = ("SELECT device, component "
              "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
-        heartbeatState = Set(self.query(db, q))
+        heartbeatState = Set(self.query(q))
            
         # find current heartbeat failures
         sel = "SELECT device, component FROM heartbeat "
         sel += "WHERE DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
-        for device, comp in self.query(db, sel):
+        for device, comp in self.query(sel):
             self.sendEvent(
                 Event.Event(device=device, component=comp,
                             eventClass=Status_Heartbeat, 
@@ -335,36 +347,26 @@ class ZenActions(ZCmdBase):
         return True
         
 
-    def eventCommands(self, db, zem):
+    def eventCommands(self, zem):
         now = time.time()
         count = 0
         for command in zem.commands():
             if command.enabled:
                 count += 1
-                self.processEvent(db, zem, command, self.runEventCommand)
+                self.processEvent(zem, command, self.runEventCommand)
         self.log.info("Processed %d commands in %f", count, time.time() - now)
             
 
     def mainbody(self):
         """main loop to run actions.
         """
-        self.loadActionRules()
         zem = self.dmd.ZenEventManager
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=zem.backend, 
-                        host=zem.host, 
-                        port=zem.port, 
-                        username=zem.username, 
-                        password=zem.password, 
-                        database=zem.database)
-        try:
-            self.eventCommands(conn, zem)
-            self.processRules(conn, zem)
-            self.checkVersion(self.dmd, zem)
-            self.maintenance(conn, zem)
-            self.heartbeatEvents(conn)
-        finally:
-            cpool.put(conn)
+        self.loadActionRules()
+        self.eventCommands(zem)
+        self.processRules(zem)
+        self.checkVersion(zem)
+        self.maintenance(zem)
+        self.heartbeatEvents()
 
 
     def runCycle(self):
@@ -392,18 +394,7 @@ class ZenActions(ZCmdBase):
     def sendEvent(self, evt):
         """Send event to the system.
         """
-        zem = self.dmd.ZenEventManager
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=zem.backend, 
-                        host=zem.host, 
-                        port=zem.port, 
-                        username=zem.username, 
-                        password=zem.password, 
-                        database=zem.database)
-        try:
-            zem.sendEvent(evt, conn)
-        finally:
-            cpool.put(conn)
+        self.dmd.ZenEventManager.sendEvent(evt)
 
 
     def sendHeartbeat(self):

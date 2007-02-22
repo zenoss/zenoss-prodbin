@@ -60,8 +60,6 @@ from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 from Exceptions import *
 
-from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
@@ -908,20 +906,13 @@ class Device(ManagedEntity, Commandable):
         """
         self.productionState = int(state)
         try:
-            cpool = DbConnectionPool()
-            conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                            host=self.dmd.ZenEventManager.host, 
-                            port=self.dmd.ZenEventManager.port, 
-                            username=self.dmd.ZenEventManager.username, 
-                            password=self.dmd.ZenEventManager.password, 
-                            database=self.dmd.ZenEventManager.database)
-            curs = conn.cursor()
+            zem = self.dmd.ZenEventManager
             try:
+                zem.connect()
+                curs = zem.cursor()
                 curs.execute("update status set prodState=%d where device='%s'" % (
                                 self.productionState, self.id))
-            finally:
-                curs.close()
-                cpool.put(conn)
+            finally: zem.close()
         except OperationalError:
             log.exception("failed to update events with new prodState")
 
@@ -931,20 +922,13 @@ class Device(ManagedEntity, Commandable):
         """
         self.priority = int(priority)
         try:
-            cpool = DbConnectionPool()
-            conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                            host=self.dmd.ZenEventManager.host, 
-                            port=self.dmd.ZenEventManager.port, 
-                            username=self.dmd.ZenEventManager.username, 
-                            password=self.dmd.ZenEventManager.password, 
-                            database=self.dmd.ZenEventManager.database)
-            curs = conn.cursor()
+            zem = self.dmd.ZenEventManager
             try:
+                zem.connect()
+                curs = zem.cursor()
                 curs.execute("update status set DevicePriority=%d where device='%s'" % (
                                 self.priority, self.id))
-            finally:
-                curs.close()
-                cpool.put(conn)
+            finally: zem.close()
         except OperationalError:
             log.exception("failed to update events with new priority")
 

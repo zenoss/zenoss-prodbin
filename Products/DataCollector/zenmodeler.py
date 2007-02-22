@@ -30,8 +30,6 @@ import PortscanClient
 
 from Exceptions import *
 
-from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-
 defaultPortScanTimeout = 5
 defaultParallel = 40
 defaultProtocol = "ssh"
@@ -320,18 +318,7 @@ class ZenModeler(ZCmdBase):
                            device=socket.getfqdn(),
                            timeout=self.cycletime*3)
                 if self.dmd:
-                    zem = self.dmd.ZenEventManager
-                    cpool = DbConnectionPool()
-                    conn = cpool.get(backend=zem.backend, 
-                                    host=zem.host, 
-                                    port=zem.port, 
-                                    username=zem.username, 
-                                    password=zem.password, 
-                                    database=zem.database)
-                    try:
-                        zem.sendEvent(evt, conn)
-                    finally:
-                        cpool.put(conn)
+                    self.dmd.ZenEventManager.sendEvent(evt)
             else:
                 self.stop()
 

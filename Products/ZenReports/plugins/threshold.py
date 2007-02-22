@@ -4,7 +4,6 @@ import time
 import Globals
 from Products.ZenUtils.Time import Duration
 from Products.ZenReports import Utils
-from Products.ZenEvents.DbConnectionPool import DbConnectionPool
 
 def dateAsFloat(args, key, default):
     from Products.ZenUtils.Time import ParseUSDate
@@ -44,15 +43,10 @@ class threshold:
 
         sum = {}
         counts = {}
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem = dmd.ZenEventManager
+            zem.connect()
+            curs = zem.cursor()
             curs.execute(query)
             startDate = args['startDate']
             endDate = args['endDate']
@@ -71,9 +65,7 @@ class threshold:
                         except KeyError:
                             sum[(device, component, eventClass)] = diff
                             counts[(device, component, eventClass)] = 1
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
 
         # Look up objects that correspond to the names
         find = dmd.Devices.findDevice

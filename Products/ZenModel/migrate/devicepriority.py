@@ -61,16 +61,10 @@ class DevicePriority(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
-        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-        cpool = DbConnectionPool()
-        conn = cpool.get(dmd.ZenEventManager.backend, 
-                        host=dmd.ZenEventManager.host, 
-                        port=dmd.ZenEventManager.port, 
-                        username=dmd.ZenEventManager.username, 
-                        password=dmd.ZenEventManager.password, 
-                        database=dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem = self.dmd.ZenEventManager
+            zem.connect()
+            curs = zem.cursor()
             cmd = 'ALTER TABLE %s ADD COLUMN ' + \
                   '(DevicePriority smallint(6) default 3)'
             for table in ('status', 'history'):
@@ -85,8 +79,6 @@ class DevicePriority(Migrate.Step):
                 if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
                     raise
             curs.execute(trigger)
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
 
 DevicePriority()

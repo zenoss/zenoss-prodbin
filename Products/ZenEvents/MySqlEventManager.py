@@ -10,8 +10,6 @@ from EventManagerBase import EventManagerBase
 from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 
-from DbConnectionPool import DbConnectionPool
-
 def manage_addMySqlEventManager(context, id=None, evtuser="root", evtpass="",
                                 evtdb="events", history=False, REQUEST=None):
     '''make an MySqlEventManager'''
@@ -67,16 +65,10 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         #print select
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
-        
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
-        curs = conn.cursor()
+        zem = self.dmd.ZenEventManager
         try:
+            zem.connect()
+            curs = zem.cursor()
             curs.execute(select)
             sumdata = {}
             ownerids = ""
@@ -94,9 +86,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                 css = self.getEventCssClass(value)
                 ackcount, count = sumdata.get(value, [0,0])
                 sevsum.append([css, ackcount, int(count)])
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
         
         self.addToCache(select, sevsum)
         self.cleanCache()
@@ -106,16 +96,11 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         ''' since is number of seconds since epoch, see documentation
         for python time.time()
         '''
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
-        curs = conn.cursor()
         count = 0
+        zem = self.dmd.ZenEventManager
         try:
+            zem.connect()
+            curs = zem.cursor()
             for table in ('status', 'history'):
                 sql = 'select count(*) from status ' \
                         'where firstTime >= %s' % since
@@ -125,9 +110,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                     'where firstTime >= %s' % since
             curs.execute(sql)
             count += curs.fetchall()[0][0]
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
         return count
 
 InitializeClass(MySqlEventManager)

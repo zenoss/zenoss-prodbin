@@ -14,16 +14,10 @@ class Innodb(Migrate.Step):
     version = Migrate.Version(1, 0, 0)
 
     def cutover(self, dmd):
-        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem = self.dmd.ZenEventManager
+            zem.connect()
+            curs = zem.cursor()
             curs.execute('SHOW TABLE STATUS')
             for row in curs.fetchall():
                 table, engine = row[:2]
@@ -33,8 +27,6 @@ class Innodb(Migrate.Step):
                     curs.execute('ALTER TABLE %s ENGINE=INNODB' % table)
                 if options and options.find('max_rows=') >= 0:
                     curs.execute('ALTER TABLE %s max_rows=0' % table)
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
 
 Innodb()

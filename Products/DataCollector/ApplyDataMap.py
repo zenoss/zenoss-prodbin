@@ -20,8 +20,6 @@ import Products.ZenEvents.Event as Event
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
-from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-
 zenmarker = "__ZENMARKER__"
 
 class ApplyDataMap(object):
@@ -50,19 +48,7 @@ class ApplyDataMap(object):
                 'summary': msg,
                 'severity': Event.Info,
                 }
-            zem = self.datacollector.dmd.ZenEventManager
-            cpool = DbConnectionPool()
-            conn = cpool.get(backend=zem.backend, 
-                            host=zem.host, 
-                            port=zem.port, 
-                            username=zem.username, 
-                            password=zem.password, 
-                            database=zem.database)
-            try:
-                zem.sendEvent(eventDict, conn)
-            finally:
-                cpool.put(conn)
-        
+            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
         
     def processClient(self, device, collectorClient):
         """Apply datamps to device.

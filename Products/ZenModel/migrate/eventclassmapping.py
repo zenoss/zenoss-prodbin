@@ -60,16 +60,10 @@ class EventClassMapping(Migrate.Step):
     version = Migrate.Version(1, 2, 0)
 
     def cutover(self, dmd):
-        from Products.ZenEvents.DbConnectionPool import DbConnectionPool
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=dmd.ZenEventManager.backend, 
-                        host=dmd.ZenEventManager.host, 
-                        port=dmd.ZenEventManager.port, 
-                        username=dmd.ZenEventManager.username, 
-                        password=dmd.ZenEventManager.password, 
-                        database=dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem = dmd.ZenEventManager
+            zem.connect()
+            curs = zem.cursor()
             for table in ('status', 'history'):
                 try:
                     curs.execute('alter table %s ' % table +
@@ -84,8 +78,6 @@ class EventClassMapping(Migrate.Step):
                 if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
                     raise
             curs.execute(trigger)
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
 
 EventClassMapping()

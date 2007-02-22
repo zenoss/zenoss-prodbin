@@ -29,14 +29,14 @@ class MySqlSendEventMixin:
     send the event to the backend.
     """
 
-    def sendEvent(self, event, conn):
+    def sendEvent(self, event):
         """Send an event to the backend.
         """
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
-            return self._sendHeartbeat(event, conn)
+            return self._sendHeartbeat(event)
         
         for field in self.requiredEventFields:
             if not hasattr(event, field):
@@ -56,7 +56,7 @@ class MySqlSendEventMixin:
         
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
-            return self._sendHeartbeat(event, conn)
+            return self._sendHeartbeat(event)
             
 
         if not hasattr(event, 'dedupid'):
@@ -82,7 +82,7 @@ class MySqlSendEventMixin:
         evid = None
         try:
             try:
-                evid = self.doSendEvent(event, conn)
+                evid = self.doSendEvent(event)
             except ProgrammingError, e:
                 log.exception(e)
             except OperationalError, e:
@@ -92,11 +92,12 @@ class MySqlSendEventMixin:
             cleanup()
         return evid
 
-    def doSendEvent(self, event, conn):
+    def doSendEvent(self, event):
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
-        curs = conn.cursor()
         try:
+            self.connect()
+            curs = self.cursor()
             evid = guid.generate()
             event.evid = evid
             if event.severity == 0:
@@ -124,8 +125,7 @@ class MySqlSendEventMixin:
                     evid = None
             delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
             execute(curs, delete)
-        finally:
-            curs.close()
+        finally: self.close()
         return evid
             
 
@@ -180,7 +180,7 @@ class MySqlSendEventMixin:
         return evt
 
 
-    def _sendHeartbeat(self, event, conn):
+    def _sendHeartbeat(self, event):
         """Build insert to add heartbeat record to heartbeat table.
         """
         evdict = {}
@@ -202,11 +202,11 @@ class MySqlSendEventMixin:
         insert += " on duplicate key update lastTime=Null"
         insert += ", timeout=%s" % evdict['timeout']
         try:
-            curs = conn.cursor()
             try:
+                self.connect()
+                curs = self.cursor()
                 execute(curs, insert)
-            finally:
-                curs.close()
+            finally: self.close()
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)

@@ -7,7 +7,6 @@ from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
 from EventFilter import EventFilter
-from DbConnectionPool import DbConnectionPool
 
 class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
 
@@ -76,20 +75,13 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
     def _clearAlertState(self):
         """Clear state in alert_state before we are deleted.
         """
-        cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
-        curs = conn.cursor()
         try:
+            zem = self.dmd.ZenEventManager
+            zem.connect()
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
+            curs = self.dmd.ZenEventManager.cursor()
             curs.execute(delcmd)
-        finally:
-            curs.close()
-            cpool.put(conn)
+        finally: zem.close()
 
 
     security.declareProtected('Manage EventManager', 'manage_editEventCommand')
