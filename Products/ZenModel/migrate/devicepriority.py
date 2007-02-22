@@ -13,6 +13,9 @@ Add a DevicePriority column to the status and history tables
 __version__ = "$Revision$"[11:-2]
 
 import Migrate
+from MySQLdb import OperationalError
+import MySQLdb.constants.ER as ER
+MYSQL_ERROR_TRIGGER_DOESNT_EXIST = 1360
 
 trigger = """
     CREATE TRIGGER status_delete BEFORE DELETE ON status
@@ -57,30 +60,31 @@ class DevicePriority(Migrate.Step):
     "Add a DevicePriority column to the status and history tables"
     version = Migrate.Version(1, 1, 0)
 
-    def execute(self, s, cmd):
-        from MySQLdb import OperationalError
-        try:
-            s.execute(cmd)
-        except OperationalError:
-            pass
-
     def cutover(self, dmd):
         from Products.ZenEvents.DbConnectionPool import DbConnectionPool
         cpool = DbConnectionPool()
-        conn = cpool.get(backend=self.dmd.ZenEventManager.backend, 
-                        host=self.dmd.ZenEventManager.host, 
-                        port=self.dmd.ZenEventManager.port, 
-                        username=self.dmd.ZenEventManager.username, 
-                        password=self.dmd.ZenEventManager.password, 
-                        database=self.dmd.ZenEventManager.database)
+        conn = cpool.get(dmd.ZenEventManager.backend, 
+                        host=dmd.ZenEventManager.host, 
+                        port=dmd.ZenEventManager.port, 
+                        username=dmd.ZenEventManager.username, 
+                        password=dmd.ZenEventManager.password, 
+                        database=dmd.ZenEventManager.database)
         curs = conn.cursor()
         try:
             cmd = 'ALTER TABLE %s ADD COLUMN ' + \
                   '(DevicePriority smallint(6) default 3)'
-            self.execute(curs, cmd % 'status')
-            self.execute(curs, cmd % 'history')
-            self.execute(curs, 'DROP TRIGGER status_delete')
-            self.execute(curs, trigger)
+            for table in ('status', 'history'):
+                try:
+                    curs.execute(cmd % table)
+                except OperationalError, e:
+                    if e[0] != ER.DUP_FIELDNAME:
+                        raise
+            try:
+                curs.execute('DROP TRIGGER status_delete')
+            except OperationalError, e:
+                if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
+                    raise
+            curs.execute(trigger)
         finally:
             curs.close()
             cpool.put(conn)

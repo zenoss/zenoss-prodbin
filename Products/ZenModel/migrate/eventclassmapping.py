@@ -11,6 +11,9 @@ from MySQLdb import OperationalError
 import logging
 log = logging.getLogger("zen.migrate")
 
+import MySQLdb.constants.ER as ER
+MYSQL_ERROR_TRIGGER_DOESNT_EXIST = 1360
+
 trigger = """
     CREATE TRIGGER status_delete BEFORE DELETE ON status
     FOR EACH ROW INSERT INTO history SET
@@ -67,18 +70,19 @@ class EventClassMapping(Migrate.Step):
                         database=dmd.ZenEventManager.database)
         curs = conn.cursor()
         try:
-            tables = ('status', 'history')
-            for table in tables:
-                curs.execute('desc %s' % table)
-                r = curs.fetchall()
-                if not [f for f in r if f[0] == 'eventClassMapping']:
+            for table in ('status', 'history'):
+                try:
                     curs.execute('alter table %s ' % table +
                                 'add column eventClassMapping '
                                 'varchar(128) default ""')
+                except OperationalError, e:
+                    if e[0] != ER.DUP_FIELDNAME:
+                        raise
             try:
                 curs.execute('drop trigger status_delete')
-            except OperationalError:
-                pass
+            except OperationalError, e:
+                if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
+                    raise
             curs.execute(trigger)
         finally:
             curs.close()
