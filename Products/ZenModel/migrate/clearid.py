@@ -66,14 +66,14 @@ class ClearId(Migrate.Step):
     def cutover(self, dmd):
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             cmd = 'ALTER TABLE %s ADD COLUMN (clearid char(25))'
             self.execute(curs, cmd % 'status')
             self.execute(curs, cmd % 'history')
             self.execute(curs, 'DROP TRIGGER status_delete')
             self.execute(curs, trigger)
-        finally: zem.close()
+        finally: zem.close(conn)
 
 
 ClearId()

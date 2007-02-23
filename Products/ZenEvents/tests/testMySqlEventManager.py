@@ -31,13 +31,13 @@ class MySqlEventMangerTest(unittest.TestCase):
         transaction.abort()
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute("truncate status")
             curs.execute("truncate detail")
             curs.execute("truncate log")
             curs.execute("truncate history")
-        finally: zem.close()
+        finally: zem.close(conn)
         zodb.closedb()
         self.dmd = None
         self.zem = None

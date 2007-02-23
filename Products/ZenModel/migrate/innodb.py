@@ -16,8 +16,8 @@ class Innodb(Migrate.Step):
     def cutover(self, dmd):
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute('SHOW TABLE STATUS')
             for row in curs.fetchall():
                 table, engine = row[:2]
@@ -27,6 +27,6 @@ class Innodb(Migrate.Step):
                     curs.execute('ALTER TABLE %s ENGINE=INNODB' % table)
                 if options and options.find('max_rows=') >= 0:
                     curs.execute('ALTER TABLE %s max_rows=0' % table)
-        finally: zem.close()
+        finally: zem.close(conn)
 
 Innodb()

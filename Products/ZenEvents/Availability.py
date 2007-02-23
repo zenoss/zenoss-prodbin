@@ -120,8 +120,8 @@ class Report:
                   
         devices = {}
         try:
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute(s)
             while 1:
                 rows = curs.fetchmany()
@@ -135,7 +135,7 @@ class Report:
                         devices[k] += last - first
                     except KeyError:
                         devices[k] = last - first
-        finally: zem.close()
+        finally: zem.close(conn)
         total = endDate - startDate
         if self.device:
             deviceList = [dmd.Devices.findDevice(self.device)]

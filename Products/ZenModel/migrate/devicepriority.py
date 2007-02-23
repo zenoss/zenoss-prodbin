@@ -63,8 +63,8 @@ class DevicePriority(Migrate.Step):
     def cutover(self, dmd):
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             cmd = 'ALTER TABLE %s ADD COLUMN ' + \
                   '(DevicePriority smallint(6) default 3)'
             for table in ('status', 'history'):
@@ -79,6 +79,6 @@ class DevicePriority(Migrate.Step):
                 if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
                     raise
             curs.execute(trigger)
-        finally: zem.close()
+        finally: zem.close(conn)
 
 DevicePriority()

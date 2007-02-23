@@ -62,8 +62,8 @@ class EventClassMapping(Migrate.Step):
     def cutover(self, dmd):
         try:
             zem = dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             for table in ('status', 'history'):
                 try:
                     curs.execute('alter table %s ' % table +
@@ -78,6 +78,6 @@ class EventClassMapping(Migrate.Step):
                 if e[0] != MYSQL_ERROR_TRIGGER_DOESNT_EXIST:
                     raise
             curs.execute(trigger)
-        finally: zem.close()
+        finally: zem.close(conn)
 
 EventClassMapping()

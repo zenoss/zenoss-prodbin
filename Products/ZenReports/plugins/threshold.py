@@ -45,8 +45,8 @@ class threshold:
         counts = {}
         try:
             zem = dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute(query)
             startDate = args['startDate']
             endDate = args['endDate']
@@ -65,7 +65,7 @@ class threshold:
                         except KeyError:
                             sum[(device, component, eventClass)] = diff
                             counts[(device, component, eventClass)] = 1
-        finally: zem.close()
+        finally: zem.close(conn)
 
         # Look up objects that correspond to the names
         find = dmd.Devices.findDevice

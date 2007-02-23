@@ -148,8 +148,8 @@ class PerformanceConf(Monitor, StatusColor):
             # get all the events with /Status/Snmp
             try:
                 zem = self.ZenEventManager
-                zem.connect()
-                curs = zem.cursor()
+                conn = zem.connect()
+                curs = conn.cursor()
                 cmd = ('SELECT device, sum(count)  ' +
                        '  FROM status ' +
                        ' WHERE eventClass = "%s"' % Status_Snmp)
@@ -158,7 +158,7 @@ class PerformanceConf(Monitor, StatusColor):
                 cmd += ' GROUP BY device'
                 curs.execute(cmd);
                 counts = dict([(d, c) for d, c in curs.fetchall()])
-            finally: zem.close()
+            finally: zem.close(conn)
         except Exception, ex:
             log.exception('Unable to get Snmp Status')
             raise

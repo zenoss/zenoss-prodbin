@@ -7,16 +7,27 @@ import DateTime
 
 from Queue import Queue, Empty, Full
 
+import logging
+log = logging.getLogger("zen.DbConnectionPool")
+
 POOL_SIZE = 5
 KEEP_ALIVE = 28800
 
 class DbConnectionPool(Queue):
 
+    def __new__(type):
+        if not '_the_instance' in type.__dict__:
+            type._the_instance = object.__new__(type)
+        return type._the_instance
+        
+    '''
     instance = None
     def __new__(cls, *args, **kargs): 
         if cls.instance is None:
             cls.instance = object.__new__(cls, *args, **kargs)
+        log.debug('Returning single instance of DbConnectionPool')
         return cls.instance
+    '''
         
     def __init__(self):
         Queue.__init__(self, POOL_SIZE)
@@ -26,13 +37,15 @@ class DbConnectionPool(Queue):
         try:
             putstamp,obj = Queue.get(self, block)
 
-            if time.time() - putstamp >= KEEP_ALIVE: 
+            if time.time() - putstamp >= KEEP_ALIVE:
+                log.debug('Retrieved a stale connection; Pool size: %s' % self.qsize())
                 obj.close()
                 return self._createConnection(host=host, port=port, 
                                             username=username, 
                                             password=password,
                                             database=database)
-            else:    
+            else:
+                log.debug('Retrieved a connection; Pool size: %s' % self.qsize())
                 return obj
 
         except Empty:
@@ -44,11 +57,13 @@ class DbConnectionPool(Queue):
     def put(self, obj, block=0):
         try:
             Queue.put(self, (time.time(),obj), block)
+            log.debug('Returned a connection; Pool size: %s' % self.qsize())
         except Full:
             pass
 
     def _createConnection(self, host=None, port=None, 
                         username=None, password=None, database=None):
+        log.debug('Creating a new connection; Pool size: %s' % self.qsize())
         conn = None
         """
         if self.backend == "omnibus":

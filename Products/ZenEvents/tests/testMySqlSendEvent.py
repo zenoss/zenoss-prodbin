@@ -22,10 +22,10 @@ class MySqlSendEventThreadTest(unittest.TestCase):
         transaction.abort()
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             zem.curs.execute("truncate status")
-        finally: zem.close()
+        finally: zem.close(conn)
         zodb.closedb()
         self.zem = None
 

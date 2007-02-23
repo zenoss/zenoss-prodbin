@@ -27,11 +27,11 @@ class ReindexHistory(Migrate.Step):
     def cutover(self, dmd):
         try:
             zem = dmd.ZenEventManager
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             self.execute(curs, 'ALTER TABLE history DROP INDEX DateRange')
             self.execute(curs, 'ALTER TABLE history ADD INDEX firstTime (firstTime)')
             self.execute(curs, 'ALTER TABLE history ADD INDEX lastTime (lastTime)')
-        finally: zem.close()
+        finally: zem.close(conn)
 
 ReindexHistory()

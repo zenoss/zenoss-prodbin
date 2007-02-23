@@ -908,11 +908,11 @@ class Device(ManagedEntity, Commandable):
         try:
             zem = self.dmd.ZenEventManager
             try:
-                zem.connect()
-                curs = zem.cursor()
+                conn = zem.connect()
+                curs = conn.cursor()
                 curs.execute("update status set prodState=%d where device='%s'" % (
                                 self.productionState, self.id))
-            finally: zem.close()
+            finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new prodState")
 
@@ -924,11 +924,11 @@ class Device(ManagedEntity, Commandable):
         try:
             zem = self.dmd.ZenEventManager
             try:
-                zem.connect()
-                curs = zem.cursor()
+                conn = zem.connect()
+                curs = conn.cursor()
                 curs.execute("update status set DevicePriority=%d where device='%s'" % (
                                 self.priority, self.id))
-            finally: zem.close()
+            finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new priority")
 

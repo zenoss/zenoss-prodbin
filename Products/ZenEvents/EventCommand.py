@@ -77,11 +77,11 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         """
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
+            conn = zem.connect()
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
             curs = self.dmd.ZenEventManager.cursor()
             curs.execute(delcmd)
-        finally: zem.close()
+        finally: zem.close(conn)
 
 
     security.declareProtected('Manage EventManager', 'manage_editEventCommand')

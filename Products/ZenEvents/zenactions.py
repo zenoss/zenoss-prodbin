@@ -156,10 +156,10 @@ class ZenActions(ZCmdBase):
         self.log.debug(stmt)
         zem = self.dmd.ZenEventManager
         try:
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             result = curs.execute(stmt)
-        finally: zem.close()
+        finally: zem.close(conn)
         return result
 
 
@@ -169,11 +169,11 @@ class ZenActions(ZCmdBase):
         self.log.debug(stmt)
         zem = self.dmd.ZenEventManager
         try:
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute(stmt)
             result = curs.fetchall()
-        finally: zem.close()
+        finally: zem.close(conn)
         return result
 
 

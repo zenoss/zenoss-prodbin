@@ -96,8 +96,8 @@ class MySqlSendEventMixin:
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             evid = guid.generate()
             event.evid = evid
             if event.severity == 0:
@@ -125,7 +125,7 @@ class MySqlSendEventMixin:
                     evid = None
             delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
             execute(curs, delete)
-        finally: self.close()
+        finally: self.close(conn)
         return evid
             
 
@@ -203,10 +203,10 @@ class MySqlSendEventMixin:
         insert += ", timeout=%s" % evdict['timeout']
         try:
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 execute(curs, insert)
-            finally: self.close()
+            finally: self.close(conn)
         except ProgrammingError, e:
             log.error(insert)
             log.exception(e)

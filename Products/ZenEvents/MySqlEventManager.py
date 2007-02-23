@@ -67,8 +67,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         if sevsum: return sevsum
         zem = self.dmd.ZenEventManager
         try:
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             curs.execute(select)
             sumdata = {}
             ownerids = ""
@@ -86,7 +86,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                 css = self.getEventCssClass(value)
                 ackcount, count = sumdata.get(value, [0,0])
                 sevsum.append([css, ackcount, int(count)])
-        finally: zem.close()
+        finally: zem.close(conn)
         
         self.addToCache(select, sevsum)
         self.cleanCache()
@@ -99,8 +99,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         count = 0
         zem = self.dmd.ZenEventManager
         try:
-            zem.connect()
-            curs = zem.cursor()
+            conn = zem.connect()
+            curs = conn.cursor()
             for table in ('status', 'history'):
                 sql = 'select count(*) from status ' \
                         'where firstTime >= %s' % since
@@ -110,7 +110,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
                     'where firstTime >= %s' % since
             curs.execute(sql)
             count += curs.fetchall()[0][0]
-        finally: zem.close()
+        finally: zem.close(conn)
         return count
 
 InitializeClass(MySqlEventManager)

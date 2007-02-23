@@ -197,12 +197,12 @@ class ActionRule(ZenModelRM, EventFilter):
         """
         try:
             zem = self.dmd.ZenEventManager
-            zem.connect()
+            conn = zem.connect()
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
             log.debug("clear alert state '%s'", delcmd)
-            curs = zem.cursor()
+            curs = conn.cursor()
             curs.execute(delcmd)
-        finally: zem.close()
+        finally: zem.close(conn)
 
     def sqlwhere(self):
         """Return sql where to select alert_state data for this event.

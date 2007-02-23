@@ -299,8 +299,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             retdata = self.checkCache(select)
             if not retdata:
                 try:
-                    self.connect()
-                    curs = self.cursor()
+                    conn = self.connect()
+                    curs = conn.cursor()
                     curs.execute(select)
                     retdata = []
                     # iterate through the data results and convert to python
@@ -309,7 +309,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         row = map(self.convert, resultFields, row)
                         evt = ZEvent(self, resultFields, row)
                         retdata.append(evt)
-                finally: self.close()
+                finally: self.close(conn)
                 self.addToCache(select, retdata)
                 self.cleanCache()
             return retdata
@@ -364,8 +364,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         selectevent += " %s = '%s'" % (idfield, evid)
         if self.backend=="omnibus": selectevent += ";"
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             #print selectevent
             curs.execute(selectevent)
             evrow = curs.fetchone()
@@ -399,7 +399,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 text = row[2]
                 logs.append((user, date, text))
             event._logs = logs
-        finally: self.close()
+        finally: self.close(conn)
         
         self.addToCache(cachekey, event)
         self.cleanCache()
@@ -431,12 +431,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCount = self.checkCache(select)
         if not statusCount:
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 #print select
                 curs.execute(select)
                 statusCount = curs.fetchone()[0]
-            finally: self.close()
+            finally: self.close(conn)
 
             self.addToCache(select,statusCount)
         return statusCount 
@@ -456,8 +456,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(select)
                 statusCache=[]
                 orgdict={}
@@ -470,7 +470,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         orgdict[orgname] += 1
                 statusCache = orgdict.items()
                 self.addToCache(select,statusCache)
-            finally: self.close()
+            finally: self.close(conn)
         countevts = 0
         for key, value  in statusCache:
             if key.startswith(org.getOrganizerName()):
@@ -491,8 +491,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(select)
                 statusCache=[]
                 orgdict={}
@@ -512,7 +512,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 if limit:
                     statusCache = statusCache[:limit]
                 self.addToCache(select,statusCache)
-            finally: self.close()
+            finally: self.close(conn)
         return statusCache
 
 
@@ -553,8 +553,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if not statusCache:
             try:
                 try:
-                    self.connect()
-                    curs = self.cursor()
+                    conn = self.connect()
+                    curs = conn.cursor()
                     curs.execute(select)
                     statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
                     #statusCache = list(curs.fetchall())
@@ -562,7 +562,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     statusCache.reverse()
                     if limit:
                         statusCache = statusCache[:limit]
-                finally: self.close()
+                finally: self.close(conn)
             except:
                 log.exception(select)
                 raise
@@ -585,15 +585,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if not statusCache:
             try:
                 try:
-                    self.connect()
-                    curs = self.cursor()
+                    conn = self.connect()
+                    curs = conn.cursor()
                     curs.execute(select)
                     statusCache = {}
                     for dev, count in curs.fetchall():
                         dev = self.cleanstring(dev)
                         statusCache[dev] = count
                     self.addToCache(select,statusCache)
-                finally: self.close()
+                finally: self.close(conn)
             except:
                 log.exception("status failed for device %s", device)
                 return -1
@@ -638,8 +638,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if not statusCache:
             statusCache = []
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(sel)
                 res = list(curs.fetchall())
                 res.sort(lambda x,y: cmp(x[2],y[2]))
@@ -655,7 +655,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 if limit:
                     statusCache = statusCache[:limit]
                 cleanup()
-            finally: self.close()
+            finally: self.close(conn)
         return statusCache
 
         
@@ -674,8 +674,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(select)
                 statusCache ={}
                 for dev, comp, count in curs.fetchall():
@@ -683,7 +683,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     comp = self.cleanstring(comp)
                     statusCache[dev+comp] = count
                 self.addToCache(select,statusCache)
-            finally: self.close()
+            finally: self.close(conn)
         return statusCache.get(device+component, 0)
 
 
@@ -711,12 +711,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if statusCache: return statusCache
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             curs.execute(select)
             statusCache = [ uid[0] for uid in curs.fetchall() if uid[0] ]
             self.addToCache(select,statusCache)
-        finally: self.close()
+        finally: self.close(conn)
         return statusCache
 
 
@@ -986,8 +986,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         fieldlist = []
         sql = "describe %s;" % self.statusTable
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             curs.execute(sql)
             for row in curs.fetchall():
                 fieldlist.append(row[0])
@@ -999,7 +999,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 schema[col] = type
             if schema: self._schema = schema 
             self._fieldlist = fieldlist
-        finally: self.close()
+        finally: self.close(conn)
 
 
     def eventControls(self):
@@ -1017,11 +1017,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                  'FROM %s ' % table + whereClause
         query = stmt + ' ' + whereClause
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             if toLog: curs.execute(insert)
             curs.execute(query)
-        finally: self.close()
+        finally: self.close(conn)
         self.clearCache()
         self.manage_clearCache()
         
@@ -1089,10 +1089,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if devname:
             delete = "delete from heartbeat where device = '%s'" % devname
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(delete);
-            finally: self.close()
+            finally: self.close(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -1136,8 +1136,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     from %s where evid in ('%s')"""
             sel = sel % (self.statusTable, "','".join(evids))
             try:
-                self.connect()
-                curs = self.cursor()
+                conn = self.connect()
+                curs = conn.cursor()
                 curs.execute(sel);
                 for row in curs.fetchall():
                     evclasskey, curevclass, msg = row
@@ -1145,7 +1145,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     evmap = evclass.createInstance(evclasskey)
                     evmap.eventClassKey = evclasskey
                     evmap.example = msg
-            finally: self.close()
+            finally: self.close(conn)
         if REQUEST: 
             if len(evids) == 1 and evmap: return evmap()
             elif evclass and evmap: return evclass()
@@ -1157,10 +1157,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         assert(self == self.dmd.ZenEventManager)
         self.loadSchema()
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             self.dmd.ZenEventHistory.loadSchema(self.conn())
-        finally: self.close()
+        finally: self.close(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -1204,11 +1204,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def manage_clearHeartbeats(self, REQUEST=None):
         """truncate heartbeat table"""
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             sql = 'truncate table heartbeat'
             curs.execute(sql)
-        finally: self.close()
+        finally: self.close(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager','zmanage_editProperties')
@@ -1230,14 +1230,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return
         userId = getSecurityManager().getUser().getId()
         try:
-            self.connect()
-            curs = self.cursor()
+            conn = self.connect()
+            curs = conn.cursor()
             insert = 'INSERT INTO log (evid, userName, text) '
             insert += 'VALUES ("%s", "%s", "%s")' % (evid,
                                                      userId,
                                                      self.conn().escape_string(message))
             curs.execute(insert)
-        finally: self.close()
+        finally: self.close(conn)
         self.clearCache('evid' + evid)
         if REQUEST: return self.callZenScreen(REQUEST)
 
