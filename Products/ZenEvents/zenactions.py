@@ -129,8 +129,6 @@ class ZenActions(ZCmdBase):
         self.schedule = Schedule(self.options, self.dmd)
         self.actions = []
         self.loadActionRules()
-        if not self.options.fromaddr:
-            self.options.fromaddr = "zenoss@%s" % socket.getfqdn()
         self.updateCheck = UpdateCheck()
         self.sendEvent(Event.Event(device=socket.getfqdn(), 
                         eventClass=App_Start, 
@@ -368,7 +366,6 @@ class ZenActions(ZCmdBase):
         self.maintenance(zem)
         self.heartbeatEvents()
 
-
     def runCycle(self):
         try:
             start = time.time()
@@ -472,7 +469,7 @@ class ZenActions(ZCmdBase):
         emsgAlternative.attach(plaintext)
         emsgAlternative.attach(html)
         emsg['Subject'] = fmt
-        emsg['From'] = self.options.fromaddr
+        emsg['From'] = self.dmd.getEmailFrom()
         emsg['To'] = addr
         emsg['Date'] = DateTime().rfc822()
         result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
@@ -491,9 +488,6 @@ class ZenActions(ZCmdBase):
         self.parser.add_option('--cycletime',
             dest='cycletime', default=60, type="int",
             help="check events every cycletime seconds")
-        self.parser.add_option('--fromaddr',
-            dest='fromaddr', default="",
-            help="address from which email is sent")
         self.parser.add_option(
             '--zopeurl', dest='zopeurl',
             default='http://%s:%d' % (socket.getfqdn(), 8080),

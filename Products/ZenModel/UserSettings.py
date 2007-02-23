@@ -573,7 +573,7 @@ class UserSettings(ZenModelRM):
             thisUser = self.getUser()
             srcId = thisUser.getId()
             srcSettings = self.getUserSettings(srcId)
-            srcAddress = srcSettings.email or 'zenossuser_%s@%s' % (srcId, fqdn)
+            srcAddress = self.dmd.getEmailFrom()
             # Read body from file probably
             body = ('This is a test message sent by %s' % srcId +
                     ' from the Zenoss installation on %s.' % fqdn)

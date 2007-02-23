@@ -40,6 +40,13 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">From Address for Emails</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="emailFrom"
+            tal:attributes="value here/emailFrom|string:" />
+      </td>
+    </tr>
+    <tr>
         <td class="tableheader" align="left">Use TLS?</td>
         <td class="tablevalues">
         <input type="hidden" name="smtpUseTLS:int:default" value="0">

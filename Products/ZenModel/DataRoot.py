@@ -14,6 +14,7 @@ name space.
 import re
 
 from AccessControl import ClassSecurityInfo
+from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
 from ImageFile import ImageFile
@@ -28,6 +29,7 @@ from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
+import socket
 
 from AccessControl import Permissions as permissions
 
@@ -67,6 +69,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     smtpUser = ''
     smtpPass = ''
     smtpUseTLS = 0
+    emailFrom = ''
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -90,6 +93,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'smtpUser', 'type': 'string', 'mode':'w'},
         {'id':'smtpPass', 'type': 'string', 'mode':'w'},
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
+        {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         )
 
     _relations =  (
@@ -404,5 +408,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''
         raise 'Not supported on DataRoot'
 
-
+    def getEmailFrom(self):
+        ''' Return self.emailFrom or a suitable default
+        '''
+        return self.emailFrom or 'zenossuser_%s@%s' % (
+            getSecurityManager().getUser().getId(), socket.getfqdn())
+        
 InitializeClass(DataRoot)
