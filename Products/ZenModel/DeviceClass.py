@@ -151,11 +151,11 @@ class DeviceClass(DeviceOrganizer):
         [{'name':'Name','action':'template','selected':False},...]
         """
         tabs = super(DeviceClass, self).zentinelTabs(templateName)
-        if self.getPrimaryId() == "/zport/dmd/Devices" and self.isManager():
-            tab = {'action': 'editCustSchema', 'name':'Custom Schema'}
-            if templateName == tab['action']:
-                tab['selected'] = True
-            tabs.insert(-1, tab)
+        #if self.getPrimaryId() == "/zport/dmd/Devices" and self.isManager():
+        #    tab = {'action': 'editCustSchema', 'name':'Custom Schema'}
+        #    if templateName == tab['action']:
+        #        tab['selected'] = True
+        #    tabs.insert(-1, tab)
         return tabs
 
 
