@@ -20,11 +20,8 @@ import tempfile
 from datetime import date
 import getpass
 import ConfigParser
-import select
-import popen2
-import signal
-import fcntl
 import time
+import commands
 
 from zenbackupcommon import *
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
@@ -42,29 +39,8 @@ class ZenBackup(CmdBase):
         ''' Returns True is zeo appears to be running, false otherwise.
         '''
         cmd = '%s/bin/zeoup.py -p 8100' % self.zenhome
-        child = popen2.Popen4(cmd)
-        read = ''
-        try:
-            flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
-            fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
-            timeout = 10
-            endtime = time.time() + timeout
-            pollPeriod = 1
-            firstPass = True
-            out = ''
-            while time.time() < endtime and (firstPass or child.poll() == -1):
-                firstPass = False
-                r, w, e = select.select([child.fromchild], [], [], pollPeriod)
-                if r:
-                    t = child.fromchild.read()
-                    if t:
-                        read += t
-        finally:                    
-            if child.poll() == -1:
-                os.kill(child.pid, signal.SIGKILL)
-            
-        return read.startswith('Elapsed time:')
-
+        output = commands.getoutput(cmd)
+        return output.startswith('Elapsed time:')
 
 
     def readSettingsFromZeo(self):
@@ -168,9 +144,9 @@ class ZenBackup(CmdBase):
         if self.options.dbname == None:
             self.options.dbname = 'events'
         if self.options.dbuser == None:
-            self.options.dbuser = 'root'
+            self.options.dbuser = 'zenoss'
         if self.options.dbpass == None:
-            self.options.dbpass = ''
+            self.options.dbpass = 'zenoss'
     
         # Create temp backup dir
         rootTempDir = tempfile.mkdtemp()
