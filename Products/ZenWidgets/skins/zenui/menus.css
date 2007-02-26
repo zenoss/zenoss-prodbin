@@ -69,9 +69,9 @@ div.devmovemenu {
     line-height: 100%;
     cursor: pointer;
     color: white;
-    text-align:center;
-    border-left: 2px dotted darkgrey;
-    background-color: grey;
+    text-align:left;
+    background: transparent url('arrow.d.gif') left no-repeat;
+    margin-left: 1.1em;
     z-index: 2000;
     position:relative;
     right:-1px;
