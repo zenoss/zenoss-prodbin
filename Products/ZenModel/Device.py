@@ -289,36 +289,36 @@ class Device(ManagedEntity, Commandable):
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
                 },
-                { 'id'            : 'perfConf'
-                , 'name'          : 'PerfConf'
-                , 'action'        : 'objRRDTemplate'
-                , 'permissions'   : ("Change Device", )
-                },
+#                { 'id'            : 'perfConf'
+#                , 'name'          : 'PerfConf'
+#                , 'action'        : 'objRRDTemplate'
+#                , 'permissions'   : ("Change Device", )
+#                },
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editDevice'
                 , 'permissions'   : ("Change Device",)
                 },
-                { 'id'            : 'management'
-                , 'name'          : 'Manage'
-                , 'action'        : 'deviceManagement'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'custom'
-                , 'name'          : 'Custom'
-                , 'action'        : 'deviceCustomEdit'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'config'
-                , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : (permissions.view,)
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (permissions.view, )
-                },
+#                { 'id'            : 'management'
+#                , 'name'          : 'Manage'
+#                , 'action'        : 'deviceManagement'
+#                , 'permissions'   : ("Change Device",)
+#                },
+#                { 'id'            : 'custom'
+#                , 'name'          : 'Custom'
+#                , 'action'        : 'deviceCustomEdit'
+#                , 'permissions'   : (permissions.view, )
+#                },
+#                { 'id'            : 'config'
+#                , 'name'          : 'zProperties'
+#                , 'action'        : 'zPropertyEdit'
+#                , 'permissions'   : (permissions.view,)
+#                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (permissions.view, )
+#                },
             )
          },
         )

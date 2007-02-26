@@ -50,16 +50,14 @@ class MenuRelations(Migrate.Step):
 
         # Add menus.
         dmd.buildMenus(
-            {'Edit':[
+            {'Context':[
                 dict(
                      id=         'manageob',
                      description='Manage',
                      action=     'dataRootManage',
                      permissions=('View',),
                      isglobal=   False
-                    )
-             ],
-             'View':[
+                    ),
                 dict(
                      id=         'viewHistory',
                      description='Changes',
@@ -71,7 +69,7 @@ class MenuRelations(Migrate.Step):
 
 
         dmd.Devices.buildMenus(
-            {'Edit':[
+            {'Context':[
                 dict(
                      id=         'manageob',
                      description='Manage',
@@ -103,41 +101,6 @@ class MenuRelations(Migrate.Step):
                      description='zProperties',
                      action=     'zPropertyEdit',
                      permissions=('Change Device',)
-                    ),
-                ],
-             'View':[
-                dict(
-                     id=         'devicelist',
-                     description='Devices',
-                     action=     'deviceList',
-                     permissions=('View',),
-                     allowed_classes=('DeviceClass',)
-                    ),
-                dict(
-                     id=         'events',
-                     description='Events',
-                     action=     'viewEvents',
-                     permissions=('View',)
-                    ),
-                dict(
-                     id=         'historyEvents',
-                     description='History',
-                     action=     'viewHistoryEvents',
-                     permissions=('View',)
-                    ),
-                dict(
-                     id=         'classes',
-                     description='Classes',
-                     action=     'deviceOrganizerStatus',
-                     permissions=('View',),
-                     allowed_classes=('DeviceClass',)
-                    ),
-                dict(
-                     id=         'status',
-                     description='Status',
-                     action=     'deviceStatus',
-                     permissions=('View',),
-                     allowed_classes=('Device',)
                     ),
                 ],
             'Device':[
@@ -182,7 +145,7 @@ class MenuRelations(Migrate.Step):
 
 
         dmd.Networks.buildMenus(
-            {'Tools':[
+            {'Context':[
                 dict(
                     id=             'discover',
                     description=    'Discover Devices', 

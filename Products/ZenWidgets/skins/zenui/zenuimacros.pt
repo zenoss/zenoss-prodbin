@@ -1,10 +1,9 @@
 <tal:block metal:define-macro="contextmenu"
     tal:condition="python:hasattr(here, 'getMenus')"
-    tal:define="menu_ids menu_ids | python:['View','Edit','Tools']">
+    tal:define="menu_id string:Context">
 
 <link href="menus.css" rel="stylesheet" type="text/css" />
 
-<tal:block tal:repeat="menu_id menu_ids">
 <td>
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
@@ -16,7 +15,7 @@
     tal:condition="menuitems">
 
         <div tal:attributes="id string:${menu_id}_btn">
-        <a class="tabletitle" tal:content="string:${menu_id}...">Stuff</a>
+        <a class="tabletitle">&gt;&gt;&gt;</a>
         </div>
 
         <div class="contextmenuitems invisible"
@@ -49,7 +48,6 @@
         </script>
     </div>
 </td>
-    </tal:block>
 </tal:block>
 
 <tal:block metal:define-macro="devmovemenu"
@@ -102,4 +100,13 @@
         ">
         </script>
     </div>
+</tal:block>
+
+
+<tal:block metal:define-macro="tabletitle_with_menu">
+<th class="tabletitle" colspan="5">
+    <span metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    <span class="tbl_title" tal:content="tabletitle|nothing">Table Title</span>
+    <span class="tbl_filter" tal:content="string:">Filter</span>
+</th>
 </tal:block>

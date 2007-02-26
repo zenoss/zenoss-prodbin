@@ -117,27 +117,27 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'perfConfig'
-                , 'name'          : 'PerfConf'
-                , 'action'        : 'perfConfig'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'config'
-                , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (  permissions.view, )
-                },
+                #{ 'id'            : 'perfConfig'
+                #, 'name'          : 'PerfConf'
+                #, 'action'        : 'perfConfig'
+                #, 'permissions'   : ("Change Device",)
+                #},
+                #{ 'id'            : 'config'
+                #, 'name'          : 'zProperties'
+                #, 'action'        : 'zPropertyEdit'
+                #, 'permissions'   : ("Change Device",)
+                #},
+                #{ 'id'            : 'manage'
+                #, 'name'          : 'Manage'
+                #, 'action'        : 'deviceOrganizerManage'
+                #, 'permissions'   : (
+                #  permissions.view, )
+                #},
+                #{ 'id'            : 'viewHistory'
+                #, 'name'          : 'Changes'
+                #, 'action'        : 'viewHistory'
+                #, 'permissions'   : (  permissions.view, )
+                #},
             )
          },
         )

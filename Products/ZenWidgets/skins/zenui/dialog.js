@@ -1,4 +1,3 @@
-
 var Class={
     create:function(){
         return function(){

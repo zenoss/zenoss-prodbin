@@ -58,6 +58,7 @@ ul.zenMenu li a {
 ul.zenMenu li a:hover {
     background-color: #DEDEFF;
 }
+
 div.menuselected {
 }
 
@@ -69,8 +70,11 @@ div.devmovemenu {
     cursor: pointer;
     color: white;
     text-align:center;
-    border-left: 1px dotted darkgrey;
+    border-left: 2px dotted darkgrey;
+    background-color: grey;
     z-index: 2000;
+    position:relative;
+    right:-1px;
 }
 div.devmovemenu:hover {
     background-color: #222;
