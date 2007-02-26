@@ -216,11 +216,11 @@ class Migration(ZCmdBase):
                                action='append',
                                dest="steps",
                                help="Run the given step")
-        self.parser.add_option('--commit',
+        self.parser.add_option('--dont-commit',
                                dest="commit",
-                               action='store_true',
-                               default=False,
-                               help="Commit changes to the database")
+                               action='store_false',
+                               default=True,
+                               help="Don't commit changes to the database")
         self.parser.add_option('--list',
                                action='store_true',
                                default=False,
