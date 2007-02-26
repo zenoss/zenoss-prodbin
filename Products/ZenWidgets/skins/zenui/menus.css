@@ -28,35 +28,66 @@
     border: 1px solid #5A6F8F;
     border-bottom-width: 0px;
 }
+
 .devmovemenuitems,
 .contextmenuitems {
     position: absolute;
     right: 2px;
-    width: 12em;
+    width: 172px;
     top: 22px;
-    border: 1px solid #5A6F8F;
-    background-color: white;
     z-index: 3000;
+    padding-bottom: 10px;
+    padding-top: 10px;
 }
+
+div.menu_bottom {
+    background: transparent url('menu_bottom.gif') bottom left no-repeat;
+    position: absolute;
+    bottom: 0px;
+    left: -2px;
+    height: 20px;
+    z-index: 2000;
+    width: 174px;
+}
+div.menu_top {
+    background: transparent url('menu_top.gif') top left no-repeat;
+    position: absolute;
+    top: 0px;
+    left: -2px;
+    height: 20px;
+    z-index: 2000;
+    width: 174px;
+}
+
 .devmovemenuitems {
     top: 20px;
     right: 2px;
 }
 ul.zenMenu {
     list-style-type: none;
+    border-left: 1px solid #5A6F8F;
+    border-right: 1px solid #5A6F8F;
+    width: 172px;
+    position: relative;
+    left: -2px;
+    z-index: 2001;
+    background-color: #666;
+}
+ul.zenMenu li a {
+    padding-left: 1em;
+    text-align: justify;
+    text-decoration: none;
+    display:block;
+    color: white;
+    padding: 5px;
+    height: 100%;
 }
 ul.zenMenu li {
     border-bottom: 1px dotted grey;
 }
-ul.zenMenu li a {
-    text-align: justify;
-    text-decoration: none;
-    display:block;
-    padding: 5px;
-    height: 100%;
-}
 ul.zenMenu li a:hover {
     background-color: #DEDEFF;
+    color: black;
 }
 
 div.menuselected {

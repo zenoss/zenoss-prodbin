@@ -20,6 +20,8 @@
 
         <div class="contextmenuitems invisible"
             tal:attributes="id string:${menu_id}_items">
+        <div class="menu_top">&nbsp;</div>
+        <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
             <li tal:repeat="i menuitems">
                 <a tal:attributes="href string:${basepath}/${i/action}"
@@ -72,6 +74,8 @@
 
         <div class="devmovemenuitems invisible"
             tal:attributes="id string:${menu_id}_items">
+        <div class="menu_top">&nbsp;</div>
+        <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
             <li tal:repeat="i menuitems">
                 <a tal:attributes="href
