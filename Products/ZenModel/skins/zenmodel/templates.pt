@@ -206,7 +206,9 @@
                    '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);"
                 >TabName</a>
            </td>
+        <td class="contextmenutab">
         <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
+        </td>
        </tr>
    </table>
 </div>

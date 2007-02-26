@@ -15,6 +15,9 @@
     position: relative;
     cursor:pointer;
 }
+td.contextmenutab {
+    width: 176px;
+}
 .contextmenubutton {
     display: inline;
     min-width: 5em;

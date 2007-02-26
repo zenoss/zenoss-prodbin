@@ -4,7 +4,6 @@
 
 <link href="menus.css" rel="stylesheet" type="text/css" />
 
-<td>
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
                 pathtrans here/REQUEST/PATH_TRANSLATED;
@@ -49,7 +48,6 @@
         ">
         </script>
     </div>
-</td>
 </tal:block>
 
 <tal:block metal:define-macro="devmovemenu"
