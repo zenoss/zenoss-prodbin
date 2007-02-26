@@ -216,6 +216,10 @@ class Migration(ZCmdBase):
                                action='append',
                                dest="steps",
                                help="Run the given step")
+        self.parser.add_option('--commit',
+                               help='DEPRECATED - now default behavior.'
+                                    ' See --dont-commit')
+        # NB: The flag for this setting indicates a false value for the setting.
         self.parser.add_option('--dont-commit',
                                dest="commit",
                                action='store_false',
