@@ -439,7 +439,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
         # EOF error on quit, so the email gets sent over and over
         try: server.quit()
         except: pass
-    except socket.error: # Might be others we want to catch too.
+    except (smtplib.SMTPException, socket.error):
         result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
     else:
         result = (True, '')
