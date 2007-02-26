@@ -124,6 +124,11 @@ class ZenBackup(CmdBase):
                                help='File to backup to.'
                                      ' Backups will by default be placed'
                                      ' in $ZENHOME/backups/')
+        self.parser.add_option('--stdout',
+                               dest="stdout",
+                               default=False,
+                               action='store_true',
+                               help='Send backup to stdout instead of a file')
         self.parser.add_option('--dont-save-settings',
                                 dest='saveSettings',
                                 default=True,
@@ -191,14 +196,15 @@ class ZenBackup(CmdBase):
                                 
         # tar, gzip and send to outfile
         if self.options.file:
-            if self.options.file == '-':
-                outfile = sys.stdout
-            else:
-                outfile = self.options.file
+            outfile = self.options.file
         else:
             outfile = self.getDefaultBackupFile()
         tempHead, tempTail = os.path.split(tempDir)
-        cmd = 'tar czfC %s %s %s' % (outfile, tempHead, tempTail)
+        if self.options.stdout:
+            cmd = 'tar czC %s %s' % (tempHead, tempTail)
+        else:
+            cmd = 'tar czfC %s %s %s' % (outfile, tempHead, tempTail)
+
         if os.system(cmd): return -1
 
         # clean up
