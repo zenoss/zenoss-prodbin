@@ -1231,6 +1231,8 @@ class Device(ManagedEntity, Commandable):
     def renameDevice(self, newId=None, REQUEST=None):
         """Rename device from the DMD"""
         if newId:
+            if not isinstance(newId, unicode):
+                newId = self.prepId(newId)
             parent = self.getPrimaryParent()
             parent.manage_renameObject(self.getId(), newId)
             self.setLastChange()
