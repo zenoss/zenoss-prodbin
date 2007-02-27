@@ -1,3 +1,4 @@
+
 body {
     /*background: #fff url(../images/bg_app.gif) repeat-y 8.6em 0em;*/
     color: black;
@@ -311,13 +312,18 @@ a.tabletitle:hover {
 }
 
 th.tabletitle {
+    height: 2em;
+    line-height: 2em;
+    background: transparent url('table_header_bg.gif') top left repeat-x;
     color: white;
-    background-color: #5a6f8f;
-    background-image: url(subtitle_bkgrd.gif);
-    background-repeat: repeat-X;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding-right: 0px;
+    margin-right: 0px;
     text-align: left;
-    font-weight: normal;
+    padding-left: 2em;
 }
+
 .tabletitleselected { 
     color: #333333;
     background-color: #E0E0E0;
@@ -537,3 +543,6 @@ a.tablevalues:active {
     z-index: 1000;
     cursor: pointer;
 }
+
+@import url('filterbox.css');
+@import url('menus.css');

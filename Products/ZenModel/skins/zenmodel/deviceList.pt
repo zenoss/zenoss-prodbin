@@ -13,18 +13,20 @@
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
 <table class="zentable" cellpadding=3 cellspacing=1>
     
-    <tr>
-      <th class="tabletitle" colspan="5">Device List
-      </th>
-      <div class="devmovemenu"
-      metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    <tr tal:define="tabletitle string:Device List;
+                    tblcolspan string:5">
+      <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
+          Device List
+      </tal:block>
     </tr>
+    <!--
 	<tr>
 		<td colspan="5" class="tableheader" align='center'>
 			<tal:block
 		metal:use-macro="here/zenTableNavigation/macros/navbodyfilterdevice"/>
 		</td>
 	</tr>
+    -->
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>
 	<td colspan="5" class="tableheader" align='center'>

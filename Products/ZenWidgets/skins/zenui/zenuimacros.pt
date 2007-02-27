@@ -50,8 +50,30 @@
     </div>
 </tal:block>
 
+<tal:block metal:define-macro="tabletitle">
+<th class="tabletitle" tal:attributes="colspan tblcolspan">
+<div class="tabletitlecontainer">
+    <span class="tabletitletext" tal:content="tabletitle">Title</span>
+    <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+    <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+</div>
+</th>
+</tal:block>
+
+<tal:block metal:define-macro="filterbox">
+<link href="filterbox.css" rel="stylesheet" type="text/css" />
+<div class="filterbox"
+     tal:define="ts python:here.ZenTableManager.getTableState(tableName);
+                 message request/SESSION/message | nothing;">
+<input type="text" name="filter" 
+    onkeypress="submitViaEnter(event)"
+    onfocus="select(this)"
+    tal:attributes="value ts/filter" />
+</div>
+</tal:block>
+
 <tal:block metal:define-macro="devmovemenu"
-    tal:define="menu_id string:Device">
+    tal:define="menu_id menu_id | string:Device">
 
 <link href="menus.css" rel="stylesheet" type="text/css" />
 
@@ -64,10 +86,8 @@
                       pathtrans)"
     tal:condition="menuitems">
 
-        <div class="devmovemenu"
-             tal:attributes="id string:${menu_id}_btn"
-             tal:content="string:Actions">
-        BUTTON
+        <div class="devmovemenu" tal:attributes="id string:${menu_id}_btn">
+            Actions
         </div>
 
         <div class="devmovemenuitems invisible"
@@ -105,10 +125,3 @@
 </tal:block>
 
 
-<tal:block metal:define-macro="tabletitle_with_menu">
-<th class="tabletitle" colspan="5">
-    <span metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
-    <span class="tbl_title" tal:content="tabletitle|nothing">Table Title</span>
-    <span class="tbl_filter" tal:content="string:">Filter</span>
-</th>
-</tal:block>
