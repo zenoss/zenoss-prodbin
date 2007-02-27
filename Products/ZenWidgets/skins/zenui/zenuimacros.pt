@@ -87,7 +87,7 @@
     tal:condition="menuitems">
 
         <div class="devmovemenu" tal:attributes="id string:${menu_id}_btn">
-            Actions
+           &nbsp; 
         </div>
 
         <div class="devmovemenuitems invisible"

@@ -100,7 +100,7 @@ div.menuselected {
 }
 
 div.devmovemenu {
-    width: 103px;
+    width: 52px;
     color: white;
     text-align:left;
     z-index: 2000;
@@ -112,6 +112,7 @@ div.devmovemenu {
     height:32px;
     line-height: 2.5em;
     float: right;
+    background: #E0E0E0 url('actions_button.gif') no-repeat;
 }
 
 div.devmovemenu span {
@@ -120,7 +121,7 @@ div.devmovemenu span {
 }
 
 div.devmovemenu:hover {
-    background-color: #666;
+    background: #E0E0E0 url('actions_button_depressed.gif') no-repeat;
 }
 
 /* IE HACKS */
