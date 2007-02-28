@@ -36,7 +36,7 @@ def manage_addZDeviceLoader(context, id="", REQUEST = None):
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+                                     +'/manage_main')
 
 
 class ZDeviceLoader(ZenModelItem,SimpleItem):
@@ -51,11 +51,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
    
     security = ClassSecurityInfo()
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'addDevice',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'addDevice'
@@ -70,12 +70,12 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         self.id = id
 
 
-    def loadDevice(self, deviceName, devicePath="/Discovered", 
+    def loadDevice(self, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
             rackSlot=0, productionState=1000, comments="",
-            hwManufacturer="", hwProductName="", 
-            osManufacturer="", osProductName="", 
+            hwManufacturer="", hwProductName="",
+            osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], performanceMonitor="localhost",
             discoverProto="snmp",REQUEST = None):
@@ -96,8 +96,8 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
                 rackSlot, productionState, comments,
-                hwManufacturer, hwProductName, 
-                osManufacturer, osProductName, 
+                hwManufacturer, hwProductName,
+                osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, performanceMonitor, discoverProto)
             transaction.commit()
@@ -116,12 +116,12 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             clearWebLoggingStream(handler)
 
 
-    def addManufacturer(self, newHWManufacturerName=None, 
+    def addManufacturer(self, newHWManufacturerName=None,
                         newSWManufacturerName=None, REQUEST=None):
         """add a manufacturer to the database"""
         mname = newHWManufacturerName
         field = 'hwManufacturer'
-        if not mname: 
+        if not mname:
             mname = newSWManufacturerName
             field = 'osManufacturer'
         self.getDmdRoot("Manufacturers").createManufacturer(mname)
