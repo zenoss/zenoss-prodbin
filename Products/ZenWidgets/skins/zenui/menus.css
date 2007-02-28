@@ -111,8 +111,8 @@ div.devmovemenu {
     position:absolute;
     text-align: center;
     right:0px;
-    bottom:3px;
-    height:32px;
+    bottom: 3px;
+    height:26px;
     line-height: 32px;
     float: right;
     background: #E0E0E0 url('actions_button.gif') no-repeat;

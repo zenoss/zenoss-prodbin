@@ -23,7 +23,10 @@ function toggleElement(elementid) {
 </script>
 <form method="post" tal:attributes="action here/absolute_url_path" name="deviceOrganizerStatus">
 <input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
-<table class="zentable"  cellpadding="3" cellspacing="1"
+<table  class="zentable"
+        tal:define="
+            tabletitle string:Summary;
+            tblcolspan string:6;"
         metal:define-macro="status">
         <tr tal:define="
             tabletitle string:Summary;
@@ -31,6 +34,11 @@ function toggleElement(elementid) {
           <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
         </tr>
         <tr>
+
+<td><table class="innerzentable" cellpadding="3" cellspacing="1" 
+    tal:attributes="colspan tblcolspan"><tr>
+
+
           <td class="tableheader" align="left">Events</td>
           <td class="tablevalues rainbow" align="left">
             <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
@@ -73,16 +81,20 @@ function toggleElement(elementid) {
         </td>
     </tr>
     </tbody>
+
+</table></td></tr>
+
     </table>
 </form>
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path"
 		name="subdeviceForm">
-    <table class="zentable" cellpadding="3" cellspacing="1"
+    <table class="zentable" 
 			name="subdeviceTable"
             tal:define="objects here/children;
             tableName string:children;
+            tblcolspan string:5;
             batch python:here.ZenTableManager.getBatch(tableName,objects);">
         <input type='hidden' name='tableName' tal:attributes="value tableName"/>
         <input type="hidden" name="zenScreenName" 
@@ -92,6 +104,9 @@ function toggleElement(elementid) {
                         tabletitle string:Sub-${here/dmdRootName}">
         <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
         </tr>
+        <tr>
+<td tal:attributes="colspan tblcolspan"><table class="innerzentable"
+cellpadding="3" cellspacing="1">
         <span tal:condition="objects" tal:omit-tag="">
         <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -108,8 +123,7 @@ function toggleElement(elementid) {
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'omniEventCount','Events')">
-            Snmp
-        </th>
+            Snmp </th>
         </tr>
         <tal:block tal:repeat="devorg batch">
           <tr tal:define = "odd repeat/devorg/odd" 
@@ -172,7 +186,9 @@ function toggleElement(elementid) {
                     onClick="toggleSelect(this.form);return false"/>
         </span>
         </td>
+
         </tr>
+</table></td></tr>
     </table>
     </form>
 

@@ -221,7 +221,7 @@ table.tabtable {
 	height: 23px;
 	margin: 0px;
 	padding: 0px;
-    width: 100%;
+    width: 50%;
 }
 
 table.tabtable td{
@@ -260,13 +260,20 @@ table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 8pt;
     width: 100%;
+    margin-left: 2em;
+    margin-right: 2em;
     font-weight: normal; 
 	margin: 0px;
-	padding: 0px;
+    margin-top: 1em;
+	padding: 0pt;
     background-color: #E0E0E0;
     /*
 	border: 1px solid #b1bcd2;
     */
+}
+
+table.zentable tr td {
+    padding: 0px;
 }
 
 tbody.zentablecontents tr {
@@ -315,15 +322,15 @@ a.tabletitle:hover {
 }
 
 th.tabletitle {
-    height: 32px;
-    line-height: 32px;
-    background: transparent url('titlebar_bg.gif') repeat-x bottom;
+    height: 26px;
+    line-height: 26px;
+    background: transparent url('titlebar_bg.gif') repeat-x top;
     color: white;
     font-weight: bold;
     padding: 0pt;
     font-size: 1.2em;
-    padding-right: 0px;
-    margin-right: 0px;
+    margin: 0px;
+    padding-right: 0pt;
     text-align: left;
     z-index: 1999;
 }

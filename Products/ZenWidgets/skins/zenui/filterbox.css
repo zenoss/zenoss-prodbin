@@ -1,11 +1,11 @@
 .filterbox {
     background: transparent url('filter_box_bg.gif') no-repeat 0px 0px;
-    height: 32px;
-    line-height: 32px;
+    height: 26px;
+    line-height: 26px;
     position: absolute;
     width: 126px;
-    top: 3px;
-    padding-top: 5px;
+    top: 2px;
+    padding-top: 4px;
     right: 60px;
 }
 
@@ -19,11 +19,10 @@
     width: 100px;
     padding-left: 10px;
     text-align:center;
-    height: 24px;
+    height: 21px;
 }
 
 div.tabletitlecontainer {
-    width: 100%;
     height: 100%;
     position: relative;
 }

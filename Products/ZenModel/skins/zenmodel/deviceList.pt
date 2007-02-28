@@ -7,26 +7,22 @@
     tal:define="
         tableName string:devicelist;
         objects here/devices/getSubDevicesGen;
+        tblcolspan string:5;
         batch python: here.ZenTableManager.getBatch(tableName,objects);"
 >
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
-<table class="zentable" cellpadding=3 cellspacing=1>
+<table class="zentable">
     
     <tr tal:define="tabletitle string:Device List;
-                    tblcolspan string:5;
                     showfilterbox python:True;
                     menu_id string:Device">
       <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
     </tr>
-    <!--
-	<tr>
-		<td colspan="5" class="tableheader" align='center'>
-			<tal:block
-		metal:use-macro="here/zenTableNavigation/macros/navbodyfilterdevice"/>
-		</td>
-	</tr>
-    -->
+
+<tr>
+<td tal:attributes="colspan tblcolspan"><table class="innerzentable"
+cellpadding="3" cellspacing="1">
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>
 	<td colspan="5" class="tableheader" align='center'>
@@ -37,6 +33,8 @@
 	<tal:block tal:define="numColumns string:5">
 		<tal:block metal:use-macro="here/deviceListMacro/macros/deviceControl"/>
 	</tal:block>
+
+</table></td></tr>
 </table>
 </form>
 

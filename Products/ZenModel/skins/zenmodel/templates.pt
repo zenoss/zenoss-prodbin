@@ -98,6 +98,8 @@
         href="/zport/portal_skins/zenoss.css" >
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/zenevents.css" >
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="/zport/portal_skins/tables.css" >
     <!--[if IE]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="/zport/portal_skins/zenoss_ie.css" >
