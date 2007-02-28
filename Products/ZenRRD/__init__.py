@@ -14,8 +14,15 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 def initialize(registrar):
     # Global module assertions for Python scripts
     from RenderServer import RenderServer,addRenderServer,manage_addRenderServer
+    from ProxyRenderServer import ProxyRenderServer,addProxyRenderServer,manage_addProxyRenderServer
+
     registrar.registerClass(
         RenderServer,
         permission="Add DMD Objects",
         constructors = (addRenderServer, manage_addRenderServer),
+        )
+    registrar.registerClass(
+        ProxyRenderServer,
+        permission="Add DMD Objects",
+        constructors = (addProxyRenderServer, manage_addProxyRenderServer),
         )

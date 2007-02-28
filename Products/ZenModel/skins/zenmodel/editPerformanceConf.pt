@@ -46,6 +46,13 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Proxy URL</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="proxyurl" size="50"
+            tal:attributes="value here/proxyurl" />
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader" align="left">Default RRD Create Command</td>
       <td class="tablevalues">
           <textarea class="tablevalues" rows=5 cols=60

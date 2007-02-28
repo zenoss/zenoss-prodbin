@@ -71,6 +71,7 @@ class PerformanceConf(Monitor, StatusColor):
     renderurl = ''
     renderuser = ''
     renderpass = ''
+    proxyurl = ''
     defaultRRDCreateCommand = (
         'RRA:AVERAGE:0.5:1:2016',  # every 5 mins for 7 days
         'RRA:AVERAGE:0.5:4:2016',  # every 20 mins for 4 weeks
@@ -87,6 +88,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
+        {'id':'proxyurl','type':'string','mode':'w'},
         {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
         )
     _relations = Monitor._relations + (
@@ -238,7 +240,10 @@ class PerformanceConf(Monitor, StatusColor):
         targetpath = performancePath(targetpath[1:])
         gopts =  view.graphOpts(context, targetpath, targettype)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
+        if self.renderurl.startswith("http"):
+            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+        else:
+            return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
  
     def performanceMGraphUrl(self, context, targetsmap, view, drange):
@@ -250,15 +255,19 @@ class PerformanceConf(Monitor, StatusColor):
             ntm.append((fulltarget, targettype))
         gopts =  view.multiGraphOpts(context, ntm)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
-
+        if self.renderurl.startswith("http"):
+            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+        else:
+            return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
     def renderCustomUrl(self, gopts, drange):
         "return the for a list of custom gopts for a graph"
         gopts = self._fullPerformancePath(gopts)
         gopts = url_quote('|'.join(gopts))
-        return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
-
+        if self.renderurl.startswith("http"):
+            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+        else:
+            return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
     def performanceCustomSummary(self, gopts):
         "fill out full path for custom gopts and call to server"

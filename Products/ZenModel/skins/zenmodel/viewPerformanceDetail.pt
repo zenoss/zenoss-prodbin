@@ -43,7 +43,7 @@ var ZenGraphs = new Array();
         <tr><td class="tableheader" tal:content="graph/title">title</td></tr>
         <tr><td class="tablevalues">
             <img src="_" 
-            tal:attributes="src graph/url; 
+            tal:attributes="src graph/url;
                             id graphid"/>
             <script language="javascript" type="text/javascript"
             tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>

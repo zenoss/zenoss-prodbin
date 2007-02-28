@@ -48,6 +48,7 @@ from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
+from Products.ZenRRD.ProxyRenderServer import manage_addProxyRenderServer
 from Products.ZenReports.ReportServer import manage_addReportServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
@@ -115,6 +116,7 @@ class DmdBuilder:
         manage_addPerformanceConf(mons.Performance, "localhost")
         crk = mons.Performance._getOb("localhost")
         crk.renderurl = "/zport/RenderServer"
+        crk.proxyurl = "/zport/ProxyRenderServer"
         manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
 
@@ -152,6 +154,7 @@ class DmdBuilder:
         manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
+        manage_addProxyRenderServer(self.portal, "ProxyRenderServer")
         manage_addReportServer(self.portal, "ReportServer")
         manage_addMySqlEventManager(self.dmd, evtuser=self.evtuser,
                                     evtpass=self.evtpass, evtdb=self.evtdb)
