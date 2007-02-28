@@ -128,11 +128,11 @@ class ZenBackup(CmdBase):
                                default=False,
                                action='store_true',
                                help='Send backup to stdout instead of a file')
-        self.parser.add_option('--dont-save-settings',
+        self.parser.add_option('--save-mysql-access',
                                 dest='saveSettings',
-                                default=True,
-                                action='store_false',
-                                help='Do not store dbname, dbuser and dbpass'
+                                default=False,
+                                action='store_true',
+                                help='Include dbname, dbuser and dbpass'
                                     ' in backup'
                                     ' file for use during restore.')
 
