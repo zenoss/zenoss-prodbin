@@ -23,7 +23,7 @@ import utils
 
 log = logging.getLogger("ProxyRenderServer")
 
-from ProxyRenderServer import ProxyRenderServer,addProxyRenderServer,manage_addProxyRenderServer
+from RenderServer import RenderServer,addRenderServer,manage_addRenderServer
 
 def manage_addProxyRenderServer(context, id, REQUEST = None):
     """make a ProxyRenderServer"""
