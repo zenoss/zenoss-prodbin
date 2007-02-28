@@ -25,7 +25,7 @@ class BasicDeviceLoader:
     '''Load a machine'''
 
     def loadDevice(self, deviceName, devicePath="", systemPath="",
-                manufacturer="", model="", groupPath="", 
+                manufacturer="", model="", groupPath="",
                 locationPath="", rack="",
                 statusMonitorName="localhost", perfMonitorName="localhost",
                 snmpCommunity="", snmpPort=None,
@@ -41,7 +41,7 @@ class BasicDeviceLoader:
             device.setModel(manufacturer, model)
 
         if not locationPath: locationPath = self.getLocationPath()
-        if locationPath: 
+        if locationPath:
             if rack:
                 locationPath += "/%s" % rack
                 info("setting rack location to %s" % locationPath)
@@ -51,16 +51,16 @@ class BasicDeviceLoader:
                 device.setLocation(locationPath)
 
         if not groupPath: groupPath = self.getGroupPath()
-        if groupPath: 
+        if groupPath:
             info("setting group %s" % groupPath)
             device.setGroups(groupPath)
 
         if not systemPath: systemPath = self.getSystemPath()
-        if systemPath: 
+        if systemPath:
             info("setting system %s" % systemPath)
             device.setSystems(systemPath)
 
-        if not statusMonitorName: 
+        if not statusMonitorName:
             statusMonitorName = self.getStatusMonitorName()
         info("setting status monitor to %s" % statusMonitorName)
         device.setStatusMonitor(statusMonitorName)
@@ -73,7 +73,7 @@ class BasicDeviceLoader:
         return device
 
     
-    def getDevice(self, deviceName, devicePath, 
+    def getDevice(self, deviceName, devicePath,
                 snmpCommunity, snmpPort, loginName, loginPassword):
         """get a device if devicePath is None try classifier"""
         self.classificationEntry = None
@@ -85,7 +85,7 @@ class BasicDeviceLoader:
                                         deviceName,
                                         snmpCommunity, snmpPort,
                                         loginName, loginPassword)
-            if not self.classificationEntry: 
+            if not self.classificationEntry:
                 raise DeviceNotClassified, \
                     "classifier failed to classify device %s" % deviceName
             devicePath = self.classificationEntry.getDeviceClassPath
