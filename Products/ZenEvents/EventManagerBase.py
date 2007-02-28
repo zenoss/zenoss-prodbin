@@ -72,16 +72,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     severityConversions = (
         ('Critical', 5),
-        ('Error', 4), 
-        ('Warning', 3), 
-        ('Info', 2), 
-        ('Debug', 1), 
-        ('Clear', 0), 
+        ('Error', 4),
+        ('Warning', 3),
+        ('Info', 2),
+        ('Debug', 1),
+        ('Clear', 0),
     )
     severities = dict([(b, a) for a, b in severityConversions])
 
     priorityConversions = (
-        ('None', -1), 
+        ('None', -1),
         ('Emergency', 0),
         ('Alert', 1),
         ('Critical', 2),
@@ -123,12 +123,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
-    defaultResultFields = ("device", "component", "eventClass", "summary", 
+    defaultResultFields = ("device", "component", "eventClass", "summary",
                            "firstTime", "lastTime", "count" )
 
     defaultFields = ('eventState', 'severity', 'evid')
 
-    defaultEventId = ('device', 'component', 'eventClass', 
+    defaultEventId = ('device', 'component', 'eventClass',
                          'eventKey', 'severity')
 
     requiredEventFields = ('device', 'summary', 'severity')
@@ -137,7 +137,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     
     manage_options = (ObjectManager.manage_options +
                     PropertyManager.manage_options +
-                    ({'label':'View', 'action':'viewEvents'}, 
+                    ({'label':'View', 'action':'viewEvents'},
                     {'label':'Refresh', 'action':'refreshConversionsForm'},) +
                     ObjectCache.manage_options +
                     Item.manage_options)
@@ -193,11 +193,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         ("commands", ToManyCont(ToOne, "EventCommand", "eventManager")),
     )
     
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'editEventManager',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editEventManager'
@@ -269,14 +269,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         try:
             if not resultFields:
-                resultFields = self.defaultResultFields 
+                resultFields = self.defaultResultFields
             resultFields = list(resultFields)
             resultFields.extend(self.defaultFields)
 
-            select = ["select ", ','.join(resultFields), 
+            select = ["select ", ','.join(resultFields),
                         "from %s where" % self.statusTable ]
                         
-            if not where: 
+            if not where:
                 where = self.defaultWhere
             where = self._wand(where, "%s >= %s", self.severityField, severity)
             where = self._wand(where, "%s <= %s", self.stateField, state)
@@ -339,13 +339,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         raise NotImplementedError
 
 
-    def getEventDetailFromStatusOrHistory(self, evid=None, dedupid=None, 
+    def getEventDetailFromStatusOrHistory(self, evid=None, dedupid=None,
                                                             better=False):
-        try:                                                    
+        try:
             event = self.dmd.ZenEventManager.getEventDetail(
                                                     evid, dedupid, better)
         except ZenEventNotFound:
-            event = self.dmd.ZenEventHistory.getEventDetail(evid, dedupid, 
+            event = self.dmd.ZenEventHistory.getEventDetail(evid, dedupid,
                                                                         better)
         return event
 
@@ -412,11 +412,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if me.event_key == "Device":
             return self.getDeviceStatus(me.getId(), statusclass, **kwargs)
         elif me.event_key == "Component":
-            return self.getComponentStatus(me.getParentDeviceName(), 
+            return self.getComponentStatus(me.getParentDeviceName(),
                                       me.getId(), statusclass, **kwargs)
         elif isinstance(me, Organizer):
-            return self.getOrganizerStatus(me, statusclass=statusclass, 
-                                            **kwargs) 
+            return self.getOrganizerStatus(me, statusclass=statusclass,
+                                            **kwargs)
         else:
             return self.getGenericStatus(me)
 
@@ -439,10 +439,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
 
             self.addToCache(select,statusCount)
-        return statusCount 
+        return statusCount
     
     
-    def getOrganizerStatus(self, org, statusclass=None, severity=None, 
+    def getOrganizerStatus(self, org, statusclass=None, severity=None,
                            state=0, where=""):
         """see IEventStatus
         """
@@ -569,7 +569,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return statusCache
 
 
-    def getDeviceStatus(self, device, statclass=None, countField=None, 
+    def getDeviceStatus(self, device, statclass=None, countField=None,
                         severity=3, state=None, where=""):
         """see IEventStatus
         """
@@ -614,7 +614,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
         try:
-            kw.setdefault('severity', 
+            kw.setdefault('severity',
                         dict(self.severityConversions)[state.severity])
         except (ValueError, KeyError):
             pass
@@ -649,7 +649,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     dev = devclass.findDevice(devname)
                     if dev and not simple:
                         alink = "<a href='%s'>%s</a>" % (
-                                dev.getPrimaryUrlPath(), dev.id) 
+                                dev.getPrimaryUrlPath(), dev.id)
                     else: alink = devname
                     statusCache.append([alink, comp, dtime])
                 if limit:
@@ -659,7 +659,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return statusCache
 
         
-    def getComponentStatus(self, device, component, statclass=None, 
+    def getComponentStatus(self, device, component, statclass=None,
                     countField=None, severity=3, state=1, where=""):
         """see IEventStatus
         """
@@ -725,8 +725,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         key = me.event_key + "Where"
         wheretmpl = getattr(aq_base(self), key, False)
-        if not wheretmpl: 
-            raise ValueError("no where fround for event_key %s" % 
+        if not wheretmpl:
+            raise ValueError("no where fround for event_key %s" %
                             me.event_key)
         return eval(wheretmpl,{'me':me})
 
@@ -752,7 +752,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return where
 
 
-    def _setupDateRange(self, startdate=DateTime.DateTime(), 
+    def _setupDateRange(self, startdate=DateTime.DateTime(),
                               enddate=DateTime.DateTime()-1):
         """
         Make a start and end date range that is at least one day long.
@@ -792,7 +792,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
-                if dev.productionState < self.prodStateDashboardThresh: 
+                if dev.productionState < self.prodStateDashboardThresh:
                     continue
                 if dev.priority < self.priorityDashboardThresh:
                     continue
@@ -958,8 +958,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def dateString(self, value):
         """Convert a date from database format to string.
         """
-        if isinstance(value, DateTime.DateTime): 
-            value = value.timeTime() 
+        if isinstance(value, DateTime.DateTime):
+            value = value.timeTime()
         return Time.LocalDateTime(value)
         
 
@@ -997,7 +997,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 elif self.backend == "mysql":
                     type = row[1] in ("datetime", "timestamp", "double")
                 schema[col] = type
-            if schema: self._schema = schema 
+            if schema: self._schema = schema
             self._fieldlist = fieldlist
         finally: self.close(conn)
 
@@ -1009,7 +1009,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return 1
         return 0
 
-    def updateEvents(self, stmt, whereClause, reason, 
+    def updateEvents(self, stmt, whereClause, reason,
                      table="status", toLog=True):
         userId = getSecurityManager().getUser().getId()
         insert = 'INSERT INTO log (evid, userName, text) ' + \
@@ -1106,7 +1106,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
-        if eventState and evids: 
+        if eventState and evids:
             eventState = int(eventState)
             userid = ""
             if eventState > 0: userid = getSecurityManager().getUser()
@@ -1124,13 +1124,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
-    def manage_createEventMap(self, eventClass=None, evids=(), 
+    def manage_createEventMap(self, eventClass=None, evids=(),
                               REQUEST=None):
         """Create an event map from an event or list of events.
         """
         evclass = None
         evmap = None
-        if eventClass and evids: 
+        if eventClass and evids:
             evclass = self.getDmdRoot("Events").getOrganizer(eventClass)
             sel = """select eventClassKey, eventClass, message 
                     from %s where evid in ('%s')"""
@@ -1146,7 +1146,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     evmap.eventClassKey = evclasskey
                     evmap.example = msg
             finally: self.close(conn)
-        if REQUEST: 
+        if REQUEST:
             if len(evids) == 1 and evmap: return evmap()
             elif evclass and evmap: return evclass()
 
@@ -1280,7 +1280,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         import string
 
         out = StringIO()
-        skinstool = getToolByName(self, 'portal_skins') 
+        skinstool = getToolByName(self, 'portal_skins')
         if 'zenevents' not in skinstool.objectIds():
             addDirectoryViews(skinstool, 'skins', globals())
             out.write("Added 'zenevents' directory view to portal_skins\n")
@@ -1297,5 +1297,5 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 out.write("Added 'zenevents' to %s skin\n" % skin)
             else:
                 out.write(
-                    "Skipping %s skin, 'zenevents' is already set up\n" % skin) 
+                    "Skipping %s skin, 'zenevents' is already set up\n" % skin)
         return out.getvalue()
