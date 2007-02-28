@@ -263,11 +263,14 @@ table.zentable {
     font-weight: normal; 
 	margin: 0px;
 	padding: 0px;
-    background-color: #FFFFFF;
-	border-top: 1px solid #b1bcd2;
-	border-left: 1px solid #b1bcd2;
-	border-bottom: 1px solid #b1bcd2;
-	border-right: 1px solid #b1bcd2;
+    background-color: #E0E0E0;
+    /*
+	border: 1px solid #b1bcd2;
+    */
+}
+
+tbody.zentablecontents tr {
+    border-left: 2px solid red;
 }
 .navcontrol {
     margin-bottom:0;
@@ -312,16 +315,48 @@ a.tabletitle:hover {
 }
 
 th.tabletitle {
-    height: 2em;
-    line-height: 2em;
-    background: transparent url('table_header_bg.gif') top left repeat-x;
+    height: 32px;
+    line-height: 32px;
+    background: transparent url('titlebar_bg.gif') repeat-x bottom;
     color: white;
     font-weight: bold;
+    padding: 0pt;
     font-size: 1.2em;
     padding-right: 0px;
     margin-right: 0px;
     text-align: left;
-    padding-left: 2em;
+    z-index: 1999;
+}
+
+div.tabletitlecontainer {
+    width: 100%;
+    position: relative;
+    z-index: 2000;
+    height: 2em;
+    padding: 0pt;
+    margin: 0pt;
+}
+
+.tabletitlecontainer .rightcorner,
+.tabletitlecontainer .leftcorner {
+    position: absolute;
+    bottom: 0px;
+    z-index: 2005;
+}
+
+.tabletitletext {
+    padding-left: 52px;
+}
+
+.tabletitlecontainer .leftcorner {
+    left: 0px;
+    background: #E0E0E0 url('titlebar_left_corner.gif') bottom left no-repeat;
+    width: 52px;
+}
+.tabletitlecontainer .rightcorner {
+    right: 0px;
+    background: #E0E0E0 url('titlebar_right_corner.gif') bottom left no-repeat;
+    width: 52px;
 }
 
 .tabletitleselected { 
@@ -546,3 +581,4 @@ a.tablevalues:active {
 
 @import url('filterbox.css');
 @import url('menus.css');
+

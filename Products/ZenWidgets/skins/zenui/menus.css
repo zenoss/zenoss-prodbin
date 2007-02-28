@@ -66,7 +66,7 @@ div.menu_top {
 }
 
 .devmovemenuitems {
-    top: 0px;
+    top: -3px;
     right: 0px;
 }
 ul.zenMenu {
@@ -90,6 +90,7 @@ ul.zenMenu li a {
 }
 ul.zenMenu li {
     border-bottom: 1px dotted grey;
+    line-height: 2em;
 }
 ul.zenMenu li a:hover {
     background-color: #DEDEFF;
@@ -103,14 +104,16 @@ div.devmovemenu {
     width: 52px;
     color: white;
     text-align:left;
-    z-index: 2000;
+    z-index: 2007;
     border-left: 1px inset #666;
+    padding: 0px;
+    margin: 0px;
     position:absolute;
     text-align: center;
     right:0px;
-    bottom:0px;
+    bottom:3px;
     height:32px;
-    line-height: 2.5em;
+    line-height: 32px;
     float: right;
     background: #E0E0E0 url('actions_button.gif') no-repeat;
 }

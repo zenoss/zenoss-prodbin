@@ -53,9 +53,16 @@
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan">
 <div class="tabletitlecontainer">
-    <span class="tabletitletext" tal:content="tabletitle">Title</span>
-    <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
-    <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    <div class="leftcorner">&nbsp;</div>
+    <span class="tabletitletext" tal:content="tabletitle | string:Items">
+        Title</span>
+    <tal:block tal:condition="showfilterbox | python:False">
+        <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+    </tal:block>
+    <tal:block tal:condition="menu_id | python:False">
+        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    </tal:block>
+    <div class="rightcorner">&nbsp;</div>
 </div>
 </th>
 </tal:block>
@@ -73,8 +80,7 @@
 </div>
 </tal:block>
 
-<tal:block metal:define-macro="devmovemenu"
-    tal:define="menu_id menu_id | string:Device">
+<tal:block metal:define-macro="devmovemenu">
 
 <link href="menus.css" rel="stylesheet" type="text/css" />
 

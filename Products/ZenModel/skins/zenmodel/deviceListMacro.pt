@@ -50,7 +50,8 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tbody metal:define-macro="devListBody">
+    <tal:block metal:define-macro="devListBody">
+    <tbody class="zentablecontents">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')">Name
@@ -110,6 +111,7 @@
     </tr>
     </tal:block>
     </tbody>
+    </tal:block>
     <tr>
         <td colspan=5 class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />

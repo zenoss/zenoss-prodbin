@@ -14,10 +14,10 @@
 <table class="zentable" cellpadding=3 cellspacing=1>
     
     <tr tal:define="tabletitle string:Device List;
-                    tblcolspan string:5">
-      <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
-          Device List
-      </tal:block>
+                    tblcolspan string:5;
+                    showfilterbox python:True;
+                    menu_id string:Device">
+      <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
     </tr>
     <!--
 	<tr>

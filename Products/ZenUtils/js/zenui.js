@@ -91,7 +91,8 @@ function doHover() {
         'background-color':'white',
         'padding':'2px',
         'padding-top':'2px',
-        'border':'1px solid darkgrey'
+        'border':'1px solid darkgrey',
+        'z-index':'3000'
     });
     connect(paneToggle, 'onmouseover', function(){
         clearTimeout(t);
