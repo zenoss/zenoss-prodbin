@@ -35,8 +35,9 @@ function toggleElement(elementid) {
         </tr>
         <tr>
 
-<td><table class="innerzentable" cellpadding="3" cellspacing="1" 
-    tal:attributes="colspan tblcolspan"><tr>
+<td tal:attributes="colspan tblcolspan" style="padding:0px;">
+<table class="innerzentable" cellpadding="3" cellspacing="1">
+<tr>
 
 
           <td class="tableheader" align="left">Events</td>
@@ -105,8 +106,8 @@ function toggleElement(elementid) {
         <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
         </tr>
         <tr>
-<td tal:attributes="colspan tblcolspan"><table class="innerzentable"
-cellpadding="3" cellspacing="1">
+<td tal:attributes="colspan tblcolspan" style="padding:0px;">
+<table class="innerzentable" cellpadding="3" cellspacing="1">
         <span tal:condition="objects" tal:omit-tag="">
         <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(

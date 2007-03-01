@@ -21,7 +21,8 @@
     </tr>
 
 <tr>
-<td tal:attributes="colspan tblcolspan"><table class="innerzentable"
+<td tal:attributes="colspan tblcolspan"
+style="padding:0px;"><table class="innerzentable"
 cellpadding="3" cellspacing="1">
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>

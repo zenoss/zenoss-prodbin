@@ -14,7 +14,7 @@
     tal:condition="menuitems">
 
         <div tal:attributes="id string:${menu_id}_btn">
-        <a class="tabletitle">&gt;&gt;&gt;</a>
+        <a class="tabletitle">&nbsp;</a>
         </div>
 
         <div class="contextmenuitems invisible"

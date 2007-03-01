@@ -1,16 +1,15 @@
 table.innerzentable {
     margin: 0px;
     padding: 0pt;
-    border: 3px solid #4d5d77;
+    border: 3px solid #5a6f8f;
     position: relative;
     width: 100%;
     top: -3px;
     font-weight: normal;
     font-size: 8pt;
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    background-color: white;
 }
 
 table.innerzentable tr td {
-    padding: 5px 2px;
+    padding: 2px;
 }

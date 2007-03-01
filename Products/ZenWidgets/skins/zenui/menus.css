@@ -19,7 +19,7 @@
     top: 3px;
 }
 td.contextmenutab {
-    width: 176px;
+    background: transparent url('titlebar_right_corner.gif') bottom left no-repeat;
 }
 .contextmenubutton {
     display: inline;
@@ -38,10 +38,10 @@ td.contextmenutab {
 .devmovemenuitems,
 .contextmenuitems {
     position: absolute;
-    right: 2px;
+    right: 0px;
     width: 172px;
-    top: 22px;
-    z-index: 3000;
+    top: 25px;
+    z-index: 3005;
     padding-bottom: 10px;
     padding-top: 10px;
 }
@@ -112,8 +112,8 @@ div.devmovemenu {
     text-align: center;
     right:0px;
     bottom: 3px;
-    height:26px;
-    line-height: 32px;
+    height:25px;
+    line-height: 25px;
     float: right;
     background: #E0E0E0 url('actions_button.gif') no-repeat;
 }

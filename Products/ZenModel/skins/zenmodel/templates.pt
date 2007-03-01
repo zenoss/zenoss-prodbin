@@ -202,11 +202,21 @@
         tal:define="ztabs python:here.zentinelTabs(template.id);">
        <tr>
            <td tal:repeat="tab ztabs"
-               tal:attributes="class python:tab.get('selected',None) and 'tabletitleselected'">
+               tal:attributes="class python:tab.get('selected', None) 
+                                and 'tabletitleselected'">
+
+
            <a class="tabletitle" tal:content="tab/name"
                tal:attributes="href python:
                    '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);"
                 >TabName</a>
+
+
+           <div id="selectedtablinehider"
+           tal:condition="python:tab.get('selected',None)">
+           &nbsp;
+           </div>
+
            </td>
         <td class="contextmenutab">
         <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
