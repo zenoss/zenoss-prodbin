@@ -7,7 +7,16 @@
   <h2>Zenoss Error</h2>
   
   <p>An error was encountered while publishing this resource.  Please use the
-  form below to submit details of this error to Zenoss, Inc.
+  form below to submit details of this error to Zenoss, Inc.  This information
+  helps us identify and fix issues with the software, though we are unable
+  to respond individually to all submissions.
+  </p>
+
+  <p>The Zenoss <a href="http://community.zenoss.com/forums/">community forums</a>
+  are very active and a good resource for
+  solving problems and answering questions.  Zenoss also provides 
+  <a href="http://zenoss.com/support/">commercial
+  services and support packages</a>.
   </p>
 
   <form tal:attributes="action here/absolute_url_path" method="post">
