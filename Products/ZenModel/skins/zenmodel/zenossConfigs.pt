@@ -15,7 +15,7 @@
         <tr tal:repeat="daemon here/getZenossDaemonConfigs">
             <th class="tableheader" tal:content="daemon/name" />
             <td class="tablevalues"><a tal:attributes="
-                href string:${url}/viewDaemonConfig?daemon=${daemon/name}">view configiuration</a></td>
+                href string:${url}/viewDaemonConfig?daemon=${daemon/name}">view configuration</a></td>
             <td class="tablevalues"><a tal:attributes="
                 href string:${url}/editDaemonConfig?daemon=${daemon/name}">edit configuration</a></td>
         </tr>
