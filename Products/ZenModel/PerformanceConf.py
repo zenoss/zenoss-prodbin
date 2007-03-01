@@ -41,6 +41,8 @@ from StatusColor import StatusColor
 
 from ZenDate import ZenDate
 
+from Products.PythonScripts.standard import url_quote
+
 PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
 
 def performancePath(target):
@@ -71,7 +73,6 @@ class PerformanceConf(Monitor, StatusColor):
     renderurl = ''
     renderuser = ''
     renderpass = ''
-    proxyurl = ''
     defaultRRDCreateCommand = (
         'RRA:AVERAGE:0.5:1:2016',  # every 5 mins for 7 days
         'RRA:AVERAGE:0.5:4:2016',  # every 20 mins for 4 weeks
@@ -88,7 +89,6 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
-        {'id':'proxyurl','type':'string','mode':'w'},
         {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
         )
     _relations = Monitor._relations + (
@@ -241,7 +241,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts =  view.graphOpts(context, targetpath, targettype)
         gopts = url_quote('|'.join(gopts))
         if self.renderurl.startswith("http"):
-            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (urlquote(self.renderurl),gopts,drange)
         else:
             return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
@@ -256,7 +256,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts =  view.multiGraphOpts(context, ntm)
         gopts = url_quote('|'.join(gopts))
         if self.renderurl.startswith("http"):
-            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (urlquote(self.renderurl),gopts,drange)
         else:
             return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 
@@ -265,7 +265,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts = self._fullPerformancePath(gopts)
         gopts = url_quote('|'.join(gopts))
         if self.renderurl.startswith("http"):
-            return "%s/render?gopts=%s&drange=%d" % (self.proxyurl,gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (urlquote(self.renderurl),gopts,drange)
         else:
             return "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
 

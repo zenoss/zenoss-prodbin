@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.14 $"[11:-2]
 import os
 import time
 import logging
+import urllib
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -62,7 +63,7 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts, drange, ftype='PNG', REQUEST=None):
+    def render(self, gopts, drange, remoteUrl=None, ftype='PNG', REQUEST=None):
         """render a graph and return it"""
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
@@ -70,25 +71,31 @@ class RenderServer(RRDToolItem):
         id = self.graphId(gopts, drange, ftype)
         graph = self.getGraph(id, ftype, REQUEST)
         if not graph:
-            gopts.insert(0, "--imgformat=%s" % ftype)
-            #gopts.insert(0, "--lazy")
-            end = int(time.time())-300
-            start = end - drange
-            gopts.insert(0, '--end=%d' % end)
-            gopts.insert(0, '--start=%d' % start)
             if not os.path.exists(self.tmpdir):
                 os.makedirs(self.tmpdir)
             filename = "%s/graph-%s" % (self.tmpdir,id)
-            gopts.insert(0, filename)
-            log.debug(" ".join(gopts))
-            try:
-                rrdtool.graph(*gopts)
-            except Exception, ex:    
-                if ex.args[0].find('No such file or directory') > -1:
-                    return None
-                log.exception("failed generating graph")
-                log.warn(" ".join(gopts))
-                raise
+            if remoteUrl:
+                url = "%s/render?gopts=%s&drange=%d" % (remoteUrl,gopts,drange)
+                f = open(filename, "wb")
+                f.write(urllib.urlopen(url).read())
+                f.close()
+            else:
+                gopts.insert(0, "--imgformat=%s" % ftype)
+                #gopts.insert(0, "--lazy")
+                end = int(time.time())-300
+                start = end - drange
+                gopts.insert(0, '--end=%d' % end)
+                gopts.insert(0, '--start=%d' % start)
+                gopts.insert(0, filename)
+                log.debug(" ".join(gopts))
+                try:
+                    rrdtool.graph(*gopts)
+                except Exception, ex:    
+                    if ex.args[0].find('No such file or directory') > -1:
+                        return None
+                    log.exception("failed generating graph")
+                    log.warn(" ".join(gopts))
+                    raise
             return self._loadfile(filename)
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)

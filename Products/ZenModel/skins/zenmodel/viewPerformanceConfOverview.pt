@@ -21,10 +21,6 @@
       <td class="tableheader">Render User</td>
       <td class="tablevalues" tal:content="here/renderuser"/>
     </tr>
-    <tr>
-      <td class="tableheader">Proxy URL</td>
-      <td class="tablevalues" tal:content="here/proxyurl" />
-    </tr>
 </table>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
