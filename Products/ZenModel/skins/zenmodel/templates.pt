@@ -115,35 +115,40 @@
 <!-- ======================================================
     topPane - standard top area with logo, etc...
  ====================================================== -->
-<table id="topPane" metal:define-macro="topPane"
-    cellpadding="0" cellspacing="0" border="0">
-    <tr>
-    <td class="logo">
-        <a href="http://www.zenoss.com">
-            <img border="0" src="logo.gif" alt="Zenoss">
-        </a>
-    </td>
-    <td class="search">
-    <form action="/zport/dmd/deviceSearchResults" method="POST"
-		name="searchform">
-        <input type="text" name="query" size="18"
-            tal:attributes="value request/query | string:"/>
-        <input type="submit" name="submit" value="Search"/>
-    </form> 
-    </td>
-    <td id="settings">
-    <div class="menu">
-        <img src="header_tab_left.gif" style="float: left;"/>
+<div id="topPane" metal:define-macro="topPane">
+    <div class="logo"
+        tal:define="zenversion zenversion | string:Core"
+        tal:content="string:| ${zenversion}">
+        | Core
+    </div>
+    <div id="settings">
+    <div class="settingsleftcorner">&nbsp;</div>
+    <ul>
+        <li>
         <tal:block tal:content="request/AUTHENTICATED_USER"/>
-        <span>|</span>
+        </li>
+        <li>
         <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
             Preferences</a>
-        <span>|</span> <a href="/zport/dmd/logoutUser">Logout</a>
-        <span>|</span> <a href="http://www.zenoss.com/help">Help</a>
+        </li>
+        <li>
+        <a href="/zport/dmd/logoutUser">Logout</a>
+        </li>
+        <li>
+        <a href="http://www.zenoss.com/help">Help</a>
+        </li>
+    </ul>
+    <div class="searchbox">
+    <form action="/zport/dmd/deviceSearchResults" method="POST"
+		name="searchform">
+        <input type="text" name="query" 
+            onkeypress="submitViaEnter(event)"
+            onclick="select(this.value)"
+            tal:attributes="value request/query | string:"/>
+    </form> 
     </div>
-    </td>
-    </tr>
-</table>
+    </div>
+</div>
 
 <!-- ======================================================
     leftPane - standard left side and nav

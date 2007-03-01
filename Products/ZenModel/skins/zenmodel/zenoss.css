@@ -19,7 +19,6 @@ input,textarea {
 }
 
 #topPane{
-    width:100%;
 	background: #fff;
 	height: 40px;
     padding-left:0px;
@@ -34,52 +33,89 @@ input,textarea {
     margin:0;
 }
 
-#logo a { padding:0; margin:0;}
-
-td.logo {
-width: 190px;
-height: 35px;
-
-}      
-td.search {
-    padding-left: 8px;
-}   
-/*   ADDED BY JM OCTOBER 24 2006 --- */
-
-#settings { vertical-align: bottom; width: 270px;}
-
-#settings div.menu {
-	background: url(header_tab_right.gif) 
-	right top; 
-	height: 28px; width: 270px; 
-	margin: 0px 10px 0px auto; 
-	padding: 0px 10px 0px 0px; 
-	text-align: center; 
-	border: 0px solid red;
+#logo a { padding:0; margin:0;
 }
 
-#settings div.menu a{ color:#fff; text-decoration: none; line-height: 28px; text-decoration: none;}
+div.logo {
+    background: transparent url('logo.gif') top left no-repeat;
+    padding-left: 180px;
+color: #98a7c3;
+padding-top: 1px;
+vertical-align: middle;
+position: absolute;
+top: 5px;
+left: 5px;
+font-size: 24px;
+font-weight: 400;
+font-variant: small-caps;
+height: 42px;
+line-height: 42px;
+}      
 
-#settings div.menu a:hover {text-decoration: underline;}
+/* ======SEARCH AND NAV TOP RIGHT====== */
+#settings { 
+    background: transparent url(settingsbox_bg.gif) repeat-x;
+    color: white;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    z-index: 3000px;
+    height: 50px;
+    padding: 0pt;
+}
 
-#settings div.menu span { padding: 0px 1px 0px 1px;}
+#settings div.settingsleftcorner {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 7px;
+    height: 51px;
+    background: white url(settingsbox_bg_left.gif) no-repeat;
+}
 
-/* END NEW BY JM --*/
+
+#settings ul {
+    list-style-type: none;
+    margin-right: 200px;
+    height: 45px;
+    margin-left: 0px;
+}
+
+#settings ul li {
+    display: inline;
+    border-right: 1px inset white;
+    font-size: 10pt;
+    padding: 0px 10px;
+}
+#settings ul li {
+    font-variant: small-caps;
+    text-decoration: none;
+}
+
+#settings div.searchbox {
+    background: transparent url('search_box_bg.gif') 5px 5px no-repeat;
+    width: 183px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: 100%
+}
+#settings div.searchbox input[type="text"]{
+    background: transparent none no-repeat;
+    border: medium none;
+    margin-top: 12px;
+    margin-left: 40px;
+    color: #444;
+    width: 100px;
+}
+
+
+/* ===================================== */
 
 
 #topPane form{
     margin:0;
     padding:0;
-}
-#settings {
-	color: white;
-    /*
-    font-size: .8em;
-    */
-    font-size: 8pt; 
-    margin:0;
-    text-align:right;
-    /*padding-right: 20px;*/
 }
 #topPane a{
 	color: white;
@@ -149,7 +185,7 @@ td.search {
     padding: 5px;
 	margin-left: 9.0em;
     /*margin-top: 5px;*/
-    background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;
+ /*   background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;*/
  
 }
 
