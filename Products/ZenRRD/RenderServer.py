@@ -63,13 +63,12 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts=None, drange=None, remoteUrl=None, id=None, ftype='PNG', REQUEST=None):
+    def render(self, gopts=None, drange=None, remoteUrl=None, ftype='PNG', REQUEST=None):
         """render a graph and return it"""
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
         drange = int(drange)
-        if not id:
-            id = self.graphId(gopts, drange, ftype)
+        id = self.graphId(gopts, drange, ftype)
         graph = self.getGraph(id, ftype, REQUEST)
         if not graph:
             if not os.path.exists(self.tmpdir):
@@ -77,8 +76,7 @@ class RenderServer(RRDToolItem):
             filename = "%s/graph-%s" % (self.tmpdir,id)
             if remoteUrl:
                 f = open(filename, "w")
-                url = '%s&id=%s' % (remoteUrl, id)
-                f.write(urllib.urlopen(url).read())
+                f.write(urllib.urlopen(remoteUrl).read())
                 f.close()
                 return self._loadfile(filename)
             else:            
