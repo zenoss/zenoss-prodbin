@@ -242,7 +242,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts = url_quote('|'.join(gopts))
         url = "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
         if self.renderurl.startswith("http"):
-            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (url_quote(url),gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s" % url_quote(url)
         else:
             return url
 
@@ -258,7 +258,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts = url_quote('|'.join(gopts))
         url = "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
         if self.renderurl.startswith("http"):
-            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (url_quote(url),gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s" % url_quote(url)
         else:
             return url
 
@@ -268,7 +268,7 @@ class PerformanceConf(Monitor, StatusColor):
         gopts = url_quote('|'.join(gopts))
         url = "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
         if self.renderurl.startswith("http"):
-            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (url_quote(url),gopts,drange)
+            return "/zport/RenderServer/render?remoteUrl=%s" % url_quote(url)
         else:
             return url
 
