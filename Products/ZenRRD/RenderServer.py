@@ -65,28 +65,27 @@ class RenderServer(RRDToolItem):
     security.declareProtected('View', 'render')
     def render(self, gopts=None, drange=None, remoteUrl=None, ftype='PNG', REQUEST=None):
         """render a graph and return it"""
-        if remoteUrl:
-            filename = "%s/graph-%s" % (self.tmpdir,remoteUrl)
-            f = open(filename, "w")
-            f.write(urllib.urlopen(remoteUrl).read())
-            f.close()
-            return self._loadfile(filename)
-        else:            
-            gopts = gopts.split('|')
-            gopts = [g for g in gopts if g]
-            drange = int(drange)
-            id = self.graphId(gopts, drange, ftype)
-            graph = self.getGraph(id, ftype, REQUEST)
-            if not graph:
+        gopts = gopts.split('|')
+        gopts = [g for g in gopts if g]
+        drange = int(drange)
+        id = self.graphId(gopts, drange, ftype)
+        graph = self.getGraph(id, ftype, REQUEST)
+        if not graph:
+            if not os.path.exists(self.tmpdir):
+                os.makedirs(self.tmpdir)
+            filename = "%s/graph-%s" % (self.tmpdir,id)
+            if remoteUrl:
+                f = open(filename, "w")
+                f.write(urllib.urlopen(remoteUrl).read())
+                f.close()
+                return self._loadfile(filename)
+            else:            
                 gopts.insert(0, "--imgformat=%s" % ftype)
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
                 start = end - drange
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
-                if not os.path.exists(self.tmpdir):
-                    os.makedirs(self.tmpdir)
-                filename = "%s/graph-%s" % (self.tmpdir,id)
                 gopts.insert(0, filename)
                 log.debug(" ".join(gopts))
                 try:
@@ -100,7 +99,7 @@ class RenderServer(RRDToolItem):
                 return self._loadfile(filename)
                 self.addGraph(id, filename)
                 graph = self.getGraph(id, ftype, REQUEST)
-            return graph 
+        return graph 
 
 
     security.declareProtected('View', 'plugin')
