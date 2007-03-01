@@ -48,8 +48,7 @@ class PObjectCache(SimpleItem):
     def addToCache(self, key, obj):
         """add an object to the cache"""
         cobj = CacheObj(obj, self.timeout)
-        self.addCacheObj(cobj)
-
+        self.cache[key] = cobj
 
     def manage_clearCache(self, REQUEST=None):
         self.cleanCache(force=1)

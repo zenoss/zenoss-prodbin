@@ -78,7 +78,6 @@ class RenderServer(RRDToolItem):
                 f = open(filename, "w")
                 f.write(urllib.urlopen(remoteUrl).read())
                 f.close()
-                return self._loadfile(filename)
             else:            
                 gopts.insert(0, "--imgformat=%s" % ftype)
                 #gopts.insert(0, "--lazy")
@@ -95,9 +94,8 @@ class RenderServer(RRDToolItem):
                     log.exception("failed generating graph")
                     log.warn(" ".join(gopts))
                     raise
-                return self._loadfile(filename)
-                self.addGraph(id, filename)
-                graph = self.getGraph(id, ftype, REQUEST)
+            self.addGraph(id, filename)
+            graph = self.getGraph(id, ftype, REQUEST)
         return graph 
 
 
