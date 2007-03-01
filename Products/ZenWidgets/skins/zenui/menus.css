@@ -16,7 +16,11 @@
     cursor:pointer;
 }
 .littlemenu {
-    top: 3px;
+    /*top: 3px;*/
+    position:absolute;
+    right:0px;
+    bottom: 0px;
+    z-index: 2007;
 }
 td.contextmenutab {
     background: transparent url('titlebar_right_corner.gif') bottom left no-repeat;
@@ -66,8 +70,7 @@ div.menu_top {
 }
 
 .devmovemenuitems {
-    top: -3px;
-    right: 0px;
+    top: 0px;
 }
 ul.zenMenu {
     list-style-type: none;
@@ -102,20 +105,13 @@ div.menuselected {
 
 div.devmovemenu {
     width: 52px;
-    color: white;
-    text-align:left;
     z-index: 2007;
     border-left: 1px inset #666;
-    padding: 0px;
-    margin: 0px;
+    height: 25px;
+    background: #E0E0E0 url('actions_button.gif') bottom left no-repeat;
     position:absolute;
-    text-align: center;
     right:0px;
-    bottom: 3px;
-    height:25px;
-    line-height: 25px;
-    float: right;
-    background: #E0E0E0 url('actions_button.gif') no-repeat;
+    bottom: 0px;
 }
 
 div.devmovemenu span {
@@ -124,7 +120,7 @@ div.devmovemenu span {
 }
 
 div.devmovemenu:hover {
-    background: #E0E0E0 url('actions_button_depressed.gif') no-repeat;
+    background: #E0E0E0 url('actions_button_depressed.gif') bottom left no-repeat;
 }
 
 /* IE HACKS */
