@@ -63,29 +63,30 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts, drange, remoteUrl=None, ftype='PNG', REQUEST=None):
+    def render(self, gopts=None, drange=None, remoteUrl=None, ftype='PNG', REQUEST=None):
         """render a graph and return it"""
-        gopts = gopts.split('|')
-        gopts = [g for g in gopts if g]
-        drange = int(drange)
-        id = self.graphId(gopts, drange, ftype)
-        graph = self.getGraph(id, ftype, REQUEST)
-        if not graph:
-            if not os.path.exists(self.tmpdir):
-                os.makedirs(self.tmpdir)
-            filename = "%s/graph-%s" % (self.tmpdir,id)
-            if remoteUrl:
-                url = "%s/render?gopts=%s&drange=%d" % (remoteUrl,gopts,drange)
-                f = open(filename, "wb")
-                f.write(urllib.urlopen(url).read())
-                f.close()
-            else:
+        if remoteUrl:
+            filename = "%s/graph-%s" % (self.tmpdir,remoteUrl)
+            f = open(filename, "w")
+            f.write(urllib.urlopen(remoteUrl).read())
+            f.close()
+            return self._loadfile(filename)
+        else:            
+            gopts = gopts.split('|')
+            gopts = [g for g in gopts if g]
+            drange = int(drange)
+            id = self.graphId(gopts, drange, ftype)
+            graph = self.getGraph(id, ftype, REQUEST)
+            if not graph:
                 gopts.insert(0, "--imgformat=%s" % ftype)
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
                 start = end - drange
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
+                if not os.path.exists(self.tmpdir):
+                    os.makedirs(self.tmpdir)
+                filename = "%s/graph-%s" % (self.tmpdir,id)
                 gopts.insert(0, filename)
                 log.debug(" ".join(gopts))
                 try:
@@ -96,10 +97,10 @@ class RenderServer(RRDToolItem):
                     log.exception("failed generating graph")
                     log.warn(" ".join(gopts))
                     raise
-            return self._loadfile(filename)
-            self.addGraph(id, filename)
-            graph = self.getGraph(id, ftype, REQUEST)
-        return graph 
+                return self._loadfile(filename)
+                self.addGraph(id, filename)
+                graph = self.getGraph(id, ftype, REQUEST)
+            return graph 
 
 
     security.declareProtected('View', 'plugin')
