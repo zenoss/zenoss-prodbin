@@ -20,12 +20,23 @@ input,textarea {
 
 #topPane{
 	background: #fff;
-	height: 40px;
+	height: 55px;
     padding-left:0px;
     padding-right:10px;
 	border: 0px solid red;
 	margin: 0px;
-	background: #fff url(bg_topPane.gif) repeat-y right top;
+    border-bottom: 1px solid black;
+    background: #666 url();
+}
+
+#infoBar {
+    background: #ffffe0 url('infobar_bg.gif') top left repeat-x;
+    border-bottom: 1px solid #444;
+    height: 25px;
+    line-height: 25px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-top: 5px;
 }
 
 #logo {
@@ -37,47 +48,37 @@ input,textarea {
 }
 
 div.logo {
-    background: transparent url('logo.gif') top left no-repeat;
-    padding-left: 180px;
-color: #98a7c3;
-padding-top: 1px;
-vertical-align: middle;
-position: absolute;
-top: 5px;
-left: 5px;
-font-size: 24px;
-font-weight: 400;
-font-variant: small-caps;
-height: 42px;
-line-height: 42px;
+    background: transparent url('logo2.gif') top left no-repeat;
+    padding-left: 200px;
+    color: #a9b8d4;
+    vertical-align: middle;
+    font-weight: bold;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 26px;
+    font-weight: 400;
+    font-variant: small-caps;
+    height: 50px;
+    line-height: 50px;
 }      
 
 /* ======SEARCH AND NAV TOP RIGHT====== */
 #settings { 
-    background: transparent url(settingsbox_bg.gif) repeat-x;
     color: white;
+    letter-spacing: 1px;
     position: absolute;
     top: 0px;
     right: 0px;
     z-index: 3000px;
-    height: 50px;
     padding: 0pt;
 }
 
-#settings div.settingsleftcorner {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 7px;
-    height: 51px;
-    background: white url(settingsbox_bg_left.gif) no-repeat;
-}
 
 
 #settings ul {
     list-style-type: none;
     margin-right: 200px;
-    height: 45px;
     margin-left: 0px;
 }
 
@@ -96,7 +97,7 @@ line-height: 42px;
     background: transparent url('search_box_bg.gif') 5px 5px no-repeat;
     width: 183px;
     position: absolute;
-    top: 0px;
+    top: 6px;
     right: 0px;
     height: 100%
 }
@@ -192,8 +193,9 @@ line-height: 42px;
 /*#rightPane table {margin-left: 5px; }*/
 #breadCrumbPane
 {
-	color: black;
-	font-size: 10pt;
+	color: #444;
+	font-size: 12pt;
+    letter-spacing: 1px;
     padding-top: 0px;
 	padding-bottom: 0px;
     padding-left: 15px;
