@@ -4,33 +4,33 @@
     width: 12em;
     z-index: 2000;
 }
+
 .contextmenu * ,
 .littlemenu * {
     padding: 0;
     margin:0;
     font-weight: normal;
 }
+
 .littlemenu,
 .contextmenu {
     position: relative;
     cursor:pointer;
 }
+
 .littlemenu {
-    /*top: 3px;*/
     position:absolute;
     right:0px;
     bottom: 0px;
     z-index: 2007;
 }
-td.contextmenutab {
-    background: transparent url('titlebar_right_corner.gif') bottom left no-repeat;
-}
+
+
 .contextmenubutton {
     display: inline;
     min-width: 5em;
     text-align: center;
-    height: 2em;
-    line-height: 2em;
+    height: 24px;
     cursor: pointer;
     float:right;
     margin-right:10px;
@@ -44,7 +44,8 @@ td.contextmenutab {
     position: absolute;
     right: 0px;
     width: 172px;
-    top: 25px;
+    top: 24px;
+    border-top: 0px;
     z-index: 3005;
     padding-bottom: 10px;
     padding-top: 10px;
@@ -59,6 +60,7 @@ div.menu_bottom {
     z-index: 2000;
     width: 174px;
 }
+
 div.menu_top {
     background: transparent url('menu_top.gif') top left no-repeat;
     position: absolute;
@@ -72,6 +74,7 @@ div.menu_top {
 .devmovemenuitems {
     top: 0px;
 }
+
 ul.zenMenu {
     list-style-type: none;
     border-left: 1px solid #5A6F8F;
@@ -82,6 +85,7 @@ ul.zenMenu {
     z-index: 2001;
     background-color: #666;
 }
+
 ul.zenMenu li a {
     padding-left: 1em;
     text-align: justify;
@@ -91,10 +95,12 @@ ul.zenMenu li a {
     padding: 5px;
     height: 100%;
 }
+
 ul.zenMenu li {
     border-bottom: 1px dotted grey;
     line-height: 2em;
 }
+
 ul.zenMenu li a:hover {
     background-color: #DEDEFF;
     color: black;

@@ -69,7 +69,6 @@
 
 <tal:block metal:define-macro="filterbox">
 <link href="filterbox.css" rel="stylesheet" type="text/css" />
-<span style="position:absolute;right:190px;font-weight:normal;">Filter:</span>
 <div class="filterbox"
      tal:define="ts python:here.ZenTableManager.getTableState(tableName);
                  message request/SESSION/message | nothing;">

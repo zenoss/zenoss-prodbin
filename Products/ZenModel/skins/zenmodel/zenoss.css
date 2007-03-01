@@ -140,8 +140,7 @@ td.search {
 }
 #rightPane
 {
-    /*
-    position: absolute;
+    /*position: absolute;
     left: 7.9em;
     right:0;
     margin-left: 7.9em;
@@ -159,8 +158,8 @@ td.search {
 {
 	color: black;
 	font-size: 10pt;
-    padding-top: 5px;
-	padding-bottom: 5px;
+    padding-top: 0px;
+	padding-bottom: 0px;
     padding-left: 15px;
 	margin: 0px;
 	font-weight: bold;
@@ -174,6 +173,10 @@ td.search {
 /*	background: inherit;
 */	font-weight: inherit;
     text-decoration: none;
+}
+#breadCrumbPane a:hover
+{
+    text-decoration: underline;
 }
 
 #tabsPane
@@ -222,7 +225,7 @@ form {
 table.tabtable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-weight: bold; 
-	height: 26px;
+	height: 23px;
 	margin: 0px;
 	padding: 0px;
 }
@@ -235,12 +238,12 @@ table.tabtable td {
 
 table.tabtable td a.tabletitle {
     display: block;
-    padding: 0px 20px;
+    padding: 0px 15px;
     border-left: 1px solid #444;
     border-right: 1px solid #444;
     border-top: 1px solid black;
 	background: transparent url(titlebar_bg.gif) repeat-x bottom left;
-    height: 25px;
+    height: 23px;
 }
 table.tabtable td a.tabletitle:hover {
 	background: transparent url(titlebar_bg_depressed.gif) repeat-x bottom left;
@@ -248,7 +251,7 @@ table.tabtable td a.tabletitle:hover {
 
 table.tabtable td.contextmenutab a.tabletitle {
     width: 53px;
-    height: 27px;
+    height: 25px;
     padding: 0pt;
     border-top: 0pt;
     border-right: 0pt;
@@ -262,7 +265,7 @@ table.tabtable td.contextmenutab a.tabletitle:hover {
 
 table.tabtable td.tabletitleselected  {
     color: #333333;
-    height:34px;
+    height:32px;
     font-size:8pt;
     padding: 0px;
     border: 0px;
@@ -285,9 +288,6 @@ table.tabtable td.tabletitleselected a:link   {
     background: none;
 }
 
-table.tabtable td.tabletitleselected a:hover {
-	background: transparent url(tab_bg_selected.gif) no-repeat top left;
-}
 
 
 table.zentable {
@@ -298,7 +298,6 @@ table.zentable {
     margin-right: 2em;
     font-weight: normal; 
 	margin: 0px;
-    margin-top: 1em;
 	padding: 0pt;
     background-color: #E0E0E0;
 }
@@ -391,7 +390,7 @@ div.tabletitlecontainer {
 .tabletitletext {
     margin-left: 52px;
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 10pt;
 }
 
 .tabletitlecontainer .leftcorner {
