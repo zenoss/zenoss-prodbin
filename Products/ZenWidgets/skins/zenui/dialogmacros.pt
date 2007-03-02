@@ -1,7 +1,7 @@
 <!--============Basic dialog box wrapper===============-->
 <tal:block metal:define-macro="dialog">
 <script src="javascript/dialog.js"></script>
-<link href="dialog.css" rel="stylesheet" type="text/css" />
+<link href="css/dialog.css" rel="stylesheet" type="text/css" />
 <div id="dialog" class="dialog"> 
 <div id="dialog_close" class="dialog_close">X</div>
 <div id="dialog_content">

@@ -2,7 +2,7 @@
     tal:condition="python:hasattr(here, 'getMenus')"
     tal:define="menu_id string:Context">
 
-<link href="menus.css" rel="stylesheet" type="text/css" />
+<link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
@@ -68,7 +68,7 @@
 </tal:block>
 
 <tal:block metal:define-macro="filterbox">
-<link href="filterbox.css" rel="stylesheet" type="text/css" />
+<link href="css/filterbox.css" rel="stylesheet" type="text/css" />
 <div class="filterbox"
      tal:define="ts python:here.ZenTableManager.getTableState(tableName);
                  message request/SESSION/message | nothing;">
@@ -81,7 +81,7 @@
 
 <tal:block metal:define-macro="devmovemenu">
 
-<link href="menus.css" rel="stylesheet" type="text/css" />
+<link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="littlemenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);

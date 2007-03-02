@@ -52,7 +52,7 @@
 }
 
 div.menu_bottom {
-    background: transparent url('menu_bottom.gif') bottom left no-repeat;
+    background: transparent url('img/menu_bottom.gif') bottom left no-repeat;
     position: absolute;
     bottom: 0px;
     left: -2px;
@@ -62,7 +62,7 @@ div.menu_bottom {
 }
 
 div.menu_top {
-    background: transparent url('menu_top.gif') top left no-repeat;
+    background: transparent url('img/menu_top.gif') top left no-repeat;
     position: absolute;
     top: 0px;
     left: -2px;
@@ -114,7 +114,7 @@ div.devmovemenu {
     z-index: 2007;
     border-left: 1px inset #666;
     height: 25px;
-    background: #E0E0E0 url('actions_button.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/actions_button.gif') bottom left no-repeat;
     position:absolute;
     right:0px;
     bottom: 0px;
@@ -126,7 +126,7 @@ div.devmovemenu span {
 }
 
 div.devmovemenu:hover {
-    background: #E0E0E0 url('actions_button_depressed.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/actions_button_depressed.gif') bottom left no-repeat;
 }
 
 /* IE HACKS */
