@@ -159,7 +159,7 @@ class PerformanceConf(Monitor, StatusColor):
                     cmd += ' AND device = "%s"' % devname
                 cmd += ' GROUP BY device'
                 curs.execute(cmd);
-                counts = dict([(d, c) for d, c in curs.fetchall()])
+                counts = dict([(d, int(c)) for d, c in curs.fetchall()])
             finally: zem.close(conn)
         except Exception, ex:
             log.exception('Unable to get Snmp Status')
