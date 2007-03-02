@@ -30,7 +30,7 @@ input,textarea {
 }
 
 #infoBar {
-    background: #ffffe0 url('infobar_bg.gif') top left repeat-x;
+    background: #ffffe0 url('img/infobar_bg.gif') top left repeat-x;
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
@@ -94,7 +94,7 @@ div.logo {
 }
 
 #settings div.searchbox {
-    background: transparent url('search_box_bg.gif') 5px 5px no-repeat;
+    background: transparent url('img/search_box_bg.gif') 5px 5px no-repeat;
     width: 183px;
     position: absolute;
     top: 6px;
@@ -125,17 +125,21 @@ div.logo {
     position: absolute;
     z-index: 999;
 	left: 0px;
-    margin: 25px 0px 0px 5px;
-    padding: 5px 0px 0px 0px;
-	width: 8.6em;
-	border: 0px solid red;
+    margin: 25px 0px 0px 0px;
+    padding-left: 5px;
+	width: 9em;
+	border-right: 1px solid black;
+    /*
+    background: #666 url('img/menu_bottom.gif') bottom no-repeat;
+    */
 }
 #leftPane p {
     padding: 0px 0px 0px 0px;
     margin: 0px;
+    margin-bottom: 5px;
     font-weight: bold;
-    border-bottom: 1px solid #5a6f8f;
-    color: #5a6f8f;
+    border-bottom: 1px dotted black;
+    /*color: white;*/
 }
 
 #leftPane ul {
@@ -147,20 +151,21 @@ div.logo {
 
 #leftPane ul li {
     display: block;
-    padding: 0px 0px 0px 0px;
+    padding: 0px 0px;
     margin: 0px;
+    border-bottom: 1px dotted #777;
 }
 #leftPane ul li a {
     text-decoration: none;
+    color: #5a6f8f;
     display: block;
-    padding: 1px 0px 1px 3px;
+    padding: 2px ;
     margin: 0px;
 }
 	
 #leftPane ul li a:hover {
     color: white;
     background: #5a6f8f;
-
 }
 
 #leftpane ul li a.selected  {
@@ -184,7 +189,7 @@ div.logo {
     float:right;
     */
     padding: 5px;
-	margin-left: 9.0em;
+	margin-left: 9.6em;
     /*margin-top: 5px;*/
  /*   background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;*/
  
@@ -280,11 +285,11 @@ table.tabtable td a.tabletitle {
     border-left: 1px solid #444;
     border-right: 1px solid #444;
     border-top: 1px solid black;
-	background: transparent url(titlebar_bg.gif) repeat-x bottom left;
+	background: transparent url(img/titlebar_bg.gif) repeat-x bottom left;
     height: 23px;
 }
 table.tabtable td a.tabletitle:hover {
-	background: transparent url(titlebar_bg_depressed.gif) repeat-x bottom left;
+	background: transparent url(img/titlebar_bg_depressed.gif) repeat-x bottom left;
 }
 
 table.tabtable td.contextmenutab a.tabletitle {
@@ -295,10 +300,10 @@ table.tabtable td.contextmenutab a.tabletitle {
     border-right: 0pt;
     margin-bottom: -1px;
     margin-left: -1px;
-    background-image: url('contextmenu_tab.gif');
+    background-image: url('img/contextmenu_tab.gif');
 }
 table.tabtable td.contextmenutab a.tabletitle:hover {
-    background-image: url('contextmenu_tab_depressed.gif');
+    background-image: url('img/contextmenu_tab_depressed.gif');
 }
 
 table.tabtable td.tabletitleselected  {
@@ -309,7 +314,7 @@ table.tabtable td.tabletitleselected  {
     border: 0px;
 	line-height: 26px;
     width: 101px;
-	background: transparent url(tab_bg_selected.gif) no-repeat bottom left;
+	background: transparent url(img/tab_bg_selected.gif) no-repeat bottom left;
 }
 
 table.tabtable td.tabletitleselected a,
@@ -398,7 +403,7 @@ a.tabletitle:hover {
 th.tabletitle {
     height: 25px;
     line-height: 25px;
-    background: transparent url('titlebar_bg.gif') repeat-x top;
+    background: transparent url('img/titlebar_bg.gif') repeat-x top;
     color: white;
     padding: 0pt;
     font-size: 1.2em;
@@ -433,12 +438,14 @@ div.tabletitlecontainer {
 
 .tabletitlecontainer .leftcorner {
     left: 0px;
-    background: #E0E0E0 url('titlebar_left_corner.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/titlebar_left_corner.gif') 
+        bottom left no-repeat;
     width: 52px;
 }
 .tabletitlecontainer .rightcorner {
     right: 0px;
-    background: #E0E0E0 url('titlebar_right_corner.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/titlebar_right_corner.gif') 
+        bottom left no-repeat;
     width: 52px;
 }
 
@@ -664,4 +671,5 @@ a.tablevalues:active {
 
 @import url('filterbox.css');
 @import url('menus.css');
+
 
