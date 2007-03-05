@@ -41,7 +41,6 @@ input,textarea {
 }
 
 #infoBar div {
-    display: inline;
 }
 
 #leftPaneToggle {
@@ -49,13 +48,15 @@ input,textarea {
     height: 30px;
     line-height: 30px;
     width: 30px;
-    display: block;
     position: absolute;
     top: 0px;
     left: 0px;
     border-right: 1px solid black;
     cursor: pointer;
+    display: none;
+    z-index: 3000;
 }
+
 
 #logo {
     padding:0;
@@ -146,7 +147,7 @@ div.logo {
     top: 107px;
     margin: 0px 0px 0px 0px;
     padding-left: 5px;
-    padding-top: 10px;
+ /*   padding-top: 10px;*/
 	width: 110px;
     background-color: #666;
 }
@@ -222,7 +223,7 @@ div.logo {
     padding-left: 120px;
 	margin: 0px;
 	font-weight: bold;
-	border: 0px solid red;
+	border: medium none;
 }
 
 #breadCrumbPane a {

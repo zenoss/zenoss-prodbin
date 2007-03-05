@@ -59,12 +59,13 @@ function deleteCookie(name,path,domain) {
 function hideLeftPane() {
     var leftPane = $('leftPane');
     var rightPane = $('rightPane');
-    makeVisible($('leftPaneToggle'));
+    showElement('leftPaneToggle');
     makeInvisible(leftPane);
     makeInvisible($('paneToggle'));
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg_collapsed.gif)',
     });
+    setStyle('breadCrumbPane', { 'padding-left':'35px'});
     setStyle(rightPane, {'margin-left':'12px'});
     doHover();
 }
@@ -74,10 +75,11 @@ function showLeftPane() {
     var rightPane = $('rightPane');
     makeVisible(leftPane);
     makeVisible($('paneToggle'));
-    makeInvisible($('leftPaneToggle'));
+    hideElement('leftPaneToggle');
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg.gif)',
     });
+    setStyle('breadCrumbPane', { 'padding-left':'120px'});
     setStyle(rightPane, {'margin-left':'120px'});
     cancelHover();
 }
@@ -111,7 +113,7 @@ function doHover() {
 //        'padding-top':'2px',
         'z-index':'3000'
     });
-    connect(leftPaneToggle, 'onclick', function(){
+    connect('leftPaneToggle', 'onclick', function(){
         clearTimeout(t);
         doShowing();
     });
