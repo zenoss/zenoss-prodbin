@@ -30,13 +30,31 @@ input,textarea {
 }
 
 #infoBar {
-    background: #ffffe0 url('img/infobar_bg.gif') top left repeat-x;
+    background: #A1AFC4 url('img/infobar_bg.gif') top left repeat-x;
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     padding-left: 10px;
     padding-top: 5px;
+    position: relative;
+}
+
+#infoBar div {
+    display: inline;
+}
+
+#leftPaneToggle {
+    background: transparent url('img/leftpanetoggle_bg.gif') top left repeat-x;
+    height: 30px;
+    line-height: 30px;
+    width: 30px;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    border-right: 1px solid black;
+    cursor: pointer;
 }
 
 #logo {
@@ -125,28 +143,27 @@ div.logo {
     position: absolute;
     z-index: 999;
 	left: 0px;
-    margin: 25px 0px 0px 0px;
+    top: 107px;
+    margin: 0px 0px 0px 0px;
     padding-left: 5px;
-	width: 9em;
-	border-right: 1px solid black;
-    /*
-    background: #666 url('img/menu_bottom.gif') bottom no-repeat;
-    */
+    padding-top: 10px;
+	width: 110px;
+    background-color: #666;
 }
+
 #leftPane p {
     padding: 0px 0px 0px 0px;
     margin: 0px;
     margin-bottom: 5px;
     font-weight: bold;
     border-bottom: 1px dotted black;
-    /*color: white;*/
+    color: white;
 }
 
 #leftPane ul {
     list-style: none; 
     margin: 0px 0px 10px 0px; 
     padding: 0px; 
-	
 }
 
 #leftPane ul li {
@@ -155,9 +172,10 @@ div.logo {
     margin: 0px;
     border-bottom: 1px dotted #777;
 }
+
 #leftPane ul li a {
     text-decoration: none;
-    color: #5a6f8f;
+    color: white;
     display: block;
     padding: 2px ;
     margin: 0px;
@@ -180,6 +198,7 @@ div.logo {
     color: white;
     background: #5a6f8f;
 }
+
 #rightPane
 {
     /*position: absolute;
@@ -189,45 +208,39 @@ div.logo {
     float:right;
     */
     padding: 5px;
-	margin-left: 9.6em;
+	margin-left: 11em;
     /*margin-top: 5px;*/
  /*   background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;*/
- 
 }
 
-/*#rightPane table {margin-left: 5px; }*/
-#breadCrumbPane
-{
+#breadCrumbPane {
 	color: #444;
 	font-size: 12pt;
     letter-spacing: 1px;
     padding-top: 0px;
 	padding-bottom: 0px;
-    padding-left: 15px;
+    padding-left: 120px;
 	margin: 0px;
 	font-weight: bold;
 	border: 0px solid red;
 }
 
-#breadCrumbPane a
-{
+#breadCrumbPane a {
 	color: inherit;
 	font-size: inherit;
 /*	background: inherit;
 */	font-weight: inherit;
     text-decoration: none;
 }
-#breadCrumbPane a:hover
-{
+
+#breadCrumbPane a:hover {
     text-decoration: underline;
 }
 
-#tabsPane
-{
+#tabsPane {
 }
 
-#contentPane
-{
+#contentPane {
 	padding: 5px 15px;
 	background: #E0E0E0;
     min-height: 400px;
@@ -238,6 +251,7 @@ div.logo {
 	border-right: 5px solid #b1bcd2 ;
 	*/
 }
+
 a:link {
     color: #000040;
 }
@@ -664,9 +678,14 @@ a.tablevalues:active {
 }
 
 #paneToggle {
-    float:left;
+    position: absolute;
+    top: 87px;
+    left: 0px;
+    height: 20px;
+    width: 117px;
     z-index: 1000;
     cursor: pointer;
+    background: transparent url('img/paneToggle_bg.gif') top left no-repeat;
 }
 
 @import url('filterbox.css');

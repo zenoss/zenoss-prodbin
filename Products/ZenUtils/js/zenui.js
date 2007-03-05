@@ -59,7 +59,12 @@ function deleteCookie(name,path,domain) {
 function hideLeftPane() {
     var leftPane = $('leftPane');
     var rightPane = $('rightPane');
+    makeVisible($('leftPaneToggle'));
     makeInvisible(leftPane);
+    makeInvisible($('paneToggle'));
+    setStyle('paneToggle', {
+        'background-image':'url(img/paneToggle_bg_collapsed.gif)',
+    });
     setStyle(rightPane, {'margin-left':'12px'});
     doHover();
 }
@@ -68,7 +73,12 @@ function showLeftPane() {
     var leftPane = $('leftPane');
     var rightPane = $('rightPane');
     makeVisible(leftPane);
-    setStyle(rightPane, {'margin-left':'108px'});
+    makeVisible($('paneToggle'));
+    makeInvisible($('leftPaneToggle'));
+    setStyle('paneToggle', {
+        'background-image':'url(img/paneToggle_bg.gif)',
+    });
+    setStyle(rightPane, {'margin-left':'120px'});
     cancelHover();
 }
 
@@ -77,36 +87,51 @@ function toggleLeftPane() {
     if (!isVisible(leftPane)) { showLeftPane() }
     else { hideLeftPane() }
 }
+
+function doHiding() {
+    hideElement($('leftPane'));
+    hideElement($('paneToggle'));
+}
+
+function doShowing() {
+    showElement($('leftPane'));
+    showElement($('paneToggle'));
+}
+
 var t;
 function doHover() {
     var leftPane = $('leftPane');
     var paneToggle = $('paneToggle');
+    var leftPaneToggle = $('leftPaneToggle');
     var lpPopup = leftPane;
-    var elemPos = getElementPosition(paneToggle);
-    elemPos.x += 5;
-    elemPos.y += -25;
-    setElementPosition(lpPopup, elemPos);
     setStyle(lpPopup, {
         'position':'absolute',
-        'background-color':'white',
-        'padding':'2px',
-        'padding-top':'2px',
-        'border':'1px solid darkgrey',
+//        'background-color':'white',
+//        'padding':'2px',
+//        'padding-top':'2px',
         'z-index':'3000'
     });
-    connect(paneToggle, 'onmouseover', function(){
+    connect(leftPaneToggle, 'onclick', function(){
         clearTimeout(t);
-        showElement(lpPopup)
+        doShowing();
     });
     connect(leftPane, 'onmouseover', function(){
         clearTimeout(t);
-        showElement(lpPopup)
+        doShowing();
+    });
+    connect($('paneToggle'), 'onmouseover', function(){
+        clearTimeout(t);
+        doShowing();
     });
     connect(paneToggle,'onmouseout',function(){
-        t=setTimeout('hideElement($("leftPane"))',500);
+        t=setTimeout('doHiding()',500);
     });
     connect(leftPane, 'onmouseout', function(){
-        t=setTimeout('hideElement($("leftPane"))',500);
+        t=setTimeout('doHiding()',500);
+    });
+    connect(paneToggle, 'onclick', function(){
+        clearTimeout(t);
+        toggleLeftPane();
     });
     setCookie('Zenoss_Collapsed_Menu', 'true',30,'/','','');
 }

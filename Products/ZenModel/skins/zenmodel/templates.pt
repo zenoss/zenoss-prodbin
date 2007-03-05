@@ -20,24 +20,20 @@
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div metal:use-macro="here/templates/macros/infoBar"/>
-            <div id="paneToggle">
-              <img src="hide.png" alt="Hide/Show" onclick="toggleLeftPane();"/>
+            <div id="paneToggle" onclick="toggleLeftPane();">
+                &nbsp;
             </div>
             <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
                                     here.REQUEST.HTTP_COOKIE">
                 #leftPane { display:none;}
                 #rightPane { margin-left:12px;}
+                #paneToggle { 
+                    background-image: url('paneToggle_bg_collapsed.gif');
+                }
             </style>
             <div metal:use-macro="here/templates/macros/leftPane"/>
 	        <div id="rightPane">
                 <tal:block metal:define-slot="rightPane">
-                    <!--
-                    <div id="breadCrumbPane">
-                        <tal:block metal:define-slot="breadCrumbPane">
-                            /DEFAULT
-                        </tal:block>
-                    </div>
-                    -->
                     <div id="contentPane">
                         <tal:block metal:define-slot="contentPane">
                             CONTENT GOES HERE
@@ -161,6 +157,7 @@
     infoBar - second bar on the page, for breadcrumbs et al
  ====================================================== -->
 <div id="infoBar" metal:define-macro="infoBar">
+<div id="leftPaneToggle">&nbsp;</div>
 <div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
 </div>
 
