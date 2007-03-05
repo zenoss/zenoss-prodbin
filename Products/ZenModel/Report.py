@@ -59,7 +59,7 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
                             __name__='addReport')
 
 
-class Report(ZenModelRM, ZopePageTemplate, ZenPackable):
+class Report(ZopePageTemplate, ZenModelRM, ZenPackable):
     """Report object"""
     meta_type = 'Report'
 
