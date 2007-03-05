@@ -1,6 +1,5 @@
 #################################################################
-#
-#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+# #   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
@@ -74,7 +73,15 @@ class MenuRelations(Migrate.Step):
                      id=         'manageob',
                      description='Manage',
                      action=     'deviceOrganizerManage',
-                     permissions=('View',)
+                     permissions=('View',),
+                     allowed_classes=('DeviceClass',)
+                    ),
+                dict(
+                     id=         'managedev',
+                     description='Manage',
+                     action=     'deviceManagement',
+                     permissions=('View',),
+                     allowed_classes=('Device',)
                     ),
                 dict(
                      id=         'editCustSchema',
