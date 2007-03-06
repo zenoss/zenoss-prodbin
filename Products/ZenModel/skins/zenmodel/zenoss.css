@@ -34,7 +34,7 @@ input,textarea {
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     padding-left: 10px;
     padding-top: 5px;
     position: relative;
@@ -44,7 +44,6 @@ input,textarea {
 }
 
 #leftPaneToggle {
-    background: transparent url('img/leftpanetoggle_bg.gif') top left repeat-x;
     height: 30px;
     line-height: 30px;
     width: 30px;
@@ -53,10 +52,28 @@ input,textarea {
     left: 0px;
     border-right: 1px solid black;
     cursor: pointer;
-    display: none;
     z-index: 3000;
+    width: 115px;
+    /*background: #5a6f8f url('img/titlebar_bg.gif') top left repeat-x;*/
+    background: transparent url('img/leftpanetoggle_bg_expanded.gif') 
+        top left no-repeat;
+}
+.leftPaneTogglehover {
+    background: transparent url('img/leftpanetoggle_bg_depressed.gif') 
+        top left repeat-x;
 }
 
+.paneToggleInvisible {
+    width: 120px;
+    background-color: #5a6f8f;
+    border-right: 1px solid darkgrey;
+    background-image: none;
+}
+
+.paneToggleVisible {
+    background: transparent url('img/leftpanetoggle_bg_depressed.gif') 
+        top left repeat-x;
+}
 
 #logo {
     padding:0;
@@ -150,6 +167,7 @@ div.logo {
  /*   padding-top: 10px;*/
 	width: 110px;
     background-color: #666;
+    border-right: 1px solid black;
 }
 
 #leftPane p {
@@ -683,7 +701,8 @@ a.tablevalues:active {
     top: 87px;
     left: 0px;
     height: 20px;
-    width: 117px;
+    width: 115px;
+    border-right: 1px solid black;
     z-index: 1000;
     cursor: pointer;
     background: transparent url('img/paneToggle_bg.gif') top left no-repeat;

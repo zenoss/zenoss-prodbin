@@ -20,7 +20,7 @@
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div metal:use-macro="here/templates/macros/infoBar"/>
-            <div id="paneToggle" onclick="toggleLeftPane();">
+            <div id="paneToggle">
             </div>
             <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
                                     here.REQUEST.HTTP_COOKIE">
@@ -28,8 +28,14 @@
                 #rightPane { margin-left:12px;}
                 #paneToggle { 
                     background-image: url('paneToggle_bg_collapsed.gif');
+                    border-right: medium none;
                 }
-                #leftPaneToggle{ display:block;}
+                #leftPaneToggle{ display:block;
+                    background:transparent url(img/leftpanetoggle_bg.gif) top
+                    left repeat-x;
+                    height: 30px;
+                    width: 30px;
+                }
                 #breadCrumbPane{ padding-left: 35px;}
 
             </style>
@@ -217,7 +223,8 @@
  ====================================================== -->
 <div id="tabsPane" metal:define-macro="tabsPane">
    <table class="tabtable" cellpadding="0" cellspacing="0"
-        tal:define="ztabs python:here.zentinelTabs(template.id);">
+        tal:define="ztabs python:here.zentinelTabs(template.id);
+                    tabnames python:[x['name'] for x in ztabs]">
        <tr>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 
@@ -236,6 +243,12 @@
            </div>
 
            </td>
+        <td class='tabletitleselected'
+            tal:condition="python:False">
+           <div id="selectedtablinehider">
+            Other Page
+           </div>
+        </td>
         <td class="contextmenutab">
         <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
         </td>

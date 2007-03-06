@@ -59,14 +59,25 @@ function deleteCookie(name,path,domain) {
 function hideLeftPane() {
     var leftPane = $('leftPane');
     var rightPane = $('rightPane');
-    showElement('leftPaneToggle');
+    //showElement('leftPaneToggle');
     makeInvisible(leftPane);
     makeInvisible($('paneToggle'));
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg_collapsed.gif)',
+        'border-right':'1px solid black'
     });
     setStyle('breadCrumbPane', { 'padding-left':'35px'});
     setStyle(rightPane, {'margin-left':'12px'});
+    setStyle('leftPaneToggle', {
+    'background':'transparent url(img/leftpanetoggle_bg.gif) top left repeat-x',
+    'height':'30px',
+    'width':'30px'
+    });
+    disconnectAll('leftPaneToggle');
+    connect('leftPaneToggle', 'onclick', function(){
+        clearTimeout(t);
+        doShowing();
+    });
     doHover();
 }
 
@@ -75,12 +86,21 @@ function showLeftPane() {
     var rightPane = $('rightPane');
     makeVisible(leftPane);
     makeVisible($('paneToggle'));
-    hideElement('leftPaneToggle');
+    //hideElement('leftPaneToggle');
     setStyle('paneToggle', {
         'background-image':'url(img/paneToggle_bg.gif)',
+        'border-right':'1px solid black'
     });
     setStyle('breadCrumbPane', { 'padding-left':'120px'});
     setStyle(rightPane, {'margin-left':'120px'});
+    setStyle('leftPaneToggle', {
+    'background':'#5a6f8f url(img/leftpanetoggle_bg_expanded.gif) ' +
+        'top left repeat-x',
+    'height':'30px',
+    'width':'115px'
+    });
+    disconnectAll('leftPaneToggle');
+    connect('leftPaneToggle','onclick',toggleLeftPane);
     cancelHover();
 }
 
@@ -113,10 +133,6 @@ function doHover() {
 //        'padding-top':'2px',
         'z-index':'3000'
     });
-    connect('leftPaneToggle', 'onclick', function(){
-        clearTimeout(t);
-        doShowing();
-    });
     connect(leftPane, 'onmouseover', function(){
         clearTimeout(t);
         doShowing();
@@ -135,6 +151,22 @@ function doHover() {
         clearTimeout(t);
         toggleLeftPane();
     });
+    connect('leftPaneToggle','onmouseover', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg_depressed.gif") top left repeat-x',
+            })
+    });
+    connect('leftPaneToggle','onmouseout', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg.gif") top left repeat-x',
+            })
+    });
+    connect('leftPaneToggle', 'onclick', function(){
+        clearTimeout(t);
+        doShowing();
+    });
     setCookie('Zenoss_Collapsed_Menu', 'true',30,'/','','');
 }
 
@@ -143,6 +175,20 @@ function cancelHover() {
     var paneToggle = $('paneToggle');
     disconnectAll(paneToggle);
     disconnectAll(leftPane);
+    disconnectAll('leftPaneToggle');
+    connect('leftPaneToggle', 'onclick', toggleLeftPane);
+    connect('leftPaneToggle','onmouseover', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x',
+            })
+    });
+    connect('leftPaneToggle','onmouseout', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x',
+            })
+    });
     deleteCookie('Zenoss_Collapsed_Menu','/','');
     updateNodeAttributes(leftPane, {
         'style':'display:block'
@@ -153,8 +199,20 @@ function checkForCollapsed() {
     var x = getCookie('Zenoss_Collapsed_Menu');
     log(x);
     if (!x){
-        noop();
-        //cancelHover();
+    disconnectAll('leftPaneToggle');
+    connect('leftPaneToggle','onclick',toggleLeftPane);
+    connect('leftPaneToggle','onmouseover', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x',
+            })
+    });
+    connect('leftPaneToggle','onmouseout', function() {
+        setStyle('leftPaneToggle', {
+            'background':'transparent ' +
+            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x',
+            })
+    });
     } else {
         hideLeftPane();
     }
