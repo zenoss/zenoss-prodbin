@@ -193,6 +193,33 @@ class PerformanceConf(Monitor, StatusColor):
         return [(dev.id, counts.get(dev.id, 0)) for dev in self.devices()]
 
 
+    def getProcessStatus(self, device=None):
+        "Get the known process status from the Event Manager"
+        from Products.ZenEvents.ZenEventClasses import Status_OSProcess
+        zem = self.dmd.ZenEventManager
+        down = {}
+        conn = zem.connect()
+        try:
+            curs = conn.cursor()
+            query = ("SELECT device, component, count"
+                    "  FROM status"
+                    " WHERE eventClass = '%s'" % Status_OSProcess)
+            if device:
+                query += " AND device = '%s'" % device
+            curs.execute(query)
+            for device, component, count in curs.fetchall():
+                down[device] = (component, count)
+        finally:
+            conn.close()
+        result = []
+        for dev in self.devices():
+            try:
+                component, count = down[dev.id]
+                result.append( (dev.id, component, count) )
+            except KeyError:
+                pass
+        return result
+
     def getOSProcessConf(self, devname=None):
         '''Get the OS Process configuration for all devices.
         '''
