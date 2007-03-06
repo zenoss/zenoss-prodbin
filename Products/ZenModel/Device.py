@@ -41,8 +41,13 @@ from App.Dialogs import MessageDialog
 from ZODB.POSException import POSError
 from AccessControl import Permissions as permissions
 
+try:
+    from pynetsnmp.SnmpSession import SnmpSession
+except:
+    from Products.DataCollector.SnmpSession import SnmpSession
+
+
 #from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
-from Products.DataCollector.SnmpSession import SnmpSession
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
@@ -156,14 +161,6 @@ def findCommunity(context, ip, devicePath, community="", port=161):
         try:
             devname = session.get(oid).values()[0]
             goodcommunity = session.community
-# FIXME - v2 queries don't take multiple head oids which needs to be
-#           reconciled with v1 where we want that as an optimization.
-#           will revisit when I have more time. -EAD
-#                try:
-#                    session.getTable(sysTableOid, bulk=True)
-#                    snmpver="v2"
-#                except (SystemExit, KeyboardInterrupt): raise
-#                except: snmpver="v1" 
             break
         except (SystemExit, KeyboardInterrupt, POSError): raise
         except: pass #keep trying until we run out
