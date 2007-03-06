@@ -1159,7 +1159,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         try:
             conn = self.connect()
             curs = conn.cursor()
-            self.dmd.ZenEventHistory.loadSchema(self.conn())
+            self.dmd.ZenEventHistory.loadSchema(conn)
         finally: self.close(conn)
         if REQUEST: return self.callZenScreen(REQUEST)
 
@@ -1235,7 +1235,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             insert = 'INSERT INTO log (evid, userName, text) '
             insert += 'VALUES ("%s", "%s", "%s")' % (evid,
                                                      userId,
-                                                     self.conn().escape_string(message))
+                                                     conn.escape_string(message))
             curs.execute(insert)
         finally: self.close(conn)
         self.clearCache('evid' + evid)
