@@ -120,7 +120,7 @@ class RenderServer(RRDToolItem):
                 except OSError:
                     log.warn("File %s does not exist" % filename)
         if remoteUrl:
-            urllib.urlopen(remoteUrl)Å
+            urllib.urlopen(remoteUrl)
     
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
