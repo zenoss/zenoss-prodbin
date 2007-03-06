@@ -69,7 +69,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     def getOSProcessConf(self):
         """Return information used to monitor this process.
         """
-
         thresholds = []
         try:
             templ = self.getRRDTemplate(self.getRRDTemplateName())
@@ -79,8 +78,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         except RRDObjectNotFound, e:
             log.warn(e)
         return (self.id, self.name(), self.osProcessClass().ignoreParameters,
-                self.alertOnRestart(), self.getFailSeverity(),
-                self.getStatus(), thresholds)
+                self.alertOnRestart(), self.getFailSeverity(), thresholds)
 
 
     def setOSProcessClass(self, procKey):
