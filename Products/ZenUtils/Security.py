@@ -238,7 +238,7 @@ def migratePAS(context):
         acl = context.acl_users
         # if there's an acl_users object, let's see if theres a login_form
         # attribute; if there is, we need to delete it
-        if (hasattr(acl, 'cookieAuthHelper') 
+        if (hasattr(acl, 'cookieAuthHelper')
             and hasattr(acl.cookieAuthHelper, 'login_form')):
             acl.cookieAuthHelper._delObject('login_form')
     except AttributeError:
