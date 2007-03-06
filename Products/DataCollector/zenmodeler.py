@@ -15,13 +15,11 @@ import Globals
 import transaction
 import DateTime
 from twisted.internet import reactor
-from pysnmp.error import PySnmpError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
-from SnmpSession import SnmpSession, ZenSnmpError
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
 import SshClient
 import TelnetClient
