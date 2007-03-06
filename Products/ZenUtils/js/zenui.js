@@ -147,6 +147,9 @@ function doHover() {
     connect(leftPane, 'onmouseout', function(){
         t=setTimeout('doHiding()',500);
     });
+    connect('leftPaneToggle', 'onmouseout', function(){
+        t=setTimeout('doHiding()',500);
+    });
     connect(paneToggle, 'onclick', function(){
         clearTimeout(t);
         toggleLeftPane();
