@@ -22,8 +22,14 @@ log = logging.getLogger("zen.zenprocess")
 
 from twisted.internet import reactor, defer
 
-from twistedsnmp.agentproxy import AgentProxy
-from twistedsnmp.tableretriever import TableRetriever
+try:
+    from pynetsnmp.twistedsnmp import AgentProxy
+    from pynetsnmp.tableretriever import TableRetriever
+    log.info("Using net-snmp snmp engine")
+except NameError, ImportError:
+    log.warning("Using twistedsnmp engine")
+    from twistedsnmp.agentproxy import AgentProxy
+    from twistedsnmp.tableretriever import TableRetriever
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
@@ -64,6 +70,10 @@ def reverseDict(d):
     for a, v in d.items():
         result.setdefault(v, []).append(a)
     return result
+
+def closer(value, device):
+    device.close()
+    return value
 
 class ScanFailure(Exception): pass
 
@@ -163,6 +173,15 @@ class Device:
         # map pid number to Process object
         self.pids = {}
 
+    def open(self):
+        self._makeProxy()
+        if hasattr(self.proxy, 'open'):
+            self.proxy.open()
+
+    def close(self):
+        if hasattr(self.proxy, 'close'):
+            self.proxy.close()
+
     def _makeProxy(self):
         p = self.proxy
         if (p is None or 
@@ -199,14 +218,12 @@ class Device:
             del self.processes[name]
 
     def get(self, oids):
-        self._makeProxy()
         return self.proxy.get(oids,
                               timeout=self.timeout,
                               retryCount=self.tries)
 
 
     def getTables(self, oids):
-        self._makeProxy()
         t = TableRetriever(self.proxy, oids,
                            timeout=self.timeout,
                            retryCount=self.tries,
@@ -294,7 +311,9 @@ class zenprocess(SnmpDaemon):
             return defer.succeed(None)
         device.lastScan = time.time()
         tables = [NAMETABLE, ARGSTABLE]
+        device.open()
         d = device.getTables(tables)
+        d.addBoth(closer, device)
         d.addCallback(self.storeProcessNames, device)
         d.addErrback(self.deviceFailure, device)
         return d
@@ -308,7 +327,7 @@ class zenprocess(SnmpDaemon):
                        device=device.name,
                        summary='Unable to read processes on device %s' % device.name,
                        severity=Event.Error)
-        self.logError('Error on device %s' % device.name, error)
+        self.logError('Error on device %s' % device.name, error.value)
 
 
     def storeProcessNames(self, results, device):
@@ -441,7 +460,9 @@ class zenprocess(SnmpDaemon):
             oids.extend([CPU + str(pid), MEM + str(pid)])
         if not oids:
             return defer.succeed(([], device))
+        device.open()
         d = device.get(oids)
+        d.addBoth(closer, device)
         d.addCallback(self.storePerfStats, device)
         d.addErrback(self.error)
         return d
