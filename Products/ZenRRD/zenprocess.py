@@ -26,7 +26,7 @@ try:
     from pynetsnmp.twistedsnmp import AgentProxy
     from pynetsnmp.tableretriever import TableRetriever
     log.info("Using net-snmp snmp engine")
-except NameError, ImportError:
+except ImportError:
     log.warning("Using twistedsnmp engine")
     from twistedsnmp.agentproxy import AgentProxy
     from twistedsnmp.tableretriever import TableRetriever
