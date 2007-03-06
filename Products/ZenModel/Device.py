@@ -439,7 +439,7 @@ class Device(ManagedEntity, Commandable):
         for o in self.os.getMonitoredComponents():
             if o.meta_type != "OSProcess":
                 oids.extend(o.getSnmpOidTargets())
-        return (self.getSnmpConnInfo(), oids, max)
+        return (float(self.getLastChange()), self.getSnmpConnInfo(), oids, max)
 
 
     def getDataSourceCommands(self):
