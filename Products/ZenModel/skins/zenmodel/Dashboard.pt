@@ -33,7 +33,7 @@
             <thead>
                 <tr>
                   <th class="tabletitle" colspan="6">
-                  <a style="color: white" href="/zport/dmd/Systems/viewEvents/">Systems</a>-Level Event Summary</th>
+                  <a style="color: white" href="/zport/dmd/Systems/viewEvents">Systems</a>-Level Event Summary</th>
                 </tr>
                 <tr>
                     <th class="tableheader">System</th>
@@ -53,7 +53,7 @@
             <thead>
             <tr>
               <th class="tabletitle" colspan="4">
-              <a style="color: white" href="/zport/dmd/Devices/viewEvents/">Devices</a> with Events (Severity &gt;= Error)</th>
+              <a style="color: white" href="/zport/dmd/Devices/viewEvents">Devices</a> with Events (Severity &gt;= Error)</th>
             </tr>
             <tr>
                 <th class="tableheader">Name</th>
