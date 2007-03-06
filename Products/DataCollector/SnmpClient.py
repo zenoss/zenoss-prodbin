@@ -4,7 +4,11 @@ log = logging.getLogger("zen.SnmpClient")
 
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
-from twistedsnmp import snmpprotocol, agentproxy
+try:
+    from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
+except ImportError:
+    from twistedsnmp import snmpprotocol
+    from twistedsnmp.agentproxy import AgentProxy
 
 import Globals
 
@@ -38,14 +42,19 @@ class SnmpClient(object):
         self.timeout = float(getattr(device,'zSnmpTimeout', defaultTimeout))
 
         srcport = snmpprotocol.port()
-        self.proxy = agentproxy.AgentProxy(ipaddr, port, community, snmpver,
-                                           protocol=srcport.protocol)
+        self.proxy = AgentProxy(ipaddr, port, community, snmpver,
+                                protocol=srcport.protocol)
+        if not hasattr(self.proxy, 'open'):
+            def doNothing(): pass
+            self.proxy.open = doNothing
+            self.proxy.close = doNothing
 
 
     def run(self):
         """Start snmp collection.
         """
         log.debug("timeout=%s, tries=%s", self.timeout, self.tries)
+        self.proxy.open()
         drive(self.doRun).addBoth(self.clientFinished)
 
 
@@ -122,6 +131,7 @@ class SnmpClient(object):
         return data 
 
     def clientFinished(self, *ignored):
+        self.proxy.close()
         """tell the datacollector that we are all done"""
         log.info("snmp client finished collection for %s" % self.hostname)
         if self.datacollector:
