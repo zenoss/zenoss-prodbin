@@ -32,6 +32,9 @@ from Products.ZenUtils.PObjectCache import CacheObj
 
 from RRDToolItem import RRDToolItem
 
+from Products.ZenModel.PerformanceConf import performancePath
+import glob
+
 import utils
 
 log = logging.getLogger("RenderServer")
@@ -98,7 +101,27 @@ class RenderServer(RRDToolItem):
             graph = self.getGraph(id, ftype, REQUEST)
         return graph 
 
-
+    
+    def deleteRRDFiles(self, device, 
+                        datasource=None, datapoint=None, 
+                        remoteUrl=None, REQUEST=None):
+        if datapoint:
+            rrdPath = '/Devices/%s/%s.rrd' % (device, datapoint)
+            try:
+                os.remove(performancePath(rrdPath))
+            except OSError:
+                log.warn("File %s does not exist" % performancePath(rrdPath))
+        elif datasource:
+            rrdPath = '/Devices/%s/%s_*.rrd' % (device, datasource)
+            filenames = glob.glob(performancePath(rrdPath))
+            for filename in filenames:
+                try:
+                    os.remove(filename)
+                except OSError:
+                    log.warn("File %s does not exist" % filename)
+        if remoteUrl:
+            urllib.urlopen(remoteUrl)Å
+    
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
         "render a custom graph and return it"

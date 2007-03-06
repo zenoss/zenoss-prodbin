@@ -364,5 +364,14 @@ class PerformanceConf(Monitor, StatusColor):
             dses.append(dstmpl %(ds.getName(), ds.rrdtype, ds.getName(), inst))
         return "\n".join(dses)     
 
+    def deleteRRDFiles(self, device, datasource=None, datapoint=None):
+        remoteUrl = None
+        if self.renderurl.startswith("http"):
+            if datapoint:
+                remoteUrl = "%s/deleteRRDFiles?device=%s&datapoint=%s" % (self.renderurl,device,datapoint)
+            else:
+                remoteUrl = "%s/deleteRRDFiles?device=%s&datasource=%s" % (self.renderurl,device,datasource)
+        rs = self.getDmd().getParentNode().RenderServer
+        rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
 
 InitializeClass(PerformanceConf)
