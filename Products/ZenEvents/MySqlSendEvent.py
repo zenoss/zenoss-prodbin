@@ -95,8 +95,8 @@ class MySqlSendEventMixin:
     def doSendEvent(self, event):
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             evid = guid.generate()
             event.evid = evid
