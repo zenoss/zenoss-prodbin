@@ -1,3 +1,5 @@
+import warnings
+warnings.warn("SnmpSession is deprecated", DeprecationWarning)
 #################################################################
 #
 #   Copyright (c) 2002 Zenoss, Inc. All rights reserved.
