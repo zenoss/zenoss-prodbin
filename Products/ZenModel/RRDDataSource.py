@@ -220,8 +220,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         for id in ids:
             dp = getattr(self.datapoints,id,False)
             if dp:
-                
-                perfConf = self.getDmd().Monitors.getPerformanceMonitor('localhost')
+                perfConf = self.device().getPerformanceServer()
                 perfConf.deleteRRDFiles(device=self.device().id, datapoint=dp.name())
                                 
                 clean(self.graphs, dp.name())

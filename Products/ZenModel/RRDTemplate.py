@@ -219,8 +219,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
             if getattr(self.datasources,id,False):
-                
-                perfConf = self.getDmd().Monitors.getPerformanceMonitor('localhost')
+                perfConf = self.device().getPerformanceServer()
                 perfConf.deleteRRDFiles(device=self.device().id, datasource=id)
                 
                 self.datasources._delObject(id)
