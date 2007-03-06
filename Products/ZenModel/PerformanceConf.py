@@ -21,6 +21,8 @@ log = logging.getLogger("zen.PerformanceConf")
 
 import xmlrpclib
 
+from sets import Set
+
 from ZODB.POSException import POSError
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -122,15 +124,18 @@ class PerformanceConf(Monitor, StatusColor):
           },
         )
 
-
-
     security.declareProtected('View','getDevices')
-    def getDevices(self, devname=None):
+    def getDevices(self, devices=None):
         """Return information for snmp collection on all devices in the form
         (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
+        if devices:
+            if not isinstance(devices, list):
+                devices = Set([devices])
+            else:
+                devices = Set(devices)
         result = []
         for dev in self.devices():
-            if devname and dev.id != devname: continue
+            if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
             if dev.monitorDevice():
                 try:
@@ -140,6 +145,25 @@ class PerformanceConf(Monitor, StatusColor):
                     log.exception("device %s", dev.id)
         return result
 
+    def getDeviceUpdates(self, devices):
+        """Return a list of devices that have changed.
+        Takes a list of known devices and the time of last known change.
+        The result is a list of devices that have changed,
+        or not in the list."""
+        lastChanged = dict(devices)
+        import pprint
+        pprint.pprint(lastChanged)
+        new = Set()
+        all = Set()
+        for dev in self.devices():
+            dev = dev.primaryAq()
+            if dev.monitorDevice():
+                all.add(dev.id)
+                if lastChanged.get(dev.id, 0) < float(dev.getLastChange()):
+                    print dev.id
+                    new.add(dev.id)
+        deleted = Set(lastChanged.keys()) - all
+        return list(new | deleted)
 
     security.declareProtected('View','getDevices')
     def getSnmpStatus(self, devname=None):
