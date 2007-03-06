@@ -41,6 +41,7 @@ class RRDUtil:
             value = long(value)
         try:
             rrdtool.update(filename, 'N:%s' % value)
+            log.debug('%s: %r', filename, value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             log.error('rrd error %s %s', err, path)
