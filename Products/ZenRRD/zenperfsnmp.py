@@ -20,9 +20,19 @@ import logging
 log = logging.getLogger("zen.zenperfsnmp")
 
 from sets import Set
+import cPickle
 
 from twisted.internet import reactor, defer
-from twistedsnmp.agentproxy import AgentProxy
+try:
+    from pynetsnmp.twistedsnmp import AgentProxy
+    log.info("Using net-snmp snmp engine")
+except ImportError:
+    log.warning("Using python-based snmp enging")
+    from twistedsnmp.agentproxy import AgentProxy
+if not hasattr(AgentProxy, 'open'):
+    def ignore(self): pass
+    AgentProxy.open = ignore
+    AgentProxy.close = ignore
 
 import Globals
 from Products.ZenUtils.Chain import Chain
@@ -39,6 +49,13 @@ from FileCleanup import FileCleanup
 
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 30
+
+def pickleName(id):
+    return performancePath('Devices/%s/config.pickle' % id)
+
+def makeDirs(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
 
 def chunk(lst, n):
     'break lst into n-sized chunks'
@@ -106,6 +123,7 @@ class Status:
             self._stopTime = time.time()
             if not self._deferred.called:
                 self._deferred.callback(self)
+        log.info("Count %d good %d bad %d time %f", *self.stats())
 
 
     def finished(self):
@@ -192,13 +210,29 @@ class zenperfsnmp(SnmpDaemon):
         self.cycleComplete = False
         self.snmpOidsRequested = 0
         perfRoot = performancePath('')
-        if not os.path.exists(perfRoot):
-	    os.makedirs(perfRoot)
+        makeDirs(perfRoot)
+        self.loadConfigs(perfRoot)
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
                                        self.maxRrdFileAge,
                                        frequency=90*60)
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
+
+
+    def loadConfigs(self, perfRoot):
+        "Read local configuration values at startup"
+        base = performancePath('Devices')
+        makeDirs(base)
+        root, ds, fs = os.walk(base).next()
+        for d in ds:
+            configFile = pickleName(d)
+            if os.path.exists(configFile):
+                fp = file(configFile, 'rb')
+                try:
+                    self.updateDeviceConfig(cPickle.load(fp))
+                finally:
+                    fp.close()
+
 
     def cleanup(self, fullPath):
         self.log.warning("Deleting old RRD file: %s", fullPath)
@@ -221,15 +255,27 @@ class zenperfsnmp(SnmpDaemon):
         self.syncdb()
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
-        yield self.model.callRemote('getDevices', self.options.device)
+        log.info("checking for outdated configs")
+        current = [(k, v.lastChange) for k, v in self.proxies.items()]
+        yield self.model.callRemote('getDeviceUpdates', current)
+
+        devices = driver.next()
+        if self.options.device:
+            devices = [self.options.device]
+
+        log.info("fetching configs for %r", devices)
+        yield self.model.callRemote('getDevices', devices)
         self.updateDeviceList(driver.next())
 
+        log.info("fetching snmp status")
         yield self.model.callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
         
+        log.info("fetching property items")
         yield self.model.callRemote('propertyItems')
         self.setPropertyItems(driver.next())
         
+        log.info("fetching default RRDCreateCommand")
         yield self.model.callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
@@ -246,15 +292,19 @@ class zenperfsnmp(SnmpDaemon):
             self.log.warn("no devices found, keeping existing list")
             return
 
+        deviceNames = Set()
         for snmpTargets in deviceList:
             self.updateDeviceConfig(snmpTargets)
+            deviceNames.add(snmpTargets[1][0])
             
         # stop collecting those no longer in the list
-        deviceNames = Set([d[0][0] for d in deviceList])
         doomed = Set(self.proxies.keys()) - deviceNames
         for name in doomed:
             self.log.debug('removing device %s' % name)
             del self.proxies[name]
+            config = pickleName(name)
+            if os.path.exists(config):
+                os.unlink(config)
             # we could delete the RRD files, too
 
         ips = Set()
@@ -263,7 +313,7 @@ class zenperfsnmp(SnmpDaemon):
                 log.warning("Warning: device %s has a duplicate address %s",
                             name, proxy.ip)
             ips.add(ips)
-        self.log.info('Configured %d devices' % len(deviceList))
+        self.log.info('Configured %d devices' % len(deviceNames))
 
 
     def updateAgentProxy(self,
@@ -282,6 +332,7 @@ class zenperfsnmp(SnmpDaemon):
             p.oidMap = {}
             p.snmpStatus = SnmpStatus(0)
             p.singleOidMode = False
+            p.lastChange = 0
         else:
             p.ip = ip
             p.port = port
@@ -301,7 +352,9 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        (deviceName, hostPort, snmpConfig), oidData, maxOIDs = snmpTargets
+        last, identity, oidData, maxOIDs = snmpTargets
+        deviceName, hostPort, snmpConfig = identity
+
         if not oidData: return
         (ip, port)= hostPort
         (community, version, timeout, tries) = snmpConfig
@@ -313,9 +366,19 @@ class zenperfsnmp(SnmpDaemon):
         p = self.updateAgentProxy(deviceName, 
                                   ip, port, str(community),
                                   version, timeout, tries, maxOIDs)
+        if p.lastChange < last:
+            p.lastChange = last
+            try:
+                makeDirs(performancePath('Devices/%s' % deviceName))
+                fp = open(pickleName(deviceName), 'wb')
+                cPickle.dump(snmpTargets, fp)
+                fp.close()
+            except IOError, ex:
+                log.exception("Unable to save local config for %s" % deviceName)
+
 	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
-            oid = '.'+oid.lstrip('.')
+            oid = '.' + str(oid.lstrip('.'))
             d = p.oidMap.setdefault(oid, OidData())
             d.update(name, path, dsType, createCmd, minmax, thresholds)
         self.proxies[deviceName] = p
@@ -385,8 +448,13 @@ class zenperfsnmp(SnmpDaemon):
             n = 1
         def getLater(oids):
             return proxy.get(oids, proxy.timeout, proxy.tries)
+        proxy.open()
         chain = Chain(getLater, iter(chunk(sorted(proxy.oidMap.keys()), n)))
         d = chain.run()
+        def closer(arg, proxy):
+            proxy.close()
+            return arg
+        d.addCallback(closer, proxy)
         d.addCallback(self.storeValues, deviceName)
         self.snmpOidsRequested += len(proxy.oidMap)
         return d
