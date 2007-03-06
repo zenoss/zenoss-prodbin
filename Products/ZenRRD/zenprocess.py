@@ -199,7 +199,7 @@ class Device:
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
         for name, originalName, ignoreParameters, \
-                restart, severity, status, thresholds \
+                restart, severity, thresholds \
                 in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
@@ -213,7 +213,6 @@ class Device:
                 m = before.get(name, ThresholdManager())
                 m.update(threshes)
                 p.thresholds[name] = m
-            p.status = status
         for name in unused:
             del self.processes[name]
 
@@ -283,6 +282,9 @@ class zenprocess(SnmpDaemon):
         yield self.model.callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
 
+        yield self.model.callRemote('getProcessStatus', self.options.device)
+        self.updateProcessStatus(driver.next())
+
         # fetch pids with an SNMP scan
         yield self.findPids(self.devices.values()); driver.next()
         driveLater(self.configCycleInterval * 60, self.start)
@@ -294,7 +296,14 @@ class zenprocess(SnmpDaemon):
             if d:
                 d.snmpStatus = count
 
-
+    def updateProcessStatus(self, status):
+        down = {}
+        for device, component, count in status:
+            down[ (device, component) ] = count
+        for name, device in self.devices.items():
+            for p in device.processes.values():
+                p.status = down.get( (name, p.originalName), 0)
+        
     def findPids(self, devices):
         "Scan all devices for process names and args"
         jobs = NJobs(PARALLEL_JOBS, self.scanDevice, devices)
