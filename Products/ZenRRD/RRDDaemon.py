@@ -151,6 +151,7 @@ class RRDDaemon(Base):
     shutdown = False
 
     def __init__(self, name):
+        self.events = []
         Base.__init__(self)
         self.agent = name
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
@@ -165,7 +166,6 @@ class RRDDaemon(Base):
             self.log.debug("Not directly connected (%s) using Zope access.", ex)
             self.model = self.buildProxy(self.options.zopeurl)
             self.zem = self.buildProxy(self.options.zem)
-        self.events = []
 
     def buildProxy(self, url):
         "create AuthProxy objects with our config and the given url"
