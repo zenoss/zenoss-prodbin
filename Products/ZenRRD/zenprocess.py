@@ -25,9 +25,9 @@ from twisted.internet import reactor, defer
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
     from pynetsnmp.tableretriever import TableRetriever
-    log.info("Using net-snmp snmp engine")
 except ImportError:
-    log.warning("Using twistedsnmp engine")
+    import warning
+    warning.warn("Using python-based snmp enging")
     from twistedsnmp.agentproxy import AgentProxy
     from twistedsnmp.tableretriever import TableRetriever
 

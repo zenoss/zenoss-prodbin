@@ -25,9 +25,9 @@ import cPickle
 from twisted.internet import reactor, defer
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
-    log.info("Using net-snmp snmp engine")
 except ImportError:
-    log.warning("Using python-based snmp enging")
+    import warnings
+    warnings.warn("Using python-based snmp enging")
     from twistedsnmp.agentproxy import AgentProxy
 if not hasattr(AgentProxy, 'open'):
     def ignore(self): pass
@@ -56,6 +56,27 @@ def pickleName(id):
 def makeDirs(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+def read(fname):
+    if os.path.exists(fname):
+        fp = file(fname, 'rb')
+        try:
+            return fp.read()
+        finally:
+            fp.close()
+    return ''
+
+def write(fname, data):
+    makeDirs(os.path.basename(fname))
+    fp = open(fname, 'wb')
+    try:
+        fp.write(data)
+    finally:
+        fp.close()
+
+def unlink(fname):
+    if os.path.exists(fname):
+        os.unlink(fname)
 
 def chunk(lst, n):
     'break lst into n-sized chunks'
@@ -225,21 +246,13 @@ class zenperfsnmp(SnmpDaemon):
         makeDirs(base)
         root, ds, fs = os.walk(base).next()
         for d in ds:
-            configFile = pickleName(d)
-            if os.path.exists(configFile):
-                fp = file(configFile, 'rb')
-                try:
-                    self.updateDeviceConfig(cPickle.load(fp))
-                finally:
-                    fp.close()
-
+            config = read(pickleName(d))
+            if config:
+                self.updateDeviceConfig(cPickle.loads(config))
 
     def cleanup(self, fullPath):
         self.log.warning("Deleting old RRD file: %s", fullPath)
-        try:
-            os.unlink(fullPath)
-        except OSError:
-            self.log.error("Unable to delete old RRD file: %s", fullPath)
+        os.unlink(fullPath)
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
@@ -265,7 +278,7 @@ class zenperfsnmp(SnmpDaemon):
 
         log.info("fetching configs for %r", devices)
         yield self.model.callRemote('getDevices', devices)
-        self.updateDeviceList(driver.next())
+        self.updateDeviceList(devices, driver.next())
 
         log.info("fetching snmp status")
         yield self.model.callRemote('getSnmpStatus', self.options.device)
@@ -282,29 +295,25 @@ class zenperfsnmp(SnmpDaemon):
         self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
 
 
-    def updateDeviceList(self, deviceList):
+    def updateDeviceList(self, requested, responses):
         'Update the config for devices devices'
         if self.options.device:
             self.log.debug('Gathering performance data for %s ' %
                            self.options.device)
 
-        if not deviceList:
-            self.log.warn("no devices found, keeping existing list")
-            return
-
         deviceNames = Set()
-        for snmpTargets in deviceList:
+        for snmpTargets in responses:
             self.updateDeviceConfig(snmpTargets)
             deviceNames.add(snmpTargets[1][0])
             
         # stop collecting those no longer in the list
-        doomed = Set(self.proxies.keys()) - deviceNames
+        doomed = Set(requested) - deviceNames
         for name in doomed:
-            self.log.debug('removing device %s' % name)
-            del self.proxies[name]
+            self.log.info('removing device %s' % name)
+            if name in self.proxies:
+                del self.proxies[name]
             config = pickleName(name)
-            if os.path.exists(config):
-                os.unlink(config)
+            unlink(config)
             # we could delete the RRD files, too
 
         ips = Set()
@@ -368,13 +377,7 @@ class zenperfsnmp(SnmpDaemon):
                                   version, timeout, tries, maxOIDs)
         if p.lastChange < last:
             p.lastChange = last
-            try:
-                makeDirs(performancePath('Devices/%s' % deviceName))
-                fp = open(pickleName(deviceName), 'wb')
-                cPickle.dump(snmpTargets, fp)
-                fp.close()
-            except IOError, ex:
-                log.exception("Unable to save local config for %s" % deviceName)
+            write(pickleName(deviceName), cPickle.dumps(snmpTargets))
 
 	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()

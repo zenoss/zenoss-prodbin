@@ -19,6 +19,8 @@ from RRDDaemon import RRDDaemon
 try:
     from pynetsnmp.twistedsnmp import snmpprotocol
 except:
+    import warnings
+    warnings.warn("Using python-based snmp enging")
     from twistedsnmp import snmpprotocol
 
 
