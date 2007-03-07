@@ -15,7 +15,8 @@ from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass, getObjByPath
 from Exceptions import *
-from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set
+from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
+from Products.ZenModel.Lockable import Lockable
 import Products.ZenEvents.Event as Event
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
@@ -116,7 +117,24 @@ class ApplyDataMap(object):
         if hasattr(datamap, "relname"):
             changed = self._updateRelationship(tobj, datamap)
         elif hasattr(datamap, 'modname'):
-            changed = self._updateObject(tobj, datamap)
+            if isinstance(tobj, Lockable):
+                if not tobj.isLockedFromUpdate():
+                    changed = self._updateObject(tobj, datamap)
+                elif (tobj.sendEventOnBlock
+                    and (self.datacollector
+                    and getattr(self.datacollector, 'generateEvents', False) 
+                    and getattr(self.datacollector, 'dmd', None))):
+                    
+                    component = tobj and tobj.id or ''
+                    eventDict = {
+                        'eventClass': Change_Set_Blocked,
+                        'device': device,
+                        'component': component,
+                        'summary': '%s is locked from any updates' % component,
+                        'severity': Event.Info,
+                        }
+                    self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                    
         else:
             log.warn("plugin returned unknown map skipping")
         return changed
@@ -143,8 +161,25 @@ class ApplyDataMap(object):
                 else: 
                     seenids[objmap.id] = 1
                 if objmap.id in relids:
-                    obj = rel._getOb(objmap.id) 
-                    objchange = self._updateObject(obj, objmap)
+                    obj = rel._getOb(objmap.id)
+                    if isinstance(obj, Lockable):
+                        if not obj.isLockedFromUpdate():
+                            objchange = self._updateObject(obj, objmap)
+                        elif (obj.sendEventOnBlock
+                            and (self.datacollector
+                            and getattr(self.datacollector, 'generateEvents', False) 
+                            and getattr(self.datacollector, 'dmd', None))):
+                            
+                            component = obj and obj.id or ''
+                            eventDict = {
+                                'eventClass': Change_Set_Blocked,
+                                'device': device,
+                                'component': component,
+                                'summary': '%s is locked from any updates' % component,
+                                'severity': Event.Info,
+                                }
+                            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                            
                     if not changed: changed = objchange
                     relids.remove(objmap.id)
                 else:
@@ -159,10 +194,28 @@ class ApplyDataMap(object):
             else:
                 log.warn("ignoring objmap no id found")
         for id in relids: 
-            self.logChange(device, Change_Remove,
-                            "removing object %s from rel %s on device %s" % (
-                            id, rname, device.id))
-            rel._delObject(id)
+            obj = rel._getOb(id)            
+            if isinstance(obj, Lockable):
+                if not obj.isLockedFromDelete():
+                    self.logChange(device, Change_Remove,
+                                    "removing object %s from rel %s on device %s" % (
+                                    id, rname, device.id))
+                    rel._delObject(id)
+                elif (obj.isLockedFromDelete()
+                    and (self.datacollector
+                    and getattr(self.datacollector, 'generateEvents', False) 
+                    and getattr(self.datacollector, 'dmd', None))):
+                    
+                    component = obj and obj.id or ''
+                    eventDict = {
+                        'eventClass': Change_Remove_Blocked,
+                        'device': device,
+                        'component': component,
+                        'summary': '%s is locked from deletions' % component,
+                        'severity': Event.Info,
+                        }
+                    self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                
         if relids: changed=True
         return changed
 
@@ -244,10 +297,27 @@ class ApplyDataMap(object):
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
-        self.logChange(device, Change_Add,
-                        "adding object %s to relationship %s" % (
-                        remoteObj.id, relname))
-        self._updateObject(remoteObj, objmap)
+        if isinstance(remoteObj, Lockable):
+            if not remoteObj.isLockedFromUpdate():
+                self.logChange(device, Change_Add,
+                                "adding object %s to relationship %s" % (
+                                remoteObj.id, relname))
+                self._updateObject(remoteObj, objmap)
+            elif (remoteObj.sendEventOnBlock
+                and (self.datacollector
+                and getattr(self.datacollector, 'generateEvents', False) 
+                and getattr(self.datacollector, 'dmd', None))):
+                
+                component = remoteObj and remoteObj.id or ''
+                eventDict = {
+                    'eventClass': Change_Set_Blocked,
+                    'device': device,
+                    'component': component,
+                    'summary': '%s is locked from any updates' % component,
+                    'severity': Event.Info,
+                    }
+                self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                
         return True
 
 

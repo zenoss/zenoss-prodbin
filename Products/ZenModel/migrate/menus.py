@@ -147,6 +147,29 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_addToZenPack',
                     permissions=('View',)
                     ),
+                ],
+            'Lockable':[
+                dict(
+                     id=         'unlock',
+                     description='Unlock',
+                     action=     'unlock',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'lockFromDeletion',
+                     description='Lock from Deletion',
+                     action=     'lockFromDeletion',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'lockFromUpdate',
+                     description='Lock from Update/Deletion',
+                     action=     'lockFromUpdate',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
                 ]
             })
 

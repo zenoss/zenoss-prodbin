@@ -15,9 +15,9 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
+from Lockable import Lockable
 
-
-class DeviceComponent(object):
+class DeviceComponent(object, Lockable):
     """
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.

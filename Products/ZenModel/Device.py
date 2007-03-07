@@ -51,6 +51,7 @@ from MaintenanceWindow import DeviceMaintenanceWindow
 from AdministrativeRole import DeviceAdministrativeRole
 from UserCommand import UserCommand
 from Commandable import Commandable
+from Lockable import Lockable
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -181,7 +182,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity, Commandable):
+class Device(ManagedEntity, Commandable, Lockable):
     """
     Device is a key class within zenoss.  It represents the combination of
     computer hardware running an operating system.
@@ -435,7 +436,7 @@ class Device(ManagedEntity, Commandable):
         for o in self.os.getMonitoredComponents():
             if o.meta_type != "OSProcess":
                 oids.extend(o.getSnmpOidTargets())
-        return (float(self.getLastChange()), self.getSnmpConnInfo(), oids, max)
+        return (self.getSnmpConnInfo(), oids, max)
 
 
     def getDataSourceCommands(self):
