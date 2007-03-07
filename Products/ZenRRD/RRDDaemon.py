@@ -274,7 +274,7 @@ class RRDDaemon(Base):
             error.printTraceback(s)
             self.log.error('%s: %s', msg, s.getvalue())
         else:
-            self.log.error(error)
+            self.log.error('%s %s', msg, error)
 
     def error(self, error):
         'Log an error, including any traceback data for a failure Exception'
