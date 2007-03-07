@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/absolute_url_path">
+
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="rrdtemplatelist"
     tal:define="tableName string:rrdtemplatelist;
@@ -10,9 +11,13 @@
         tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id"/>
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">Performance Templates</th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:4">
+<tr 
+tal:define="
+tabletitle string:Performance Templates">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
         <th class="tableheader" width="5px"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -48,6 +53,7 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
+
     <tr class="tableheader" tal:condition="here/isManager">
         <td colspan="4">
         <input class="tableheader" type="text" name="id"/>
@@ -83,9 +89,16 @@
         
         </td>
     </tr>
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">Import</th>
-    </tr>
+</table>
+</td></tr></tal:block></table>
+
+
+<table class="zentable">
+<tal:block tal:define="tblcolspan string:6">
+<tr 
+tal:define="
+tabletitle string:Import">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
     <tr class="tableheader" tal:condition="here/isManager">
         <td colspan="6">
             Import templates to PerfConf from the desired source
@@ -124,6 +137,8 @@
     </tr>
     -->
 </table>
+</td></tr></tal:block></table>
+
 </form>
 </tal:block>
 </tal:block>

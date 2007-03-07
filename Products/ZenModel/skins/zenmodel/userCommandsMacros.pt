@@ -8,12 +8,15 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type='hidden' name='tableName' tal:attributes="value tableName" />
+
 <table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" colspan="5">
-        Define Commands
-      </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:5">
+<tr 
+tal:define="
+tabletitle string:Define Commands">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
@@ -64,6 +67,8 @@
     </td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 

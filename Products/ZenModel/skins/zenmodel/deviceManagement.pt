@@ -10,8 +10,15 @@
 <form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
 <input type="hidden" name="zenScreenName" 
     tal:attributes="value template/id" /> 
+
 <table class="zentable" border=0 cellpadding=3 cellspacing=1>
-  <tr><th class=tabletitle align=center colspan=2>Device Management</th></tr>
+  
+<tal:block tal:define="tblcolspan string:2">
+<tr 
+tal:define="
+tabletitle string:Device Management">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
 
     <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
 
@@ -81,6 +88,8 @@
   </td>
   </tr>
   </table>
+</td></tr></tal:block></table>
+
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
@@ -95,17 +104,20 @@
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="adminRolesTable">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="objects here/adminRoles/objectValuesAll;
     editable here/isManager;
     tableName string:deviceadminroles;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-      <th class="tabletitle" colspan="5">
-        Administrators
-      </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:5">
+<tr 
+tal:define="
+tabletitle string:Administrators">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
@@ -173,19 +185,24 @@
     </td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1"
     metal:define-macro="graphLinks" tal:condition="here/havePydot"
     tal:define="
         routers string:${here/absolute_url_path}/deviceGraphRouters;
         networks string:${here/absolute_url_path}/deviceGraphNets">
-    <tr>
-      <th class="tabletitle" colspan="4">
-       Graphs
-      </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:4">
+<tr 
+tal:define="
+tabletitle string:Graphs">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
       <td class="tableheader">Relative Network Graph</td>
       <td class="tablevalues" colspan="3"><a tal:attributes="href
@@ -197,6 +214,8 @@ routers">Image Link</a> (routers only)</td>
 networks">Image Link</a> (routers and networks)</td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 
 </tal:block>
 </tal:block>

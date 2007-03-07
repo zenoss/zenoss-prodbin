@@ -29,12 +29,16 @@
 
     <!-- Top Left -->
     <td rowspan="2" width="50%" valign="top">
-	    <table class="zentable" cellpadding="3" cellspacing="1">
+	    
+<table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
-                <tr>
-                  <th class="tabletitle" colspan="6">
-                  <a style="color: white" href="/zport/dmd/Systems/viewEvents">Systems</a>-Level Event Summary</th>
-                </tr>
+                
+<tal:block tal:define="tblcolspan string:6">
+<tr tal:define=" tabletitle string:Systems-Level Event Summary">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr>
+<td tal:attributes="colspan tblcolspan" style="padding:0px"> 
+    <table class="innerzentable" cellpadding="3" cellspacing="1">
+
                 <tr>
                     <th class="tableheader">System</th>
                     <th class="tableheader">Critical</th>
@@ -43,49 +47,62 @@
                     <th class="tableheader">Info</th>
                     <th class="tableheader">Debug</th>
                 </tr>
-            </thead>
             <tbody id="systemevents">
             </tbody>
         </table>
+</td></tr></tal:block></thead></table>
+
     </td>
     <td valign="top">
-        <table class="zentable" cellpadding="3" cellspacing="1">
+        
+<table class="zentable" cellpadding="3" cellspacing="1">
             <thead>
-            <tr>
-              <th class="tabletitle" colspan="4">
-              <a style="color: white" href="/zport/dmd/Devices/viewEvents">Devices</a> with Events (Severity &gt;= Error)</th>
-            </tr>
+            
+<tal:block tal:define="tblcolspan string:4">
+<tr 
+tal:define="
+tabletitle string:Devices with Events (Severity &gt;= Error)">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
             <tr>
                 <th class="tableheader">Name</th>
                 <th class="tableheader">Acked By</th>
                 <th class="tableheader">Critical</th>
                 <th class="tableheader">Error</th>
             </tr>
-            </thead>
             <tbody id="deviceevents">
             </tbody>
         </table>
+</td></tr></tal:block></thead></table>
+
     </td>
     </tr>
     <tr>
      <td valign="bottom">
-	    <table class="zentable" cellpadding="3" cellspacing="1">
-            <thead>
-            <tr>
-              <th class="tabletitle" colspan="6">
-                Zenoss Infrastructure <a style="color: white" href="zport/dmd/Reports/Event%20Reports/All%20Heartbeats">Issues</a></th>
+	    
+<table class="zentable" cellpadding="3" cellspacing="1">
+    <thead>
+        <tal:block tal:define="tblcolspan string:6">
+            <tr tal:define=" tabletitle string:Zenoss Infrastructure Issues">
+                <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
             </tr>
             <tr>
-                <th class="tableheader">Device</th>
-                <th class="tableheader">Component</th>
-                <th class="tableheader">Seconds</th>
+                <td tal:attributes="colspan tblcolspan" style="padding:0px">
+                    <table class="innerzentable" cellpadding="3" cellspacing="1">
+                        <tr>
+                            <th class="tableheader">Device</th>
+                            <th class="tableheader">Component</th>
+                            <th class="tableheader">Seconds</th>
+                        </tr>
+                        <tbody id="heartbeat">
+                        </tbody>
+                    </table>
+
+                </td>
             </tr>
-            </thead>
-            <tbody id="heartbeat">
-            </tbody>
-	    </table>
-     </td>
-    </tr>
+    </tal:block>
+</thead></table></td></tr>
+
     </table>
 </tal:block>
 </tal:block>

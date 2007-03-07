@@ -4,13 +4,16 @@
 <form method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1"
     tal:define="props here/zenPropertyIds">
-    <tr>
-      <th class="tabletitle" colspan="4">
-      zProperties Configuration
-      </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:4">
+<tr 
+tal:define="
+tabletitle string:zProperties Configuration">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
       <th class="tableheader" align="center">Property</th>
       <th class="tableheader" align="center">Value</th>
@@ -93,13 +96,22 @@
     </td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 <form tal:condition="here/isManager" method="post"
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
 <table class="zentable" cellpadding="3" cellspacing="1">
-<tr><th class="tabletitle">Delete Local Property</th></tr>
+
+<tal:block tal:define="tblcolspan string:1">
+<tr 
+tal:define="
+tabletitle string:Delete Local Property">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
 <tr class="tableheader">
     <td>
         <select name="propname" class="tableheader">
@@ -114,6 +126,8 @@
     </td>
 </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 </tal:block>

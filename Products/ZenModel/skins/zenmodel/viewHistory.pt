@@ -1,11 +1,12 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+
 <table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-        <th class="tabletitle" colspan="4" 
-            tal:content="string:Changes for ${here/getId}">
-        </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:4">
+<tr tal:define="tabletitle string:Changes for ${here/getId}">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <tr>
         <th class="tableheader" align="left">
             Time of change
@@ -30,5 +31,7 @@
     </tr>
     </tal:block>
 </table>
+</td></tr></tal:block></table>
+
 </tal:block>
 </tal:block>

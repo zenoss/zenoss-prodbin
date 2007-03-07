@@ -2,6 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" tal:attributes="action here/absolute_url_path">
+
 <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="objects here/children;
         tableName string:children;
@@ -9,11 +10,13 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tr>
-      <th class=tabletitle align=left colspan="6">
-        Sub-Folders
-      </th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:6">
+<tr 
+tal:define="
+tabletitle string:Sub-Folders">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -71,11 +74,14 @@
     </td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path">
+
 <table class="zentable" cellpadding="3" cellspacing="1"
         tal:define="objects here/serviceclasses;
         tableName string:serviceclasseslist;
@@ -83,9 +89,13 @@
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">Services</th>
-    </tr>
+    
+<tal:block tal:define="tblcolspan string:5">
+<tr 
+tal:define="
+tabletitle string:Services">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -147,6 +157,8 @@
     </td>
     </tr>
 </table>
+</td></tr></tal:block></table>
+
 </form>
 
 </tal:block>
