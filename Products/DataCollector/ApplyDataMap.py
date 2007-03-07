@@ -134,7 +134,8 @@ class ApplyDataMap(object):
                         'severity': Event.Info,
                         }
                     self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
-                    
+            else:
+                changed = self._updateObject(tobj, datamap)
         else:
             log.warn("plugin returned unknown map skipping")
         return changed
@@ -179,7 +180,8 @@ class ApplyDataMap(object):
                                 'severity': Event.Info,
                                 }
                             self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
-                            
+                    else:        
+                        objchange = self._updateObject(obj, objmap)
                     if not changed: changed = objchange
                     relids.remove(objmap.id)
                 else:
@@ -317,7 +319,12 @@ class ApplyDataMap(object):
                     'severity': Event.Info,
                     }
                 self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
-                
+        else:
+            self.logChange(device, Change_Add,
+                            "adding object %s to relationship %s" % (
+                            remoteObj.id, relname))
+            self._updateObject(remoteObj, objmap)
+            
         return True
 
 
