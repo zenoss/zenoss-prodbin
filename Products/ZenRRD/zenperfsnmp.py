@@ -266,8 +266,13 @@ class zenperfsnmp(SnmpDaemon):
         'Periodically ask the Zope server for basic configuration data.'
         
         self.syncdb()
-        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
+        log.info("fetching property items")
+        yield self.model.callRemote('propertyItems')
+        self.setPropertyItems(driver.next())
+
+        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
+        
         log.info("checking for outdated configs")
         current = [(k, v.lastChange) for k, v in self.proxies.items()]
         yield self.model.callRemote('getDeviceUpdates', current)
@@ -284,15 +289,12 @@ class zenperfsnmp(SnmpDaemon):
         yield self.model.callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
         
-        log.info("fetching property items")
-        yield self.model.callRemote('propertyItems')
-        self.setPropertyItems(driver.next())
-        
         log.info("fetching default RRDCreateCommand")
         yield self.model.callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
+        
 
 
     def updateDeviceList(self, requested, responses):
