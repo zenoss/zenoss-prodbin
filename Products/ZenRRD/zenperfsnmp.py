@@ -67,7 +67,7 @@ def read(fname):
     return ''
 
 def write(fname, data):
-    makeDirs(os.path.basename(fname))
+    makeDirs(os.path.dirname(fname))
     fp = open(fname, 'wb')
     try:
         fp.write(data)
