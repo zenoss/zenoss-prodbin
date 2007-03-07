@@ -137,7 +137,8 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
-            if dev.monitorDevice():
+            if (dev.monitorDevice() and not dev.zSnmpMonitorIgnore \
+                and dev.zSnmpCommunity):
                 try:
                     result.append(dev.getSnmpOidTargets())
                 except POSError: raise
@@ -151,13 +152,12 @@ class PerformanceConf(Monitor, StatusColor):
         The result is a list of devices that have changed,
         or not in the list."""
         lastChanged = dict(devices)
-        import pprint
-        pprint.pprint(lastChanged)
         new = Set()
         all = Set()
         for dev in self.devices():
             dev = dev.primaryAq()
-            if dev.monitorDevice():
+            if (dev.monitorDevice() and not dev.zSnmpMonitorIgnore \
+                and dev.zSnmpCommunity):
                 all.add(dev.id)
                 if lastChanged.get(dev.id, 0) < float(dev.getLastChange()):
                     print dev.id
