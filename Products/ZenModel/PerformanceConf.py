@@ -137,8 +137,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
-            if (dev.monitorDevice() and not dev.zSnmpMonitorIgnore \
-                and dev.zSnmpCommunity):
+            if dev.snmpMonitorDevice():
                 try:
                     result.append(dev.getSnmpOidTargets())
                 except POSError: raise
@@ -156,8 +155,7 @@ class PerformanceConf(Monitor, StatusColor):
         all = Set()
         for dev in self.devices():
             dev = dev.primaryAq()
-            if (dev.monitorDevice() and not dev.zSnmpMonitorIgnore \
-                and dev.zSnmpCommunity):
+            if dev.snmpMonitorDevice():
                 all.add(dev.id)
                 if lastChanged.get(dev.id, 0) < float(dev.getLastChange()):
                     print dev.id
@@ -227,7 +225,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devname and dev.id != devname: continue
             dev = dev.primaryAq()
-            if dev.monitorDevice():
+            if dev.snmpMonitorDevice():
                 try:
                     procinfo = dev.getOSProcessConf()
                     if procinfo is None: continue

@@ -876,6 +876,13 @@ class Device(ManagedEntity, Commandable):
         return self.productionState >= self.zProdStateThreshold
 
 
+    def snmpMonitorDevice(self):
+        "Is this device subject to SNMP monitoring?"
+        return (self.monitorDevice()
+                and not self.zSnmpMonitorIgnore
+                and self.zSnmpCommunity)
+
+
     def getProductionStateString(self):
         """Return the prodstate as a string.
         """
