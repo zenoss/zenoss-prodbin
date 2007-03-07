@@ -236,9 +236,14 @@ class zenprocess(SnmpDaemon):
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
-        self.devices = {}
+        self._devices = {}
         self.perfScanJob = None
+        self.downDevices = Set()
 
+    def devices(self):
+        "Return a filtered list of devices"
+        return dict([(k, v) for k, v in self._devices.items()
+                     if k not in self.downDevices])
 
     def fetchConfig(self):
         'Get configuration values from the Zope server'
@@ -263,11 +268,11 @@ class zenprocess(SnmpDaemon):
         self.syncdb()
         yield self.fetchConfig();
         n = driver.next()
-        removed = Set(self.devices.keys())
+        removed = Set(self._devices.keys())
         for (name, addr, snmpConf), procs in n:
             community, version, timeout, tries = snmpConf
             removed.discard(name)
-            d = self.devices.setdefault(name, Device())
+            d = self._devices.setdefault(name, Device())
             d.name = name
             d.address = addr
             d.community = community
@@ -277,7 +282,7 @@ class zenprocess(SnmpDaemon):
             d.updateConfig(procs)
             d.protocol = self.snmpPort.protocol
         for r in removed:
-            del self.devices[r]
+            del self._devices[r]
 
         yield self.model.callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
@@ -286,13 +291,12 @@ class zenprocess(SnmpDaemon):
         self.updateProcessStatus(driver.next())
 
         # fetch pids with an SNMP scan
-        yield self.findPids(self.devices.values()); driver.next()
         driveLater(self.configCycleInterval * 60, self.start)
 
 
     def updateSnmpStatus(self, updates):
         for name, count in updates:
-            d = self.devices.get(name)
+            d = self._devices.get(name)
             if d:
                 d.snmpStatus = count
 
@@ -300,7 +304,7 @@ class zenprocess(SnmpDaemon):
         down = {}
         for device, component, count in status:
             down[ (device, component) ] = count
-        for name, device in self.devices.items():
+        for name, device in self._devices.items():
             for p in device.processes.values():
                 p.status = down.get( (name, p.originalName), 0)
         
@@ -436,9 +440,21 @@ class zenprocess(SnmpDaemon):
     def periodic(self, unused=None):
         "Basic SNMP scan loop"
         reactor.callLater(self.snmpCycleInterval, self.periodic)
-        d = defer.DeferredList([self.countScan(), self.perfScan()],
-                               consumeErrors=True)
-        d.addCallback(self.heartbeat)
+
+        def doPeriodic(driver):
+            yield self.zem.callRemote('getDevicePingIssues')
+            try:
+                self.downDevices = Set([d[0] for d in driver.next()])
+            except Exception, ex:
+                log.exception(ex)
+            
+            yield self.countScan()
+            driver.next()
+
+            yield self.perfScan()
+            driver.next()
+
+        drive(doPeriodic).addCallback(self.heartbeat)
 
 
     def perfScan(self):
@@ -453,13 +469,13 @@ class zenprocess(SnmpDaemon):
         # in M-parallel, for each device
         # fetch the process status
         self.perfScanJob = NJobs(MAX_OIDS_PER_REQUEST,
-                                 self.fetchDevicePerf, self.devices.values())
+                                 self.fetchDevicePerf, self.devices().values())
         return self.perfScanJob.start()
 
 
     def countScan(self):
         "Read counts for counted Processes"
-        return self.findPids(self.devices.values())
+        return self.findPids(self.devices().values())
 
 
     def fetchDevicePerf(self, device):
@@ -502,7 +518,7 @@ class zenprocess(SnmpDaemon):
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType, min=min, max=max)
 
-        thresholds = self.devices[deviceName].processes[pidName].thresholds
+        thresholds = self._devices[deviceName].processes[pidName].thresholds
         for t in thresholds.get(statName,[]):
             t.check(deviceName, pidName, statName, value,
                     self.sendThresholdEvent)
@@ -510,9 +526,10 @@ class zenprocess(SnmpDaemon):
 
     def heartbeat(self, *unused):
         self.perfScanJob = None
-        pids = sum(map(lambda x: len(x.pids), self.devices.values()))
+        devices = self.devices()
+        pids = sum(map(lambda x: len(x.pids), devices.values()))
         log.debug("Pulled process status for %d devices and %d processes",
-                  len(self.devices), pids)
+                  len(devices), pids)
         SnmpDaemon.heartbeat(self)
 
 
