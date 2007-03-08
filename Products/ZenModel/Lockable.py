@@ -6,7 +6,7 @@ UPDATE_LOCKED = 2
 
 class Lockable:
     
-    sendEventOnBlockFlag = False
+    sendEventWhenBlockedFlag = False
     modelerLock = UNLOCKED
     
     def getNextLockableParent(self, obj=None):
@@ -18,13 +18,13 @@ class Lockable:
         else:
             return self.getNextLockableParent(obj.getPrimaryParent())
     
-    def sendEventOnBlock(self):
-        if sendEventOnBlockFlag:
+    def sendEventWhenBlocked(self):
+        if self.sendEventWhenBlockedFlag:
             return True
         else:
             lockableParent = self.getNextLockableParent()
             if lockableParent:
-                return lockableParent.sendEventOnBlock()
+                return lockableParent.sendEventWhenBlocked()
             else:
                 return False
                 
@@ -76,7 +76,7 @@ class Lockable:
             return "Unlocked"
             
     def lockWarning(self):
-        if self.sendEventOnBlock():
+        if self.sendEventWhenBlocked():
             return "Send event on block"
         else:
             return "Do not send event on block"

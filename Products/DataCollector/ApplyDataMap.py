@@ -121,7 +121,7 @@ class ApplyDataMap(object):
                 log.info('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
                 if not tobj.isLockedFromUpdates():
                     changed = self._updateObject(tobj, datamap)
-                elif (tobj.sendEventOnBlock()
+                elif (tobj.sendEventWhenBlocked()
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
@@ -160,7 +160,7 @@ class ApplyDataMap(object):
                         log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
                         if not obj.isLockedFromUpdates():
                             objchange = self._updateObject(obj, objmap)
-                        elif (obj.sendEventOnBlock()
+                        elif (obj.sendEventWhenBlocked()
                             and (self.datacollector
                             and getattr(self.datacollector, 'generateEvents', False) 
                             and getattr(self.datacollector, 'dmd', None))):
@@ -189,7 +189,7 @@ class ApplyDataMap(object):
                                     "removing object %s from rel %s on device %s" % (
                                     id, rname, device.id))
                     rel._delObject(id)
-                elif (obj.sendEventOnBlock()
+                elif (obj.sendEventWhenBlocked()
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
@@ -282,7 +282,7 @@ class ApplyDataMap(object):
                                 "adding object %s to relationship %s" % (
                                 remoteObj.id, relname))
                 self._updateObject(remoteObj, objmap)
-            elif (remoteObj.sendEventOnBlock()
+            elif (remoteObj.sendEventWhenBlocked()
                 and (self.datacollector
                 and getattr(self.datacollector, 'generateEvents', False) 
                 and getattr(self.datacollector, 'dmd', None))):
