@@ -50,34 +50,54 @@
     </div>
 </tal:block>
 
+
+
+
+
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan">
 <div class="tabletitlecontainer">
     <div class="leftcorner">&nbsp;</div>
     <span class="tabletitletext" tal:content="tabletitle | string:Items">
         Title</span>
+<tal:block metal:define-slot="tabletitlecontent">
     <tal:block tal:condition="showfilterbox | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
     </tal:block>
     <tal:block tal:condition="menu_id | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
     </tal:block>
+</tal:block>
     <div class="rightcorner">&nbsp;</div>
 </div>
 </th>
 </tal:block>
 
+
+
 <tal:block metal:define-macro="filterbox">
 <link href="css/filterbox.css" rel="stylesheet" type="text/css" />
 <div class="filterbox"
-     tal:define="ts python:here.ZenTableManager.getTableState(tableName);
+     tal:define=" tableName tableName | nothing;
+                 ts python:test(
+                  tableName, here.ZenTableManager.getTableState(tableName), 
+                  request);
                  message request/SESSION/message | nothing;">
 <input type="text" name="filter" 
-    onkeypress="submitViaEnter(event)"
     onfocus="select(this)"
-    tal:attributes="value ts/filter" />
+    tal:attributes="value ts/filter | string:;
+    onkeypress python:test(tableName, 'submitViaEnter(event)',
+        'getPageViaEnter(event)' )" />
 </div>
 </tal:block>
+
+<tal:block metal:define-macro="filterboxinline">
+<tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+<style>.filterbox{position:relative;top:0px;
+left:0px;right:0px;bottom:0px;display:inline;
+padding-right:20px;margin-left:20px;}</style>
+</tal:block>
+
 
 <tal:block metal:define-macro="devmovemenu">
 

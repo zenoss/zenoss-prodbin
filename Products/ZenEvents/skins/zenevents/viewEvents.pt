@@ -29,22 +29,12 @@ function goExport(url) {
     page string:getEventListPage;
     ">
 <table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="eventTable">
-    <tal:block metal:define-macro="header">
-    <input type='hidden' name='sortedHeader' 
-        tal:attributes="value sortedHeader"/>
-    <input type='hidden' name='sortedSence' value="">
-    <input type='hidden' name='url'
-      tal:attributes="value string:${here/absolute_url_path}/${page}"/>
-    <input type='hidden' name='zenScreenName'
-        tal:attributes="value template/id" />
-    <tr>
-        <th class="tabletitle" colspan=4 tal:attributes="colspan evcolspan">
-            Filter
-            <input class="tableheader" type="text" name="filter" id="filter"
-                size="20" onkeypress="getPageViaEnter(event)"
-                tal:attributes="value request/filter | string:">
-            &nbsp; &nbsp;
+    metal:define-macro="eventTable"
+    tal:define="tblcolspan string:4">
+<tr tal:define="tabletitle string:Event List">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
+    <tal:block metal:fill-slot="tabletitlecontent">    
+<div style="position:absolute;right:50px;top:0px;z-index:2007;">
             Sev
             <select class="tableheader" name="severity:int" id="severity"
                     onchange="getTablePage(this.form)">
@@ -68,9 +58,26 @@ function goExport(url) {
                 onclick="startRefresh(this, this.form);">
             <input class="tableheader" type="text" name="refreshRate" 
                 size='2' value='60'>
+        <tal:block metal:use-macro="here/zenuimacros/macros/filterboxinline"/>
+</div>
                 
-        </th>
-    </tr>
+    </tal:block>
+</tal:block>
+</tr>
+<tr>
+<td tal:attributes="colspan tblcolspan"
+style="padding:0px;">
+<table class="innerzentable" cellpadding="3" cellspacing="1">
+
+
+    <tal:block metal:define-macro="header">
+    <input type='hidden' name='sortedHeader' 
+        tal:attributes="value sortedHeader"/>
+    <input type='hidden' name='sortedSence' value="">
+    <input type='hidden' name='url'
+      tal:attributes="value string:${here/absolute_url_path}/${page}"/>
+    <input type='hidden' name='zenScreenName'
+        tal:attributes="value template/id" />
     <tr metal:define-macro="eventsHeader">
         <td class="tableheader" tal:condition="evcontrol">
         </td>
@@ -118,6 +125,9 @@ function goExport(url) {
     </td>
     </tr>
     </tal:block>
+
+</table></td></tr>
+
 </table>
 </form>    
 </tal:block>
