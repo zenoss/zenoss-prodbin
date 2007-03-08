@@ -9,7 +9,8 @@ class Lockable:
     sendEventOnBlockFlag = False
     modelerLock = UNLOCKED
     
-    def getNextLockableParent(self, obj):
+    def getNextLockableParent(self, obj=None):
+        if not obj: obj = self
         if obj.getPrimaryParent() == self.getDmd():
             return None
         elif isinstance(obj.getPrimaryParent(), Lockable):
@@ -21,9 +22,9 @@ class Lockable:
         if sendEventOnBlockFlag:
             return True
         else:
-            lockableParent = self.getNextLockableParent(self)
+            lockableParent = self.getNextLockableParent()
             if lockableParent:
-                return self.getNextLockableParent(self).sendEventOnBlock()
+                return lockableParent.sendEventOnBlock()
             else:
                 return False
                 
@@ -31,9 +32,9 @@ class Lockable:
         if self.modelerLock == DELETE_LOCKED or self.modelerLock == UPDATE_LOCKED:
             return True
         else:
-            lockableParent = self.getNextLockableParent(self)
+            lockableParent = self.getNextLockableParent()
             if lockableParent:
-                return getNextLockableParent(self).isLockedFromDeletion()
+                return lockableParent.isLockedFromDeletion()
             else:
                 return False
                 
@@ -41,9 +42,9 @@ class Lockable:
         if self.modelerLock == UPDATE_LOCKED: 
             return True
         else:
-            lockableParent = self.getNextLockableParent(self)
+            lockableParent = self.getNextLockableParent()
             if lockableParent:
-                return getNextLockableParent(self).isLockedFromUpdates()
+                return lockableParent.isLockedFromUpdates()
             else:
                 return False
                 
