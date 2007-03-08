@@ -9,30 +9,33 @@ class Lockable:
     sendEventOnBlockFlag = False
     modelerLock = UNLOCKED
     
-    def getNextLockableParent(obj):
-        if obj.getPrimaryNode():
-            if isinstance(obj.getPrimaryNode(), Lockable):
-                return obj.getPrimaryNode()
-            else:
-                return getLockableParent(self.getPrimaryParent())
+    def getNextLockableParent(self, obj):
+        if isinstance(obj.getPrimaryNode(), Lockable):
+            return obj.getPrimaryNode()
         else:
-            return None
-        
+            return self.getNextLockableParent(self.getPrimaryParent())
+    
     def sendEventOnBlock(self):
         if sendEventOnBlockFlag:
             return True
+        elif isinstance(self, Device):
+            return False
         else:
-            return getNextLockableParent(self).sendEventOnBlock()
+            return self.getNextLockableParent(self).sendEventOnBlock()
 
     def isLockedFromDeletion(self):
         if self.modelerLock == DELETE_LOCKED or self.modelerLock == UPDATE_LOCKED:
             return True
+        elif isinstance(self, Device):
+            return False
         else:
             return getNextLockableParent(self).isLockedFromDeletion()
     
     def isLockedFromUpdates(self):
         if self.modelerLock == UPDATE_LOCKED: 
             return True
+        elif isinstance(self, Device):
+            return False
         else:
             return getNextLockableParent(self).isLockedFromUpdates()
     
