@@ -118,7 +118,7 @@ class ApplyDataMap(object):
             changed = self._updateRelationship(tobj, datamap)
         elif hasattr(datamap, 'modname'):
             if isinstance(tobj, Lockable):
-                log.info('%s obj is Lockable' % (tobj and tobj.id or ''))
+                log.info('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
                 if not tobj.isLockedFromUpdate():
                     changed = self._updateObject(tobj, datamap)
                 elif (tobj.sendEventOnBlock
@@ -156,7 +156,7 @@ class ApplyDataMap(object):
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id)
                     if isinstance(obj, Lockable):
-                        log.info('%s obj is Lockable' % (obj and obj.id or ''))
+                        log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
                         if not obj.isLockedFromUpdate():
                             objchange = self._updateObject(obj, objmap)
                         elif (obj.sendEventOnBlock
@@ -182,13 +182,13 @@ class ApplyDataMap(object):
         for id in relids: 
             obj = rel._getOb(id)
             if isinstance(obj, Lockable):
-                log.info('%s obj is Lockable' % (obj and obj.id or ''))
+                log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
                 if not obj.isLockedFromDelete():
                     self.logChange(device, Change_Remove,
                                     "removing object %s from rel %s on device %s" % (
                                     id, rname, device.id))
                     rel._delObject(id)
-                elif (obj.sendEventOnBlock()
+                elif (obj.sendEventOnBlock
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
@@ -275,7 +275,7 @@ class ApplyDataMap(object):
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         if isinstance(remoteObj, Lockable):
-            log.info('%s obj is Lockable' % (remoteObj and remoteObj.id or ''))
+            log.info('%s obj is Lockable, status: %s' % (remoteObj and remoteObj.id or '', remoteObj.lockStatus()))
             if not remoteObj.isLockedFromUpdate():
                 self.logChange(device, Change_Add,
                                 "adding object %s to relationship %s" % (

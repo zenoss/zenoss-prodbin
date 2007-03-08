@@ -1091,10 +1091,16 @@ Power supply #2 has failed.
 history
 </property>
 <object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 </object>
 <object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 </object>
 <object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
 </object>
 </object>
 <object id='Cmd' module='Products.ZenEvents.EventClass' class='EventClass'>
