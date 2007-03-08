@@ -10,35 +10,43 @@ class Lockable:
     modelerLock = UNLOCKED
     
     def getNextLockableParent(self, obj):
-        if isinstance(obj.getPrimaryNode(), Lockable):
-            return obj.getPrimaryNode()
+        if obj.getPrimaryParent() == self.getDmd():
+            return None
+        elif isinstance(obj.getPrimaryParent(), Lockable):
+            return obj.getPrimaryParent()
         else:
-            return self.getNextLockableParent(self.getPrimaryParent())
+            return self.getNextLockableParent(obj.getPrimaryParent())
     
     def sendEventOnBlock(self):
         if sendEventOnBlockFlag:
             return True
-        elif isinstance(self, Device):
-            return False
         else:
-            return self.getNextLockableParent(self).sendEventOnBlock()
-
+            lockableParent = self.getNextLockableParent(self)
+            if lockableParent:
+                return self.getNextLockableParent(self).sendEventOnBlock()
+            else:
+                return False
+                
     def isLockedFromDeletion(self):
         if self.modelerLock == DELETE_LOCKED or self.modelerLock == UPDATE_LOCKED:
             return True
-        elif isinstance(self, Device):
-            return False
         else:
-            return getNextLockableParent(self).isLockedFromDeletion()
-    
+            lockableParent = self.getNextLockableParent(self)
+            if lockableParent:
+                return getNextLockableParent(self).isLockedFromDeletion()
+            else:
+                return False
+                
     def isLockedFromUpdates(self):
         if self.modelerLock == UPDATE_LOCKED: 
             return True
-        elif isinstance(self, Device):
-            return False
         else:
-            return getNextLockableParent(self).isLockedFromUpdates()
-    
+            lockableParent = self.getNextLockableParent(self)
+            if lockableParent:
+                return getNextLockableParent(self).isLockedFromUpdates()
+            else:
+                return False
+                
     def unlock(self):
         self.modelerLock = UNLOCKED
     
