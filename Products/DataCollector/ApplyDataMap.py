@@ -119,9 +119,9 @@ class ApplyDataMap(object):
         elif hasattr(datamap, 'modname'):
             if isinstance(tobj, Lockable):
                 log.info('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
-                if not tobj.isLockedFromUpdate():
+                if not tobj.isLockedFromUpdates():
                     changed = self._updateObject(tobj, datamap)
-                elif (tobj.sendEventOnBlock
+                elif (tobj.sendEventOnBlock()
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
@@ -154,12 +154,13 @@ class ApplyDataMap(object):
                 else: 
                     seenids[objmap.id] = 1
                 if objmap.id in relids:
+                    objchange = False
                     obj = rel._getOb(objmap.id)
                     if isinstance(obj, Lockable):
                         log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
-                        if not obj.isLockedFromUpdate():
+                        if not obj.isLockedFromUpdates():
                             objchange = self._updateObject(obj, objmap)
-                        elif (obj.sendEventOnBlock
+                        elif (obj.sendEventOnBlock()
                             and (self.datacollector
                             and getattr(self.datacollector, 'generateEvents', False) 
                             and getattr(self.datacollector, 'dmd', None))):
@@ -183,12 +184,12 @@ class ApplyDataMap(object):
             obj = rel._getOb(id)
             if isinstance(obj, Lockable):
                 log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
-                if not obj.isLockedFromDelete():
+                if not obj.isLockedFromDeletion():
                     self.logChange(device, Change_Remove,
                                     "removing object %s from rel %s on device %s" % (
                                     id, rname, device.id))
                     rel._delObject(id)
-                elif (obj.sendEventOnBlock
+                elif (obj.sendEventOnBlock()
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
@@ -276,12 +277,12 @@ class ApplyDataMap(object):
         remoteObj = rel._getOb(remoteObj.id)
         if isinstance(remoteObj, Lockable):
             log.info('%s obj is Lockable, status: %s' % (remoteObj and remoteObj.id or '', remoteObj.lockStatus()))
-            if not remoteObj.isLockedFromUpdate():
+            if not remoteObj.isLockedFromUpdates():
                 self.logChange(device, Change_Add,
                                 "adding object %s to relationship %s" % (
                                 remoteObj.id, relname))
                 self._updateObject(remoteObj, objmap)
-            elif (remoteObj.sendEventOnBlock
+            elif (remoteObj.sendEventOnBlock()
                 and (self.datacollector
                 and getattr(self.datacollector, 'generateEvents', False) 
                 and getattr(self.datacollector, 'dmd', None))):
