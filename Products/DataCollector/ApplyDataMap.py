@@ -44,7 +44,7 @@ class ApplyDataMap(object):
             and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
-                'device': device.id,
+                'device': device.device().id,
                 'component': component and component.id or '',
                 'summary': msg,
                 'severity': Event.Info,
@@ -118,22 +118,14 @@ class ApplyDataMap(object):
             changed = self._updateRelationship(tobj, datamap)
         elif hasattr(datamap, 'modname'):
             if isinstance(tobj, Lockable):
+                log.info('%s obj is Lockable' % (tobj and tobj.id or ''))
                 if not tobj.isLockedFromUpdate():
                     changed = self._updateObject(tobj, datamap)
                 elif (tobj.sendEventOnBlock
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
-                    
-                    component = tobj and tobj.id or ''
-                    eventDict = {
-                        'eventClass': Change_Set_Blocked,
-                        'device': device,
-                        'component': component,
-                        'summary': '%s is locked from any updates' % component,
-                        'severity': Event.Info,
-                        }
-                    self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                    self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
             else:
                 changed = self._updateObject(tobj, datamap)
         else:
@@ -164,23 +156,15 @@ class ApplyDataMap(object):
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id)
                     if isinstance(obj, Lockable):
+                        log.info('%s obj is Lockable' % (obj and obj.id or ''))
                         if not obj.isLockedFromUpdate():
                             objchange = self._updateObject(obj, objmap)
                         elif (obj.sendEventOnBlock
                             and (self.datacollector
                             and getattr(self.datacollector, 'generateEvents', False) 
                             and getattr(self.datacollector, 'dmd', None))):
-                            
-                            component = obj and obj.id or ''
-                            eventDict = {
-                                'eventClass': Change_Set_Blocked,
-                                'device': device,
-                                'component': component,
-                                'summary': '%s is locked from any updates' % component,
-                                'severity': Event.Info,
-                                }
-                            self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
-                    else:        
+                            self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
+                    else:
                         objchange = self._updateObject(obj, objmap)
                     if not changed: changed = objchange
                     relids.remove(objmap.id)
@@ -196,28 +180,19 @@ class ApplyDataMap(object):
             else:
                 log.warn("ignoring objmap no id found")
         for id in relids: 
-            obj = rel._getOb(id)            
+            obj = rel._getOb(id)
             if isinstance(obj, Lockable):
+                log.info('%s obj is Lockable' % (obj and obj.id or ''))
                 if not obj.isLockedFromDelete():
                     self.logChange(device, Change_Remove,
                                     "removing object %s from rel %s on device %s" % (
                                     id, rname, device.id))
                     rel._delObject(id)
-                elif (obj.isLockedFromDelete()
+                elif (obj.sendEventOnBlock()
                     and (self.datacollector
                     and getattr(self.datacollector, 'generateEvents', False) 
                     and getattr(self.datacollector, 'dmd', None))):
-                    
-                    component = obj and obj.id or ''
-                    eventDict = {
-                        'eventClass': Change_Remove_Blocked,
-                        'device': device,
-                        'component': component,
-                        'summary': '%s is locked from deletions' % component,
-                        'severity': Event.Info,
-                        }
-                    self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
-                
+                    self.logChange(device, Change_Remove_Blocked, 'Locked from deletion')
         if relids: changed=True
         return changed
 
@@ -300,6 +275,7 @@ class ApplyDataMap(object):
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         if isinstance(remoteObj, Lockable):
+            log.info('%s obj is Lockable' % (remoteObj and remoteObj.id or ''))
             if not remoteObj.isLockedFromUpdate():
                 self.logChange(device, Change_Add,
                                 "adding object %s to relationship %s" % (
@@ -309,16 +285,7 @@ class ApplyDataMap(object):
                 and (self.datacollector
                 and getattr(self.datacollector, 'generateEvents', False) 
                 and getattr(self.datacollector, 'dmd', None))):
-                
-                component = remoteObj and remoteObj.id or ''
-                eventDict = {
-                    'eventClass': Change_Set_Blocked,
-                    'device': device,
-                    'component': component,
-                    'summary': '%s is locked from any updates' % component,
-                    'severity': Event.Info,
-                    }
-                self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+                self.logChange(device, Change_Set_Blocked, 'Locked from deletion')
         else:
             self.logChange(device, Change_Add,
                             "adding object %s to relationship %s" % (
