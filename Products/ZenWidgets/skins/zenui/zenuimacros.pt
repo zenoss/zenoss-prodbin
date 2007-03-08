@@ -55,7 +55,7 @@
 
 
 <tal:block metal:define-macro="tabletitle">
-<th class="tabletitle" tal:attributes="colspan tblcolspan">
+<th class="tabletitle" tal:attributes="colspan tblcolspan|string:1">
 <div class="tabletitlecontainer">
     <div class="leftcorner">&nbsp;</div>
     <span class="tabletitletext" tal:content="tabletitle | string:Items">

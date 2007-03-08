@@ -51,32 +51,33 @@ function goExport(url) {
     page string:getHistoryEventListPage;
     ">
 <table class="zentable" cellpadding="3" cellspacing="1">
+<tr tal:define="tabletitle string:Event History">
+<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
+<tal:block metal:fill-slot="tabletitlecontent">
+<div style="position:absolute;right:50px;top:0px;z-index:2007;">
     <input type='hidden' name='table' value='history'/>
-    <tr class=tableheader>
-    <td>Start Date: 
+    Start Date: 
     <input class="tableheader" type="text" name="startdate" id="startdate"
 		readonly="true"
         tal:attributes="value here/yesterdayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('startdate');"/>
-    </td>
-    <td>End Date: 
+    End Date: 
     <input class="tableheader" type="text" name="enddate" id="enddate"
 		readonly="true"
         tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('enddate');" />
-    </td>
-    <td>
     <input class="tableheader" type="submit" name="search" value=" Search " 
         onclick="getTablePage(this.form);return false;"/>
-    </td>
-    </tr>
-</table>
+</div>
+</tal:block>
+</tal:block>
+</tr>
+<tr>
+<td style="padding:0px;">
+<table class="innerzentable" cellpadding="3" cellspacing="1">
 
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
-<table class="zentable" cellpadding="3" cellspacing="1">
     <tal:block metal:use-macro="here/viewEvents/macros/header"/>
     <tbody id="eventsBody">
         <span metal:use-macro="here/getHistoryEventListPage/macros/page"/>
@@ -111,6 +112,7 @@ function goExport(url) {
         </tr>
     </tal:block>
 </table>
+</td></tr></table>
 </form>
 </span>
 </tal:block>

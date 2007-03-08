@@ -451,7 +451,7 @@ div.tabletitlecontainer {
     width: 100%;
     position: relative;
     z-index: 2000;
-    height: 2em;
+    height:25px; 
     padding: 0pt;
     margin: 0pt;
 }
