@@ -48,6 +48,12 @@ class Lockable:
             else:
                 return False
                 
+    def setSendEventWhenBlockedFlag(self):
+        self.sendEventWhenBlockedFlag = True
+
+    def unsetSendEventWhenBlockedFlag(self):
+        self.sendEventWhenBlockedFlag = False
+        
     def unlock(self):
         self.modelerLock = UNLOCKED
     
@@ -77,7 +83,7 @@ class Lockable:
             
     def lockWarning(self):
         if self.sendEventWhenBlocked():
-            return "Send event on block"
+            return "Send event when blocked"
         else:
-            return "Do not send event on block"
+            return "Do not send event when blocked"
             

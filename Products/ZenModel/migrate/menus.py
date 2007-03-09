@@ -158,15 +158,31 @@ class MenuRelations(Migrate.Step):
                     ),
                 dict(
                      id=         'lockFromDeletion',
-                     description='Lock from Deletion',
+                     description='Lock from deletion',
                      action=     'lockFromDeletion',
                      permissions=('Change Device',),
                      allowed_classes=('Device','DeviceComponent')
                     ),
                 dict(
                      id=         'lockFromUpdate',
-                     description='Lock from Update/Deletion',
+                     description='Lock from update/deletion',
                      action=     'lockFromUpdate',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                ],
+            'LockWarning':[
+                dict(
+                     id=         'setSendEventWhenBlockedFlag',
+                     description='Send event when blocked',
+                     action=     'setSendEventWhenBlockedFlag',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'unsetSendEventWhenBlockedFlag',
+                     description='Do not send event when blocked',
+                     action=     'unsetSendEventWhenBlockedFlag',
                      permissions=('Change Device',),
                      allowed_classes=('Device','DeviceComponent')
                     ),
