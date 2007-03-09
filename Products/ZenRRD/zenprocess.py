@@ -194,6 +194,8 @@ class Device:
                                     snmpVersion=self.version,
                                     protocol=self.protocol,
                                     allowCache=True)
+            self.proxy.tries = self.tries
+            self.proxy.timeout = self.timeout
 
     
     def updateConfig(self, processes):
@@ -217,9 +219,7 @@ class Device:
             del self.processes[name]
 
     def get(self, oids):
-        return self.proxy.get(oids,
-                              timeout=self.timeout,
-                              retryCount=self.tries)
+        return self.proxy.get(oids, self.timeout, self.tries)
 
 
     def getTables(self, oids):
@@ -237,7 +237,7 @@ class zenprocess(SnmpDaemon):
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
         self._devices = {}
-        self.perfScanJob = None
+        self.scanning = None
         self.downDevices = Set()
 
     def devices(self):
@@ -290,7 +290,6 @@ class zenprocess(SnmpDaemon):
         yield self.model.callRemote('getProcessStatus', self.options.device)
         self.updateProcessStatus(driver.next())
 
-        # fetch pids with an SNMP scan
         driveLater(self.configCycleInterval * 60, self.start)
 
 
@@ -307,26 +306,25 @@ class zenprocess(SnmpDaemon):
         for name, device in self._devices.items():
             for p in device.processes.values():
                 p.status = down.get( (name, p.originalName), 0)
-        
-    def findPids(self, devices):
-        "Scan all devices for process names and args"
-        jobs = NJobs(PARALLEL_JOBS, self.scanDevice, devices)
-        return jobs.start()
 
+
+    def oneDevice(self, device):
+        device.open()
+        def go(driver):
+            yield self.scanDevice(device)
+            driver.next()
+            yield self.fetchPerf(device)
+            driver.next()
+        d = drive(go)
+        d.addBoth(closer, device)
+        return d
+        
 
     def scanDevice(self, device):
-        """Fetch all the process info, but not too often:
-        
-        Both 'counted' and 'config' cycles scan devices.
-
-        """
-        if time.time() - device.lastScan < self.snmpCycleInterval:
-            return defer.succeed(None)
+        "Fetch all the process info"
         device.lastScan = time.time()
         tables = [NAMETABLE, ARGSTABLE]
-        device.open()
         d = device.getTables(tables)
-        d.addBoth(closer, device)
         d.addCallback(self.storeProcessNames, device)
         d.addErrback(self.deviceFailure, device)
         return d
@@ -441,65 +439,51 @@ class zenprocess(SnmpDaemon):
         "Basic SNMP scan loop"
         reactor.callLater(self.snmpCycleInterval, self.periodic)
 
-        def doPeriodic(driver):
-            yield self.zem.callRemote('getDevicePingIssues')
-            try:
-                self.downDevices = Set([d[0] for d in driver.next()])
-            except Exception, ex:
-                log.exception(ex)
-            
-            yield self.countScan()
-            driver.next()
+        if self.scanning:
+            running, unstarted, finished = self.scanning.status()
+            msg = "performance scan job not finishing: " \
+                  "%d jobs running %d jobs waiting %d jobs finished" % \
+                  (running, unstarted, finished)
+            log.error(msg)
+            return
 
-            yield self.perfScan()
+        def doPeriodic(driver):
+            
+            yield self.zem.callRemote('getDevicePingIssues')
+            self.downDevices = Set([d[0] for d in driver.next()])
+
+            self.scanning = NJobs(PARALLEL_JOBS,
+                                  self.oneDevice,
+                                  self.devices().values())
+            yield self.scanning.start()
             driver.next()
 
         drive(doPeriodic).addCallback(self.heartbeat)
 
 
-    def perfScan(self):
-        "Read performance data for non-counted Processes"
-        if self.perfScanJob:
-            running, unstarted, finished = self.perfScanJob.status()
-            msg = "performance scan job not finishing: " \
-                  "%d jobs running %d jobs waiting %d jobs finished" % \
-                  (running, unstarted, finished)
-            log.error(msg)
-            return defer.fail(ScanFailure(msg))
-        # in M-parallel, for each device
-        # fetch the process status
-        self.perfScanJob = NJobs(MAX_OIDS_PER_REQUEST,
-                                 self.fetchDevicePerf, self.devices().values())
-        return self.perfScanJob.start()
-
-
-    def countScan(self):
-        "Read counts for counted Processes"
-        return self.findPids(self.devices().values())
-
-
-    def fetchDevicePerf(self, device):
+    def fetchPerf(self, device):
         "Get performance data for all the monitored Processes on a device"
         oids = []
         for pid, pidConf in device.pids.items():
             oids.extend([CPU + str(pid), MEM + str(pid)])
         if not oids:
             return defer.succeed(([], device))
-        device.open()
+        
         d = device.get(oids)
-        d.addBoth(closer, device)
-        d.addCallback(self.storePerfStats, device)
-        d.addErrback(self.error)
+        d.addBoth(self.storePerfStats, device)
         return d
 
 
     def storePerfStats(self, results, device):
         "Save the performance data in RRD files"
+        if isinstance(results, failure.Failure):
+            self.error(results)
+            return results
         byConf = reverseDict(device.pids)
         for pidConf, pids in byConf.items():
             if len(pids) != 1:
-                log.warning("There are %d pids by the name %s",
-                            len(pids), pidConf.name)
+                log.info("There are %d pids by the name %s",
+                         len(pids), pidConf.name)
             pidName = pidConf.name
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
@@ -525,11 +509,11 @@ class zenprocess(SnmpDaemon):
             
 
     def heartbeat(self, *unused):
-        self.perfScanJob = None
+        self.scanning = None
         devices = self.devices()
         pids = sum(map(lambda x: len(x.pids), devices.values()))
-        log.debug("Pulled process status for %d devices and %d processes",
-                  len(devices), pids)
+        log.info("Pulled process status for %d devices and %d processes",
+                 len(devices), pids)
         SnmpDaemon.heartbeat(self)
 
 
