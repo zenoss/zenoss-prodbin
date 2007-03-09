@@ -157,7 +157,7 @@ class ApplyDataMap(object):
                     objchange = False
                     obj = rel._getOb(objmap.id)
                     if isinstance(obj, Lockable):
-                        log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
+                        log.debug('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
                         if not obj.isLockedFromUpdates():
                             objchange = self._updateObject(obj, objmap)
                         elif (obj.sendEventWhenBlocked()
@@ -183,7 +183,7 @@ class ApplyDataMap(object):
         for id in relids: 
             obj = rel._getOb(id)
             if isinstance(obj, Lockable):
-                log.info('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
+                log.debug('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
                 if not obj.isLockedFromDeletion():
                     self.logChange(device, Change_Remove,
                                     "removing object %s from rel %s on device %s" % (
@@ -276,7 +276,7 @@ class ApplyDataMap(object):
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
         if isinstance(remoteObj, Lockable):
-            log.info('%s obj is Lockable, status: %s' % (remoteObj and remoteObj.id or '', remoteObj.lockStatus()))
+            log.debug('%s obj is Lockable, status: %s' % (remoteObj and remoteObj.id or '', remoteObj.lockStatus()))
             if not remoteObj.isLockedFromUpdates():
                 self.logChange(device, Change_Add,
                                 "adding object %s to relationship %s" % (
