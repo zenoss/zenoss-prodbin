@@ -118,7 +118,7 @@ class ApplyDataMap(object):
             changed = self._updateRelationship(tobj, datamap)
         elif hasattr(datamap, 'modname'):
             if isinstance(tobj, Lockable):
-                log.info('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
+                log.debug('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
                 if not tobj.isLockedFromUpdates():
                     changed = self._updateObject(tobj, datamap)
                 elif (tobj.sendEventWhenBlocked()
