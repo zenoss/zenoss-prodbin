@@ -155,11 +155,11 @@ class ZenDisc(ZenModeler):
                     else:
                         self.log.info("ip '%s' on device '%s' remodel",
                                         ip, dev.id)
+                self.sendDiscoveredEvent(ipobj)
             dev = manage_createDevice(self.dmd, ip, devicepath,
             productionState=prodState)
             transaction.commit()
             dev.collectDevice()
-            self.sendDiscoveredEvent(ipobj)
             return dev
         except ZentinelException, e:
             self.log.warn(e)
