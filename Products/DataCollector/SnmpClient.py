@@ -61,22 +61,24 @@ class SnmpClient(object):
     def checkCiscoChange(self, driver):
         """Check to see if a cisco box has changed.
         """
+        device = self.device
         yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'],
                              timeout=self.timeout,
                              retryCount=self.tries)
         lastpolluptime = device.getLastPollSnmpUpTime()
-        self.log.debug("lastpolluptime = %s", lastpolluptime)
+        log.debug("lastpolluptime = %s", lastpolluptime)
         try:
             lastchange = driver.next().values()[0]
-            self.log.debug("lastchange = %s", lastchange)
+            log.debug("lastchange = %s", lastchange)
             if lastchange == lastpolluptime: 
-                self.log.info("skipping cisco device %s no change detected",
-                              device.id)
-                yield defer.success(False)
+                log.info("skipping cisco device %s no change detected",
+                         device.id)
+                yield defer.succeed(False)
             else:
                 device.setLastPollSnmpUpTime(lastchange)
-        except (ZenSnmpError, PySnmpError): pass
-        yield defer.success(False)
+        except Exception:
+            pass
+        yield defer.succeed(False)
 
 
     def doRun(self, driver):
@@ -109,10 +111,9 @@ class SnmpClient(object):
                                               maxRepetitions=maxRepetitions)
                     self._tabledata[pname][tmap] = driver.next()
             except Exception, ex:
-                trace = log.getException(ex)
                 if not isinstance( ex, error.TimeoutError ):
-                    log.error("""device %s plugin %s unexpected error: %s""",
-                              self.hostname, pname, trace)
+                    log.exception("device %s plugin %s unexpected error",
+                                  self.hostname, pname)
 
 
     def getResults(self):
@@ -130,10 +131,13 @@ class SnmpClient(object):
                 data.append((pname, (getdata, tabledata)))
         return data 
 
-    def clientFinished(self, *ignored):
+    def clientFinished(self, result):
+        log.info("snmp client finished collection for %s" % self.hostname)
+        if isinstance(result, failure.Failure):
+            log.error("Device %s had an error: %s", self.hostname,
+                      result.getTraceback())
         self.proxy.close()
         """tell the datacollector that we are all done"""
-        log.info("snmp client finished collection for %s" % self.hostname)
         if self.datacollector:
             self.datacollector.clientFinished(self)
         else:
