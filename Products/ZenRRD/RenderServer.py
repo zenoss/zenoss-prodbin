@@ -34,6 +34,7 @@ from RRDToolItem import RRDToolItem
 
 from Products.ZenModel.PerformanceConf import performancePath
 import glob
+import tarfile
 
 import utils
 
@@ -121,6 +122,47 @@ class RenderServer(RRDToolItem):
                     log.warn("File %s does not exist" % filename)
         if remoteUrl:
             urllib.urlopen(remoteUrl)
+    
+    def packageRRDFiles(self, device, REQUEST=None):
+        srcdir = performancePath('/Devices/%s' % device)
+        tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
+        tar = tarfile.open(tarfilename, "w:gz")
+        for file in os.listdir(srcdir):
+            tar.add('%s/%s' % (srcdir, file), '/%s' % os.path.basename(file))
+        tar.close()
+
+    def unpackageRRDFiles(self, device, REQUEST=None):
+        destdir = performancePath('/Devices/%s' % device)
+        tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
+        tar = tarfile.open(tarfilename, "r:gz")
+        for file in tar.getmembers():
+            tar.extract(file, destdir)
+        tar.close()
+    
+    def moveRRDFiles(self, device, user, passwd, server, REQUEST=None):
+        tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
+        f=open(tarfilename)
+        tarfilebody=f.read()
+        f.close()
+        # urlencode the id, title and file
+        params = urllib.urlencode({'id': tarfilename,
+        'title':tarfilename,
+        'file':tarfilebody})
+        # send the file to zope
+        remoteUrl = '%s:%s@%s/zport/RenderServer/receiveRRDFiles' % (user, passwd, server)
+        f=urllib.urlopen(remoteUrl, params)
+    
+    def receiveRRDFiles(self, id, title, file, REQUEST=None):
+        tarfilename = '%s/%s' % (self.tmpdir, id)
+        f=open(tarfilename, 'w')
+        f.write(file)
+        f.close()
+    
+    def sendRRDFiles(self, device, user, passwd, server, REQUEST=None):
+        self.packageRRDFiles(device, REQUEST)
+        self.moveRRDFiles(device, user, passwd, server, REQUEST)
+        remoteUrl = '%s:%s@%s/zport/RenderServer/unpackageRRDFiles?device=%s' % (user, passwd, server, device)
+        urllib.urlopen(remoteUrl).read()
     
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
