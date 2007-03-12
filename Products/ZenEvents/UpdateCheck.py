@@ -104,7 +104,7 @@ class UpdateCheck:
                 import socket
                 summary = ('A new version of Zenoss (%s) has been released' % 
                            available.short())
-                self.dmd.ZenEventManager.sendEvent(Event.Event(device=socket.getfqdn(),
+                zem.sendEvent(Event.Event(device=socket.getfqdn(),
                                               eventClass=Status_Update,
                                               severity=Event.Info,
                                               summary=summary))

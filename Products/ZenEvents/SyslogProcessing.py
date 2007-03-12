@@ -84,7 +84,7 @@ class SyslogProcessor(object):
         evt = self.parseTag(evt, msg) 
         #rest of msg now in summary of event
         evt = self.buildEventClassKey(evt)
-        self.dmd.ZenEventManager.sendEvent(evt)
+        self.zem.sendEvent(evt)
 
         
     def parsePRI(self, evt, msg):
