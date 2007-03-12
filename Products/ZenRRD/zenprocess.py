@@ -26,8 +26,8 @@ try:
     from pynetsnmp.twistedsnmp import AgentProxy
     from pynetsnmp.tableretriever import TableRetriever
 except ImportError:
-    import warning
-    warning.warn("Using python-based snmp enging")
+    import warnings
+    warnings.warn("Using python-based snmp enging")
     from twistedsnmp.agentproxy import AgentProxy
     from twistedsnmp.tableretriever import TableRetriever
 
