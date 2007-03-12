@@ -1156,11 +1156,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """get the conversion information from the omnibus server"""
         assert(self == self.dmd.ZenEventManager)
         self.loadSchema()
-        try:
-            conn = self.connect()
-            curs = conn.cursor()
-            self.dmd.ZenEventHistory.loadSchema(conn)
-        finally: self.close(conn)
+        self.dmd.ZenEventHistory.loadSchema()
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
