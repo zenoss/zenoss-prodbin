@@ -52,18 +52,23 @@
 
 
 
-
+<!-- TABLE HEADER MACRO -->
 
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan|string:1">
 <div class="tabletitlecontainer">
     <div class="leftcorner">&nbsp;</div>
+<tal:block metal:define-slot="titleslot">
     <span class="tabletitletext" tal:content="tabletitle | string:Items">
-        Title</span>
-<tal:block metal:define-slot="tabletitlecontent">
+        Title
+    </span>
+</tal:block>
+<tal:block metal:define-slot="filterslot">
     <tal:block tal:condition="showfilterbox | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
     </tal:block>
+</tal:block>
+<tal:block metal:define-slot="menuslot">
     <tal:block tal:condition="menu_id | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
     </tal:block>
@@ -73,7 +78,11 @@
 </th>
 </tal:block>
 
+<!-- END TABLE HEADER MACRO -->
 
+
+
+<!-- FILTERBOX MACRO -->
 
 <tal:block metal:define-macro="filterbox">
 <link href="css/filterbox.css" rel="stylesheet" type="text/css" />
@@ -97,6 +106,8 @@
 left:0px;right:0px;bottom:0px;display:inline;
 padding-right:20px;margin-left:20px;}</style>
 </tal:block>
+
+<!-- END FILTERBOX MACRO -->
 
 
 <tal:block metal:define-macro="devmovemenu">
@@ -150,4 +161,44 @@ padding-right:20px;margin-left:20px;}</style>
     </div>
 </tal:block>
 
+<!--===================================
+            Zentable macro
+====================================-->
+<tal:block metal:define-macro="zentable">
+    <table class="zentable">
+        <tr tal:define="tabletitle tabletitle|string:">
+        <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
+            <tal:block metal:fill-slot="filterslot">
+              <tal:block metal:define-slot="filterslot">
+    <tal:block tal:condition="showfilterbox | python:False">
+        <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+    </tal:block>
+              </tal:block>
+            </tal:block>
+            <tal:block metal:fill-slot="menuslot">
+                <tal:block metal:define-slot="menuslot">
+    <tal:block tal:condition="menu_id | python:False">
+        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    </tal:block>
+                </tal:block>
+            </tal:block>
 
+        </tal:block>
+        </tr>
+        <tr>
+            <td style="padding:0px;">
+                <table class="innerzentable" cellpadding="3" cellspacing="1">
+<!-- The main body into which we dump rows -->
+<tbody tal:attributes="id python:filter(lambda x:x.isalnum(),tabletitle)">
+                        <tal:block metal:define-slot="zentablecontents">
+
+                        </tal:block>
+</tbody>
+<!-- End main row body -->
+                    <tal:block metal:define-slot="zentableextra">
+                    </tal:block>
+                </table>
+            </td>
+        </tr>
+    </table>
+</tal:block>

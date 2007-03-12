@@ -20,9 +20,14 @@
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id" /> 
 
-    <table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="device python: here.meta_type != 'DeviceLoader' 
-                                        and here or None" >
+
+<tal:block tal:define="device python: here.meta_type != 'DeviceLoader' 
+                                        and here or None;
+                       tabletitle string:Load Device" >
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
         <tr>
             <td class="tableheader" align="left">Device Name</td>
             <td class="tablevalues" align="left">
@@ -59,7 +64,7 @@
             </td>
         </tr>
         <span metal:define-macro="body" tal:omit-tag="">
-        <tr><th class=tabletitle colspan=4 align="left">Attributes</th></tr>
+        <tr><th class="subtabletitle" colspan=4 align="left">Attributes</th></tr>
         <tr>
             <td class="tableheader" align="left">Snmp Community</td>
             <td class="tablevalues" align="left">
@@ -145,7 +150,7 @@
                 </textarea>
             </td>
         </tr>
-        <tr><th class=tabletitle colspan=4 align="left">Relations</th></tr>
+        <tr><th class="subtabletitle" colspan=4 align="left">Relations</th></tr>
         <tr>
             <td class="tableheader" align="left">HW Manufacturer</td>
             <td class="tablevalues" align="left">
@@ -372,7 +377,13 @@
                     name="loadDevice:method" value=" Add Device "/>
             </td>
         </tr>
-    </table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
     </form>
 </tal:block>
 </tal:block>

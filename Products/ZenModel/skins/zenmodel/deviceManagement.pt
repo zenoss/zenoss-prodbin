@@ -8,20 +8,17 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+
 <input type="hidden" name="zenScreenName" 
     tal:attributes="value template/id" /> 
 
-<table class="zentable" border=0 cellpadding=3 cellspacing=1>
-  
-<tal:block tal:define="tblcolspan string:2">
-<tr 
-tal:define="
-tabletitle string:Device Management">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block tal:define="tabletitle string:Device Management;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
 
-    <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
-
+<!-- BEGIN TABLE CONTENTS -->
+    <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" /> 
     <tr>
         <td class="tableheader" align="left">Device Class Path</td>
         <td class="tableheader" align="left" colspan=3>
@@ -87,8 +84,11 @@ tabletitle string:Device Management">
           value=" Delete Device " />
   </td>
   </tr>
-  </table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
 
@@ -105,19 +105,29 @@ tabletitle string:Device Management">
     metal:define-macro="adminRolesTable">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/adminRoles/objectValuesAll;
+
+<tal:block tal:define="
+    objects here/adminRoles/objectValuesAll;
     editable here/isManager;
     tableName string:deviceadminroles;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    
-<tal:block tal:define="tblcolspan string:5">
-<tr 
-tal:define="
-tabletitle string:Administrators">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+    tabletitle string:Administrators;
+    batch python:here.ZenTableManager.getBatch(tableName,objects); ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
@@ -184,25 +194,27 @@ tabletitle string:Administrators">
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="graphLinks" tal:condition="here/havePydot"
-    tal:define="
-        routers string:${here/absolute_url_path}/deviceGraphRouters;
-        networks string:${here/absolute_url_path}/deviceGraphNets">
-    
-<tal:block tal:define="tblcolspan string:4">
-<tr 
-tal:define="
-tabletitle string:Graphs">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block metal:define-macro="graphLinks" tal:condition="here/havePydot"
+    tal:define="routers string:${here/absolute_url_path}/deviceGraphRouters;
+                tabletitle string:Graphs;
+                networks string:${here/absolute_url_path}/deviceGraphNets">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <td class="tableheader">Relative Network Graph</td>
       <td class="tablevalues" colspan="3"><a tal:attributes="href
@@ -213,9 +225,11 @@ routers">Image Link</a> (routers only)</td>
       <td class="tablevalues" colspan="3"><a tal:attributes="href
 networks">Image Link</a> (routers and networks)</td>
     </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
 
+</tal:block>
+</tal:block>
+</tal:block>
 
 </tal:block>
 </tal:block>

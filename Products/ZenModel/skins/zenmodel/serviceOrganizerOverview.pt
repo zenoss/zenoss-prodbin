@@ -3,27 +3,23 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/children;
+<tal:block tal:define="objects here/children;
         tableName string:children;
+        tabletitle string:Sub-Folders;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    
-<tal:block tal:define="tblcolspan string:6">
-<tr 
-tal:define="
-tabletitle string:Sub-Folders">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
-
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'countChildren','Sub-Folders')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countChildren','Sub-Folders')"/> <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'countClasses','Services')"/>
     </tr>
     <tal:block tal:repeat="svcorg batch">
@@ -73,29 +69,30 @@ tabletitle string:Sub-Folders">
     </span>
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
 
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/serviceclasses;
+
+<tal:block tal:define="objects here/serviceclasses;
         tableName string:serviceclasseslist;
+        tabletitle string:Services;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    
-<tal:block tal:define="tblcolspan string:5">
-<tr 
-tal:define="
-tabletitle string:Services">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
-
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -156,9 +153,12 @@ tabletitle string:Services">
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
 
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 </tal:block>

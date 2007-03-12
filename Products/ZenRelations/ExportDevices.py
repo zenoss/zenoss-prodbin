@@ -51,13 +51,14 @@ class ExportDevices(ZCmdBase):
             return s
         
         def clearObjects(node):
+            def keepDevice(dev):
+                try: return not dev.getAttribute('module') in _retain_class
+                except: return True
             try: devs = node.getElementsByTagName('object')
             except AttributeError: pass
             else:
-                for dev in devs:
-                    if dev.hasAttribute('module') and \
-                    dev.getAttribute('module') not in _retain_class:
-                        dev.parentNode.removeChild(dev)
+                devs = filter(keepDevice, devs)
+                map(dev.parentNode.removeChild, devs)
 
         def clearProps(node):
             try: props = node.getElementsByTagName('property')

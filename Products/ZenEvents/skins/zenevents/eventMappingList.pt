@@ -1,14 +1,17 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action request/URL">
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/getInstances;
-        tableName string:eventmappinglist;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <tr><th class="tabletitle" colspan="4">EventClass Mappings</th></tr>
-    <tr><td class="tableheader" colspan="4">
-    <tal:block metal:use-macro="here/zenTableNavigation/macros/navfilter"/>
-    </td></tr>
+
+<tal:block tal:define="
+    objects here/getInstances;
+    tableName string:eventmappinglist;
+    batch python:here.ZenTableManager.getBatch(tableName, objects);
+    tblcolspan string:4;
+    showfilterbox python:True;
+    tabletitle string:EventClass Mappings;">
+
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Id')">
@@ -49,7 +52,10 @@
     <tr><td class="tableheader" colspan="4">
     <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"/>
     </td></tr>
-</table>
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 </tal:block>
 </tal:block>

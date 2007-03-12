@@ -1,3 +1,16 @@
+
+function toggleElement(elementid) {
+    var element = $(elementid);
+    if (element.visible == 0) {
+        element.style.display = "none";
+        element.visible = 1;
+    } else {
+        element.style.display = "";
+        element.visible = 0;
+    }
+}
+
+
 /* Panel Effects */
 
 function toggleVisible(elem) {

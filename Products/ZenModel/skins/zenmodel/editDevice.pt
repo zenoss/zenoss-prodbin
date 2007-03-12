@@ -10,14 +10,20 @@
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="device python: here.meta_type != 'DeviceLoader' 
-                                    and here or None"
-    >
-    <tr tal:define="message request/message | string:Device State at time:">
-        <td class=tableheader colspan=4
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
+
+<tal:block tal:define="device python: here.meta_type != 'DeviceLoader' 
+                                    and here or None;
+                    tabletitle string:Edit Device;
+                    message request/message | string:Device State at time:">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
+        <span tal:content="string:${message} ${here/getNowString}"
+                style="margin-left:20px;"/>
+</tal:block>
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <span metal:use-macro="here/addDevice/macros/body" />
     <tr>
         <td class=tableheader align="left" >
@@ -27,7 +33,11 @@
                 name="manage_editDevice:method" />
         </td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 </tal:block>

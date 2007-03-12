@@ -5,15 +5,13 @@
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="props here/zenPropertyIds">
-    
-<tal:block tal:define="tblcolspan string:4">
-<tr 
-tal:define="
-tabletitle string:zProperties Configuration">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+<tal:block tal:define="props here/zenPropertyIds;
+                       tabletitle string:zProperties Configuration;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <th class="tableheader" align="center">Property</th>
       <th class="tableheader" align="center">Value</th>
@@ -95,8 +93,11 @@ tabletitle string:zProperties Configuration">
             name="saveZenProperties:method" value=" Save " />
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
 
@@ -104,14 +105,25 @@ tabletitle string:zProperties Configuration">
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1">
 
-<tal:block tal:define="tblcolspan string:1">
-<tr 
-tal:define="
-tabletitle string:Delete Local Property">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+<tal:block tal:define="
+tabletitle string:Delete Local Property;
+                      ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
 <tr class="tableheader">
     <td>
         <select name="propname" class="tableheader">
@@ -125,8 +137,11 @@ tabletitle string:Delete Local Property">
             name="deleteZenProperty:method" value=" Delete " />
     </td>
 </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
 

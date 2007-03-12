@@ -1,10 +1,13 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">Status</th>
-    </tr>
+
+<tal:block tal:define=" tabletitle string:Status ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <td class="tableheader" align="left">Events</td>
       <td class="tablevalues" align="left">
@@ -15,23 +18,29 @@
       <th class="tableheader" align="left">Instance Count</th>
       <td class="tablevalues" tal:content="here/countInstances">100</td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path" name="subclasses">
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/children;
+
+
+<tal:block tal:define=" objects here/children;
         tableName string:children;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle string:SubClasses; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tr>
-      <th class=tabletitle align=left colspan="6">
-        SubClasses
-      </th>
-    </tr>
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -101,22 +110,32 @@
     </span>
     </td>
     </tr>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path" name="mappings">
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/instances;
+
+
+<tal:block tal:define=" objects here/instances;
         tableName string:eventinstances;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle string:EventClass Mappings; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">EventClass Mappings</th>
-    </tr>
     <span tal:condition="objects" tal:omit-tag="">
     <tal:block metal:define-macro="mapbody">
     <tr>
@@ -183,7 +202,13 @@
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 
 </tal:block>

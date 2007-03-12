@@ -5,15 +5,24 @@
     tal:attributes="action string:${request/URL1}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="props here/custPropertyMap">
-    
-<tal:block tal:define="tblcolspan string:5">
-<tr 
-tal:define="
-tabletitle string:Custom Properties">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block tal:define=" props here/custPropertyMap;
+tabletitle string:Custom Properties; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <th class="tableheader">Property</th>
       <th class="tableheader">Label</th>
@@ -74,23 +83,36 @@ tabletitle string:Custom Properties">
 
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
+
 <br/>
-<form method="post"
-tal:attributes="action here/getPrimaryUrlPath">
+
+<form method="post" tal:attributes="action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1">
 
-<tal:block tal:define="tblcolspan string:2">
-<tr 
-tal:define="
-tabletitle string:Add Property">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+<tal:block tal:define=" tabletitle string:Add Property; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
 <tr>
   <td class="tableheader">Label</td>
   <td class="tablevalues"> 
@@ -135,8 +157,11 @@ tabletitle string:Add Property">
         value=" Add " />
   </td>
 </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
 </tal:block>

@@ -1,16 +1,19 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<tal:block tal:define="unused here/cacheComponents">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="interfaceList"
-    tal:define="tableName string:interfacelist;
-    objects here/os/interfaces/objectValuesAll;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <tr>
-      <th class="tabletitle" align="left" colspan="10">
-        Interfaces
-      </th>
-    </tr>
+
+
+<tal:block tal:define="unused here/cacheComponents;
+        tableName string:interfacelist;
+        objects here/os/interfaces/objectValuesAll;
+        tabletitle string:Interfaces;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    metal:define-macro="interfaceList">
+
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
         <th class="tableheader" align="center">O</th>
         <th class="tableheader" align="center">A</th>
@@ -79,19 +82,23 @@
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:condition="here/os/winservices/countObjects"
+</tal:block>
+</tal:block>
+</tal:block>
+
+<tal:block tal:condition="here/os/winservices/countObjects"
     tal:define="tableName string:winserviceslist;
     objects here/os/winservices/objectValuesAll;
+    tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='caption');">
-    <tr>
-      <th class="tabletitle" colspan="5">
-        Win Services
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'caption','Caption')"/>
@@ -124,19 +131,36 @@
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
-</table>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:osprocesslist;
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+<tal:block tal:define="tableName string:osprocesslist;
     objects here/os/processes/objectValuesAll;
+    tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getOSProcessClass');"
     tal:condition="objects">
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">
-        OS Processes
-      </th>
-    </tr>
+
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getOSProcessClass','Class')"/>
@@ -165,23 +189,30 @@
     </tal:block>
     <tr>
         <td colspan="6" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool">
+            </form>
         </td>
     </tr>
-</table>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="ipserviceList"
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+<tal:block metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
     objects here/os/ipservices/objectValuesAll;
+    tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort');"
     tal:condition="objects">
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">
-        IP Services
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getKeyword','Name')">Name
@@ -226,20 +257,25 @@
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="fileSysList"
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+<tal:block metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
     objects here/os/filesystems/objectValuesAll;
+    tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');"
     tal:condition="objects">
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">
-        File Systems
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="objects">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'mount','Mount')">Mount
@@ -296,21 +332,26 @@
     <tr>
         <td colspan="5" class="tableheader" align='center'
 			tal:define="useOnlyMonitored python:1">
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool">
+            </form>
         </td>
     </tr>
-</table>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="routeTableList"
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+<tal:block metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
     objects here/os/routes/objectValuesAll;
+    tabletitle string:Routes;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">
-        Routes
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Destination')"/>
@@ -343,11 +384,17 @@
     </tal:block>
     <tr>
         <td colspan="5" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtool">
+            </form>
         </td>
     </tr>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
 </tal:block>
+</tal:block>
+</tal:block>
+
 </tal:block>
 </tal:block>
 

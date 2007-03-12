@@ -29,16 +29,13 @@
 
     <!-- Top Left -->
     <td rowspan="2" width="50%" valign="top">
-	    
-<table class="zentable" cellpadding="3" cellspacing="1">
-            <thead>
-                
-<tal:block tal:define="tblcolspan string:6">
-<tr tal:define=" tabletitle string:Systems-Level Event Summary">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr>
-<td tal:attributes="colspan tblcolspan" style="padding:0px"> 
-    <table class="innerzentable" cellpadding="3" cellspacing="1">
 
+
+<!-- Begin Systems Portlet -->
+
+<tal:block tal:define="tabletitle string:Systems Level Event Summary">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<div metal:fill-slot="zentablecontents" tal:omit-tag="">
                 <tr>
                     <th class="tableheader">System</th>
                     <th class="tableheader">Critical</th>
@@ -47,61 +44,70 @@
                     <th class="tableheader">Info</th>
                     <th class="tableheader">Debug</th>
                 </tr>
-            <tbody id="systemevents">
-            </tbody>
-        </table>
-</td></tr></tal:block></thead></table>
+</div>
+<tal:block metal:fill-slot="zentableextra">
+            <tbody id="systemevents"></tbody>
+</tal:block>
+</tal:block>
+</tal:block>
+
+<!-- End Systems Portlet -->
 
     </td>
     <td valign="top">
         
-<table class="zentable" cellpadding="3" cellspacing="1">
-            <thead>
-            
-<tal:block tal:define="tblcolspan string:4">
-<tr 
-tal:define="
-tabletitle string:Devices with Events (Severity &gt;= Error)">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+<!-- Begin Devices Portlet -->
 
+<tal:block tal:define="
+tabletitle string:Devices with Events (Severity &gt;= Error)">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<div metal:fill-slot="zentablecontents" tal:omit-tag="">
             <tr>
                 <th class="tableheader">Name</th>
                 <th class="tableheader">Acked By</th>
                 <th class="tableheader">Critical</th>
                 <th class="tableheader">Error</th>
             </tr>
+</div>
+<tal:block metal:fill-slot="zentableextra">
             <tbody id="deviceevents">
             </tbody>
-        </table>
-</td></tr></tal:block></thead></table>
+</tal:block>
+</tal:block>
+</tal:block>
+
+<!-- End Devices Portlet -->
 
     </td>
     </tr>
     <tr>
      <td valign="bottom">
 	    
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <thead>
-        <tal:block tal:define="tblcolspan string:6">
-            <tr tal:define=" tabletitle string:Zenoss Infrastructure Issues">
-                <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-            </tr>
-            <tr>
-                <td tal:attributes="colspan tblcolspan" style="padding:0px">
-                    <table class="innerzentable" cellpadding="3" cellspacing="1">
-                        <tr>
-                            <th class="tableheader">Device</th>
-                            <th class="tableheader">Component</th>
-                            <th class="tableheader">Seconds</th>
-                        </tr>
-                        <tbody id="heartbeat">
-                        </tbody>
-                    </table>
+<tal:block tal:define="tabletitle string:Zenoss Infrastructure Issues">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-                </td>
-            </tr>
-    </tal:block>
-</thead></table></td></tr>
+<div metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th class="tableheader">Device</th>
+        <th class="tableheader">Component</th>
+        <th class="tableheader">Seconds</th>
+    </tr>
+</div>
+<!-- END TABLE CONTENTS -->
+
+<tal:block metal:fill-slot="zentableextra">
+    <tbody id="heartbeat">
+    </tbody>
+</tal:block>
+
+</tal:block>
+</tal:block>
+
+
+
+</td></tr>
 
     </table>
 </tal:block>

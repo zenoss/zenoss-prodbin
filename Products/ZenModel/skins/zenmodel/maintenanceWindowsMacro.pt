@@ -2,18 +2,28 @@
       metal:define-macro="maintenanceWindows">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/maintenanceWindows/objectValuesAll;
-    tableName string:devicemaintenancewindow;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    
-<tal:block tal:define="tblcolspan string:7">
-<tr 
-tal:define="
-tabletitle string:Maintenance Windows">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block tal:define="
+    objects here/maintenanceWindows/objectValuesAll;
+    tableName string:devicemaintenancewindow;
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    tabletitle string:Maintenance Windows;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp')">
@@ -82,7 +92,10 @@ tabletitle string:Maintenance Windows">
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>

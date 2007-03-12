@@ -1,15 +1,15 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="softwareList"
+
+<tal:block metal:define-macro="softwareList"
     tal:define="tableName string:softwareList;
     objects here/os/software/objectValuesAll;
+    tabletitle string:Installed Software;
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">
-        Installed Software
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getManufacturerName','Manufacturer')"/>
@@ -31,6 +31,11 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </tal:block>
 </tal:block>

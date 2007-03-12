@@ -6,13 +6,26 @@
 <input type="hidden" name="zenScreenName" 
     tal:attributes="value template/id" /> 
 
-<table class="zentable" border=0 cellpadding=3 cellspacing=1>
-  
-<tal:block tal:define="tblcolspan string:5">
-<tr tal:define=" tabletitle string:Device Management">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
 
-        
+<tal:block tal:define="
+tabletitle string:Device Management
+                      ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+
     <span metal:use-macro="here/userCommandsMacros/macros/runCommand" />
 
     <tr>
@@ -35,10 +48,14 @@
               value="Change" />
         </td>
     </tr>
-  </table>
-</td></tr></tal:block></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 </form>
+
 <br/>
 
 <span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />

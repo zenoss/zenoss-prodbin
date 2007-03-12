@@ -15,11 +15,12 @@ function toggleElement(elementid) {
     }
 }
 </script>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:condition="python:here.id != 'Networks'">
-    <tr>
-      <th class="tabletitle" colspan="4">Network</th>
-    </tr>
+<tal:block tal:condition="python:here.id != 'Networks'"
+tal:define="tabletitle string:Network;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
         <td class="tableheader">Address</td>
         <td class="tablevalues"
@@ -67,23 +68,29 @@ function toggleElement(elementid) {
         </td>
     </tr>
     </tbody>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/children;
+
+
+<tal:block tal:define="objects here/children;
     tableName string:networkoverviewsubnets;
+    tabletitle string:Subnetworks;
     batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-  <tr>
-      <th class="tabletitle" align="left" colspan="5">
-        Subnetworks
-      </th>
-  </tr>
   <span tal:condition="objects">
   <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -134,23 +141,28 @@ function toggleElement(elementid) {
         <span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
     </td>
   </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
+
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/ipaddresses/objectValuesAll;
+
+<tal:block tal:define="objects here/ipaddresses/objectValuesAll;
     tableName string:networkoverviewipaddresses;
+    tabletitle string:IP Addresses;
     batch python:here.ZenTableManager.getBatch(tableName,objects);"
     tal:condition="objects">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">
-        IP Addresses
-      </th>
-    </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Address','cmp')">
@@ -212,7 +224,11 @@ function toggleElement(elementid) {
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 </tal:block>

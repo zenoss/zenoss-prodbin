@@ -28,12 +28,12 @@ function goExport(url) {
     sortedHeader request/sortedHeader | string:;
     page string:getEventListPage;
     ">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="eventTable"
-    tal:define="tblcolspan string:4">
-<tr tal:define="tabletitle string:Event List">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
-    <tal:block metal:fill-slot="tabletitlecontent">    
+<tal:block metal:define-macro="eventTable">
+<tal:block tal:define="tabletitle string:Event List">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!-- Custom filter widgets -->
+<tal:block metal:fill-slot="filterslot">    
 <div style="position:absolute;right:50px;top:0px;z-index:2007;">
             Sev
             <select class="tableheader" name="severity:int" id="severity"
@@ -60,15 +60,9 @@ function goExport(url) {
                 size='2' value='60'>
         <tal:block metal:use-macro="here/zenuimacros/macros/filterboxinline"/>
 </div>
-                
-    </tal:block>
 </tal:block>
-</tr>
-<tr>
-<td tal:attributes="colspan tblcolspan"
-style="padding:0px;">
-<table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block metal:fill-slot="zentablecontents">
 
     <tal:block metal:define-macro="header">
     <input type='hidden' name='sortedHeader' 
@@ -126,9 +120,11 @@ style="padding:0px;">
     </tr>
     </tal:block>
 
-</table></td></tr>
+</tal:block>
+</tal:block>
 
-</table>
+</tal:block>
+</tal:block>
 </form>    
 </tal:block>
 </tal:block>

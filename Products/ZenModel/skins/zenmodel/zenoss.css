@@ -34,13 +34,27 @@ input,textarea {
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     padding-left: 10px;
     padding-top: 5px;
     position: relative;
 }
 
-#infoBar div {
+#messageSlot {
+    color: red;
+    font-weight: bold;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    padding: 0px 10px;
+    display:none;
+    height: 45px;
+    line-height: 45px;
+    font-size: 13pt;
+    border: 1px solid red;
+    background-color: lemonchiffon;
+    z-index:5000;
+    padding-right: 30px;
 }
 
 #leftPaneToggle {
@@ -227,7 +241,7 @@ div.logo {
     float:right;
     */
     padding: 5px;
-	margin-left: 11em;
+	margin-left: 120px;
     /*margin-top: 5px;*/
  /*   background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;*/
 }
@@ -447,6 +461,11 @@ th.tabletitle {
     z-index: 1999;
 }
 
+th.subtabletitle {
+    font-size: 12pt;
+    font-weight:bold;
+}
+
 div.tabletitlecontainer {
     width: 100%;
     position: relative;
@@ -474,12 +493,14 @@ div.tabletitlecontainer {
     background: #E0E0E0 url('img/titlebar_left_corner.gif') 
         bottom left no-repeat;
     width: 52px;
+    height:25px;
 }
 .tabletitlecontainer .rightcorner {
     right: 0px;
     background: #E0E0E0 url('img/titlebar_right_corner.gif') 
         bottom left no-repeat;
     width: 52px;
+    height:25px;
 }
 
 .tabletitleselected { 

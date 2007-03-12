@@ -12,18 +12,14 @@
 >
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
-<table class="zentable">
-    
-    <tr tal:define="tabletitle string:Device List;
-                    showfilterbox python:True;
-                    menu_id string:Device">
-      <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-    </tr>
+<tal:block tal:define="tabletitle string:Device List;
+                        showfilterbox python:True;
+                        menu_id string:Device">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
 
-<tr>
-<td tal:attributes="colspan tblcolspan"
-style="padding:0px;"><table class="innerzentable"
-cellpadding="3" cellspacing="1">
+<!-- BEGIN TABLE CONTENTS -->
+
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>
 	<td colspan="5" class="tableheader" align='center'>
@@ -35,8 +31,12 @@ cellpadding="3" cellspacing="1">
 		<tal:block metal:use-macro="here/deviceListMacro/macros/deviceControl"/>
 	</tal:block>
 
-</table></td></tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 
 </tal:block>

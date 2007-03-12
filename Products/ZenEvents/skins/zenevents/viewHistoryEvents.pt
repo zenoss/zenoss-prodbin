@@ -50,10 +50,14 @@ function goExport(url) {
     sortedHeader request/sortedHeader | string:;
     page string:getHistoryEventListPage;
     ">
-<table class="zentable" cellpadding="3" cellspacing="1">
-<tr tal:define="tabletitle string:Event History">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
-<tal:block metal:fill-slot="tabletitlecontent">
+
+
+<tal:block tal:define="
+tabletitle string:Event History;
+                      ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
 <div style="position:absolute;right:50px;top:0px;z-index:2007;">
     <input type='hidden' name='table' value='history'/>
     Start Date: 
@@ -72,12 +76,10 @@ function goExport(url) {
         onclick="getTablePage(this.form);return false;"/>
 </div>
 </tal:block>
-</tal:block>
-</tr>
-<tr>
-<td style="padding:0px;">
-<table class="innerzentable" cellpadding="3" cellspacing="1">
 
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tal:block metal:use-macro="here/viewEvents/macros/header"/>
     <tbody id="eventsBody">
         <span metal:use-macro="here/getHistoryEventListPage/macros/page"/>
@@ -111,8 +113,14 @@ function goExport(url) {
             </td>
         </tr>
     </tal:block>
-</table>
-</td></tr></table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+
 </form>
 </span>
 </tal:block>

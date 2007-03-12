@@ -8,38 +8,18 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
     <!-- Status Table -->
-<script language="javascript">
 
-function toggleElement(elementid) {
-    var element = $(elementid);
-    if (element.visible == 0) {
-        element.style.display = "none";
-        element.visible = 1;
-    } else {
-        element.style.display = "";
-        element.visible = 0;
-    }
-}
-</script>
 <form method="post" tal:attributes="action here/absolute_url_path" name="deviceOrganizerStatus">
 <input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
-<table  class="zentable"
-        tal:define="
-            tabletitle string:Summary;
-            tblcolspan string:6;"
-        metal:define-macro="status">
-        <tr tal:define="
+<tal:block metal:define-macro="status">
+<tal:block tal:define="
             tabletitle string:Summary;
             tblcolspan string:6;">
-          <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-        </tr>
-        <tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
 
-<td tal:attributes="colspan tblcolspan" style="padding:0px;">
-<table class="innerzentable" cellpadding="3" cellspacing="1">
+<!-- BEGIN TABLE CONTENTS -->
 <tr>
-
-
           <td class="tableheader" align="left">Events</td>
           <td class="tablevalues rainbow" align="left">
             <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
@@ -82,32 +62,31 @@ function toggleElement(elementid) {
         </td>
     </tr>
     </tbody>
+<!-- END TABLE CONTENTS -->
 
-</table></td></tr>
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
 
-    </table>
+
 </form>
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path"
 		name="subdeviceForm">
-    <table class="zentable" 
-			name="subdeviceTable"
-            tal:define="objects here/children;
+    <tal:block tal:define="objects here/children;
             tableName string:children;
             tblcolspan string:5;
-            batch python:here.ZenTableManager.getBatch(tableName,objects);">
+            batch python:here.ZenTableManager.getBatch(tableName,objects);
+            showfilterbox python:True;
+            tblcolspan string:5;
+            tabletitle string:Sub-${here/dmdRootName}">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
         <input type='hidden' name='tableName' tal:attributes="value tableName"/>
         <input type="hidden" name="zenScreenName" 
                 tal:attributes="value template/id"/>
-        <tr tal:define="showfilterbox python:True;
-                        tblcolspan string:5;
-                        tabletitle string:Sub-${here/dmdRootName}">
-        <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-        </tr>
-        <tr>
-<td tal:attributes="colspan tblcolspan" style="padding:0px;">
-<table class="innerzentable" cellpadding="3" cellspacing="1">
         <span tal:condition="objects" tal:omit-tag="">
         <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -189,8 +168,9 @@ function toggleElement(elementid) {
         </td>
 
         </tr>
-</table></td></tr>
-    </table>
+</tal:block>
+</tal:block>
+</tal:block>
     </form>
 
     <br tal:condition="here/devices/countObjects">

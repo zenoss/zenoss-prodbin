@@ -3,18 +3,19 @@
 
 <form method="post"  metal:define-macro="objectperf"
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
+
 <script language="javascript" type="text/javascript">
 var ZenGraphs = new Array();
 </script>
-<table 
-    class="zentable" cellpadding=3 cellspacing=1
-    tal:define="tableName string:perfdetail;
-    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600)">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-    <th class="tabletitle" align=left> 
-        <a tal:content="here/viewName" 
-        tal:attributes="href here/absolute_url_path">name</a>
+
+
+<tal:block tal:define="tableName string:perfdetail;
+    tabletitle string:Performance Graphs;
+    drange python: here.ZenTableManager.setReqTableState(
+    tableName,'drange',129600)">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
         &nbsp;&nbsp;&nbsp;&nbsp;Range
         <select class="tableheader" name="drange:int"
             onchange="resetGraphs(this.value)"
@@ -30,14 +31,13 @@ var ZenGraphs = new Array();
     <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
     <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
            checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
-    </th>
+</tal:block>
 
-    <tr tal:condition='python: hasattr(here, "description") 
-                        and getattr(here, "description")'>
-        <td class=tabletitle tal:content="here/description">
-            description
-        </td>
-    </tr>
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+
     <span tal:repeat="graph python:here.getDefaultGraphs(drange=drange)">
     <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
         <tr><td class="tableheader" tal:content="graph/title">title</td></tr>
@@ -65,7 +65,13 @@ if (!document.all) {
 }
 
 </script>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 </tal:block>
 </tal:block>

@@ -4,18 +4,17 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
     <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
     
-<table class="zentable" cellpadding="3" cellspacing="1">
-        
-<tal:block tal:define="tblcolspan string:2">
-<tr 
-tal:define="
-tabletitle string:Service Management">
-<tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/></tr><tr><td tal:attributes="colspan tblcolspan" style="padding:0px"> <table class="innerzentable" cellpadding="3" cellspacing="1">
+<tal:block tal:define="tabletitle string:Service Management; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
 
-        <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
-      </table>
-</td></tr></tal:block></table>
+<!-- BEGIN TABLE CONTENTS -->
+    <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
+<!-- END TABLE CONTENTS -->
 
+</tal:block>
+</tal:block>
+</tal:block>
 </form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>

@@ -10,7 +10,12 @@
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id" /> 
 
-    <table class="zentable" cellpadding="3" cellspacing="1">
+
+<tal:block tal:define="tabletitle string:Add Event;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
         <tr>
             <td class="tableheader" align="left">
                 Message
@@ -50,7 +55,6 @@
                     <option tal:repeat="sev here/getSeverities"
                         tal:content="python:sev[0]"
                         tal:attributes="value python:sev[1]" />
-
                 </select>
             </td>
         </tr>
@@ -86,7 +90,12 @@
                     name="manage_addEvent:method" value=" Add Event "/>
             </td>
         </tr>
-    </table>
-    </form>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+</form>
 </tal:block>
 </tal:block>

@@ -1,8 +1,16 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+
+
+<tal:block metal:define-macro="deviceStatusInfo"
+           tal:define=" tabletitle string:Status; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
         
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="deviceStatusInfo">        
     <tr>
         <td tal:define="tabletitle python:here.lockStatus();
                         menu_id string:Lockable">
@@ -12,9 +20,6 @@
                         menu_id string:LockWarning">
           <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
         </td>
-    </tr>
-    <tr>
-      <th class="tabletitle" colspan=4>Status</th>
     </tr>
     <tr>
       <td class="tableheader">Events</td>
@@ -75,15 +80,21 @@
         Do not send event on block
       </td>
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1"
+
+<tal:block tal:define=" tabletitle string:Device; "
     metal:define-macro="deviceOverview">
-    <tr>
-      <th class="tabletitle" colspan=4>Device</th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <th class="tableheader">SNMP sysName</th>
       <td class="tablevalues" tal:content="here/snmpSysName"/>
@@ -141,16 +152,21 @@
       <td class="tableheader">Links</td>
       <td class="tablevalues" colspan="3" tal:content="structure here/getExpandedLinks" />
     </tr>
-</table>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
+
+<tal:block tal:define="tabletitle string:Related Organizers"
     metal:define-macro="deviceLinks">
-    <tr>
-      <th class="tabletitle" colspan="4">
-       Related Organizers
-      </th>
-    </tr>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="python: hasattr(here, 'termserver') 
                         and here.termserver()">
         <th class="tableheader">Terminal Server</th>
@@ -233,6 +249,12 @@
         </span>
       </td>
     </tr>
-</table>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
 </tal:block>
 </tal:block>
