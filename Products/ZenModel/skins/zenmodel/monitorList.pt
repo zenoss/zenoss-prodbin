@@ -6,15 +6,30 @@
     tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="submon"
     tal:attributes="value submonitor/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1" 
-    tal:define="objects python:submonitor.objectSubValues();
+
+
+        <tal:block tal:define="objects python:submonitor.objectSubValues();
     tableName string:monitorlist;
     submonname python:test(submonitor.id=='Performance',
                 'Performance Monitors', 'Status Monitors');
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
-<tr>
-<th class="tabletitle" colspan="3" tal:content="submonname"/>
-</tr>
+    batch python:here.ZenTableManager.getBatch(tableName,objects); 
+    tabletitle submonname">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+
     <tr tal:condition="batch">
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp',
@@ -64,7 +79,14 @@
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 </form>
 

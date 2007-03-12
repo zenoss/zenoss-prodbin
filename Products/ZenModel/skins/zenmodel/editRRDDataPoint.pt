@@ -4,11 +4,25 @@
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
 
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan="2"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+            tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -119,7 +133,14 @@
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 </form>
 </tal:block>

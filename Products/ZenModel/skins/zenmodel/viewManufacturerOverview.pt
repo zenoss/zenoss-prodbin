@@ -1,10 +1,25 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan=6>Manufacturer</th>
-    </tr>
+
+
+        <tal:block tal:define=" tabletitle string:Manufacturer">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader">Name</td>
       <td class="tablevalues" tal:content="here/id">Zentinel</td>
@@ -34,18 +49,40 @@
       <td class="tableheader">Zip</td>
       <td class="tablevalues" tal:content="here/zip">21140</td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/> 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
+
+
+        <tal:block tal:define="
         tableName string:manufacturerproducts;
         objects here/products/objectValuesAll;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">Products</th>
-    </tr>
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:Products">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Name')">Name</th>
@@ -99,7 +136,14 @@
               onClick="toggleSelect(this.form);return false"/>
     </td>
   </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

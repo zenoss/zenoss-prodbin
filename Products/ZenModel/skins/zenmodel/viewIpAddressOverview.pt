@@ -1,11 +1,24 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-        <th class=tabletitle align=left colspan=4>
-            IP Address
-        </th>
-    </tr>
+
+
+        <tal:block tal:define=" tabletitle string:IP Address">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
         <td class=tableheader align=left width=25%>
             IP Address 
@@ -42,18 +55,37 @@
             intname
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br />
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/clientroutes/objectValuesAll;
+
+
+        <tal:block tal:define="objects here/clientroutes/objectValuesAll;
     tableName string:dependentipdevices;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition="objects">
-    <tr>
-      <th class="tabletitle" align="left" colspan=4>
-        Dependent Devices
-      </th>
-    </tr>
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    tabletitle string:Dependent Devices">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Device')">
@@ -96,7 +128,14 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
     </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 </tal:block>
 </tal:block>

@@ -1,13 +1,25 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable" cellpadding="3" cellspacing="1">
-  <tbody>
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">
-      Product
-      </th>
-    </tr>
+
+
+        <tal:block tal:define=" tabletitle string:Product">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader" align="left" colspan="1">
       Name
@@ -37,8 +49,14 @@
       <span tal:replace="here/description">description</span>
       </td>
     </tr>
-  </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 

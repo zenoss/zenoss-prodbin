@@ -5,11 +5,25 @@
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan="6"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+                           tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues">
@@ -69,7 +83,14 @@
                 name="manage_editManufacturer:method" />
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 
 </tal:block>

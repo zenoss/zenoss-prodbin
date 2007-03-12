@@ -35,18 +35,27 @@
     tal:condition='here/devices/countObjects'>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/devices/objectValuesAll;
+
+
+        <tal:block tal:define="objects here/devices/objectValuesAll;
         tableName string:devicelistmacro;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition="python: batch or
-                    here.ZenTableManager.getTableState(tableName, 'filter')"
-    >
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">
-       Devices
-      </th>
-    </tr>
+        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Devices">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
@@ -121,7 +130,14 @@
 			tal:define="numColumns string:5">
 		<span metal:use-macro="here/deviceListMacro/macros/deviceControl" />
 	</tal:block>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 
 
@@ -163,18 +179,27 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path" 
     name="deviceListForm" metal:define-macro="fullDevList">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/devices/getSubComponents;
+
+
+        <tal:block tal:define="objects here/devices/getSubComponents;
         tableName string:devicelistmacro;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);"
-    tal:condition="python: batch or
-                    here.ZenTableManager.getTableState(tableName, 'filter')"
-    >
-    <tr>
-      <th class="tabletitle" align="left" colspan="5">
-       Devices 
-      </th>
-    </tr>
+        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Devices">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <span metal:define-macro="fullDevListBody" tal:omit-tag="">
     <tr>
         <td colspan="5" class="tableheader" align='center'>
@@ -218,9 +243,9 @@
             tal:content="device/getProdState">prodstate
         </td >
         <td tal:define="severity python:4">
-        <table class="zentable" border=0 cellpadding=0 cellspacing=1
-            tal:on-error="structure string:
-                <span class='errorvalues'>Events unavailable</span>">
+        
+
+        <table class=" zentable">
             <tr>
                 <td align=center width=16%
                 tal:repeat="evt python:device.getEventSummary(severity)"
@@ -228,7 +253,10 @@
                     <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
                 </td>
           </tr>
+        
         </table>
+        
+
         </td>
     </tr>
     <tr>
@@ -239,5 +267,12 @@
 
 
     </span>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>

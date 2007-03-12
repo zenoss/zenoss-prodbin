@@ -27,7 +27,7 @@
     <div metal:use-macro="here/templates/macros/tabsPane"/>
     <script type="text/javascript">zenPageInit()</script>
     <div id="contentPane">
-    <table class="zentable" cellpadding="3" cellspacing="1">
+    <table class=" zentable" cellpadding="3" cellspacing="1">
         <tr><th class="tabletitle" colspan="4">Collection Log</th></tr>
         <tr>
             <th class="tableheader">Time</th>

@@ -1,10 +1,24 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" colspan="2">Service Class</th>
-    </tr>
-    <tr>
+
+
+        <tal:block tal:define=" tabletitle string:Service Class">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader">Name</td>
       <td class="tablevalues" tal:content="here/name"/>
@@ -21,17 +35,36 @@
       <th class="tableheader">Service Keys</th>
       <td class="tablevalues" tal:content="python:','.join(here.serviceKeys)"/>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:serviceinstances;
+
+
+        <tal:block tal:define="tableName string:serviceinstances;
     objects here/instances/objectValuesAll;
-    batch python:here.ZenTableManager.getBatch(tableName,objects)">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">
-        Service Instances 
-      </th>
-    </tr>
+    batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Service Instances">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getDeviceName','Device')"/>
@@ -62,6 +95,13 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>

@@ -7,16 +7,26 @@
 		      batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);">
       <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
       <input type="hidden" name="tableName" tal:attributes="value tableName"/>
-      <table class="zentable" cellpadding=3 cellspacing=1>
-	<tr>
-	  <th class="tabletitle" colspan="5">Loaded Zen Packs</th>
-	</tr>
-	<tr>
-	  <th class="tabletitle">Name</th>
-	  <th class="tabletitle">Author</th>
-	  <th class="tabletitle">Organization</th>
-	  <th class="tabletitle">Items Added</th>
-	</tr>
+      
+
+        <tal:block tal:define=" tabletitle string:Loaded Zen Packs">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+	
+	
 	<tr tal:repeat='pack objects'>
 	  <td class="tablevalues">
 	    <a tal:attributes="href pack/getPrimaryUrlPath" 
@@ -33,7 +43,14 @@
   	       tal:content="python:len(pack.packables())"/>
 	  </td>
 	</tr>
-      </table>
+      
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
     </form>
 
   </tal:block>

@@ -1,10 +1,22 @@
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="deviceOverviewBrief">
-    <tr>
-      <th class=tabletitle align=left colspan=4>
-       Device 
-      </th>
-    </tr>
+
+
+        <tal:block tal:define="tabletitle string:Device">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <th class=tableheader align=left>
         Hostname
@@ -23,17 +35,36 @@
       </span>
       </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
 
 
 
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="routerOverview">
-    <tr>
-      <th class=tabletitle align=left colspan=4>
-       Device 
-      </th>
-    </tr>
+
+
+
+        <tal:block tal:define="loc here/getLocationName; tabletitle string:Device">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <th class=tableheader align=left>
         Hostname
@@ -154,7 +185,14 @@
       </span>
       </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 
 <td metal:define-macro="pingStatus" tal:define="status device/getPingStatus"

@@ -3,15 +3,30 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="objects here/adminRoles/objectValuesAll;
+
+
+<tal:block tal:define="objects here/adminRoles/objectValuesAll;
     editable here/isManager;
     tableName string:deviceadminroles;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    batch python:here.ZenTableManager.getBatch(tableName,objects); 
+    tabletitle string:Administered Devices">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-      <th class="tabletitle" colspan="5">Administered Devices</th>
-    </tr>
+    
     <tr tal:define="message request/message | string:">
         <td class=tableheader colspan=5 tal:content="message" />
     </tr>
@@ -50,17 +65,17 @@
     <tal:block tal:content="ur/level" tal:condition="not:editable"/>
     </td>    
   <td class="tablevalues" align="left">
-        <table class="zentable" border=0 cellpadding=0 cellspacing=1
-            tal:on-error="structure string:
-                <span class='errorvalues'>Events unavailable</span>">
+        
+        <table class="zentable ">
             <tr>
-                <td align=center width=16%
+                <td align='center' width='16%'
                 tal:repeat="evt ur/getEventSummary"
                 tal:attributes="class python:evt[0]">
-                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
+                    <span 
+                    tal:replace="python:'%d/%d' % (evt[1],evt[2])"></span>
                 </td>
           </tr>
-        </table>
+        
   </td>
   </tr>
   </tal:block>
@@ -92,7 +107,14 @@
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

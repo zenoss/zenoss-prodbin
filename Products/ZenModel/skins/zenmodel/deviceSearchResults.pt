@@ -5,24 +5,45 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" tal:attributes="action request/URL">
-<table class="zentable" 
-    cellpadding=3 cellspacing=1
-    tal:define="
+
+
+        <tal:block tal:define="
         tableName string:devicesearchresults;
         query python: here.ZenTableManager.setReqTableState(
                            tableName,'query', default='', reset=True);
         objects python: here.Devices.searchDevices(query);
-        batch python: here.ZenTableManager.getBatch(tableName,objects);">
-    <tr>
-      <th class="tabletitle" colspan="5">Results</th>
-    </tr>
+        batch python: here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle string:Results">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tbody metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>
 	<td colspan="5" class="tableheader" align='center'>
 	<form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
 	</td>
 	</tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

@@ -1,15 +1,27 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
+
+
+        <tal:block tal:define="
         query here/REQUEST/QUERY_STRING;
-        daemon  python:query.split('=')[-1]">
+        daemon  python:query.split('=')[-1]; tabletitle string:${daemon} Configuration File">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
-        <tr>
-            <th class="tabletitle" colspan="2">
-                <code tal:content="daemon" /> Configuration File
-            </th>
-        </tr>
+        
     </thead>
     <tbody tal:define="url string:${here/absolute_url_path}">
         <tr>
@@ -23,6 +35,13 @@
                 href string:${url}/editDaemonConfig?daemon=${daemon}">edit this configuration</a></td>
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>

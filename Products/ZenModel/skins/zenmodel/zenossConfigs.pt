@@ -1,12 +1,31 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define="url string:${here/absolute_url_path}; 
+            tabletitle string:Zenoss Daemons">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
+        
         <tr>
-            <th class="tabletitle">
+            <th class="tableheader">
                 Zenoss Daemon
             </th>
-            <th class="tabletitle" colspan="2">
+            <th class="tableheader" colspan="2">
                 Action
             </th>
         </tr>
@@ -20,7 +39,14 @@
                 href string:${url}/editDaemonConfig?daemon=${daemon/name}">edit configuration</a></td>
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>
 

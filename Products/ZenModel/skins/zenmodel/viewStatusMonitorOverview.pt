@@ -1,12 +1,25 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">
-      Status Monitor Configuration
-      </th>
-    </tr>
+
+
+        <tal:block tal:define=" tabletitle string:Status Monitor Configuration">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader" align="left">Monitor Name</td>
       <td class="tablevalues" align="left" tal:content="here/id">mon name</td>
@@ -48,7 +61,14 @@
         tal:content="here/configCycleInterval">fails
       </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br>
 <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
 

@@ -1,10 +1,25 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="2">Mib Node</th>
-    </tr>
+
+
+        <tal:block tal:define=" tabletitle string:Mib Node">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader">Name</td>
       <td class="tablevalues" tal:content="here/getId" />
@@ -33,6 +48,13 @@
         <pre tal:content="here/description"/>
       </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>

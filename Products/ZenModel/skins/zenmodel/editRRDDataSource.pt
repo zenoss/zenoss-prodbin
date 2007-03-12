@@ -6,11 +6,25 @@
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan="2"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+            tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="editable">
@@ -313,20 +327,41 @@
                 name="zmanage_editProperties:method"/>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 
 
 <!----------------------------------------------------------------->
 
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:rrdtempdplist; 
+
+
+        <tal:block tal:define="tableName string:rrdtempdplist; 
         objects here/datapoints;
-        batch python:here.ZenTableManager.getBatch(tableName,objects)">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">DataPoints</th>
-    </tr>
+        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:DataPoints">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
@@ -366,7 +401,14 @@
         </td>
     </tr>
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 
 <!----------------------------------------------------------------->

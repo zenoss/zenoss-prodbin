@@ -27,12 +27,26 @@
     <tr>
     <!-- Top Left -->
     <td rowspan="2" width="50%" valign="top">
-	    <table class="zentable" cellpadding="3" cellspacing="1">
+	    
+
+        <tal:block tal:define=" tabletitle string:Systems-Level Event Summary">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
             <thead>
-                <tr>
-                  <th class="tabletitle" colspan="6">
-                  <a style="color: white" href="/zport/dmd/Systems/viewEvents/">Systems</a>-Level Event Summary</th>
-                </tr>
+                
                 <tr>
                     <th class="tableheader">System</th>
                     <th class="tableheader">Critical</th>
@@ -44,15 +58,36 @@
             </thead>
             <tbody id="systemevents">
             </tbody>
-        </table>
+        
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
     </td>
     <td valign="top">
-        <table class="zentable" cellpadding="3" cellspacing="1">
+        
+
+        <tal:block tal:define=" tabletitle string:Devices with Events (Severity &gt;= Error)">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
             <thead>
-            <tr>
-              <th class="tabletitle" colspan="4">
-              <a style="color: white" href="/zport/dmd/Devices/viewEvents/">Devices</a> with Events (Severity &gt;= Error)</th>
-            </tr>
+            
             <tr>
                 <th class="tableheader">Name</th>
                 <th class="tableheader">Acked By</th>
@@ -62,17 +97,38 @@
             </thead>
             <tbody id="deviceevents">
             </tbody>
-        </table>
+        
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
     </td>
     </tr>
     <tr>
      <td valign="bottom">
-	    <table class="zentable" cellpadding="3" cellspacing="1">
+	    
+
+        <tal:block tal:define=" tabletitle string:Zenoss Infrastructure Issues">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
             <thead>
-            <tr>
-              <th class="tabletitle" colspan="6">
-                Zenoss Infrastructure <a style="color: white" href="zport/dmd/Reports/All%20Heartbeats">Issues</a></th>
-            </tr>
+            
             <tr>
                 <th class="tableheader">Device</th>
                 <th class="tableheader">Component</th>
@@ -81,7 +137,14 @@
             </thead>
             <tbody id="heartbeat">
             </tbody>
-	    </table>
+	    
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
      </td>
     </tr>
     </table>

@@ -3,11 +3,26 @@
     tal:define="editable python:here.isEditable(here)">
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr tal:define="message request/message | string:State at time:">
-        <th class=tabletitle colspan="3"
-            tal:content="string:${message} ${here/getNowString}" />
-    </tr>
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+            message request/message | string:State at time:;
+            tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -42,14 +57,39 @@
             </select>
         </td>
     </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 <br/>
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:rrdtempdslist; 
+
+
+        <tal:block tal:define="tableName string:rrdtempdslist; 
         objects here/getRRDDataSources;
-        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:Data Sources">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="dsbody">
     <tr>
@@ -97,15 +137,39 @@
         </td>
     </tr>
     </tal:block>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 <br/>
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:rrdthreshsoldist; 
+
+
+        <tal:block tal:define="tableName string:rrdthreshsoldist; 
         objects here/thresholds;
-        batch python:here.ZenTableManager.getBatch(tableName,objects)">
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:Thresholds">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="threshbody">
     <tr>
@@ -156,16 +220,40 @@
         </td>
     </tr>
     </tal:block>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 <br/>
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="tableName string:rrdgraphlist; 
+
+
+        <tal:block tal:define="tableName string:rrdgraphlist; 
         objects here/getGraphs;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='sequence')">
+                                                sortedHeader='sequence'); 
+        tabletitle string:Graphs">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="graphbody">
     <tr>
@@ -236,7 +324,14 @@
         </td>
     </tr>
     </tal:block>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

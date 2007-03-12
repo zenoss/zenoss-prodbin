@@ -22,13 +22,28 @@ function ConfirmPagerTest() {
 
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/absolute_url_path" id="users">
-<table class="zentable" cellspacing="1" cellpadding="3"
-       tal:define="tableName string:userlist;
+
+
+        <tal:block tal:define="tableName string:userlist;
        ztm here/ZenTableManager;
        objects here/getAllUserSettings;
-       batch python:ztm.getBatch(tableName, objects)"
-       >
-    <tr><th class="tabletitle" colspan="4">User Folder</th></tr>
+       batch python:ztm.getBatch(tableName, objects); tabletitle string:User Folder">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr tal:condition="exists: request/message">
         <th class=tabletitle colspan=4
             tal:content="request/message" />
@@ -96,7 +111,14 @@ function ConfirmPagerTest() {
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

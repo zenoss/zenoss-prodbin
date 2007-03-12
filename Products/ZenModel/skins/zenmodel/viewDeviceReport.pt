@@ -13,20 +13,31 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable"  cellpadding="3" cellspacing="1"
-    tal:define="tableName here/title; 
+
+
+        <tal:block tal:define="tableName here/title; 
     			batch python: here.ZenTableManager.getBatch(
 						tableName, objects, 
 						sortedHeader=here.sortedHeader, 
-						sortedSence=here.sortedSence)"
-    tal:on-error="string: Device Report ${here/title} has errors">
+						sortedSence=here.sortedSence); 
+                        tabletitle string:Device Report">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type="hidden" name="tableName" tal:attributes="value tableName"/>
-    <tr>
-        <th class="tabletitle" tal:content="here/title_or_id"
-            tal:attributes="colspan python:len(here.columns)">
-            Device Report
-        </th>
-    </tr>
+    
     <tr>
         <tal:block tal:repeat="head here/reportHeaders"
             tal:content="structure python:here.ZenTableManager.getTableHeader(
@@ -38,7 +49,14 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

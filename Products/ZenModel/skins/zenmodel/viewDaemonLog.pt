@@ -1,16 +1,26 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1"
-    tal:define="
+
+
+        <tal:block tal:define="
         query here/REQUEST/QUERY_STRING;
-        daemon  python:query.split('=')[-1]">
-    <thead>
-        <tr>
-            <th class="tabletitle">
-                <code tal:content="daemon" /> Log File
-            </th>
-        </tr>
-    </thead>
+        daemon  python:query.split('=')[-1]; 
+        tabletitle string:${daemon} Log File">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <tbody tal:define="url string:${here/absolute_url_path}">
         <tr>
             <td class="tablevalues"> 
@@ -18,6 +28,13 @@
             </td>
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>

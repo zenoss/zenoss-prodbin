@@ -5,11 +5,26 @@
     <input type="hidden" name="zenScreenName" 
            tal:attributes="value template/id" /> 
     <input type="hidden" name="manage_checkVersion:method" value="dome"/>
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define=" tabletitle string:Check For Updates">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
-        <tr>
-            <th class="tabletitle" colspan="2">Check For Updates</th>
-        </tr>
+        
     </thead>
     <tbody>
         <tr>
@@ -50,14 +65,36 @@
             </th>
             <td class="tablevalues"/>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 <br />
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define=" tabletitle string:Uptimes">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
-        <tr>
-            <th class="tabletitle" colspan="2">Uptimes</th>
-        </tr>
+        
     </thead>
     <tbody>
         <tr tal:repeat="uptime here/getAllUptimes">
@@ -65,15 +102,35 @@
             <td class="tablevalues" tal:content="uptime/data" />
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br />
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define=" tabletitle string:Software Component Versions">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
-        <tr>
-            <th class="tabletitle" colspan="3">
-                Software Component Versions
-            </th>
-        </tr>
+        
     </thead>
     <tbody>
         <tr tal:repeat="version here/getAllVersions" >
@@ -81,7 +138,14 @@
             <td class="tablevalues" tal:content="version/data"/>
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </tal:block>
 </tal:block>
 

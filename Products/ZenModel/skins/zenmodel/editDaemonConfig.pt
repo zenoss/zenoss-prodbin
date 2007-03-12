@@ -7,13 +7,29 @@
     tal:attributes="
         actionx string:${url}/viewDaemonConfig?daemon=${daemon};
         action url">
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define="
+            url string:${here/absolute_url_path};
+            data python:here.getConfigData(daemon);
+            tabletitle string:${daemon} Configuration File">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <thead>
-        <tr>
-            <th class="tabletitle" colspan="2">
-                <code tal:content="daemon" /> Configuration File
-            </th>
-        </tr>
+        
     </thead>
     <tbody tal:define="
             url string:${here/absolute_url_path};
@@ -38,7 +54,14 @@
             </td>
         </tr>
     </tbody>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

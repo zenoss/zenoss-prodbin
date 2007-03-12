@@ -1,14 +1,27 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define=" tabletitle string:Product">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
-      <th class="tabletitle" colspan="4">Product</th>
-    </tr>
-    <tr>
-      <td class="tableheader">Manufacturer</td>
-      <td class="tablevalues"
-        tal:content="structure here/manufacturer/getPrimaryLink"/>
+      <td class="tableheader">Manufacturer</td> <td class="tablevalues" tal:content="structure here/manufacturer/getPrimaryLink"/>
       <td class="tableheader">Name</td>
       <td class="tablevalues" tal:content="here/name"/>
     </tr>
@@ -27,18 +40,36 @@
       <th class="tableheader">Description</th>
       <td class="tablevalues" colspan="3" tal:content="here/description"/>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
-<table class="zentable" cellpadding="3" cellspacing="1"
-    metal:define-macro="softwareList"
-    tal:define="tableName string:softwareList;
+
+
+        <tal:block tal:define="tableName string:softwareList;
     objects here/instances/objectValuesAll;
-    batch python:here.ZenTableManager.getBatch(tableName,objects)">
-    <tr>
-      <th class="tabletitle" align="left" colspan="2">
-        Product Instances 
-      </th>
-    </tr>
+    batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Product Instances">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getDeviceName','Device')">Device
@@ -57,7 +88,14 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 
 </tal:block>

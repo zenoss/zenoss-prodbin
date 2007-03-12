@@ -3,33 +3,38 @@
 
 <form method="post"  metal:define-macro="objectperf"
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
-<table class="zentable" cellpadding=3 cellspacing=1
-    tal:define="tableName string:perfdetail;
-    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600);"
-    >
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-        <th class=tabletitle align=left>
-            Range
+        <tal:block tal:define="tableName string:perfdetail;
+    drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600); tabletitle string:Range">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+
+            <tal:block metal:fill-slot="filterslot">
         <select class="tableheader" name="drange:int" onchange="form.submit()">
             <option tal:repeat="r here/performanceDateRanges" 
                 tal:content='python:r[0]' 
                 tal:attributes="value python:r[1]; 
                                 selected python:r[1]==drange"/>
         </select>
-        </th>
-    </tr>
-    <span 
-        tal:define="
+            </tal:block>
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    
+    <span tal:define="
             objects here/devices;
             sortOn python:(('getId', 'nocase', 'asc'),);
             sortedobjs python:sequence.sort(objects, sortOn)">
         <span tal:repeat="device sortedobjs">
-        <tr>
-        <th class=tabletitle align=left
-                tal:content="device/viewName">name
-        </th>
-        </tr>
+        
         <span tal:repeat="graph python:device.primaryAq().getDefaultGraphs(drange=drange)">
             <tr><td class=tableheader tal:content="graph/title">title</td></tr>
             <tr><td class=tablevalues>
@@ -39,7 +44,14 @@
         </span>
         </span>
     </span>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

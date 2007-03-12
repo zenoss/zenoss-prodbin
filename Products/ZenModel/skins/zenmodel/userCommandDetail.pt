@@ -7,13 +7,25 @@
         tal:attributes="value template/id" />
     <input type="hidden" name="commandId"
         tal:attributes="value here/id" />
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="editable here/isManager">
-    <tr>
-      <th class="tabletitle" colspan="3">
-        Define Commands
-      </th>
-    </tr>
+
+
+        <tal:block tal:define="editable here/isManager; tabletitle string:Define Commands">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr tal:condition="exists: request/message">
         <th class=tabletitle colspan="2"
             tal:content="string: ${request/message} ${here/getNowString}"/>
@@ -48,7 +60,14 @@
                 name="manage_editUserCommand:method"/>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

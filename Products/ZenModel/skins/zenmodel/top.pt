@@ -18,7 +18,7 @@
             </td>
         </tr>
     </table>
-    <table class="zentable" cellpadding=3 cellspacing=1 
+    <table class=" zentable" cellpadding=3 cellspacing=1 
         metal:define-macro="buttons">
         <tr>
             <td class="tabletitle" align="center" tal:repeat="tab ztabs"
