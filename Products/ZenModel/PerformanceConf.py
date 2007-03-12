@@ -254,6 +254,22 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
+    # getPageChecks is very similar to getDataSourceCommands above.  The two are
+    # not incorporated because getPageChecks will likely soon be moving into
+    # a separate monitor for zenweb configuration.  (WebConf.py?)
+    # I am trying to keep the web stuff segregated as much as possible to ease
+    # the refactoring later.
+    def getPageChecks(self, devname=None):
+        ''' Return info for zenweb testing on all devices.
+        '''
+        result = []
+        for dev in self.devices():
+            if devname and dev.id != devname: continue
+            dev = dev.primaryAq()
+            result += dev.getPageChecks()
+        return result
+        
+
     def getXmlRpcDevices(self, devname=None):
         '''Get the XMLRPC configuration for all devices.
         '''

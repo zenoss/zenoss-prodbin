@@ -27,6 +27,7 @@ from _mysql_exceptions import OperationalError
 from Products.ZenStatus import pingtree
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+import RRDView
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -453,6 +454,15 @@ class Device(ManagedEntity, Commandable, Lockable):
                     self.zKeyPath,self.zMaxOIDPerRequest,
                     cmds)
 
+                    
+    def getPageChecks(self):
+        pageChecks = super(Device, self).getDataSourceCommands(pageChecks=True)
+        for pc in pageChecks:
+            pc['device'] = self.id or ''
+            pc['manageIp'] = self.manageIp or ''
+        return pageChecks
+
+
     def getXmlRpcTargets(self):
         """Return information for xmlrpc collection on this device in the form
         (devname, xmlRpcStatus,
@@ -471,7 +481,7 @@ class Device(ManagedEntity, Commandable, Lockable):
         if templ is None:
             templ = super(Device, self).getRRDTemplate(name)
         return templ
-
+        
    
     def getHWManufacturerName(self):
         """Return the hardware manufacturer name of this device.
@@ -1277,7 +1287,6 @@ class Device(ManagedEntity, Commandable, Lockable):
         objpaq = self.primaryAq()
         perfServer = objpaq.getPerformanceServer()
         if perfServer:
-            import RRDView
             try:
                 result = perfServer.currentValues(paths)
                 if result:

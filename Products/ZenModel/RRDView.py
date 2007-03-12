@@ -301,16 +301,24 @@ class RRDView(object):
         return oids
 
 
-    def getDataSourceCommands(self):
-        """Return list of command definitions in the form
+    def getDataSourceCommands(self, pageChecks=False):
+        """Return list of command definitions.
+        If not pageChecks then ignore datasources of type PAGECHECK
+        and return results in the form
         [(name,compname,eventClass,eventKey,severity,command),...]
+        
+        If pageChecks then only consider datasources of type PAGECHECK
+        and return results that is a list of dictionaries.
         """
         templ = self.getRRDTemplate(self.getRRDTemplateName())
         if not templ: return ()
         threshs = self.getThresholds(templ)
         result = []
         basepath = self.rrdPath()
-        commandTypes = ['COMMAND', 'PAGECHECK']
+        if pageChecks:
+            commandTypes = ['PAGECHECK']
+        else:
+            commandTypes = ['COMMAND']
         dataSources = []
         [ dataSources.extend(templ.getRRDDataSources(x)) for x in commandTypes ]
         for ds in dataSources:
@@ -325,10 +333,29 @@ class RRDView(object):
                      (dp.rrdmin, dp.rrdmax),
                      threshs.get(dp.name(),[])))
             key = ds.eventKey or ds.id
-            result.append( (ds.usessh, ds.cycletime, ds.component,
-                            ds.eventClass, key, ds.severity,
-                            ds.getCommand(self), points) )
+            if pageChecks:
+                result.append({
+                                'datasource': ds.id or '',
+                                'datapoints': points or (),
+                                #'datapoints': (),
+                                'cycletime': ds.cycletime or '',
+                                'component': ds.component or '',
+                                'eventClass': ds.eventClass or '',
+                                'eventKey': key or '',
+                                'severity': ds.severity or '',
+                                'userAgent': ds.userAgent or '',
+                                'recording': ds.recording or '',
+                                'initialUrl': ds.initialURL or '',
+                                'command': ds.getCommand(self) or '',
+                                'commandHash': ds.commandHash or '',
+                                })
+            else:
+                result.append( (ds.usessh, ds.cycletime, ds.component,
+                                ds.eventClass, key, ds.severity,
+                                ds.getCommand(self), points) )
         return result
+
+
     
 
     def getXmlRpcTargets(self):
