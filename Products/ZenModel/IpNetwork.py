@@ -61,6 +61,8 @@ defaultNetworkTree = (8,16,24)
 class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""
     
+    isInTree = True
+    
     # Organizer configuration
     dmdRootName = "Networks"
 

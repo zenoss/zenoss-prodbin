@@ -97,7 +97,9 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
         if not context:
             context = self
         redirect = False
-        dest = REQUEST.form.get('dest')
+        dest = 'filesystem'
+        if REQUEST:
+            dest = REQUEST.form.get('dest')
         zenhome = os.getenv('ZENHOME')
         expDir = os.path.join(zenhome, 'export')
         fileBase = '%s_%s.xml' % (context.getNodeName(), context.id)
