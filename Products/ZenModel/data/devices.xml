@@ -1488,7 +1488,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type="lines" id="dsnames" mode="w" >
-['cpmCPUTotal5min']
+['cpu5min_cpuPercentProcessorTime']
 </property>
 <property type="string" id="maxval" mode="w" >
 90
@@ -1724,7 +1724,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type="lines" id="dsnames" mode="w" >
-['cpmCPUTotal5min']
+['cpu5min_cpu5min']
 </property>
 <property type="string" id="maxval" mode="w" >
 90
@@ -3154,7 +3154,7 @@ True
 <tomanycont id='thresholds'>
 <object id='CPU Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
 <property type="lines" id="dsnames" mode="w" >
-['ssCpuRawIdle']
+['ssCpuRawIdle_ssCpuRawIdle']
 </property>
 <property type="string" id="minval" mode="w" >
 2
