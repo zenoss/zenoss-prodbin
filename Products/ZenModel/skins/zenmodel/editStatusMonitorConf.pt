@@ -25,6 +25,16 @@
         <!-- BEGIN TABLE CONTENTS -->
             
     <tr>
+      <td class="tableheader" align="left">Monitor Name</td>
+      <td class="tablevalues" tal:content="here/id">
+      </td>
+      <td class="tableheader" align="left">Chunk Size</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="chunk:int" 
+            tal:attributes="value here/chunk" />
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader" align="left">Ping Timeout</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="timeOut:float" 
