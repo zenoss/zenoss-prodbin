@@ -14,17 +14,22 @@ else
     exit 1
 fi
 
+MYSQLHOST=$1
+MYSQLUSER=$2
+MYSQLPASS=$3
+MYSQLDB=$4
+
 # Create the database
 echo "creating database" >&2
-mysql -u $1 --password=$2 << EOF
-	CREATE DATABASE IF NOT EXISTS $3;
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS << EOF
+	CREATE DATABASE IF NOT EXISTS $MYSQLDB;
 EOF
 
 # Load schema
 echo "loading schema" >&2
-mysql -u $1 --password=$2 $3 < zenevents.sql
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB < zenevents.sql
 
 # Load stored procedures
 echo "loading stored procedures" >&2
-mysql -u $1 --password=$2 $3 < zenprocs.sql
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB < zenprocs.sql
 echo "events database created and loaded" >&2

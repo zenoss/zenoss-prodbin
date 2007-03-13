@@ -230,15 +230,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     security = ClassSecurityInfo()
     
 
-    def __init__(self, id, title='', username='root',
-                 password='', database='events', host='127.0.0.1', port=3306,
+    def __init__(self, id, title='', hostname='localhost', username='root',
+                 password='', database='events', port=3306,
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
         self.id = id
         self.title = title
         self.username=username
         self.password=password
         self.database=database
-        self.host=host
+        self.host=hostname
         self.port=port
         DbAccessBase.__init__(self)
         

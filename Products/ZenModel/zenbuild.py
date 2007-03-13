@@ -46,6 +46,8 @@ class zenbuild(CmdBase):
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
+        self.parser.add_option('-s','--evthost', dest="evthost", default="root",
+                help="events database hostname")
         self.parser.add_option('-u','--evtuser', dest="evtuser", default="root",
                 help="username used to connect to the events database")
         self.parser.add_option('-p','--evtpass', dest="evtpass", default="",
@@ -105,10 +107,15 @@ class zenbuild(CmdBase):
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
-        dmdBuilder = DmdBuilder(site, self.options.evtuser, 
-                        self.options.evtpass,self.options.evtdb, 
-                        self.options.smtphost, self.options.smtpport, 
-                        self.options.snpphost, self.options.snppport)
+        dmdBuilder = DmdBuilder(site, 
+                                self.options.evthost, 
+                                self.options.evtuser, 
+                                self.options.evtpass,
+                                self.options.evtdb, 
+                                self.options.smtphost, 
+                                self.options.smtpport, 
+                                self.options.snpphost, 
+                                self.options.snppport)
         dmdBuilder.build()
         
         # Set smtp and snpp values
