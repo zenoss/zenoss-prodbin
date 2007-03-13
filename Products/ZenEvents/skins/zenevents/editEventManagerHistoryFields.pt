@@ -8,10 +8,26 @@
 <script src="zendragdrop.js"></script>
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
-<table class="zentable" cellpadding="3" cellspacing="1">
-   <tr>
-        <th class="tabletitle" colspan="4">Connection Information</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Connection Information">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+   
     <tr>
         <td class="tableheader" width="25%">Default Sort</td>
         <td class="tablevalues"> 
@@ -134,17 +150,40 @@
                 name='zmanage_editProperties:method'>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 
 <tal:block tal:condition="python:'MSIE' in here.REQUEST.HTTP_USER_AGENT">
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
-<table class="zentable" cellpadding="3" cellspacing="1">
-   <tr>
-        <th class="tabletitle" colspan="4">Connection Information</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Connection Information">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+   
     <tr>
         <td class="tableheader" width="25%">Default Sort</td>
         <td class="tablevalues"> 
@@ -194,7 +233,14 @@
                 name='zmanage_editProperties:method'>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

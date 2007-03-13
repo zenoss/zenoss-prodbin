@@ -1,27 +1,66 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<table class="zentable"  cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="4">Status</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Status">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader">Events</td>
       <td class="tablevalues">
-        <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
+        <table metal:use-macro="here/deviceStatus/macros/eventrainbow"></table>
       </td>
       <th class="tableheader" align="left">Total Event Count</th>
       <td class="tablevalues" align="center" tal:content="here/getStatus">
         100</td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr>
-      <th class="tabletitle" align="left" colspan="6">EventClassInst</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:EventClassInst">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
     <tr>
       <td class="tableheader" width="15%">Event Class Key</td>
       <td class="tablevalues" tal:content="here/eventClassKey">name</td>
@@ -79,7 +118,14 @@
       <td class="tablevalues" tal:content="here/applyDeviceContext">regex</td>
     </tr>
     -->
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 
 </tal:block>
 </tal:block>

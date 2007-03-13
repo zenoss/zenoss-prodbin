@@ -8,7 +8,7 @@
     ">
     <!--tal:on-error="python:'Unable to load detail for event: %s' % evid"-->
 <tal:block metal:use-macro="here/viewEventFields/macros/eventTop"/>
-<table class="zentable" cellpadding="3" cellspacing="1">
+<table class=" zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>
         <th class="tableheader">Value</th>

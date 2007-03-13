@@ -1,7 +1,32 @@
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+
+        <tal:block tal:define=" 
+            tabletitle tabletitle | string:">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
 <tr>
 <td class="errortitle">
     Events Unavailable
 </td>
 </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+

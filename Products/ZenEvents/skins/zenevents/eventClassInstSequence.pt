@@ -2,18 +2,32 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" tal:attributes="action here/absolute_url_path">
-<table class="zentable" cellpadding="3" cellspacing="1"
-        tal:define="objects here/sameKey;
+
+
+        <tal:block tal:define="objects here/sameKey;
         tableName string:eventinstsequence;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                    sortedHeader='sequence');">
+                                                    sortedHeader='sequence'); 
+            tabletitle string:">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <tr><th class="tabletitle" align="left" colspan="4"
-        tal:content="string:Order of Processing for Key: ${here/eventClassKey}">
-        </th>
-    </tr>
+    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Sequence')">
@@ -60,7 +74,14 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 
 </tal:block>

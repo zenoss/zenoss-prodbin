@@ -4,7 +4,25 @@
 			objects event/getEventDetails;
 			fields event/getEventFields;"
 			>
-		<table class="zentable" cellpadding="3" cellspacing="1">
+		
+
+        <tal:block tal:define="odd repeat/field/odd; 
+            tabletitle string:Event Detail">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
 		    <tr>
 		        <th class="tableheader">Field</th>
 		        <th class="tableheader">Value</th>
@@ -16,6 +34,13 @@
 		        <td class="tablevalues" tal:content="python:field[1]">value</td>
 		    </tr>
 		    </tal:block>
-		</table>
+		
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 	</tal:block>
 </tal:block>

@@ -17,19 +17,39 @@
             <script type="text/javascript" 
                 src="/zport/js/MochiKit.js"></script>
         
-            <table class="zentable" cellspacing="1">
-                <tr>
-                    <td class="tabletitle" colspan="1" align="center"
-                        tal:repeat="tab python:event.zentinelTabs(template.id)">
-                        <a class="tabletitle"
+            
+
+        <tal:block tal:define=" 
+            tabletitle string:<a class="tabletitle"
                         tal:attributes="href python:tab['action']+'?evid=%s'%evid;
                            class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
                         tal:content="tab/name">
                         TabName
-                        </a>
-                    </td>
-                </tr>
-            </table>
+                        </a>">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+                
+            
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
             <script>
             var tt = document.getElementById("tabsPane")
             if(tt) {

@@ -1,7 +1,25 @@
 <tal:block metal:use-macro="here/viewEventMacros/macros/betterEventDetailPage">
 	<tal:block metal:fill-slot="eventContentPane"
 		tal:define="objects event/getEventLogs;">
-		<table class="zentable" cellpadding="3" cellspacing="1">
+		
+
+        <tal:block tal:define=" 
+            tabletitle string:Event Log">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
 		    <tr>
 		        <th class="tableheader">Date</th>
 		        <th class="tableheader">User</th>
@@ -24,6 +42,13 @@
 		        </form>
 		      </td>
 		    </tr>
-		</table>
+		
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 	</tal:block>
 </tal:block>

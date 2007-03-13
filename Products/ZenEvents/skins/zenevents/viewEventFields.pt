@@ -22,7 +22,7 @@
 </head>
 <tal:block metal:define-macro="eventTabs">
 <div id="tabsPane">
-<table class="zentable" cellspacing="1">
+<table class=" zentable" cellspacing="1">
     <tr>
         <td class="tabletitle" colspan=3 
             tal:content="string:Event: ${evid}">
@@ -54,7 +54,7 @@ if(tt) {
 </tal:block>
 </tal:block>
 <tal:block metal:define-macro="eventFields">
-<table class="zentable" cellpadding="3" cellspacing="1">
+<table class=" zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>
         <th class="tableheader">Value</th>

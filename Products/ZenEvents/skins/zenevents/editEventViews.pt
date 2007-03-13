@@ -2,11 +2,28 @@
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-<table class="zentable"  cellpadding="3" cellspacing="1"
-    tal:define="objects python:here.objectValues(spec='CustomEventView');
+
+
+        <tal:block tal:define="objects python:here.objectValues(spec='CustomEventView');
     tableName string:eventactionrules;
     zem here/ZenTableManager;
-    batch python:zem.getBatch(tableName,objects);">
+    batch python:zem.getBatch(tableName,objects); 
+            tabletitle string:">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
     <th tal:replace="structure python:zem.getTableHeader(
@@ -28,7 +45,7 @@
             tal:content="view/getId"/>
         <td class="tablevalues" tal:content="view/type"/>
         <td class="tablevalues">
-        <table class="zentable" border=0 cellpadding=0 cellspacing=1
+        <table class=" zentable" border=0 cellpadding=0 cellspacing=1
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>">
@@ -63,7 +80,14 @@
                 onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 </form>
 </tal:block>
 </tal:block>

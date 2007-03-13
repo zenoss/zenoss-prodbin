@@ -2,10 +2,26 @@
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
-<table class="zentable" cellpadding="3" cellspacing="1">
-   <tr>
-        <th class="tabletitle" colspan="4">Connection Information</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Connection Information">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+   
     <tr>
         <td class="tableheader" width="25%">Backend Type</td>
         <td class="tablevalues" tal:content="here/backend"/>
@@ -45,12 +61,35 @@
                 tal:attributes='value here/port'>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br>
-<table class="zentable" cellpadding="3" cellspacing="1">
-   <tr>
-        <th class="tabletitle" colspan="4">Cache</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Cache">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+   
     <tr>
         <td class="tableheader" width="25%">Cache Timeout</td>
         <td class="tablevalues"> 
@@ -79,12 +118,35 @@
                 tal:attributes='value here/dmd/ZenEventHistory/clearthresh'>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br>
-<table class="zentable" cellpadding="3" cellspacing="1">
-   <tr>
-        <th class="tabletitle" colspan="4">Maintenance</th>
-    </tr>
+
+
+        <tal:block tal:define=" 
+            tabletitle string:Maintenance">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+   
     <tr class='tableheader'>
         <td class="tableheader">
             Event Aging Threshold (hours)
@@ -156,9 +218,17 @@
                 name='manage_clearHeartbeats:method'>
         </td>
     </tr>
-</table>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
 <br>
-<table class="zentable" cellpadding="3" cellspacing="1">
+
+<table class=" zentable">
     <tr>
         <td class="tableheader" width='25%'>Save Changes</td>
         <td class="tableheader">
@@ -167,6 +237,8 @@
         </td>
     </tr>
 </table>
+        
+
 </form>
 </tal:block>
 </tal:block>
