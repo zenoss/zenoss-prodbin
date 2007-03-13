@@ -15,11 +15,11 @@ class DbAccessBase(object):
     def connect(self):
         """Load our database driver and connect to the database."""
         return self._cpool.get(backend=self.backend, 
-                           host=self.host,
-                           port=self.port,
-                           username=self.username,
-                           password=self.password,
-                           database=self.database)
+                               host=self.host,
+                               port=self.port,
+                               username=self.username,
+                               password=self.password,
+                               database=self.database)
 
     def cleanstring(self, value):
         """Remove the trailing \x00 off the end of a string."""
