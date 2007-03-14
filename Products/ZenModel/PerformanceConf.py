@@ -158,7 +158,6 @@ class PerformanceConf(Monitor, StatusColor):
             if dev.snmpMonitorDevice():
                 all.add(dev.id)
                 if lastChanged.get(dev.id, 0) < float(dev.getLastChange()):
-                    print dev.id
                     new.add(dev.id)
         deleted = Set(lastChanged.keys()) - all
         return list(new | deleted)
