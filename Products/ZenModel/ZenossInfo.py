@@ -79,7 +79,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getOSVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getOSVersion())
             v.full()
@@ -102,7 +102,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getPythonVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getPythonVersion())
             v.full()
@@ -115,7 +115,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getMySQLVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getMySQLVersion())
             v.full()
@@ -146,7 +146,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getRRDToolVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getRRDToolVersion())
             v.full()
@@ -165,7 +165,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getTwistedVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getTwistedVersion())
             v.full()
@@ -178,7 +178,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getPySNMPVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getpySNMPVersion())
             v.full()
@@ -190,7 +190,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getTwistedSNMPVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getTwistedSNMPVersion())
             v.full()
@@ -202,7 +202,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     def getZopeVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
-        object, use exteneded call syntax:
+        object, use extended call syntax:
 
             v = Version(*getZopeVersion())
             v.full()
