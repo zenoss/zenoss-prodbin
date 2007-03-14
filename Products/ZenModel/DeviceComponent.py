@@ -1,4 +1,4 @@
-#################################################################
+g#################################################################
 #
 #   Copyright (c) 2002 Zenoss, Inc. All rights reserved.
 #
@@ -17,7 +17,7 @@ from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from Lockable import Lockable
 
-class DeviceComponent(object, Lockable):
+class DeviceComponent(Lockable):
     """
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
@@ -84,24 +84,18 @@ class DeviceComponent(object, Lockable):
         return ""
 
     
-    def getRRDTemplate(self, name=None):
+    def getRRDTemplateByName(self, name):
         """Return the closest RRDTemplate named name by walking our aq chain.
         """
-        if not name: name = self.getRRDTemplateName()
-        templ = getattr(self, name, None)
-        if templ is None:
-            templ = super(DeviceComponent, self).getRRDTemplate(name)
-        return templ
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            return super(DeviceComponent, self).getRRDTemplateByName(name)
 
 
     def getNagiosTemplate(self, name=None):
         import warnings
         warnings.warn('anything named nagios is deprecated', DeprecationWarning)
-        if not name: name = self.getNagiosTemplateName()
-        templ = getattr(self, name+"_Nagios", None)
-        if templ is None:
-            templ = super(DeviceComponent, self).getNagiosTemplate(name)
-        return templ
 
 
     def getAqProperty(self, prop):

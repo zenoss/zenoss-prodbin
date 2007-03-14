@@ -335,6 +335,24 @@ class Device(ManagedEntity, Commandable, Lockable):
         self._lastChange = ZenDate('1968/1/8')
 
 
+
+    def getRRDTemplate(self):
+        import warnings
+        warnings.warn('Device.getRRDTemplate is deprecated',
+                         DeprecationWarning)
+        return ManagedEntity.getRRDTemplate(self)
+
+    def getRRDTemplates(self):
+        if not self.zDeviceTemplates:
+            return ManagedEntity.getRRDTemplates()
+        result = []
+        for name in self.zDeviceTemplates:
+            template = self.getRRDTemplateByName(name)
+            if template:
+                result.append(template)
+        return result
+
+
     def getRRDNames(self):
         return ['sysUpTime']
 
@@ -473,16 +491,6 @@ class Device(ManagedEntity, Commandable, Lockable):
         return (self.id, self.getXmlRpcStatus(), targets)
 
 
-    def getRRDTemplate(self, name=None):
-        """Return the closest RRDTemplate named name by walking our aq chain.
-        """
-        if not name: name = self.getRRDTemplateName()
-        templ = getattr(self, name, None)
-        if templ is None:
-            templ = super(Device, self).getRRDTemplate(name)
-        return templ
-        
-   
     def getHWManufacturerName(self):
         """Return the hardware manufacturer name of this device.
         """

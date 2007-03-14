@@ -4,7 +4,7 @@ UNLOCKED = 0
 DELETE_LOCKED = 1
 UPDATE_LOCKED = 2
 
-class Lockable:
+class Lockable(object):
     
     sendEventWhenBlockedFlag = False
     modelerLock = UNLOCKED

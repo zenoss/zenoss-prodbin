@@ -70,13 +70,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         """Return information used to monitor this process.
         """
         thresholds = []
-        try:
-            templ = self.getRRDTemplate(self.getRRDTemplateName())
-            if templ:
-                threshs = self.getThresholds(templ)
-                thresholds = threshs.items()
-        except RRDObjectNotFound, e:
-            log.warn(e)
+        for templ in self.getRRDTemplates():
+            thresholds.append(self.getThresholds(templ))
         return (self.id, self.name(), self.osProcessClass().ignoreParameters,
                 self.alertOnRestart(), self.getFailSeverity(), thresholds)
 
@@ -96,12 +91,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         if pClass:
             return pClass.getPrimaryDmdId()
        
-
-    def getRRDTemplateName(self):
-        """Return list of graph urls.
-        """
-        return "OSProcess"
-
 
     def getOSProcessClassLink(self):
         """Return an a link to the OSProcessClass.

@@ -117,27 +117,6 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                #{ 'id'            : 'perfConfig'
-                #, 'name'          : 'PerfConf'
-                #, 'action'        : 'perfConfig'
-                #, 'permissions'   : ("Change Device",)
-                #},
-                #{ 'id'            : 'config'
-                #, 'name'          : 'zProperties'
-                #, 'action'        : 'zPropertyEdit'
-                #, 'permissions'   : ("Change Device",)
-                #},
-                #{ 'id'            : 'manage'
-                #, 'name'          : 'Manage'
-                #, 'action'        : 'deviceOrganizerManage'
-                #, 'permissions'   : (
-                #  permissions.view, )
-                #},
-                #{ 'id'            : 'viewHistory'
-                #, 'name'          : 'Changes'
-                #, 'action'        : 'viewHistory'
-                #, 'permissions'   : (  permissions.view, )
-                #},
             )
          },
         )
@@ -145,20 +124,6 @@ class DeviceClass(DeviceOrganizer):
     security = ClassSecurityInfo()
 
     
-    security.declareProtected('View', 'zentinelTabs')
-    def zentinelTabs(self, templateName):
-        """Return a list of hashs that define the screen tabs for this object.
-        [{'name':'Name','action':'template','selected':False},...]
-        """
-        tabs = super(DeviceClass, self).zentinelTabs(templateName)
-        #if self.getPrimaryId() == "/zport/dmd/Devices" and self.isManager():
-        #    tab = {'action': 'editCustSchema', 'name':'Custom Schema'}
-        #    if templateName == tab['action']:
-        #        tab['selected'] = True
-        #    tabs.insert(-1, tab)
-        return tabs
-
-
     def getPeerDeviceClassNames(self, pyclass=None):
         "Return a list of all device paths that have the python class pyclass"
         if pyclass == None:
@@ -439,9 +404,10 @@ class DeviceClass(DeviceOrganizer):
         mychain = aq_chain(context)
         mychain.reverse()
         for obj in mychain:
-            if not getattr(aq_base(obj), 'rrdTemplates', False): continue
-            for t in obj.rrdTemplates():
-                templates[t.id] = t
+            try:
+                templates.update(dict([(t.id, t) for t in obj.rrdTemplates()]))
+            except AttributeError:
+                pass
         return templates.values()
             
 
@@ -584,6 +550,7 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zFileSystemMapIgnoreNames", "")
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
         devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
+        devs._setProperty("zDeviceTemplates", ["Device"], type="lines")
 
         # RRD properties
         #FIXME - should this be added to allow for more flexability of

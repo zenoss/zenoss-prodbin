@@ -1,11 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
-<tal:block metal:fill-slot="contentPane" 
-    tal:define="templ here/getRRDTemplate; 
-                editable python:templ.isEditable(here)">
+<tal:block metal:fill-slot="contentPane">
+<tal:block tal:repeat="templ here/getRRDTemplates">
+<tal:block tal:define="editable python:templ.isEditable(here)">
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-
-
 
         <tal:block tal:define=" tabletitle string:">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -22,7 +20,8 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
+                            
     <tr class="tableheader">
         <td>
             RRDTemplate @ <a tal:attributes="href templ/getPrimaryUrlPath"
@@ -46,7 +45,6 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
 
 </form>
 <br/>
@@ -108,6 +106,8 @@
 </tal:block>
 </form>
 
+</tal:block>        
+</tal:block>        
 
 </tal:block>
 </tal:block>
