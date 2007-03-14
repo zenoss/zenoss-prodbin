@@ -67,3 +67,4 @@ import eventclassmapping
 import zenuilayer
 import packs
 import menus
+import deviceTemplatesProperty
