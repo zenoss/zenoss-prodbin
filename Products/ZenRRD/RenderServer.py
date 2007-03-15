@@ -139,9 +139,9 @@ class RenderServer(RRDToolItem):
             tar.extract(file, destdir)
         tar.close()
     
-    def moveRRDFiles(self, device, user, passwd, server, REQUEST=None):
+    def moveRRDFiles(self, device, server, REQUEST=None):
         tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
-        f=open(tarfilename)
+        f=open(tarfilename, 'rb')
         tarfilebody=f.read()
         f.close()
         # urlencode the id, title and file
@@ -149,19 +149,22 @@ class RenderServer(RRDToolItem):
         'title':tarfilename,
         'file':tarfilebody})
         # send the file to zope
-        remoteUrl = '%s:%s@%s/zport/RenderServer/receiveRRDFiles' % (user, passwd, server)
+        port = 8080
+        remoteUrl = 'http://%s:%s/zport/RenderServer/receiveRRDFiles' % (server, port)
         f=urllib.urlopen(remoteUrl, params)
     
     def receiveRRDFiles(self, id, title, file, REQUEST=None):
-        tarfilename = '%s/%s' % (self.tmpdir, id)
-        f=open(tarfilename, 'w')
+        #tarfilename = '%s/%s' % (self.tmpdir, id)
+        tarfilename='/tmp/renderserver/test.tgz'
+        f=open(tarfilename, 'wb')
         f.write(file)
         f.close()
     
-    def sendRRDFiles(self, device, user, passwd, server, REQUEST=None):
+    def sendRRDFiles(self, device, server, REQUEST=None):
         self.packageRRDFiles(device, REQUEST)
-        self.moveRRDFiles(device, user, passwd, server, REQUEST)
-        remoteUrl = '%s:%s@%s/zport/RenderServer/unpackageRRDFiles?device=%s' % (user, passwd, server, device)
+        self.moveRRDFiles(device, server, REQUEST)
+        port = 8080
+        remoteUrl = 'http://%s:%s/zport/RenderServer/unpackageRRDFiles?device=%s' % (server, port, device)
         urllib.urlopen(remoteUrl).read()
     
     security.declareProtected('View', 'plugin')
