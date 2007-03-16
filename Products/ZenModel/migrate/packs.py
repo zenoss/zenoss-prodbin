@@ -25,6 +25,6 @@ class Packs(Migrate.Step):
                 pass
             for child in obj.objectValues():
                 recurse(child)
-        # recurse(dmd)
+        recurse(dmd)
 
 Packs()
