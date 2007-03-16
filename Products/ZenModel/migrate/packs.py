@@ -13,18 +13,24 @@ $Id:$
 import Migrate
 log = Migrate.log
 
+from Products.ZenModel.ZenPackable import ZenPackable
+
 class Packs(Migrate.Step):
     version = Migrate.Version(1, 2, 0)
 
     def cutover(self, dmd):
         def recurse(obj):
-            log.debug(obj.getPrimaryUrlPath())
             try:
-                obj.buildRelations()
-            except AttributeError:
-                pass
-            for child in obj.objectValues():
-                recurse(child)
+                path = obj.getPrimaryUrlPath()
+                if obj.getPrimaryUrlPath() not in ('/zport/dmd/Devices',
+                                                   '/zport/dmd/Networks'):
+                    log.debug(path)
+                    if isinstance(obj, ZenPackable):
+                        obj.buildRelations()
+                    for child in obj.objectValues():
+                        recurse(child)
+            except Exception, ex:
+                log.debug("Exception building relations: %s", ex)
         recurse(dmd)
 
 Packs()
