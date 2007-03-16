@@ -22,6 +22,7 @@ class ZenMenuItem(ZenModelRM):
     action = ""
     permissions = (Permissions.view,)
     isglobal = True
+    isdialog = False
     banned_classes = () 
     allowed_classes = ()
     
@@ -32,6 +33,7 @@ class ZenMenuItem(ZenModelRM):
         {'id':'permissions', 'type':'lines', 'mode':'w'},
         {'id':'banned_classes','type':'lines','mode':'w'},
         {'id':'allowed_classes','type':'lines','mode':'w'},
+        {'id':'isdialog', 'type':'boolean','mode':'w'},
         )
 
     _relations =  (
