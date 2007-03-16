@@ -120,7 +120,7 @@ div.logo {
     position: absolute;
     top: 0px;
     right: 0px;
-    z-index: 3000px;
+    z-index: 3000;
     padding: 0pt;
 }
 
