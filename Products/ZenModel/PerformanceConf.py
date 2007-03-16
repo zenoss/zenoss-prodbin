@@ -169,9 +169,9 @@ class PerformanceConf(Monitor, StatusColor):
         counts = {}
         try:
             # get all the events with /Status/Snmp
+            zem = self.ZenEventManager
+            conn = zem.connect()
             try:
-                zem = self.ZenEventManager
-                conn = zem.connect()
                 curs = conn.cursor()
                 cmd = ('SELECT device, sum(count)  ' +
                        '  FROM status ' +
