@@ -23,7 +23,6 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Organizer import Organizer
 from Report import Report
-from ZenPackable import ZenPackable
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
