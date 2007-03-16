@@ -14,7 +14,7 @@
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
 <tal:block tal:define="tabletitle string:Device List;
                         showfilterbox python:True;
-                        menu_id string:Device">
+                        menu_id string:Device_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -27,9 +27,6 @@
 		 metal:use-macro="here/zenTableNavigation/macros/navbodypagedevice"/>
 	</td>
 	</tr>
-	<tal:block tal:define="numColumns string:5">
-		<tal:block metal:use-macro="here/deviceListMacro/macros/deviceControl"/>
-	</tal:block>
 
 <!-- END TABLE CONTENTS -->
 

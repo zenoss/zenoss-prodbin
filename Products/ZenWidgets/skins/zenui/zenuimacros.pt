@@ -165,7 +165,7 @@ padding-right:20px;margin-left:20px;}</style>
             Zentable macro
 ====================================-->
 <tal:block metal:define-macro="zentable">
-    <table class="zentable">
+    <table class=" zentable">
         <tr tal:define="tabletitle tabletitle|string:">
         <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
             <tal:block metal:fill-slot="filterslot">

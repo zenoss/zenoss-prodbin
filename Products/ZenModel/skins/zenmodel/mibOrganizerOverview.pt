@@ -4,6 +4,7 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="objects here/children;
         tableName string:children;
+        showfilterbox python:True;
         tabletitle string:Sub-Folders;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -93,8 +94,10 @@ Optional titlebar stuff
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="objects here/mibs;
         tableName string:mibslist;
+        showfilterbox python:True;
         tabletitle string:Mibs;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+        batch python:here.ZenTableManager.getBatch(tableName,objects);"
+        tal:condition="objects">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 

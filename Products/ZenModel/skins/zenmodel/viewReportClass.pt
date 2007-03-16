@@ -7,8 +7,10 @@
 
         <tal:block tal:define="tableName string:reportorgs;
         objects here/children;
+        showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
-        tabletitle string:Report Organizers">
+        tabletitle string:Report Organizers"
+        tal:condition="objects">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -72,7 +74,10 @@
 
         <tal:block tal:define="tableName string:reportlist;
         objects here/reports;
-        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Reports">
+        showfilterbox python:True;
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:Reports"
+        tal:condition="objects">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

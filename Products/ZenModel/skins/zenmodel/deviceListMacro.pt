@@ -37,9 +37,12 @@
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 
 
-        <tal:block tal:define="objects here/devices/objectValuesAll;
+    <tal:block tal:define="objects python:list(here.devices.objectValuesAll());
         tableName string:devicelistmacro;
-        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Devices">
+        showfilterbox python:True;
+        menu_id string:device_list;
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:Devices">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

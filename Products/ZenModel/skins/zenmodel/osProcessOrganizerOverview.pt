@@ -6,6 +6,7 @@
 
 <tal:block tal:define="objects here/children;
         tableName string:children;
+        showfilterbox python:True;
         tabletitle string:Sub-Folders;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -80,6 +81,7 @@
 
 <tal:block tal:define="objects here/osProcessClasses;
         tableName string:osprocessclasseslist;
+        showfilterbox python:True;
         tabletitle string:Processes;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

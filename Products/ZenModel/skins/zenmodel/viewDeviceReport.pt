@@ -20,7 +20,8 @@
 						tableName, objects, 
 						sortedHeader=here.sortedHeader, 
 						sortedSence=here.sortedSence); 
-                        tabletitle string:Device Report">
+                showfilterbox python:True;
+                tabletitle string:Device Report">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

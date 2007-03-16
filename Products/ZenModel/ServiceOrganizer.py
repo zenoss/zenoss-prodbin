@@ -14,6 +14,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
 from Commandable import Commandable
+from ZenMenuable import ZenMenuable
 
 from Products.ZenRelations.RelSchema import *
 

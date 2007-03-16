@@ -12,16 +12,6 @@
 <!-- BEGIN TABLE CONTENTS -->
         
     <tr>
-        <td tal:define="tabletitle python:here.lockStatus();
-                        menu_id string:Lockable">
-          <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-        </td>
-        <td tal:define="tabletitle python:here.lockWarning();
-                        menu_id string:LockWarning">
-          <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle"/>
-        </td>
-    </tr>
-    <tr>
       <td class="tableheader">Events</td>
       <td class="tablevalues rainbow">
         <table width='100%' 

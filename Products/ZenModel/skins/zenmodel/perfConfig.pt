@@ -7,6 +7,7 @@
     tal:define="
         tableName string:rrdtemplatelist;
         objects here/getRRDTemplates;
+        showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:Performance Templates; ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

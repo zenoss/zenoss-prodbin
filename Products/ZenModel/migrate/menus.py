@@ -59,13 +59,12 @@ class MenuRelations(Migrate.Step):
                     ),
                 dict(
                      id=         'viewHistory',
-                     description='Changes',
+                     description='View Changes',
                      action=     'viewHistory',
                      permissions=('View',)
                     )
              ]
             })
-
 
         dmd.Devices.buildMenus(
             {'Context':[
@@ -109,8 +108,46 @@ class MenuRelations(Migrate.Step):
                      action=     'zPropertyEdit',
                      permissions=('Change Device',)
                     ),
+                dict(
+                     id=         'unlock',
+                     description='Unlock',
+                     action=     'unlock',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'lockFromDeletion',
+                     description='Lock from deletion',
+                     action=     'lockFromDeletion',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'lockFromUpdate',
+                     description='Lock from update/deletion',
+                     action=     'lockFromUpdate',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'setSendEventWhenBlockedFlag',
+                     description='Send event when blocked',
+                     action=     'setSendEventWhenBlockedFlag',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
+                dict(
+                     id=         'unsetSendEventWhenBlockedFlag',
+                     description='Do not send event when blocked',
+                     action=     'unsetSendEventWhenBlockedFlag',
+                     permissions=('Change Device',),
+                     allowed_classes=('Device','DeviceComponent')
+                    ),
                 ],
-            'Device':[
+            'Device_org_list':[
+
+                ],
+            'Device_list':[
                 dict(
                     id=         'moveclass',
                     description='Move to Class...',
@@ -148,45 +185,6 @@ class MenuRelations(Migrate.Step):
                     permissions=('View',)
                     ),
                 ],
-            'Lockable':[
-                dict(
-                     id=         'unlock',
-                     description='Unlock',
-                     action=     'unlock',
-                     permissions=('Change Device',),
-                     allowed_classes=('Device','DeviceComponent')
-                    ),
-                dict(
-                     id=         'lockFromDeletion',
-                     description='Lock from deletion',
-                     action=     'lockFromDeletion',
-                     permissions=('Change Device',),
-                     allowed_classes=('Device','DeviceComponent')
-                    ),
-                dict(
-                     id=         'lockFromUpdate',
-                     description='Lock from update/deletion',
-                     action=     'lockFromUpdate',
-                     permissions=('Change Device',),
-                     allowed_classes=('Device','DeviceComponent')
-                    ),
-                ],
-            'LockWarning':[
-                dict(
-                     id=         'setSendEventWhenBlockedFlag',
-                     description='Send event when blocked',
-                     action=     'setSendEventWhenBlockedFlag',
-                     permissions=('Change Device',),
-                     allowed_classes=('Device','DeviceComponent')
-                    ),
-                dict(
-                     id=         'unsetSendEventWhenBlockedFlag',
-                     description='Do not send event when blocked',
-                     action=     'unsetSendEventWhenBlockedFlag',
-                     permissions=('Change Device',),
-                     allowed_classes=('Device','DeviceComponent')
-                    ),
-                ]
             })
 
 

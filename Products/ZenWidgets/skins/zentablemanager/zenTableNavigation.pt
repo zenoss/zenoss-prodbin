@@ -59,11 +59,12 @@
 				tal:attributes="checked ts/onlyMonitored" />
 			&nbsp;&nbsp;
 		</tal:block>
+        <!--
 	    Filter
 	    <input class="tableheader" type="text" name="filter" size=15 value=""
 	        onkeypress="submitViaEnter(event)"
 	        tal:attributes="value ts/filter" />
-	    &nbsp;&nbsp;
+	    &nbsp;&nbsp;-->
 	    Page Size
 	    <input class="tableheader" type="text" name="batchSize" size=3 value=""
 	        onkeypress="submitViaEnter(event)"
@@ -150,11 +151,12 @@
         tal:define="ts python:here.ZenTableManager.getTableState(tableName);
 					message request/SESSION/message | nothing;"
         style="border:0; padding-top:2px;margin-bottom:2px;">
+    <!-- Filter boxes moved up into table header
     <div style="padding-left: 10px; float: left; text-align:left;">
     Filter
     <input class="tableheader" type="text" name="filter" size=40 value=""
         onkeypress="submitViaEnter(event)"
-        tal:attributes="value ts/filter" />
+        tal:attributes="value ts/filter" />-->
     <span style="height:1em;line-height:1em;padding-left:2em;
                  color:red;font-weight:bold;" 
 		tal:content="message"
