@@ -151,8 +151,8 @@
         tal:define="ts python:here.ZenTableManager.getTableState(tableName);
 					message request/SESSION/message | nothing;"
         style="border:0; padding-top:2px;margin-bottom:2px;">
-    <!-- Filter boxes moved up into table header
     <div style="padding-left: 10px; float: left; text-align:left;">
+    <!-- Filter boxes moved up into table header
     Filter
     <input class="tableheader" type="text" name="filter" size=40 value=""
         onkeypress="submitViaEnter(event)"
