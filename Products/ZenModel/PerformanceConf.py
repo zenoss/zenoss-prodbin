@@ -169,7 +169,7 @@ class PerformanceConf(Monitor, StatusColor):
         counts = {}
         try:
             # get all the events with /Status/Snmp
-            zem = self.ZenEventManager
+            zem = self.dmd.ZenEventManager
             conn = zem.connect()
             try:
                 curs = conn.cursor()
@@ -206,8 +206,7 @@ class PerformanceConf(Monitor, StatusColor):
             curs.execute(query)
             for device, component, count in curs.fetchall():
                 down[device] = (component, count)
-        finally:
-            conn.close()
+        finally: zem.close(conn)
         result = []
         for dev in self.devices():
             try:
