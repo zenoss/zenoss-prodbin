@@ -66,8 +66,6 @@ class Report(ZopePageTemplate, ZenModelRM, ZenPackable):
     # this is deprecated don't use!!!
     description = ""
 
-    _relations = ZenPackable._relations
-
     security = ClassSecurityInfo()
 
 
