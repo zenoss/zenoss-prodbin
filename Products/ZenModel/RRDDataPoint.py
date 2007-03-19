@@ -136,8 +136,10 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
                         (dest,src,self.limit,src))
             src = dest
 
-        if not self.color: src += defaultcolor
-        else: src += self.color
+        color = defaultcolor
+        if self.color:
+            color = self.color
+        src += '#%s' % color.lstrip('#')
         
         if not self.linetype: type = defaulttype
         else: type = self.linetype
