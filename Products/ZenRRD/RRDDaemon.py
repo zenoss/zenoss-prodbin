@@ -20,11 +20,12 @@ import Globals
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp, App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Heartbeat
-from Products.ZenUtils.TwistedAuth import AuthProxy
+#from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
 
 from twisted.internet import reactor, error
 from twisted.python import failure
+from twisted.web.xmlrpc import Proxy
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase as Base
 
@@ -168,8 +169,8 @@ class RRDDaemon(Base):
             self.zem = self.buildProxy(self.options.zem)
 
     def buildProxy(self, url):
-        "create AuthProxy objects with our config and the given url"
-        return AuthProxy(url,
+        "create Proxy objects with our config and the given url"
+        return Proxy(url,
                          self.options.zopeusername,
                          self.options.zopepassword)
 
