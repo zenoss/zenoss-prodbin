@@ -56,7 +56,7 @@ addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 
 # when an ip is added the defaul location will be
 # into class A->B->C network tree
-defaultNetworkTree = (8,16,24)
+defaultNetworkTree = (32,)
 
 class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""

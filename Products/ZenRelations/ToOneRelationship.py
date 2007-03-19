@@ -21,7 +21,6 @@ log = logging.getLogger("zen.Relations")
 
 # Base classes for ToOneRelationship
 from RelationshipBase import RelationshipBase
-from OFS.SimpleItem import SimpleItem
 
 from Globals import InitializeClass
 from Globals import DTMLFile
@@ -43,7 +42,7 @@ def manage_addToOneRelationship(context, id, REQUEST = None):
 addToOneRelationship = DTMLFile('dtml/addToOneRelationship',globals())
 
 
-class ToOneRelationship(RelationshipBase, SimpleItem):
+class ToOneRelationship(RelationshipBase):
     """ToOneRelationship represents a to one Relationship 
     on a RelationshipManager"""
 
@@ -73,12 +72,14 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         if obj == self.obj: raise RelationshipExistsError
         self._remoteRemove()
         self.obj = aq_base(obj)
+        self.__primary_parent__._p_changed = True
 
 
     def _remove(self,obj=None):
         """remove the to one side of a relationship"""
         if obj == None or obj == self.obj:
             self.obj = None 
+            self.__primary_parent__._p_changed = True
         else:
             raise ObjectNotFound
 
@@ -114,6 +115,14 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         return rel
 
 
+    def manage_afterAdd(self, item, container): 
+        """Don't do anything here because we have on containment"""
+        pass
+
+    def manage_afterClone(self, item):
+        """Don't do anything here because we have on containment"""
+        pass
+
     def manage_beforeDelete(self, item, container):
         """
         There are 4 possible states during when beforeDelete is called.
@@ -125,7 +134,8 @@ class ToOneRelationship(RelationshipBase, SimpleItem):
         ToOne doesn't call beforeDelete on its related object because its 
         not a container.
         """
-        if getattr(item, "_operation", -1) < 1: 
+        if (getattr(item, "_operation", -1) < 1 
+            and self.remoteTypeName() != 'ToManyCont'): 
             self._remoteRemove()
 
 

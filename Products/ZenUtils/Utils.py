@@ -463,4 +463,19 @@ def sendPage(recipient, msg, snppHost, snppPort):
     else:
         result = (True, '')
     return result
-        
+       
+
+def zdecode(context, value):
+    if type(value) in types.StringTypes:
+        decoding = getattr(obj, 'zCollectorDecoding', 'latin-1')
+        value = value.decode(decoding)
+    return value
+
+
+def localIpCheck(context, ip):
+    """Test to see if ip it should not be included in the network map."""
+    return re.search(getattr(context, 'zLocalIpAddresses', '^$'), ip) 
+
+def localInterfaceCheck(context, intname):
+    """Test to see if ips on an in should not be included in the network map."""
+    return re.search(getattr(context, 'zLoaclInterfaceNames', '^$'), intname)

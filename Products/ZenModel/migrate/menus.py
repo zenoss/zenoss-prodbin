@@ -24,28 +24,28 @@ class MenuRelations(Migrate.Step):
 
     def cutover(self, dmd):
         dmd.buildRelations()
-        for dev in dmd.Devices.getSubDevices():
-            dev.buildRelations()
-        for name in ['Devices', 'Systems', 'Groups', 'Locations',
-                        'Services', 'Processes']:
-            top = getattr(dmd, name)
-            orgs = top.getSubOrganizers()
-            orgs.insert(0, top)
-            for o in orgs:
-                o.buildRelations()
-                if name == 'Devices':
-                    for d in o.devices():
-                        d.buildRelations()
-                        if getattr(d, 'os', None):
-                            for n in ['ipservices', 'winservices', 'processes']:
-                                for p in getattr(d.os, n)():
-                                    p.buildRelations()
-                if name == 'Services':
-                    for sc in o.serviceclasses():
-                        sc.buildRelations()
-                if name == 'Processes':
-                    for pc in o.osProcessClasses():
-                        pc.buildRelations()
+#        for dev in dmd.Devices.getSubDevices():
+#            dev.buildRelations()
+#        for name in ['Devices', 'Systems', 'Groups', 'Locations',
+#                        'Services', 'Processes']:
+#            top = getattr(dmd, name)
+#            orgs = top.getSubOrganizers()
+#            orgs.insert(0, top)
+#            for o in orgs:
+#                o.buildRelations()
+#                if name == 'Devices':
+#                    for d in o.devices():
+#                        d.buildRelations()
+#                        if getattr(d, 'os', None):
+#                            for n in ['ipservices', 'winservices', 'processes']:
+#                                for p in getattr(d.os, n)():
+#                                    p.buildRelations()
+#                if name == 'Services':
+#                    for sc in o.serviceclasses():
+#                        sc.buildRelations()
+#                if name == 'Processes':
+#                    for pc in o.osProcessClasses():
+#                        pc.buildRelations()
 
         # Add menus.
         dmd.buildMenus(

@@ -272,6 +272,9 @@ class UserSettingsManager(ZenModelRM):
         return filter(rolefilter, self.valid_roles())
 
 
+    def exportXmlHook(self,ofile, ignorerels):
+        map(lambda x: x.exportXml(ofile, ignorerels), self.getAllUserSettings())
+    
 
 
 def manage_addUserSettings(context, id, title = None, REQUEST = None):

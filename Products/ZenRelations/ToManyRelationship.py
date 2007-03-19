@@ -47,6 +47,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     meta_type = "ToManyRelationship"
 
+    security = ClassSecurityInfo()
 
     def __init__(self, id):
         """ToManyRelationships use an array to store related objects"""
@@ -90,8 +91,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         """add an object to one side of this toMany relationship"""
         if obj in self._objects: raise RelationshipExistsError
         self._objects.append(aq_base(obj))
-        self._count=len(self._objects)
-        self._p_changed = 1
+        self.__primary_parent__._p_changed = True
 
 
     def _remove(self, obj=None):
@@ -105,8 +105,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                     (obj.id, self.id))
         else:
             self._objects = []
-        self._count=len(self._objects)
-        self._p_changed = 1
+        self.__primary_parent__._p_changed = True
 
 
     def _remoteRemove(self, obj=None):
@@ -161,6 +160,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         return []
              
 
+    security.declareProtected('View', 'objectValuesAll')
     def objectValuesAll(self):
         """return all related object values"""
         return [ob.__of__(self) for ob in self._objects]
@@ -258,7 +258,7 @@ class ToManyRelationship(ToManyRelationshipBase):
                 if repair: 
                     log.warn("removing rel to:%s", obj.getPrimaryId())
                     self._objects.remove(obj)
-                    self._p_changed = 1
+                    self.__primary_parent__._p_changed = True
 
         # find duplicate objects
         keycount = {}
@@ -281,11 +281,6 @@ class ToManyRelationship(ToManyRelationshipBase):
                         self._objects.append(obj)
                     except KeyError:
                         log.critical("obj %s not found in database", key)
-
-        # Fix bad count cache
-        if repair and len(self._objects) != self._count: 
-            log.warn("resetting count on %s", self.getPrimaryId()) 
-            self._resetCount()
 
 
 InitializeClass(ToManyRelationship)

@@ -10,8 +10,11 @@ __doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
 __version__ = "$Revision: 1.48 $"[11:-2]
 
 # Base classes for ToManyRelationshipBase
-from PrimaryPathObjectManager import PrimaryPathObjectManager
+#from PrimaryPathObjectManager import PrimaryPathObjectManager
 from RelationshipBase import RelationshipBase
+from RelCopySupport import RelCopyContainer
+from OFS.Traversable import Traversable
+from Acquisition import Implicit
 
 from Globals import DTMLFile
 from Acquisition import aq_base, aq_parent
@@ -21,7 +24,10 @@ from App.Management import Tabs
 
 from Products.ZenRelations.Exceptions import zenmarker
 
-class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
+class ToManyRelationshipBase(
+            RelCopyContainer, 
+            RelationshipBase
+            ):
     """
     Abstract base class for all ToMany relationships.
     """
@@ -32,19 +38,12 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
 
     _operation = -1 # if a Relationship's are only deleted
 
-    _count = 0
 
     def countObjects(self):
         """Return the number of objects in this relationship"""
-        return self._count
+        return len(self._objects)
 
    
-    def _resetCount(self):
-        """Reset the count of the total objects in this relation.
-        """
-        self._count = len(self._objects)
-
-
     def findObjectsById(self, partid):
         """Return a list of objects by running find on their id"""
         objects = []
@@ -58,6 +57,7 @@ class ToManyRelationshipBase(PrimaryPathObjectManager, RelationshipBase):
         """Emulate ObjectManager deletetion."""
         obj = self._getOb(id)
         self.removeRelation(obj)
+        obj.__primary_parent__ = None
 
     
     def _setOb(self, id, obj): 

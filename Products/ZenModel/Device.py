@@ -1315,5 +1315,12 @@ class Device(ManagedEntity, Commandable, Lockable):
         environ.update({'dev': context,  'device': context,})
         return environ
 
+    
+    def exportXmlHook(self, ofile, ignorerels):
+        """Add export of our child objects.
+        """
+        map(lambda o: o.exportXml(ofile, ignorerels), (self.hw, self.os))
+
+
 
 InitializeClass(Device)

@@ -117,7 +117,7 @@ class zenbuild(CmdBase):
                                 self.options.snpphost, 
                                 self.options.snppport)
         dmdBuilder.build()
-        
+        transaction.commit() 
         # Set smtp and snpp values
         
 

@@ -6,7 +6,7 @@ objnoprops = \
 
 objwithprops = \
 """<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
-<property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
+<property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
 </object>
@@ -14,7 +14,7 @@ objwithprops = \
 
 objwithtoone = \
 """<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
-<property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
+<property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
 <toone id='location' objid='loc'/>
@@ -31,7 +31,7 @@ objwithtomany = \
 
 objwithtomanycont = \
 """<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
-<property setter='setPingStatus' type='int' id='pingStatus' mode='w' >
+<property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
 <tomanycont id='interfaces'>

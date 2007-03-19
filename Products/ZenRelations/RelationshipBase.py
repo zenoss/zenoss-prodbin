@@ -24,6 +24,7 @@ from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *
 from Products.ZenRelations.utils import importClass
+
 from PrimaryPathObjectManager import PrimaryPathManager
 
 class RelationshipBase(PrimaryPathManager):
@@ -37,7 +38,11 @@ class RelationshipBase(PrimaryPathManager):
         """Return the contents of this relation."""
         raise NotImplementedError
 
-        
+    
+    def getId(self):
+        return self.id
+
+
     def hasobject(self, obj):
         """Does this relationship relate to obj."""
         raise NotImplementedError

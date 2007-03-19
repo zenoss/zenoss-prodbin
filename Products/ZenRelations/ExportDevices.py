@@ -81,7 +81,8 @@ class ExportDevices(ZCmdBase):
         root = self.dmd.Devices
         buffer = StringIO.StringIO()
         if hasattr(root, "exportXml"):
-            buffer.write("""<?xml version="1.0"?>\n""")
+            buffer = self.outfile
+            buffer.write("""<?xml version="1.0"? encoding='latin-1'>\n""")
             buffer.write("<objects>\n")
             root.exportXml(buffer,self.options.ignorerels,True)
             buffer.write("</objects>\n")

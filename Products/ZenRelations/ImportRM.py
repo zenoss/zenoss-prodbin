@@ -22,6 +22,7 @@ from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
 
 from Acquisition import aq_base
+from zExceptions import NotFound
 
 from DateTime import DateTime
 
@@ -101,7 +102,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                 obj = getObjByPath(self.app, id)
             else:
                 obj = self.context()._getOb(id)
-        except (KeyError, AttributeError): pass
+        except (KeyError, AttributeError, NotFound): pass
         if obj is None:
             klass = importClass(attrs.get('module'), attrs.get('class'))
             if id.find("/") > -1:
@@ -111,8 +112,8 @@ class ImportRM(ZCmdBase, ContentHandler):
             obj = klass(id)
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
-            transaction.savepoint()
             self.objectnumber += 1
+            if self.objectnumber % 5000 == 0: transaction.savepoint()
             self.log.debug("Added object %s to database" % obj.getPrimaryId())
         else:
             self.log.warn("Object %s already exists skipping" % id)
@@ -136,9 +137,12 @@ class ImportRM(ZCmdBase, ContentHandler):
             except IndexError:
 		proptype = 'string'
         if proptype == "date":
+            try: value = float(value)
+            except ValueError: pass
             value = DateTime(value)
         elif proptype != "string" and proptype != 'text':
-            value = eval(value)
+            try: value = eval(value)
+            except SyntaxError: pass
         if not obj.hasProperty(name):
             obj._setProperty(name, value, type=proptype, setter=setter)
         else:
@@ -164,7 +168,7 @@ class ImportRM(ZCmdBase, ContentHandler):
             except:
                 self.log.critical(
                     "Failed linking relation %s to object %s",relid,objid)
-                raise
+                #raise
                                 
 
 

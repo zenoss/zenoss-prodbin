@@ -551,6 +551,9 @@ class DeviceClass(DeviceOrganizer):
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
         devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
         devs._setProperty("zDeviceTemplates", ["Device"], type="lines")
+        devs._setProperty("zLocalIpAddresses", "^127|^0\.0|^169\.254|^224")
+        devs._setProperty("zLocalInterfaceNames", "^lo|^vmnet")
+
 
         # RRD properties
         #FIXME - should this be added to allow for more flexability of

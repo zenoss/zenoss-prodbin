@@ -15,6 +15,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
+from OFS.ObjectManager import checkValidId
 
 from BTrees.OOBTree import OOBTree
 
@@ -42,6 +43,8 @@ class ToManyContRelationship(ToManyRelationshipBase):
     """
 
     meta_type = "ToManyContRelationship"
+
+    security = ClassSecurityInfo()
 
 
     def __init__(self, id):
@@ -87,20 +90,57 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """ObjectManager interface to add contained object."""
         object.__primary_parent__ = aq_base(self)
         self.addRelation(object)
+        object.manage_afterAdd(object, self)
         return object.getId()
+
+
+    def manage_afterAdd(self, item, container):
+        """
+        Copied code from ObjectManager
+        """
+        for object in self.objectValues():
+            try: s=object._p_changed
+            except: s=0
+            if hasattr(aq_base(object), 'manage_afterAdd'):
+                object.manage_afterAdd(item, container)
+            if s is None: object._p_deactivate()
+
+
+    def manage_afterClone(self, item):
+        """
+        Copied code from ObjectManager
+        """
+        for object in self.objectValues():
+            try: s=object._p_changed
+            except: s=0
+            if hasattr(aq_base(object), 'manage_afterClone'):
+                object.manage_afterClone(item)
+            if s is None: object._p_deactivate()
 
 
     def manage_beforeDelete(self, item, container):
         """
-        there are 4 possible states for _operation during beforeDelete
-        -1 = object being deleted remove relation
-        0 = copy, 1 = move, 2 = rename
-        ToManyCont will propagate beforeDelete because its a container
+        Copied code from ObjectManager
         """
-        if getattr(item, "_operation", -1) < 1:
-            self._remoteRemove()
-        ToManyRelationshipBase.manage_beforeDelete(self, item, container)
-        
+        for object in self.objectValues():
+            try: s=object._p_changed
+            except: s=0
+            try:
+                if hasattr(aq_base(object), 'manage_beforeDelete'):
+                    object.manage_beforeDelete(item, container)
+            except BeforeDeleteException, ob:
+                raise
+            except ConflictError:
+                raise
+            except:
+                LOG('Zope',ERROR,'manage_beforeDelete() threw',
+                    error=sys.exc_info())
+                # In debug mode when non-Manager, let exceptions propagate.
+                if getConfiguration().debug_mode:
+                    if not getSecurityManager().getUser().has_role('Manager'):
+                        raise
+            if s is None: object._p_deactivate()
+       
 
     def _add(self,obj):
         """add an object to one side of a ToManyContRelationship.
@@ -108,13 +148,10 @@ class ToManyContRelationship(ToManyRelationshipBase):
         id = obj.id
         if self._objects.has_key(id):
             raise RelationshipExistsError
-            #del self._objects[id]
-        v=self._checkId(id)
+        v=checkValidId(self, id)
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
-        self._count=len(self._objects)
-        self._p_changed = 1
 
 
     def _remove(self, obj=None):
@@ -132,8 +169,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             del self._objects[id]
         else:
             self._objects = OOBTree()
-        self._count=len(self._objects)
-        self._p_changed = 1
+            self.__primary_parent__._p_changed = True
 
 
     def _remoteRemove(self, obj=None):
@@ -158,6 +194,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         return default
 
 
+    security.declareProtected('View', 'objectIds')
     def objectIds(self, spec=None):
         """only return contained objects"""
         if spec:
@@ -168,6 +205,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
     objectIdsAll = objectIds
 
 
+    security.declareProtected('View', 'objectValues')
     def objectValues(self, spec=None):
         """over ride to only return owned objects for many to many rel"""
         if spec:
@@ -176,6 +214,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             return [ob.__of__(self) for ob in self._objects.values() \
                         if ob.meta_type in spec]
         return [ob.__of__(self) for ob in self._objects.values()]
+    security.declareProtected('View', 'objectValuesAll')
     objectValuesAll = objectValues
 
 
@@ -240,12 +279,4 @@ class ToManyContRelationship(ToManyRelationshipBase):
         ofile.write("</tomanycont>\n")
 
     
-    def checkRelation(self, repair=False):
-        """Check to make sure that relationship bidirectionality is ok.
-        """
-        if repair and len(self._objects) != self._count:
-            log.warn("resetting count on %s", self.getPrimaryId())
-            self._resetCount()
-
-
 InitializeClass(ToManyContRelationship)

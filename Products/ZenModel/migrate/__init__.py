@@ -65,6 +65,7 @@ import event_newclasses
 import defaultcommandtimeout
 import eventclassmapping
 import zenuilayer
-import packs
+#import packs
 import menus
 import deviceTemplatesProperty
+import zlocal

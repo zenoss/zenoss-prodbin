@@ -18,6 +18,7 @@ __version__ = '$Revision: 1.15 $'
 import types
 
 # base class for RelCopyContainer
+from OFS.ObjectManager import checkValidId
 from OFS.CopySupport import CopyContainer
 
 from Acquisition import aq_base
@@ -34,7 +35,7 @@ class RelCopyContainer(CopyContainer):
 
     def manage_renameObject(self, id, new_id, REQUEST=None):
         """Rename a particular sub-object"""
-        try: self._checkId(new_id)
+        try: checkValidId(self, new_id)
         except: raise CopyError, MessageDialog(
                       title='Invalid Id',
                       message=sys.exc_info()[1],

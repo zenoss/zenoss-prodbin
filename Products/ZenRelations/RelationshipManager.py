@@ -279,16 +279,22 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         for prop in self._properties:
             if not prop.has_key('id'): continue
             id = prop['id']
-            type = prop['type']
+            ptype = prop['type']
             value = getattr(aq_base(self), id, None) # use aq_base?
-            if not value and type not in ("int","float","boolean"): continue
+            if not value and ptype not in ("int","float","boolean"): continue
             stag = []
             stag.append('<property')
-            stag.extend(["%s=%s" % (k,saxutils.quoteattr(str(v))) \
-                         for k,v in prop.items()])
+            for k, v in prop.items():
+                if ptype != 'selection' and k == 'select_variable': continue
+                v = saxutils.quoteattr(str(v))
+                stag.append('%s=%s' % (k, v))
             stag.append('>')
             ofile.write(' '.join(stag)+"\n")
-            ofile.write(saxutils.escape(str(value))+"\n")
+            if type(value) not in types.StringTypes:
+                value = unicode(value)
+            elif type(value) == types.StringType:
+                value = value.decode('latin-1')
+            ofile.write(saxutils.escape(value).encode('utf-8')+"\n")
             ofile.write("</property>\n")
 
 

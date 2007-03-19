@@ -6,9 +6,6 @@ class DbAccessBase(object):
     
     _cpool = DbConnectionPool()
 
-    def __init__(self):
-        self.close(self.connect()) # Create and return a connection
-
     def close(self, conn):
         self._cpool.put(conn)
 

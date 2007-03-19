@@ -133,4 +133,12 @@ class MonitorClass(ZenModelRM, Folder):
         if id: child._setObject(id, ctor(id))
         if REQUEST: return self.callZenScreen(REQUEST)
 
+
+    def exportXmlHook(self, ofile, ignorerels):
+        """patch to export all device components
+        """
+        for o in self.objectValues():
+            if hasattr(aq_base(o), 'exportXml'):
+                o.exportXml(ofile, ignorerels)
+
 InitializeClass(MonitorClass)

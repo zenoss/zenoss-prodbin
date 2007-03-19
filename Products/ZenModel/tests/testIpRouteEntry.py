@@ -28,14 +28,14 @@ class TestIpRouteEntry(ZenModelBaseTest):
 
         tmpo = IpInterface('test0')
         self.dev.os.interfaces._setObject('test0',tmpo)
-        self.iface0 = self.dev.os.interfaces()[0]
+        self.iface0 = self.dev.os.interfaces._getOb('test0')
         self.iface0.setIpAddresses('1.2.3.4/24')
         self.iface0.ifindex = 0
         self.iface0.interfaceName = 'iface0'
 
         tmpo = IpInterface('test1')
         self.dev.os.interfaces._setObject('test1',tmpo)
-        self.iface1 = self.dev.os.interfaces()[1]
+        self.iface1 = self.dev.os.interfaces._getOb('test1')
         self.iface1.setIpAddresses('2.3.4.5/24')
         self.iface1.ifindex = 1
         self.iface1.interfaceName = 'iface1'

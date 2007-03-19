@@ -18,6 +18,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
+from Products.ZenUtils.Utils import localIpCheck
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import findIpAddress
@@ -143,7 +144,7 @@ class IpRouteEntry(OSComponent):
     def setNextHopIp(self, nextHopIp):
         """if the nexthop is a 127. or 0. address store locally
         else link to it in the network hierarchy"""
-        if self.ipcheck(nextHopIp) or not nextHopIp:
+        if localIpCheck(self, nextHopIp) or not nextHopIp:
             self._nexthop = nextHopIp
         else:
             ip = findIpAddress(self, nextHopIp)
@@ -166,7 +167,7 @@ class IpRouteEntry(OSComponent):
     def setTarget(self, netip):
         """Set this route target netip in the form 10.0.0.0/24.
         """
-        if self.ipcheck(netip):
+        if localIpCheck(self, netip):
             self._target = netip
         else:
             net = self.getDmdRoot("Networks").createNet(netip)

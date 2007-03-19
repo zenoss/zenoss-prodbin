@@ -29,6 +29,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import IpAddress, findIpAddress
+from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck 
 from Products.ZenUtils.IpUtil import *
 
 from ConfmonPropManager import ConfmonPropManager
@@ -60,7 +61,7 @@ class IpInterface(OSComponent):
     # indexes are id and description
     #default_catalog = 'interfaceSearch'
     
-    ifindex = 0 
+    ifindex = '0' 
     interfaceName = ''
     macaddress = ""
     type = ""
@@ -221,7 +222,7 @@ class IpInterface(OSComponent):
             ipids = self.ipaddresses.objectIdsAll()
             localips = copy.copy(self._ipAddresses)
             for ip in ips:
-                if self.localipcheck(ip) or self.localintcheck(self.id):
+                if localIpCheck(self, ip) or localInterfaceCheck(self, self.id):
                     if not ip in localips:
                         self.addLocalIpAddress(ip)
                     else:
