@@ -23,7 +23,16 @@ class WinService(Service):
     serviceType = ""
     startMode = ""
     startName = ""
-    
+   
+    _properties = Service._properties + (
+        {'id': 'acceptPause', 'type':'boolean', 'mode':'w'},
+        {'id': 'acceptStop', 'type':'boolean', 'mode':'w'},
+        {'id': 'pathName', 'type':'string', 'mode':'w'},
+        {'id': 'serviceType', 'type':'string', 'mode':'w'},
+        {'id': 'startMode', 'type':'string', 'mode':'w'},
+        {'id': 'startName', 'type':'string', 'mode':'w'},
+    )
+
     _relations = Service._relations + (
         ("os", ToOne(ToManyCont, "OperatingSystem", "winservices")),
     )

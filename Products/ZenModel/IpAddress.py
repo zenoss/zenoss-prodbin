@@ -100,7 +100,7 @@ class IpAddress(ManagedEntity):
         ManagedEntity.__init__(self, id)
         self._netmask = maskToBits(netmask)
         self.ptrName = None
-        self.setPtrName()
+        #self.setPtrName()
 
 
     def setPtrName(self):
