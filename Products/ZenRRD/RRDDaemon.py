@@ -269,10 +269,7 @@ class RRDDaemon(Base):
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
-            from StringIO import StringIO
-            s = StringIO()
-            error.printTraceback(s)
-            self.log.error('%s: %s', msg, s.getvalue())
+            self.log.exception(error)
         else:
             self.log.error('%s %s', msg, error)
 
