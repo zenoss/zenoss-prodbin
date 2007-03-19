@@ -194,7 +194,7 @@ class MenuRelations(Migrate.Step):
                     id=             'discover',
                     description=    'Discover Devices', 
                     action=         'discoverDevices', 
-                    allowed_classes='IpNetwork'
+                    allowed_classes= ('IpNetwork',)
                     ),
                 ]
             })
