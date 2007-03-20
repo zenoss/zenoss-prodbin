@@ -227,18 +227,15 @@ class RRDView(object):
 
     def getRRDTemplateByName(self, name):
         "Return the template of the given name."
+        try:
+            return self._getOb(name)
+        except AttributeError:
+            pass
         for obj in aq_chain(self):
             try:
                 return obj.rrdTemplates._getOb(name)
             except AttributeError:
                 pass
-        if 0:
-            # I think this is a bad idea
-            from RRDTemplate import RRDTemplate
-            templ = RRDTemplate(name)
-            devs = self.getDmdRoot("Devices")
-            devs.rrdTemplates._setObject(name, templ)
-            return templ
         return None
 
 
