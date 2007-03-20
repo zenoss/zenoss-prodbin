@@ -51,8 +51,8 @@ class ZenMenu(ZenModelRM, ZenPackable):
             mi.action = action
             mi.permissions = permissions
             mi.isglobal = isglobal
-            mi.banned_classes=banned_classes
-            mi.allowed_classes=allowed_classes
+            mi.banned_classes=list(banned_classes)
+            mi.allowed_classes=list(allowed_classes)
         return mi
  
     security.declareProtected('Change Device', 'manage_deleteZenMenuItem')
