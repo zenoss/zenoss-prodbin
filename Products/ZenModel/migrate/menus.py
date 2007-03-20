@@ -48,6 +48,13 @@ class MenuRelations(Migrate.Step):
 #                        pc.buildRelations()
 
         # Add menus.
+        
+# Get rid of all menus
+
+        dmd.zenMenus.removeRelation()
+        dmd.Devices.zenMenus.removeRelation()
+        dmd.Networks.zenMenus.removeRelation()
+
         dmd.buildMenus(
             {'Context':[
                 dict(
@@ -188,7 +195,6 @@ class MenuRelations(Migrate.Step):
             })
 
 
-        dmd.Networks.manage_deleteZenMenu('Context')
         dmd.Networks.buildMenus(
             {'Context':[
                 dict(
