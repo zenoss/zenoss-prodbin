@@ -188,6 +188,7 @@ class MenuRelations(Migrate.Step):
             })
 
 
+        dmd.Networks.manage_deleteZenMenu('Context')
         dmd.Networks.buildMenus(
             {'Context':[
                 dict(
