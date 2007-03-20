@@ -452,7 +452,7 @@ def sendPage(recipient, msg, snppHost, snppPort):
     '''
     import Pager
     try:
-        rcpt = Pager.Recipient(recipient)
+        rcpt = Pager.Recipient((recipient or '').strip())
         pmsg = Pager.Message(msg)
         page = Pager.Pager((rcpt,), pmsg, snppHost, snppPort)
         page.send()
