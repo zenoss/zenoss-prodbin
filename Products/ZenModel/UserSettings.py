@@ -607,7 +607,7 @@ class UserSettings(ZenModelRM):
         ''' Send a test page 
         '''
         destSettings = self.getUserSettings(self.getId())
-        destPager = destSettings.pager
+        destPager = (destSettings.pager or '').strip()
         msg = None
         if destPager:
             fqdn = socket.getfqdn()
@@ -617,7 +617,7 @@ class UserSettings(ZenModelRM):
             result, errorMsg = Utils.sendPage(destPager, msg, 
                                     self.dmd.snppHost, self.dmd.snppPort)
             if result:
-                msg = 'Test page sent to %s' % settings.pager
+                msg = 'Test page sent to %s' % destPager
             else:
                 msg = 'Test failed: %s' % errorMsg
         else:
