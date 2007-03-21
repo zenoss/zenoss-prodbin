@@ -19,7 +19,7 @@ import time
 def _maybenow(gmtSecondsSince1970):
     if gmtSecondsSince1970 is None:
         return time.time()
-    return gmtSecondsSince1970
+    return int(gmtSecondsSince1970)
 
 def LocalDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
