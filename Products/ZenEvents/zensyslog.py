@@ -18,7 +18,7 @@ import os
 
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
-from twisted.names.client import getHostByName
+from twisted.names.client import lookupPointer
 from twisted.python import failure
 
 from EventServer import EventServer
@@ -56,20 +56,20 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
     def datagramReceived(self, msg, client_address):
         """Use a separate thread to process the request."""
-        host, port = client_address
+        ipaddr, port = client_address
         if self.options.logorig: 
             self.olog.info(msg)
-        getHostByName(host).addBoth(self.gotHostname, (msg, host, time.time()) )
+        lookupPointer(host,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
 
 
     def gotHostname(self, host, data):
         "send the resolved address, if possible, and the event via the thread"
         if isinstance(host, failure.Failure):
-            host = host.value.args[0]
+            host = data[1]
         self.q.put( (host,) + data )
 
 
-    def doHandleRequest(self, ipaddr, msg, host, rtime):
+    def doHandleRequest(self, host, msg, ipaddr, rtime):
         "process a single syslog message, called from the inherited thread"
         self.processor.process(msg, ipaddr, host, rtime)
 
