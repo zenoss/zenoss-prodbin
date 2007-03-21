@@ -8,6 +8,7 @@
 .contextmenu * ,
 .littlemenu * {
     padding: 0;
+    font-size: 12pt;
     margin:0;
     font-weight: normal;
 }
@@ -108,6 +109,7 @@ ul.zenMenu li a {
 ul.zenMenu li {
     border-bottom: 1px dotted grey;
     line-height: 2em;
+    font-size: 9pt;
 }
 
 ul.zenMenu li a:hover {
