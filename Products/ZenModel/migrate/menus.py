@@ -51,9 +51,10 @@ class MenuRelations(Migrate.Step):
         
 # Get rid of all menus
 
-        dmd.zenMenus.removeRelation()
-        dmd.Devices.zenMenus.removeRelation()
-        dmd.Networks.zenMenus.removeRelation()
+        hasmenus = lambda x: hasattr(x, 'zenMenus') 
+        if hasmenus(dmd): dmd.zenMenus.removeRelation()
+        if hasmenus(dmd.Devices): dmd.Devices.zenMenus.removeRelation()
+        if hasmenus(dmd.Networks): dmd.Networks.zenMenus.removeRelation()
 
         dmd.buildMenus(
             {'Tabs':[
