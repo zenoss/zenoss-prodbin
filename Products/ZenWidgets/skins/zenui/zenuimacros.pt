@@ -3,7 +3,7 @@
 <link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="menu" tal:define="
-        menu_ids menu_ids | python:['Context'];
+        menu_ids menu_ids | python:['Tabs','Actions'];
         pathtrans here/REQUEST/PATH_TRANSLATED;
         basepath python:test(
             pathtrans.endswith(template.id),
@@ -18,7 +18,8 @@
 <div class="menu_bottom">&nbsp;</div>
 
 <ul class="zenMenu">
-<li tal:repeat="menu menu_ids">
+<tal:block tal:repeat="menu menu_ids">
+<li tal:condition="python:here.getMenus(menu, here)">
 <a href="javascript:void(0)">
 <tal:block tal:content="menu">
 Menu
@@ -35,6 +36,7 @@ Menu
 </ul>
 </div>
 </li>
+</tal:block>
 </ul>
 </div>
 </div>
