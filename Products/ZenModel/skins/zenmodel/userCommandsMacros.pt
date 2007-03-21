@@ -110,7 +110,9 @@ Optional titlebar stuff
 <li metal:define-macro="runCommandMenu"
     tal:define="commands here/getUserCommands"
     tal:condition="commands">
-<form name="command_proxy" action="manage_doUserCommand" method="post">
+<form name="command_proxy" method="post"
+tal:define="mypath python:basepath.replace('/manage_doUserCommand','')"
+tal:attributes="action string:${mypath}/manage_doUserCommand">
 <input type="hidden" name="commandId" id="commandId"/>
 </form>
 <script>
