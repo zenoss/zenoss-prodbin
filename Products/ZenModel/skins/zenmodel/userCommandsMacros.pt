@@ -105,3 +105,32 @@ Optional titlebar stuff
             name="manage_doUserCommand:method" value=" Run " /> 
     </td>
 </tr>
+
+
+<li metal:define-macro="runCommandMenu"
+    tal:define="commands here/getUserCommands"
+    tal:condition="commands">
+<form name="command_proxy" action="manage_doUserCommand" method="post">
+<input type="hidden" name="commandId" id="commandId"/>
+</form>
+<script>
+function submitCommandForm(commandId) {
+    $('commandId').value = commandId;
+    document.forms.command_proxy.submit();
+}
+</script>
+        <a href="javascript:void(0)">
+        Run Commands
+        </a>
+        <div class="submenu">
+        <div class="menu_top_rounded">&nbsp;</div>
+        <div class="menu_bottom">&nbsp;</div>
+        <ul>
+        <li tal:repeat="item commands">
+        <a tal:attributes="
+            href string:javascript:submitCommandForm('${item/getId}');"
+            tal:content="item/getId">command</a>
+        </li>
+        </ul>
+        </div>
+</li>

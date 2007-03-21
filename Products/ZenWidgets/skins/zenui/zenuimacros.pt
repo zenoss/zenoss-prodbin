@@ -37,6 +37,7 @@ Menu
 </div>
 </li>
 </tal:block>
+<tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
 </ul>
 </div>
 </div>
