@@ -476,8 +476,8 @@ class Device(ManagedEntity, Commandable, Lockable):
     def getPageChecks(self):
         pageChecks = super(Device, self).getDataSourceCommands(pageChecks=True)
         for pc in pageChecks:
-            pc['device'] = self.id or ''
-            pc['manageIp'] = self.manageIp or ''
+            pc['device'] = self.id
+            pc['manageIp'] = self.manageIp
         return pageChecks
 
 
@@ -844,9 +844,10 @@ class Device(ManagedEntity, Commandable, Lockable):
             return self.callZenScreen(REQUEST)
                           
     security.declareProtected('Change Device', 'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, newId, REQUEST=None):
+    def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
         "Add a Admin Role to this device"
-        us = self.ZenUsers.getUserSettings(newId)
+        if newId:
+            us = self.ZenUsers.getUserSettings(newId)
         if us:
             ar = DeviceAdministrativeRole(newId)
             if us.defaultAdminRole:
