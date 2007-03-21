@@ -8,7 +8,7 @@
 
 
 <tal:block tal:define="
-tabletitle string:Device Management
+tabletitle string:Device Management;
                       ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 

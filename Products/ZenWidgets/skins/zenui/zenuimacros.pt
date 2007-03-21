@@ -3,7 +3,7 @@
 <link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="menu" tal:define="
-        menu_ids menu_ids | python:['Tabs','Actions'];
+        menu_ids menu_ids | python:['Edit','Actions'];
         pathtrans here/REQUEST/PATH_TRANSLATED;
         basepath python:test(
             pathtrans.endswith(template.id),
