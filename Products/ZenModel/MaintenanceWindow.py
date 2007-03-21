@@ -81,8 +81,8 @@ class MaintenanceWindow(ZenModelRM):
     skip = 1
  
     _properties = (
-        {'id':'start', 'type':'date', 'mode':'w'},
-        {'id':'started', 'type':'date', 'mode':'w'},
+        {'id':'start', 'type':'int', 'mode':'w'},
+        {'id':'started', 'type':'int', 'mode':'w'},
         {'id':'duration', 'type':'int', 'mode':'w'},
         {'id':'repeat', 'type':'string', 'mode':'w'},
         {'id':'skip', 'type':'int', 'mode':'w'},
