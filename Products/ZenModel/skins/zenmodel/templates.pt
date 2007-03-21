@@ -264,7 +264,7 @@
            </div>
         </td>
         <td class="contextmenutab">
-        <span metal:use-macro="here/zenuimacros/macros/contextmenu"/>
+        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
         </td>
        </tr>
    </table>

@@ -1,3 +1,69 @@
+<tal:block metal:define-macro="basemenu"
+    tal:condition="python:hasattr(here, 'getMenus')">
+<link href="css/menus.css" rel="stylesheet" type="text/css" />
+
+<div class="menu" tal:define="
+        menu_ids menu_ids | python:['Context'];
+        pathtrans here/REQUEST/PATH_TRANSLATED;
+        basepath python:test(
+            pathtrans.endswith(template.id),
+            '/'.join(pathtrans.split('/')[:-1]),
+            pathtrans)">
+<div tal:attributes="id string:contextmenu_btn">
+    <a class="tabletitle">&nbsp;</a>
+</div>
+
+<div style="position:absolute;" class="invisible" id="contextmenu_items">
+<div class="menu_top">&nbsp;</div>
+<div class="menu_bottom">&nbsp;</div>
+
+<ul class="zenMenu">
+<li tal:repeat="menu menu_ids">
+<a href="javascript:void(0)">
+<tal:block tal:content="menu">
+Menu
+</tal:block>
+</a>
+<div class="submenu">
+<div class="menu_top_rounded">&nbsp;</div>
+<div class="menu_bottom">&nbsp;</div>
+<ul>
+<li tal:repeat="item python:here.getMenus(menu, here)">
+<a tal:attributes="href string:${basepath}/${item/action}"
+   tal:content="item/description">description</a>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<script tal:content="string:
+    var cxmto;
+    var hidectxmenu = function() { 
+        removeElementClass('contextmenu_btn','menuselected');
+        makeInvisible('contextmenu_items') }
+    connect('contextmenu_btn','onclick',function() {
+        clearTimeout(cxmto);
+        makeVisible('contextmenu_items');
+        addElementClass('contextmenu_btn','menuselected');});
+    connect('contextmenu_items', 'onmouseout',function() {
+        cxmto = setTimeout('hidectxmenu()', 500); });
+    connect('contextmenu_btn', 'onmouseout',function() {
+        cxmto = setTimeout('hidectxmenu()', 500); });
+    connect('contextmenu_items','onmouseover',function() {
+        clearTimeout(cxmto);
+        addElementClass('contextmenu_btn','menuselected');
+        makeVisible('contextmenu_items'); });
+    connect('contextmenu_items','onclick',function() {
+        makeInvisible('contextmenu_items');
+    });
+">
+</script>
+
+</tal:block>
+
+
 <tal:block metal:define-macro="contextmenu"
     tal:condition="python:hasattr(here, 'getMenus')"
     tal:define="menu_id string:Context">
@@ -49,7 +115,6 @@
         </script>
     </div>
 </tal:block>
-
 
 
 <!-- TABLE HEADER MACRO -->

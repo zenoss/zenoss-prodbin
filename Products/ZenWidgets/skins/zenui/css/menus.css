@@ -70,6 +70,15 @@ div.menu_top {
     z-index: 2000;
     width: 174px;
 }
+div.menu_top_rounded {
+    background: transparent url('img/menu_top_rounded.gif') top left no-repeat;
+    position: absolute;
+    top: 0px;
+    left: -2px;
+    height: 20px;
+    z-index: 2000;
+    width: 174px;
+}
 
 .devmovemenuitems {
     top: 0px;
@@ -102,7 +111,7 @@ ul.zenMenu li {
 }
 
 ul.zenMenu li a:hover {
-    background-color: #DEDEFF;
+    background-color: #DEDEFF !important;
     color: black;
 }
 
@@ -127,6 +136,77 @@ div.devmovemenu span {
 
 div.devmovemenu:hover {
     background: #E0E0E0 url('img/actions_button_depressed.gif') bottom left no-repeat;
+}
+
+.menu * {
+    padding:0;
+    margin:0;
+    position: relative;
+    font-weight: normal;
+}
+.menu {
+    position: relative;
+    cursor:pointer;
+}
+#contextmenu_items {
+    position: absolute;
+    top: 24px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: 0px;
+    z-index:4005;
+}
+.menu ul {
+    padding:0;
+    margin:0;
+    list-style-type:none;
+    width:173px;
+    border-left: 1px solid #5A6F8F;
+    border-right: 1px solid #5A6F8F;
+    background-color: #666;
+    z-index: 4006;
+}
+
+ul.zenMenu > li > a {
+    background: transparent url(img/expandable_menu_arrow.gif) 150px no-repeat;
+}
+
+div.devmovemenuitems ul.zenMenu li a {
+    background: #666 url();
+}
+
+* html .menu li {margin-left:-16px; margin-lef\t:0;}
+.menu table {position:absolute; border-collapse:collapse; top:0; left:0;
+    font-size:1em;width:0;height:0;}
+/* style the link hover */
+* html .menu a:hover {color:#fff; background:#999;}
+
+.menu :hover > a {
+color:#fff; 
+background-color:#999;
+}
+
+/* hide the sub levels and give them a positon absolute so that they take up no room */
+.menu ul div.submenu {
+visibility:hidden;
+position:absolute;
+top:-1px;
+left:100px;
+padding: 0px;
+padding-top: 10px;
+padding-bottom: 10px;
+}
+
+/* make the second level visible when hover on first level list OR link */
+.menu ul li:hover div.submenu,
+.menu ul a:hover div.submenu {
+visibility:visible;
+top: 10px;
+}
+
+.menu div.submenu div.menu_top_rounded,
+.menu div.submenu div.menu_bottom {
+    left: 0px;
 }
 
 /* IE HACKS */
