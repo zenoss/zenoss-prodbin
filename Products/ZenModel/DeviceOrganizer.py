@@ -58,11 +58,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : ('Manage DMD',)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Manage'
+#                , 'action'        : 'deviceOrganizerManage'
+#                , 'permissions'   : ('Manage DMD',)
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

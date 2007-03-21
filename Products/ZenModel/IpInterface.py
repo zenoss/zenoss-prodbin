@@ -115,11 +115,11 @@ class IpInterface(OSComponent):
                 , 'action'        : 'viewIpInterface'
                 , 'permissions'   : ('View',)
                 },
-                { 'id'            : 'perfConf'
-                , 'name'          : 'PerfConf'
-                , 'action'        : 'objRRDTemplate'
-                , 'permissions'   : ("Change Device", )
-                },
+#                { 'id'            : 'perfConf'
+#                , 'name'          : 'PerfConf'
+#                , 'action'        : 'objRRDTemplate'
+#                , 'permissions'   : ("Change Device", )
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

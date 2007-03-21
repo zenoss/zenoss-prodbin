@@ -109,11 +109,11 @@ class PerformanceConf(Monitor, StatusColor):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editPerformanceConf'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'edit'
+#                , 'name'          : 'Edit'
+#                , 'action'        : 'editPerformanceConf'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

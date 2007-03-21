@@ -98,11 +98,11 @@ class System(DeviceOrganizer):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : ('Manage DMD',)
-                },
+                #{ 'id'            : 'manage'
+                #, 'name'          : 'Manage'
+                #, 'action'        : 'deviceOrganizerManage'
+                #, 'permissions'   : ('Manage DMD',)
+                #},
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

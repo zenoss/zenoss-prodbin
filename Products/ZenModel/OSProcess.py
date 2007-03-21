@@ -45,16 +45,16 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 , 'action'        : 'osProcessDetail'
                 , 'permissions'   : ( Permissions.view, )
                 },
-                { 'id'            : 'perfConf'
-                , 'name'          : 'PerfConf'
-                , 'action'        : 'objRRDTemplate'
-                , 'permissions'   : ("Change Device", )
-                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'osProcessManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'perfConf'
+#                , 'name'          : 'PerfConf'
+#                , 'action'        : 'objRRDTemplate'
+#                , 'permissions'   : ("Change Device", )
+#                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Manage'
+#                , 'action'        : 'osProcessManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'

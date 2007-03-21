@@ -292,11 +292,11 @@ class Device(ManagedEntity, Commandable, Lockable):
 #                , 'action'        : 'objRRDTemplate'
 #                , 'permissions'   : ("Change Device", )
 #                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editDevice'
-                , 'permissions'   : ("Change Device",)
-                },
+#                { 'id'            : 'edit'
+#                , 'name'          : 'Edit'
+#                , 'action'        : 'editDevice'
+#                , 'permissions'   : ("Change Device",)
+#                },
 #                { 'id'            : 'management'
 #                , 'name'          : 'Manage'
 #                , 'action'        : 'deviceManagement'
@@ -312,11 +312,11 @@ class Device(ManagedEntity, Commandable, Lockable):
 #                , 'action'        : 'zPropertyEdit'
 #                , 'permissions'   : (permissions.view,)
 #                },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : (permissions.view, )
-#                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (permissions.view, )
+                },
             )
          },
         )

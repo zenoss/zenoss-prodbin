@@ -94,21 +94,21 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                 , 'action'        : 'eventClassInstStatus'
                 , 'permissions'   : (Permissions.view, )
                 },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'eventClassInstEdit'
-                , 'permissions'   : ("Manage DMD", )
-                },
-                { 'id'            : 'sequence'
-                , 'name'          : 'Sequence'
-                , 'action'        : 'eventClassInstSequence'
-                , 'permissions'   : (Permissions.view,)
-                },
-                { 'id'            : 'config'
-                , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
-                , 'permissions'   : ("Manage DMD",)
-                },
+                #{ 'id'            : 'edit'
+                #, 'name'          : 'Edit'
+                #, 'action'        : 'eventClassInstEdit'
+                #, 'permissions'   : ("Manage DMD", )
+                #},
+                #{ 'id'            : 'sequence'
+                #, 'name'          : 'Sequence'
+                #, 'action'        : 'eventClassInstSequence'
+                #, 'permissions'   : (Permissions.view,)
+                #},
+                #{ 'id'            : 'config'
+                #, 'name'          : 'zProperties'
+                #, 'action'        : 'zPropertyEdit'
+                #, 'permissions'   : ("Manage DMD",)
+                #},
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
