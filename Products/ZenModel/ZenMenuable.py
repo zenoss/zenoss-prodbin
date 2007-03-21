@@ -40,6 +40,7 @@ class ZenMenuable:
               action
               permissions
               isglobal
+              isdialog
               banned_classes
               allowed_classes
         """
