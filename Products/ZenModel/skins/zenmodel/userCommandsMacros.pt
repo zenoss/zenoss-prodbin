@@ -111,7 +111,7 @@ Optional titlebar stuff
     tal:define="commands here/getUserCommands"
     tal:condition="commands">
 <form name="command_proxy" method="post"
-tal:define="mypath python:basepath.replace('/manage_doUserCommand','')"
+tal:define="mypath here/getPrimaryUrlPath"
 tal:attributes="action string:${mypath}/manage_doUserCommand">
 <input type="hidden" name="commandId" id="commandId"/>
 </form>
