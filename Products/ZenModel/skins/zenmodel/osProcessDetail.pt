@@ -88,9 +88,9 @@
         <td class=tablevalues>
         <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
         </td>
-    <td class=tableheader align=left>Update lock</td>
     </tr>
     <tr>
+        <td class=tableheader align=left>Update lock</td>
         <td class=tablevalues>
         <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
         </td>
