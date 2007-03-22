@@ -25,7 +25,9 @@ Menu
 <div class="menu_bottom">&nbsp;</div>
 <ul>
 <li tal:repeat="item python:here.getMenus(menu, here)">
-<a tal:define="mypath string:${basepath}/${item/action};
+<a tal:define="mypath python:test(item.action.startswith('javascript'),
+                            item.action,
+                            '%s/%s' % (basepath, item.action));
                actionpath python:test(item.isdialog, 
                 'javascript:$(\'dialog\').show(\'%s\')' % mypath,
                 mypath)"
@@ -196,10 +198,12 @@ padding-right:20px;margin-left:20px;}</style>
         <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
             <li tal:repeat="item menuitems">
-<a tal:define="mypath string:${basepath}/${item/action};
+<a tal:define="mypath python:test(item.action.startswith('javascript'),
+                            item.action,
+                            '%s/%s' % (basepath, item.action));
                actionpath python:test(item.isdialog, 
-                 'javascript:$(\'dialog\').show(\'%s\')' % mypath,
-                 mypath)"
+                'javascript:$(\'dialog\').show(\'%s\')' % mypath,
+                mypath)"
    tal:attributes="href actionpath" 
    tal:content="item/description">description</a>
             </li>
@@ -268,3 +272,24 @@ padding-right:20px;margin-left:20px;}</style>
         </tr>
     </table>
 </tal:block>
+
+
+<!--=================================================
+    Javascript utilities that are easier with templating
+    =================================================-->
+
+<tal:block metal:define-macro="jsutils">
+<script tal:content="string:
+
+var submitFormToMethod = function(formname, method) {
+//Basically for use in menu items, to obviate creating dummy forms
+//or menu items that are actually buttons.
+   f = document.forms[formname];
+   f.action = '${here/getPrimaryUrlPath}/' + method;
+   f.submit();
+}
+
+
+">s</script>
+</tal:block>
+

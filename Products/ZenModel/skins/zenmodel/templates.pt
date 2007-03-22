@@ -14,6 +14,7 @@
     <head>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
+        <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
     </head>
 	<body>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>

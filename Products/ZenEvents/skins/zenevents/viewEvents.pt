@@ -29,7 +29,7 @@ function goExport(url) {
     page string:getEventListPage;
     ">
 <tal:block metal:define-macro="eventTable">
-<tal:block tal:define="tabletitle string:Event List">
+<tal:block tal:define="tabletitle string:Event List;menu_id string:Event_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!-- Custom filter widgets -->
@@ -91,9 +91,6 @@ function goExport(url) {
     <tal:block metal:define-macro="editor">
     <tr tal:condition="here/isManager">
     <td class="tableheader" tal:attributes="colspan evcolspan">
-        <input class="tableheader" type="submit" value="Acknowledge" 
-                name="manage_ackEvents:method"/>
-        |
         <input class="tableheader" type="submit" 
             name="manage_deleteEvents:method" value="History" />
         |

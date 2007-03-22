@@ -8,6 +8,7 @@ postJSONDoc = function (url, postVars) {
         return d.addCallback(evalJSONRequest);
 
 }
+
 var cancelWithTimeout = function (deferred, timeout) { 
     var canceller = callLater(timeout, function () { 
         // cancel the deferred after timeout seconds 
@@ -19,4 +20,4 @@ var cancelWithTimeout = function (deferred, timeout) {
         canceller.cancel(); 
         return res; 
     }); 
-}; 
+};

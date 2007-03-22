@@ -244,6 +244,15 @@ class MenuRelations(Migrate.Step):
                     isdialog = True
                     )
                 ],
+            'Event_list':[
+                dict(
+                    id=         'acknowledgeEvents',
+                    description='Acknowledge Events',
+                    action=     ('javascript:submitFormToMethod('
+                                 '"control", "manage_ackEvents")'),
+                    permissions=('Manage DMD',)
+                    ),
+            ],
             'HistoryEvent_list':[
                 dict(
                     id=         'undeleteHistoryEvents',
