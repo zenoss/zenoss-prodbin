@@ -1039,6 +1039,11 @@ class Device(ManagedEntity, Commandable, Lockable):
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
+        
+        if newPerformanceMonitor:
+            self.dmd.RenderServer.moveRRDFiles(self.id,
+                newPerformanceMonitor, performanceMonitor, REQUEST)
+        
         if REQUEST:
             REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
             return self.callZenScreen(REQUEST)

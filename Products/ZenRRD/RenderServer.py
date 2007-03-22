@@ -140,20 +140,7 @@ class RenderServer(RRDToolItem):
         for file in tar.getmembers():
             tar.extract(file, destdir)
         tar.close()
-    
-    def moveRRDFiles(self, device, server, REQUEST=None):
-        """Untar a package of RRDFiles"""
-        tarfilename = '%s.tgz' % device
-        f=open('%s/%s' % (self.tmpdir, tarfilename), 'rb')
-        tarfilebody=f.read()
-        f.close()
-        # urlencode the id, title and file
-        params = urllib.urlencode({'tarfilename': tarfilename,
-            'tarfile':tarfilebody})
-        # send the file to zope
-        remoteUrl = 'http://%s/zport/RenderServer/receiveRRDFiles' % server
-        urllib.urlopen(remoteUrl, params)
-    
+
     def receiveRRDFiles(self, REQUEST=None):
         """receive a device's RRD Files from another server"""
         if REQUEST:
@@ -162,13 +149,34 @@ class RenderServer(RRDToolItem):
             f=open('%s/%s' % (self.tmpdir, tarfilename), 'wb')
             f.write(urllib.unquote(tarfile))
             f.close()
-    
+                
     def sendRRDFiles(self, device, server, REQUEST=None):
+        """Move a package of RRDFiles"""
+        tarfilename = '%s.tgz' % device
+        f=open('%s/%s' % (self.tmpdir, tarfilename), 'rb')
+        tarfilebody=f.read()
+        f.close()
+        # urlencode the id, title and file
+        params = urllib.urlencode({'tarfilename': tarfilename,
+            'tarfile':tarfilebody})
+        # send the file to zope
+        perfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(server)
+        remoteUrl = '%s/receiveRRDFiles' % (perfMon.renderurl)
+        urllib.urlopen(remoteUrl, params)
+    
+    def moveRRDFiles(self, device, destServer, srcServer=None, REQUEST=None):
         """send a device's RRD Files to another server"""
-        self.packageRRDFiles(device, REQUEST)
-        self.moveRRDFiles(device, server, REQUEST)
-        remoteUrl = 'http://%s/zport/RenderServer/unpackageRRDFiles?device=%s' % (server, device)
-        urllib.urlopen(remoteUrl)
+        import pdb; pdb.set_trace()
+        destPerfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(destServer)
+        srcPerfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(srcServer)
+        if srcServer:
+            remoteUrl = '%s/moveRRDFiles?device=%s&destServer=%s' % (srcPerfMon.renderurl, device, destServer)
+            urllib.urlopen(remoteUrl)
+        else:
+            self.packageRRDFiles(device, REQUEST)
+            self.sendRRDFiles(device, destServer, REQUEST)
+            remoteUrl = '%s/unpackageRRDFiles?device=%s' % (destPerfMon.renderurl, device)
+            urllib.urlopen(remoteUrl)
     
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
