@@ -4,7 +4,6 @@
 
 <div class="menu" tal:define="
         menu_ids menu_ids | python:['Edit','Actions'];
-        pathtrans here/REQUEST/PATH_TRANSLATED;
         basepath here/getPrimaryUrlPath">
 <div tal:attributes="id string:contextmenu_btn">
     <a class="tabletitle">&nbsp;</a>
@@ -13,7 +12,6 @@
 <div style="position:absolute;" class="invisible" id="contextmenu_items">
 <div class="menu_top">&nbsp;</div>
 <div class="menu_bottom">&nbsp;</div>
-
 <ul class="zenMenu">
 <tal:block tal:repeat="menu menu_ids">
 <li tal:condition="python:here.getMenus(menu, here)">
@@ -27,7 +25,11 @@ Menu
 <div class="menu_bottom">&nbsp;</div>
 <ul>
 <li tal:repeat="item python:here.getMenus(menu, here)">
-<a tal:attributes="href string:${basepath}/${item/action}"
+<a tal:define="mypath string:${basepath}/${item/action};
+               actionpath python:test(item.isdialog, 
+                'javascript:$(\'dialog\').show(\'%s\')' % mypath,
+                mypath)"
+   tal:attributes="href actionpath" 
    tal:content="item/description">description</a>
 </li>
 </ul>
@@ -193,10 +195,13 @@ padding-right:20px;margin-left:20px;}</style>
         <div class="menu_top">&nbsp;</div>
         <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
-            <li tal:repeat="i menuitems">
-                <a tal:attributes="href
-                string:javascript:$$('dialog').show('${basepath}/${i/action}')"
-                   tal:content="i/description">description</a>
+            <li tal:repeat="item menuitems">
+<a tal:define="mypath string:${basepath}/${item/action};
+               actionpath python:test(item.isdialog, 
+                 'javascript:$(\'dialog\').show(\'%s\')' % mypath,
+                 mypath)"
+   tal:attributes="href actionpath" 
+   tal:content="item/description">description</a>
             </li>
         </ul>
         </div>
