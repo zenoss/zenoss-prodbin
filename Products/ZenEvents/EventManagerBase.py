@@ -1071,10 +1071,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if type(evids) == type(''):
             evids = [evids]
         if evids:
+            l = len(evids)
             evids = ",".join([ "'%s'" % evid for evid in evids])
             whereClause = ' where evid in (%s)' % evids
             self.undeleteEvents(whereClause, 'Undeleted by user')
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = "%s events undeleted." % l
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteAllEvents')
     def manage_deleteAllEvents(self, devname, REQUEST=None):

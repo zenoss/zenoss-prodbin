@@ -38,7 +38,7 @@ class ZenMenu(ZenModelRM, ZenPackable):
 
     security.declareProtected('Change Device', 'manage_addZenMenuItem')
     def manage_addZenMenuItem(self, id=None, description='', action='', 
-            permissions=(Permissions.view,), isglobal=True, 
+            permissions=(Permissions.view,), isdialog=False, isglobal=True, 
             banned_classes=(), allowed_classes=(), REQUEST=None):
         """ Add a menu item to a menu """
         mi = None
@@ -50,9 +50,10 @@ class ZenMenu(ZenModelRM, ZenPackable):
             mi.description = description
             mi.action = action
             mi.permissions = permissions
+            mi.isdialog = isdialog
             mi.isglobal = isglobal
-            mi.banned_classes=list(banned_classes)
-            mi.allowed_classes=list(allowed_classes)
+            mi.banned_classes = list(banned_classes)
+            mi.allowed_classes = list(allowed_classes)
         return mi
  
     security.declareProtected('Change Device', 'manage_deleteZenMenuItem')

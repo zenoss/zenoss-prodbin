@@ -213,6 +213,8 @@ var updateError = function(err) {
 var refreshData = function() {
     //logger.debuggingBookmarklet(true)
     //log("loading");
+    var eventsurl = eventsurl | null;
+    if (!eventsurl) return;
     var defr = cancelWithTimeout(
         loadJSONDoc(eventsurl), cancelSecs);
     defr.addCallback(updateEventsListing);

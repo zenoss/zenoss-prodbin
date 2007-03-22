@@ -38,6 +38,7 @@ function goExport(url) {
 </script>
 
 <form method="post" tal:attributes="action here/absolute_url_path"
+      name="history_events"
     tal:define="
     whereclause request/ev_whereclause | here/eventWhere | string:;
     orderby request/ev_orderby | here/eventOrderby | string:;
@@ -54,10 +55,12 @@ function goExport(url) {
 
 <tal:block tal:define="
 tabletitle string:Event History;
+menu_id string:HistoryEvent_list;
                       ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
+
 <div style="position:absolute;right:50px;top:0px;z-index:2007;">
     <input type='hidden' name='table' value='history'/>
     Start Date: 
@@ -87,9 +90,6 @@ tabletitle string:Event History;
     <tal:block metal:define-macro="histeditor">
         <tr tal:condition="here/isManager">
             <td class="tableheader" tal:attributes="colspan evcolspan">
-                <input class="tableheader" type="submit" value="Undelete"
-                    name="manage_undeleteEvents:method"/>
-                |
                 <input class="tableheader" type="submit" value="Map:"
                     name="manage_createEventMap:method"/>
                 <select class="tableheader" name="eventClass"

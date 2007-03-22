@@ -106,7 +106,9 @@ class EventView(object):
         """Delete events form this managed entity.
         """
         self.getEventManager().manage_undeleteEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = '%s events undeleted.' % len(evids)
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')

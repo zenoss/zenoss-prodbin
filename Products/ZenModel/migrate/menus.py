@@ -203,7 +203,8 @@ class MenuRelations(Migrate.Step):
                     id=         'addToZenPack',
                     description='Add to ZenPack...',
                     action=     'dialog_addToZenPack',
-                    permissions=('View',)
+                    permissions=('View',),
+                    isdialog = True
                     )
                 ],
             'Device_list':[
@@ -211,31 +212,45 @@ class MenuRelations(Migrate.Step):
                     id=         'moveclass',
                     description='Move to Class...',
                     action=     'dialog_moveDevices',
-                    permissions=('Change Device',)
+                    permissions=('Change Device',),
+                    isdialog = True
                     ),
                 dict(
                     id=         'setGroups',
                     description='Set Groups...',
                     action=     'dialog_setGroups',
-                    permissions=('Change Device',)
+                    permissions=('Change Device',),
+                    isdialog = True
                     ),
                 dict(
                     id=         'setSystems',
                     description='Set Systems...',
                     action=     'dialog_setSystems',
-                    permissions=('Change Device',)
+                    permissions=('Change Device',),
+                    isdialog = True
                     ),
                 dict(
                     id=         'setLocation',
                     description='Set Location...',
                     action=     'dialog_setLocation',
-                    permissions=('Change Device',)
+                    permissions=('Change Device',),
+                    isdialog = True
                     ),
                 dict(
                     id=         'removeDevices',
                     description='Delete devices...',
                     action=     'dialog_removeDevices',
-                    permissions=('Change Device',)
+                    permissions=('Change Device',),
+                    isdialog = True
+                    )
+                ],
+            'HistoryEvent_list':[
+                dict(
+                    id=         'undeleteHistoryEvents',
+                    description='Undelete Events...',
+                    action=     'dialog_undeleteHistoryEvents',
+                    permissions=('Manage DMD',),
+                    isdialog = True
                     )
                 ],
             })
