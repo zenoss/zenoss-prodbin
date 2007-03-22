@@ -5,10 +5,7 @@
 <div class="menu" tal:define="
         menu_ids menu_ids | python:['Edit','Actions'];
         pathtrans here/REQUEST/PATH_TRANSLATED;
-        basepath python:test(
-            pathtrans.endswith(template.id),
-            '/'.join(pathtrans.split('/')[:-1]),
-            pathtrans)">
+        basepath here/getPrimaryUrlPath">
 <div tal:attributes="id string:contextmenu_btn">
     <a class="tabletitle">&nbsp;</a>
 </div>
@@ -75,11 +72,7 @@ Menu
 
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
-                pathtrans here/REQUEST/PATH_TRANSLATED;
-                basepath python:test(
-                      pathtrans.endswith(template.id),
-                      '/'.join(pathtrans.split('/')[:-1]),
-                      pathtrans)"
+                basepath here/getPrimaryUrlPath"
     tal:condition="menuitems">
 
         <div tal:attributes="id string:${menu_id}_btn">
