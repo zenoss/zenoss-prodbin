@@ -3,7 +3,7 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path"
     name="lockableForm"/>
-    
+
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -120,6 +120,8 @@
           <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
       </td>
       <td class=tableheader align=left>Update lock</td>
+   </tr>
+   <tr>
       <td class=tablevalues>
           <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
       </td>
