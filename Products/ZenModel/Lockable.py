@@ -54,14 +54,35 @@ class Lockable(object):
     def unsetSendEventWhenBlockedFlag(self):
         self.sendEventWhenBlockedFlag = False
         
-    def unlock(self):
+    def unlock(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Unlock object"""
         self.modelerLock = UNLOCKED
+        if sendEventWhenBlocked:
+            self.setSendEventWhenBlockedFlag()
+        else:
+            self.unsetSendEventWhenBlockedFlag()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
     
-    def lockFromDeletion(self):
+    def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Lock object from being deleted"""
         self.modelerLock = DELETE_LOCKED
+        if sendEventWhenBlocked:
+            self.setSendEventWhenBlockedFlag()
+        else:
+            self.unsetSendEventWhenBlockedFlag()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
     
-    def lockFromUpdates(self):
+    def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Lock object from being deleted or updated"""
         self.modelerLock = UPDATE_LOCKED
+        if sendEventWhenBlocked:
+            self.setSendEventWhenBlockedFlag()
+        else:
+            self.unsetSendEventWhenBlockedFlag()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
     
     def lockStatus(self):
         '''

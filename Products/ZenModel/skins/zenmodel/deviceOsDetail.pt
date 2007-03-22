@@ -27,6 +27,8 @@
         <th tal:condition="here/zIfDescription"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')"/>
+        <th class="tableheader" align="center">Delete lock</th>
+        <th class="tableheader" align="center">Update lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -75,6 +77,12 @@
           class="tablevalues" tal:content="intf/description">
         A really nice interface
       </td>
+      <td class="tablevalues" align="center">
+      <img tal:condition="intf/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+      </td>
+      <td class="tablevalues" align="center">
+      <img tal:condition="intf/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      </td>
     </tr>
     </tal:block>
     <tr>
@@ -110,6 +118,8 @@
                         tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
+        <th class="tableheader" align="center">Delete lock</th>
+        <th class="tableheader" align="center">Update lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -123,6 +133,12 @@
         <td tal:define="status srv/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
+        <td class="tablevalues" align="center">
+        <img tal:condition="srv/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+        </td>
+        <td class="tablevalues" align="center">
+        <img tal:condition="srv/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        </td>
     </tr>
     </tal:block>
     <tr>
@@ -172,6 +188,8 @@ Optional titlebar stuff
                             tableName,'getFailSeverityString','Fail Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
+        <th class="tableheader" align="center">Delete lock</th>
+        <th class="tableheader" align="center">Update lock</th>
     </tr>
     <tal:block tal:repeat="proc batch">
     <tr tal:define="odd repeat/proc/odd"
@@ -185,6 +203,12 @@ Optional titlebar stuff
         <td tal:define="status proc/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
+        <td class="tablevalues" align="center">
+        <img tal:condition="proc/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+        </td>
+        <td class="tablevalues" align="center">
+        <img tal:condition="proc/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        </td>
     </tr>
     </tal:block>
     <tr>
@@ -232,6 +256,8 @@ Optional titlebar stuff
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
+        <th class="tableheader" align="center">Delete lock</th>
+        <th class="tableheader" align="center">Update lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -249,6 +275,12 @@ Optional titlebar stuff
         <td tal:define="status srv/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
+        <td class="tablevalues" align="center">
+        <img tal:condition="srv/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+        </td>
+        <td class="tablevalues" align="center">
+        <img tal:condition="srv/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        </td>
     </tr>
     </tal:block>
     <tr>
@@ -297,6 +329,8 @@ Optional titlebar stuff
                             tableName,'storageDevice','Storage Device')">Device
         </th>
         -->
+        <th class="tableheader" align="center">Delete lock</th>
+        <th class="tableheader" align="center">Update lock</th>
     </tr>
     <tr tal:condition="not:objects">
         <th class="tableheader" align="left">
@@ -327,6 +361,12 @@ Optional titlebar stuff
         tal:content="fsys/storageDevice">vol
       </td>
       -->
+      <td class="tablevalues" align="center">
+      <img tal:condition="fsys/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+      </td>
+      <td class="tablevalues" align="center">
+      <img tal:condition="fsys/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      </td>
     </tr>
     </tal:block>
     <tr>

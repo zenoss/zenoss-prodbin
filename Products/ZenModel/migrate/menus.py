@@ -242,6 +242,22 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_removeDevices',
                     permissions=('Change Device',),
                     isdialog = True
+                    ),
+                dict(
+                    id=         'lockDevices',
+                    description='Change lock on devices...',
+                    action=     'dialog_lockDevices',
+                    permissions=('Change Device',),
+                    isdialog = True
+                    )
+                ],
+            'Lockable':[
+                dict(
+                    id=         'lockObject',
+                    description='Change lock...',
+                    action=     'dialog_lock',
+                    permissions=('Change Device',),
+                    isdialog = True
                     )
                 ],
             'Event_list':[

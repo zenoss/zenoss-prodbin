@@ -1,15 +1,21 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post" tal:attributes="action here/absolute_url_path"
+    name="lockableForm"/>
+    
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
-<table metal:define-macro="objectperf" 
-    border=0 cellpadding=3 width=100% 
-    align="center" bgcolor="#ffffff" cellspacing=1
-    >
-    <tr><th class=tabletitle align=left colspan=4>File System</th></tr>
+        
+<tal:block metal:define-macro="objectperf" tal:define="
+                tabletitle string:File System;
+                menu_id string:Lockable">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr>
       <td class=tableheader align=left>Mount Point</td>
       <td class=tablevalues tal:content="here/mount">/usr</td>
@@ -62,13 +68,33 @@
       <td class=tableheader align=left>Snmp Index</td>
       <td class=tablevalues tal:content="here/snmpindex">1</td>
     </tr>
+    <tr>
+      <td class=tableheader align=left>Delete lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+      </td>
+      <td class=tableheader align=left>Update lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Lock warnings</td>
+      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
+        Send event when blocked
+      </td>
+    </tr>
     <tr tal:condition="here/isManager">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
-</table>
+    
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 <br/>
 <tal:block tal:condition="here/monitored" >

@@ -24,7 +24,7 @@ connect('dialog_close','onclick',function(){$('dialog').hide()});
 <div style="text-align:center">
 <h2>Loading...</h2>
 <br/>
-<img src="spinning_wheel_throbber.gif"/>
+<img src="img/spinning_wheel_throbber.gif"/>
 </div>
 </tal:block>
 </tal:block>

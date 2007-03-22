@@ -1,6 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post" tal:attributes="action here/absolute_url_path"
+    name="lockableForm"/>
+    
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -8,7 +11,8 @@
 
 
         <tal:block tal:define="message request/message | string:State at time:;
-            tabletitle string:${message} ${here/getNowString}">
+            tabletitle string:${message} ${here/getNowString};
+            menu_id string:Lockable">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -82,6 +86,22 @@
     <tr>
         <td class="tableheader">Path Name</td>
         <td class="tablevalues" colspan="3" tal:content="here/pathName"/>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Delete lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
+      </td>
+      <td class=tableheader align=left>Update lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Lock warnings</td>
+      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
+        Send event when blocked
+      </td>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan="4">

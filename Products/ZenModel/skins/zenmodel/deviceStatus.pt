@@ -1,9 +1,12 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post" tal:attributes="action here/absolute_url_path"
+            name="lockableForm"/>
 
 <tal:block metal:define-macro="deviceStatusInfo"
-           tal:define=" tabletitle string:Status; ">
+           tal:define=" tabletitle string:Status;
+                        menu_id string:Lockable">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 
@@ -59,16 +62,20 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader">Modeler Lock</td>
-      <td class="tablevalues"
-        tal:content="python:here.lockStatus()">
-        Unlocked
+      <td class=tableheader align=left>Delete lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
       </td>
-      <td class="tableheader">Lock Warning</td>
-      <td class="tablevalues"
-        tal:content="python:here.lockWarning()">
-        Do not send event on block
+      <td class=tableheader align=left>Update lock</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
       </td>
+    </tr>
+    <tr>
+      <td class=tableheader align=left>Lock warnings</td>
+      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
+        -
+    </td>
     </tr>
 <!-- END TABLE CONTENTS -->
 
