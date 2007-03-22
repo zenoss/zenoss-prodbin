@@ -1,0 +1,26 @@
+<h2>Change lock</h2>
+<p>
+Which lock status would you like to set on this object?<br/>
+<br/>
+<input tal:attributes="name string:sendEventWhenBlocked;
+                    type string:checkbox;
+                    checked here/sendEventWhenBlocked"
+                    />Send warnings when actions are blocked<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="lockFromUpdates:method"
+    value="Lock from deletion and updates"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'lockableForm', '${here/absolute_url_path}')" />&nbsp;
+<input type="submit" name="lockFromDeletion:method"
+    value="Lock from deletion"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'lockableForm', '${here/absolute_url_path}')" />&nbsp;
+<input type="submit" name="unlock:method"
+    value="Unlock"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'lockableForm', '${here/absolute_url_path}')" />&nbsp;
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
