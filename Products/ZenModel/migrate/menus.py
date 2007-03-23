@@ -268,6 +268,26 @@ class MenuRelations(Migrate.Step):
                                  '"control", "manage_ackEvents")'),
                     permissions=('Manage DMD',)
                     ),
+                dict(
+                    id=         'historifyEvents',
+                    description='Move Events to History...',
+                    action=     'dialog_moveEventsToHistory',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
+                    id=         'exportAllEvents',
+                    description='Download as CSV',
+                    action=     'javascript:goExport()',
+                    permissions=('View',)
+                    ),
+                dict(
+                    id=         'createEventMap',
+                    description='Map Events to Class...',
+                    action=     'dialog_createEventMap',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
             ],
             'HistoryEvent_list':[
                 dict(

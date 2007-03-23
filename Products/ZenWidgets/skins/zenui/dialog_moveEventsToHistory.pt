@@ -1,0 +1,14 @@
+<h2>Move Events to History</h2>
+<br/><br/>
+<p>
+Are you sure you want to move these events to the history?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="manage_deleteEvents:method"
+    value="Yes"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'control', '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

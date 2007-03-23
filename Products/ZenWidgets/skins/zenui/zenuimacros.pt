@@ -157,7 +157,7 @@ Menu
                   tableName, here.ZenTableManager.getTableState(tableName), 
                   request);
                  message request/SESSION/message | nothing;">
-<input type="text" name="filter" 
+<input type="text" name="filter" id="filter"
     onfocus="select(this)"
     tal:attributes="value ts/filter | string:;
     onkeypress python:test(tableName, 'submitViaEnter(event)',
@@ -289,6 +289,14 @@ var submitFormToMethod = function(formname, method) {
    f.submit();
 }
 
+var goExport = function() {
+    var sev = $('severity').value;
+    var state = $('state').value;
+    var filter = $('filter').value;
+    url = '${here/getPrimaryUrlPath}/'+ 'exportEvents?state=' + state + 
+        '&severity=' + sev + '&filter=' + filter;
+    parent.location = url;
+}
 
 ">s</script>
 </tal:block>
