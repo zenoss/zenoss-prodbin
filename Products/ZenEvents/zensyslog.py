@@ -59,7 +59,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
         ipaddr, port = client_address
         if self.options.logorig: 
             self.olog.info(msg)
-        lookupPointer(host,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
+        lookupPointer(ipaddr,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
 
 
     def gotHostname(self, host, data):
