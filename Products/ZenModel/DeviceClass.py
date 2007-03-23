@@ -624,4 +624,34 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+    def unlockDevices(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Unlock devices"""
+        if not deviceNames: return self()
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.unlock(sendEventWhenBlocked)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+    
+    def lockDevicesFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Lock devices from being deleted"""
+        if not deviceNames: return self()
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.lockFromDeletion(sendEventWhenBlocked)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+    def lockDevicesFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
+        """Lock devices from being deleted or updated"""
+        if not deviceNames: return self()
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.lockFromUpdates(sendEventWhenBlocked)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+                    
 InitializeClass(DeviceClass)

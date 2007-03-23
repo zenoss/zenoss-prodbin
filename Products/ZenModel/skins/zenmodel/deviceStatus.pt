@@ -62,20 +62,13 @@
       </td>
     </tr>
     <tr>
-      <td class=tableheader align=left>Delete lock</td>
+      <td class=tableheader align=left>Locks</td>
       <td class=tablevalues>
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
-      <td class=tableheader align=left>Update lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Lock warnings</td>
-      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
-        -
-    </td>
+      <td class=tableheader align=left>Lock warning</td>
+      <td class=tablevalues tal:content="here/lockWarning">Send event when blocked</td>
     </tr>
 <!-- END TABLE CONTENTS -->
 

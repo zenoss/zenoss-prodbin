@@ -16,6 +16,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from Lockable import Lockable
+from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set
 
 class DeviceComponent(Lockable):
     """
@@ -158,6 +159,5 @@ class DeviceComponent(Lockable):
         """
         super(DeviceComponent,self).manage_beforeDelete(item, container)
         self.unindex_object()
-
-
+        
 InitializeClass(DeviceComponent)

@@ -1,12 +1,15 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-
+<form method="post" tal:attributes="action here/absolute_url"
+    name="addComponent"/>
+        
 <tal:block tal:define="unused here/cacheComponents;
         tableName string:interfacelist;
         objects here/os/interfaces/objectValuesAll;
         tabletitle string:Interfaces;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);"
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        menu_id string:IpInterface"
     metal:define-macro="interfaceList">
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -27,8 +30,7 @@
         <th tal:condition="here/zIfDescription"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')"/>
-        <th class="tableheader" align="center">Delete lock</th>
-        <th class="tableheader" align="center">Update lock</th>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -78,10 +80,8 @@
         A really nice interface
       </td>
       <td class="tablevalues" align="center">
-      <img tal:condition="intf/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-      <td class="tablevalues" align="center">
-      <img tal:condition="intf/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+      <img tal:condition="intf/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
     </tr>
     </tal:block>
@@ -101,7 +101,8 @@
     objects here/os/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='caption');">
+                                                sortedHeader='caption');
+    menu_id string:WinService">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -118,8 +119,7 @@
                         tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Delete lock</th>
-        <th class="tableheader" align="center">Update lock</th>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -134,10 +134,8 @@
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
         <td class="tablevalues" align="center">
-        <img tal:condition="srv/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-        </td>
-        <td class="tablevalues" align="center">
-        <img tal:condition="srv/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+        <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -159,7 +157,8 @@
     objects here/os/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='getOSProcessClass');"
+                                            sortedHeader='getOSProcessClass');
+    menu_id string:OSProcess"
     tal:condition="objects">
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -188,8 +187,7 @@ Optional titlebar stuff
                             tableName,'getFailSeverityString','Fail Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Delete lock</th>
-        <th class="tableheader" align="center">Update lock</th>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tal:block tal:repeat="proc batch">
     <tr tal:define="odd repeat/proc/odd"
@@ -204,10 +202,8 @@ Optional titlebar stuff
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
         <td class="tablevalues" align="center">
-        <img tal:condition="proc/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-        </td>
-        <td class="tablevalues" align="center">
-        <img tal:condition="proc/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+        <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -230,7 +226,8 @@ Optional titlebar stuff
     objects here/os/ipservices/objectValuesAll;
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='getPort');"
+                                            sortedHeader='getPort');
+    menu_id string:IpService"
     tal:condition="objects">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -256,8 +253,7 @@ Optional titlebar stuff
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Delete lock</th>
-        <th class="tableheader" align="center">Update lock</th>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -276,10 +272,8 @@ Optional titlebar stuff
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
         <td class="tablevalues" align="center">
-        <img tal:condition="srv/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-        </td>
-        <td class="tablevalues" align="center">
-        <img tal:condition="srv/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+        <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -301,7 +295,8 @@ Optional titlebar stuff
     objects here/os/filesystems/objectValuesAll;
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='mount');"
+                                            sortedHeader='mount');
+    menu_id string:FileSystem"
     tal:condition="objects">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -329,8 +324,7 @@ Optional titlebar stuff
                             tableName,'storageDevice','Storage Device')">Device
         </th>
         -->
-        <th class="tableheader" align="center">Delete lock</th>
-        <th class="tableheader" align="center">Update lock</th>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tr tal:condition="not:objects">
         <th class="tableheader" align="left">
@@ -362,10 +356,8 @@ Optional titlebar stuff
       </td>
       -->
       <td class="tablevalues" align="center">
-      <img tal:condition="fsys/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-      <td class="tablevalues" align="center">
-      <img tal:condition="fsys/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      <img tal:condition="fsys/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+      <img tal:condition="fsys/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
     </tr>
     </tal:block>
@@ -387,7 +379,8 @@ Optional titlebar stuff
     tal:define="tableName string:routeTablelist;
     objects here/os/routes/objectValuesAll;
     tabletitle string:Routes;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    menu_id string:Route">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -403,6 +396,7 @@ Optional titlebar stuff
                             tableName,'routeproto','Protocol')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'routetype','Type')"/>
+        <th class="tableheader" align="center">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -420,6 +414,10 @@ Optional titlebar stuff
       <td class="tablevalues" tal:content="route/getInterfaceNameString"/>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
+      <td class="tablevalues" align="center">
+      <img tal:condition="route/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+      <img tal:condition="route/isLockedFromUpdates" border="0" src="locked-update-icon.png">
+      </td>
     </tr>
     </tal:block>
     <tr>

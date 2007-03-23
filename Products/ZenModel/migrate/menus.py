@@ -67,6 +67,32 @@ class MenuRelations(Migrate.Step):
   'description': 'PerfConf',
   'id': 'objRRDTemplate',
   'permissions': ('Change Device',)},
+ {'action': 'dialog_lock',
+  'allowed_classes': ['Device',
+                       'WinService'
+                       'FileSystem',
+                       'HardDisk',
+                       'IpInterface',
+                       'IpService',
+                       'OSProcess',
+                       'IpRouteEntry'],
+  'description': 'Lock',
+  'id': 'lockObject',
+  'isdialog': True,
+  'permissions': ('Change Device',)},
+ {'action': 'dialog_delete',
+  'allowed_classes': ['Device',
+                    'WinService'
+                    'FileSystem',
+                    'HardDisk',
+                    'IpInterface',
+                    'IpService',
+                    'OSProcess',
+                    'IpRouteEntry'],
+  'description': 'Delete',
+  'id': 'deleteObject',
+  'isdialog': True,
+  'permissions': ('Change Device',)},
  {'action': 'editStatusMonitorConf',
   'allowed_classes': ['StatusMonitorConf'],
   'description': 'Edit',
@@ -245,19 +271,64 @@ class MenuRelations(Migrate.Step):
                     ),
                 dict(
                     id=         'lockDevices',
-                    description='Change lock on devices...',
+                    description='Change lock...',
                     action=     'dialog_lockDevices',
                     permissions=('Change Device',),
                     isdialog = True
                     )
                 ],
-            'Lockable':[
+            'IpInterface':[
                 dict(
-                    id=         'lockObject',
-                    description='Change lock...',
-                    action=     'dialog_lock',
+                    id=         'addIpInterface',
+                    description='Add IpInterface...',
+                    action=     'dialog_addIpInterface',
+                    isdialog = True,
                     permissions=('Change Device',),
-                    isdialog = True
+                    )
+                ],
+            'WinService':[
+                dict(
+                    id=         'addWinService',
+                    description='Add WinService...',
+                    action=     'dialog_addWinService',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
+            'OSProcess':[
+                dict(
+                    id=         'addOSProcess',
+                    description='Add OSProcess...',
+                    action=     'dialog_addOSProcess',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
+            'IpService':[
+                dict(
+                    id=         'addIpService',
+                    description='Add IpService...',
+                    action=     'dialog_addIpService',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
+            'FileSystem':[
+                dict(
+                    id=         'addFileSystem',
+                    description='Add File System...',
+                    action=     'dialog_addFileSystem',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
+            'IpRouteEntry':[
+                dict(
+                    id=         'addIpRouteEntry',
+                    description='Add Route...',
+                    action=     'dialog_addIpRouteEntry',
+                    isdialog = True,
+                    permissions=('Change Device',),
                     )
                 ],
             'Event_list':[

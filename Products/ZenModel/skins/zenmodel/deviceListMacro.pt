@@ -80,6 +80,8 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getSnmpStatusNumber','Critical/Error','cmp')">Critical/Error
         </th>
+        <th class=tableheader align=left>Delete lock</th>
+        <th class=tableheader align=left>Update lock</th>
 	</tr>
    <tal:block tal:repeat="device batch">
 	<tr tal:define="odd repeat/device/odd"
@@ -119,6 +121,12 @@
                 </td>
           </tr>
         </table>
+        </td>
+        <td class=tablevalues>
+             <img tal:condition="device/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        </td>
+        <td class=tablevalues>
+            <img tal:condition="device/isLockedFromDeletion" border="0" src="emblem-readonly.png">
         </td>
     </tr>
     </tal:block>

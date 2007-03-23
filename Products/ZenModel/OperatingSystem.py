@@ -23,6 +23,13 @@ from ZenStatus import ZenStatus
 from ZenDate import ZenDate
 from Exceptions import *
 
+from IpInterface import manage_addIpInterface
+from WinService import manage_addWinService
+from IpService import manage_addIpService
+from OSProcess import manage_addOSProcess
+from IpRouteEntry import manage_addIpRouteEntry
+from FileSystem import manage_addFileSystem
+
 
 class OperatingSystem(Software):
 
@@ -104,5 +111,46 @@ class OperatingSystem(Software):
         """
         return self.getPrimaryParent()
 
+    def addIpInterface(self, id, REQUEST=None):
+        """Add an IpInterface.
+        """
+        manage_addIpInterface(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
 
+    def addWinService(self, id, REQUEST=None):
+        """Add an WinService.
+        """
+        manage_addWinService(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+
+    def addOSProcess(self, id, REQUEST=None):
+        """Add an OSProcess.
+        """
+        manage_addOSProcess(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+                
+    def addIpService(self, id, REQUEST=None):
+        """Add an IpInterface.
+        """
+        manage_addIpService(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+
+    def addFileSystem(self, id, REQUEST=None):
+        """Add an FileSystem.
+        """
+        manage_addFileSystem(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+                    
+    def addIpRouteEntry(self, id, REQUEST=None):
+        """Add an IpRouteEntry.
+        """
+        manage_addIpRouteEntry(self, id)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+                    
 InitializeClass(OperatingSystem)

@@ -286,7 +286,7 @@ class ApplyDataMap(object):
                 and (self.datacollector
                 and getattr(self.datacollector, 'generateEvents', False) 
                 and getattr(self.datacollector, 'dmd', None))):
-                self.logChange(device, Change_Set_Blocked, 'Locked from deletion')
+                self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
         else:
             self.logChange(device, Change_Add,
                             "adding object %s to relationship %s" % (

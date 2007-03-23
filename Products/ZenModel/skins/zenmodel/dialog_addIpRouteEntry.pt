@@ -1,0 +1,16 @@
+<h2>Add IpRouteEntry</h2>
+<p>
+What would you like to name your IpRouteEntry?<br/>
+</p>
+<br/>
+<p style="text-align:center;">
+<input type="text" name="id">
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="addIpRouteEntry:method"
+    value="Yes, Create this IpRouteEntry"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        'addComponent', '${here/os/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

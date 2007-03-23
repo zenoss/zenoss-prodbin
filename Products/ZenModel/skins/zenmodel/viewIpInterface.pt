@@ -10,8 +10,7 @@
         tal:attributes="value template/id" /> 
 
 <tal:block metal:define-macro="objectperf" tal:define="
-                tabletitle string:IpInterface;
-                menu_id string:Lockable">
+                tabletitle string:IpInterface;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -19,9 +18,25 @@
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
       <td class=tableheader align=left>Name</td>
-      <td class=tablevalues tal:content="here/name">eth0</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/name">eth0</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:name; 
+                            value here/name">
+      </td>
       <td class=tableheader align=left>MAC Address</td>
-      <td class=tablevalues tal:content="here/macaddress">00:11:22:AA:BB:CC</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/macaddress">00:11:22:AA:BB:CC</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:macaddress; 
+                            value here/macaddress">
+      </td>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -51,49 +66,94 @@
     </tr>
     <tr>
       <td class=tableheader align=left>Operational Status</td>
-      <td class="tablevalues" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="python:here.operStatus==1 and 'Up' or 'Down'">
         Up
       </td>
+      <td class="tablevalues" tal:condition="here/isManager">
+          <select class="tablevalues"  name="operStatus"
+          tal:condition="here/isManager">
+          <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
+              tal:attributes="value e; selected python:e==here.operStatus"/>
+          </select>
+      </td>
       <td class=tableheader align=left>Administrative Status</td>
-      <td class="tablevalues" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="python:here.adminStatus==1 and 'Up' or 'Down'">
         Up
+      </td>
+      <td class="tablevalues" tal:condition="here/isManager">
+          <select class="tablevalues"  name="adminStatus"
+          tal:condition="here/isManager">
+          <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
+              tal:attributes="value e; selected python:e==here.adminStatus"/>
+          </select>
       </td>
     </tr>
     <tr>
       <td class=tableheader align=left>Type</td>
-      <td class=tablevalues tal:content="here/type">Ethernet</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/type">Ethernet</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:type; 
+                            value here/type">
+      </td>
       <td class=tableheader align=left>Speed</td>
-      <td class=tablevalues tal:content="here/speed">100000000</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/speed">100000000</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:speed; 
+                            value here/speed">
+      </td>
     </tr>
     <tr>
       <td class=tableheader align=left>MTU</td>
-      <td class=tablevalues tal:content="here/mtu">1500</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/mtu">1500</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:mtu; 
+                            value here/mtu">
+      </td>
       <td class=tableheader align=left>SNMP Index</td>
-      <td class=tablevalues tal:content="here/ifindex">100000000</td>
+      <td class=tablevalues tal:condition="not:here/isManager" 
+                            tal:content="here/ifindex">100000000</td>
+      <td class=tablevalues tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:ifindex; 
+                            value here/ifindex">
+      </td>
     </tr>
     <tr>
       <td class=tableheader align=left>Description</td>
-      <td class=tablevalues colspan=3 tal:content="here/description">
-        A nice interface
-    </td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Delete lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-      <td class=tableheader align=left>Update lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      <td class=tablevalues colspan=3 tal:condition="not:here/isManager" 
+                            tal:content="here/description">A nice interface</td>
+      <td class=tablevalues colspan=3 tal:condition="here/isManager">
+          <input tal:attributes="class string:tablevalues; 
+                            type string:text;
+                            size string:50;
+                            name string:description; 
+                            value here/description">
       </td>
     </tr>
     <tr>
+      <td class=tableheader align=left>Locks</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
+      </td>
       <td class=tableheader align=left>Lock warnings</td>
-      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
-        Send event when blocked
-      </td>
+      <td class=tablevalues tal:content="here/lockWarning">Send event when blocked</td>
     </tr>
     <tr tal:condition="here/isManager">
         <td align="left"  class="tableheader" colspan="4">
