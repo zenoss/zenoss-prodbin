@@ -19,6 +19,7 @@ import struct
 import logging
 import re
 import socket
+from sets import Set
 log = logging.getLogger("zen.Utils")
 
 from Acquisition import aq_base
@@ -479,3 +480,17 @@ def localIpCheck(context, ip):
 def localInterfaceCheck(context, intname):
     """Test to see if ips on an in should not be included in the network map."""
     return re.search(getattr(context, 'zLoaclInterfaceNames', '^$'), intname)
+
+
+def cmpClassNames(obj, classnames):
+    """ Check to see if an object's base classes 
+        are in a list of class names. Like isinstance(), 
+        but without requiring an instance to compare against.
+    """
+    finalnames = Set()
+    x = list(obj.__class__.__bases__)
+    while x:
+        thisclass = x.pop()
+        x.extend(thisclass.__bases__)
+        finalnames.add(thisclass.__name__)
+    return not not Set(classnames).intersection(finalnames)

@@ -3,6 +3,7 @@ from ZenMenu import ZenMenu
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import cmpClassNames
 from zExceptions import NotFound
 
 
@@ -104,8 +105,8 @@ class ZenMenuable:
                            or (not getattr(i, 'isglobal', True) and \
                                not context==i.getMenuItemOwner())\
                            or (i.allowed_classes and not \
-                              context.__class__.__name__ in i.allowed_classes)\
-                           or context.__class__.__name__ in i.banned_classes: 
+                              cmpClassNames(context, i.allowed_classes))\
+                           or cmpClassNames(context, i.banned_classes):
                             continue
                         menu[i.id] = i
         keys = menus.keys()
