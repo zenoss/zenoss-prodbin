@@ -37,6 +37,7 @@ var renderTableBody = function(html) {
     /* this won't work on IE */
     evbody.innerHTML = html;
     document.forms.control.resetStart.value = 0;
+    connectCheckboxListeners();
 };
 
 var statusCount = 0;

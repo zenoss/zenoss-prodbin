@@ -7,7 +7,6 @@ function getCheckboxes() {
     var inputs = getElementsByTagAndClassName('input', null);
     return filter(isCheckbox, inputs);
 }
-addLoadEvent(function(){checkboxes = getCheckboxes();});
 
 function selectCheckboxRange(start, end) {
     a = end>start?start:end;
@@ -36,15 +35,14 @@ function handleChange(e) {
     currentCheckbox = t;
 }
 
-function connectCheckboxListeners(box) {
-    connect(box, 'onkeypress', handleChange);
-    disconnectAll(box, 'onclick');
-    connect(box, 'onclick', handleChange);
+function connectCheckboxListeners() {
+checkboxes = getCheckboxes();
+    for (i=0; i<checkboxes.length; i++){
+        var box = checkboxes[i];
+        connect(box, 'onkeypress', handleChange);
+        disconnectAll(box, 'onclick');
+        connect(box, 'onclick', handleChange);
+    }
 }
 
-addLoadEvent(function() {
-var checks = getCheckboxes();
-for (i=0; i<checks.length; i++){
-    connectCheckboxListeners(checks[i]);
-}
-})
+addLoadEvent(connectCheckboxListeners);
