@@ -99,6 +99,9 @@ class ZenPackCmd(ZCmdBase):
                 if not os.path.exists(fullname):
                     os.makedirs(fullname)
             else:
+                base = os.path.dirname(fullname)
+                if not os.path.isdir(base):
+                    os.makedirs(base)
                 file(fullname, 'wb').write(zf.read(name))
         return packName
         

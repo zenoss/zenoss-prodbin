@@ -1,5 +1,6 @@
 #################################################################
-# #   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
@@ -18,6 +19,14 @@ from Products.ZenModel.Device import Device
 
 zenhome = os.environ['ZENHOME']
 menuxml = os.path.join(zenhome, "Products/ZenModel/data/menus.xml")
+
+ZenPackItem = dict(
+    id=         'addToZenPack',
+    description='Add to ZenPack...',
+    action=     'dialog_addToZenPack',
+    permissions=('View',),
+    isdialog = True,
+    )
 
 class MenuRelations(Migrate.Step):
     version = Migrate.Version(1, 2, 0)
@@ -67,6 +76,14 @@ class MenuRelations(Migrate.Step):
   'description': 'PerfConf',
   'id': 'objRRDTemplate',
   'permissions': ('Change Device',)},
+ dict(
+            id=         'addToZenPack',
+            description='Add to ZenPack...',
+            action=     'dialog_addToZenPack',
+            permissions=('View',),
+            isdialog = True,
+            allowed_classes = ['ZenPackable'],
+            ),
  {'action': 'dialog_lock',
   'allowed_classes': ['Device',
                        'WinService'
@@ -224,14 +241,35 @@ class MenuRelations(Migrate.Step):
   'id': 'serviceClassEdit',
   'permissions': ('Manage DMD',)},
 ],
-            'DeviceOrganizer_list':[
+            'DeviceOrganizer_list':            [ZenPackItem],
+            'Service_list':                    [ZenPackItem],
+            'ServiceOrganizer_list':           [ZenPackItem],
+            'OSProcess_list':                  [ZenPackItem],
+            'OSProcessOrganizer_list':         [ZenPackItem],
+            'Manufacturer_list':               [ZenPackItem],
+            'Mib_list':                        [ZenPackItem],
+            'MibOrganizer_list':               [ZenPackItem],
+            'EventClass_list':                 [ZenPackItem],
+            'EventMapping_list':               [ZenPackItem],
+            'PerformanceMonitor_list':         [ZenPackItem],
+            'StatusMonitorsMonitor_list':      [ZenPackItem],
+            # doesn't work:
+            # 'ReportClass_list':                [ZenPackItem],
+            'ZenPack_list':[
                 dict(
-                    id=         'addToZenPack',
-                    description='Add to ZenPack...',
-                    action=     'dialog_addToZenPack',
-                    permissions=('View',),
-                    isdialog = True
-                    )
+                    id=         'addZenPack',
+                    description='Create a new ZenPack...',
+                    action=     'dialog_addZenPack',
+                    permissions=('Manage DMD',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id=         'removeZenPack',
+                    description='Delete ZenPack',
+                    permissions=('Manage DMD',),
+                    action=     'dialog_removeZenPacks',
+                    isdialog=True,
+                    ),
                 ],
             'Device_list':[
                 dict(

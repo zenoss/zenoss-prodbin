@@ -3,6 +3,7 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="objects here/children;
+	menu_id string:MibOrganizer_list;
         tableName string:children;
         showfilterbox python:True;
         tabletitle string:Sub-Folders;
@@ -93,6 +94,7 @@ Optional titlebar stuff
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="objects here/mibs;
+	menu_id string:Mib_list;
         tableName string:mibslist;
         showfilterbox python:True;
         tabletitle string:Mibs;

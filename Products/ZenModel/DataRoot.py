@@ -125,6 +125,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'dataRootManage'
                 , 'permissions'   : ('Manage DMD',)
                 },
+                { 'id'            : 'packs'
+                , 'name'          : 'ZenPacks'
+                , 'action'        : 'viewZenPacks'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
@@ -413,5 +418,38 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''
         return self.emailFrom or 'zenossuser_%s@%s' % (
             getSecurityManager().getUser().getId(), socket.getfqdn())
-        
+
+    def manage_addZenPack(self, id,
+                          author="",
+                          organization="",
+                          version="",
+                          REQUEST = None):
+        """make a new ZenPack"""
+        from ZenPack import ZenPackBase
+        pack = ZenPackBase(id)
+        pack.author = author
+        pack.organization = organization
+        pack.version = version
+        self.packs._setObject(id, pack)
+        import os
+        zp = os.path.join(os.environ['ZENHOME'], 'Products', id)
+        if not os.path.isdir(zp):
+            os.makedirs(zp)
+            for d in ['objects', 'skins', 'modeler/plugins',
+                      'reports', 'daemons']:
+                os.makedirs(os.path.join(zp, d))
+        if REQUEST is not None:
+            return self.callZenScreen(REQUEST, redirect=True)
+
+    def removeZenPacks(self, ids=(), REQUEST = None):
+        """remove a ZenPack"""
+        import os
+        zp = os.path.join(os.environ['ZENHOME'], 'bin', 'zenpack')
+        import os
+        for pack in ids:
+            os.system('%s run --remove %s' % (zp, pack))
+        self._p_jar.sync()
+        if REQUEST is not None:
+            return self.callZenScreen(REQUEST)
+
 InitializeClass(DataRoot)

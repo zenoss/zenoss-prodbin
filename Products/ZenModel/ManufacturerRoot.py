@@ -28,6 +28,7 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
 
 from ZenModelBase import ZenModelBase
+from ZenPacker import ZenPacker
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
@@ -42,7 +43,7 @@ def manage_addManufacturerRoot(context, REQUEST=None):
 #addManufacturerRoot = DTMLFile('dtml/addManufacturerRoot',globals())
 
 
-class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2):
+class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2, ZenPacker):
     """
     The root organizer for manufacturers.  May become a BtreeFolder2 at
     some point (to scale better).  Has interface to manage Manufacturers

@@ -23,12 +23,13 @@ from ZPublisher.Converters import type_converters
 #from Products.ZCatalog.CatalogAwareness import CatalogAware
 
 from ZenModelBase import ZenModelBase
+from ZenPacker import ZenPacker
 from Products.ZenUtils.Utils import getSubObjects
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
@@ -311,19 +312,3 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical):
                 self.reindex_all(item)
         return 'done!'
 
-    security.declareProtected('Manage DMD', 'addToZenPack')
-    def addToZenPack(self, ids=(), organizerPaths=(), pack=None, REQUEST=None):
-        "Add elements from a displayed list of objects to a ZenPack"
-        ids = list(ids) + list(organizerPaths)
-        if ids and pack:
-            pack = self.dmd.packs._getOb(pack)
-            for id in ids:
-                obj = self._getOb(id)
-                obj.buildRelations()
-                if pack.objectPaths: 
-                    pack.objectPaths = pack.objectPaths[:]
-                else:
-                    pack.objectPaths = []
-                pack.packables._setObject(id, obj)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)

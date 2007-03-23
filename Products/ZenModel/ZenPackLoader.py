@@ -67,6 +67,7 @@ class ZPLObject(ZenPackLoader):
                     log.debug('Now adding %s', obj.getPrimaryUrlPath())
                     try:
                         obj.buildRelations()
+                        obj.removeRelation('pack')
                         obj.addRelation('pack', pack)
                     except Exception, ex:
                         log.exception("Error adding pack to %s",
@@ -87,17 +88,24 @@ class ZPLObject(ZenPackLoader):
         
 
     def unload(self, pack, app):
+        from Products.ZenRelations.Exceptions import ObjectNotFound
         dmd = app.zport.dmd
-        for obj in pack.packables():
+        objs = pack.packables()
+        objs.sort(lambda x, y: cmp(x.getPrimaryPath(), y.getPrimaryPath()))
+        objs.reverse()
+        for obj in objs:
             path = obj.getPrimaryPath()
             path, id = path[:-1], path[-1]
-            try:
-                obj = dmd.getObjByPath(path)
-                obj._delObject(id)
-            except (AttributeError, KeyError), ex:
-                log.warning("Unable to remove %s on %s", id,
-                            '/'.join(path))
-
+            obj = dmd.getObjByPath(path)
+            if len(path) > 3:           # leave /Services, /Devices, etc.
+                try:
+                    try:
+                        obj._delObject(id)
+                    except ObjectNotFound:
+                        obj._delOb(id)
+                except (AttributeError, KeyError), ex:
+                    log.warning("Unable to remove %s on %s", id,
+                                '/'.join(path))
 
     def list(self, pack, app):
         return [obj.getPrimaryUrlPath() for obj in pack.packables()]

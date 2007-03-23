@@ -9,6 +9,7 @@
 
 
         <tal:block tal:define="objects python:submonitor.objectSubValues();
+    menu_id python:submonitor.id + 'Monitor_list';
     tableName string:monitorlist;
     submonname python:test(submonitor.id=='Performance',
                 'Performance Monitors', 'Status Monitors');

@@ -11,6 +11,8 @@ class MibBase(ZenModelRM, ZenPackable):
     
     default_catalog = 'mibSearch'
 
+    _relations = ZenPackable._relations[:]
+
     moduleName = ""
     nodetype = ""
     oid = ""

@@ -43,6 +43,9 @@
             <input class="tableheader" type="submit"
                    name="SelectButton" value="Select All" 
                    onClick="toggleSelect(this.form);return false"/>
+            |
+            <input class="tableheader" type="submit" 
+		   name="manage_exportPack:method" value=" Export " />
 	</tr>
 	<tr>
 	  <td class="tableheader" align='center'>
@@ -56,7 +59,6 @@
         </tal:block>
         </tal:block>
         
-
     </form>
 
   </tal:block>

@@ -6,6 +6,7 @@
 
 
         <tal:block tal:define="tableName string:reportorgs;
+        menu_id string:ReportClass_list;
         objects here/children;
         showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 

@@ -31,6 +31,7 @@
 
 <tal:block tal:define=" objects here/children;
         tableName string:children;
+	menu_id string:EventClass_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:SubClasses; ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -126,6 +127,7 @@
 
 <tal:block tal:define=" objects here/instances;
         tableName string:eventinstances;
+	menu_id string:EventMapping_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:EventClass Mappings; ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

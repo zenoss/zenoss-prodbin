@@ -5,6 +5,7 @@
 
 
 <tal:block tal:define="objects here/children;
+	menu_id string:OSProcessOrganizer_list;
         tableName string:children;
         showfilterbox python:True;
         tabletitle string:Sub-Folders;
@@ -80,6 +81,7 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
 
 <tal:block tal:define="objects here/osProcessClasses;
+	menu_id string:OSProcess_list;
         tableName string:osprocessclasseslist;
         showfilterbox python:True;
         tabletitle string:Processes;

@@ -3,7 +3,7 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
 
 
-        <tal:block tal:define=" tabletitle string:Manufacturer">
+        <tal:block tal:define="tabletitle string:Manufacturer;">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

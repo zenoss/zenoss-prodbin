@@ -1,15 +1,17 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
   <tal:block metal:fill-slot="contentPane">
 
-    <form method="POST" tal:attributes="action request/URL;"
+    <form method="POST" name="zenPackList" tal:attributes="action here/absolute_url_path;"
 	  tal:define="tableName string:packlist;
 		      objects container/dmd/packs;
 		      batch python:container.dmd.ZenTableManager.getBatch(tableName,objects);">
       <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
       <input type="hidden" name="tableName" tal:attributes="value tableName"/>
       
 
-        <tal:block tal:define=" tabletitle string:Loaded Zen Packs">
+        <tal:block tal:define=" tabletitle string:Loaded Zen Packs;
+		   		menu_id string:ZenPack_list; " >
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -24,10 +26,21 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+        <tr>
+          <th class="tableheader"/>
+          <th class="tableheader">Pack</th>
+          <th class="tableheader">Author</th>
+          <th class="tableheader">Organization</th>
+          <th class="tableheader">Version</th>
+          <th class="tableheader">#</th>
+        </tr>
 	
 	
 	<tr tal:repeat='pack objects'>
+	  <td class="tablevalues">
+	    <input type="checkbox" name="ids:list" 
+	    	   tal:attributes="value pack/id"/>
+	  </td>
 	  <td class="tablevalues">
 	    <a tal:attributes="href pack/getPrimaryUrlPath" 
 	       tal:content="pack/id"/>
@@ -37,6 +50,9 @@
 	  </td>
 	  <td class="tablevalues">
 	    <a tal:attributes="href pack/url" tal:content="pack/organization"/>
+	  </td>
+	  <td class="tablevalues">
+	    <a tal:attributes="href pack/url" tal:content="pack/version"/>
 	  </td>
 	  <td class="tablevalues">
 	    <a tal:attributes="href pack/getPrimaryUrlPath" 

@@ -5,6 +5,7 @@
 <tal:block tal:define="
     objects here/getInstances;
     tableName string:eventmappinglist;
+    menu_id string:EventMapping_list;
     batch python:here.ZenTableManager.getBatch(tableName, objects);
     tblcolspan string:4;
     showfilterbox python:True;

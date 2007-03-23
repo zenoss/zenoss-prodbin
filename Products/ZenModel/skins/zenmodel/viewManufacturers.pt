@@ -3,6 +3,7 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="
         tableName string:manufacturers;
+	menu_id string:Manufacturer_list;
         objects python:here.objectValues(spec='Manufacturer');
         showfilterbox python:True;
         tabletitle string:Manufacturers;
