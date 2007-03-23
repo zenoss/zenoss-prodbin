@@ -380,7 +380,7 @@ Optional titlebar stuff
     objects here/os/routes/objectValuesAll;
     tabletitle string:Routes;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
-    menu_id string:Route">
+    menu_id string:IpRouteEntry">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 

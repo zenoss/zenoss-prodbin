@@ -145,12 +145,12 @@ class OperatingSystem(Software):
         manage_addFileSystem(self, id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
-                    
-    def addIpRouteEntry(self, id, REQUEST=None):
+          
+    def addIpRouteEntry(self, routemask, nexthopid, routeproto, routetype, REQUEST=None):
         """Add an IpRouteEntry.
         """
-        manage_addIpRouteEntry(self, id)
+        manage_addIpRouteEntry(self, routemask, nexthopid, routeproto, routetype)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url())
                     
 InitializeClass(OperatingSystem)

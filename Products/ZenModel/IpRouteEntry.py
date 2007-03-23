@@ -28,9 +28,10 @@ from OSComponent import OSComponent
 import logging
 log = logging.getLogger("zen.IpRouteEntry")
 
-def manage_addIpRouteEntry(context, id, title = None, REQUEST = None):
+def manage_addIpRouteEntry(context, routemask, nexthopid, routeproto, routetype, REQUEST = None):
     """make a IpRouteEntry"""
-    d = IpRouteEntry(id, title)
+    d = IpRouteEntry(routemask)
+    d.setNextHopIp(nexthopid)
     context._setObject(id, d)
 
     if REQUEST is not None:

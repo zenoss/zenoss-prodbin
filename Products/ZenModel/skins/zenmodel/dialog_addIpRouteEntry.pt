@@ -1,10 +1,10 @@
 <h2>Add IpRouteEntry</h2>
-<p>
-What would you like to name your IpRouteEntry?<br/>
-</p>
 <br/>
-<p style="text-align:center;">
-<input type="text" name="id">
+<p style="text-align:left;">
+Route Mask:<input type="text" name="routemask"><br/><br/>
+Next Hop IP:<input type="text" name="nexthopip"><br/><br/>
+Protocol:<input type="text" name="routeproto"><br/><br/>
+Type:<input type="text" name="routetype">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpRouteEntry:method"
