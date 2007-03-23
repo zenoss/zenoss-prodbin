@@ -12,6 +12,15 @@ from Products.ZenRelations.RelSchema import *
 
 from Service import Service
 
+def manage_addWinService(context, id, title = None, REQUEST = None):
+    """make a device"""
+    d = WinService(id, title)
+    context._setObject(id, d)
+
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()
+                                     +'/manage_main')
+                                     
 class WinService(Service):
     """Windows Service Class
     """
