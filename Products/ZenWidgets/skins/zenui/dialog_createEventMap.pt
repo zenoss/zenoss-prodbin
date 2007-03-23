@@ -14,7 +14,7 @@ To what event class would you like to map these events?
 <input type="submit" name="manage_createEventMap:method"
     value="Set Systems"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'control', '${here/getPrimaryUrlPath}')" />
+                        '${here/getPrimaryUrlPath}');"/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

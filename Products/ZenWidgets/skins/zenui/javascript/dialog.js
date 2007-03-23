@@ -48,8 +48,9 @@ Dialog.Box.prototype = {
             this.box = this.dimbg.parentNode.insertBefore(this.box, this.dimbg);
         }
     },
-    show: function(url) {
+    show: function(form, url) {
         if (url) this.fetch(url);
+        this.form = form;
         var dims = getViewportDimensions();
         setStyle(this.box, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.box);
@@ -77,8 +78,8 @@ Dialog.Box.prototype = {
     fill: function(request) {
         $('dialog_content').innerHTML = request.responseText;
     },
-    submit_form: function(formname, action) {
-        var f = document.forms[formname];
+    submit_form: function(action, formname) {
+        var f = formname?document.forms[formname]:this.form
         setStyle(this.box, {'z-index':'-1'});
         this.box = removeElement(this.box);
         f.action = action;

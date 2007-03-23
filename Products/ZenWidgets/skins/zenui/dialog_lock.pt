@@ -13,15 +13,15 @@ Which lock status would you like to set on this object?<br/>
 <input type="submit" name="lockFromUpdates:method"
     value="Lock from deletion and updates"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'lockableForm', '${here/absolute_url_path}')" /><br/>
+                        '${here/absolute_url_path}','lockableForm')" /><br/>
 <input type="submit" name="lockFromDeletion:method"
     value="Lock from deletion"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'lockableForm', '${here/absolute_url_path}')" /><br/>
+                        '${here/absolute_url_path}','lockableForm')" /><br/>
 <input type="submit" name="unlock:method"
     value="Unlock"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'lockableForm', '${here/absolute_url_path}')" /><br/>
+                        '${here/absolute_url_path}','lockableForm')" /><br/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

@@ -15,7 +15,7 @@ To which class would you like to move these devices?<br/>
 <input type="submit" name="moveDevices:method"
     value="Move"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')" />
+                        '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

@@ -15,7 +15,7 @@ To which location would you like to move these devices?
 <input type="submit" name="setLocation:method"
     value="Set Location"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/getPrimaryUrlPath}')" />
+                        '${here/getPrimaryUrlPath}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
     onclick="$('dialog').hide()"/>
 </div>

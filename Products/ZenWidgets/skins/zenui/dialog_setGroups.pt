@@ -15,7 +15,7 @@ Which groups would you like to set for these devices?<br/>
 <input type="submit" name="setGroups:method"
     value="Set Groups"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/getPrimaryUrlPath}')" />
+                        '${here/getPrimaryUrlPath}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

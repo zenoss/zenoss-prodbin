@@ -15,7 +15,7 @@ To which pack would you like to move these objects?<br/>
 <input type="submit" name="addToZenPack:method"
     value="Add"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'subdeviceForm', '${here/absolute_url_path}')" />
+                        '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

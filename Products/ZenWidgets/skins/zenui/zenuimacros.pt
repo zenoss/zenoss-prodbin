@@ -29,7 +29,7 @@ Menu
                             item.action,
                             '%s/%s' % (basepath, item.action));
                actionpath python:test(item.isdialog, 
-                'javascript:$(\'dialog\').show(\'%s\')' % mypath,
+                'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
                 mypath)"
    tal:attributes="href actionpath" 
    tal:content="item/description">description</a>
@@ -198,14 +198,20 @@ padding-right:20px;margin-left:20px;}</style>
         <div class="menu_bottom">&nbsp;</div>
         <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
             <li tal:repeat="item menuitems">
-<a tal:define="mypath python:test(item.action.startswith('javascript'),
+<tal:block tal:define="
+mypath python:test(item.action.startswith('javascript'),
                             item.action,
                             '%s/%s' % (basepath, item.action));
+               thisid python:filter(lambda x:x.isalnum(), item.action);
                actionpath python:test(item.isdialog, 
-                'javascript:$(\'dialog\').show(\'%s\')' % mypath,
-                mypath)"
-   tal:attributes="href actionpath" 
-   tal:content="item/description">description</a>
+                    'javascript:$(\'dialog\').show($(\'%sinput\').form, 
+                    \'%s\')' % (thisid,mypath),
+               mypath)">
+   <input tal:attributes="id string:${thisid}input" type="hidden"/>
+   <a tal:attributes="id thisid; href actionpath" 
+    tal:content="item/description">description</a>
+</tal:block>
+
             </li>
         </ul>
         </div>

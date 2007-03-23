@@ -9,7 +9,7 @@ Are you sure you want to remove these devices?<br/>
 <input type="submit" name="removeDevices:method"
     value="Yes"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')" />
+                        '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

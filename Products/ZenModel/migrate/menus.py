@@ -400,6 +400,19 @@ class MenuRelations(Migrate.Step):
             ],
             'HistoryEvent_list':[
                 dict(
+                    id=         'createEventMap',
+                    description='Map Events to Class...',
+                    action=     'dialog_createEventMap',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
+                    id=         'exportAllEvents',
+                    description='Download as CSV',
+                    action=     'javascript:goExport()',
+                    permissions=('View',)
+                    ),
+                dict(
                     id=         'undeleteHistoryEvents',
                     description='Undelete Events...',
                     action=     'dialog_undeleteHistoryEvents',

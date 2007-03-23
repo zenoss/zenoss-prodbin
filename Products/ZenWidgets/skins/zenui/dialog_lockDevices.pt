@@ -11,15 +11,15 @@ Which lock status would you like to set on these devices?<br/>
 <input type="submit" name="lockDevicesFromUpdates:method"
     value="Lock from deletion and updates"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" />&nbsp;
 <input type="submit" name="lockDevicesFromDeletion:method"
     value="Lock from deletion"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" />&nbsp;
 <input type="submit" name="unlockDevices:method"
     value="Unlock"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" />&nbsp;
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

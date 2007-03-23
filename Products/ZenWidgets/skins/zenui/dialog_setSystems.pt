@@ -14,7 +14,7 @@ Which systems would you like to set for these devices?
 <input type="submit" name="setSystems:method"
     value="Set Systems"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'deviceList', '${here/getPrimaryUrlPath}')" />
+                        '${here/getPrimaryUrlPath}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

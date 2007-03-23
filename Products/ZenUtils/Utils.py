@@ -483,9 +483,9 @@ def localInterfaceCheck(context, intname):
 
 
 def cmpClassNames(obj, classnames):
-    """ Check to see if an object's base classes 
+    """ Check to see if any of an object's base classes 
         are in a list of class names. Like isinstance(), 
-        but without requiring an instance to compare against.
+        but without requiring a class to compare against.
     """
     finalnames = Set()
     x = list(obj.__class__.__bases__)
@@ -493,4 +493,4 @@ def cmpClassNames(obj, classnames):
         thisclass = x.pop()
         x.extend(thisclass.__bases__)
         finalnames.add(thisclass.__name__)
-    return not not Set(classnames).intersection(finalnames)
+    return bool( Set(classnames).intersection(finalnames) )
