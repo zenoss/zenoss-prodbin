@@ -22,14 +22,10 @@ from AccessControl import getSecurityManager
 from Globals import InitializeClass
 from Globals import DTMLFile
 from Acquisition import aq_base
-from OFS.SimpleItem import Item
-from OFS.PropertyManager import PropertyManager
-from OFS.ObjectManager import ObjectManager
 import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
-from Products.ZenModel.Organizer import Organizer
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
@@ -41,7 +37,6 @@ from Exceptions import *
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils import Time
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 import StringIO
@@ -52,6 +47,16 @@ from ZenEventClasses import Unknown
 import time
 
 from DbAccessBase import DbAccessBase
+
+
+def evtprep(evts):
+    evtsdata = "%d/%d" % (evts[1],evts[2])
+    if evts[1]==evts[2] or evts[2]==0:
+        return {'cssclass':evts[0] + " empty thin",
+                'data':evtsdata}
+    else:
+        return {'cssclass':evts[0], 'data':evtsdata}
+
 
 class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     """
@@ -135,13 +140,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     refreshConversionsForm = DTMLFile('dtml/refreshNcoProduct', globals())
     
-    manage_options = (ObjectManager.manage_options +
-                    PropertyManager.manage_options +
-                    ({'label':'View', 'action':'viewEvents'},
-                    {'label':'Refresh', 'action':'refreshConversionsForm'},) +
-                    ObjectCache.manage_options +
-                    Item.manage_options)
-
     defaultAvailabilityDays = 7
     defaultPriority = 3
     eventAgingHours = 4
@@ -776,19 +774,24 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         data = self.checkCache("dashboardinfo%s" % simple)
         if data: return data
         data = {}
+        data['systemevents'] = self.getSystemsDashboard(simple)
+        data['heartbeat'] = self.getHeartbeat()
+        data['deviceevents'] = self.getDeviceDashboard(simple)
+        self.addToCache("dashboardinfo", data)
+        self.cleanCache()
+        if REQUEST:
+            REQUEST.RESPONSE.setHeader('Cache-Control', 'no-cache')
+            REQUEST.RESPONSE.setHeader('Expires', '-1')
+            REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
+        return data
+
+
+    def getDeviceDashboard(self, simple=False):
+        """return device info for bad device to dashboard"""
         devices = [d[0] for d in self.getDeviceIssues(
                             severity=4, state=1, limit=100)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
-
-        def evtprep(evts):
-            evtsdata = "%d/%d" % (evts[1],evts[2])
-            if evts[1]==evts[2] or evts[2]==0:
-                return {'cssclass':evts[0] + " empty thin",
-                        'data':evtsdata}
-            else:
-                return {'cssclass':evts[0], 'data':evtsdata}
-
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
@@ -812,8 +815,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             evts.extend(map(evtprep, evtsum))
             devdata.append(evts)
         devdata.sort()
-        data['deviceevents'] = devdata
+        return devdata
 
+
+    def getSystemsDashboard(self, simple=False):
+        """Return systems info for dashboard."""
         sysroot = self.getDmdRoot("Systems")
         sysdata = []
         for sys in sysroot.children():
@@ -826,17 +832,53 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             evts = [ alink ]
             evts.extend(map(evtprep, sys.getEventSummary(prodState=1000)))
             sysdata.append(evts)
-        
         sysdata.sort()
-        data['systemevents'] = sysdata
-        data['heartbeat'] = self.getHeartbeat()
-        self.addToCache("dashboardinfo", data)
-        self.cleanCache()
+        return sysdata
+        
+
+
+    def getSummaryDashboard(self, REQUEST=None):
+        '''Build summary of serveral zope servers'''
+        import urllib, re
+        user = 'admin'; pw = 'zenoss'
+        servernames = ['zenoss', 'tilde']
+        dashurl = "<a href='http://%s:8080/zport/dmd/'>%s</a>"
+        sumurl = 'http://%s:%s@%s:8080/zport/dmd/Systems/getEventSummary'
+        infourl = 'http://%s:%s@%s:8080/zport/dmd/ZenEventManager/getDashboardInfo'
+        info = {'deviceevents': [], 'systemevents': [], 'heartbeat': []}
+
+        def getData(user, pw, urlfmt):
+            data = ''
+            try:
+                url = urlfmt % (user, pw, s)
+                data = urllib.urlopen(url).read()
+                if re.search('zenevents_5_noack', data): 
+                    return data
+            except IOError: pass
+
+        zenossdata = []
+        for s in servernames:
+                data = getData(user, pw, sumurl)
+                if not data: continue
+                evts = [ dashurl % (s, s) ] 
+                evts.extend(map(evtprep, eval(data)))
+                zenossdata.append(evts)
+        zenossdata.sort()
+        info['systemevents'] = zenossdata
+        for s in servernames:
+            data = getData(user, pw, infourl)
+            if not data: continue
+            data = eval(data)
+            info['deviceevents'].extend(data['deviceevents'])
+            info['heartbeat'].extend(data['heartbeat'])
+            
         if REQUEST:
             REQUEST.RESPONSE.setHeader('Cache-Control', 'no-cache')
             REQUEST.RESPONSE.setHeader('Expires', '-1')
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
-        return data
+        return info
+            
+
 
     security.declareProtected('View','getJSONEventsInfo')
     def getJSONEventsInfo(self, simple=False, REQUEST=None):
