@@ -80,7 +80,7 @@ class Threshold:
             if self.escalateCount and self.count >= self.escalateCount:
                 severity += 1
             summary = '%s %s threshold of %s %s: current value %.2f' % (
-                device, self.label, thresh, how, value)
+                device, self.label, thresh, how, float(value))
             eventCb(device=device,
                     summary=summary,
                     eventClass=self.eventClass,
