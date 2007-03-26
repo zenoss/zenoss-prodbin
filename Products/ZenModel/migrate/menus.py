@@ -241,7 +241,7 @@ class MenuRelations(Migrate.Step):
   'id': 'serviceClassEdit',
   'permissions': ('Manage DMD',)},
 ],
-            'DeviceOrganizer_list':            [
+            'Organizer_list':            [
                 ZenPackItem,
                 dict(
                     id=         'addOrganizer',

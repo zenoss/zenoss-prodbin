@@ -78,7 +78,7 @@
     <tal:block tal:define="objects here/children;
             tableName string:children;
             tblcolspan string:5;
-            menu_id string:DeviceOrganizer_list;
+            menu_id string:Organizer_list;
             batch python:here.ZenTableManager.getBatch(tableName,objects);
             showfilterbox python:True;
             tblcolspan string:5;
