@@ -3,6 +3,7 @@
     height: 26px;
     line-height: 26px;
     position: absolute;
+    z-index: 2000;
     width: 126px;
     top: 2px;
     padding-top: 4px;

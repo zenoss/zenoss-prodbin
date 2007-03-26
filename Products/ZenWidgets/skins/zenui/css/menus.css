@@ -1,10 +1,3 @@
-#menuBlock {
-    position:relative;
-    float:right;
-    width: 12em;
-    z-index: 2000;
-}
-
 .contextmenu * ,
 .littlemenu * {
     padding: 0;
@@ -17,13 +10,14 @@
 .contextmenu {
     position: relative;
     cursor:pointer;
+    z-index: 4000;
 }
 
 .littlemenu {
     position:absolute;
     right:0px;
     bottom: 0px;
-    z-index: 2007;
+    z-index: 4000;
 }
 
 
@@ -47,7 +41,6 @@
     width: 172px;
     top: 24px;
     border-top: 0px;
-    z-index: 4005;
     padding-bottom: 10px;
     padding-top: 10px;
 }
@@ -58,8 +51,11 @@ div.menu_bottom {
     bottom: 0px;
     left: -2px;
     height: 20px;
-    z-index: 2000;
     width: 174px;
+    z-index: 1000;
+}
+.submenu div.menu_bottom {
+    z-index: 0;
 }
 
 div.menu_top {
@@ -68,7 +64,6 @@ div.menu_top {
     top: 0px;
     left: -2px;
     height: 20px;
-    z-index: 2000;
     width: 174px;
 }
 div.menu_top_rounded {
@@ -77,7 +72,6 @@ div.menu_top_rounded {
     top: 0px;
     left: -2px;
     height: 20px;
-    z-index: 2000;
     width: 174px;
 }
 
@@ -92,8 +86,8 @@ ul.zenMenu {
     width: 172px;
     position: relative;
     left: -2px;
-    z-index: 2001;
     background-color: #666;
+    z-index: 4001;
 }
 
 ul.zenMenu li a {
@@ -122,11 +116,11 @@ div.menuselected {
 
 div.devmovemenu {
     width: 52px;
-    z-index: 2007;
     border-left: 1px inset #666;
     height: 25px;
     background: #E0E0E0 url('img/actions_button.gif') bottom left no-repeat;
     position:absolute;
+    z-index: 4000;
     right:0px;
     bottom: 0px;
 }
@@ -156,7 +150,6 @@ div.devmovemenu:hover {
     padding-top: 10px;
     padding-bottom: 10px;
     border-top: 0px;
-    z-index:4005;
 }
 .menu ul {
     padding:0;
@@ -166,7 +159,6 @@ div.devmovemenu:hover {
     border-left: 1px solid #5A6F8F;
     border-right: 1px solid #5A6F8F;
     background-color: #666;
-    z-index: 4006;
 }
 
 ul.zenMenu > li > a {
@@ -192,6 +184,7 @@ background-color:#999;
 .menu ul div.submenu {
 visibility:hidden;
 position:absolute;
+z-index: 4002;
 top:-1px;
 left:100px;
 padding: 0px;

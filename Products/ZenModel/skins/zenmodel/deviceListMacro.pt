@@ -40,7 +40,7 @@
     <tal:block tal:define="objects python:list(here.devices.objectValuesAll());
         tableName string:devicelistmacro;
         showfilterbox python:True;
-        menu_id string:device_list;
+        menu_id string:Device_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:Devices">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
