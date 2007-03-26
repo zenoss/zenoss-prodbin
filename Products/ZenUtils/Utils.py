@@ -488,7 +488,7 @@ def cmpClassNames(obj, classnames):
         but without requiring a class to compare against.
     """
     finalnames = Set()
-    x = list(obj.__class__.__bases__)
+    x = [obj.__class__]
     while x:
         thisclass = x.pop()
         x.extend(thisclass.__bases__)
