@@ -3,7 +3,7 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <tal:block tal:define="objects here/children;
-	menu_id string:MibOrganizer_list;
+        menu_id string:Organizer_list;
         tableName string:children;
         showfilterbox python:True;
         tabletitle string:Sub-Folders;
@@ -60,22 +60,6 @@ Optional titlebar stuff
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="6">
     <span metal:define-macro="editor" tal:omit-tag="">
-        <input class="tableheader" type="text" name="newPath"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addOrganizer:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" name="moveOrganizer:method"
-                value="Move To" />
-        <select class="tableheader" name="moveTarget"
-        tal:define="targets here/childMoveTargets">
-            <option value=""></option>
-            <option tal:repeat="target targets" 
-                tal:content="target">/Server/Linux</option>
-        </select> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteOrganizers:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
