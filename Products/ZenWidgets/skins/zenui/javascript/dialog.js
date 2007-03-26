@@ -20,7 +20,7 @@ Dialog.Box.prototype = {
         this.defaultContent = this.box.innerHTML
         setStyle(this.box, {
             'position':'absolute',
-            'z-index':'3001',
+            'z-index':'5001',
             'display':'none'});
     },
     makeDimBg: function() {
@@ -32,7 +32,7 @@ Dialog.Box.prototype = {
                 'position':'absolute',
                 'top':'0',
                 'left':'0',
-                'z-index':'3000',
+                'z-index':'5000',
                 'width':'100%',
                 'background-color':'white',
                 'display':'none'
@@ -54,7 +54,7 @@ Dialog.Box.prototype = {
         var dims = getViewportDimensions();
         setStyle(this.box, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.box);
-        setStyle(this.box, {'z-index':'3001','display':'none'});
+        setStyle(this.box, {'z-index':'5001','display':'none'});
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.box, {
             x:(dims.w/2)-(bdims.w/2),
@@ -62,6 +62,7 @@ Dialog.Box.prototype = {
         });
         this.moveBox('front');
         //connect(this.dimbg, 'onclick', bind(this.hide, this));
+        connect('dialog_close','onclick',function(){$('dialog').hide()});
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.5});
         showElement(this.box);
     },
