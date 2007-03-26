@@ -21,7 +21,13 @@
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
-            <div metal:use-macro="here/templates/macros/infoBar"/>
+            <div metal:use-macro="here/templates/macros/infoBar">
+            <tal:block metal:fill-slot="infoBar">
+            <tal:block metal:define-slot="infoBar">
+           <div metal:use-macro="here/templates/macros/breadCrumbPane"/> 
+           </tal:block>
+            </tal:block>
+            </div>
             <div id="paneToggle">
             </div>
             <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
@@ -168,7 +174,9 @@
  ====================================================== -->
 <div id="infoBar" metal:define-macro="infoBar">
 <div id="leftPaneToggle"></div>
+<div metal:define-slot="infoBar">
 <div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
+</div>
 <div id="messageSlot" tal:condition="python:hasattr(here.REQUEST,'message')">
 <div style="position:absolute;top:3px;right:3px;color:#666;padding:0px;
             font-size:9px;line-height:9px;height:9px;border:1px solid red;
