@@ -25,17 +25,6 @@ function datePickerClosed(targetInput) {
     return true;
 };
 </script>
-<script>
-function goExport(url) {
-	var sev = document.getElementById("severity").value;
-	var state = document.getElementById("state").value;
-	var filter = document.getElementById("filter").value;
-	var startdate = document.getElementById("startdate").value;
-	var enddate = document.getElementById("enddate").value;
-	url = url + "/exportEvents?state=" + state + "&severity=" + sev + "&filter=" + filter + "&startdate=" + startdate + "&enddate=" + enddate;
-	parent.location = url;
-}
-</script>
 
 <form method="post" tal:attributes="action here/absolute_url_path"
       name="history_events"
@@ -90,27 +79,10 @@ menu_id string:HistoryEvent_list;
     <tal:block metal:define-macro="histeditor">
         <tr tal:condition="here/isManager">
             <td class="tableheader" tal:attributes="colspan evcolspan">
-                <input class="tableheader" type="submit" value="Map:"
-                    name="manage_createEventMap:method"/>
-                <select class="tableheader" name="eventClass"
-                tal:define="orgs here/Events/getOrganizerNames">
-                    <option value=""></option>
-                    <option tal:repeat="org orgs" tal:content="org"
-                        tal:attributes="value org">/App/Start</option>
-                </select>
-                |
                 <input class="tableheader" type="submit"
                     name="SelectButton" value="Select All"
                     onClick="toggleSelect(this.form); return false"/>
-                |
-                <input class="tableheader" type="button"
-                    name="export" value="Export All"
-                    tal:define="severity request/severity | string:2;
-                                state request/state | string:1;
-                                filter request/filter | string:;"
-                    tal:attributes="onClick string:goExport('${request/URL1}');"
-                />
-            </td>
+                            </td>
         </tr>
     </tal:block>
 <!-- END TABLE CONTENTS -->
