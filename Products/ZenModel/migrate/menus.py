@@ -265,7 +265,14 @@ class MenuRelations(Migrate.Step):
                     isdialog = True
                     ),
             ],
-            'Service_list':                    [ZenPackItem],
+            'Service_list':                    [ZenPackItem,
+                dict(
+                    id=         'addServiceClass',
+                    description='Add Service...',
+                    action=     'dialog_addServiceClass',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                    ],
             'OSProcess_list':                  [ZenPackItem],
             'Manufacturer_list':               [ZenPackItem],
             'Mib_list':                        [ZenPackItem],

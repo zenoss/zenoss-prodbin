@@ -67,7 +67,8 @@ div.menu_top {
     width: 174px;
 }
 div.menu_top_rounded {
-    background: transparent url('img/menu_top_rounded.gif') top left no-repeat;
+    background: transparent url('img/menu_top_rounded.gif') 
+        top left no-repeat;
     position: absolute;
     top: 0px;
     left: -2px;
