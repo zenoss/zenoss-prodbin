@@ -26,6 +26,7 @@ import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenModel.Organizer import Organizer
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
