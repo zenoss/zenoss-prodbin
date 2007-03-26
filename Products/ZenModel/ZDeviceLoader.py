@@ -72,7 +72,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def loadDevice(self, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
-            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
+            zSnmpCommunity="", zSnmpPort=161, zSnmpVer=None,
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
@@ -83,6 +83,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         Load a device into the database connecting its major relations
         and collecting its configuration. 
         """
+        if zSnmpVer is None:
+            try:
+                zSnmpVer = str(self.Devices.getOrganizer(devicePath).zSnmpVer)
+            except AttributeError:
+                zSnmpVer = 'v1'
         if not deviceName: return self.callZenScreen(REQUEST)
         device = None
         if REQUEST:

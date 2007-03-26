@@ -93,7 +93,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         raise NoIPAddress("No IP found for name %s" % deviceName)
     if discoverProto == "snmp":
         zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
-            findCommunity(context, ip, devicePath, zSnmpCommunity, zSnmpPort)
+                        findCommunity(context, ip, devicePath,
+                                      zSnmpCommunity, zSnmpPort, zSnmpVer)
         log.debug("device community = %s", zSnmpCommunity)
         log.debug("device name = %s", snmpname)
         if not deviceName:
@@ -137,7 +138,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     return device
 
 
-def findCommunity(context, ip, devicePath, community="", port=161):
+def findCommunity(context, ip, devicePath, community="", port=161, version='v1'):
     """Find the snmp community for an ip address using zSnmpCommunities.
     """
     try:
@@ -156,7 +157,6 @@ def findCommunity(context, ip, devicePath, community="", port=161):
     oid = '.1.3.6.1.2.1.1.5.0'
     goodcommunity = ""
     devname = ""
-    snmpver = "v1"
     for community in communities:
         session.community = community
         try:
@@ -167,7 +167,7 @@ def findCommunity(context, ip, devicePath, community="", port=161):
         except: pass #keep trying until we run out
     else:
         raise NoSnmp("no snmp found for ip = %s" % ip)
-    return (goodcommunity, port, snmpver, devname)
+    return (goodcommunity, port, version, devname)
 
 
 
@@ -742,7 +742,7 @@ class Device(ManagedEntity, Commandable, Lockable):
         try:
             zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
                 findCommunity(self, self.manageIp, self.getDeviceClassPath(),
-                            port=self.zSnmpPort)
+                            port=self.zSnmpPort, version=zSnmpVer)
         except NoSnmp:
             pass
         else:
