@@ -1,0 +1,15 @@
+
+<h2>Remove Device Organizers</h2>
+<br/><br/>
+<p>
+Are you sure you want to remove these organizers?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="manage_deleteOrganizers:method"
+    value="Yes"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

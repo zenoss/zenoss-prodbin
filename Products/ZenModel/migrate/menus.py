@@ -241,7 +241,30 @@ class MenuRelations(Migrate.Step):
   'id': 'serviceClassEdit',
   'permissions': ('Manage DMD',)},
 ],
-            'DeviceOrganizer_list':            [ZenPackItem],
+            'DeviceOrganizer_list':            [
+                ZenPackItem,
+                dict(
+                    id=         'addOrganizer',
+                    description='Add New Organizer...',
+                    action=     'dialog_addOrganizer',
+                    permissions=('Manage DMD',),
+                    isdialog=   True,
+                    ),
+                dict(
+                    id=         'moveOrganizer',
+                    description='Move Organizers...',
+                    action=     'dialog_moveOrganizer',
+                    permissions=('Manage DMD',),
+                    isdialog=   True,
+                    ),
+                dict(
+                    id=         'removeOrganizers',
+                    description='Delete Organizers...',
+                    action=     'dialog_removeOrganizer',
+                    permissions=('Manage DMD',),
+                    isdialog = True
+                    ),
+            ],
             'Service_list':                    [ZenPackItem],
             'ServiceOrganizer_list':           [ZenPackItem],
             'OSProcess_list':                  [ZenPackItem],
