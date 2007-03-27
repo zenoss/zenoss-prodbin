@@ -138,7 +138,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     return device
 
 
-def findCommunity(context, ip, devicePath, community="", port=161, version='v1'):
+def findCommunity(context, ip, devicePath, community="", port=None, version='v1'):
     """Find the snmp community for an ip address using zSnmpCommunities.
     """
     try:
@@ -150,7 +150,7 @@ def findCommunity(context, ip, devicePath, community="", port=161, version='v1')
     communities = []
     if community: communities.append(community)
     communities.extend(getattr(devroot, "zSnmpCommunities", []))
-    port = getattr(devroot, "zSnmpPort", port)
+    if not port: port = getattr(devroot, "zSnmpPort", 161)
     timeout = getattr(devroot, "zSnmpTimeout", 2)
     session = SnmpSession(ip, timeout=timeout, port=port)
     sysTableOid = '.1.3.6.1.2.1.1'
