@@ -35,7 +35,7 @@
                 #leftPane { display:none;}
                 #rightPane { margin-left:12px;}
                 #paneToggle { 
-                    background-image: url('paneToggle_bg_collapsed.gif');
+                    background-image: url('img/paneToggle_bg_collapsed.gif');
                     border-right: medium none;
                 }
                 #leftPaneToggle{ display:block;
