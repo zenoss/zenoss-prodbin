@@ -5,65 +5,129 @@
     </dtml-if>
     <dtml-var "zport.dmd.zenoss_error_message(error_type=error_type, error_value=error_value, error_traceback=error_traceback, error_message=error_message)">
 <dtml-except>
-
+    
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
-
+        
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>Zenoss: error</title>
-    <link rel="stylesheet" type="text/css" title="zenoss" 
-                            href="/zport/portal_skins/zenoss.css">
-    <link rel="stylesheet" type="text/css" title="zenoss" 
-                            href="/zport/portal_skins/zenevents.css">
+    <title>Zenoss: Devices</title>
+    <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenoss.css">
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/zenevents.css">
+
+    <link rel="stylesheet" type="text/css" title="zenoss" href="/zport/portal_skins/css/tables.css">
     <!--[if IE]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="/zport/portal_skins/zenoss_ie.css" >
     <![endif]-->
+    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" src="/zport/portal_skins/zenmodelfuncs.js"></script>
+    <script type="text/javascript" src="/zport/js/zenui.js"></script>
 
-</head>
+        <script src="javascript/selection.js"></script>
+    </head>
 	<body>
+
 	   <div id="frame">
-            <table id="topPane" cellpadding="0"
-                   cellspacing="0" border="0">
-    <tr>
-    <td class="logo" width="220px">
-        <img src="logo.gif" alt="Zenoss">
-    </td>
-    <td class="search">
+            <div id="topPane">
 
-    <form action="/zport/dmd/deviceSearchResults" method="POST">
-        <input type="text" name="query" size="15" value="" />
-        <input type="submit" name="submit" value="Search" />
+    <div class="logo">| Core</div>
+    <div id="settings">
+
+    <div class="searchbox">
+    <form action="/zport/dmd/deviceSearchResults" method="POST" name="searchform">
+        <input type="text" name="query"
+               onkeypress="submitViaEnter(event)"
+               onclick="select(this.value)" value="" />
     </form> 
-    </td>
-    <td id="settings">
+    </div>
+    </div>
+</div>
+            <div id="infoBar">
+<div id="leftPaneToggle"></div>
 
-    </td>
-    </tr>
-</table>
-
+            
+</div>
+            <div id="paneToggle">
+            </div>
+            
             <div id="leftPane">
+    <p id="mainviews">Main Views</p>
+    <ul>
+
+        <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
+        <li><a href="/zport/dmd/Events">Events</a></li>
+        <li><a href="/zport/dmd/Devices">Devices</a></li>
+        <li><a href="/zport/dmd/Services">Services</a></li>
+        <li><a href="/zport/dmd/Processes">Processes</a></li>
+        <li><a href="/zport/dmd/Networks">Networks</a></li>
+
+        <li><a href="/zport/dmd/Manufacturers">Manufacturers</a></li>
+        <li><a href="/zport/dmd/Mibs">Mibs</a></li>
+    </ul>
+
+    <p id="browseby">Browse By</p>
+    <ul>
+        <li><a href="/zport/dmd/Systems">Systems</a></li>
+
+        <li><a href="/zport/dmd/Groups">Groups</a></li>
+        <li><a href="/zport/dmd/Locations">Locations</a></li>
+        <li><a href="/zport/dmd/Reports">Reports</a></li>
+    </ul>
+
+
+    
+    <p id="Management">Management</p>
+    <ul>
+
+        <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
+        <li><a href="/zport/dmd/ZenEventManager/addEvent">Add Event</a></li>
+        <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
+        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
+        <li><a href="/zport/dmd/editSettings">Settings</a></li>
+        <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
+
+        <li><a href="/zport/dmd/About">About</a></li>
+    </ul>
+    
 
 
 </div>
 	        <div id="rightPane">
                 
-            <div id="breadCrumbPane">
-    
-</div>
             <div id="contentPane">
-                
-
 <h2>Site error</h2>
 <p>An error was encountered while publishing this resource.  The requested
 resource does not exist.</p>
 
 <a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
+<script>
+function toggleReqBox() {
+if ($('request_box').style.display=='none') {
+    showElement('request_box');
+    setStyle('request_toggle', {'background-image':'url(/zport/dmd/img/arrow.d.gif)'});
+} else {
+    hideElement('request_box');
+    setStyle('request_toggle', {'background-image':'url(/zport/dmd/img/arrow.r.gif)'});
+}
+}
+</script>
+<style>
+#request_box{width:95%;border:2px dotted #666;margin-top:10px;background-color:white;color:#333;font-size:0.8em;padding:1em;overflow:hidden;}
+#request_toggle{padding-left:25px;margin-top:20px;font-weight:bold;cursor:pointer;cursor:hand;background:transparent url('/zport/dmd/img/arrow.r.gif') 5px 5px no-repeat;}
+</style>
+<div id="more_info">
+<div id="request_toggle" onclick="toggleReqBox()">Request Information</div>
+<div id="request_box">
+<code>
+<dtml-var REQUEST>
+</code>
+</div>
+<script>toggleReqBox()</script>
 
             </div>
-        
             </div>
        </div>
     </body>
@@ -71,4 +135,10 @@ resource does not exist.</p>
 
 
 
+
+
+
+
+
 </dtml-try>
+
