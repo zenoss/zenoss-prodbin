@@ -4,7 +4,8 @@
 
 <div class="menu" tal:define="
         menu_ids menu_ids | python:['Edit'];
-        basepath here/getPrimaryUrlPath">
+        basepath here/getPrimaryUrlPath"
+        tal:condition="python:here.getMenus(menu_ids)">
 <div tal:attributes="id string:contextmenu_btn">
     <a class="tabletitle">&nbsp;</a>
 </div>
