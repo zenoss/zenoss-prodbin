@@ -20,11 +20,9 @@ class PortscanClient(object):
         self.plugins = plugins
         self.results = []
 
-        # XXX we need to setup config values in Zope
-        #self.portRange = getattr(device,'zPortscanPortRange', (1,10000))
-        # XXX
-        #self.portRange = (1, 10000)
-        self.portRange = (1, 1000)
+        maxPort = getattr(device,'zIpServiceMapMaxPort', 1024)
+        self.portRange = (1, maxPort)
+
         #self.portList = getattr(device,'zPortscanPortList', [])
         self.portList = []
 
