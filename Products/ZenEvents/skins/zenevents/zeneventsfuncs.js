@@ -76,8 +76,9 @@ var getTablePage = function(form) {
         log("resubmit while query pending!!") 
     } else {
         loadStatusDefered = loadStatus()
-	var d = doSimpleXMLHttpRequest(form.url.value + "?" + 
-				       queryString(form));
+    var submiturl = form.url.value + "?" + queryString(form);
+    submiturl = submiturl.replace('&severity=severity', '');
+	var d = doSimpleXMLHttpRequest(submiturl);
 	d = cancelWithTimeout(d, rate);
 	d.addCallbacks(processData, errorHandler);
 	d.addErrback(printError);
