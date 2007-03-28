@@ -265,11 +265,24 @@ class MenuRelations(Migrate.Step):
                     isdialog = True
                     ),
             ],
-            'Service_list':                    [ZenPackItem,
+            'Service_list':                    [
+                ZenPackItem,
                 dict(
                     id=         'addServiceClass',
                     description='Add Service...',
                     action=     'dialog_addServiceClass',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeServiceClasses',
+                    description='Delete Services...',
+                    action=     'dialog_removeServiceClasses',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'moveServiceClasses',
+                    description='Move Services...',
+                    action=     'dialog_moveServiceClasses',
                     permissions=('Manage DMD',),
                     isdialog=   True),
                     ],
@@ -351,29 +364,11 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',),
                     )
                 ],
-            'WinService':[
-                dict(
-                    id=         'addWinService',
-                    description='Add WinService...',
-                    action=     'dialog_addWinService',
-                    isdialog = True,
-                    permissions=('Change Device',),
-                    )
-                ],
             'OSProcess':[
                 dict(
                     id=         'addOSProcess',
                     description='Add OSProcess...',
                     action=     'dialog_addOSProcess',
-                    isdialog = True,
-                    permissions=('Change Device',),
-                    )
-                ],
-            'IpService':[
-                dict(
-                    id=         'addIpService',
-                    description='Add IpService...',
-                    action=     'dialog_addIpService',
                     isdialog = True,
                     permissions=('Change Device',),
                     )

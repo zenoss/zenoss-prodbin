@@ -15,14 +15,9 @@
 }
 
 .dialog_close {
-    width: 1.2em;
-    height: 1.2em;
     background-color: lightgrey;
     color: grey;
-    font-weight: bold;
-    text-align: center;
     line-height: 1.2em;
-    border: 1px solid grey;
     position: absolute;
     top: 2px;
     right: 2px;

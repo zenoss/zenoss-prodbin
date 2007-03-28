@@ -3,7 +3,7 @@
 <link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="menu" tal:define="
-        menu_ids menu_ids | python:['Edit','Actions'];
+        menu_ids menu_ids | python:['Edit'];
         basepath here/getPrimaryUrlPath">
 <div tal:attributes="id string:contextmenu_btn">
     <a class="tabletitle">&nbsp;</a>

@@ -109,7 +109,8 @@ Optional titlebar stuff
 
 <li metal:define-macro="runCommandMenu"
     tal:define="commands here/getUserCommands"
-    tal:condition="commands">
+    tal:condition="python:here.meta_type in
+    ['DeviceClass','Device','Location','DeviceGroup','System']">
 <form name="command_proxy" method="post"
 tal:define="mypath here/getPrimaryUrlPath"
 tal:attributes="action string:${mypath}/manage_doUserCommand">

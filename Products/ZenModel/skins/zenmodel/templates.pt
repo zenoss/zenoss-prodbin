@@ -178,10 +178,8 @@
 <div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
 </div>
 <div id="messageSlot" tal:condition="python:hasattr(here.REQUEST,'message')">
-<div style="position:absolute;top:3px;right:3px;color:#666;padding:0px;
-            font-size:9px;line-height:9px;height:9px;border:1px solid red;
-            cursor:pointer;background-color:lightgrey;width:9px;"
-            onclick="fade('messageSlot', {'duration':0.3} )">X</div>
+<img src="img/close.gif" style="position:absolute;top:3px;right:3px;"
+            onclick="fade('messageSlot', {'duration':0.3} )"/>
 <span tal:content="here/REQUEST/message">Message</span>
 <script>
     var pulseMessage = function() {

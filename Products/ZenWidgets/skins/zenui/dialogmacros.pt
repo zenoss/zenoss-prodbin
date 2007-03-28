@@ -3,7 +3,7 @@
 <script src="javascript/dialog.js"></script>
 <link href="css/dialog.css" rel="stylesheet" type="text/css" />
 <div id="dialog" class="dialog"> 
-<div id="dialog_close" class="dialog_close">X</div>
+<img id="dialog_close" src="img/close.gif" class="dialog_close"/>
 <div id="dialog_content">
     <tal:block metal:define-slot="dialog_content">
         This is a dialog box.
