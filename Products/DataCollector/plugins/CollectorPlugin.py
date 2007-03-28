@@ -135,7 +135,7 @@ class SnmpPlugin(CollectorPlugin):
     def asip(self, val):
         """Convert a byte string to an ip address string.
         """
-        return ".".join(map(str, struct.unpack('!4B', char)))
+        return ".".join(map(str, struct.unpack('!4B', val)))
     
 
     def asdate(self,val):
