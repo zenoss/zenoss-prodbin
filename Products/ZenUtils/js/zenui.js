@@ -79,8 +79,9 @@ function hideLeftPane() {
         'background-image':'url(img/paneToggle_bg_collapsed.gif)',
         'border-right':'1px solid black'
     });
-    setStyle('breadCrumbPane', { 'padding-left':'35px'});
-    setStyle(rightPane, {'margin-left':'12px'});
+    if ($('breadCrumbPane')) {
+    setStyle('breadCrumbPane', { 'padding-left':'35px'});}
+    setStyle('rightPane', {'margin-left':'12px'});
     setStyle('leftPaneToggle', {
     'background':'transparent url(img/leftpanetoggle_bg.gif) top left repeat-x',
     'height':'30px',
@@ -104,7 +105,8 @@ function showLeftPane() {
         'background-image':'url(img/paneToggle_bg.gif)',
         'border-right':'1px solid black'
     });
-    setStyle('breadCrumbPane', { 'padding-left':'120px'});
+    if ($('breadCrumbPane')) {
+    setStyle('breadCrumbPane', { 'padding-left':'120px'});}
     setStyle(rightPane, {'margin-left':'120px'});
     setStyle('leftPaneToggle', {
     'background':'#5a6f8f url(img/leftpanetoggle_bg_expanded.gif) ' +
