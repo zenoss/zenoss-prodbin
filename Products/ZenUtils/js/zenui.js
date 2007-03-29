@@ -172,13 +172,13 @@ function doHover() {
     connect('leftPaneToggle','onmouseover', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_depressed.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg_depressed.gif") top left repeat-x'
             })
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg.gif") top left repeat-x'
             })
     });
     connect('leftPaneToggle', 'onclick', function(){
@@ -198,13 +198,13 @@ function cancelHover() {
     connect('leftPaneToggle','onmouseover', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x'
             })
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x'
             })
     });
     deleteCookie('Zenoss_Collapsed_Menu','/','');
@@ -222,13 +222,13 @@ function checkForCollapsed() {
     connect('leftPaneToggle','onmouseover', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x'
             })
     });
     connect('leftPaneToggle','onmouseout', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x',
+            'url("img/leftpanetoggle_bg_expanded.gif") top left repeat-x'
             })
     });
     } else {

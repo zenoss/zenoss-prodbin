@@ -111,7 +111,7 @@ class MenuRelations(Migrate.Step):
   'isdialog': True,
   'permissions': ('Change Device',)},
  {'action': 'editStatusMonitorConf',
-  'allowed_classes': ['StatusMonitorConf'],
+  'allowed_classes': ['StatusMonitors'],
   'description': 'Edit',
   'id': 'editStatusMonitorConf',
   'permissions': ('Manage DMD',)},

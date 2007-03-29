@@ -15,7 +15,6 @@
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
-        <script src="javascript/selection.js"></script>
     </head>
 	<body>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
@@ -130,6 +129,8 @@
         src="/zport/portal_skins/zenmodelfuncs.js"></script>
     <script type="text/javascript"
         src="/zport/js/zenui.js"></script>
+    <script src="javascript/selection.js"></script>
+    <script src="javascript/menus.js"></script>
 </tal:block>
 
 <!-- ======================================================

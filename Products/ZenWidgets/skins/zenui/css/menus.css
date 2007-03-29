@@ -91,6 +91,10 @@ ul.zenMenu {
     z-index: 4001;
 }
 
+#contentPane {
+z-index: 1;
+}
+
 ul.zenMenu li a {
     padding-left: 1em;
     text-align: justify;
@@ -181,9 +185,9 @@ color:#fff;
 background-color:#999;
 }
 
-/* hide the sub levels and give them a positon absolute so that they take up no room */
+/* hide the sub levels and give them a position absolute so that they take up no room */
 .menu ul div.submenu {
-visibility:hidden;
+visibility: hidden;
 position:absolute;
 z-index: 4002;
 top:-1px;
@@ -193,12 +197,13 @@ padding-top: 10px;
 padding-bottom: 10px;
 }
 
-/* make the second level visible when hover on first level list OR link */
+/* make the second level visible when hover on first level list OR link 
 .menu ul li:hover div.submenu,
 .menu ul a:hover div.submenu {
 visibility:visible;
 top: 10px;
 }
+*/
 
 .menu div.submenu div.menu_top_rounded,
 .menu div.submenu div.menu_bottom {

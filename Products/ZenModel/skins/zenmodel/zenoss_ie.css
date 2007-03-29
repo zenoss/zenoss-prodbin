@@ -1,9 +1,32 @@
-#leftPane ul li {
+/* IE6 fix only */
+* html #leftPane ul li {
     border-top: 1px solid white;
     border-bottom: 1px solid white;
-    /* 
-        this is a hack... not sure why this works..
-        there is probably a problem with line height
-        that will fix this cross browser...
-    */
+}
+
+th.tabletitle {
+    background: transparent 
+        url('img/titlebar_bg.gif') 
+        repeat-x 5px 5px;
+    height: 25px;
+    padding: 0px;
+    margin: 0px;
+}
+
+.temp_filterbox {
+    position: absolute;
+    right: 50px;
+    top: 0px;
+    z-index: 2007;
+    padding: 0px;
+    height: 25px;
+}
+
+div.tabletitlecontainer {
+    top: 5px;
+}
+
+
+#selectedtablinehider {
+    margin-left: -49px;
 }

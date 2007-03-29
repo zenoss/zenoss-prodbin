@@ -8,6 +8,12 @@ table.innerzentable {
     font-weight: normal;
     font-size: 8pt;
     font-family: Verdana, Arial, Helvetica, sans-serif;
+    z-index: 1;
+}
+
+table.innerzentable * {
+    position: relative;
+    z-index: 1;
 }
 
 table.innerzentable tr td {

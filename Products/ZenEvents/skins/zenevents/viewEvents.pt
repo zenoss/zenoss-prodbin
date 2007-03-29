@@ -25,7 +25,7 @@
 
 <!-- Custom filter widgets -->
 <tal:block metal:fill-slot="filterslot">    
-<div style="position:absolute;right:50px;top:0px;z-index:2007;">
+<div class="temp_filterbox"> 
             Sev
             <select class="tableheader" name="severity:int" id="severity"
                     onchange="getTablePage(this.form)">

@@ -16,27 +16,30 @@
 <ul class="zenMenu">
 <tal:block tal:repeat="menu menu_ids">
 <li tal:condition="python:here.getMenus(menu, here)">
-<a href="javascript:void(0)">
+<a href="javascript:void(0)" tal:attributes="id string:${menu}_parent">
 <tal:block tal:content="menu">
 Menu
 </tal:block>
 </a>
-<div class="submenu">
-<div class="menu_top_rounded">&nbsp;</div>
-<div class="menu_bottom">&nbsp;</div>
-<ul>
-<li tal:repeat="item python:here.getMenus(menu, here)">
-<a tal:define="mypath python:test(item.action.startswith('javascript'),
-                            item.action,
-                            '%s/%s' % (basepath, item.action));
-               actionpath python:test(item.isdialog, 
-                'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
-                mypath)"
-   tal:attributes="href actionpath" 
-   tal:content="item/description">description</a>
-</li>
-</ul>
+<div class="submenu" tal:attributes="id string:${menu}_submenu">
+    <div class="menu_top_rounded">&nbsp;</div>
+    <div class="menu_bottom">&nbsp;</div>
+    <ul>
+    <li tal:repeat="item python:here.getMenus(menu, here)">
+    <a tal:define="mypath python:test(item.action.startswith('javascript'),
+                                item.action,
+                                '%s/%s' % (basepath, item.action));
+                   actionpath python:test(item.isdialog, 
+                    'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
+                    mypath)"
+       tal:attributes="href actionpath" 
+       tal:content="item/description">description</a>
+    </li>
+    </ul>
 </div>
+<script tal:content="string:
+    registerSubmenu('${menu}_parent','${menu}_submenu');">javascript madness
+</script>
 </li>
 </tal:block>
 <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
@@ -45,6 +48,7 @@ Menu
 </div>
 <script tal:content="string:
     var cxmto;
+    if ( $$('contextmenu_btn') ) {
     var hidectxmenu = function() { 
         removeElementClass('contextmenu_btn','menuselected');
         makeInvisible('contextmenu_items') }
@@ -63,6 +67,7 @@ Menu
     connect('contextmenu_items','onclick',function() {
         makeInvisible('contextmenu_items');
     });
+    }
 ">
 </script>
 
