@@ -2,7 +2,7 @@ import sys, os
 import string 
 
 
-def skinDirs(self, base):
+def skinDirs(base):
     layers = []
     for p, ds, fs in os.walk(os.path.join(base, 'skins')):
         for d in ds:
