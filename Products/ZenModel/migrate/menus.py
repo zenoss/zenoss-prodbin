@@ -20,7 +20,7 @@ from Products.ZenModel.Device import Device
 zenhome = os.environ['ZENHOME']
 menuxml = os.path.join(zenhome, "Products/ZenModel/data/menus.xml")
 
-ZenPackItem = dict(
+ZenPackItems = dict(
     id=         'addToZenPack',
     description='Add to ZenPack...',
     action=     'dialog_addToZenPack',
@@ -242,7 +242,7 @@ class MenuRelations(Migrate.Step):
   'permissions': ('Manage DMD',)},
 ],
             'Organizer_list':            [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addOrganizer',
                     description='Add New Organizer...',
@@ -266,7 +266,7 @@ class MenuRelations(Migrate.Step):
                     ),
             ],
             'Service_list':                    [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addServiceClass',
                     description='Add Service...',
@@ -287,7 +287,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                     ],
             'OSProcess_list': [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addOSProcess',
                     description='Add Process...',
@@ -308,7 +308,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                     ],
             'Manufacturer_list':               [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addManufacturer',
                     description='Add Manufacturer...',
@@ -323,7 +323,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                 ],
             'Mib_list':                    [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addMibModule',
                     description='Add Mib...',
@@ -344,7 +344,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                     ],
             'EventMapping_list':               [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addInstance',
                     description='Add Mapping...',
@@ -365,7 +365,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                     ],
             'PerformanceMonitor_list': [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addPMonitor',
                     description='Add Monitor...',
@@ -380,7 +380,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                 ],
             'StatusMonitor_list': [
-                ZenPackItem,
+                ZenPackItems,
                 dict(
                     id=         'addSMonitor',
                     description='Add Monitor...',
@@ -395,7 +395,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                 ],
             # doesn't work:
-            # 'ReportClass_list':                [ZenPackItem],
+            # 'ReportClass_list':                [ZenPackItems],
             'ZenPack_list':[
                 dict(
                     id=         'addZenPack',
