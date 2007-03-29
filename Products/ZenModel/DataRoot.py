@@ -375,6 +375,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             buffer = StringIO.StringIO()
         fields = []
         labels = []
+        if not fieldsAndLabels:
+            fieldsAndLabels = []
+        if not objects:
+            objects = []
         for p in fieldsAndLabels:
             if isinstance(p, tuple):
                 fields.append(p[0])

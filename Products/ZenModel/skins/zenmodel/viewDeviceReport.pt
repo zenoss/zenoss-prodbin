@@ -1,8 +1,13 @@
 <tal:block tal:define="
 	objects here/getDevices;
 	objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
+	tableName here/title;
+	batch python: here.ZenTableManager.getBatch(
+		tableName, objects, 
+		sortedHeader=here.sortedHeader, 
+		sortedSence=here.sortedSence); 
 	exportHeaders python: (hasattr(request, 'doExport') 
-							and here.reportHeaders()) or None;
+							and here.reportHeaders()) or [];
 	exportFields python:exportHeaders;
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
@@ -15,11 +20,7 @@
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
-        <tal:block tal:define="tableName here/title; 
-    			batch python: here.ZenTableManager.getBatch(
-						tableName, objects, 
-						sortedHeader=here.sortedHeader, 
-						sortedSence=here.sortedSence); 
+        <tal:block tal:define=" 
                 showfilterbox python:True;
                 tabletitle string:Device Report">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
