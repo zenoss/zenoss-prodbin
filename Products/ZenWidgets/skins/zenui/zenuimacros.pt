@@ -203,7 +203,7 @@ padding-right:20px;margin-left:20px;}</style>
 mypath python:test(item.action.startswith('javascript'),
                             item.action,
                             '%s/%s' % (basepath, item.action));
-               thisid python:filter(lambda x:x.isalnum(), item.id);
+               thisid python:filter(lambda x:x.isalnum(), menu_id+item.id);
                actionpath python:test(item.isdialog, 
                     'javascript:$(\'dialog\').show($(\'%sinput\').form, 
                     \'%s\')' % (thisid,mypath),
