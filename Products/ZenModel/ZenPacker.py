@@ -21,7 +21,6 @@ class ZenPacker(object):
                     except AttributeError, ex:
                         message = str(ex)
                         break
-                    print obj.getPrimaryUrlPath()
                     obj.buildRelations()
                     pack.packables.addRelation(obj)
             else:
