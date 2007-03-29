@@ -2,15 +2,22 @@
 <p>
 What would you like to name your OSProcess?<br/>
 </p>
+<input type="hidden" name="userCreated" value="True">
 <br/>
 <p style="text-align:center;">
-<input type="text" name="id">
+Name:<input type="text" name="id"><br/>
+Process Class:<select name="className"
+tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
+    <option value=""></option>
+    <option tal:repeat="target targets" 
+        tal:content="target">/</option>
+</select>  
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addOSProcess:method"
     value="Yes, Create this OSProcess"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'addComponent', '${here/os/absolute_url_path}')" />
+                        '${here/os/absolute_url_path}', 'addComponent')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

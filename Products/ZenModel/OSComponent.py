@@ -12,6 +12,13 @@ class OSComponent(DeviceComponent, ManagedEntity):
     """
     Logical Operating System component like a Process, IpInterface, etc.
     """
+    isUserCreatedFlag = False
+    
+    def setUserCreateFlag(self):
+        isUserCreatedFlag = True
+        
+    def isUserCreated(self):
+        return isUserCreatedFlag
 
     def device(self):
         """Return our device object for DeviceResultInt.

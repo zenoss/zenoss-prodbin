@@ -14,15 +14,17 @@ from Acquisition import aq_chain
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
-def manage_addOSProcess(context, id, title = None, REQUEST = None):
+def manage_addOSProcess(context, id, className, title = None, REQUEST = None):
     """make a device"""
     d = OSProcess(id, title)
     context._setObject(id, d)
-
+    d = context._getOb(id)
+    d.setOSProcessClass("/Processes" + className)
+    
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main')
-                                     
+
 class OSProcess(OSComponent, Commandable, ZenPackable):
     """Hardware object"""
     portal_type = meta_type = 'OSProcess'

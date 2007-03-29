@@ -5,8 +5,7 @@
             name="lockableForm"/>
 
 <tal:block metal:define-macro="deviceStatusInfo"
-           tal:define=" tabletitle string:Status;
-                        menu_id string:Lockable">
+           tal:define=" tabletitle string:Status;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 

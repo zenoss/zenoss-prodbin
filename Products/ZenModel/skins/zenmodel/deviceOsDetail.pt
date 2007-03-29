@@ -96,8 +96,7 @@
 </tal:block>
 </tal:block>
 
-<tal:block tal:condition="here/os/winservices/countObjects"
-    tal:define="tableName string:winserviceslist;
+<tal:block tal:define="tableName string:winserviceslist;
     objects here/os/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
@@ -158,8 +157,7 @@
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getOSProcessClass');
-    menu_id string:OSProcess"
-    tal:condition="objects">
+    menu_id string:OSProcess">
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -227,8 +225,7 @@ Optional titlebar stuff
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort');
-    menu_id string:IpService"
-    tal:condition="objects">
+    menu_id string:IpService">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -296,8 +293,7 @@ Optional titlebar stuff
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');
-    menu_id string:FileSystem"
-    tal:condition="objects">
+    menu_id string:FileSystem">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">

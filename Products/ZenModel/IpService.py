@@ -22,11 +22,16 @@ from Products.ZenRelations.RelSchema import *
 from Service import Service
 from Products.ZenModel.IpServiceClass import IpServiceClass
 
-def manage_addIpService(context, id, title = None, REQUEST = None):
+def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=None):
     """make a device"""
-    d = IpService(id, title)
+    d = IpService(id)
     context._setObject(id, d)
-
+    d = context._getOb(id)
+    setattr(d, 'name', id)
+    setattr(d, 'protocol', protocol)
+    setattr(d, 'port', int(port))
+    d.setServiceClass({'protocol':protocol, 'port':int(port)})
+    if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
@@ -166,7 +171,7 @@ class IpService(Service):
     
     
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, monitor=False, severity=5, sendString="",
+    def manage_editService(self, name, protocol, port, monitor=False, severity=5, sendString="",
                             expectRegex="", REQUEST=None):
         """Edit a Service from a web page.
         """
@@ -174,6 +179,12 @@ class IpService(Service):
         msg.append(self.setAqProperty("sendString", sendString, "string"))
         msg.append(self.setAqProperty("expectRegex", expectRegex, "string"))
         self.index_object()
+        
+        setattr(self, 'name', name)
+        setattr(self, 'protocol', protocol)
+        setattr(self, 'port', int(port))
+        self.setServiceClass({'protocol':protocol, 'port':int(port)})
+        
         return super(IpService, self).manage_editService(monitor, severity, 
                                         msg=msg,REQUEST=REQUEST)
 

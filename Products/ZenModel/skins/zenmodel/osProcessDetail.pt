@@ -32,7 +32,17 @@
             
     <tr>
         <td class="tableheader">Status</td>
-        <td tal:define="status here/getStatus"
+        <td tal:condition="here/isManager">
+            <select class="tablevalue" name="status:int"
+                tal:condition="here/isManager">
+                <option tal:repeat="status here/getStatusConversions"
+                    tal:content="python:status[0]"
+                    tal:attributes="value python:status[1];
+                        selected python:status == here.getStatus()" />
+            </select>
+        </td>
+        <td tal:condition="not:here/isManager"
+            tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
@@ -43,7 +53,17 @@
     </tr>
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:content="here/name"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea tal:condition="here/isManager"
+                      tal:attributes="class string:tablevalues;
+                                   name string:name;
+                                   rows string:3;
+                                   cols string:80"
+                      tal:content="here/name">Process Name
+            </textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+                                tal:content="here/name"/>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -72,7 +92,7 @@
     <tr>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues" tal:condition="editable">
-            <select class="tableheader" name="zFailSeverity:int"
+            <select class="tablevalue" name="zFailSeverity:int"
                 tal:condition="here/isManager">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
@@ -84,22 +104,15 @@
             tal:content="here/getFailSeverityString"/>
     </tr>
     <tr>
-        <td class=tableheader align=left>Delete lock</td>
+        <td class=tableheader align=left>Lock</td>
         <td class=tablevalues>
-        <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-        </td>
-    </tr>
-    <tr>
-        <td class=tableheader align=left>Update lock</td>
-        <td class=tablevalues>
-        <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+        <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+        <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     <tr>
         <td class=tableheader align=left>Lock warnings</td>
-        <td class=tablevalues tal:content="here/lockWarning">
-        Send event when blocked
-        </td>
+        <td class=tablevalues tal:content="here/lockWarning">Send event when blocked</td>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan="2">

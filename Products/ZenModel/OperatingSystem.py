@@ -114,43 +114,65 @@ class OperatingSystem(Software):
     def addIpInterface(self, id, REQUEST=None):
         """Add an IpInterface.
         """
-        manage_addIpInterface(self, id)
+        manage_addIpInterface(self.interfaces, id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
 
     def addWinService(self, id, REQUEST=None):
         """Add an WinService.
         """
-        manage_addWinService(self, id)
+        manage_addWinService(self.winservices, id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
 
-    def addOSProcess(self, id, REQUEST=None):
+    def addOSProcess(self, id, className, userCreated, REQUEST=None):
         """Add an OSProcess.
         """
-        manage_addOSProcess(self, id)
+        manage_addOSProcess(self.processes, id, className)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
                 
-    def addIpService(self, id, REQUEST=None):
+    def addIpService(self, 
+                    id, 
+                    protocol, 
+                    port, 
+                    userCreated, 
+                    REQUEST=None):
         """Add an IpInterface.
         """
-        manage_addIpService(self, id)
+        manage_addIpService(self.ipservices, 
+                            id, 
+                            protocol, 
+                            port, 
+                            userCreated=userCreated)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(self.ipservices._getOb(id).absolute_url())
 
     def addFileSystem(self, id, REQUEST=None):
         """Add an FileSystem.
         """
-        manage_addFileSystem(self, id)
+        manage_addFileSystem(self.filesystems, id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
-          
-    def addIpRouteEntry(self, routemask, nexthopid, routeproto, routetype, REQUEST=None):
+        
+    def addIpRouteEntry(self, 
+                        dest, 
+                        nexthopid, 
+                        interface, 
+                        routeproto, 
+                        routetype, 
+                        userCreated, 
+                        REQUEST=None):
         """Add an IpRouteEntry.
         """
-        manage_addIpRouteEntry(self, routemask, nexthopid, routeproto, routetype)
+        manage_addIpRouteEntry(self.routes, 
+                                dest, 
+                                nexthopid, 
+                                interface, 
+                                routeproto, 
+                                routetype, 
+                                userCreated=userCreated)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self.absolute_url())
-                    
+        
 InitializeClass(OperatingSystem)

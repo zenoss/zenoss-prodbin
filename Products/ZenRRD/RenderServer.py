@@ -217,7 +217,7 @@ class RenderServer(RRDToolItem):
                 try:
                     info = rrdtool.info(p)
                 except:
-                    log.exception('%s not found' % p)
+                    log.debug('%s not found' % p)
                 if info:
                     last = info['last_update']
                     step = info['step']

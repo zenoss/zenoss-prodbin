@@ -30,7 +30,17 @@
             
     <tr>
         <td class="tableheader">Status</td>
-        <td tal:define="status here/getStatus"
+        <td tal:condition="here/isManager">
+            <select class="tablevalues" name="status:int"
+                tal:condition="here/isManager">
+                <option tal:repeat="status here/getStatusConversions"
+                    tal:content="python:status[0]"
+                    tal:attributes="value python:status[1];
+                        selected python:status==here.getStatus()" />
+            </select>
+        </td>
+        <td tal:condition="not:here/isManager"
+            tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
@@ -41,20 +51,48 @@
     </tr>
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:content="here/name"/>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+                              tal:content="here/name"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:attributes="class string:tablevalues; 
+                              size string:50;
+                              name string:name; 
+                              value here/name">
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Protocol</td>
-        <td class="tablevalues" tal:content="here/protocol"/>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+                                tal:content="here/protocol"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues" name="protocol">
+            <option tal:repeat="e python:('udp','tcp')" tal:content="e"
+                tal:attributes="value e; selected python:e==here.protocol"/>
+            </select>
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Port</td>
-        <td class="tablevalues" tal:content="here/port"/>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+                                tal:content="here/port"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:attributes="class string:tablevalues; 
+                              size string:10;
+                              name string:port; 
+                              value here/port">
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Ip Addresses</td>
-        <td class="tablevalues" 
+        <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="python: ', '.join(here.ipaddresses)"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea name="ipaddresses:lines"
+                      tal:attributes="class string:tablevalues; 
+                              cols string:30;
+                              rows string:5;"
+                      tal:content="here/ipaddresses"/>
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -73,9 +111,10 @@
     <tr>
         <td class="tableheader">Send String</td>
         <td class="tablevalues" tal:condition="not: here/cantMonitor">
-            <input class="tablevalues" type="text" name="sendString" 
-                tal:condition="here/isManager"
-                tal:attributes="value here/getSendString"/>
+            <input tal:condition="here/isManager"
+                tal:attributes="class string:tablevalues;
+                                name string:sendString;
+                                value here/getSendString"/>
             <tal:block tal:condition="not:here/isManager" 
                 tal:content="here/getSendString"/>
         </td>
@@ -112,23 +151,26 @@
     </tr>
     <tr>
         <td class="tableheader">Description</td>
-        <td class="tablevalues" tal:content="here/description"/>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+                                tal:content="here/description"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                size string:50;
+                                name string:description;
+                                value here/description"/>
+        </td>
     </tr>
     <tr>
-      <td class=tableheader align=left>Delete lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Update lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      <td class=tableheader align=left>Locks</td>
+      <td class="tablevalues">
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
     </tr>
     <tr>
       <td class=tableheader align=left>Lock warnings</td>
-      <td class=tablevalues tal:content="here/lockWarning">
+      <td class="tablevalues" tal:content="here/lockWarning">
         Send event when blocked
       </td>
     </tr>

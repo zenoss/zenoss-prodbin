@@ -1,16 +1,18 @@
 <h2>Add IpRouteEntry</h2>
 <br/>
-<p style="text-align:left;">
-Route Mask:<input type="text" name="routemask"><br/><br/>
-Next Hop IP:<input type="text" name="nexthopip"><br/><br/>
-Protocol:<input type="text" name="routeproto"><br/><br/>
-Type:<input type="text" name="routetype">
+<input type="hidden" name="userCreated" value="True">
+<p style="text-align:right;">
+Destination:&nbsp;<input name="dest"><br/><br/>
+Next Hop:&nbsp;<input name="nexthopid"><br/><br/>
+Interface:&nbsp;<input name="interface"><br/><br/>
+Protocol:&nbsp;<input name="routeproto"><br/><br/>
+Type:&nbsp;<input name="routetype"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpRouteEntry:method"
-    value="Yes, Create this IpRouteEntry"
+    value="Yes, Create this Route"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'addComponent', '${here/os/absolute_url_path}')" />
+                        '${here/os/absolute_url_path}', 'addComponent')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

@@ -2,15 +2,20 @@
 <p>
 What would you like to name your IpService?<br/>
 </p>
+<input type="hidden" name="userCreated" value="True">
 <br/>
-<p style="text-align:center;">
-<input type="text" name="id">
+<p style="text-align:right;">
+Name:&nbsp;<input name="id"><br/><br/>
+Protocol:&nbsp;<select name="protocol">
+<option tal:repeat="e python:('udp','tcp')" tal:content="e"
+    tal:attributes="value e"/>
+</select>&nbsp;&nbsp;Port:&nbsp;<input name="port" size="10"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpService:method"
     value="Yes, Create this IpService"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'addComponent', '${here/os/absolute_url_path}')" />
+                        '${here/os/absolute_url_path}', 'addComponent')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

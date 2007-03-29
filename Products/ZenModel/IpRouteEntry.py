@@ -18,7 +18,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenUtils.Utils import localIpCheck
+from Products.ZenUtils.Utils import localIpCheck, prepId
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import findIpAddress
@@ -28,12 +28,19 @@ from OSComponent import OSComponent
 import logging
 log = logging.getLogger("zen.IpRouteEntry")
 
-def manage_addIpRouteEntry(context, routemask, nexthopid, routeproto, routetype, REQUEST = None):
+def manage_addIpRouteEntry(context, dest, nexthopid, interface, routeproto, routetype, userCreated=None, REQUEST = None):
     """make a IpRouteEntry"""
-    d = IpRouteEntry(routemask)
-    d.setNextHopIp(nexthopid)
+    id = prepId(dest)
+    d = IpRouteEntry(id)
     context._setObject(id, d)
-
+    d = context._getOb(id)
+    d.setTarget(dest)
+    d.setNextHopIp(nexthopid)
+    d.setInterfaceName(interface)
+    if userCreated: d.setUserCreateFlag()
+    setattr(d, 'routeproto', routeproto)
+    setattr(d, 'routetype', routetype)
+    
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 

@@ -10,7 +10,7 @@ What would you like to name your WinService?<br/>
 <input type="submit" name="addWinService:method"
     value="Yes, Create this WinService"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'addComponent', '${here/os/absolute_url_path}')" />
+                        '${here/os/absolute_url_path}', 'addComponent')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
