@@ -1,0 +1,16 @@
+<h2>Add Manufacturer</h2>
+<p>
+What would you like to name this manufacturer?
+</p>
+<br/>
+<p style="text-align:center;">
+<input type="text" name="manufacturerName"/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addManufacturer:method"
+    value="Add"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>

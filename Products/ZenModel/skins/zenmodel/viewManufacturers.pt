@@ -61,14 +61,6 @@ Optional titlebar stuff
     </tr>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="4">
-        <input class="tableheader" type="text" name="manufacturerName"
-           onkeypress="return submitViaEnter(event,'manage_addManufacturer');"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addManufacturer:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteManufacturers:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>

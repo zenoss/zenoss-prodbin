@@ -1,0 +1,16 @@
+<h2>Add Event Class Mapping</h2>
+<p>
+What would you like to name this mapping?
+</p>
+<br/>
+<p style="text-align:center;">
+<input type="text" name="id"/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="createInstance:method"
+    value="Add"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>

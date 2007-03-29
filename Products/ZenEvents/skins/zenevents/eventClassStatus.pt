@@ -31,7 +31,7 @@
 
 <tal:block tal:define=" objects here/children;
         tableName string:children;
-	menu_id string:EventClass_list;
+        menu_id string:Organizer_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:SubClasses; ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -89,22 +89,6 @@
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="6">
     <span metal:define-macro="editor" tal:omit-tag="">
-        <input class="tableheader" type="text" name="newPath"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addOrganizer:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" name="moveOrganizer:method"
-                value="Move To" />
-        <select class="tableheader" name="moveTarget"
-        tal:define="targets here/childMoveTargets">
-            <option value=""></option>
-            <option tal:repeat="target targets" 
-                tal:content="target">/Server/Linux</option>
-        </select> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteOrganizers:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
@@ -183,22 +167,6 @@
     </span>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="4">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            name="createInstance:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" name="moveInstances:method"
-                value="Move To" />
-        <select class="tableheader" name="moveTarget"
-        tal:define="targets here/childMoveTargets">
-            <option value=""></option>
-            <option tal:repeat="target targets" 
-                tal:content="target">/Server/Linux</option>
-        </select> 
-        |
-        <input class="tableheader" type="submit" 
-            name="removeInstances:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>

@@ -1,0 +1,16 @@
+<h2>Add Process Class</h2>
+<p>
+What would you like to name this process class?
+</p>
+<br/>
+<p style="text-align:center;">
+<input type="text" name="id"/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addOSProcessClass:method"
+    value="Add Process Class"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>

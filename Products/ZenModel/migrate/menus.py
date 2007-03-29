@@ -286,13 +286,114 @@ class MenuRelations(Migrate.Step):
                     permissions=('Manage DMD',),
                     isdialog=   True),
                     ],
-            'OSProcess_list':                  [ZenPackItem],
-            'Manufacturer_list':               [ZenPackItem],
-            'Mib_list':                        [ZenPackItem],
-            'EventClass_list':                 [ZenPackItem],
-            'EventMapping_list':               [ZenPackItem],
-            'PerformanceMonitor_list':         [ZenPackItem],
-            'StatusMonitorsMonitor_list':      [ZenPackItem],
+            'OSProcess_list': [
+                ZenPackItem,
+                dict(
+                    id=         'addOSProcess',
+                    description='Add Process...',
+                    action=     'dialog_addOSProcess',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeOSProcesses',
+                    description='Delete Processes...',
+                    action=     'dialog_removeOSProcesses',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'moveOSProcesses',
+                    description='Move Processes...',
+                    action=     'dialog_moveOSProcesses',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                    ],
+            'Manufacturer_list':               [
+                ZenPackItem,
+                dict(
+                    id=         'addManufacturer',
+                    description='Add Manufacturer...',
+                    action=     'dialog_addManufacturer',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeManufacturers',
+                    description='Delete Manufacturers...',
+                    action=     'dialog_removeManufacturers',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                ],
+            'Mib_list':                    [
+                ZenPackItem,
+                dict(
+                    id=         'addMibModule',
+                    description='Add Mib...',
+                    action=     'dialog_addMibModule',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeMibModules',
+                    description='Delete Mibs...',
+                    action=     'dialog_removeMibModules',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'moveMibModules',
+                    description='Move Mibs...',
+                    action=     'dialog_moveMibModules',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                    ],
+            'EventMapping_list':               [
+                ZenPackItem,
+                dict(
+                    id=         'addInstance',
+                    description='Add Mapping...',
+                    action=     'dialog_createInstance',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeInstances',
+                    description='Delete Mappings...',
+                    action=     'dialog_removeInstances',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'moveInstances',
+                    description='Move Mappings...',
+                    action=     'dialog_moveInstances',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                    ],
+            'PerformanceMonitor_list': [
+                ZenPackItem,
+                dict(
+                    id=         'addPMonitor',
+                    description='Add Monitor...',
+                    action=     'dialog_addMonitor',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removePMonitors',
+                    description='Delete Monitors...',
+                    action=     'dialog_removeMonitors',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                ],
+            'StatusMonitor_list': [
+                ZenPackItem,
+                dict(
+                    id=         'addSMonitor',
+                    description='Add Monitor...',
+                    action=     'dialog_addMonitor',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                dict(
+                    id=         'removeSMonitors',
+                    description='Delete Monitors...',
+                    action=     'dialog_removeMonitors',
+                    permissions=('Manage DMD',),
+                    isdialog=   True),
+                ],
             # doesn't work:
             # 'ReportClass_list':                [ZenPackItem],
             'ZenPack_list':[

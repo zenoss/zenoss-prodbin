@@ -3,13 +3,14 @@
 
 <form method="post" 
     tal:repeat="submonitor here/objectSubValues"
-    tal:attributes="action here/absolute_url_path">
+    tal:attributes="action here/absolute_url_path;
+                    name submonitor/id">
 <input type="hidden" name="submon"
     tal:attributes="value submonitor/id"/>
 
 
         <tal:block tal:define="objects python:submonitor.objectSubValues();
-    menu_id python:submonitor.id + 'Monitor_list';
+    menu_id python:test(submonitor.id=='Performance','Performance','Status') + 'Monitor_list';
     tableName string:monitorlist;
     submonname python:test(submonitor.id=='Performance',
                 'Performance Monitors', 'Status Monitors');
@@ -68,13 +69,6 @@
     </tal:block>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="3">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addMonitor:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_removeMonitor:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>

@@ -3,8 +3,8 @@
 <link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="menu" tal:define="
-        menu_ids menu_ids | python:['Edit'];
-        basepath here/getPrimaryUrlPath"
+        menu_ids menu_ids | python:['Edit','Actions'];
+        basepath here/absolute_url_path"
         tal:condition="python:here.getMenus(menu_ids)">
 <div tal:attributes="id string:contextmenu_btn">
     <a class="tabletitle">&nbsp;</a>
@@ -77,7 +77,7 @@ Menu
 
 <div class="contextmenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
-                basepath here/getPrimaryUrlPath"
+                basepath here/absolute_url_path"
     tal:condition="menuitems">
 
         <div tal:attributes="id string:${menu_id}_btn">
@@ -203,7 +203,7 @@ padding-right:20px;margin-left:20px;}</style>
 mypath python:test(item.action.startswith('javascript'),
                             item.action,
                             '%s/%s' % (basepath, item.action));
-               thisid python:filter(lambda x:x.isalnum(), item.action);
+               thisid python:filter(lambda x:x.isalnum(), item.id);
                actionpath python:test(item.isdialog, 
                     'javascript:$(\'dialog\').show($(\'%sinput\').form, 
                     \'%s\')' % (thisid,mypath),
@@ -292,7 +292,7 @@ var submitFormToMethod = function(formname, method) {
 //Basically for use in menu items, to obviate creating dummy forms
 //or menu items that are actually buttons.
    f = document.forms[formname];
-   f.action = '${here/getPrimaryUrlPath}/' + method;
+   f.action = '${here/absolute_url_path}/' + method;
    f.submit();
 }
 
@@ -302,7 +302,7 @@ var goExport = function() {
     var filter = $('filter')?$('filter').value : '';
     var startdate = $('startdate')?$('startdate').value:null;
     var enddate = $('enddate')?$('enddate').value:null;
-    url = '${here/getPrimaryUrlPath}/'+ 'exportEvents?state=' + state + 
+    url = '${here/absolute_url_path}/'+ 'exportEvents?state=' + state + 
         '&severity=' + sev + '&filter=' + filter;
     if (startdate!=null) url += '&startdate=' + startdate + '&enddate=' + enddate;
     parent.location = url;

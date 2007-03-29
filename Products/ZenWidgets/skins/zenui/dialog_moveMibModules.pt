@@ -1,0 +1,22 @@
+
+<h2>Move Mib Modules</h2>
+<p>
+Where would you like to move these modules?<br/>
+</p>
+<br/>
+<p style="text-align:center;">
+<select class="tableheader" name="moveTarget"
+    tal:define="targets here/childMoveTargets">
+    <option value=""></option>
+    <option tal:repeat="target targets"
+        tal:content="target">/Thing</option>
+</select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="moveMibModules:method"
+    value="Move"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

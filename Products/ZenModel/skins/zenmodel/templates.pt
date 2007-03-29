@@ -39,7 +39,7 @@
                     border-right: medium none;
                 }
                 #leftPaneToggle{ display:block;
-                    background:transparent url(img/leftpanetoggle_bg.gif) top
+                    background:transparent url('img/leftpanetoggle_bg.gif') top
                     left repeat-x;
                     height: 30px;
                     width: 30px;
@@ -255,7 +255,7 @@
 
            <a class="tabletitle" tal:content="tab/name"
                tal:attributes="href python:
-                   '%s/%s'% (here.getPrimaryUrlPath(),tab['action']);"
+                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
                 >TabName</a>
 
 
