@@ -365,7 +365,6 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                     ],
             'PerformanceMonitor_list': [
-                ZenPackItems,
                 dict(
                     id=         'addPMonitor',
                     description='Add Monitor...',
@@ -380,7 +379,6 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                 ],
             'StatusMonitor_list': [
-                ZenPackItems,
                 dict(
                     id=         'addSMonitor',
                     description='Add Monitor...',
