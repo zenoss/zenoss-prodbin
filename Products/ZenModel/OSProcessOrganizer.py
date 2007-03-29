@@ -41,7 +41,7 @@ class OSProcessOrganizer(Organizer, Commandable):
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
 
-    _relations = (
+    _relations = Organizer._relations + (
         ("osProcessClasses", ToManyCont(
             ToOne,"OSProcessClass","osProcessOrganizer")),
         ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),

@@ -11,8 +11,9 @@ from AccessControl import Permissions
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
-class MibModule(ZenModelRM):
+class MibModule(ZenModelRM, ZenPackable):
 
     language = ""
     contact = ""
@@ -24,7 +25,7 @@ class MibModule(ZenModelRM):
         {'id':'description', 'type':'string', 'mode':'w'},
     )
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("miborganizer", ToOne(ToManyCont, "MibModule", "mibs")),
         ("nodes", ToManyCont(ToOne, "MibNode", "module")),
         ("notifications", ToManyCont(ToOne, "MibNotification", "module")),

@@ -40,7 +40,7 @@ class MibOrganizer(Organizer):
     
     security = ClassSecurityInfo()
 
-    _relations = (
+    _relations = Organizer._relations + (
         ("mibs", ToManyCont(ToOne,"MibModule","miborganizer")),
         )
 

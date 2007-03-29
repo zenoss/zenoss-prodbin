@@ -37,6 +37,7 @@ class Organizer(ZenModelRM, EventView, ZenPackable):
                     {'id':'description', 'type':'string', 'mode':'w'},
                    )
 
+    _relations = ZenModelRM._relations + ZenPackable._relations
  
     security = ClassSecurityInfo()
     security.declareObjectProtected("View")
