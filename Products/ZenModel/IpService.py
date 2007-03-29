@@ -30,7 +30,8 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     setattr(d, 'name', id)
     setattr(d, 'protocol', protocol)
     setattr(d, 'port', int(port))
-    d.setServiceClass({'protocol':protocol, 'port':int(port)})
+    args = {'protocol':protocol, 'port':int(port)}
+    d.setServiceClass(args)
     if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
@@ -171,19 +172,28 @@ class IpService(Service):
     
     
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, name, protocol, port, monitor=False, severity=5, sendString="",
+    def manage_editService(self, status, name, ipaddresses, protocol, port, description, 
+                            monitor=False, severity=5, sendString="",
                             expectRegex="", REQUEST=None):
         """Edit a Service from a web page.
         """
+        if name != self.name:
+            self.ipservices._remoteRemove(self)
+            setattr(self, 'name', name)
+            setattr(self, 'id', name)
+            self.ipservices._setObject(name, self)
+            
+        setattr(self, 'status', status)
+        setattr(self, 'ipaddresses', ipaddresses)
+        setattr(self, 'description', description)
+        setattr(self, 'protocol', protocol)
+        setattr(self, 'port', int(port))
+        self.setServiceClass({'protocol':protocol, 'port':int(port)})
+        
         msg = []
         msg.append(self.setAqProperty("sendString", sendString, "string"))
         msg.append(self.setAqProperty("expectRegex", expectRegex, "string"))
         self.index_object()
-        
-        setattr(self, 'name', name)
-        setattr(self, 'protocol', protocol)
-        setattr(self, 'port', int(port))
-        self.setServiceClass({'protocol':protocol, 'port':int(port)})
         
         return super(IpService, self).manage_editService(monitor, severity, 
                                         msg=msg,REQUEST=REQUEST)

@@ -2,9 +2,11 @@
 <p>
 What would you like to name your WinService?<br/>
 </p>
+<input type="hidden" name="userCreated" value="True">
 <br/>
-<p style="text-align:center;">
-<input type="text" name="id">
+<p style="text-align:right;">
+Name:&nbsp;<input name="id"><br/><br/>
+Description:&nbsp;<input name="description"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addWinService:method"

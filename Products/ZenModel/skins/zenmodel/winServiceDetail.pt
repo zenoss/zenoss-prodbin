@@ -34,8 +34,15 @@
             tal:content="structure here/getServiceClassLink"/>
     </tr>
     <tr>
-        <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:content="here/caption"/>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                                tal:content="here/description"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:description
+                                   value here/description"/>
+        </td>
         <td class="tableheader">Status</td>
         <td tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
@@ -67,34 +74,88 @@
     </tr>
     <tr>
         <td class="tableheader">Service Type</td>
-        <td class="tablevalues" tal:content="here/serviceType"/>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                                tal:content="here/serviceType"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:serviceType
+                                   value here/serviceType">
+        </td>
         <td class="tableheader">Cmd Name</td>
-        <td class="tablevalues" tal:content="here/name"/>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                                tal:content="here/name"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:name
+                                   value here/name">
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Start Mode</td>
-        <td class="tablevalues" tal:content="here/startMode"/>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                                tal:content="here/startMode"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:startMode
+                                   value here/startMode">
+        </td>
         <td class="tableheader">Start Name</td>
-        <td class="tablevalues" tal:content="here/startName"/>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+                                tal:content="here/startName"/>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:startName
+                                   value here/startName">
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Accept Pause</td>
-        <td class="tablevalues" tal:content="here/acceptPause"/>
+        <td class="tablevalues">
+            <select class="tablevalues" name="acceptPause:boolean"
+                    tal:condition="here/isManager">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; 
+                                selected python:e==here.acceptPause"/>
+            </select>
+            <tal:block tal:condition="not:here/isManager" 
+                       tal:content="here/acceptPause"/>
+        </td>
         <td class="tableheader">Accept Stop</td>
-        <td class="tablevalues" tal:content="here/acceptStop"/>
+        <td class="tablevalues">
+            <select class="tablevalues" name="acceptStop:boolean"
+                    tal:condition="here/isManager">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; 
+                                selected python:e==here.acceptStop"/>
+            </select>
+            <tal:block tal:condition="not:here/isManager" 
+                       tal:content="here/acceptStop"/>
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Path Name</td>
-        <td class="tablevalues" colspan="3" tal:content="here/pathName"/>
+        <td class="tablevalues" colspan="3" 
+            tal:content="here/pathName"
+            tal:condition="not:here/isManager"/>
+        <td class="tablevalues" colspan="3" 
+            tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:pathName;
+                                   value here/pathName"/>
+        </td>
     </tr>
     <tr>
-      <td class=tableheader align=left>Delete lock</td>
+      <td class=tableheader align=left>Locks</td>
       <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-      <td class=tableheader align=left>Update lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+          <img tal:condition="here/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
       </td>
     </tr>
     <tr>

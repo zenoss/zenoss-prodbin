@@ -12,15 +12,20 @@ from Products.ZenRelations.RelSchema import *
 
 from Service import Service
 
-def manage_addWinService(context, id, title = None, REQUEST = None):
+def manage_addWinService(context, id, description, userCreated=None, REQUEST=None):
     """make a device"""
-    d = WinService(id, title)
+    d = WinService(id)
     context._setObject(id, d)
-
+    d = context._getOb(id)
+    setattr(d, 'name', id)
+    setattr(d, 'description', description)
+    args = {'name':id, 'description':description}
+    d.setServiceClass(args)
+    if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main')
-                                     
+                                  +'/manage_main')
+                                                                                                           
 class WinService(Service):
     """Windows Service Class
     """
@@ -110,6 +115,23 @@ class WinService(Service):
         return ""
     primarySortKey = caption
 
+    security.declareProtected('Manage DMD', 'manage_editService')
+    def manage_editService(self, status, name, description, 
+                            monitor=False, severity=5, REQUEST=None):
+        """Edit a Service from a web page.
+        """
+        if name != self.name:
+            self.winservices._remoteRemove(self)
+            setattr(self, 'name', name)
+            setattr(self, 'id', name)
+            self.winservices._setObject(name, self)
+            
+        setattr(self, 'status', status)
+        setattr(self, 'description', description)
+        self.setServiceClass({'name':name, 'description':int(description)})
+        
+        return super(IpService, self).manage_editService(monitor, severity, 
+                                    REQUEST=REQUEST)
 
 InitializeClass(WinService)
 

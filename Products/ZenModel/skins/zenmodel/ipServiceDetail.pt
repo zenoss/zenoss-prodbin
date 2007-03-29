@@ -89,9 +89,9 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <textarea name="ipaddresses:lines"
                       tal:attributes="class string:tablevalues; 
-                              cols string:30;
+                              cols string:40;
                               rows string:5;"
-                      tal:content="here/ipaddresses"/>
+                      tal:content="python: '\n'.join(here.ipaddresses)"/>
         </td>
     </tr>
     <tr>
