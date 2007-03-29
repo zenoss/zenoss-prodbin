@@ -163,5 +163,10 @@ class ZPLSkins(ZenPackLoader):
         registerSkin(app.zport.dmd, pack.path(''))
 
 
+    def unload(self, pack, app):
+        from Products.ZenUtils.Skins import unregisterSkin
+        unregisterSkin(app.zport.dmd, pack.path(''))
+
+
     def list(self, pack, app):
         return [branchAfter(d, 'skins') for d in findDirectories(pack, 'skins')]
