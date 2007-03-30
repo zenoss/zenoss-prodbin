@@ -116,7 +116,7 @@ class OperatingSystem(Software):
         """
         manage_addIpInterface(self.interfaces, id)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(self.interfaces._getOb(id).absolute_url())
 
     def addWinService(self, 
                         id, 
@@ -144,7 +144,7 @@ class OperatingSystem(Software):
                             className, 
                             userCreated)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(self.processes._getOb(id).absolute_url())
                 
     def addIpService(self, 
                     id, 
@@ -162,12 +162,12 @@ class OperatingSystem(Software):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self.ipservices._getOb(id).absolute_url())
 
-    def addFileSystem(self, id, REQUEST=None):
+    def addFileSystem(self, id, userCreated, REQUEST=None):
         """Add an FileSystem.
         """
-        manage_addFileSystem(self.filesystems, id)
+        manage_addFileSystem(self.filesystems, id, userCreated)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(self.filesystems._getOb(id).absolute_url())
         
     def addIpRouteEntry(self, 
                         dest, 

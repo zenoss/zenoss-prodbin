@@ -490,6 +490,24 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',),
                     )
                 ],
+            'IpService':[
+                dict(
+                    id=         'addIpService',
+                    description='Add IpService...',
+                    action=     'dialog_addIpService',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
+            'WinService':[
+                dict(
+                    id=         'addWinService',
+                    description='Add WinService...',
+                    action=     'dialog_addWinService',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    )
+                ],
             'Event_list':[
                 dict(
                     id=         'acknowledgeEvents',

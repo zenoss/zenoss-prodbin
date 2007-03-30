@@ -41,7 +41,8 @@ def manage_addIpInterface(context, id, REQUEST = None):
     d = IpInterface(id)
     context._setObject(id, d)
     d = context._getOb(id)
-
+    setattr(d, 'name', id)
+    
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main')

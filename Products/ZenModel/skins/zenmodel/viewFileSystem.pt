@@ -17,8 +17,15 @@
 <tal:block metal:fill-slot="zentablecontents">
 
     <tr>
-      <td class=tableheader align=left>Mount Point</td>
-      <td class=tablevalues tal:content="here/mount">/usr</td>
+      <td class="tableheader" align=left>Mount Point</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/mount">/usr</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <input tal:condition="here/isManager"
+               tal:attributes="class string:tablevalues;
+                               name string:mount;
+                               value here/mount">
+      </td>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues" tal:condition="here/isManager">
             <select class="tablevalues"  name="monitor:boolean"
@@ -33,54 +40,133 @@
             tal:content="here/monitored"/>
     </tr>  
     <tr>
-      <td class=tableheader align=left>Storage Device</td>
-      <td class=tablevalues tal:content="here/storageDevice">1</td>
-      <td class=tableheader align=left>Type</td>
-      <td class=tablevalues tal:content="here/type">/usr</td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Block Size</td>
-      <td class=tablevalues tal:content="here/blockSize">1</td>
-      <td class=tableheader align=left>Total Bytes</td>
-      <td class=tablevalues tal:content="here/totalBytesString">/usr</td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Used Bytes</td>
-      <td class=tablevalues tal:content="here/usedBytesString">1</td>
-      <td class=tableheader align=left>Available Bytes</td>
-      <td class=tablevalues colspan="3" tal:content="here/availBytesString"/>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Total Files</td>
-      <td class=tablevalues tal:content="here/totalFiles">1</td>
-      <td class=tableheader align=left>Available Files</td>
-      <td class=tablevalues tal:content="here/availFiles">1</td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Capacity Bytes</td>
-      <td class=tablevalues tal:content="string:${here/capacity}%">1</td>
-      <td class=tableheader align=left>Capacity Files</td>
-      <td class=tablevalues tal:content="string:${here/inodeCapacity}%">1</td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Max Name Length</td>
-      <td class=tablevalues tal:content="here/maxNameLen">1</td>
-      <td class=tableheader align=left>Snmp Index</td>
-      <td class=tablevalues tal:content="here/snmpindex">1</td>
-    </tr>
-    <tr>
-      <td class=tableheader align=left>Delete lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="emblem-readonly.png">
-      </td>
-      <td class=tableheader align=left>Update lock</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="emblem-readonly.png">
+      <td class="tableheader" align=left>Storage Device</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/storageDevice">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <input tal:condition="here/isManager"
+               tal:attributes="class string:tablevalues;
+                               name string:storageDevice;
+                               value here/storageDevice">
+      </td>                              
+      <td class="tableheader" align=left>Type</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/type">/usr</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+          <input tal:condition="here/isManager"
+                 tal:attributes="class string:tablevalues;
+                                 name string:type;
+                                 value here/type">
       </td>
     </tr>
     <tr>
-      <td class=tableheader align=left>Lock warnings</td>
-      <td class=tablevalues colspan=3 tal:content="here/lockWarning">
+      <td class="tableheader" align=left>Block Size</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/blockSize">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:blockSize;
+                                   value here/blockSize">
+      </td>
+      <td class="tableheader" align=left>Total Bytes</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/totalBytesString">/usr</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+          <input tal:condition="here/isManager"
+                 tal:attributes="class string:tablevalues;
+                                 name string:totalBytesString;
+                                 value here/totalBytesString">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align=left>Used Bytes</td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+                              tal:content="here/usedBytesString">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:usedBytesString;
+                                   value here/usedBytesString">
+      </td>
+      <td class="tableheader" align=left>Available Bytes</td>
+      <td class="tablevalues" colspan="3" tal:condition="not:here/isManager"
+                                          tal:content="here/availBytesString"/>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <input tal:condition="here/isManager"
+               tal:attributes="class string:tablevalues;
+                               name string:availBytesString;
+                               value here/availBytesString">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align=left>Total Files</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/totalFiles">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:totalFiles;
+                                   value here/totalFiles">
+      </td>
+      <td class="tableheader" align=left>Available Files</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/availFiles">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:availFiles;
+                                   value here/availFiles">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align=left>Capacity Bytes</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="string:${here/capacity}%">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:capacity;
+                                   value here/capacity">
+      </td>
+      <td class="tableheader" align=left>Capacity Files</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="string:${here/inodeCapacity}%">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:inodeCapacity;
+                                   value here/inodeCapacity">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align=left>Max Name Length</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/maxNameLen">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:maxNameLen;
+                                   value here/maxNameLen">
+      </td>
+      <td class="tableheader" align=left>Snmp Index</td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+                              tal:content="here/snmpindex">1</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+            <input tal:condition="here/isManager"
+                   tal:attributes="class string:tablevalues;
+                                   name string:snmpindex;
+                                   value here/snmpindex">
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align=left>Locks</td>
+      <td class="tablevalues">
+          <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
+      </td>
+      <td class="tableheader" align=left>Lock warnings</td>
+      <td class="tablevalues" tal:content="here/lockWarning">
         Send event when blocked
       </td>
     </tr>

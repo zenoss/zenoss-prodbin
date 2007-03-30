@@ -24,15 +24,15 @@ from Products.ZenModel.IpServiceClass import IpServiceClass
 
 def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=None):
     """make a device"""
-    d = IpService(id)
-    context._setObject(id, d)
-    d = context._getOb(id)
-    setattr(d, 'name', id)
-    setattr(d, 'protocol', protocol)
-    setattr(d, 'port', int(port))
+    s = IpService(id)
+    context._setObject(id, s)
+    s = context._getOb(id)
+    setattr(s, 'name', id)
+    setattr(s, 'protocol', protocol)
+    setattr(s, 'port', int(port))
     args = {'protocol':protocol, 'port':int(port)}
-    d.setServiceClass(args)
-    if userCreated: d.setUserCreateFlag()
+    s.setServiceClass(args)
+    if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 

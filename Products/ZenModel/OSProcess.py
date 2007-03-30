@@ -10,20 +10,28 @@ from AccessControl import Permissions
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Acquisition import aq_chain
+from zExceptions import NotFound
 
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
-def manage_addOSProcess(context, id, className, title = None, REQUEST = None):
+def manage_addOSProcess(context, id, className, userCreated, REQUEST = None):
     """make a device"""
-    d = OSProcess(id, title)
-    context._setObject(id, d)
-    d = context._getOb(id)
-    d.setOSProcessClass("/Processes" + className)
-    
+    context._setObject(id, OSProcess(id))
+    osp = context._getOb(id)
+    if className == '/': className = ''
+    orgPath = "/Processes%s" % className
+    classPath = "%s/osProcessClasses/%s" % (orgPath, id)
+    import pdb; pdb.set_trace()
+    try:
+        osp.getDmdObj(classPath)
+    except KeyError, NotFound:
+        organizer = osp.getDmdObj(orgPath)
+        organizer.manage_addOSProcessClass(id)
+    osp.setOSProcessClass(classPath)
+    if userCreated: osp.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 class OSProcess(OSComponent, Commandable, ZenPackable):
     """Hardware object"""
@@ -86,7 +94,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         return (self.id, self.name(), self.osProcessClass().ignoreParameters,
                 self.alertOnRestart(), self.getFailSeverity(), thresholds)
 
-
+                    
     def setOSProcessClass(self, procKey):
         """Set the OSProcessClass based on procKey which is the proc + args.
         We set by matching regular expressions of each proces class.

@@ -22,15 +22,14 @@ from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
 
-def manage_addFileSystem(context, id, REQUEST = None):
+def manage_addFileSystem(context, id, userCreated, REQUEST=None):
     """make a filesystem"""
     fs = FileSystem(id)
     context._setObject(id, fs)
     fs = context._getOb(id)
-
+    if userCreated: fs.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
 
 addFileSystem = DTMLFile('dtml/addFileSystem',globals())
 

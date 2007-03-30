@@ -4,14 +4,14 @@ What would you like to name your OSProcess?<br/>
 </p>
 <input type="hidden" name="userCreated" value="True">
 <br/>
-<p style="text-align:center;">
-Name:<input type="text" name="id"><br/>
-Process Class:<select name="className"
+<p style="text-align:right;">
+Name:&nbsp;<input type="text" name="id"><br/><br/>
+Process Class:&nbsp;<select name="className"
 tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
-    <option value=""></option>
-    <option tal:repeat="target targets" 
+    <option tal:repeat="target targets"
+        tal:attributes="value target"
         tal:content="target">/</option>
-</select>  
+</select><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addOSProcess:method"

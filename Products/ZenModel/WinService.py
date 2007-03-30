@@ -14,14 +14,14 @@ from Service import Service
 
 def manage_addWinService(context, id, description, userCreated=None, REQUEST=None):
     """make a device"""
-    d = WinService(id)
-    context._setObject(id, d)
-    d = context._getOb(id)
-    setattr(d, 'name', id)
-    setattr(d, 'description', description)
+    s = WinService(id)
+    context._setObject(id, s)
+    s = context._getOb(id)
+    setattr(s, 'name', id)
+    setattr(s, 'description', description)
     args = {'name':id, 'description':description}
-    d.setServiceClass(args)
-    if userCreated: d.setUserCreateFlag()
+    s.setServiceClass(args)
+    if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                   +'/manage_main')
