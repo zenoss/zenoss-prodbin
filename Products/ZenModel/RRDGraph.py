@@ -121,7 +121,7 @@ class RRDGraph(ZenModelRM):
             if self.hasSummary: gopts = self.addSummary(gopts)
         else:
             gopts = self.buildDS(gopts, rrdfile, template, self.summary)
-            gopts = self.thresholds(gopts, context, template)
+        gopts = self.thresholds(gopts, context, template)
         return gopts
 
     
