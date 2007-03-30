@@ -10,7 +10,7 @@ from CollectorPlugin import CommandPlugin
 
 class df(CommandPlugin):
     """
-    df maps a linux df -k command to the filesystems relation.
+    Run df -k to model filesystem information. Should work on most *nix.
     """
     maptype = "FilesystemMap" 
     command = '/bin/df -k'
@@ -18,23 +18,20 @@ class df(CommandPlugin):
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
 
-    BUILTIN_IGNORES = ["Filesystem", 'automount', 'devfs', 'fdesc', '<volfs>']
-
+    oses = ['Linux', 'Darwin', 'SunOS']
 
     def condition(self, device, log):
-        return device.os.uname in ['Darwin', '']
+        return device.os.uname in self.oses
 
 
     def process(self, device, results, log):
         log.info('Collecting filesystems for device %s' % device.id)
+        skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         rm = self.relMap()
         rlines = results.split("\n")
         bline = ""
         for line in rlines:
-            if len(line.strip()) == 0: continue
-            wordone = line.split()[0]
-            if wordone in df.BUILTIN_IGNORES: continue
-
+            if line.startswith("Filesystem"): continue
             om = self.objectMap()
             spline = line.split()
             if len(spline) == 1:
@@ -45,6 +42,7 @@ class df(CommandPlugin):
                 bline = None
             if len(spline) != 6: continue
             (om.storageDevice, tblocks, u, a, p, om.mount) = spline
+            if skipfsnames and re.search(skipfsnames,om.mount): continue
             om.totalBlocks = long(tblocks)
             om.blockSize = 1024
             om.id = self.prepId(om.mount)
