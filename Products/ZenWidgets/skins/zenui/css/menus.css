@@ -36,10 +36,11 @@
 
 .devmovemenuitems,
 .contextmenuitems {
+    visibility: hidden;
     position: absolute;
-    right: 0px;
     width: 172px;
-    top: 24px;
+    top: -1000px;
+    left: -1000px;
     border-top: 0px;
     padding-bottom: 10px;
     padding-top: 10px;
@@ -74,10 +75,6 @@ div.menu_top_rounded {
     left: -2px;
     height: 20px;
     width: 174px;
-}
-
-.devmovemenuitems {
-    top: 0px;
 }
 
 ul.zenMenu {

@@ -10,7 +10,7 @@
     <a class="tabletitle">&nbsp;</a>
 </div>
 
-<div style="position:absolute;" class="invisible" id="contextmenu_items">
+<div id="contextmenu_items" class="contextmenuitems">
 <div class="menu_top">&nbsp;</div>
 <div class="menu_bottom">&nbsp;</div>
 <ul class="zenMenu">
@@ -46,82 +46,10 @@ Menu
 </ul>
 </div>
 </div>
-<script tal:content="string:
-    var cxmto;
-    if ( $$('contextmenu_btn') ) {
-    var hidectxmenu = function() { 
-        removeElementClass('contextmenu_btn','menuselected');
-        makeInvisible('contextmenu_items') }
-    connect('contextmenu_btn','onclick',function() {
-        clearTimeout(cxmto);
-        makeVisible('contextmenu_items');
-        addElementClass('contextmenu_btn','menuselected');});
-    connect('contextmenu_items', 'onmouseout',function() {
-        cxmto = setTimeout('hidectxmenu()', 500); });
-    connect('contextmenu_btn', 'onmouseout',function() {
-        cxmto = setTimeout('hidectxmenu()', 500); });
-    connect('contextmenu_items','onmouseover',function() {
-        clearTimeout(cxmto);
-        addElementClass('contextmenu_btn','menuselected');
-        makeVisible('contextmenu_items'); });
-    connect('contextmenu_items','onclick',function() {
-        makeInvisible('contextmenu_items');
-    });
-    }
-">
+<script>
+registerMenu('contextmenu_btn', 'contextmenu_items');
 </script>
-
 </tal:block>
-
-
-<tal:block metal:define-macro="contextmenu"
-    tal:condition="python:hasattr(here, 'getMenus')"
-    tal:define="menu_id string:Context">
-
-<link href="css/menus.css" rel="stylesheet" type="text/css" />
-
-<div class="contextmenu" tal:attributes="id menu_id"
-    tal:define="menuitems python:here.getMenus(menu_id, here);
-                basepath here/absolute_url_path"
-    tal:condition="menuitems">
-
-        <div tal:attributes="id string:${menu_id}_btn">
-        <a class="tabletitle">&nbsp;</a>
-        </div>
-
-        <div class="contextmenuitems invisible"
-            tal:attributes="id string:${menu_id}_items">
-        <div class="menu_top">&nbsp;</div>
-        <div class="menu_bottom">&nbsp;</div>
-        <ul class="zenMenu" tal:attributes="id string:${menu_id}_list">
-            <li tal:repeat="i menuitems">
-                <a tal:attributes="href string:${basepath}/${i/action}"
-                   tal:content="i/description">description</a>
-            </li>
-        </ul>
-        </div>
-
-        <script tal:content="string:
-            connect('${menu_id}_btn','onclick',function() {
-                makeVisible('${menu_id}_items');
-                addElementClass('${menu_id}_btn','menuselected');});
-            connect('${menu_id}_items', 'onmouseout',function() {
-                removeElementClass('${menu_id}_btn','menuselected');
-                makeInvisible('${menu_id}_items'); });
-            connect('${menu_id}_btn', 'onmouseout',function() {
-                removeElementClass('${menu_id}_btn','menuselected');
-                makeInvisible('${menu_id}_items'); });
-            connect('${menu_id}_items','onmouseover',function() {
-                addElementClass('${menu_id}_btn','menuselected');
-                makeVisible('${menu_id}_items'); });
-            connect('${menu_id}_items','onclick',function() {
-                makeInvisible('${menu_id}_items');
-            });
-        ">
-        </script>
-    </div>
-</tal:block>
-
 
 <!-- TABLE HEADER MACRO -->
 
@@ -198,7 +126,7 @@ padding-right:20px;margin-left:20px;}</style>
            &nbsp; 
         </div>
 
-        <div class="devmovemenuitems invisible"
+        <div class="devmovemenuitems"
             tal:attributes="id string:${menu_id}_items">
         <div class="menu_top">&nbsp;</div>
         <div class="menu_bottom">&nbsp;</div>
@@ -223,21 +151,7 @@ mypath python:test(item.action.startswith('javascript'),
         </div>
 
         <script tal:content="string:
-            connect('${menu_id}_btn','onclick',function() {
-                makeVisible('${menu_id}_items');
-                addElementClass('${menu_id}_btn','menuselected');});
-            connect('${menu_id}_items', 'onmouseout',function() {
-                removeElementClass('${menu_id}_btn','menuselected');
-                makeInvisible('${menu_id}_items'); });
-            connect('${menu_id}_btn', 'onmouseout',function() {
-                removeElementClass('${menu_id}_btn','menuselected');
-                makeInvisible('${menu_id}_items'); });
-            connect('${menu_id}_items','onmouseover',function() {
-                addElementClass('${menu_id}_btn','menuselected');
-                makeVisible('${menu_id}_items'); });
-            connect('${menu_id}_items','onclick',function() {
-                makeInvisible('${menu_id}_items');
-            });
+            registerMenu('${menu_id}_btn', '${menu_id}_items');
         ">
         </script>
     </div>
