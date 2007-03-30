@@ -4,15 +4,16 @@ var calcSubmenuPos = function(rel, sub) {
     var pDims = getElementDimensions(rel);
     var sDims = getElementDimensions(sub);
     var vDims = getViewportDimensions();
+    var vPos = getViewportPosition();
     finalDims = {x:0, y:0}
     // Check to see if the menu will appear outside the viewport
     // If so, make it fly out on the left
     totalX = pPos.x + pDims.w + sDims.w;
-    finalDims.x = totalX>=vDims.w?-sDims.w+2:sDims.w-10;
+    finalDims.x = totalX>=vDims.w+vPos.x?-sDims.w+2:sDims.w-10;
     // Check to see if the menu bottom is outside the viewport
     // If so, move it up so that it fits
     totalY = pPos.y + sDims.h;
-    finalDims.y = totalY>=vDims.h?0-(totalY-vDims.h):0;
+    finalDims.y = totalY>=vDims.h+vPos.y?0-(totalY-vDims.h)+vPos.y:0;
     return finalDims
 }
 
@@ -22,14 +23,15 @@ var calcMenuPos = function(rel, menu) {
     var pDims = getElementDimensions(rel);
     var vDims = getViewportDimensions();
     var mDims = getElementDimensions(menu);
+    var vPos = getViewportPosition();
     finalDims = $(menu).className=='devmovemenuitems'?{x:0, y:0}:{x:0, y:24};
     totalX = pPos.x + mDims.w;
-    finalDims.x = totalX>=vDims.w?pDims.w-mDims.w:finalDims.x;
+    finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:finalDims.x;
     finalDims.x = $(menu).className=='devmovemenuitems'?-mDims.w:finalDims.x;
     totalY = pPos.y + pDims.h + mDims.h;
     var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];
-    if (totalY>=vDims.h) {
-        finalDims.y = 0-(totalY-vDims.h);
+    if (totalY>=vDims.h+vPos.y) {
+        finalDims.y = 0-(totalY-vDims.h)+vPos.y;
         setStyle(topmenu, {'background-image':'url(img/menu_top_rounded.gif)'});
     } else {
         setStyle(topmenu, {'background-image':'url(img/menu_top.gif)'});
@@ -65,20 +67,16 @@ var showContextMenu = function() {
 }
 
 var dropOtherMenuButtons = function(button) {
+    var lowerButton = function(btn) { setStyle(btn, {'z-index':'9000'})};
     mymenu = $(button).parentNode;
-    others = getElementsByTagAndClassName('div','littlemenu');
-    for (i=0;(btn=others[i]);++i) {
-        if (btn!=mymenu) setStyle(btn, {'z-index':'9000'});
-    }
+    others = $$("div.littlemenu");
+    map(lowerButton, others);
     setStyle(mymenu, {'z-index':'10000'});
 }
 
 var hideOtherSubmenus = function(menu, submenu) {
-    submenu = $(submenu);
-    others = getElementsByTagAndClassName('div', 'submenu', menu.parentNode);
-    for (i=0;(sub=others[i]);++i) {
-        if (submenu!=sub) hideSubMenu(sub);
-    }
+    var smartHideSub = function(sub){if ($(submenu)!=sub) hideSubMenu(sub)}
+    map(smartHideSub, $$('div.submenu'));
 }
 
 var smto = Array();
@@ -118,6 +116,10 @@ var registerMenu = function(button, menu) {
             showMenu(button, menu);
             addElementClass(button, 'menuselected');
         });
+    });
+    connect(menu, 'onclick', function() {
+        hideMenu(menu);
+        disconnectAll(button, 'onmouseover');
     });
     connect(button, 'onmouseout', function() {
         smto[menu] = setTimeout('hideMenu("'+menu+'");disconnectAll("'+
