@@ -26,8 +26,14 @@ var calcMenuPos = function(rel, menu) {
     totalX = pPos.x + mDims.w;
     finalDims.x = totalX>=vDims.w?pDims.w-mDims.w:finalDims.x;
     finalDims.x = $(menu).className=='devmovemenuitems'?-mDims.w:finalDims.x;
-    totalY = pPos.y + mDims.h;
-    finalDims.y = totalY>=vDims.h?24:finalDims.y;
+    totalY = pPos.y + pDims.h + mDims.h;
+    var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];
+    if (totalY>=vDims.h) {
+        finalDims.y = 0-(totalY-vDims.h);
+        setStyle(topmenu, {'background-image':'url(img/menu_top_rounded.gif)'});
+    } else {
+        setStyle(topmenu, {'background-image':'url(img/menu_top.gif)'});
+    }
     return finalDims
 }
 
