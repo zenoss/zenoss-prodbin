@@ -335,6 +335,14 @@ class DeviceClass(DeviceOrganizer):
         return devices
 
 
+    def findDevicePath(self, devicename):
+        """look up a device and return its path"""
+        query = MatchGlob('id', devicename)
+        ret = self._getCatalog().evalAdvancedQuery(query)
+        if not ret: return ""
+        return ret[0].getPrimaryId
+
+
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
         query = MatchGlob('id', devicename)
