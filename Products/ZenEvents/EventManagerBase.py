@@ -297,8 +297,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             #print select
             retdata = self.checkCache(select)
             if not retdata:
+                conn = self.connect()
                 try:
-                    conn = self.connect()
                     curs = conn.cursor()
                     curs.execute(select)
                     retdata = []
@@ -362,8 +362,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         selectevent += " from %s where" % self.statusTable
         selectevent += " %s = '%s'" % (idfield, evid)
         if self.backend=="omnibus": selectevent += ";"
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             #print selectevent
             curs.execute(selectevent)
@@ -429,8 +429,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         select = "select count(*) from %s where %s" % (self.statusTable, where)
         statusCount = self.checkCache(select)
         if not statusCount:
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 #print select
                 curs.execute(select)
@@ -454,8 +454,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         #print select
         statusCache = self.checkCache(select)
         if not statusCache:
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(select)
                 statusCache=[]
@@ -489,8 +489,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         select += where
         statusCache = self.checkCache(select)
         if not statusCache:
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(select)
                 statusCache=[]
@@ -551,8 +551,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
+                conn = self.connect()
                 try:
-                    conn = self.connect()
                     curs = conn.cursor()
                     curs.execute(select)
                     statusCache = [ [d,int(c),int(s)] for d,c,s in curs.fetchall() ]
@@ -583,8 +583,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         statusCache = self.checkCache(select)
         if not statusCache:
             try:
+                conn = self.connect()
                 try:
-                    conn = self.connect()
                     curs = conn.cursor()
                     curs.execute(select)
                     statusCache = {}
@@ -636,8 +636,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         cleanup = lambda : None
         if not statusCache:
             statusCache = []
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(sel)
                 res = list(curs.fetchall())
@@ -672,8 +672,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         select += where
         statusCache = self.checkCache(select)
         if not statusCache:
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(select)
                 statusCache ={}
@@ -709,8 +709,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         #print select
         statusCache = self.checkCache(select)
         if statusCache: return statusCache
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             curs.execute(select)
             statusCache = [ uid[0] for uid in curs.fetchall() if uid[0] ]
@@ -1028,8 +1028,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         schema = {}
         fieldlist = []
         sql = "describe %s;" % self.statusTable
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             curs.execute(sql)
             for row in curs.fetchall():
@@ -1059,8 +1059,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                  'SELECT evid, "%s", "%s" ' % (userId, reason) + \
                  'FROM %s ' % table + whereClause
         query = stmt + ' ' + whereClause
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             if toLog: curs.execute(insert)
             curs.execute(query)
@@ -1134,8 +1134,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
         if devname:
             delete = "delete from heartbeat where device = '%s'" % devname
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(delete);
             finally: self.close(conn)
@@ -1181,8 +1181,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             sel = """select eventClassKey, eventClass, message 
                     from %s where evid in ('%s')"""
             sel = sel % (self.statusTable, "','".join(evids))
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 curs.execute(sel);
                 for row in curs.fetchall():
@@ -1245,8 +1245,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     security.declareProtected('Manage EventManager','manage_clearHeartbeats')
     def manage_clearHeartbeats(self, REQUEST=None):
         """truncate heartbeat table"""
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             sql = 'truncate table heartbeat'
             curs.execute(sql)
@@ -1271,8 +1271,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if not evid:
             return
         userId = getSecurityManager().getUser().getId()
+        conn = self.connect()
         try:
-            conn = self.connect()
             curs = conn.cursor()
             insert = 'INSERT INTO log (evid, userName, text) '
             insert += 'VALUES ("%s", "%s", "%s")' % (evid,
