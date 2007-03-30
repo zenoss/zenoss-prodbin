@@ -24,6 +24,7 @@ from OFS.SimpleItem import SimpleItem
 
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
+from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from ZenModelItem import ZenModelItem
 from Device import manage_createDevice
 
@@ -83,6 +84,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         Load a device into the database connecting its major relations
         and collecting its configuration. 
         """
+        xmlrpc = False
+        if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
+            xmlrpc = True
         if zSnmpVer is None:
             try:
                 zSnmpVer = str(self.Devices.getOrganizer(devicePath).zSnmpVer)
@@ -90,7 +94,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 zSnmpVer = 'v1'
         if not deviceName: return self.callZenScreen(REQUEST)
         device = None
-        if REQUEST:
+        if REQUEST and not xmlrpc:
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
@@ -107,7 +111,12 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 statusMonitors, performanceMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
+        except DeviceExistsError:
+            if xmlrpc: return 2
+        except NoSnmp:
+            if xmlrpc: return 3
         except ZentinelException, e:
+            if xmlrpc: return 1
             log.critical(e)
         except:
             log.exception('load of device %s failed' % deviceName)
@@ -116,9 +125,10 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             if discoverProto != "none":
                 device.collectDevice(setlog=False, REQUEST=REQUEST)
             log.info("device %s loaded!" % deviceName)
-        if REQUEST:
+        if REQUEST and not xmlrpc:
             self.loaderFooter(device, response)
             clearWebLoggingStream(handler)
+        if xmlrpc: return 0
 
 
     def addManufacturer(self, newHWManufacturerName=None,
