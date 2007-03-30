@@ -132,10 +132,17 @@ class OperatingSystem(Software):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self.winservices._getOb(id).absolute_url())
 
-    def addOSProcess(self, id, className, userCreated, REQUEST=None):
+    def addOSProcess(self, 
+                        id, 
+                        className, 
+                        userCreated, 
+                        REQUEST=None):
         """Add an OSProcess.
         """
-        manage_addOSProcess(self.processes, id, className)
+        manage_addOSProcess(self.processes, 
+                            id, 
+                            className, 
+                            userCreated)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self._getOb(id).absolute_url())
                 

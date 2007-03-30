@@ -116,21 +116,39 @@ class WinService(Service):
     primarySortKey = caption
 
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, status, name, description, 
-                            monitor=False, severity=5, REQUEST=None):
+    def manage_editService(self, status, 
+                            name, description, 
+                            acceptPause, acceptStop,
+                            pathName, serviceType,
+                            startMode, startName,
+                            monitor=False, severity=5, 
+                            REQUEST=None):
         """Edit a Service from a web page.
         """
+        serviceClassChanged = False
         if name != self.name:
+            serviceClassChanged = True
             self.winservices._remoteRemove(self)
             setattr(self, 'name', name)
             setattr(self, 'id', name)
             self.winservices._setObject(name, self)
-            
-        setattr(self, 'status', status)
-        setattr(self, 'description', description)
-        self.setServiceClass({'name':name, 'description':int(description)})
+
+        if description != self.description:
+            serviceClassChanged = True
+            setattr(self, 'description', description)
         
-        return super(IpService, self).manage_editService(monitor, severity, 
+        if serviceClassChanged:
+            self.setServiceClass({'name':name, 'description':description})
+        
+        setattr(self, 'status', status)
+        setattr(self, 'acceptPause', acceptPause)
+        setattr(self, 'acceptStop', acceptStop)
+        setattr(self, 'pathName', pathName)
+        setattr(self, 'serviceType', serviceType)
+        setattr(self, 'startMode', startMode)
+        setattr(self, 'startName', startName)
+        
+        return super(WinService, self).manage_editService(monitor, severity, 
                                     REQUEST=REQUEST)
 
 InitializeClass(WinService)

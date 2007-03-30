@@ -40,11 +40,21 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <input tal:condition="here/isManager"
                    tal:attributes="class string:tablevalues;
-                                   name string:description
+                                   name string:description;
                                    value here/description"/>
         </td>
         <td class="tableheader">Status</td>
-        <td tal:define="status here/getStatus"
+        <td tal:condition="here/isManager">
+            <select class="tablevalues" name="status:int"
+                tal:condition="here/isManager">
+                <option tal:repeat="status here/getStatusConversions"
+                    tal:content="python:status[0]"
+                    tal:attributes="value python:status[1];
+                        selected python:status==here.getStatus()" />
+            </select>
+        </td>
+        <td tal:condition="not:here/isManager"
+            tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
     </tr>
@@ -79,7 +89,7 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <input tal:condition="here/isManager"
                    tal:attributes="class string:tablevalues;
-                                   name string:serviceType
+                                   name string:serviceType;
                                    value here/serviceType">
         </td>
         <td class="tableheader">Cmd Name</td>
@@ -88,7 +98,7 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <input tal:condition="here/isManager"
                    tal:attributes="class string:tablevalues;
-                                   name string:name
+                                   name string:name;
                                    value here/name">
         </td>
     </tr>
@@ -99,7 +109,7 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <input tal:condition="here/isManager"
                    tal:attributes="class string:tablevalues;
-                                   name string:startMode
+                                   name string:startMode;
                                    value here/startMode">
         </td>
         <td class="tableheader">Start Name</td>
@@ -108,7 +118,7 @@
         <td class="tablevalues" tal:condition="here/isManager">
             <input tal:condition="here/isManager"
                    tal:attributes="class string:tablevalues;
-                                   name string:startName
+                                   name string:startName;
                                    value here/startName">
         </td>
     </tr>
