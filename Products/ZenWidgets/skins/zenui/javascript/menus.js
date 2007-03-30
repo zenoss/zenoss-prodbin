@@ -30,7 +30,9 @@ var showSubMenu = function(rel, sub) {
     var relPos = calcSubmenuPos(rel, sub);
     setElementPosition(sub, relPos);
     setStyle(sub, {'visibility':'visible'});
+    hideOtherSubmenus(rel, sub);
 }
+
 var hideSubMenu = function(sub) {
     setStyle(sub, {'visibility':'hidden'});
 }
@@ -38,6 +40,14 @@ var hideSubMenu = function(sub) {
 var showContextMenu = function() {
     var menu = $('contextmenuitems');
 
+}
+
+var hideOtherSubmenus = function(menu, submenu) {
+    submenu = $(submenu)
+    others = getElementsByTagAndClassName('div', 'submenu', menu.parent);
+    for (i=0;(sub=others[i]);++i) {
+        if (submenu!=sub) hideSubMenu(sub);
+    }
 }
 
 var smto = Array();
@@ -53,5 +63,6 @@ var registerSubmenu = function(menu, submenu) {
     connect(submenu, 'onmouseout', function() {
         smto[submenu] = setTimeout('hideSubMenu("'+submenu+'")', 500); });
 }
+
 
 console.log('Menu javascript loaded.');

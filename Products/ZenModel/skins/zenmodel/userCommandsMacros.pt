@@ -122,10 +122,10 @@ function submitCommandForm(commandId) {
     document.forms.command_proxy.submit();
 }
 </script>
-        <a href="javascript:void(0)">
+        <a href="javascript:void(0)" id="RunCommands_parent">
         Run Commands
         </a>
-        <div class="submenu">
+        <div class="submenu" id="RunCommands_submenu">
         <div class="menu_top_rounded">&nbsp;</div>
         <div class="menu_bottom">&nbsp;</div>
         <ul>
@@ -136,4 +136,6 @@ function submitCommandForm(commandId) {
         </li>
         </ul>
         </div>
+<script>registerSubmenu('RunCommands_parent','RunCommands_submenu');
+</script>
 </li>
