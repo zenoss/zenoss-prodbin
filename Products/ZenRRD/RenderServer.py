@@ -16,6 +16,7 @@ import os
 import time
 import logging
 import urllib
+import zlib
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -67,8 +68,10 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts=None, drange=None, remoteUrl=None, ftype='PNG', REQUEST=None):
+    def render(self, gopts=None, drange=None, remoteUrl=None, 
+                ftype='PNG', REQUEST=None):
         """render a graph and return it"""
+        gopts = zlib.decompress(gopts)
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
         drange = int(drange)

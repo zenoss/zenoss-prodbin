@@ -15,6 +15,7 @@ __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
 import glob
+import zlib
 import transaction
 import logging
 log = logging.getLogger("zen.PerformanceConf")
@@ -42,8 +43,6 @@ from Monitor import Monitor
 from StatusColor import StatusColor
 
 from ZenDate import ZenDate
-
-from Products.PythonScripts.standard import url_quote
 
 PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
 
@@ -302,7 +301,7 @@ class PerformanceConf(Monitor, StatusColor):
         """set the full path of the target and send to view"""
         targetpath = performancePath(targetpath[1:])
         gopts =  view.graphOpts(context, targetpath, targettype)
-        gopts = url_quote('|'.join(gopts))
+        gopts = url_quote(zlib.compress('|'.join(gopts)))
         url = "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
         if self.renderurl.startswith("http"):
             return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (url_quote(url),gopts,drange)
