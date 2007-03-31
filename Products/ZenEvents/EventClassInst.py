@@ -73,7 +73,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
 
     _relations = ZenPackable._relations + (
-        ("eventClass", ToOne(ToMany,"Products.ZenEvents.EventClass","instances")),
+        ("eventClass", ToOne(ToManyCont,"Products.ZenEvents.EventClass","instances")),
         )
 
 
