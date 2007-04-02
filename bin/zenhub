@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenHub
+PRGNAME=zenhub.py
+CFGFILE=$CFGDIR/zenhub.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
+g

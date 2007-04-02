@@ -32,7 +32,7 @@ fi
 C=
 C="$C zeoctl"
 C="$C zopectl"
-C="$C zenxevent"
+C="$C zenhub"
 C="$C zenmodeler"
 C="$C zenperfsnmp"
 C="$C zenperfxmlrpc"
