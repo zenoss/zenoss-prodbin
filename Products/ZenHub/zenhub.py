@@ -33,12 +33,14 @@ from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 
 from XmlRpcService import XmlRpcService
-from EventService import EventService
+
+from Event             import EventService
+from PerformanceConfig import PerformanceConfig
 
 import logging
 log = logging.getLogger('zenhub')
 
-SERVICE_CLASSES = (EventService,)
+SERVICE_CLASSES = (EventService, PerformanceConfig)
 
 XML_RPC_PORT = 8081
 PB_PORT = 8789
@@ -49,12 +51,8 @@ class HubAvitar(pb.Avatar):
     def __init__(self, hub):
         self.hub = hub
 
-    def perspective_getService(self, serviceName, collector):
-        if not self.hub.services.has_key(serviceName):
-            return None
-        svc = self.hub.services[serviceName]
-        # svc.addCollector[collector.getName()] = collector
-        return svc
+    def perspective_getService(self, serviceName, instance):
+        return self.hub.getService(serviceName, instance)
 
 
 
@@ -83,7 +81,6 @@ class ZenHub(ZCmdBase):
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
         self.services = {}
-        self.buildServices()
 
         er = HubRealm(self)
         pt = portal.Portal(er, self.loadCheckers())
@@ -111,10 +108,15 @@ class ZenHub(ZCmdBase):
         return []
 
 
-    def buildServices(self):
-        for svcClass in SERVICE_CLASSES:
-            svc = svcClass(self.dmd)
-            self.services[svc.getName()] = svc
+    def getService(self, name, instance):
+        try:
+            return self.services[name, instance]
+        except KeyError:
+            for ctor in SERVICE_CLASSES:
+                if ctor.__name__ == name:
+                    svc = ctor(self.dmd, instance)
+                    self.services[name, instance] = svc
+                    return svc
 
         
     def heartbeat(self):
