@@ -10,6 +10,7 @@
 # environment variables
 export OS_USERNAME="**OS_USERNAME**"
 export ZENHOME="**ZENHOME**"
+export MYSQLHOST="**MYSQL_HOST**"
 export MYSQLUSER="**MYSQL_USERNAME**"
 export MYSQLPASS="**MYSQL_PASSWD**"
 export MYSQLEVENTDB="**MYSQL_DATABASE**"
