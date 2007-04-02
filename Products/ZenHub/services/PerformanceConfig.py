@@ -17,3 +17,6 @@ class PerformanceConfig(HubService):
     def remote_getSnmpStatus(self, *args, **kwargs):
         return self._getOb().getSnmpStatus(*args, **kwargs)
 
+    def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
+        return self._getOb().getDefaultRRDCreateCommand(*args, **kwargs)
+
