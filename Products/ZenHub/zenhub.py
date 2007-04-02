@@ -35,6 +35,9 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from XmlRpcService import XmlRpcService
 from EventService import EventService
 
+import logging
+log = logging.getLogger('zenhub')
+
 SERVICE_CLASSES = (EventService,)
 
 XML_RPC_PORT = 8081
@@ -62,6 +65,7 @@ class HubRealm(object):
         self.hubAvitar = HubAvitar(hub)
 
     def requestAvatar(self, collName, mind, *interfaces):
+        log.debug('collName %s' % collName)
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
         return pb.IPerspective, self.hubAvitar, lambda:None 
@@ -103,7 +107,7 @@ class ZenHub(ZCmdBase):
         try:
             return [checkers.FilePasswordDB(self.options.passwordfile)]
         except Exception, ex:
-            self.log.exception("Unable to load %s", self.options.passwordfile)
+            log.exception("Unable to load %s", self.options.passwordfile)
         return []
 
 
