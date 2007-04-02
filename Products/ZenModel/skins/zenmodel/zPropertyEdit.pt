@@ -78,12 +78,6 @@
 		<!-- =========== swoopy sortable selector =============== -->
 		</tal:block>
 	    </span>
-            <span tal:condition="python: ptype=='text'">
-            <textarea class="tablevalues" rows='5' cols="33"
-                tal:attributes="name python:prop+':'+ptype"
-                tal:content="pvalue">
-            </textarea>        
-            </span>
             <span tal:condition="python: prop=='zEventSeverity'">
             <select class="tablevalues" 
                 tal:attributes="name python:prop+':'+ptype">
