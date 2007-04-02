@@ -82,6 +82,7 @@ class ZenModeler(ZCmdBase):
         tpref = getattr(device,'zTransportPreference', 'snmp')
         aqignore = getattr(device, 'zCollectorIgnorePlugins', "")
         aqcollect = getattr(device, 'zCollectorCollectPlugins', "")
+        names = getattr(device, 'zCollectorPlugins', [])
         if transport == 'snmp' and device.zSnmpMonitorIgnore: return [] 
         plugins = {}
         for plugin in self.collectorPlugins.values():
