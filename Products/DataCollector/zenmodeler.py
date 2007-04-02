@@ -4,8 +4,6 @@
 #
 #################################################################
 
-import sys
-import os
 import time
 import types
 import re
@@ -17,7 +15,6 @@ import DateTime
 from twisted.internet import reactor
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import importClass
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
@@ -34,9 +31,7 @@ defaultProtocol = "ssh"
 defaultPort = 22
 defaultStartSleep = 10 * 60
 
-pluginskip = ("CollectorPlugin.py", "DataMaps.py")
-def plfilter(f):
-    return f.endswith(".py") and not (f.startswith("_") or f in pluginskip)
+from Plugins import loadPluginDir
 
 class ZenModeler(ZCmdBase):
 
@@ -75,36 +70,10 @@ class ZenModeler(ZCmdBase):
             self.log.debug("in debug mode starting apply in main thread.")
             self.applyData = ApplyDataMap(self)
 
-    def loadPluginDir(self, pdir):
-        self.log.info("loading collector plugins from: %s", pdir)
-        lpdir = len(pdir)+1
-        for path, dirname, filenames in os.walk(pdir):
-            path = path[lpdir:]
-            for filename in filter(plfilter, filenames):
-                modpath = os.path.join(path,filename[:-3]).replace("/",".")
-                self.log.debug("loading: %s", modpath)
-                try:
-                    sys.path.insert(0, pdir)
-                    const = importClass(modpath)
-                    sys.path.remove(pdir)
-                    plugin = const()
-                    self.collectorPlugins[plugin.name()] = plugin
-                except ImportError:
-                    self.log.exception("problem loading plugin:%s",modpath)
- 
-
     def loadPlugins(self):
         """Load plugins from the plugin directory.
         """
-        plugins = filter(lambda x: x.startswith("plugins"), sys.modules)
-        for key in ['zenoss'] + plugins:
-            self.log.debug("clearing plugin %s", key)
-            if sys.modules.has_key(key): del sys.modules[key]
-        pdir = os.path.join(os.path.dirname(__file__),"plugins")
-        self.log.info("loading collector plugins from:%s", pdir)
-        self.loadPluginDir(pdir)
-        for pack in self.dmd.packs():
-            self.loadPluginDir(pack.path('modeler', 'plugins'))
+        self.collectorPlugins = loadPlugins(self.dmd)
 
     
     def selectPlugins(self, device, transport):
