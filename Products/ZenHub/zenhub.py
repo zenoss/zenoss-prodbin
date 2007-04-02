@@ -14,12 +14,11 @@ $Id$
 
 __version__ = "$Revision$"[11:-2]
 
-import time
-import socket
+from socket import getfqdn
+import os
 
 
 from twisted.cred import portal, checkers
-from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.spread import pb
 
 from twisted.internet import reactor, defer
@@ -51,7 +50,7 @@ class HubAvitar(pb.Avatar):
         if not self.hub.services.has_key(serviceName):
             return None
         svc = self.hub.services[serviceName]
-        svc.addCollector[collector.getName()] = collector
+        # svc.addCollector[collector.getName()] = collector
         return svc
 
 
@@ -66,7 +65,6 @@ class HubRealm(object):
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
         return pb.IPerspective, self.hubAvitar, lambda:None 
-
 
 
 class ZenHub(ZCmdBase):
@@ -90,16 +88,23 @@ class ZenHub(ZCmdBase):
         xmlsvc = XmlRpcService(self.dmd)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
 
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                               eventClass=App_Start, 
-                               summary="%s started" % self.name,
-                               severity=0,
-                               component=self.name))
+        self.sendEvent(eventClass=App_Start, 
+                       summary="%s started" % self.name,
+                       severity=0)
+
+    def sendEvent(self, **kw):
+        if not 'device' in kw:
+            kw['device'] = getfqdn()
+        if not 'component' in kw:
+            kw['component'] = self.name
+        self.zem.sendEvent(Event(**kw))
 
     def loadCheckers(self):
-        checker = InMemoryUsernamePasswordDatabaseDontUse()
-        checker.addUser("test", "test")
-        return [checker]
+        try:
+            return [checkers.FilePasswordDB(self.options.passwordfile)]
+        except Exception, ex:
+            self.log.exception("Unable to load %s", self.options.passwordfile)
+        return []
 
 
     def buildServices(self):
@@ -112,7 +117,7 @@ class ZenHub(ZCmdBase):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
         seconds = 30
-        evt = EventHeartbeat(socket.getfqdn(), self.name, 3*seconds)
+        evt = EventHeartbeat(getfqdn(), self.name, 3*seconds)
         self.zem.sendEvent(evt)
         reactor.callLater(seconds, self.heartbeat)
 
@@ -120,11 +125,9 @@ class ZenHub(ZCmdBase):
     def finish(self):
         'things to do at shutdown: thread cleanup, logs and events'
         #self.report()
-        self.zem.sendEvent(Event(device=socket.getfqdn(), 
-                             eventClass=App_Stop, 
-                             summary="%s stopped" % self.name,
-                             severity=4,
-                             component=self.name))
+        self.sendEvent(eventClass=App_Stop, 
+                       summary="%s stopped" % self.name,
+                       severity=4)
 
 
     def sigTerm(self, signum, frame):
@@ -156,6 +159,11 @@ class ZenHub(ZCmdBase):
                                dest='pbport',
                                type='int',
                                default=PB_PORT)
+        self.parser.add_option('--passwd', 
+                               dest='passwordfile',
+                               type='string',
+                               default=os.path.join(os.environ['ZENHOME'],
+                                                    'etc','hubpasswd'))
         
 
 if __name__ == '__main__':

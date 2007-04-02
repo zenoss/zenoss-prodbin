@@ -4,18 +4,25 @@ from twisted.spread import pb
 from twisted.internet import reactor
 from twisted.cred import credentials
 
+import Globals
+from Products.ZenUtils.Driver import drive
+
+import zenhub
+
 def main():
-    factory = pb.PBClientFactory()
-    reactor.connectTCP("localhost", 8800, factory)
-    def1 = factory.login(credentials.UsernamePassword("user1", "pass1"))
-    def1.addCallback(connected)
-    #def1.addCallback(lambda _: reactor.stop())
+    def go(driver):
+        factory = pb.PBClientFactory()
+        reactor.connectTCP("localhost", zenhub.PB_PORT, factory)
+        
+        yield factory.login(credentials.UsernamePassword("zenoss", "zenoss"))
+        perspective = driver.next()
+        print 'got perspective', perspective
+
+        yield perspective.callRemote('getService', 'EventService', 'client1')
+        service = driver.next()
+        print 'got service', service
+
+    drive(go).addBoth(lambda x: reactor.stop())
     reactor.run()
 
-def connected(perspective):
-    print "got perspective1 ref:", perspective
-    print "asking it to foo(13)"
-    perspective.callRemote("foo", 13)
-
 main()
-
