@@ -87,7 +87,10 @@ class ZenModeler(ZCmdBase):
         for plugin in self.collectorPlugins.values():
             pname = plugin.name()
             try:
-                if not plugin.condition(device, self.log):
+                if pname in names:
+                    self.log.debug("using %s on %s",pname, device.id)
+                    plugins[plugin.maptype] = plugin
+                elif not plugin.condition(device, self.log):
                     self.log.debug("condition failed %s on %s",pname,device.id)
                 elif ((self.options.ignorePlugins 
                     and re.search(self.options.ignorePlugins, pname))
