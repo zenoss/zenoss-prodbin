@@ -70,3 +70,4 @@ import menus
 import deviceTemplatesProperty
 import zlocal
 import evenbetterstandarderrormessage
+import zCollectorPlugins

@@ -581,8 +581,11 @@ class DeviceClass(DeviceOrganizer):
 
         # DataCollector properties
         devs._setProperty("zTransportPreference", "snmp")
+        # should be deprecated:
         devs._setProperty("zCollectorIgnorePlugins", "")
         devs._setProperty("zCollectorCollectPlugins", "")
+        # replaced by:
+        devs._setProperty("zCollectorPlugins", [], type='lines')
         devs._setProperty("zCollectorClientTimeout", 180, type="int")
         devs._setProperty("zCollectorDecoding", 'latin-1')
         devs._setProperty("zCommandUsername", "")

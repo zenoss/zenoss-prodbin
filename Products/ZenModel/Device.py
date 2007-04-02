@@ -1328,5 +1328,13 @@ class Device(ManagedEntity, Commandable, Lockable):
         map(lambda o: o.exportXml(ofile, ignorerels), (self.hw, self.os))
 
 
+    def zenPropertyOptions(self, propname):
+        "Provide a set of default options for a ZProperty"
+        if propname == 'zCollectorPlugins':
+            from Products.DataCollector.Plugins import loadPlugins
+            names = loadPlugins(self.dmd).keys()
+            names.sort()
+            return names
+        return ManagedEntity.zenPropertyOptions(self, propname)
 
 InitializeClass(Device)

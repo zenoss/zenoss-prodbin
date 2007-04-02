@@ -219,6 +219,11 @@ class ZenPropertyManager(PropertyManager):
         if propname:
             self._delProperty(propname)
         if REQUEST: return self.callZenScreen(REQUEST)
-         
-    
+
+
+    def zenPropertyOptions(self, propname):
+        "Provide a set of default options for a ZProperty"
+        return []
+
+
 InitializeClass(ZenPropertyManager)
