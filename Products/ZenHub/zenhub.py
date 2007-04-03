@@ -34,8 +34,8 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 
 from XmlRpcService import XmlRpcService
 
-from Event             import EventService
-from PerformanceConfig import PerformanceConfig
+from services.EventService import EventService
+from services.PerformanceConfig import PerformanceConfig
 
 import logging
 log = logging.getLogger('zenhub')
