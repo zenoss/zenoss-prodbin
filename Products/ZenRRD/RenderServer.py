@@ -146,12 +146,11 @@ class RenderServer(RRDToolItem):
 
     def receiveRRDFiles(self, REQUEST=None):
         """receive a device's RRD Files from another server"""
-        if REQUEST:
-            tarfile = REQUEST.get('tarfile')
-            tarfilename = REQUEST.get('tarfilename')
-            f=open('%s/%s' % (self.tmpdir, tarfilename), 'wb')
-            f.write(urllib.unquote(tarfile))
-            f.close()
+        tarfile = REQUEST.get('tarfile')
+        tarfilename = REQUEST.get('tarfilename')
+        f=open('%s/%s' % (self.tmpdir, tarfilename), 'wb')
+        f.write(urllib.unquote(tarfile))
+        f.close()
                 
     def sendRRDFiles(self, device, server, REQUEST=None):
         """Move a package of RRDFiles"""
@@ -163,24 +162,29 @@ class RenderServer(RRDToolItem):
         params = urllib.urlencode({'tarfilename': tarfilename,
             'tarfile':tarfilebody})
         # send the file to zope
-        perfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(server)
-        remoteUrl = '%s/receiveRRDFiles' % (perfMon.renderurl)
-        urllib.urlopen(remoteUrl, params)
+        perfMon = self.dmd.getDmdRoot("Monitors").getPerformanceMonitor(server)
+        if perfMon.renderurl.startswith('http'):
+            remoteUrl = '%s/receiveRRDFiles' % (perfMon.renderurl)
+            urllib.urlopen(remoteUrl, params)
+            
     
     def moveRRDFiles(self, device, destServer, srcServer=None, REQUEST=None):
         """send a device's RRD Files to another server"""
-        import pdb; pdb.set_trace()
-        destPerfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(destServer)
-        srcPerfMon = self.getDmdRoot("Monitors").getPerformanceMonitor(srcServer)
+        monitors = self.dmd.getDmdRoot("Monitors")
+        destPerfMon = monitors.getPerformanceMonitor(destServer)
         if srcServer:
+            srcPerfMon = monitors.getPerformanceMonitor(srcServer)
             remoteUrl = '%s/moveRRDFiles?device=%s&destServer=%s' % (srcPerfMon.renderurl, device, destServer)
             urllib.urlopen(remoteUrl)
         else:
             self.packageRRDFiles(device, REQUEST)
             self.sendRRDFiles(device, destServer, REQUEST)
-            remoteUrl = '%s/unpackageRRDFiles?device=%s' % (destPerfMon.renderurl, device)
-            urllib.urlopen(remoteUrl)
-    
+            if destPerfMon.renderurl.startswith('http'):
+                remoteUrl = '%s/unpackageRRDFiles?device=%s' % (destPerfMon.renderurl, device)
+                urllib.urlopen(remoteUrl)
+            else:
+                self.unpackageRRDFiles(device, REQUEST)
+            
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
         "render a custom graph and return it"

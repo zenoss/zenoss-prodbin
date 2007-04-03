@@ -1036,15 +1036,15 @@ class Device(ManagedEntity, Commandable, Lockable):
                             newPerformanceMonitor=None, REQUEST=None):
         """set the performance monitor for this device if newPerformanceMonitor
         is passed in create it"""
-        if newPerformanceMonitor: performanceMonitor = newPerformanceMonitor
-        obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
-                                                    performanceMonitor)
-        self.addRelation("perfServer", obj)
-        
         if newPerformanceMonitor:
             self.dmd.RenderServer.moveRRDFiles(self.id,
                 newPerformanceMonitor, performanceMonitor, REQUEST)
+            performanceMonitor = newPerformanceMonitor
         
+        obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
+                                                    performanceMonitor)
+        self.addRelation("perfServer", obj)
+                
         if REQUEST:
             REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
             return self.callZenScreen(REQUEST)
