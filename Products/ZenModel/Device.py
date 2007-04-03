@@ -478,6 +478,7 @@ class Device(ManagedEntity, Commandable, Lockable):
         for pc in pageChecks:
             pc['device'] = self.id
             pc['manageIp'] = self.manageIp
+            pc['timeout'] = self.zCommandCommandTimeout
         return pageChecks
 
 

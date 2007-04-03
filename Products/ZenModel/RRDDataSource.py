@@ -73,7 +73,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataSource'
 
-    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND') # , 'PAGECHECK')
+    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND', 'PAGECHECK')
     paramtypes = ('integer', 'string', 'float')
 
     sourcetype = 'SNMP'
@@ -257,8 +257,6 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             if self.userAgent:
                 go += 'agent "%s"\n' % self.userAgent
             res = go + res
-            pgm = os.path.join(os.environ['ZENHOME'], 'bin', 'testgen-twill')
-            res = "%s -q - << EOF\n%s\nEOF\n" % (pgm, res)
         elif not res.startswith('/'):
             if not res.startswith(context.zCommandPath):
                 res = os.path.join(context.zCommandPath, res)

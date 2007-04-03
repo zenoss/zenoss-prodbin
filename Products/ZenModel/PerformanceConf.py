@@ -263,7 +263,10 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devname and dev.id != devname: continue
             dev = dev.primaryAq()
-            result += dev.getPageChecks()
+            if dev.monitorDevice():
+                result += dev.getPageChecks()
+        for testConfig in result:
+            testConfig['createRRDCommand'] = self.getDefaultRRDCreateCommand()
         return result
         
 
