@@ -6,7 +6,7 @@ class zCollectorPlugins(Migrate.Step):
     def cutover(self, dmd):
         dmd.Devices._setProperty("zCollectorPlugins", [], type='lines')
 
- zCollectorPlugins()
+zCollectorPlugins()
  
 
 

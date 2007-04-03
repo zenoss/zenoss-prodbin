@@ -448,7 +448,7 @@ class MenuRelations(Migrate.Step):
                     ),
                 dict(
                     id=         'lockDevices',
-                    description='Change lock...',
+                    description='Lock devices...',
                     action=     'dialog_lockDevices',
                     permissions=('Change Device',),
                     isdialog = True

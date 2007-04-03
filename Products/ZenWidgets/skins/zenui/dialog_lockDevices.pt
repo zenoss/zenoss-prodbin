@@ -1,25 +1,23 @@
 <h2>Change lock status</h2>
 <p>
-Which lock status would you like to set on these devices?<br/>
-<br/>
+Which lock status would you like to set on these devices?<br/><br/>
 <input tal:attributes="name string:sendEventWhenBlocked;
-                    type string:checkbox"
-                    />Send warnings when actions are blocked<br/>
+        type string:checkbox"
+        />Send warnings when actions are blocked
 </p>
-<br/>
-<div id="dialog_buttons">
+<p align="right">
 <input type="submit" name="lockDevicesFromUpdates:method"
     value="Lock from deletion and updates"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" /><br/><br/>
 <input type="submit" name="lockDevicesFromDeletion:method"
     value="Lock from deletion"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" /><br/><br/>
 <input type="submit" name="unlockDevices:method"
     value="Unlock"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />&nbsp;
+                        '${here/absolute_url_path}')" /><br/><br/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
-</div>
+</p>

@@ -646,7 +646,7 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def unlockDevices(self, sendEventWhenBlocked=None, REQUEST=None):
+    def unlockDevices(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
         """Unlock devices"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
@@ -656,7 +656,7 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
     
-    def lockDevicesFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
+    def lockDevicesFromDeletion(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
         """Lock devices from being deleted"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
@@ -666,7 +666,7 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def lockDevicesFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
+    def lockDevicesFromUpdates(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
         """Lock devices from being deleted or updated"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
