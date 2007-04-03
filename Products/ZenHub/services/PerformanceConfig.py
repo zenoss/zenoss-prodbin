@@ -20,3 +20,9 @@ class PerformanceConfig(HubService):
     def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
         return self._getOb().getDefaultRRDCreateCommand(*args, **kwargs)
 
+    def remote_getOSProcessConf(self, devices=None):
+        return self._getOb().getOSProcessConf(devices)
+
+    def remote_getProcessStatus(self, devices=None):
+        return self._getOb().getProcessStatus(devices)
+
