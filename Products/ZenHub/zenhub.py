@@ -34,13 +34,8 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 
 from XmlRpcService import XmlRpcService
 
-from services.EventService import EventService
-from services.PerformanceConfig import PerformanceConfig
-
 import logging
 log = logging.getLogger('zenhub')
-
-SERVICE_CLASSES = (EventService, PerformanceConfig)
 
 XML_RPC_PORT = 8081
 PB_PORT = 8789
@@ -112,11 +107,11 @@ class ZenHub(ZCmdBase):
         try:
             return self.services[name, instance]
         except KeyError:
-            for ctor in SERVICE_CLASSES:
-                if ctor.__name__ == name:
-                    svc = ctor(self.dmd, instance)
-                    self.services[name, instance] = svc
-                    return svc
+            from Products.ZenUtils.Utils import importClass
+            ctor = importClass('services.%s' % name, name)
+            svc = ctor(self.dmd, instance)
+            self.services[name, instance] = svc
+            return svc
 
         
     def heartbeat(self):
