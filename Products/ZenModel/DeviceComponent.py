@@ -70,7 +70,7 @@ class DeviceComponent(Lockable):
         if not self.monitored() or not self.device().monitorDevice(): return -1
         if not statClass: statClass = "/Status/%s" % self.meta_type
         return self.getEventManager().getComponentStatus(
-                self.getParentDeviceName(), self.name, statclass=statClass)
+                self.getParentDeviceName(), self.name(), statclass=statClass)
 
   
     def getStatusString(self, statClass=None):
