@@ -31,7 +31,7 @@ defaultProtocol = "ssh"
 defaultPort = 22
 defaultStartSleep = 10 * 60
 
-from Plugins import loadPluginDir
+from Plugins import _loadPluginDir
 
 class ZenModeler(ZCmdBase):
 
