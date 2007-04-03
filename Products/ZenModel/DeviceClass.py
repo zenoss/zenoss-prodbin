@@ -418,7 +418,13 @@ class DeviceClass(DeviceOrganizer):
                 pass
         return templates.values()
             
-
+    def getAllRRDTemplates(self):
+        rrdts = self.rrdTemplates()
+        for child in self.children():
+            rrdts.extend(child.getAllRRDTemplates())
+        return rrdts
+    
+    
     security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
     def manage_addRRDTemplate(self, id, REQUEST=None):
         """Add an RRDTemplate to this DeviceClass.

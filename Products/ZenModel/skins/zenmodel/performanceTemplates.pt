@@ -1,0 +1,101 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+
+
+<tal:block metal:define-macro="rrdtemplatelist"
+    tal:define="
+        tableName string:rrdtemplatelist;
+        objects here/getAllRRDTemplates;
+        showfilterbox python:True;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle string:Performance Templates; ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <input type='hidden' name='tableName' 
+        tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id"/>
+
+    <tr>
+        <th class="tableheader" width="5px"></th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getRRDPath','Definition Path')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'description','Description')"/>
+    </tr>
+    <tal:block tal:repeat="temp batch">
+    <tr tal:define="odd repeat/temp/odd;
+                    lnames here/rrdTemplates/objectIds"
+        tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
+        <td>
+            <input tal:condition="python: here.isManager() 
+                                    and temp.id in lnames" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value temp/getId"/>
+        </td>
+        <td>
+            <a tal:attributes="href temp/getPrimaryUrlPath" 
+                tal:content="temp/getId">name</a>
+        </td>
+        <td>
+            <a tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
+                tal:content="temp/getRRDPath">/Devices/Server</a>
+        </td>
+        <td tal:content="temp/description"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+
+    <tr class="tableheader" tal:condition="here/isManager">
+        <td colspan="4">
+        <input class="tableheader" type="text" name="id"/>
+        <input class="tableheader" type="submit" 
+            onkeypress="return submitViaEnter(event,'manage_addRRDTemplate');" 
+            name="manage_addRRDTemplate:method" value=" Add " /> 
+        |
+        <input class="tableheader" type="submit" value="Copy"
+            name="manage_copyRRDTemplates:method"/>
+        <tal:block tal:condition="here/cb_dataValid">
+        |
+        <input class="tableheader" type="submit" value="Paste"
+            name="manage_pasteRRDTemplates:method"/>
+        </tal:block>
+        |
+        <input class="tableheader" type="submit" 
+            name="manage_deleteRRDTemplates:method" value=" Delete " />
+        |
+
+        <input class="tableheader" type="submit"
+                name="SelectButton" value="Select All" 
+                onClick="toggleSelect(this.form);return false"/>
+
+        |
+
+        <input class="tableheader" type="submit" 
+            name="manage_exportRRDTemplates:method" value=" Export " />
+        to 
+        <select class="tableheader" name="dest">
+            <option value="filesystem" selected="True">File System</option>
+            <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
+        </select>
+        
+        </td>
+    </tr>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+</tal:block>
+</tal:block>
