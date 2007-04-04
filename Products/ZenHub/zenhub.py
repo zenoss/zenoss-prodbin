@@ -18,12 +18,12 @@ from socket import getfqdn
 import os
 
 
-from twisted.cred import portal, checkers
+from twisted.cred import portal, checkers, error, credentials
 from twisted.spread import pb
 
 from twisted.internet import reactor, defer
 from twisted.python import failure
-from twisted.web import server
+from twisted.web import server, xmlrpc
 from zope.interface import implements
 
 import Globals
@@ -40,6 +40,38 @@ log = logging.getLogger('zenhub')
 XML_RPC_PORT = 8081
 PB_PORT = 8789
 
+class AuthXmlRpcService(XmlRpcService):
+
+    def __init__(self, dmd, checker):
+        XmlRpcService.__init__(self, dmd)
+        self.checker = checker
+
+    def doRender(self, avatar, request):
+        return XmlRpcService.render(self, request)
+
+    def unauthorized(self, request):
+        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
+    
+    def render(self, request):
+        auth = request.received_headers.get('authorization', None)
+        if not auth:
+            self.unauthorized(request)
+        else:
+            try:
+                type, encoded = auth.split()
+                if type not in ('Basic',):
+                    self.unauthorized(request)
+                else:
+                    user, passwd = encoded.decode('base64').split(':')
+                    c = credentials.UsernamePassword(user, passwd)
+                    d = self.checker.requestAvatarId(c)
+                    d.addCallback(self.doRender, request)
+                    def error(reason, request):
+                        self.unauthorized(request)
+                    d.addErrback(error, request)
+            except Exception:
+                self.unauthorized()
+        return server.NOT_DONE_YET
 
 class HubAvitar(pb.Avatar):
 
@@ -48,7 +80,6 @@ class HubAvitar(pb.Avatar):
 
     def perspective_getService(self, serviceName, instance):
         return self.hub.getService(serviceName, instance)
-
 
 
 class HubRealm(object):
@@ -62,7 +93,6 @@ class HubRealm(object):
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
         return pb.IPerspective, self.hubAvitar, lambda:None 
-
 
 class ZenHub(ZCmdBase):
     'Listen for xmlrpc requests and turn them into events'
@@ -78,10 +108,11 @@ class ZenHub(ZCmdBase):
         self.services = {}
 
         er = HubRealm(self)
-        pt = portal.Portal(er, self.loadCheckers())
+        checker = self.loadChecker()
+        pt = portal.Portal(er, [checker])
         reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt))
 
-        xmlsvc = XmlRpcService(self.dmd)
+        xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
 
         self.sendEvent(eventClass=App_Start, 
@@ -95,9 +126,9 @@ class ZenHub(ZCmdBase):
             kw['component'] = self.name
         self.zem.sendEvent(Event(**kw))
 
-    def loadCheckers(self):
+    def loadChecker(self):
         try:
-            return [checkers.FilePasswordDB(self.options.passwordfile)]
+            return checkers.FilePasswordDB(self.options.passwordfile)
         except Exception, ex:
             log.exception("Unable to load %s", self.options.passwordfile)
         return []
