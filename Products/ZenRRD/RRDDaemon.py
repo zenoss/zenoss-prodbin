@@ -25,9 +25,9 @@ from Products.ZenUtils.Utils import basicAuthUrl
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenHub.zenhub import PB_PORT
 
-from twisted.spread import pb
+from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from twisted.cred import credentials
-from twisted.internet import reactor, error
+from twisted.internet import reactor, error, defer
 from twisted.python import failure
 from twisted.web.xmlrpc import Proxy
 
@@ -148,37 +148,42 @@ class RRDDaemon(Base):
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
-        import logging
-        self.log = logging.getLogger(name)
 
     def connect(self):
-        def go(driver):
-            factory = pb.PBClientFactory()
-            log = self.log
-            log.debug("Connecting to %s", self.options.host)
-            reactor.connectTCP(self.options.host, self.options.port, factory)
+        d = defer.Deferred()
+        def gotPerspective(perspective):
+            "Every time we reconnect this function is called"
+            def go(driver):
+                "Fetch the services we want"
+                self.log.debug("Getting event service")
+                yield perspective.callRemote('getService', 'EventService',
+                                             self.options.monitor)
+                self.zem = driver.next()
+                if not self.zem:
+                    raise failure.Failure("Cannot get EventManager Service")
 
-            username = self.options.username
-            password = self.options.password
-            self.log.debug("Logging in as %s", username)
-            c = credentials.UsernamePassword(username, password)
-            yield factory.login(c)
-            perspective = driver.next()
-
-            monitor = self.options.monitor or socket.getfqdn()
-            self.log.debug("Getting event service for %s", monitor)
-            yield perspective.callRemote('getService',
-                                         'EventService',
-                                         monitor)
-            self.zem = driver.next()
-            assert self.zem
+                self.log.debug("Getting Perf service")
+                yield perspective.callRemote('getService', self.hubService,
+                                             self.options.monitor)
+                self.model = driver.next()
+                if not self.model:
+                    raise failure.Failure("Cannot get %s Service" %
+                                          (self.hubService,))
+            self.log.warning("Reconnected to ZenHub")
+            d2 = drive(go)
+            if not d.called:
+                d2.chainDeferred(d)
             
-            self.log.debug("Getting Perf service for %s", monitor)
-            yield perspective.callRemote('getService', self.hubService, monitor)
-            self.model = driver.next()
-            assert self.model
-    
-        return drive(go)
+        factory = ReconnectingPBClientFactory()
+        self.log.debug("Connecting to %s", self.options.host)
+        reactor.connectTCP(self.options.host, self.options.port, factory)
+        username = self.options.username
+        password = self.options.password
+        self.log.debug("Logging in as %s", username)
+        c = credentials.UsernamePassword(username, password)
+        factory.gotPerspective = gotPerspective
+        factory.startLogin(c)
+        return d
 
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
@@ -266,7 +271,7 @@ class RRDDaemon(Base):
         self.parser.add_option('-d', '--device', dest='device',
                                help="Specify a specific device to monitor",
                                default='')
-        self.parser.add_option('--monitor', dest='monitor',
+        self.parser.add_option('--monitor', dest='monitor', default=socket.getfqdn(),
             help="Specify a specific name of the monitor configuration")
 
     def logError(self, msg, error):
