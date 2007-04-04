@@ -60,7 +60,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         )
 
     _relations =  ZenPackable._relations + (
-        ("deviceClass", ToOne(ToManyCont,"RRDTemplate", "rrdTemplates")),
+        ("deviceClass", ToOne(ToManyCont,"DeviceClass", "rrdTemplates")),
         ("datasources", ToManyCont(ToOne,"RRDDataSource", "rrdTemplate")),
         ("graphs", ToManyCont(ToOne,"RRDGraph", "rrdTemplate")),
         ("thresholds", ToManyCont(ToOne,"RRDThreshold", "rrdTemplate")),
@@ -219,8 +219,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
             if getattr(self.datasources,id,False):
-                perfConf = self.device().getPerformanceServer()
-                perfConf.deleteRRDFiles(device=self.device().id, datasource=id)
+                #perfConf = self.device().getPerformanceServer()
+                #perfConf.deleteRRDFiles(device=self.device().id, datasource=id)
                 
                 self.datasources._delObject(id)
                 clean(self.graphs, id)

@@ -26,7 +26,7 @@ class MibModule(ZenModelRM, ZenPackable):
     )
 
     _relations = ZenPackable._relations + (
-        ("miborganizer", ToOne(ToManyCont, "MibModule", "mibs")),
+        ("miborganizer", ToOne(ToManyCont, "MibOrganizer", "mibs")),
         ("nodes", ToManyCont(ToOne, "MibNode", "module")),
         ("notifications", ToManyCont(ToOne, "MibNotification", "module")),
     )
