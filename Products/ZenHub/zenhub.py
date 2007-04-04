@@ -139,7 +139,10 @@ class ZenHub(ZCmdBase):
             return self.services[name, instance]
         except KeyError:
             from Products.ZenUtils.Utils import importClass
-            ctor = importClass('services.%s' % name, name)
+            try:
+                ctor = importClass(name)
+            except ImportError:
+                ctor = importClass('services.%s' % name, name)
             svc = ctor(self.dmd, instance)
             self.services[name, instance] = svc
             return svc
