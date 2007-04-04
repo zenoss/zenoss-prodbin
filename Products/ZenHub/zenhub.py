@@ -78,8 +78,14 @@ class HubAvitar(pb.Avatar):
     def __init__(self, hub):
         self.hub = hub
 
-    def perspective_getService(self, serviceName, instance):
-        return self.hub.getService(serviceName, instance)
+    def perspective_getService(self,
+                               serviceName,
+                               instance = None,
+                               listener = None):
+        service = self.hub.getService(serviceName, instance)
+        if listener:
+            service.addListener(listener)
+        return service
 
 
 class HubRealm(object):
