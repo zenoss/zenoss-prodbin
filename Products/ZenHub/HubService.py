@@ -12,6 +12,10 @@ class HubService(pb.Referenceable):
         self.instance = instance
         self.listeners = []
 
+    def getMonitor(monitorType='Performance'):
+        container = getattr(self.dmd.Monitors, monitorType, None)
+        return container and container._getOb(self.instance)
+
     def update(self, object):
         pass
 
