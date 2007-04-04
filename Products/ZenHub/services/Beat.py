@@ -12,16 +12,10 @@ class Beat(HubService):
     def beat(self):
         secs = time.time()
         for listener in self.listeners:
-            try:
-                d = listener.callRemote('beat', secs)
-                d.addErrback(self.error, listener)
-            except pb.DeadReferenceError, ex:
-                self.error(ex, listener)
+            d = listener.callRemote('beat', secs)
+            d.addErrback(self.error)
         reactor.callLater(1, self.beat)
 
     def error(self, reason, listener):
-        try:
-            self.listeners.remove(listener)
-        except ValueError:
-            pass
+        reason.printTraceback()
         
