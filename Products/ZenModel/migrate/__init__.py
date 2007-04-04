@@ -71,3 +71,4 @@ import deviceTemplatesProperty
 import zlocal
 import evenbetterstandarderrormessage
 import zCollectorPlugins
+import hubqueue

@@ -359,6 +359,10 @@ class zenperfsnmp(SnmpDaemon):
         for name, proxy in self.proxies.items():
             proxy.snmpStatus.count = countMap.get(name, 0)
 
+    def remote_updateDeviceConfig(self, snmpTargets):
+        self.log.debug("Async device update")
+        self.updateDeviceConfig(snmpTargets)
+
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'

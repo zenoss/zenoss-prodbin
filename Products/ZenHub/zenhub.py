@@ -31,6 +31,7 @@ import Globals
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
+import transaction
 
 from XmlRpcService import XmlRpcService
 
@@ -95,7 +96,6 @@ class HubRealm(object):
         self.hubAvitar = HubAvitar(hub)
 
     def requestAvatar(self, collName, mind, *interfaces):
-        log.debug('collName %s' % collName)
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
         return pb.IPerspective, self.hubAvitar, lambda:None 
@@ -124,6 +124,24 @@ class ZenHub(ZCmdBase):
         self.sendEvent(eventClass=App_Start, 
                        summary="%s started" % self.name,
                        severity=0)
+        self.processQueue()
+
+    def processQueue(self):
+        self.syncdb()
+        try:
+            if self.dmd.hubQueue:
+                self.doProcessQueue(self.dmd.hubQueue)
+        except Exception:
+            self.log.exception("Exception processing queue")
+        transaction.commit()
+        reactor.callLater(1, self.processQueue)
+
+    def doProcessQueue(self, q):
+        object = q.pull()
+        from Products.ZenUtils.Utils import getObjByPath
+        object = getObjByPath(self.dmd, object)
+        for s in self.services.values():
+            s.update(object)
 
     def sendEvent(self, **kw):
         if not 'device' in kw:
@@ -179,14 +197,8 @@ class ZenHub(ZCmdBase):
             if reactor.running:
                 reactor.stop()
 
-    def _wakeUpReactorAndHandleSignals(self):
-        self.syncdb()
-        reactor.callLater(1.0, self._wakeUpReactorAndHandleSignals)
-
-        
     def main(self):
         reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
-        self._wakeUpReactorAndHandleSignals()
         reactor.run(installSignalHandlers=False)
 
 

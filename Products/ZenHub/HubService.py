@@ -12,8 +12,12 @@ class HubService(pb.Referenceable):
         self.instance = instance
         self.listeners = []
 
+    def update(self, object):
+        pass
+
     def addListener(self, remote):
         remote.notifyOnDisconnect(self.removeListener)
+        log.info("adding listener")
         self.listeners.append(remote)
 
     def removeListener(self, listener):

@@ -27,6 +27,7 @@ from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.python import failure
+from twisted.spread import pb
 
 from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
@@ -119,7 +120,7 @@ class ThresholdManager:
     def __iter__(self):
         return iter(self.thresholds.values())
 
-class RRDDaemon(Base):
+class RRDDaemon(Base, pb.Referenceable):
     'Holds the code common to performance gathering daemons.'
 
     startevt = {'eventClass':App_Start, 
@@ -153,15 +154,15 @@ class RRDDaemon(Base):
             def go(driver):
                 "Fetch the services we want"
                 self.log.debug("Getting event service")
-                yield perspective.callRemote('getService', 'EventService',
-                                             self.options.monitor)
+                yield perspective.callRemote('getService', 'EventService')
                 self.zem = driver.next()
                 if not self.zem:
                     raise failure.Failure("Cannot get EventManager Service")
 
                 self.log.debug("Getting Perf service")
                 yield perspective.callRemote('getService', self.hubService,
-                                             self.options.monitor)
+                                             self.options.monitor,
+                                             self)
                 self.model = driver.next()
                 if not self.model:
                     raise failure.Failure("Cannot get %s Service" %
