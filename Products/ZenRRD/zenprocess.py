@@ -21,6 +21,7 @@ from sets import Set
 log = logging.getLogger("zen.zenprocess")
 
 from twisted.internet import reactor, defer
+from twisted.python import failure
 
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
@@ -233,6 +234,7 @@ class Device:
 class zenprocess(SnmpDaemon):
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
+    hubService = 'ProcessConfig'
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
@@ -265,7 +267,6 @@ class zenprocess(SnmpDaemon):
     def start(self, driver):
         'Read the basic config needed to do anything'
         log.debug("fetching config")
-        self.syncdb()
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self._devices.keys())
@@ -517,13 +518,14 @@ class zenprocess(SnmpDaemon):
         SnmpDaemon.heartbeat(self)
 
 
-    def main(self):
+    def main(self, unused):
         self.sendEvent(self.startevt)
         drive(self.start).addCallbacks(self.periodic, self.errorStop)
-        reactor.run(installSignalHandlers=False)
-        self.sendEvent(self.stopevt, now=True)
 
 
 if __name__ == '__main__':
     z = zenprocess()
-    z.main()
+    d = z.connect()
+    d.addCallbacks(z.main, z.errorStop)
+    reactor.run(installSignalHandlers=False)
+    # self.sendEvent(self.stopevt, now=True)

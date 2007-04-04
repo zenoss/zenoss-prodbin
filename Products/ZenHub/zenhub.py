@@ -140,6 +140,7 @@ class ZenHub(ZCmdBase):
                 reactor.stop()
 
     def _wakeUpReactorAndHandleSignals(self):
+        self.syncdb()
         reactor.callLater(1.0, self._wakeUpReactorAndHandleSignals)
 
         

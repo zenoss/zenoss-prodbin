@@ -359,6 +359,7 @@ class Options:
 
 class zencommand(RRDDaemon):
 
+    hubService = 'CommandConfig'
 
     def __init__(self):
         RRDDaemon.__init__(self, 'zencommand')
@@ -545,13 +546,13 @@ class zencommand(RRDDaemon):
     def start(self, driver):
         """Fetch the configuration and return a deferred for its completion.
         Also starts the config cycle"""
-        self.syncdb()
         ex = None
         try:
             log.debug('Fetching config')
             yield self.fetchConfig()
             driver.next()
             log.debug('Finished config fetch')
+            print driver.next()
         except Exception, ex:
             log.exception(ex)
         driveLater(self.configCycleInterval * 60, self.start)
@@ -566,16 +567,17 @@ class zencommand(RRDDaemon):
                                default=10, type='int',
                                help="number of devices to collect at one time")
         
-    def main(self):
+    def main(self, ignored):
         self.sendEvent(self.startevt)
         d = drive(self.start)
         d.addCallbacks(self.processSchedule, self.errorStop)
         if self.options.cycle:
             d.addCallback(self.heartbeatCycle)
-        reactor.run()
-        self.sendEvent(self.stopevt, now=True)
 
 
 if __name__ == '__main__':
     z = zencommand()
-    z.main()
+    d = z.connect()
+    d.addCallbacks(z.main, z.errorStop)
+    reactor.run()
+    # self.sendEvent(self.stopevt, now=True)

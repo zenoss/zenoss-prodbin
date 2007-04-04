@@ -122,8 +122,8 @@ class XmlRpcStatus:
     xmlRpcStatusEvent = {'eventClass': Status_XmlRpc,
                        'component': 'xmlrpc',
                        'eventGroup': 'XmlRpcTest'}
+    hubService = 'XmlRPCConfig'
 
-    
     def __init__(self, xmlRpcState):
         # if the number of Event.Error severity events on this device is
         # greater than 0, than we consider the XMLRPC server down on this 
@@ -220,7 +220,6 @@ class zenperfxmlrpc(RRDDaemon):
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
 
-        self.syncdb()
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
         
         yield self.model.callRemote('getXmlRpcDevices', self.options.device)
@@ -501,16 +500,16 @@ class zenperfxmlrpc(RRDDaemon):
                                 v,
                                 self.sendThresholdEvent)
 
-    def main(self):
+    def main(self, ignored):
         "Run forever, fetching and storing"
 
         self.sendEvent(self.startevt)
         drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
                                                   self.errorStop)
-        reactor.run(installSignalHandlers=False)
-        self.sendEvent(self.stopevt, now=True)
 
 
 if __name__ == '__main__':
     zpf = zenperfxmlrpc()
-    zpf.main()
+    zpf.connect().addCallbacks(zpf.main, zpf.errorStop)
+    reactor.run(installSignalHandlers=False)
+    #self.sendEvent(self.stopevt, now=True)

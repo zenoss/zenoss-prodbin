@@ -2,27 +2,15 @@ from HubService import HubService
 
 class PerformanceConfig(HubService):
 
-    def _getOb(self):
-        return self.dmd.Monitors.Performance._getOb(self.instance)
-
-    def remote_getDevices(self, devices=None):
-        return self._getOb().getDevices(devices)
-
-    def remote_getDeviceUpdates(self, devices):
-        return self._getOb().getDeviceUpdates(devices)
+    def __init__(self, dmd, instance):
+        HubService.__init__(self, dmd, instance)
+        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
     def remote_propertyItems(self):
-        return self._getOb().propertyItems()
+        return self.config.propertyItems()
         
     def remote_getSnmpStatus(self, *args, **kwargs):
-        return self._getOb().getSnmpStatus(*args, **kwargs)
+        return self.config.getSnmpStatus(*args, **kwargs)
 
     def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
-        return self._getOb().getDefaultRRDCreateCommand(*args, **kwargs)
-
-    def remote_getOSProcessConf(self, devices=None):
-        return self._getOb().getOSProcessConf(devices)
-
-    def remote_getProcessStatus(self, devices=None):
-        return self._getOb().getProcessStatus(devices)
-
+        return self.config.getDefaultRRDCreateCommand(*args, **kwargs)

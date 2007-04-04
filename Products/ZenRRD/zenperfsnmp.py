@@ -221,6 +221,7 @@ class zenperfsnmp(SnmpDaemon):
     
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
+    hubService = 'SnmpPerfConfig'
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenperfsnmp')
@@ -265,8 +266,6 @@ class zenperfsnmp(SnmpDaemon):
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
         
-        self.syncdb()
-
         log.info("fetching property items")
         yield self.model.callRemote('propertyItems')
         self.setPropertyItems(driver.next())
@@ -554,16 +553,17 @@ class zenperfsnmp(SnmpDaemon):
             threshold.check(device, oidData.name, oid, value,
                             self.sendThresholdEvent)
 
-    def main(self):
+    def main(self, ignored):
         "Run forever, fetching and storing"
-
         self.sendEvent(self.startevt)
         drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
                                                   self.errorStop)
-        reactor.run(installSignalHandlers=False)
-        self.sendEvent(self.stopevt, now=True)
 
 
 if __name__ == '__main__':
     zpf = zenperfsnmp()
-    zpf.main()
+    d = zpf.connect()
+    d.addCallbacks(zpf.main, zpf.errorStop)
+    reactor.run(installSignalHandlers=False)
+    # fixme
+    # zpf.sendEvent(zpf.stopevt, now=True)

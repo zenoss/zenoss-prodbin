@@ -22,12 +22,16 @@ from Products.ZenEvents.ZenEventClasses import Perf_Snmp, App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 #from Products.ZenUtils.TwistedAuth import AuthProxy
 from Products.ZenUtils.Utils import basicAuthUrl
+from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenHub.zenhub import PB_PORT
 
+from twisted.spread import pb
+from twisted.cred import credentials
 from twisted.internet import reactor, error
 from twisted.python import failure
 from twisted.web.xmlrpc import Proxy
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase as Base
+from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
 BAD_SEVERITY=Event.Warning
 
@@ -48,7 +52,6 @@ class Threshold:
     eventClass = Perf_Snmp
     severity = Event.Info
     escalateCount = 0
-
 
     def __init__(self, label, minimum, maximum, eventClass, severity, count):
         self.label = label
@@ -119,20 +122,6 @@ class ThresholdManager:
     def __iter__(self):
         return iter(self.thresholds.values())
 
-class FakeProxy:
-
-    def __init__(self, obj):
-        self.obj = obj
-
-    def callRemote(self, name, *args, **kwargs):
-        from twisted.internet import defer
-        try:
-            method = getattr(self.obj, name)
-            return defer.succeed(method(*args, **kwargs))
-        except Exception, ex:
-            return defer.fail(ex)
-
-
 class RRDDaemon(Base):
     'Holds the code common to performance gathering daemons.'
 
@@ -150,6 +139,7 @@ class RRDDaemon(Base):
     configCycleInterval = 20            # minutes
     rrd = None
     shutdown = False
+    hubService = 'PerformanceConfig'
 
     def __init__(self, name):
         self.events = []
@@ -158,22 +148,37 @@ class RRDDaemon(Base):
         for ev in self.startevt, self.stopevt, self.heartbeatevt:
             ev['component'] = name
             ev['device'] = socket.getfqdn()
-        try:
+        import logging
+        self.log = logging.getLogger(name)
+
+    def connect(self):
+        def go(driver):
+            factory = pb.PBClientFactory()
+            log = self.log
+            log.debug("Connecting to %s", self.options.host)
+            reactor.connectTCP(self.options.host, self.options.port, factory)
+
+            username = self.options.username
+            password = self.options.password
+            self.log.debug("Logging in as %s", username)
+            c = credentials.UsernamePassword(username, password)
+            yield factory.login(c)
+            perspective = driver.next()
+
             monitor = self.options.monitor or socket.getfqdn()
-            self.model = FakeProxy(self.getDmdObj('/Monitors/Performance/'+
-                                                  monitor))
-            self.zem = FakeProxy(self.getDmdObj('/ZenEventManager'))
-        except KeyError, ex:
-            self.log.debug("Not directly connected (%s) using Zope access.", ex)
-            self.model = self.buildProxy(self.options.zopeurl)
-            self.zem = self.buildProxy(self.options.zem)
-
-    def buildProxy(self, url):
-        "create Proxy objects with our config and the given url"
-        return Proxy(url,
-                         self.options.zopeusername,
-                         self.options.zopepassword)
-
+            self.log.debug("Getting event service for %s", monitor)
+            yield perspective.callRemote('getService',
+                                         'EventService',
+                                         monitor)
+            self.zem = driver.next()
+            assert self.zem
+            
+            self.log.debug("Getting Perf service for %s", monitor)
+            yield perspective.callRemote('getService', self.hubService, monitor)
+            self.model = driver.next()
+            assert self.model
+    
+        return drive(go)
 
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
@@ -248,23 +253,19 @@ class RRDDaemon(Base):
 
     def buildOptions(self):
         Base.buildOptions(self)
-        self.parser.add_option(
-            "-z", "--zopeurl",
-            dest="zopeurl",
-            help="XMLRPC url path for performance configuration server",
-            default=DEFAULT_URL)
-        self.parser.add_option(
-            "-u", "--zopeusername",
-            dest="zopeusername", help="username for zope server",
-            default='admin')
-        self.parser.add_option("--zopepassword", dest="zopepassword")
-        self.parser.add_option(
-            '--zem', dest='zem',
-            help="XMLRPC path to an ZenEventManager instance")
-        self.parser.add_option('-d',
-            '--device', dest='device',
-            help="Specify a specific device to monitor",
-            default='')
+        self.parser.add_option('--host',
+                    dest="host",default="localhost",
+                    help="hostname of zeo server")
+        self.parser.add_option('--port',
+                    dest="port",type="int", default=PB_PORT,
+                    help="port of zeo server")
+        self.parser.add_option("-u", "--username",
+                               dest="username", help="username for hub server",
+                               default='admin')
+        self.parser.add_option("--password", dest="password", default="zenoss")
+        self.parser.add_option('-d', '--device', dest='device',
+                               help="Specify a specific device to monitor",
+                               default='')
         self.parser.add_option('--monitor', dest='monitor',
             help="Specify a specific name of the monitor configuration")
 
@@ -283,5 +284,4 @@ class RRDDaemon(Base):
     def errorStop(self, why):
         self.error(why)
         self._shutdown()
-
 
