@@ -45,7 +45,7 @@ from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
-NAMETABLE = RUNROOT + '.2.1.2'
+NAMETABLE = RUNROOT + '.2.1.4'
 ARGSTABLE = RUNROOT + '.2.1.5'
 PERFROOT  = HOSTROOT + '.5'
 CPU       = PERFROOT + '.1.1.1.'        # note trailing dot

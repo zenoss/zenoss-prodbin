@@ -30,7 +30,7 @@ class HRSWRunMap(SnmpPlugin):
         GetTableMap('hrSWRunEntry', '.1.3.6.1.2.1.25.4.2.1',
             {
              '.1': 'snmpindex',
-             '.2': 'procName',
+             '.4': 'procName',
              '.5': 'parameters',
              }
         ),
