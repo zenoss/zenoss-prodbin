@@ -20,16 +20,13 @@ import Globals
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp, App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Heartbeat
-#from Products.ZenUtils.TwistedAuth import AuthProxy
-from Products.ZenUtils.Utils import basicAuthUrl
-from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Driver import drive
 from Products.ZenHub.zenhub import PB_PORT
 
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from twisted.cred import credentials
-from twisted.internet import reactor, error, defer
+from twisted.internet import reactor, defer
 from twisted.python import failure
-from twisted.web.xmlrpc import Proxy
 
 from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
 
@@ -223,10 +220,7 @@ class RRDDaemon(Base):
 
     def eventsSent(self, result, events):
         if isinstance(result, failure.Failure):
-            if isinstance(result.value, error.ConnectionRefusedError):
-                self.log.error("Unable to talk to zenxevents daemon")
-            else:
-                self.error(result)
+            self.error(result)
             self.events.extend(events)
         else:
             self.events = self.events[len(events):]
