@@ -163,6 +163,4 @@ class DmdBuilder:
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
-        from zc.queue import PersistentQueue
-        self.dmd.hubQueue = PersistentQueue()
 

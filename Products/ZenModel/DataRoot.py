@@ -204,7 +204,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
-    
+        from zc.queue import PersistentQueue
+        self.hubQueue = PersistentQueue()
 
     def getResultFields(self):
         """Result fields for dashboard.
@@ -461,5 +462,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self._p_jar.sync()
         if REQUEST is not None:
             return self.callZenScreen(REQUEST)
+
+    def notifyObjectChange(self, object = None):
+        print 'notifyObjectChange', self, object
+        if object is not None:
+            self.hubQueue.put(object.getPrimaryPath())
+        else:
+            self.dmd.hubQueue.put(self.getPrimaryPath())
 
 InitializeClass(DataRoot)
