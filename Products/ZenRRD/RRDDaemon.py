@@ -139,6 +139,10 @@ class RRDDaemon(Base):
             return self.services['EventService'].callRemote('getDevicePingIssues')
         return defer.fail("Not connected to ZenHub")
 
+    def remote_setPropertyItems(self, items):
+        self.log.debug("Async update of collection properties")
+        self.setPropertyItems(items)
+
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
         table = dict(items)
