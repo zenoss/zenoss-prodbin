@@ -122,7 +122,6 @@ class XmlRpcStatus:
     xmlRpcStatusEvent = {'eventClass': Status_XmlRpc,
                        'component': 'xmlrpc',
                        'eventGroup': 'XmlRpcTest'}
-    hubService = 'XmlRPCConfig'
 
     def __init__(self, xmlRpcState):
         # if the number of Event.Error severity events on this device is
@@ -167,7 +166,9 @@ class XmlRpcData:
 
 class zenperfxmlrpc(RRDDaemon):
     "Periodically query all devices for XMLRPC values to archive in RRD files"
-    
+
+    initialServices = RRDDaemon.initialServices + ['XmlRPCConfig']
+
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
     status = Status()
@@ -222,17 +223,17 @@ class zenperfxmlrpc(RRDDaemon):
 
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
         
-        yield self.model.callRemote('getXmlRpcDevices', self.options.device)
+        yield self.model().callRemote('getXmlRpcDevices', self.options.device)
         try:
             self.updateDeviceList(driver.next())
         except Exception, ex:
             self.log.exception(ex)
             raise
 
-        yield self.model.callRemote('propertyItems')
+        yield self.model().callRemote('propertyItems')
         self.setPropertyItems(driver.next())
         
-        yield self.model.callRemote('getDefaultRRDCreateCommand')
+        yield self.model().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.xmlrpcCycleInterval)
@@ -313,7 +314,7 @@ class zenperfxmlrpc(RRDDaemon):
 
     def scanCycle(self, *unused):
         self.log.debug("getting device ping issues")
-        d = self.zem.callRemote('getDevicePingIssues')
+        d = self.getDevicePingIssues()
         d.addBoth(self.setUnresponsiveDevices)
         reactor.callLater(self.xmlrpcCycleInterval, self.scanCycle)
 
@@ -500,16 +501,12 @@ class zenperfxmlrpc(RRDDaemon):
                                 v,
                                 self.sendThresholdEvent)
 
-    def main(self, ignored):
+    def connected(self):
         "Run forever, fetching and storing"
-
-        self.sendEvent(self.startevt)
-        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
-                                                  self.errorStop)
+        d = drive(zpf.startUpdateConfig)
+        d.addCallbacks(self.scanCycle, self.errorStop)
 
 
 if __name__ == '__main__':
     zpf = zenperfxmlrpc()
-    zpf.connect().addCallbacks(zpf.main, zpf.errorStop)
-    reactor.run(installSignalHandlers=False)
-    #self.sendEvent(self.stopevt, now=True)
+    zpf.run()

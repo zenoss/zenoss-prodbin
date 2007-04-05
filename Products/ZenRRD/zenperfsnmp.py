@@ -23,6 +23,7 @@ from sets import Set
 import cPickle
 
 from twisted.internet import reactor, defer
+
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
 except ImportError:
@@ -221,7 +222,7 @@ class zenperfsnmp(SnmpDaemon):
     
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
-    hubService = 'SnmpPerfConfig'
+    initialServices = SnmpDaemon.initialServices + ['SnmpPerfConfig']
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenperfsnmp')
@@ -262,34 +263,33 @@ class zenperfsnmp(SnmpDaemon):
            not self.options.cycle:
             reactor.callLater(0, reactor.stop)
 
-
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
         
         log.info("fetching property items")
-        yield self.model.callRemote('propertyItems')
+        yield self.model().callRemote('propertyItems')
         self.setPropertyItems(driver.next())
 
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
         
         log.info("checking for outdated configs")
         current = [(k, v.lastChange) for k, v in self.proxies.items()]
-        yield self.model.callRemote('getDeviceUpdates', current)
+        yield self.model().callRemote('getDeviceUpdates', current)
 
         devices = driver.next()
         if self.options.device:
             devices = [self.options.device]
 
         log.info("fetching configs for %r", devices)
-        yield self.model.callRemote('getDevices', devices)
+        yield self.model().callRemote('getDevices', devices)
         self.updateDeviceList(devices, driver.next())
 
         log.info("fetching snmp status")
-        yield self.model.callRemote('getSnmpStatus', self.options.device)
+        yield self.model().callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
         
         log.info("fetching default RRDCreateCommand")
-        yield self.model.callRemote('getDefaultRRDCreateCommand')
+        yield self.model().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
@@ -395,8 +395,10 @@ class zenperfsnmp(SnmpDaemon):
     def scanCycle(self, *unused):
         reactor.callLater(self.snmpCycleInterval, self.scanCycle)
         self.log.debug("getting device ping issues")
-        d = self.zem.callRemote('getDevicePingIssues')
-        d.addBoth(self.setUnresponsiveDevices)
+        evtSvc = self.services.get('EventService', None)
+        if evtSvc:
+            d = evtSvc.callRemote('getDevicePingIssues')
+            d.addBoth(self.setUnresponsiveDevices)
 
 
     def setUnresponsiveDevices(self, arg):
@@ -557,17 +559,12 @@ class zenperfsnmp(SnmpDaemon):
             threshold.check(device, oidData.name, oid, value,
                             self.sendThresholdEvent)
 
-    def main(self, ignored):
+    def connected(self):
         "Run forever, fetching and storing"
-        self.sendEvent(self.startevt)
-        drive(zpf.startUpdateConfig).addCallbacks(self.scanCycle,
-                                                  self.errorStop)
+        d = drive(zpf.startUpdateConfig)
+        d.addCallbacks(self.scanCycle, self.errorStop)
 
 
 if __name__ == '__main__':
     zpf = zenperfsnmp()
-    d = zpf.connect()
-    d.addCallbacks(zpf.main, zpf.errorStop)
-    reactor.run(installSignalHandlers=False)
-    # fixme
-    # zpf.sendEvent(zpf.stopevt, now=True)
+    zpf.run()

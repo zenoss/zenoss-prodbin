@@ -234,7 +234,7 @@ class Device:
 class zenprocess(SnmpDaemon):
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
-    hubService = 'ProcessConfig'
+    initialServices = SnmpDaemon.initialServices + ['ProcessConfig']
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
@@ -250,15 +250,15 @@ class zenprocess(SnmpDaemon):
     def fetchConfig(self):
         'Get configuration values from the Zope server'
         def doFetchConfig(driver):
-            yield self.model.callRemote('getDefaultRRDCreateCommand')
+            yield self.model().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
-            yield self.model.callRemote('propertyItems')
+            yield self.model().callRemote('propertyItems')
             self.setPropertyItems(driver.next())
 
             self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
 
-            yield self.model.callRemote('getOSProcessConf', self.options.device)
+            yield self.model().callRemote('getOSProcessConf', self.options.device)
             driver.next()
 
         return drive(doFetchConfig)
@@ -285,10 +285,10 @@ class zenprocess(SnmpDaemon):
         for r in removed:
             del self._devices[r]
 
-        yield self.model.callRemote('getSnmpStatus', self.options.device)
+        yield self.model().callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
 
-        yield self.model.callRemote('getProcessStatus', self.options.device)
+        yield self.model().callRemote('getProcessStatus', self.options.device)
         self.updateProcessStatus(driver.next())
 
         driveLater(self.configCycleInterval * 60, self.start)
@@ -450,7 +450,7 @@ class zenprocess(SnmpDaemon):
 
         def doPeriodic(driver):
             
-            yield self.zem.callRemote('getDevicePingIssues')
+            yield self.getDevicePingIssues()
             self.downDevices = Set([d[0] for d in driver.next()])
 
             self.scanning = NJobs(PARALLEL_JOBS,
@@ -518,14 +518,10 @@ class zenprocess(SnmpDaemon):
         SnmpDaemon.heartbeat(self)
 
 
-    def main(self, unused):
-        self.sendEvent(self.startevt)
+    def connected(self):
         drive(self.start).addCallbacks(self.periodic, self.errorStop)
 
 
 if __name__ == '__main__':
     z = zenprocess()
-    d = z.connect()
-    d.addCallbacks(z.main, z.errorStop)
-    reactor.run(installSignalHandlers=False)
-    # self.sendEvent(self.stopevt, now=True)
+    z.run()

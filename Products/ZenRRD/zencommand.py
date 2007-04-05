@@ -359,20 +359,14 @@ class Options:
 
 class zencommand(RRDDaemon):
 
-    hubService = 'CommandConfig'
+    initialServices = RRDDaemon.initialServices + ['CommandConfig']
 
     def __init__(self):
         RRDDaemon.__init__(self, 'zencommand')
         self.schedule = []
         self.timeout = None
         self.deviceIssues = Set()
-        self.flushEvents()
         self.pool = SshPool()
-
-
-    def flushEvents(self):
-        self.sendEvents()
-        reactor.callLater(1, self.flushEvents)
 
 
     def updateConfig(self, config):
@@ -407,7 +401,7 @@ class zencommand(RRDDaemon):
                 if cmd.running() or cmd.lastStart == 0:
                     break
             else:
-                self._shutdown()
+                self.stop()
                 return
         try:
             if self.timeout and not self.timeout.called:
@@ -524,13 +518,13 @@ class zencommand(RRDDaemon):
     def fetchConfig(self):
         def doFetchConfig(driver):
             try:
-                yield self.model.callRemote('propertyItems')
+                yield self.model().callRemote('propertyItems')
                 self.setPropertyItems(driver.next())
                 
-                yield self.model.callRemote('getDefaultRRDCreateCommand')
+                yield self.model().callRemote('getDefaultRRDCreateCommand')
                 createCommand = driver.next()
                 
-                yield self.model.callRemote('getDataSourceCommands',
+                yield self.model().callRemote('getDataSourceCommands',
                                             self.options.device)
                 self.updateConfig(driver.next())
 
@@ -552,7 +546,6 @@ class zencommand(RRDDaemon):
             yield self.fetchConfig()
             driver.next()
             log.debug('Finished config fetch')
-            print driver.next()
         except Exception, ex:
             log.exception(ex)
         driveLater(self.configCycleInterval * 60, self.start)
@@ -567,17 +560,12 @@ class zencommand(RRDDaemon):
                                default=10, type='int',
                                help="number of devices to collect at one time")
         
-    def main(self, ignored):
-        self.sendEvent(self.startevt)
-        d = drive(self.start)
-        d.addCallbacks(self.processSchedule, self.errorStop)
+    def connected(self):
+        d = drive(self.start).addCallbacks(self.processSchedule, self.errorStop)
         if self.options.cycle:
             d.addCallback(self.heartbeatCycle)
 
 
 if __name__ == '__main__':
     z = zencommand()
-    d = z.connect()
-    d.addCallbacks(z.main, z.errorStop)
-    reactor.run()
-    # self.sendEvent(self.stopevt, now=True)
+    z.run()

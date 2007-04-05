@@ -18,18 +18,13 @@ import socket
 
 import Globals
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Perf_Snmp, App_Start, App_Stop
-from Products.ZenEvents.ZenEventClasses import Heartbeat
+from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Heartbeat
 from Products.ZenUtils.Driver import drive
-from Products.ZenHub.zenhub import PB_PORT
 
-from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
-from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.python import failure
-from twisted.spread import pb
 
-from Products.ZenUtils.ZenDaemon import ZenDaemon as Base
+from Products.ZenHub.PBDaemon import PBDaemon as Base
 
 BAD_SEVERITY=Event.Warning
 
@@ -120,68 +115,29 @@ class ThresholdManager:
     def __iter__(self):
         return iter(self.thresholds.values())
 
-class RRDDaemon(Base, pb.Referenceable):
+class RRDDaemon(Base):
     'Holds the code common to performance gathering daemons.'
 
-    startevt = {'eventClass':App_Start, 
-                'summary': 'started',
-                'severity': Event.Clear}
-    stopevt = {'eventClass':App_Stop, 
-               'summary': 'stopped',
-               'severity': BAD_SEVERITY}
     heartbeatevt = {'eventClass':Heartbeat}
     
-    agent = None
     properties = ('configCycleInterval',)
     heartBeatTimeout = 60
     configCycleInterval = 20            # minutes
     rrd = None
     shutdown = False
-    hubService = 'PerformanceConfig'
 
     def __init__(self, name):
         self.events = []
         Base.__init__(self)
-        self.agent = name
-        for ev in self.startevt, self.stopevt, self.heartbeatevt:
-            ev['component'] = name
-            ev['device'] = socket.getfqdn()
+        self.name = name
+        evt = self.heartbeatevt.copy()
+        self.heartbeatevt.update(dict(component=name,
+                                      device=socket.getfqdn()))
 
-    def connect(self):
-        d = defer.Deferred()
-        def gotPerspective(perspective):
-            "Every time we reconnect this function is called"
-            def go(driver):
-                "Fetch the services we want"
-                self.log.debug("Getting event service")
-                yield perspective.callRemote('getService', 'EventService')
-                self.zem = driver.next()
-                if not self.zem:
-                    raise failure.Failure("Cannot get EventManager Service")
-
-                self.log.debug("Getting Perf service")
-                yield perspective.callRemote('getService', self.hubService,
-                                             self.options.monitor,
-                                             self)
-                self.model = driver.next()
-                if not self.model:
-                    raise failure.Failure("Cannot get %s Service" %
-                                          (self.hubService,))
-            self.log.warning("Reconnected to ZenHub")
-            d2 = drive(go)
-            if not d.called:
-                d2.chainDeferred(d)
-            
-        factory = ReconnectingPBClientFactory()
-        self.log.debug("Connecting to %s", self.options.host)
-        reactor.connectTCP(self.options.host, self.options.port, factory)
-        username = self.options.username
-        password = self.options.password
-        self.log.debug("Logging in as %s", username)
-        c = credentials.UsernamePassword(username, password)
-        factory.gotPerspective = gotPerspective
-        factory.startLogin(c)
-        return d
+    def getDevicePingIssues(self):
+        if 'EventService' in self.services:
+            return self.services['EventService'].callRemote('getDevicePingIssues')
+        return defer.fail("Not connected to ZenHub")
 
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
@@ -198,76 +154,20 @@ class RRDDaemon(Base, pb.Referenceable):
         "Send the right event class for threshhold events"
         self.sendEvent({}, **kw)
 
-
-    def sendEvent(self, event, now=False, **kw):
-        'convenience function for pushing an event to the Zope server'
-        ev = COMMON_EVENT_INFO.copy()
-        ev['agent'] = self.agent
-        ev.update(event)
-        ev.update(kw)
-        self.events.append(ev)
-        if now:
-            self.sendEvents()
-        else:
-            reactor.callLater(1, self.sendEvents)
-
-
-    def sendEvents(self):
-        'convenience function for flushing events to the Zope server'
-        if self.events:
-            d = self.zem.callRemote('sendEvents', self.events)
-            d.addBoth(self.eventsSent, self.events)
-            self.events = []
-
-    def eventsSent(self, result, events):
-        if isinstance(result, failure.Failure):
-            self.error(result)
-            self.events.extend(events)
-        else:
-            self.events = self.events[len(events):]
-            if self.shutdown:
-                self._shutdown()
-
-    def sigTerm(self, *unused):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            Base.sigTerm(self, *unused)
-        except SystemExit:
-            self._shutdown()
-
-    def _shutdown(self):
-        self.shutdown = True
-        if not self.events:
-            reactor.callLater(0, reactor.stop)
-        else:
-            self.log.debug('waiting for events to flush')
-            reactor.callLater(5, reactor.stop)
-
     def heartbeat(self, *unused):
         'if cycling, send a heartbeat, else, shutdown'
         if not self.options.cycle:
-            self._shutdown()
+            self.stop()
             return
         self.sendEvent(self.heartbeatevt, timeout=self.heartBeatTimeout*3)
-        self.sendEvents()
+
 
     def buildOptions(self):
         Base.buildOptions(self)
-        self.parser.add_option('--host',
-                    dest="host",default="localhost",
-                    help="hostname of zeo server")
-        self.parser.add_option('--port',
-                    dest="port",type="int", default=PB_PORT,
-                    help="port of zeo server")
-        self.parser.add_option("-u", "--username",
-                               dest="username", help="username for hub server",
-                               default='admin')
-        self.parser.add_option("--password", dest="password", default="zenoss")
-        self.parser.add_option('-d', '--device', dest='device',
-                               help="Specify a specific device to monitor",
-                               default='')
-        self.parser.add_option('--monitor', dest='monitor', default=socket.getfqdn(),
-            help="Specify a specific name of the monitor configuration")
+        self.parser.add_option('-d', '--device',
+                               dest='device',
+                               default='',
+                               help="Specify a specific device to monitor")
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
@@ -279,9 +179,15 @@ class RRDDaemon(Base, pb.Referenceable):
         'Log an error, including any traceback data for a failure Exception'
         self.logError('Error', error)
         if not self.options.cycle:
-            self._shutdown()
+            self.stop()
 
     def errorStop(self, why):
         self.error(why)
-        self._shutdown()
+        self.stop()
+
+    def model(self):
+        class Fake:
+            def callremote(self, *args, **kwargs):
+                return defer.fail("No connection to ZenHub")
+        return self.services.get(self.initialServices[-1], Fake())
 
