@@ -472,15 +472,6 @@ class Device(ManagedEntity, Commandable, Lockable):
                     self.zKeyPath,self.zMaxOIDPerRequest,
                     cmds)
 
-                    
-    def getPageChecks(self):
-        pageChecks = super(Device, self).getDataSourceCommands(pageChecks=True)
-        for pc in pageChecks:
-            pc['device'] = self.id
-            pc['manageIp'] = self.manageIp
-            pc['timeout'] = self.zCommandCommandTimeout
-        return pageChecks
-
 
     def getXmlRpcTargets(self):
         """Return information for xmlrpc collection on this device in the form

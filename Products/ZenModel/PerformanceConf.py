@@ -249,25 +249,6 @@ class PerformanceConf(Monitor, StatusColor):
                 except:
                     log.exception("device %s", dev.id)
         return result
-
-
-    # getPageChecks is very similar to getDataSourceCommands above.  The two are
-    # not incorporated because getPageChecks will likely soon be moving into
-    # a separate monitor for zenweb configuration.  (WebConf.py?)
-    # I am trying to keep the web stuff segregated as much as possible to ease
-    # the refactoring later.
-    def getPageChecks(self, devname=None):
-        ''' Return info for zenweb testing on all devices.
-        '''
-        result = []
-        for dev in self.devices():
-            if devname and dev.id != devname: continue
-            dev = dev.primaryAq()
-            if dev.monitorDevice():
-                result += dev.getPageChecks()
-        for testConfig in result:
-            testConfig['createRRDCommand'] = self.getDefaultRRDCreateCommand()
-        return result
         
 
     def getXmlRpcDevices(self, devname=None):

@@ -14,13 +14,15 @@ from HubService import HubService
 class WebConfig(HubService):
 
 
-    def monitor(self):
-        return self.dmd.Monitors.Performance._getOb(self.instance)
+    def __init__(self, dmd, instance):
+        HubService.__init__(self, dmd, instance)
+        self.monitor = self.dmd.Monitors.Performance._getOb(self.instance)
 
 
     def remote_getPageChecks(self):
         pageChecks = []
-        for dev in self.monitor().devices():
+        for dev in self.monitor.devices():
+            dev = dev.primaryAq()
             pageChecks += self.getDevicePageChecks(dev)
         return pageChecks
                 
@@ -30,7 +32,7 @@ class WebConfig(HubService):
 
 
     def remote_getDefaultRRDCreateCommand(self):
-        return self.monitor().getDefaultRRDCreateCommand()
+        return self.monitor.getDefaultRRDCreateCommand()
 
 
     def getDevicePageChecks(self, dev):
@@ -38,17 +40,19 @@ class WebConfig(HubService):
         if not dev.monitorDevice():
             return result
         for templ in dev.getRRDTemplates():
-            threshs = self.getThresholds(templ)
+            threshs = dev.getThresholds(templ)
             dataSources = templ.getRRDDataSources('PAGECHECK')
             for ds in dataSources:
                 if not ds.enabled: continue
-                points = [(dp.id, 
-                            '/'.join((dev.rrdPath, dp.name())),
-                            dp.rrdtype,
-                            dp.createCmd,
-                            (dp.rrdmin, dp.rrdmax),
-                            threshs.get(dp.name(), []))
-                            for dp in ds.getRRDDataPoints]
+                points = [{'id': dp.id, 
+                            'path': '/'.join((dev.rrdPath(), dp.name())),
+                            'rrdType': dp.rrdtype,
+                            'rrdCmd': dp.createCmd,
+                            'minv': dp.rrdmin,
+                            'maxv': dp.rrdmax,
+                            'thesholds': threshs.get(dp.name(), []),
+                            }
+                            for dp in ds.getRRDDataPoints()]
                 key = ds.eventKey or ds.id
                 result.append({
                                 'device': dev.id,
@@ -56,6 +60,8 @@ class WebConfig(HubService):
                                 'timeout': dev.zCommandCommandTimeout,
                                 'datasource': ds.id or '',
                                 'datapoints': points or (),
+                                'defaultRrdCmd': 
+                                    self.monitor.getDefaultRRDCreateCommand(),
                                 'cycletime': ds.cycletime or '',
                                 'component': ds.component or '',
                                 'eventClass': ds.eventClass or '',
@@ -64,7 +70,7 @@ class WebConfig(HubService):
                                 'userAgent': ds.userAgent or '',
                                 'recording': ds.recording or '',
                                 'initialUrl': ds.initialURL or '',
-                                'command': ds.getCommand(self) or '',
+                                'command': ds.getCommand(dev) or '',
                                 'commandHash': ds.commandHash or '',
                                 })
         return result

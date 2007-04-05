@@ -283,23 +283,14 @@ class RRDView(object):
         return oids
 
 
-    def getDataSourceCommands(self, pageChecks=False):
+    def getDataSourceCommands(self):
         """Return list of command definitions.
-        If not pageChecks then ignore datasources of type PAGECHECK
-        and return results in the form
-        [(name,compname,eventClass,eventKey,severity,command),...]
-        
-        If pageChecks then only consider datasources of type PAGECHECK
-        and return results that is a list of dictionaries.
         """
         result = []
         for templ in self.getRRDTemplates():
             threshs = self.getThresholds(templ)
             basepath = self.rrdPath()
-            if pageChecks:
-                dataSources = templ.getRRDDataSources('PAGECHECK')
-            else:
-                dataSources = templ.getRRDDataSources('COMMAND')
+            dataSources = templ.getRRDDataSources('COMMAND')
             for ds in dataSources:
                 if not ds.enabled: continue
                 points = []
@@ -312,26 +303,9 @@ class RRDView(object):
                          (dp.rrdmin, dp.rrdmax),
                          threshs.get(dp.name(),[])))
                 key = ds.eventKey or ds.id
-                if pageChecks:
-                    result.append({
-                                    'datasource': ds.id or '',
-                                    'datapoints': points or (),
-                                    #'datapoints': (),
-                                    'cycletime': ds.cycletime or '',
-                                    'component': ds.component or '',
-                                    'eventClass': ds.eventClass or '',
-                                    'eventKey': key or '',
-                                    'severity': ds.severity or '',
-                                    'userAgent': ds.userAgent or '',
-                                    'recording': ds.recording or '',
-                                    'initialUrl': ds.initialURL or '',
-                                    'command': ds.getCommand(self) or '',
-                                    'commandHash': ds.commandHash or '',
-                                    })
-                else:
-                    result.append( (ds.usessh, ds.cycletime, ds.component,
-                                    ds.eventClass, key, ds.severity,
-                                    ds.getCommand(self), points) )
+                result.append( (ds.usessh, ds.cycletime, ds.component,
+                                ds.eventClass, key, ds.severity,
+                                ds.getCommand(self), points) )
         return result
 
 

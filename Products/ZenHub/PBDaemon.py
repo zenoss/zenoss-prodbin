@@ -14,11 +14,12 @@ Base for daemons that connect to zenhub
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 #from Products.ZenUtils.Driver import drive
-from Products.ZenUtils.Step import Step
+#from Products.ZenUtils.Step import Step
 import Products.ZenEvents.Event as Event
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
-
 from Products.ZenHub.zenhub import PB_PORT
+
+import socket
 
 from twisted.internet import reactor, defer
 from twisted.cred import credentials
@@ -54,6 +55,7 @@ DEFAULT_HUB_HOST = 'localhost'
 DEFAULT_HUB_PORT = PB_PORT
 DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
+DEFAULT_HUB_MONITOR = socket.getfqdn()
 
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
@@ -76,7 +78,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.warning("Reconnected to ZenHub")
             self.perspective = perspective
             d2 = self.getInitialServices()
-            if not d.called:
+            if d.called:
+                self.log.debug('adding stop as getInitialServices errback')
+                d2.addErrback(lambda e: self.stop())
+            else:
+                self.log.debug('chaining getInitialServices with d2')
                 d2.chainDeferred(d)
             
         d = defer.Deferred()
@@ -109,7 +115,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.debug('errback after getting service %s' % serviceName)
             self.log.error('Could not retrieve service %s' % serviceName)
             return error
-        d = self.perspective.callRemote('getService', serviceName)
+        d = self.perspective.callRemote('getService', serviceName,
+                                            self.options.monitor)
         d.addCallback(callback, serviceName)
         d.addErrback(errback, serviceName)
         return d
@@ -119,14 +126,15 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.log.debug('setting up services %s' %
                 ', '.join([n for n in self.initialServices]))
         d = defer.DeferredList(
-            [self.getService(name) for name in self.initialServices])
+            [self.getService(name) for name in self.initialServices],
+            fireOnOneErrback=True, consumeErrors=True)
         return d
         
         
     def connected(self):
         self.log.debug('connected')
         self.eventSvc = self.services['EventService']
-        self.eventSvc.callRemote('sendEvent', startEvent)
+        #self.eventSvc.callRemote('sendEvent', startEvent)
         
     
     def run(self):
@@ -136,9 +144,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
         def errback(error):
-            self.log.error('Unable to connect to zenhub.')
+            self.log.error('Unable to connect to zenhub: \n%s' % error)
             self.stop()
-        d.addCallbacks(callback, errback)
+        d.addCallback(callback)
+        d.addErrback(errback)
         reactor.run()
         self.log.info('%s shutting down' % self.name)
 
@@ -189,7 +198,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def buildOptions(self):
-        ZenDaemon.buildOptions(self)
         self.parser.add_option('--hub-host',
                                 dest='hubHost',
                                 default=DEFAULT_HUB_HOST,
@@ -210,4 +218,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                 default=DEFAULT_HUB_PASSWORD,
                                 help='Password for zenhub login.'
                                     ' Default is %s.' % DEFAULT_HUB_PASSWORD)
+        self.parser.add_option('--monitor', 
+                                dest='monitor',
+                                default=DEFAULT_HUB_MONITOR,
+                                help='Name of monitor instance to use for'
+                                    ' configuration.  Default is %s.'
+                                    % DEFAULT_HUB_MONITOR)
+
+        ZenDaemon.buildOptions(self)
 
