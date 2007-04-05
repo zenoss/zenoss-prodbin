@@ -464,7 +464,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             return self.callZenScreen(REQUEST)
 
     def notifyObjectChange(self, object = None):
-        print 'notifyObjectChange', self, object
         if object is not None:
             self.hubQueue.put(object.getPrimaryPath())
         else:
