@@ -137,11 +137,12 @@ class ZenHub(ZCmdBase):
         reactor.callLater(1, self.processQueue)
 
     def doProcessQueue(self, q):
-        object = q.pull()
-        from Products.ZenUtils.Utils import getObjByPath
-        object = getObjByPath(self.dmd, object)
-        for s in self.services.values():
-            s.update(object)
+        while self.dmd.hubQueue:
+            object = q.pull()
+            from Products.ZenUtils.Utils import getObjByPath
+            object = getObjByPath(self.dmd, object)
+            for s in self.services.values():
+                s.update(object)
 
     def sendEvent(self, **kw):
         if not 'device' in kw:
