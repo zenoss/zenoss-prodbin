@@ -21,11 +21,9 @@ from DeviceManagerBase import DeviceManagerBase
 from Commandable import Commandable
 from ZenMenuable import ZenMenuable
 
-from MaintenanceWindow import OrganizerMaintenanceWindow
-
 from Products.ZenRelations.RelSchema import *
 
-class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, MaintenanceWindowable, AdministrativeRoleable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -188,83 +186,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
         elif status > 2:
             retval = '#ff0000'
         return retval
-
-
-    security.declareProtected('Change Organizer',
-                              'manage_addMaintenanceWindow')
-    def manage_addMaintenanceWindow(self, newId=None, REQUEST=None):
-        "Add a Maintenance Window to this device"
-        if newId:
-            mw = OrganizerMaintenanceWindow(newId)
-            self.maintenanceWindows._setObject(newId, mw)
-        if REQUEST:
-            if newId:
-                REQUEST['message'] = "Maintenace Window Added"
-            return self.callZenScreen(REQUEST)
-                          
-
-    security.declareProtected('Change Device', 'manage_deleteMaintenanceWindow')
-    def manage_deleteMaintenanceWindow(self, maintenanceIds=(), REQUEST=None):
-        "Delete a Maintenance Window to this device"
-        import types
-        if type(maintenanceIds) in types.StringTypes:
-            maintenanceIds = [maintenanceIds]
-        for id in maintenanceIds:
-            self.maintenanceWindows._delObject(id)
-        if REQUEST:
-            if maintenanceIds:
-                REQUEST['message'] = "Maintenace Window Deleted"
-            return self.callZenScreen(REQUEST)
-                          
-
-    security.declareProtected('Change Device', 'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
-        "Add a Admin Role to this device"
-        from AdministrativeRole import DevOrgAdministrativeRole
-        us = None
-        if newId:
-            us = self.ZenUsers.getUserSettings(newId)
-        if us:
-            ar = DevOrgAdministrativeRole(newId)
-            if us.defaultAdminRole:
-                ar.role = us.defaultAdminRole
-                ar.level = us.defaultAdminLevel
-            self.adminRoles._setObject(newId, ar)
-            ar = self.adminRoles._getOb(newId)
-            ar.userSetting.addRelation(us)
-        if REQUEST:
-            if us:
-                REQUEST['message'] = "Administrative Role Added"
-            return self.callZenScreen(REQUEST)
-
-
-    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), REQUEST=None):
-        """Edit list of admin roles.
-        """
-        if type(ids) in types.StringTypes:
-            ids = [ids]
-            role = [role]
-            level = [level]
-        for i, id in enumerate(ids):
-            ar = self.adminRoles._getOb(id)
-            if ar.role != role[i]: ar.role = role[i]
-            if ar.level != level[i]: ar.level = level[i]
-        if REQUEST:
-            REQUEST['message'] = "Administrative Roles Updated"
-            return self.callZenScreen(REQUEST)
-        
-
-    security.declareProtected('Change Device','manage_deleteAdministrativeRole')
-    def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
-        "Delete a admin role to this device"
-        if type(delids) in types.StringTypes:
-            delids = [delids]
-        for id in delids:
-            self.adminRoles._delObject(id)
-        if REQUEST:
-            if delids:
-                REQUEST['message'] = "Administrative Roles Deleted"
-            return self.callZenScreen(REQUEST)
 
 
     def getUserCommandTargets(self):

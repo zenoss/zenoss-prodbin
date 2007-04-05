@@ -23,8 +23,6 @@ from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
-from AdministrativeRole import DeviceAdministrativeRole, \
-                               DevOrgAdministrativeRole
 import Products.ZenUtils.Utils as Utils
 
 import smtplib
@@ -514,10 +512,7 @@ class UserSettings(ZenModelRM):
                 REQUEST['message'] = "Role exists on %s %s" % (type, name)
                 return self.callZenScreen(REQUEST)
             else: return
-        if name.startswith('/'):
-            ar = DevOrgAdministrativeRole(self.id)
-        else:
-            ar = DeviceAdministrativeRole(self.id)
+        ar = AdministrativeRole(self.id)
         if self.defaultAdminRole:
             ar.role = self.defaultAdminRole
             ar.level = self.defaultAdminLevel

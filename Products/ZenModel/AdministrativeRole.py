@@ -14,6 +14,7 @@ class AdministrativeRole(ZenModelRM):
 
     _relations = (
         ("userSetting", ToOne(ToMany, "Products.ZenModel.UserSettings", "adminRoles")),
+        ("managedObject", ToOne(ToManyCont, "Products.ZenModel.AdministrativeRoleable", "adminRoles")),
     )
 
     level = 1
@@ -49,25 +50,5 @@ class AdministrativeRole(ZenModelRM):
         return self.managedObject().getEventSummary()
 
 
-
-class DeviceAdministrativeRole(AdministrativeRole):
-
-    meta_type = "DeviceAdministrativeRole"
-
-    _relations = AdministrativeRole._relations + (
-        ("managedObject", ToOne(ToManyCont, "Products.ZenModel.Device", "adminRoles")),
-    )
-
-
-class DevOrgAdministrativeRole(AdministrativeRole):
-
-    meta_type = "DevOrgAdministrativeRole"
-
-    _relations = AdministrativeRole._relations + (
-        ("managedObject", ToOne(ToManyCont, "Products.ZenModel.DeviceOrganizer", "adminRoles")),
-    )
-
     def managedObjectName(self):
         return self.managedObject().getOrganizerName()
-
-

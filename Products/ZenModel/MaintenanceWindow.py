@@ -106,8 +106,12 @@ class MaintenanceWindow(ZenModelRM):
             )
          },
         )
-    
-    
+
+    backCrumb = 'deviceManagement' 
+    #backCrumb = 'deviceOrganizerManage'
+    _relations = (
+        ("productionState", ToOne(ToManyCont, "Products.ZenModel.MaintenanceWindowable", "maintenanceWindows")),
+        )
     
     security = ClassSecurityInfo()
 
@@ -334,18 +338,6 @@ class MaintenanceWindow(ZenModelRM):
         else:
             self.begin(now)
 
-class DeviceMaintenanceWindow(MaintenanceWindow):
-    backCrumb = 'deviceManagement'
-    _relations = (
-        ("productionState", ToOne(ToManyCont, "Products.ZenModel.Device", "maintenanceWindows")),
-        )
-
-class OrganizerMaintenanceWindow(MaintenanceWindow):
-    backCrumb = 'deviceOrganizerManage'
-    _relations = (
-        ("productionState", ToOne(ToManyCont, "Products.ZenModel.DeviceOrganizer", "maintenanceWindows")),
-        )
-        
 
 if __name__=='__main__':
     m = MaintenanceWindow('tester')
