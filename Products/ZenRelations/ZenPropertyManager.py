@@ -197,6 +197,7 @@ class ZenPropertyManager(PropertyManager):
             if type_converters.has_key(ptype):
                 propvalue=type_converters[ptype](propvalue)
             self._setProperty(propname, propvalue, type=ptype)
+        self.notifyObjectChange(self)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 

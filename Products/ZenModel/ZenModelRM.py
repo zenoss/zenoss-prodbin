@@ -70,6 +70,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         if REQUEST.form.has_key("newId"):
             redirect = self.rename(REQUEST.form["newId"])
         self.manage_changeProperties(**REQUEST.form)
+        self.notifyObjectChange(self)
         if REQUEST:
             REQUEST['message'] = "Saved at time:"
             return self.callZenScreen(REQUEST, redirect)

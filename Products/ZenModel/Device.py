@@ -879,7 +879,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """Set the changed datetime for this device. value default is now.
         """
         self._lastChange.setDate(value)
-        self.dmd.hubQueue.put(self.getPrimaryPath())
+        self.notifyObjectChange()
 
 
     security.declareProtected('Change Device', 'setSnmpLastCollection')
