@@ -52,7 +52,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
     default_catalog = "eventClassSearch"
 
     _relations = ZenPackable._relations + (
-        ("instances", ToManyCont(ToOne,"EventClassInst","eventClass")),
+        ("instances", ToManyCont(ToOne,"Products.ZenEvents.EventClassInst","eventClass")),
         )
 
 
