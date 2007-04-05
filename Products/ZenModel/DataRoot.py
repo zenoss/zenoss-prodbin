@@ -216,6 +216,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """Return the current event list for this managed entity.
         """
         return self.ZenEventManager.getEventList(**kwargs)
+
+
+    def getJSONEventsInfo(self, **kwargs):
+        """Return the current event list for this managed entity.
+        """
+        return self.ZenEventManager.getJSONEventsInfo(**kwargs)
         
 
     def getDmdRoots(self):
