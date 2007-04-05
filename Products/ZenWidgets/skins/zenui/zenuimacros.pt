@@ -1,6 +1,5 @@
 <tal:block metal:define-macro="basemenu"
     tal:condition="python:hasattr(here, 'getMenus')">
-<link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="menu" tal:define="
         menu_ids menu_ids | python:['Edit','Actions'];
@@ -21,6 +20,7 @@
 Menu
 </tal:block>
 </a>
+</li>
 <div class="submenu" tal:attributes="id string:${menu}_submenu">
     <div class="menu_top_rounded">&nbsp;</div>
     <div class="menu_bottom">&nbsp;</div>
@@ -37,10 +37,10 @@ Menu
     </li>
     </ul>
 </div>
-<script tal:content="string:
+<script tal:condition="python:here.getMenus(menu, here)"
+tal:content="string:
     registerSubmenu('${menu}_parent','${menu}_submenu');">javascript madness
 </script>
-</li>
 </tal:block>
 <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
 </ul>
@@ -84,7 +84,6 @@ registerMenu('contextmenu_btn', 'contextmenu_items');
 <!-- FILTERBOX MACRO -->
 
 <tal:block metal:define-macro="filterbox">
-<link href="css/filterbox.css" rel="stylesheet" type="text/css" />
 <div class="filterbox"
      tal:define=" tableName tableName | nothing;
                  ts python:test(
@@ -111,7 +110,6 @@ padding-right:20px;margin-left:20px;}</style>
 
 <tal:block metal:define-macro="devmovemenu">
 
-<link href="css/menus.css" rel="stylesheet" type="text/css" />
 
 <div class="littlemenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);

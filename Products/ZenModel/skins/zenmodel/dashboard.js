@@ -6,8 +6,8 @@
 
 //var url="data.json";
 
-// Look for stupid IE browsers
-var isie = navigator.userAgent.indexOf('MSIE') != -1;
+// IE detection in 20 bytes!
+var isie//@cc_on=1;
 
 function updateTimestamp(){
     $("dashTime").innerHTML = "<b>Refreshing...</b>";
@@ -85,8 +85,7 @@ updateError = function(err) {
 }
 
 refreshData = function() {
-    //logger.debuggingBookmarklet(true)
-    //log("loading");
+    log("Loading dashboard data...");
     var defr = cancelWithTimeout(
         loadJSONDoc(dashurl), timeout); // timeout set on Dashboard
     defr.addCallback(updateDashboard);

@@ -16,7 +16,6 @@ Dialog.Box.prototype = {
         this.box.hide = bind(this.hide, this);
         this.box.submit_form = bind(this.submit_form, this);
         this.parentElem = this.box.parentNode;
-        log(this.parentElem);
         this.defaultContent = this.box.innerHTML
         setStyle(this.box, {
             'position':'absolute',
@@ -89,3 +88,4 @@ Dialog.Box.prototype = {
     }
 }
 
+console.log("Dialog javascript loaded.")

@@ -198,7 +198,8 @@ function cancelHover() {
     connect('leftPaneToggle','onmouseover', function() {
         setStyle('leftPaneToggle', {
             'background':'transparent ' +
-            'url("img/leftpanetoggle_bg_expanded_depressed.gif") top left repeat-x'
+            'url("img/leftpanetoggle_bg_expanded_depressed.gif") '+
+            'top left repeat-x'
             })
     });
     connect('leftPaneToggle','onmouseout', function() {
@@ -215,7 +216,6 @@ function cancelHover() {
 
 function checkForCollapsed() {
     var x = getCookie('Zenoss_Collapsed_Menu');
-    log(x);
     if (!x){
     disconnectAll('leftPaneToggle');
     connect('leftPaneToggle','onclick',toggleLeftPane);
@@ -237,3 +237,4 @@ function checkForCollapsed() {
 }
 
 addLoadEvent(checkForCollapsed);
+console.log("Left pane toggle javascript loaded.");

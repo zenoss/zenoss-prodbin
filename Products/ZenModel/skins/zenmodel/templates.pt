@@ -120,18 +120,22 @@
         href="/zport/portal_skins/zenevents.css" >
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/css/tables.css" >
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="css/menus.css"/>
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="css/dialog.css"/>
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="css/filterbox.css"/>
+    <script type="text/javascript" src="js/MochiKit.js"></script>
+    <script type="text/javascript" src="zenmodelfuncs.js"></script>
+    <script src="javascript/selection.js"></script>
+    <script src="js/zenui.js"></script>
+    <script src="js/zenutils.js"></script>
+    <script src="javascript/menus.js"></script>
     <!--[if IE]>
         <link rel="stylesheet" type="text/css" title="zenoss"
-            href="/zport/portal_skins/zenoss_ie.css" >
+            href="zenoss_ie.css" >
     <![endif]-->
-    <script type="text/javascript" 
-        src="/zport/js/MochiKit.js"></script>
-    <script type="text/javascript" 
-        src="/zport/portal_skins/zenmodelfuncs.js"></script>
-    <script type="text/javascript"
-        src="/zport/js/zenui.js"></script>
-    <script src="javascript/selection.js"></script>
-    <script src="javascript/menus.js"></script>
 </tal:block>
 
 <!-- ======================================================
@@ -263,7 +267,6 @@
 
            <div id="selectedtablinehider"
            tal:condition="python:tab.get('selected',None)">
-           &nbsp;
            </div>
 
            </td>
