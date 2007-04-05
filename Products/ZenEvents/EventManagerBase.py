@@ -13,6 +13,7 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 import time
 import types
 import random
+import simplejson
 random.seed()
 import logging
 log = logging.getLogger("zen.Events")
@@ -882,10 +883,17 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected('View','getJSONEventsInfo')
-    def getJSONEventsInfo(self, simple=False, REQUEST=None):
+    def getJSONEventsInfo(self, fields=[], simple=False, REQUEST=None):
         """
         Event data in JSON format.
         """
+        if not fields: fields = self.defaultResultFields
+        data = self.getEventList()
+        data = [x.getDataForJSON(fields) for x in data]
+        final = (fields, data)
+        return simplejson.dumps(final)
+
+
         
     #==========================================================================
     # Event sending functions

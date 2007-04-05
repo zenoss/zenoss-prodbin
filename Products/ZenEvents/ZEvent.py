@@ -29,7 +29,15 @@ class ZEvent(Event):
         self.updateFromFields(fields, data)
         self._zem = manager.getId()
         self._baseurl = manager.absolute_url_path()
- 
+
+    def getDataForJSON(self, fields):
+        """ returns data ready for serialization
+        """
+        def val(field): return getattr(self, field, None)
+        data = dict([(field, val(field)) for field in fields])
+        data['cssclass']=self.getCssClass()
+        return data
+
 
     def getDataListWithLinks(self, fields, cssClass=''):
         """return a list of data elements that map to the fields parameter.
