@@ -65,7 +65,7 @@ class IpService(Service):
         {'id':'discoveryAgent', 'type':'string', 'mode':''},
         ) 
     _relations = Service._relations + (
-        ("os", ToOne(ToManyCont,"OperatingSystem","ipservices")),
+        ("os", ToOne(ToManyCont,"Products.ZenModel.OperatingSystem","ipservices")),
         )
 
     factory_type_information = ( 

@@ -51,8 +51,8 @@ class NagiosTemplate(ZenModelRM):
     )
 
     _relations =  (
-        ("deviceClass", ToOne(ToManyCont, "DeviceClass", "nagiosTemplates")),
-        ("nagiosCmds", ToManyCont(ToOne, "NagiosCmd", "nagiosTemplate")),
+        ("deviceClass", ToOne(ToManyCont, "Products.ZenModel.DeviceClass", "nagiosTemplates")),
+        ("nagiosCmds", ToManyCont(ToOne, "Products.ZenModel.NagiosCmd", "nagiosTemplate")),
     )    
 
     factory_type_information = ( 

@@ -48,7 +48,7 @@ class WinService(Service):
     )
 
     _relations = Service._relations + (
-        ("os", ToOne(ToManyCont, "OperatingSystem", "winservices")),
+        ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "winservices")),
     )
 
     factory_type_information = ( 

@@ -41,7 +41,7 @@ class MibOrganizer(Organizer):
     security = ClassSecurityInfo()
 
     _relations = Organizer._relations + (
-        ("mibs", ToManyCont(ToOne,"MibModule","miborganizer")),
+        ("mibs", ToManyCont(ToOne,"Products.ZenModel.MibModule","miborganizer")),
         )
 
 

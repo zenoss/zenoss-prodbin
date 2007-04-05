@@ -10,8 +10,8 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenRelations.Exceptions import *
 
 class TestBaseClass(RM):
-    zenRelationsBaseModule = "Products.ZenRelations.tests"
-
+    pass
+    
 class DataRoot(TestBaseClass):
 
     def manage_afterAdd(self, item, container):
@@ -62,10 +62,9 @@ class Location(TestBaseClass):
         )
 
 class Admin(TestBaseClass):
-    zenRelationsBaseModule = "Products"
     _relations = (
         ("server", ToOne(ToOne, 
-            "ZenRelations.tests.TestSchema.Server", "admin")),
+            "Products.ZenRelations.tests.TestSchema.Server", "admin")),
         )
 
 class Organizer(TestBaseClass):

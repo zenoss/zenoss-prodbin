@@ -108,11 +108,7 @@ class RelationshipBase(PrimaryPathManager):
         classdef = getattr(aq_base(self), "_v_remoteClass", None)
         if not classdef:
             schema = self.__primary_parent__.lookupSchema(self.id)
-            baseModule = getattr(self, "zenRelationsBaseModule", "")
-            try:
-                classdef = importClass(schema.remoteClass, baseModule)
-            except ZenImportError:
-                classdef = importClass(schema.remoteClass)
+            classdef = importClass(schema.remoteClass)
             self._v_remoteClass = classdef
         return classdef
 

@@ -43,8 +43,8 @@ class OSProcessOrganizer(Organizer, Commandable):
 
     _relations = Organizer._relations + (
         ("osProcessClasses", ToManyCont(
-            ToOne,"OSProcessClass","osProcessOrganizer")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+            ToOne,"Products.ZenModel.OSProcessClass","osProcessOrganizer")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
     factory_type_information = ( 

@@ -37,7 +37,7 @@ class ZenMenuItem(ZenModelRM):
         )
 
     _relations =  (
-        ("zenMenus", ToOne(ToManyCont, 'ZenMenu', 'zenMenuItems')),
+        ("zenMenus", ToOne(ToManyCont, 'Products.ZenModel.ZenMenu', 'zenMenuItems')),
         )
 
     security = ClassSecurityInfo()

@@ -41,8 +41,8 @@ class ProductClass(ZenModelRM):
     )
 
     _relations = (
-        ("instances", ToMany(ToOne, "MEProduct", "productClass")),
-        ("manufacturer", ToOne(ToManyCont,"Manufacturer","products")),
+        ("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
+        ("manufacturer", ToOne(ToManyCont,"Products.ZenModel.Manufacturer","products")),
     )
 
     factory_type_information = ( 

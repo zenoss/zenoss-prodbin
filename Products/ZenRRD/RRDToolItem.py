@@ -15,8 +15,6 @@ class RRDToolItem(ZenModelRM):
 
 
     security = ClassSecurityInfo()
-
-    zenRelationsBaseModule = "Products.ZenRRD"
     
     def getName(self):
         """Return the name of this item (take off the type from the id).

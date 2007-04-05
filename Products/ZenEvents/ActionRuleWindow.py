@@ -48,9 +48,8 @@ class ActionRuleWindow(MaintenanceWindow):
          },
         )
     
-    zenRelationsBaseModule = "Products.ZenEvents"
     _relations = (
-        ("actionRule", ToOne(ToManyCont,"ActionRule","windows")),
+        ("actionRule", ToOne(ToManyCont,"Products.ZenEvents.ActionRule","windows")),
         )
 
     def target(self):

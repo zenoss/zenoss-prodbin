@@ -49,7 +49,7 @@ class HardDisk(HWComponent):
                 )    
 
     _relations = HWComponent._relations + (
-        ("hw", ToOne(ToManyCont, "DeviceHW", "harddisks")),
+        ("hw", ToOne(ToManyCont, "Products.ZenModel.DeviceHW", "harddisks")),
         )
 
     

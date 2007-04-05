@@ -73,7 +73,7 @@ class StatusMonitorConf(Monitor, StatusColor):
         {'id':'maxFailures','type':'int','mode':'w'},
         )
     _relations = (
-        ("devices", ToMany(ToMany,"Device","monitors")),
+        ("devices", ToMany(ToMany,"Products.ZenModel.Device","monitors")),
         )
 
     # Screen action bindings (and tab definitions)

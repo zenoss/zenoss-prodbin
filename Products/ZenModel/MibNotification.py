@@ -22,7 +22,7 @@ class MibNotification(MibBase):
     )
     
     _relations = (
-        ("module", ToOne(ToManyCont, "MibModule", "notifications")),
+        ("module", ToOne(ToManyCont, "Products.ZenModel.MibModule", "notifications")),
     )
     
     # Screen action bindings (and tab definitions)

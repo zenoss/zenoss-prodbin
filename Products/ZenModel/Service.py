@@ -28,8 +28,8 @@ class Service(OSComponent, Commandable, ZenPackable):
     portal_type = meta_type = 'Service'
    
     _relations = OSComponent._relations + ZenPackable._relations + (
-        ("serviceclass", ToOne(ToMany,"ServiceClass","instances")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+        ("serviceclass", ToOne(ToMany,"Products.ZenModel.ServiceClass","instances")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
     security = ClassSecurityInfo()

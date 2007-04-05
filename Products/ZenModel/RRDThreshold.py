@@ -67,7 +67,7 @@ class RRDThreshold(ZenModelRM, ZenPackable):
                 )
 
     _relations =  ZenPackable._relations + (
-        ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate", "thresholds")),
+        ("rrdTemplate", ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "thresholds")),
         )
 
 

@@ -36,8 +36,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     Catalog Indexing, and Historical change tracking.
     """
 
-    zenRelationsBaseModule = "Products.ZenModel"
-
     meta_type = 'ZenModelRM'
 
     default_catalog = ''

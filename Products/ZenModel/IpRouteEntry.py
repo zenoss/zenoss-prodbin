@@ -82,10 +82,10 @@ class IpRouteEntry(OSComponent):
         {'id':'metric5', 'type':'int', 'mode':''},
         ) 
     _relations = OSComponent._relations + (
-        ("os", ToOne(ToManyCont,"OperatingSystem","routes")),
-        ("interface", ToOne(ToMany,"IpInterface","iproutes")),
-        ("nexthop", ToOne(ToMany,"IpAddress","clientroutes")),
-        ("target", ToOne(ToMany,"IpNetwork","clientroutes")),
+        ("os", ToOne(ToManyCont,"Products.ZenModel.OperatingSystem","routes")),
+        ("interface", ToOne(ToMany,"Products.ZenModel.IpInterface","iproutes")),
+        ("nexthop", ToOne(ToMany,"Products.ZenModel.IpAddress","clientroutes")),
+        ("target", ToOne(ToMany,"Products.ZenModel.IpNetwork","clientroutes")),
         )
 
     security = ClassSecurityInfo()

@@ -49,9 +49,9 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     )
 
     _relations = OSComponent._relations + ZenPackable._relations + (
-        ("os", ToOne(ToManyCont, "OperatingSystem", "processes")),
-        ("osProcessClass", ToOne(ToMany, "OSProcessClass", "instances")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+        ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "processes")),
+        ("osProcessClass", ToOne(ToMany, "Products.ZenModel.OSProcessClass", "instances")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
     )
 
     factory_type_information = (

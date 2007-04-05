@@ -43,7 +43,7 @@ class DeviceGroup(DeviceOrganizer):
     portal_type = meta_type = event_key = 'DeviceGroup'
 
     _relations = DeviceOrganizer._relations + (
-        ("devices", ToMany(ToMany,"Device","groups")),
+        ("devices", ToMany(ToMany,"Products.ZenModel.Device","groups")),
         )
 
 InitializeClass(DeviceGroup)

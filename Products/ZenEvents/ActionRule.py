@@ -66,7 +66,6 @@ class ActionRule(ZenModelRM, EventFilter):
     actionTypes = ("page", "email") 
     targetAddr = ""
 
-    zenRelationsBaseModule = "Products.ZenEvents"
     _properties = ZenModelRM._properties + (
         {'id':'where', 'type':'text', 'mode':'w'},
         {'id':'format', 'type':'text', 'mode':'w'},
@@ -80,9 +79,8 @@ class ActionRule(ZenModelRM, EventFilter):
         {'id':'targetAddr', 'type':'string', 'mode':'w'},
     )
 
-    zenRelationsBaseModule = "Products.ZenEvents"
     _relations = (
-        ("windows", ToManyCont(ToOne,"ActionRuleWindow","actionRule")),
+        ("windows", ToManyCont(ToOne,"Products.ZenEvents.ActionRuleWindow","actionRule")),
         )
 
     factory_type_information = ( 

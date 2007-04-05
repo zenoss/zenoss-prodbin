@@ -48,8 +48,8 @@ class ZenPack(ZenModelRM):
     )
     
     _relations =  (
-        ('root', ToOne(ToManyCont, 'DataRoot', 'packs')),
-        ("packables", ToMany(ToOne, "ZenPackable", "pack")),
+        ('root', ToOne(ToManyCont, 'Products.ZenModel.DataRoot', 'packs')),
+        ("packables", ToMany(ToOne, "Products.ZenModel.ZenPackable", "pack")),
         )
 
     factory_type_information = (

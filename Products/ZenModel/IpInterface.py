@@ -88,9 +88,9 @@ class IpInterface(OSComponent):
         )
 
     _relations = OSComponent._relations + (
-        ("os", ToOne(ToManyCont,"OperatingSystem","interfaces")),
-        ("ipaddresses", ToMany(ToOne,"IpAddress","interface")),
-        ("iproutes", ToMany(ToOne,"IpRouteEntry","interface")),
+        ("os", ToOne(ToManyCont,"Products.ZenModel.OperatingSystem","interfaces")),
+        ("ipaddresses", ToMany(ToOne,"Products.ZenModel.IpAddress","interface")),
+        ("iproutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","interface")),
         )
 
     zNoPropertiesCopy = ('ips','macaddress')

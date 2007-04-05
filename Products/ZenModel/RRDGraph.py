@@ -76,7 +76,7 @@ class RRDGraph(ZenModelRM):
         )
 
     _relations =  (
-        ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate", "graphs")),
+        ("rrdTemplate", ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphs")),
         )
 
     colors = (

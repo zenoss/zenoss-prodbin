@@ -43,8 +43,8 @@ class ServiceOrganizer(Organizer, Commandable):
         ) 
 
     _relations = Organizer._relations + (
-        ("serviceclasses", ToManyCont(ToOne,"ServiceClass","serviceorganizer")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+        ("serviceclasses", ToManyCont(ToOne,"Products.ZenModel.ServiceClass","serviceorganizer")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
         
     factory_type_information = ( 

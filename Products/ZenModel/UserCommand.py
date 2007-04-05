@@ -35,7 +35,7 @@ class UserCommand(ZenModelRM):
         )
 
     _relations =  (
-        ("commandable", ToOne(ToManyCont, 'Commandable', 'userCommands')),
+        ("commandable", ToOne(ToManyCont, 'Products.ZenModel.Commandable', 'userCommands')),
         )
 
 

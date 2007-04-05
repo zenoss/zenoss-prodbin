@@ -227,17 +227,17 @@ class Device(ManagedEntity, Commandable, Lockable):
         )
 
     _relations = ManagedEntity._relations + (
-        ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
-        #("termserver", ToOne(ToMany, "TerminalServer", "devices")),
-        ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
-        ("perfServer", ToOne(ToMany, "PerformanceConf", "devices")),
-        ("location", ToOne(ToMany, "Location", "devices")),
-        ("systems", ToMany(ToMany, "System", "devices")),
-        ("groups", ToMany(ToMany, "DeviceGroup", "devices")),
-        ("maintenanceWindows",ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
-        ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
-        #("dhcpubrclients", ToMany(ToMany, "UBRRouter", "dhcpservers")),
+        ("deviceClass", ToOne(ToManyCont, "Products.ZenModel.DeviceClass", "devices")),
+        #("termserver", ToOne(ToMany, "Products.ZenModel.TerminalServer", "devices")),
+        ("monitors", ToMany(ToMany, "Products.ZenModel.StatusMonitorConf", "devices")),
+        ("perfServer", ToOne(ToMany, "Products.ZenModel.PerformanceConf", "devices")),
+        ("location", ToOne(ToMany, "Products.ZenModel.Location", "devices")),
+        ("systems", ToMany(ToMany, "Products.ZenModel.System", "devices")),
+        ("groups", ToMany(ToMany, "Products.ZenModel.DeviceGroup", "devices")),
+        ("maintenanceWindows",ToManyCont(ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
+        ("adminRoles", ToManyCont(ToOne,"Products.ZenModel.AdministrativeRole","managedObject")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
+        #("dhcpubrclients", ToMany(ToMany, "Products.ZenModel.UBRRouter", "dhcpservers")),
         )
 
     # Screen action bindings (and tab definitions)

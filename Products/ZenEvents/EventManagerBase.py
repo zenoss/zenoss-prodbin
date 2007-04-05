@@ -188,9 +188,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
         )
 
-    zenRelationsBaseModule = "Products.ZenEvents"
     _relations =  (
-        ("commands", ToManyCont(ToOne, "EventCommand", "eventManager")),
+        ("commands", ToManyCont(ToOne, "Products.ZenEvents.EventCommand", "eventManager")),
     )
     
     factory_type_information = (

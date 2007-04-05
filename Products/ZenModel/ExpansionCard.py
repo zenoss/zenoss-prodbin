@@ -35,7 +35,7 @@ class ExpansionCard(HWComponent):
     )
 
     _relations = HWComponent._relations + (
-        ("hw", ToOne(ToManyCont, "DeviceHW", "cards")),
+        ("hw", ToOne(ToManyCont, "Products.ZenModel.DeviceHW", "cards")),
         )
 
     

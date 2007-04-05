@@ -26,9 +26,9 @@ class MibModule(ZenModelRM, ZenPackable):
     )
 
     _relations = ZenPackable._relations + (
-        ("miborganizer", ToOne(ToManyCont, "MibOrganizer", "mibs")),
-        ("nodes", ToManyCont(ToOne, "MibNode", "module")),
-        ("notifications", ToManyCont(ToOne, "MibNotification", "module")),
+        ("miborganizer", ToOne(ToManyCont, "Products.ZenModel.MibOrganizer", "mibs")),
+        ("nodes", ToManyCont(ToOne, "Products.ZenModel.MibNode", "module")),
+        ("notifications", ToManyCont(ToOne, "Products.ZenModel.MibNotification", "module")),
     )
 
     # Screen action bindings (and tab definitions)

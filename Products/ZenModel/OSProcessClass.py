@@ -49,10 +49,10 @@ class OSProcessClass(ZenModelRM, Commandable):
         ) 
 
     _relations = (
-        ("instances", ToMany(ToOne, "OSProcess", "osProcessClass")),
+        ("instances", ToMany(ToOne, "Products.ZenModel.OSProcess", "osProcessClass")),
         ("osProcessOrganizer", 
-            ToOne(ToManyCont,"OSProcessOrganizer","osProcessClasses")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+            ToOne(ToManyCont,"Products.ZenModel.OSProcessOrganizer","osProcessClasses")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
 

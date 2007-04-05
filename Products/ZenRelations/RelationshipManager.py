@@ -63,14 +63,6 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                     class.  Its a string because in most cases the classes
                     will be in different modules which would cause a recursive
                     import of the two modules.
-                    
-    zenRelationsBaseModule - can be defined on a class or in its aq_chain to
-                    Append a classes module to remoteClassStr.  If the class
-                    is defined in a file named the same as the class the lookup
-                    will automatically append the final class name to the path.
-                    ie Products.ZenModel.Device will lookup the class
-                    Products.ZenModel.Device.Device defined in the file 
-                    Device.py.
 
     _relations = (
         ("toonename", ToOne(ToMany, remoteClassStr, remoteName)), 

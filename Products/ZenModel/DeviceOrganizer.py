@@ -75,11 +75,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable):
 
     _relations =  Organizer._relations + (
         ("maintenanceWindows",
-         ToManyCont(ToOne, "MaintenanceWindow", "productionState")),
-        ("adminRoles", ToManyCont(ToOne,"AdministrativeRole","managedObject")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+         ToManyCont(ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
+        ("adminRoles", ToManyCont(ToOne,"Products.ZenModel.AdministrativeRole","managedObject")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         ('zenMenus', ToManyCont(
-            ToOne, 'ZenMenu', 'menuable')),
+            ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
        ) 
 
     def getSubDevices(self, devfilter=None, devrel="devices"):

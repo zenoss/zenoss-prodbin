@@ -13,7 +13,7 @@ class AdministrativeRole(ZenModelRM):
     meta_type = "AdministrativeRole"
 
     _relations = (
-        ("userSetting", ToOne(ToMany, "UserSettings", "adminRoles")),
+        ("userSetting", ToOne(ToMany, "Products.ZenModel.UserSettings", "adminRoles")),
     )
 
     level = 1
@@ -55,7 +55,7 @@ class DeviceAdministrativeRole(AdministrativeRole):
     meta_type = "DeviceAdministrativeRole"
 
     _relations = AdministrativeRole._relations + (
-        ("managedObject", ToOne(ToManyCont, "Device", "adminRoles")),
+        ("managedObject", ToOne(ToManyCont, "Products.ZenModel.Device", "adminRoles")),
     )
 
 
@@ -64,7 +64,7 @@ class DevOrgAdministrativeRole(AdministrativeRole):
     meta_type = "DevOrgAdministrativeRole"
 
     _relations = AdministrativeRole._relations + (
-        ("managedObject", ToOne(ToManyCont, "DeviceOrganizer", "adminRoles")),
+        ("managedObject", ToOne(ToManyCont, "Products.ZenModel.DeviceOrganizer", "adminRoles")),
     )
 
     def managedObjectName(self):

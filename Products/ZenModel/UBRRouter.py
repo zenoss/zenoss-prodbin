@@ -41,7 +41,7 @@ class UBRRouter(Device):
     portal_type = meta_type = 'UBRRouter'
 
     _relations = Device._relations + (
-        ("dhcpservers", ToMany(ToMany, "Device", "dhcpubrclients")),
+        ("dhcpservers", ToMany(ToMany, "Products.ZenModel.Device", "dhcpubrclients")),
         )
 
     

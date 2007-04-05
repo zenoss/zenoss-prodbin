@@ -16,7 +16,7 @@ def checkRelationshipSchema(cls, baseModule):
     """
     for relname, rel in cls._relations:
         try:
-            remoteClass = importClass(rel.remoteClass, baseModule)    
+            remoteClass = importClass(rel.remoteClass, None)    
         except AttributeError, e:
             logging.critical("RemoteClass '%s' from '%s.%s' not found",
                         rel.remoteClass, cls.__name__, relname)
@@ -33,7 +33,7 @@ def checkRelationshipSchema(cls, baseModule):
                 rel.remoteName, cls.__name__, relname)
             logging.critical(e)
         try:
-            localClass = importClass(rschema.remoteClass, baseModule)
+            localClass = importClass(rschema.remoteClass, None)
         except AttributeError, e:
             logging.critical(e)
         if not issubclass(cls, localClass):

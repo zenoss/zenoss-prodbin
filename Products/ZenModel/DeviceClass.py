@@ -81,8 +81,8 @@ class DeviceClass(DeviceOrganizer):
     default_catalog = 'deviceSearch'
     
     _relations = DeviceOrganizer._relations + (
-        ("devices", ToManyCont(ToOne,"Device","deviceClass")),
-        ("rrdTemplates", ToManyCont(ToOne,"RRDTemplate","deviceClass")),
+        ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
+        ("rrdTemplates", ToManyCont(ToOne,"Products.ZenModel.RRDTemplate","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)

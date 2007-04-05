@@ -43,7 +43,7 @@ class NagiosCmd(ZenModelRM):
     )
 
     _relations =  (
-        ("nagiosTemplate", ToOne(ToManyCont, "NagiosTemplate", "nagiosCmds")),
+        ("nagiosTemplate", ToOne(ToManyCont, "Products.ZenModel.NagiosTemplate", "nagiosCmds")),
     )    
 
     factory_type_information = ( 

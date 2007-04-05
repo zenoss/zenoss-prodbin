@@ -60,7 +60,7 @@ class FileSystem(OSComponent):
         {'id':'maxNameLen', 'type':'int', 'mode':''},
         )
     _relations = OSComponent._relations + (
-        ("os", ToOne(ToManyCont, "OperatingSystem", "filesystems")),
+        ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "filesystems")),
         )
     
 

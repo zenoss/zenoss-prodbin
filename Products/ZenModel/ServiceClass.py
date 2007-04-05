@@ -57,10 +57,10 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         ) 
 
     _relations = ZenPackable._relations + (
-        ("instances", ToMany(ToOne, "Service", "serviceclass")),
+        ("instances", ToMany(ToOne, "Products.ZenModel.Service", "serviceclass")),
         ("serviceorganizer", 
-            ToOne(ToManyCont,"ServiceOrganizer","serviceclasses")),
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
+            ToOne(ToManyCont,"Products.ZenModel.ServiceOrganizer","serviceclasses")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
 

@@ -68,9 +68,9 @@ class IpAddress(ManagedEntity):
         {'id':'ptrName', 'type':'string', 'mode':'w'},
         )
     _relations = ManagedEntity._relations + (
-        ("network", ToOne(ToManyCont,"IpNetwork","ipaddresses")),
-        ("interface", ToOne(ToMany,"IpInterface","ipaddresses")),
-        ("clientroutes", ToMany(ToOne,"IpRouteEntry","nexthop")),
+        ("network", ToOne(ToManyCont,"Products.ZenModel.IpNetwork","ipaddresses")),
+        ("interface", ToOne(ToMany,"Products.ZenModel.IpInterface","ipaddresses")),
+        ("clientroutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","nexthop")),
         )
 
     factory_type_information = (

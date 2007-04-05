@@ -41,8 +41,8 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
     )
 
     _relations = (
-        ("dependencies", ToMany(ToMany, "ManagedEntity", "dependents")),
-        ("dependents", ToMany(ToMany, "ManagedEntity", "dependencies")),
+        ("dependencies", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependents")),
+        ("dependents", ToMany(ToMany, "Products.ZenModel.ManagedEntity", "dependencies")),
     )
     
     def device(self):

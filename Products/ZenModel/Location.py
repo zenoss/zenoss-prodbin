@@ -47,8 +47,8 @@ class Location(DeviceOrganizer):
     portal_type = meta_type = event_key = 'Location'
     
     _relations = DeviceOrganizer._relations + (
-        ("devices", ToMany(ToOne,"Device","location")),
-        ("networks", ToMany(ToOne,"IpNetwork","location")),
+        ("devices", ToMany(ToOne,"Products.ZenModel.Device","location")),
+        ("networks", ToMany(ToOne,"Products.ZenModel.IpNetwork","location")),
         )
 
     security = ClassSecurityInfo()

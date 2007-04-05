@@ -337,13 +337,13 @@ class MaintenanceWindow(ZenModelRM):
 class DeviceMaintenanceWindow(MaintenanceWindow):
     backCrumb = 'deviceManagement'
     _relations = (
-        ("productionState", ToOne(ToManyCont, "Device", "maintenanceWindows")),
+        ("productionState", ToOne(ToManyCont, "Products.ZenModel.Device", "maintenanceWindows")),
         )
 
 class OrganizerMaintenanceWindow(MaintenanceWindow):
     backCrumb = 'deviceOrganizerManage'
     _relations = (
-        ("productionState", ToOne(ToManyCont, "DeviceOrganizer", "maintenanceWindows")),
+        ("productionState", ToOne(ToManyCont, "Products.ZenModel.DeviceOrganizer", "maintenanceWindows")),
         )
         
 

@@ -23,7 +23,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.NagiosTemplate import NagiosTemplate
 DeviceClass._relations = DeviceClass._relations + (
-        ("nagiosTemplates", ToManyCont(ToOne,"NagiosTemplate","deviceClass")),
+        ("nagiosTemplates", ToManyCont(ToOne,"Products.ZenModel.NagiosTemplate","deviceClass")),
         )
 
 MOVED_PROPERTIES = 'createCmd rrdtype isrow rpn rrdmax color linetype limit format'.split()

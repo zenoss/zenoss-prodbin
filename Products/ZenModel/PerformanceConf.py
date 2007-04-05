@@ -93,7 +93,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
         )
     _relations = Monitor._relations + (
-        ("devices", ToMany(ToOne,"Device","perfServer")),
+        ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),
         )
 
     # Screen action bindings (and tab definitions)

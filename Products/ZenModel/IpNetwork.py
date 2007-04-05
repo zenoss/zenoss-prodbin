@@ -77,9 +77,9 @@ class IpNetwork(DeviceOrganizer):
         )
     
     _relations = DeviceOrganizer._relations + (
-        ("ipaddresses", ToManyCont(ToOne, "IpAddress", "network")),
-        ("clientroutes", ToMany(ToOne,"IpRouteEntry","target")),
-        ("location", ToOne(ToMany, "Location", "networks")),
+        ("ipaddresses", ToManyCont(ToOne, "Products.ZenModel.IpAddress", "network")),
+        ("clientroutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","target")),
+        ("location", ToOne(ToMany, "Products.ZenModel.Location", "networks")),
         )
                    
     # Screen action bindings (and tab definitions)

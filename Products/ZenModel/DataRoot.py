@@ -97,10 +97,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         )
 
     _relations =  (
-        ('userCommands', ToManyCont(ToOne, 'UserCommand', 'commandable')),
-        ('packs',        ToManyCont(ToOne, 'ZenPack',     'root')),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
+        ('packs',        ToManyCont(ToOne, 'Products.ZenModel.ZenPack',     'root')),
         ('zenMenus', ToManyCont(
-            ToOne, 'ZenMenu', 'menuable')),
+            ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
        )
 
     # Screen action bindings (and tab definitions)

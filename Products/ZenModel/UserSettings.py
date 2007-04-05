@@ -324,7 +324,7 @@ class UserSettings(ZenModelRM):
  
 
     _relations =  (
-        ("adminRoles", ToMany(ToOne, "AdministrativeRole", "userSetting")),
+        ("adminRoles", ToMany(ToOne, "Products.ZenModel.AdministrativeRole", "userSetting")),
     )
 
    # Screen action bindings (and tab definitions)

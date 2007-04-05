@@ -18,7 +18,7 @@ class MEProduct(ManagedEntity):
     """
 
     _relations = ManagedEntity._relations + (
-        ("productClass", ToOne(ToMany, "ProductClass", "instances")),
+        ("productClass", ToOne(ToMany, "Products.ZenModel.ProductClass", "instances")),
     )
 
     security = ClassSecurityInfo()

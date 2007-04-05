@@ -59,7 +59,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         )
 
     _relations = ZenPackable._relations + (
-        ("products", ToManyCont(ToOne,"ProductClass","manufacturer")),
+        ("products", ToManyCont(ToOne,"Products.ZenModel.ProductClass","manufacturer")),
     )
  
     # Screen action bindings (and tab definitions)

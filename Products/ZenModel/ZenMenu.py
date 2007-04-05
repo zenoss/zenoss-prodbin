@@ -29,9 +29,9 @@ class ZenMenu(ZenModelRM, ZenPackable):
 
     _relations =  ZenPackable._relations + (
         ("zenMenuItems", ToManyCont(
-            ToOne, 'ZenMenuItem', 'zenMenus')),
+            ToOne, 'Products.ZenModel.ZenMenuItem', 'zenMenus')),
         ("menuable", ToOne(
-            ToManyCont, 'ZenMenuable', 'zenMenus')),
+            ToManyCont, 'Products.ZenModel.ZenMenuable', 'zenMenus')),
         ) 
 
     security = ClassSecurityInfo()

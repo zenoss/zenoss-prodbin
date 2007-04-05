@@ -22,7 +22,7 @@ class MibNode(MibBase):
     )
 
     _relations = (
-        ("module", ToOne(ToManyCont, "MibModule", "nodes")),
+        ("module", ToOne(ToManyCont, "Products.ZenModel.MibModule", "nodes")),
     )
     
     # Screen action bindings (and tab definitions)

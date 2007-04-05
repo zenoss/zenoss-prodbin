@@ -48,7 +48,7 @@ class Software(MEProduct):
     )
 
     _relations = MEProduct._relations + (
-        ("os", ToOne(ToManyCont, "OperatingSystem", "software")),
+        ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "software")),
     )
 
     factory_type_information = ( 

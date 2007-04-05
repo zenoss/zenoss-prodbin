@@ -127,8 +127,8 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         )
 
     _relations = ZenPackable._relations + (
-        ("rrdTemplate", ToOne(ToManyCont,"RRDTemplate","datasources")),
-        ("datapoints", ToManyCont(ToOne,"RRDDataPoint","datasource")),
+        ("rrdTemplate", ToOne(ToManyCont,"Products.ZenModel.RRDTemplate","datasources")),
+        ("datapoints", ToManyCont(ToOne,"Products.ZenModel.RRDDataPoint","datasource")),
         )
     
     # Screen action bindings (and tab definitions)

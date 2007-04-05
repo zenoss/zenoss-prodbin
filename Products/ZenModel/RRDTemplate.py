@@ -60,10 +60,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         )
 
     _relations =  ZenPackable._relations + (
-        ("deviceClass", ToOne(ToManyCont,"DeviceClass", "rrdTemplates")),
-        ("datasources", ToManyCont(ToOne,"RRDDataSource", "rrdTemplate")),
-        ("graphs", ToManyCont(ToOne,"RRDGraph", "rrdTemplate")),
-        ("thresholds", ToManyCont(ToOne,"RRDThreshold", "rrdTemplate")),
+        ("deviceClass", ToOne(ToManyCont,"Products.ZenModel.DeviceClass", "rrdTemplates")),
+        ("datasources", ToManyCont(ToOne,"Products.ZenModel.RRDDataSource", "rrdTemplate")),
+        ("graphs", ToManyCont(ToOne,"Products.ZenModel.RRDGraph", "rrdTemplate")),
+        ("thresholds", ToManyCont(ToOne,"Products.ZenModel.RRDThreshold", "rrdTemplate")),
         )
 
 

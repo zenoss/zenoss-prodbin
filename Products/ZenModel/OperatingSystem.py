@@ -42,13 +42,13 @@ class OperatingSystem(Software):
     )
 
     _relations = Software._relations + (
-        ("interfaces", ToManyCont(ToOne, "IpInterface", "os")),
-        ("routes", ToManyCont(ToOne, "IpRouteEntry", "os")),
-        ("ipservices", ToManyCont(ToOne, "IpService", "os")),
-        ("winservices", ToManyCont(ToOne, "WinService", "os")),
-        ("processes", ToManyCont(ToOne, "OSProcess", "os")),
-        ("filesystems", ToManyCont(ToOne, "FileSystem", "os")),
-        ("software", ToManyCont(ToOne, "Software", "os")),
+        ("interfaces", ToManyCont(ToOne, "Products.ZenModel.IpInterface", "os")),
+        ("routes", ToManyCont(ToOne, "Products.ZenModel.IpRouteEntry", "os")),
+        ("ipservices", ToManyCont(ToOne, "Products.ZenModel.IpService", "os")),
+        ("winservices", ToManyCont(ToOne, "Products.ZenModel.WinService", "os")),
+        ("processes", ToManyCont(ToOne, "Products.ZenModel.OSProcess", "os")),
+        ("filesystems", ToManyCont(ToOne, "Products.ZenModel.FileSystem", "os")),
+        ("software", ToManyCont(ToOne, "Products.ZenModel.Software", "os")),
     )
 
     security = ClassSecurityInfo()

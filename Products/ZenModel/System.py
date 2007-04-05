@@ -59,7 +59,7 @@ class System(DeviceOrganizer):
         {'id':'description', 'type':'text', 'mode':'w'},
         )
     _relations = DeviceOrganizer._relations + (
-        ("devices", ToMany(ToMany, "Device", "systems")),
+        ("devices", ToMany(ToMany, "Products.ZenModel.Device", "systems")),
         )
 
     # Screen action bindings (and tab definitions)

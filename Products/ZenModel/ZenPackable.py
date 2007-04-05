@@ -14,6 +14,6 @@ class ZenPackable:
     meta_type = "ZenPackable"
 
     _relations = (
-        ("pack", ToOne(ToMany, "ZenPack", "packables")),
+        ("pack", ToOne(ToMany, "Products.ZenModel.ZenPack", "packables")),
     )
 
