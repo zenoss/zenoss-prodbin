@@ -22,7 +22,6 @@ def manage_addOSProcess(context, id, className, userCreated, REQUEST = None):
     if className == '/': className = ''
     orgPath = "/Processes%s" % className
     classPath = "%s/osProcessClasses/%s" % (orgPath, id)
-    import pdb; pdb.set_trace()
     try:
         osp.getDmdObj(classPath)
     except KeyError, NotFound:
