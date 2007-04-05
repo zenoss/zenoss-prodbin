@@ -13,7 +13,6 @@ Base for daemons that connect to zenhub
 
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
-#from Products.ZenUtils.Driver import drive
 #from Products.ZenUtils.Step import Step
 import Products.ZenEvents.Event as Event
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
@@ -25,57 +24,57 @@ from twisted.internet import reactor, defer
 from twisted.cred import credentials
 from twisted.spread import pb
 
-App_Start = "/App/Start"
-App_Stop = "/App/Stop"
-Heartbeat = "/Heartbeat"
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, Heartbeat
+
+from socket import getfqdn
+
+
+DEFAULT_HUB_HOST = 'localhost'
+DEFAULT_HUB_PORT = PB_PORT
+DEFAULT_HUB_USERNAME = 'zenoss'
+DEFAULT_HUB_PASSWORD = 'zenoss'
 
 startEvent = {
     'eventClass': App_Start, 
     'summary': 'started',
     'severity': Event.Clear,
-    'device': '',
-    'component': '',
     }
+
 stopEvent = {
     'eventClass':App_Stop, 
     'summary': 'stopped',
     'severity': Event.Warning,
-    'device': '',
-    'component': '',
     }
-#heartbeatEvent = {
-#    'eventClass': Event.Heartbeat,
-#    'device': '',
-#    'component': '',
-#    'timeout': 3 * HEARTBEAT_CYCLETIME,
-#    }
 
 
 DEFAULT_HUB_HOST = 'localhost'
 DEFAULT_HUB_PORT = PB_PORT
 DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
-DEFAULT_HUB_MONITOR = socket.getfqdn()
-
+DEFAULT_HUB_MONITOR = getfqdn()
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
     
     name = 'pbdaemon'
     initialServices = ['EventService']
-    
+
     def __init__(self, noopts=0, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
-        #pb.Referenceable.__init__(self)
         self.perspective = None
         self.services = {}
         self.eventQueue = []
-
+        self.startEvent = startEvent.copy()
+        self.stopEvent = stopEvent.copy()
+        for evt in self.startEvent, self.stopEvent:
+            evt.update(dict(component=self.name, device=getfqdn()))
     
     def connect(self):
 
+        d = defer.Deferred()
+        
         def gotPerspective(perspective):
             "Every time we reconnect this function is called"
-            self.log.warning("Reconnected to ZenHub")
+            self.log.warning("Connected to ZenHub")
             self.perspective = perspective
             d2 = self.getInitialServices()
             if d.called:
@@ -85,7 +84,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self.log.debug('chaining getInitialServices with d2')
                 d2.chainDeferred(d)
             
-        d = defer.Deferred()
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s", self.options.hubHost)
         reactor.connectTCP(self.options.hubHost, self.options.hubPort, factory)
@@ -97,8 +95,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         factory.startLogin(c)
         return d
 
+    def eventService(self):
+        return self.services['EventService']
 
-    def getService(self, serviceName):
+
+    def getService(self, serviceName, serviceListeningInterface=None):
         ''' Attempt to get a service from zenhub.  Returns a deferred.
         When service is retrieved it is stashed in self.services with
         serviceName as the key.  When getService is called it will first
@@ -107,21 +108,29 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         '''
         if self.services.has_key(serviceName):
             return defer.succeed(self.services[serviceName])
+        def removeService(ignored):
+            self.log.debug('removing service %s' % serviceName)
+            if serviceName in self.services:
+                del self.services[serviceName]
         def callback(result, serviceName):
             self.log.debug('callback after getting service %s' % serviceName)
             self.services[serviceName] = result
+            result.notifyOnDisconnect(removeService)
             return result
         def errback(error, serviceName):
             self.log.debug('errback after getting service %s' % serviceName)
             self.log.error('Could not retrieve service %s' % serviceName)
+            if serviceName in self.service:
+                del self.services[serviceName]
             return error
-        d = self.perspective.callRemote('getService', serviceName,
-                                            self.options.monitor)
+        d = self.perspective.callRemote('getService',
+                                        serviceName,
+                                        self.options.monitor,
+                                        serviceListeningInterface or self)
         d.addCallback(callback, serviceName)
         d.addErrback(errback, serviceName)
         return d
 
-            
     def getInitialServices(self):
         self.log.debug('setting up services %s' %
                 ', '.join([n for n in self.initialServices]))
@@ -129,18 +138,18 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             [self.getService(name) for name in self.initialServices],
             fireOnOneErrback=True, consumeErrors=True)
         return d
-        
-        
+
+
     def connected(self):
-        self.log.debug('connected')
-        self.eventSvc = self.services['EventService']
-        #self.eventSvc.callRemote('sendEvent', startEvent)
-        
+        pass
     
     def run(self):
         self.log.debug('run')
         d = self.connect()
         def callback(result):
+            self.log.debug('Calling connected.')
+            self.log.debug('connected')
+            self.sendEvent(self.startEvent)
             self.connected()
             return result
         def errback(error):
@@ -151,16 +160,31 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         reactor.run()
         self.log.info('%s shutting down' % self.name)
 
+    def sigTerm(self, *unused):
+        try:
+            ZenDaemon.sigTerm(self, *unused)
+        except SystemExit:
+            pass
 
     def stop(self):
         if reactor.running:
-            reactor.stop()
+            if 'EventService' in self.services:
+                self.sendEvent(self.stopEvent)
+                # give the reactor some time to send the shutdown event
+                # we could get more creative an add callbacks for event
+                # sends, which would mean we could wait longer, only as long
+                # as it took to send
+                reactor.callLater(1, reactor.stop)
+            else:
+                reactor.stop()
         
-        
-    def sendEvent(self, event=None):
+    def sendEvent(self, event, **kw):
         ''' Add event to queue of events to be sent.  If we have an event
         service then process the queue.
         '''
+        event = event.copy()
+        event['agent'] = self.name
+        event.update(kw)
         def errback(error, event):
             # If we get an error when sending an event we add it back to the 
             # queue.  This is great if the eventservice is just temporarily
@@ -176,11 +200,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.eventQueue.append(event)
         if event:
             self.eventQueue.append(event)
-        if self.eventSvc:
+        evtSvc = self.services.get('EventService', None)
+        if evtSvc:
             for i in range(len(self.eventQueue)):
                 event = self.eventQueue[0]
                 del self.eventQueue[0]
-                d = self.eventSvc.callRemote('sendEvent', event)
+                d = evtSvc.callRemote('sendEvent', event)
                 d.addErrback(errback, event)
 
 
@@ -190,11 +215,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def remote_shutdown(self, result):
         self.stop()
-        try:
-            self.sigTerm()
-        except SystemExit:
-            pass
-        reactor.stop()
+        self.sigTerm()
 
 
     def buildOptions(self):
