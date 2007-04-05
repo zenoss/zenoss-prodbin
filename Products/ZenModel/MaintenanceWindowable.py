@@ -3,8 +3,11 @@ MaintenanceWindowable.py
 
 Created by Marc Irlandez on 2007-04-05.
 """
+from AccessControl import ClassSecurityInfo
 
 class MaintenanceWindowable:
+
+    security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'manage_addMaintenanceWindow')
     def manage_addMaintenanceWindow(self, newId=None, REQUEST=None):

@@ -3,9 +3,11 @@ AdministrativeRoleable.py
 
 Created by Marc Irlandez on 2007-04-05.
 """
-
+from AccessControl import ClassSecurityInfo
 
 class AdministrativeRoleable:
+    
+    security = ClassSecurityInfo()
 
     security.declareProtected('Change Device', 'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
