@@ -29,6 +29,8 @@ class CmdBase:
         self.usage = "%prog [options]"
         self.noopts = noopts
         self.args = []
+        self.parser = None
+        self.buildParser()
         self.buildOptions()
         self.parseOptions()
         if self.options.configfile:
@@ -57,11 +59,14 @@ class CmdBase:
             logging.basicConfig()
 
 
+    def buildParser(self):
+        if not self.parser:
+            self.parser = OptionParser(usage=self.usage, 
+                                       version="%prog " + __version__)
+
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
-
-        self.parser = OptionParser(usage=self.usage, 
-                                   version="%prog " + __version__)
+        self.buildParser()
         self.parser.add_option('-v', '--logseverity',
                     dest='logseverity',
                     default=20,
