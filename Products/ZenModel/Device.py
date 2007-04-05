@@ -228,7 +228,7 @@ class Device(ManagedEntity, Commandable, Lockable):
 
     _relations = ManagedEntity._relations + (
         ("deviceClass", ToOne(ToManyCont, "DeviceClass", "devices")),
-        ("termserver", ToOne(ToMany, "TerminalServer", "devices")),
+        #("termserver", ToOne(ToMany, "TerminalServer", "devices")),
         ("monitors", ToMany(ToMany, "StatusMonitorConf", "devices")),
         ("perfServer", ToOne(ToMany, "PerformanceConf", "devices")),
         ("location", ToOne(ToMany, "Location", "devices")),
