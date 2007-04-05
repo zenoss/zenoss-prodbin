@@ -26,7 +26,7 @@ import PortscanClient
 from Exceptions import *
 
 defaultPortScanTimeout = 5
-defaultParallel = 40
+defaultParallel = 1
 defaultProtocol = "ssh"
 defaultPort = 22
 defaultStartSleep = 10 * 60
