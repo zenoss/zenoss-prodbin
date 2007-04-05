@@ -51,6 +51,8 @@ from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from UserCommand import UserCommand
 from Commandable import Commandable
 from Lockable import Lockable
+from MaintenanceWindowable import MaintenanceWindowable
+from AdministrativeRoleable import AdministrativeRoleable
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW

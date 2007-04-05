@@ -20,6 +20,8 @@ from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
 from Commandable import Commandable
 from ZenMenuable import ZenMenuable
+from MaintenanceWindowable import MaintenanceWindowable
+from AdministrativeRoleable import AdministrativeRoleable
 
 from Products.ZenRelations.RelSchema import *
 
