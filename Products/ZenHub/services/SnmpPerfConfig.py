@@ -18,3 +18,9 @@ class SnmpPerfConfig(PerformanceConfig):
             cfg = object.getSnmpOidTargets()
             for listener in self.listeners:
                 listener.callRemote('updateDeviceConfig', cfg)
+
+        from Products.ZenModel.PerformanceConf import PerformanceConf
+        if isinstance(object, PerformanceConf):
+            for listener in self.listeners:
+                listener.callRemote('setPropertyItems', object.propertyItems())
+            
