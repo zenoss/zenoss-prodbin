@@ -461,6 +461,20 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_addIpInterface',
                     isdialog = True,
                     permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteIpInterfaces',
+                    description='Delete IpInterfaces...',
+                    action=     'dialog_deleteIpInterfaces',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockIpInterfaces',
+                    description='Lock IpInterfaces...',
+                    action=     'dialog_lockIpInterfaces',
+                    isdialog = True,
+                    permissions=('Change Device',),
                     )
                 ],
             'OSProcess':[
@@ -468,6 +482,20 @@ class MenuRelations(Migrate.Step):
                     id=         'addOSProcess',
                     description='Add OSProcess...',
                     action=     'dialog_addOSProcess',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteOSProcesses',
+                    description='Delete OSProcesses...',
+                    action=     'dialog_deleteOSProcesses',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockOSProcesses',
+                    description='Lock OSProcesses...',
+                    action=     'dialog_lockOSProcesses',
                     isdialog = True,
                     permissions=('Change Device',),
                     )
@@ -479,6 +507,20 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_addFileSystem',
                     isdialog = True,
                     permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteFileSystems',
+                    description='Delete FileSystems...',
+                    action=     'dialog_deleteFileSystems',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockFileSystems',
+                    description='Lock FileSystems...',
+                    action=     'dialog_lockFileSystems',
+                    isdialog = True,
+                    permissions=('Change Device',),
                     )
                 ],
             'IpRouteEntry':[
@@ -486,6 +528,20 @@ class MenuRelations(Migrate.Step):
                     id=         'addIpRouteEntry',
                     description='Add Route...',
                     action=     'dialog_addIpRouteEntry',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteIpRouteEntries',
+                    description='Delete IpRouteEntries...',
+                    action=     'dialog_deleteIpRouteEntries',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockIpRouteEntries',
+                    description='Lock IpRouteEntries...',
+                    action=     'dialog_lockIpRouteEntries',
                     isdialog = True,
                     permissions=('Change Device',),
                     )
@@ -497,6 +553,20 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_addIpService',
                     isdialog = True,
                     permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteIpServices',
+                    description='Delete IpServices...',
+                    action=     'dialog_deleteIpServices',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockIpServices',
+                    description='Lock IpServices...',
+                    action=     'dialog_lockIpServices',
+                    isdialog = True,
+                    permissions=('Change Device',),
                     )
                 ],
             'WinService':[
@@ -504,6 +574,20 @@ class MenuRelations(Migrate.Step):
                     id=         'addWinService',
                     description='Add WinService...',
                     action=     'dialog_addWinService',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'deleteWinServices',
+                    description='Delete WinServices...',
+                    action=     'dialog_deleteWinServices',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    id=         'lockWinServices',
+                    description='Lock WinServices...',
+                    action=     'dialog_lockWinServices',
                     isdialog = True,
                     permissions=('Change Device',),
                     )

@@ -3,7 +3,10 @@
 
 <form method="post" tal:attributes="action here/absolute_url"
     name="addComponent"/>
-        
+
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="ipInterfaceListForm">
+    
 <tal:block tal:define="unused here/cacheComponents;
         tableName string:interfacelist;
         objects here/os/interfaces/objectValuesAll;
@@ -18,6 +21,7 @@
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
+        <th class="tableheader"></th>
         <th class="tableheader" align="center">O</th>
         <th class="tableheader" align="center">A</th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -40,6 +44,10 @@
     <tal:block tal:repeat="intf batch">
     <tr tal:define="odd repeat/intf/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" align="center">
+         <input type="checkbox" name="componentNames:list" 
+                tal:attributes="value intf/getRelationshipManagerId"/>
+      </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
@@ -96,6 +104,10 @@
 </tal:block>
 </tal:block>
 
+</form>
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="winServiceListForm">
+
 <tal:block tal:define="tableName string:winserviceslist;
     objects here/os/winservices/objectValuesAll;
     tabletitle string:Win Services;
@@ -108,6 +120,9 @@
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
+        <th class="tableheader"></th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getServiceClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'caption','Caption')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -123,6 +138,11 @@
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+        <td class="tablevalues" align="center">
+           <input type="checkbox" name="componentNames:list" 
+                  tal:attributes="value srv/getRelationshipManagerId"/>
+        </td>
+        <td tal:content="structure srv/getServiceClassLink"/>
         <td><a class="tablevalues" tal:content="srv/caption"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
@@ -151,7 +171,10 @@
 </tal:block>
 </tal:block>
 
-
+</form>
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="osProcessListForm">
+    
 <tal:block tal:define="tableName string:osprocesslist;
     objects here/os/processes/objectValuesAll;
     tabletitle string:OS Processes;
@@ -175,6 +198,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
+        <th class="tableheader"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getOSProcessClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -190,6 +214,10 @@ Optional titlebar stuff
     <tal:block tal:repeat="proc batch">
     <tr tal:define="odd repeat/proc/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+        <td class="tablevalues" align="center">
+           <input type="checkbox" name="componentNames:list" 
+                  tal:attributes="value proc/getRelationshipManagerId"/>
+        </td>
         <td tal:content="structure proc/getOSProcessClassLink"/>
         <td><a class="tablevalues" tal:content="python:proc.name()[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
@@ -218,6 +246,9 @@ Optional titlebar stuff
 </tal:block>
 </tal:block>
 
+</form>
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="ipServiceListForm">
 
 <tal:block metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
@@ -232,6 +263,9 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
+        <th class="tableheader"></th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'getServiceClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getKeyword','Name')">Name
         </th>
@@ -255,6 +289,11 @@ Optional titlebar stuff
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+        <td class="tablevalues" align="center">
+           <input type="checkbox" name="componentNames:list" 
+                  tal:attributes="value srv/getRelationshipManagerId"/>
+        </td>
+        <td tal:content="structure srv/getServiceClassLink"/>
         <td><a class="tablevalues" tal:content="srv/name"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
@@ -286,6 +325,9 @@ Optional titlebar stuff
 </tal:block>
 </tal:block>
 
+</form>
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="fileSystemListForm">
 
 <tal:block metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
@@ -300,6 +342,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="objects">
+        <th class="tableheader"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'mount','Mount')">Mount
         </th>
@@ -330,6 +373,11 @@ Optional titlebar stuff
     <tal:block tal:repeat="fsys batch">
     <tr tal:define="odd repeat/fsys/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+        
+      <td class="tablevalues" align="center">
+           <input type="checkbox" name="componentNames:list" 
+                  tal:attributes="value fsys/getRelationshipManagerId"/>
+      </td>
       <td class="tablevalues">
           <a class=tablevalues tal:content="fsys/mount" 
             tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
@@ -371,6 +419,10 @@ Optional titlebar stuff
 </tal:block>
 </tal:block>
 
+</form>
+<form method="post" tal:attributes="action here/absolute_url" 
+    name="ipRouteEntryListForm">
+    
 <tal:block metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
     objects here/os/routes/objectValuesAll;
@@ -382,6 +434,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
+        <th class="tableheader"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Destination')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -402,12 +455,18 @@ Optional titlebar stuff
     <tal:block tal:repeat="route batch">
     <tr tal:define="odd repeat/route/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" align="center">
+           <input type="checkbox" name="componentNames:list" 
+                  tal:attributes="value route/getRelationshipManagerId"/>
+      </td>
       <td class="tablevalues" tal:content="structure route/getTargetLink"/>
       <td class="tablevalues">
           <span tal:replace="structure route/getNextHopIpLink"/>
           (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
-      <td class="tablevalues" tal:content="route/getInterfaceNameString"/>
+      <td class="tablevalues"><a tal:content="route/getInterfaceNameString" 
+              tal:attributes="href route/interface/getPrimaryUrlPath"/>
+      </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
       <td class="tablevalues" align="center">
@@ -428,6 +487,8 @@ Optional titlebar stuff
 </tal:block>
 </tal:block>
 </tal:block>
+
+</form>
 
 </tal:block>
 </tal:block>

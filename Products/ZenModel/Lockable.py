@@ -1,5 +1,3 @@
-from Products.ZenRelations import RelationshipBase
-
 UNLOCKED = 0
 DELETE_LOCKED = 1
 UPDATE_LOCKED = 2
@@ -21,33 +19,47 @@ class Lockable(object):
     def sendEventWhenBlocked(self):
         if self.sendEventWhenBlockedFlag:
             return True
+        return False
+        '''
         else:
             lockableParent = self.getNextLockableParent()
             if lockableParent:
                 return lockableParent.sendEventWhenBlocked()
             else:
                 return False
-                
+        '''
+    
+    def isUnlocked(self):
+        if self.modelerLock == UNLOCKED:
+                return True
+        return False
+        
     def isLockedFromDeletion(self):
         if self.modelerLock == DELETE_LOCKED or self.modelerLock == UPDATE_LOCKED:
             return True
+        return False
+        '''
         else:
             lockableParent = self.getNextLockableParent()
             if lockableParent:
                 return lockableParent.isLockedFromDeletion()
             else:
                 return False
-                
+        '''
+        
     def isLockedFromUpdates(self):
         if self.modelerLock == UPDATE_LOCKED: 
             return True
+        return False
+        '''
         else:
             lockableParent = self.getNextLockableParent()
             if lockableParent:
                 return lockableParent.isLockedFromUpdates()
             else:
                 return False
-                
+        '''
+        
     def setSendEventWhenBlockedFlag(self):
         self.sendEventWhenBlockedFlag = True
 
@@ -61,6 +73,11 @@ class Lockable(object):
             self.setSendEventWhenBlockedFlag()
         else:
             self.unsetSendEventWhenBlockedFlag()
+        
+        if self.meta_type == 'Device':
+            for dc in self.getDeviceComponents():
+                dc.unlock(sendEventWhenBlocked)
+        
         if REQUEST:
             return self.callZenScreen(REQUEST)
     
@@ -71,6 +88,11 @@ class Lockable(object):
             self.setSendEventWhenBlockedFlag()
         else:
             self.unsetSendEventWhenBlockedFlag()
+
+        if self.meta_type == 'Device':
+            for dc in self.getDeviceComponents():
+                dc.lockFromDeletion(sendEventWhenBlocked)
+                
         if REQUEST:
             return self.callZenScreen(REQUEST)
     
@@ -81,6 +103,11 @@ class Lockable(object):
             self.setSendEventWhenBlockedFlag()
         else:
             self.unsetSendEventWhenBlockedFlag()
+
+        if self.meta_type == 'Device':
+            for dc in self.getDeviceComponents():
+                dc.lockFromUpdates(sendEventWhenBlocked)
+                    
         if REQUEST:
             return self.callZenScreen(REQUEST)
     

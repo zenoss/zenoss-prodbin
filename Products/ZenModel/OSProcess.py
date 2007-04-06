@@ -15,8 +15,8 @@ from zExceptions import NotFound
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
-def manage_addOSProcess(context, id, className, userCreated, REQUEST = None):
-    """make a device"""
+def manage_addOSProcess(context, id, className, userCreated, REQUEST=None):
+    """make an os process"""
     context._setObject(id, OSProcess(id))
     osp = context._getOb(id)
     if className == '/': className = ''
@@ -24,7 +24,7 @@ def manage_addOSProcess(context, id, className, userCreated, REQUEST = None):
     classPath = "%s/osProcessClasses/%s" % (orgPath, id)
     try:
         osp.getDmdObj(classPath)
-    except KeyError, NotFound:
+    except (KeyError, NotFound):
         organizer = osp.getDmdObj(orgPath)
         organizer.manage_addOSProcessClass(id)
     osp.setOSProcessClass(classPath)

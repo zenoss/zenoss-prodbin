@@ -4,9 +4,24 @@
 <p style="text-align:right;">
 Destination:&nbsp;<input name="dest"><br/><br/>
 Next Hop:&nbsp;<input name="nexthopid"><br/><br/>
-Interface:&nbsp;<input name="interface"><br/><br/>
-Protocol:&nbsp;<input name="routeproto"><br/><br/>
-Type:&nbsp;<input name="routetype"><br/><br/>
+Interface:&nbsp;<select name="interface"
+tal:define="interfaces here/os/interfaces/objectValuesAll">
+    <option tal:repeat="interface interfaces"
+        tal:attributes="value interface/name"
+        tal:content="interface/name">/</option>
+</select><br/><br/>
+Protocol:&nbsp;<select name="routeproto"
+tal:define="protocols here/os/routeProtoMap">
+    <option tal:repeat="protocol protocols"
+        tal:attributes="value protocol"
+        tal:content="protocol">/</option>
+</select><br/><br/>
+Type:&nbsp;<select name="routetype"
+tal:define="types here/os/routeTypeMap">
+    <option tal:repeat="type types"
+        tal:attributes="value type"
+        tal:content="type">/</option>
+</select><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpRouteEntry:method"

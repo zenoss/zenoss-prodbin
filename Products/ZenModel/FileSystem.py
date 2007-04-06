@@ -21,12 +21,15 @@ from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
+from Products.ZenUtils.Utils import prepId
 
 def manage_addFileSystem(context, id, userCreated, REQUEST=None):
     """make a filesystem"""
-    fs = FileSystem(id)
-    context._setObject(id, fs)
-    fs = context._getOb(id)
+    fsid = prepId(id)
+    fs = FileSystem(fsid)
+    context._setObject(fsid, fs)
+    fs = context._getOb(fsid)
+    setattr(fs, 'mount', id)
     if userCreated: fs.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
