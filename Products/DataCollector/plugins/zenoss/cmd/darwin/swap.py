@@ -27,7 +27,7 @@ class swap(CommandPlugin):
 
 
     def condition(self, device, log):
-        return device.os.uname in ['Darwin', '']
+        return device.os.uname == 'Darwin' 
 
 
     def process(self, device, results, log):

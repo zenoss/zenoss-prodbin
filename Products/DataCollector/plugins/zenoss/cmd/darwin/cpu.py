@@ -27,7 +27,7 @@ class cpu(CommandPlugin):
 
     def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
-        return device.os.uname in ['Darwin', '']
+        return device.os.uname == 'Darwin' 
 
 
     def process(self, device, results, log):

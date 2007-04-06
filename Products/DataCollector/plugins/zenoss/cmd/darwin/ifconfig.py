@@ -23,7 +23,7 @@ class ifconfig(CommandPlugin):
 
 
     def condition(self, device, log):
-        return device.os.uname in ['Darwin', '']
+        return device.os.uname == 'Darwin' 
 
 
     def chunk(self, output):
@@ -33,16 +33,14 @@ class ifconfig(CommandPlugin):
         chunks = []
         chunk = []
         for line in output.split('\n'):
-            if line.startsWith(' '):
+            if line.startswith(' '):
                 chunk.append(' ')
                 chunk.append(line)
             else:
                 section = string.join(chunk, ' ').strip()
                 if len(section) > 0:
                     chunks.append(section)
-
                 chunk = [line]
-
         chunks.append(string.join(chunk, ' '))
         return chunks
 
