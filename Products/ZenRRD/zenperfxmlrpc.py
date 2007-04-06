@@ -287,6 +287,11 @@ class zenperfxmlrpc(RRDDaemon):
         return p, url_key
 
 
+    def remote_updateDeviceConfig(self, cfg):
+        self.log.debug("Asynch update of config")
+        self.updateDeviceConfig(cfg)
+
+
     def updateDeviceConfig(self, xmlRpcTargets):
         'Save the device configuration and create an XMLRPC proxy to talk to it'
 

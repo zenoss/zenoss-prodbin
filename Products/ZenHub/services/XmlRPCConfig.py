@@ -11,3 +11,9 @@ class XmlRPCConfig(PerformanceConfig):
     def remote_getXmlRpcDevices(self, *args, **kwargs):
         return self.config.getXmlRpcDevices(*args, **kwargs)
 
+    def getDeviceConfig(self, device):
+        return device.getXmlRpcTargets()
+
+    def sendDeviceConfig(self, listener, config):
+        listener.callRemote('updateDeviceConfig', config)
+
