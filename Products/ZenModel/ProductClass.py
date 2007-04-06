@@ -162,7 +162,8 @@ class ProductClass(ZenModelRM):
         self.partNumber = partNumber
         self.description = description        
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
    
 

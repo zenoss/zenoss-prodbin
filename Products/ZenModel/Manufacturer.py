@@ -186,7 +186,8 @@ class Manufacturer(ZenModelRM, ZenPackable):
         self.state = state
         self.zip = zip
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
 
 

@@ -72,7 +72,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         self.manage_changeProperties(**REQUEST.form)
         self.notifyObjectChange(self)
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
 
 

@@ -319,7 +319,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.explanation = explanation
         self.resolution = resolution
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
 
 

@@ -181,7 +181,8 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         self.port = port
         self.description = description        
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
    
 

@@ -142,7 +142,8 @@ class OSProcessClass(ZenModelRM, Commandable):
         self.description = description
         self.ignoreParameters = ignoreParameters
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
    
 

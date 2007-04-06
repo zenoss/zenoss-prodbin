@@ -148,7 +148,8 @@ class ZenModelBase(object):
         """
         self.manage_changeProperties(**REQUEST.form)
         if REQUEST:
-            REQUEST['message'] = "Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST)
 
 
