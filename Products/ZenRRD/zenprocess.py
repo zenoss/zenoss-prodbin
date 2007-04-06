@@ -264,24 +264,33 @@ class zenprocess(SnmpDaemon):
         return drive(doFetchConfig)
 
 
+    def remote_updateDevice(self, cfg):
+        name = self.updateDevice(cfg)
+        self.log.debug("Async config update for %s", name)
+    
+    def updateDevice(self, cfg):
+        (name, addr, snmpConf), procs = cfg
+        community, version, timeout, tries = snmpConf
+        d = self._devices.setdefault(name, Device())
+        d.name = name
+        d.address = addr
+        d.community = community
+        d.version = version
+        d.timeout = timeout
+        d.tries = tries
+        d.updateConfig(procs)
+        d.protocol = self.snmpPort.protocol
+        return name
+    
+
     def start(self, driver):
         'Read the basic config needed to do anything'
         log.debug("fetching config")
         yield self.fetchConfig();
         n = driver.next()
         removed = Set(self._devices.keys())
-        for (name, addr, snmpConf), procs in n:
-            community, version, timeout, tries = snmpConf
-            removed.discard(name)
-            d = self._devices.setdefault(name, Device())
-            d.name = name
-            d.address = addr
-            d.community = community
-            d.version = version
-            d.timeout = timeout
-            d.tries = tries
-            d.updateConfig(procs)
-            d.protocol = self.snmpPort.protocol
+        for cfg in n:
+            removed.discard(self.updateDevice(cfg))
         for r in removed:
             del self._devices[r]
 
