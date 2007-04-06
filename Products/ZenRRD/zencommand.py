@@ -369,6 +369,10 @@ class zencommand(RRDDaemon):
         self.pool = SshPool()
 
 
+    def remote_updateConfig(self, config):
+        self.log.debug("Async configuration update")
+        self.updateConfig([config])
+
     def updateConfig(self, config):
         current = dict([((c.device,c.command), c) for c in self.schedule])
         update = []
