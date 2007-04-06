@@ -175,7 +175,7 @@ class IpAddress(ManagedEntity):
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
         if self.interface():
-            return self.interface().name()
+            return self.interface().name
         return "No Interface"
 
 
