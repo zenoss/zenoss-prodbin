@@ -262,7 +262,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             if self.userAgent:
                 go += 'agent "%s"\n' % self.userAgent
             res = go + res
-        elif not res.startswith('/'):
+        elif not res.startswith('/') and not res.startswith('$'):
             if not res.startswith(context.zCommandPath):
                 res = os.path.join(context.zCommandPath, res)
         return res
