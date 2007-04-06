@@ -41,6 +41,13 @@ def YYYYMMDDHHMMS(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y%m%d%H%M%S", time.localtime(value))
 
+def HHMMSS(gmtSecondsSince1970 = None):
+    value = _maybenow(gmtSecondsSince1970)
+    return time.strftime("%H:%M:%S", time.localtime(value))
+
+def SaveMessage():
+    return "Saved at time: " + HHMMSS()
+
 def Duration(seconds):
     result = ':%02d' % (seconds % 60)
     seconds /= 60
