@@ -144,7 +144,7 @@ class IpRouteEntry(OSComponent):
         If no interface is found return 'No Interface'.
         """
         if self.interface():
-            return self.interface().name
+            return self.interface().name()
         return "No Interface"
 
        
