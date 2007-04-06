@@ -90,16 +90,23 @@ class PrimaryPathObjectManager(
                       RoleManager.manage_options +
                       ZItem.manage_options)
 
+    def _noticeChange(self):
+        # the object may not be hooked in to have acquisition yet
+        try:
+            self.notifyObjectChange(self)
+        except AttributeError:
+            pass
+
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
+        self._noticeChange()
         obj.__primary_parent__ = aq_base(self)
-        self.notifyObjectChange(self)
         return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
     def _delObject(self, id, dp=1):
         """When deleted clear __primary_parent__."""
-        self.notifyObjectChange(self)
+        self._noticeChange()
         obj = self._getOb(id)
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
@@ -111,14 +118,14 @@ class PrimaryPathBTreeFolder2(BTreeFolder2):
     """
     def _setObject(self, id, obj, roles=None, user=None, set_owner=1):
         """Track __primary_parent__ when we are set into an object"""
-        self.notifyObjectChange(self)
+        self._noticeChange()
         obj.__primary_parent__ = aq_base(self)
         return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
     def _delObject(self, id, dp=1):
         """When deleted clear __primary_parent__."""
-        self.notifyObjectChange(self)
+        self._noticeChange()
         obj = self._getOb(id)
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
