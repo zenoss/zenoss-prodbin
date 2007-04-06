@@ -18,7 +18,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
         return self.zem.getDevicePingIssues()
     
     def xmlrpc_getWmiConnIssues(self, *args):
-        return self.zem.getWmiConnIssues(args)
+        return self.zem.getWmiConnIssues(*args)
 
 
     def xmlrpc_applyDataMap(self, devName, datamap, 
