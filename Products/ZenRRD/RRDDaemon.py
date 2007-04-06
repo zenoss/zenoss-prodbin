@@ -191,7 +191,7 @@ class RRDDaemon(Base):
 
     def model(self):
         class Fake:
-            def callremote(self, *args, **kwargs):
+            def callRemote(self, *args, **kwargs):
                 return defer.fail("No connection to ZenHub")
         return self.services.get(self.initialServices[-1], Fake())
 
