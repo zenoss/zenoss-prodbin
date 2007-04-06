@@ -338,6 +338,8 @@ class MaintenanceWindow(ZenModelRM):
         else:
             self.begin(now)
 
+DeviceMaintenanceWindow = MaintenanceWindow
+
 
 if __name__=='__main__':
     m = MaintenanceWindow('tester')
