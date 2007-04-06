@@ -139,6 +139,7 @@ class ZenHub(ZCmdBase):
     def doProcessQueue(self, q):
         while self.dmd.hubQueue:
             object = q.pull()
+            self.log.debug("Object %s changed", "/".join(object))
             from Products.ZenUtils.Utils import getObjByPath
             object = getObjByPath(self.dmd, object)
             for s in self.services.values():

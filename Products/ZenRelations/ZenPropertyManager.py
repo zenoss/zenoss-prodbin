@@ -219,6 +219,7 @@ class ZenPropertyManager(PropertyManager):
         """
         if propname:
             self._delProperty(propname)
+        self.notifyObjectChange(self)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 

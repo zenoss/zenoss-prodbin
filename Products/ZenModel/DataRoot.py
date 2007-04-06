@@ -465,7 +465,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def notifyObjectChange(self, object = None):
         if object is not None:
-            self.hubQueue.put(object.getPrimaryPath())
+            path = object.getPrimaryPath()
+            if len(path) > 2:
+                self.hubQueue.put(path)
         else:
             self.dmd.hubQueue.put(self.getPrimaryPath())
 

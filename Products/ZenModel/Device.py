@@ -805,7 +805,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
        
         self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Device Saved at time:"
+            from Products.ZenUtils.Time import SaveMessage
+            REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST)
 
 
