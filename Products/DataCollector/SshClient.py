@@ -47,6 +47,7 @@ class SshClientTransport(transport.SSHClientTransport):
 class SshUserAuth(userauth.SSHUserAuthClient):
     lastPublicKey = False
     def __init__(self, user, instance, factory):
+        user = str(user)                # damn unicode
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
         self.factory = factory
