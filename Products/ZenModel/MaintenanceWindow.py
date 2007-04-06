@@ -339,6 +339,7 @@ class MaintenanceWindow(ZenModelRM):
             self.begin(now)
 
 DeviceMaintenanceWindow = MaintenanceWindow
+OrganizerMaintenanceWindow = MaintenanceWindow
 
 
 if __name__=='__main__':
