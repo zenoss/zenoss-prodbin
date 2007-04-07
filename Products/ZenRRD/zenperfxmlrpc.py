@@ -286,6 +286,10 @@ class zenperfxmlrpc(RRDDaemon):
             p.methodMap = {}
         return p, url_key
 
+    def remote_deleteDevice(self, doomed):
+        self.log.debug("Async delete device %s" % doomed)
+        if doomed in self.devices:
+             del self.devices[doomed]
 
     def remote_updateDeviceConfig(self, cfg):
         self.log.debug("Asynch update of config")

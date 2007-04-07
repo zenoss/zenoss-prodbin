@@ -368,7 +368,10 @@ class zencommand(RRDDaemon):
         self.deviceIssues = Set()
         self.pool = SshPool()
 
-
+    def remote_deleteDevice(self, doomed):
+        self.log.debug("Async delete device %s" % doomed)
+        self.schedule = [c for c in self.schedule if c.device == doomed]
+            
     def remote_updateConfig(self, config):
         self.log.debug("Async configuration update")
         self.updateConfig([config])

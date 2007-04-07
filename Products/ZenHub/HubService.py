@@ -15,6 +15,9 @@ class HubService(pb.Referenceable):
     def update(self, object):
         pass
 
+    def deleted(self, path):
+        pass
+
     def addListener(self, remote):
         remote.notifyOnDisconnect(self.removeListener)
         log.info("adding listener")

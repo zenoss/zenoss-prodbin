@@ -359,6 +359,13 @@ class zenperfsnmp(SnmpDaemon):
         for name, proxy in self.proxies.items():
             proxy.snmpStatus.count = countMap.get(name, 0)
 
+
+    def remote_deleteDevice(self, doomed):
+        self.log.debug("Async delete device %s" % doomed)
+        if doomed in self.proxies:
+             del self.proxies[doomed]
+
+
     def remote_updateDeviceConfig(self, snmpTargets):
         self.log.debug("Async device update")
         self.updateDeviceConfig(snmpTargets)
@@ -433,7 +440,13 @@ class zenperfsnmp(SnmpDaemon):
         d.addCallback(self.reportRate)
         for unused in range(MAX_SNMP_REQUESTS):
             if not self.queryWorkList: break
-            self.startReadDevice(self.queryWorkList.pop())
+            d = self.startReadDevice(self.queryWorkList.pop())
+            def printError(reason):
+                from StringIO import StringIO
+                out = StringIO()
+                reason.printTraceback(out)
+                self.log.error(reason)
+            d.setErrback(d)
 
 
     def reportRate(self, *unused):

@@ -32,6 +32,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 import transaction
+from zExceptions import NotFound
 
 from XmlRpcService import XmlRpcService
 
@@ -138,12 +139,18 @@ class ZenHub(ZCmdBase):
 
     def doProcessQueue(self, q):
         while self.dmd.hubQueue:
-            object = q.pull()
-            self.log.debug("Object %s changed", "/".join(object))
+            path = q.pull()
             from Products.ZenUtils.Utils import getObjByPath
-            object = getObjByPath(self.dmd, object)
-            for s in self.services.values():
-                s.update(object)
+            try:
+                object = getObjByPath(self.dmd, path)
+            except NotFound:
+                self.log.debug("Object %s deleted", "/".join(path))
+                for s in self.services.values():
+                    s.deleted(path)
+            else:
+                self.log.debug("Object %s changed", "/".join(path))
+                for s in self.services.values():
+                    s.update(object)
 
     def sendEvent(self, **kw):
         if not 'device' in kw:

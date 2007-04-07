@@ -57,3 +57,8 @@ class PerformanceConfig(HubService):
                 break
 
             object = aq_parent(object)
+
+    def deleted(self, path):
+        for listener in self.listeners:
+            if 'Devices' in path:
+                listener.callRemote('deleteDevice', path[-1])

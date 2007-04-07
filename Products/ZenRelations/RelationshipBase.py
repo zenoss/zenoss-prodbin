@@ -87,6 +87,8 @@ class RelationshipBase(PrimaryPathManager):
 
     def removeRelation(self, obj=None):
         """remove an object from a relationship"""
+        self._noticeChange()
+        self._noticeChange(obj)
         self._remoteRemove(obj)
         self._remove(obj)
    

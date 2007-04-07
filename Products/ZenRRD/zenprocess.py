@@ -263,6 +263,10 @@ class zenprocess(SnmpDaemon):
 
         return drive(doFetchConfig)
 
+    def remote_deleteDevice(self, doomed):
+        self.log.debug("Async delete device %s" % doomed)
+        if doomed in self._devices:
+             del self._devices[doomed]
 
     def remote_updateDevice(self, cfg):
         name = self.updateDevice(cfg)
