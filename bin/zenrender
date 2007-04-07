@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenRRD
+PRGNAME=zenrender.py
+CFGFILE=$CFGDIR/zenrender.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
