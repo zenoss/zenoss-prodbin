@@ -30,6 +30,15 @@ registerDirectory('skins', globals())
 zeneventpopulator = None
 zeneventmaintenance = None
 
+productNames = (
+    "ActionRule",
+    "ActionRuleWindow",
+    "EventClass",
+    "EventClassInst",
+    "EventCommand",
+    "EventManagerBase",
+)    
+
 def initialize(registrar):
     registrar.registerClass(
         MySqlEventManager,
