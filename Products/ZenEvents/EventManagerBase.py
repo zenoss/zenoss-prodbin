@@ -775,7 +775,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         data = self.checkCache("dashboardinfo%s" % simple)
         if data: return data
         data = {}
-        data['systemevents'] = self.getSystemsDashboard(simple)
+        data['systemevents'] = self.getOrganizerSummary(
+                                        'Systems','viewEvents', simple)
         data['heartbeat'] = self.getHeartbeat()
         data['deviceevents'] = self.getDeviceDashboard(simple)
         self.addToCache("dashboardinfo", data)
@@ -819,23 +820,29 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return devdata
 
 
-    def getSystemsDashboard(self, simple=False):
+    def getOrganizerSummary(self, rootname='Systems',template='',simple=False):
         """Return systems info for dashboard."""
-        sysroot = self.getDmdRoot("Systems")
-        sysdata = []
-        for sys in sysroot.children():
+        root = self.getDmdRoot(rootname)
+        data = []
+        for sys in root.children():
             if simple:
                 alink = sys.getOrganizerName()
             else:
-                alink = "<a href='%s'>%s</a>" % (
-                        sys.getPrimaryUrlPath()+"/viewEvents",
+                alink = "<a href='%s/%s'>%s</a>" % (
+                        sys.getPrimaryUrlPath(),template,
                         sys.getOrganizerName())
             evts = [ alink ]
             evts.extend(map(evtprep, sys.getEventSummary(prodState=1000)))
-            sysdata.append(evts)
-        sysdata.sort()
-        return sysdata
+            data.append(evts)
+        data.sort()
+        return data
         
+
+    def getOrganizerDashboard(self):
+        return {
+                'systemevents': self.getOrganizerSummary(),
+                'locationevents': self.getOrganizerSummary('Locations')
+        }
 
 
     def getSummaryDashboard(self, REQUEST=None):
