@@ -446,7 +446,7 @@ class zenperfsnmp(SnmpDaemon):
                 out = StringIO()
                 reason.printTraceback(out)
                 self.log.error(reason)
-            d.setErrback(d)
+            d.addErrback(printError)
 
 
     def reportRate(self, *unused):
