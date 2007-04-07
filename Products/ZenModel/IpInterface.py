@@ -369,6 +369,13 @@ class IpInterface(OSComponent):
         return self.prepId(self.type or "Unknown")
 
 
+    def getRRDTemplates(self):
+        default = self.getRRDTemplateByName(self.getRRDTemplateName())
+        if default:
+            return [default]
+        return [self.getRRDTemplateByName('ethernetCsmacd')]
+        
+
     def snmpIgnore(self):
         """Ignore interface that are operationally down.
         """
