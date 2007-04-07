@@ -424,17 +424,18 @@ class zencommand(RRDDaemon):
             for c in self.schedule:
                 if c.running():
                     running += 1
-                elif c.nextRun() <= now:
+            for c in self.schedule:
+                if running >= self.options.parallel:
+                    break
+                if c.nextRun() <= now:
                     c.start(self.pool).addBoth(self.finished)
                     running += 1
                 else:
                     earliest = c.nextRun() - now
                     break
-                if running >= self.options.parallel:
-                    break
             if earliest is not None:
                 log.debug("Next command in %f seconds", earliest)
-                self.timeout = reactor.callLater(earliest,
+                self.timeout = reactor.callLater(max(1, earliest),
                                                  self.processSchedule)
         except Exception, ex:
             log.exception(ex)
