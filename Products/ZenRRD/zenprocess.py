@@ -35,6 +35,7 @@ except ImportError:
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
+from Products.ZenUtils.Chain import Chain
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
@@ -71,6 +72,10 @@ def reverseDict(d):
     for a, v in d.items():
         result.setdefault(v, []).append(a)
     return result
+
+def chunk(lst, n):
+    'break lst into n-sized chunks'
+    return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 def closer(value, device):
     device.close()
@@ -483,7 +488,7 @@ class zenprocess(SnmpDaemon):
         if not oids:
             return defer.succeed(([], device))
         
-        d = device.get(oids)
+        d = Chain(device.get, iter(chunk(oids, MAX_OIDS_PER_REQUEST))).run()
         d.addBoth(self.storePerfStats, device)
         return d
 
