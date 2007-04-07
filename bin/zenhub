@@ -8,4 +8,3 @@ CFGFILE=$CFGDIR/zenhub.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
 generic "$@"
-g
