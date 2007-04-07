@@ -37,8 +37,6 @@ def copyProperty(source, dest, name):
     try:
         d = getattr(dest, name)
     except AttributeError:
-        import pdb
-        pdb.set_trace()
         pass
 
     if s != d:
