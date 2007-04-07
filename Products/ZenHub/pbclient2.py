@@ -25,7 +25,6 @@ class EventClient(pb.Referenceable):
 
     def connected(self, perspective):
         print "got perspective ref:", perspective
-        import pdb; pdb.set_trace()
         d = perspective.getService("EventService", self)
         d.addCallback(self.sendEvent)
         d.addErrback(self.bad)
