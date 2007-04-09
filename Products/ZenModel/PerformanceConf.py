@@ -285,10 +285,20 @@ class PerformanceConf(Monitor, StatusColor):
         """set the full path of the target and send to view"""
         targetpath = performancePath(targetpath[1:])
         gopts =  view.graphOpts(context, targetpath, targettype)
-        gopts = url_quote(zlib.compress('|'.join(gopts)))
-        url = "%s/render?gopts=%s&drange=%d" % (self.renderurl,gopts,drange)
+        ngopts = []
+        width = 0
+        for o in gopts: 
+            if o.startswith('--width'): 
+                width = o.split('=')[1].strip()
+                continue
+            ngopts.append(o)
+        gopts = url_quote(zlib.compress('|'.join(ngopts)))
+        url = "%s/render?gopts=%s&drange=%d&width=%s" % (
+                self.renderurl,gopts,drange, width)
         if self.renderurl.startswith("http"):
-            return "/zport/RenderServer/render?remoteUrl=%s&gopts=%s&drange=%d" % (url_quote(url),gopts,drange)
+            return  "/zport/RenderServer/render" \
+                    "?remoteUrl=%s&gopts=%s&drange=%d&width=%s" % (
+                    url_quote(url),gopts,drange,width)
         else:
             return url
 
