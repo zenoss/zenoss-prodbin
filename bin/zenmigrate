@@ -1,15 +1,6 @@
 #! /usr/bin/env bash
 
+# For some reason the zenfunctions line eats part of $*.  Store
+# value now to use in call to zendmd.py
 . $ZENHOME/bin/zenfunctions
-
-PRGHOME=$ZENHOME/Products/ZenModel/migrate
-PRGNAME=zenmigrate.py
-CFGFILE=$CFGDIR/zenmigrate.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
-
-# silly to run zenmigrate as a daemon
-start() {
-    run "$@"
-}
-
-notdaemon "$@"
+$PYTHON $ZENHOME/Products/ZenModel/migrate/zenmigrate.py "$CMD" $*
