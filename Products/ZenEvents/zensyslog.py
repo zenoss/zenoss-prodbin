@@ -33,6 +33,9 @@ except socket.error:
 class ZenSyslog(DatagramProtocol, EventServer):
 
     name = 'zensyslog'
+    SYSLOG_DATE_FORMAT = '%b %d %H:%M:%S'
+    SAMPLE_DATE = 'Apr 10 15:19:22'
+
 
     def __init__(self):
         EventServer.__init__(self)
@@ -54,11 +57,50 @@ class ZenSyslog(DatagramProtocol, EventServer):
         reactor.listenUDP(self.options.syslogport, self)
 
 
+    def expand(self, msg, client_address):
+        """expands a syslog message into a string format suitable for writing
+        to the filesystem such that it appears the same as it would
+        had the message been logged by the syslog daemon."""
+        
+        # pri := facility * severity
+        stop = msg.find('>')
+        pri = msg[1:stop]
+        
+        # check for a datestamp.  default to right now if date not present
+        start = stop + 1
+        stop = start + len(ZenSyslog.SAMPLE_DATE)
+        dateField = msg[start:stop]
+        try:
+            date = time.strptime(dateField, ZenSyslog.SYSLOG_DATE_FORMAT)
+            year = time.localtime()[0]
+            date = (year,) + date[1:]
+            start = stop + 1
+        except  ValueError:
+            # date not present, so use today's date
+            date = time.localtime()
+
+        # check for a hostname.  default to localhost if not present
+        stop = msg.find(' ', start)
+        if msg[stop - 1] == ':':
+            hostname = client_address[0]
+        else:
+            hostname = msg[start:stop]
+            start = stop + 1
+
+        # the message content
+        body = msg[start:]
+
+        # assemble the message
+        prettyTime = time.strftime(ZenSyslog.SYSLOG_DATE_FORMAT, date)
+        message = '%s %s %s' % (prettyTime, hostname, body)
+        return message
+        
+
     def datagramReceived(self, msg, client_address):
         """Use a separate thread to process the request."""
         ipaddr, port = client_address
-        if self.options.logorig: 
-            self.olog.info(msg)
+        if self.options.logorig:
+            self.olog.info(self.expand(msg, client_address))
         lookupPointer(ipaddr,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
 
 
