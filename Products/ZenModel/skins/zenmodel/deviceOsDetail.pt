@@ -61,7 +61,7 @@
                 'misc_/SiteScopeParser/redball_img')">
       </td>
       <td class="tablevalues">
-      <a class=tablevalues tal:content="intf/name" 
+      <a class=tablevalues tal:content="intf/getInterfaceName" 
         tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
       </td>
       <td class="tablevalues">

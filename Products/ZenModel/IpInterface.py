@@ -353,8 +353,9 @@ class IpInterface(OSComponent):
     def getInterfaceName(self):
         """Return the name of this interface.
         """
-        return self.interfaceName
-
+        if self.interfaceName: return self.interfaceName
+        elif self.name: return self.name
+        else: return "None"
 
     security.declareProtected('View', 'getInterfaceMacaddress')
     def getInterfaceMacaddress(self):
