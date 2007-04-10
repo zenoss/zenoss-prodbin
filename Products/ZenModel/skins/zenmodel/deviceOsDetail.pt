@@ -61,7 +61,7 @@
                 'misc_/SiteScopeParser/redball_img')">
       </td>
       <td class="tablevalues">
-      <a class=tablevalues tal:content="intf/getInterfaceName" 
+      <a class=tablevalues tal:content="intf/viewName" 
         tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
       </td>
       <td class="tablevalues">
@@ -105,8 +105,10 @@
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url" 
-    name="winServiceListForm">
+<form method="post" 
+        tal:condition="python:here.deviceClass().zenPropertyString('zWinServices')"
+        tal:attributes="action here/absolute_url"
+        name="winServiceListForm">
 
 <tal:block tal:define="tableName string:winserviceslist;
     objects here/os/winservices/objectValuesAll;

@@ -19,11 +19,11 @@
     <tr>
       <td class="tableheader" align=left>Name</td>
       <td class="tablevalues" tal:condition="not:here/isManager" 
-                            tal:content="here/name">eth0</td>
+                            tal:content="here/viewName">eth0</td>
       <td class="tablevalues" tal:condition="here/isManager">
           <input tal:attributes="class string:tablevalues; 
-                            name string:name; 
-                            value here/name">
+                            name string:interfaceName; 
+                            value here/interfaceName">
       </td>
       <td class="tableheader" align=left>MAC Address</td>
       <td class="tablevalues" tal:condition="not:here/isManager" 

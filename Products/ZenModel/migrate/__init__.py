@@ -72,3 +72,4 @@ import zlocal
 import evenbetterstandarderrormessage
 import zCollectorPlugins
 import hubqueue
+import zWinServices
