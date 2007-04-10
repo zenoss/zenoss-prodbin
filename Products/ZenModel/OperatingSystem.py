@@ -61,18 +61,68 @@ class OperatingSystem(Software):
             'egp', 'ggp', 'hello', 'rip', 'is-is', 'es-is',
             'ciscoIgrp', 'bbnSpfIgrp', 'ospf', 'bgp')
             
+    factory_type_information = (
+        {
+            'id'             : 'Device',
+            'meta_type'      : 'Device',
+            'description'    : """Base class for all devices""",
+            'icon'           : 'Device_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addDevice',
+            'immediate_view' : 'deviceOsDetail',
+            'actions'        :
+            (
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : '../deviceStatus'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'osdetail'
+                , 'name'          : 'OS'
+                , 'action'        : 'deviceOsDetail'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'hwdetail'
+                , 'name'          : 'Hardware'
+                , 'action'        : '../deviceHardwareDetail'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'swdetail'
+                , 'name'          : 'Software'
+                , 'action'        : '../deviceSoftwareDetail'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : '../viewEvents'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : '../viewHistoryEvents'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'perfServer'
+                , 'name'          : 'Perf'
+                , 'action'        : '../viewDevicePerformance'
+                , 'permissions'   : (permissions.view, )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Changes'
+                , 'action'        : '../viewHistory'
+                , 'permissions'   : (permissions.view, )
+                },
+            )
+         },
+        )
+
+
     def __init__(self):
         id = "os"
         Software.__init__(self, id)
         self._delObject("os")   # OperatingSystem is a software 
                                 # but doens't have os relationship
 
-
-    def __call__(self, REQUEST=None):
-        pp = self.getPrimaryParent()
-        screen = getattr(pp, "deviceOsDetail", False)
-        if not screen: return pp()
-        return screen()
 
     def totalSwapString(self):
         return self.totalSwap and convToUnits(self.totalSwap) or 'unknown'

@@ -9,7 +9,7 @@
     
 <tal:block tal:define="unused here/cacheComponents;
         tableName string:interfacelist;
-        objects here/os/interfaces/objectValuesAll;
+        objects here/interfaces/objectValuesAll;
         tabletitle string:Interfaces;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         menu_id string:IpInterface"
@@ -111,7 +111,7 @@
         name="winServiceListForm">
 
 <tal:block tal:define="tableName string:winserviceslist;
-    objects here/os/winservices/objectValuesAll;
+    objects here/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='caption');
@@ -178,7 +178,7 @@
     name="osProcessListForm">
     
 <tal:block tal:define="tableName string:osprocesslist;
-    objects here/os/processes/objectValuesAll;
+    objects here/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getOSProcessClass');
@@ -254,7 +254,7 @@ Optional titlebar stuff
 
 <tal:block metal:define-macro="ipserviceList"
     tal:define="tableName string:ipservicelist;
-    objects here/os/ipservices/objectValuesAll;
+    objects here/ipservices/objectValuesAll;
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort');
@@ -333,7 +333,7 @@ Optional titlebar stuff
 
 <tal:block metal:define-macro="fileSysList"
     tal:define="tableName string:fileSyslist;
-    objects here/os/filesystems/objectValuesAll;
+    objects here/filesystems/objectValuesAll;
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');
@@ -427,7 +427,7 @@ Optional titlebar stuff
     
 <tal:block metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
-    objects here/os/routes/objectValuesAll;
+    objects here/routes/objectValuesAll;
     tabletitle string:Routes;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     menu_id string:IpRouteEntry">

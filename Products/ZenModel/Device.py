@@ -259,7 +259,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 },
                 { 'id'            : 'osdetail'
                 , 'name'          : 'OS'
-                , 'action'        : 'deviceOsDetail'
+                , 'action'        : 'os/deviceOsDetail'
                 , 'permissions'   : (permissions.view, )
                 },
                 { 'id'            : 'hwdetail'
