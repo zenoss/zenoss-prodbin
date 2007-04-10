@@ -100,7 +100,13 @@ class ZenSyslog(DatagramProtocol, EventServer):
         """Use a separate thread to process the request."""
         ipaddr, port = client_address
         if self.options.logorig:
-            self.olog.info(self.expand(msg, client_address))
+            if self.options.logformat == 'human':
+                message = self.expand(msg, client_address)
+            else:
+                message = msg
+
+            self.olog.info(message)
+
         lookupPointer(ipaddr,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
 
 
@@ -130,6 +136,9 @@ class ZenSyslog(DatagramProtocol, EventServer):
         self.parser.add_option('--logorig',
             dest='logorig', action="store_true",  default=False,
             help="log the original message")
+        self.parser.add_option('--logformat',
+            dest='logformat', default="human",
+            help="human (/var/log/messages) or raw (wire)")
         self.parser.add_option('--debug',
             dest='debug', action="store_true",  default=False,
             help="debug mode no threads")
