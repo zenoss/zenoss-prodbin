@@ -12,7 +12,8 @@ import transaction
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+#from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 if readline:
     # Note: the history code in this file was originally authored by
@@ -28,11 +29,11 @@ if readline:
     if os.path.exists(historyPath):
         readline.read_history_file(historyPath)
 
-class zendmd(ZCmdBase):
+class zendmd(ZenScriptBase):
     pass
 
 if __name__ == '__main__':
-    zendmd = zendmd()
+    zendmd = zendmd(connect=True)
     dmd = zendmd.dmd
     app = dmd.getPhysicalRoot()
     zport = app.zport

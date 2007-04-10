@@ -15,7 +15,7 @@ __version__ = "$Revision$"[11:-2]
 
 import Globals
 import transaction
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenReports.ReportLoader import ReportLoader
 
@@ -100,13 +100,13 @@ class Step:
     def name(self):
         return self.__class__.__name__
 
-class Migration(ZCmdBase):
+class Migration(ZenScriptBase):
     "main driver for migration: walks the steps and performs commit/abort"
 
     useDatabaseVersion = True
 
     def __init__(self):
-        ZCmdBase.__init__(self)
+        ZenScriptBase.__init__(self, connect=True)
         self.allSteps = allSteps[:]
         self.allSteps.sort()
 
@@ -211,14 +211,10 @@ class Migration(ZCmdBase):
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
         self.parser.add_option('--step',
                                action='append',
                                dest="steps",
                                help="Run the given step")
-        self.parser.add_option('--commit',
-                               help='DEPRECATED - now default behavior.'
-                                    ' See --dont-commit')
         # NB: The flag for this setting indicates a false value for the setting.
         self.parser.add_option('--dont-commit',
                                dest="commit",
@@ -241,6 +237,8 @@ class Migration(ZCmdBase):
                                default=False,
                                help="Run only steps newer than the "
                                "current database version.")
+        ZenScriptBase.buildOptions(self)
+
 
     def orderedSteps(self):
         return self.allSteps
