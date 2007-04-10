@@ -464,14 +464,18 @@ Optional titlebar stuff
           <span tal:replace="structure route/getNextHopIpLink"/>
           (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
-      <td class="tablevalues"><a tal:content="route/getInterfaceNameString" 
-              tal:attributes="href route/interface/getPrimaryUrlPath"/>
+      <td class="tablevalues">
+              <a tal:attributes="href route/getInterfaceLink;
+                                 class string:tablevalues"
+                 tal:content="route/getInterfaceNameString">eth0</a>
       </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
       <td class="tablevalues" align="center">
-      <img tal:condition="route/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-      <img tal:condition="route/isLockedFromUpdates" border="0" src="locked-update-icon.png">
+      <img tal:condition="route/isLockedFromDeletion" border="0"
+               src="locked-delete-icon.png">
+      <img tal:condition="route/isLockedFromUpdates" border="0"
+               src="locked-update-icon.png">
       </td>
     </tr>
     </tal:block>

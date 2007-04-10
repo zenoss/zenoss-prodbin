@@ -144,7 +144,7 @@ class IpRouteEntry(OSComponent):
         If no interface is found return 'No Interface'.
         """
         if self.interface():
-            return self.interface().name()
+            return self.interface().name
         return "No Interface"
 
        
@@ -205,7 +205,7 @@ class IpRouteEntry(OSComponent):
         else:
             return self._target
 
-    
+
     security.declareProtected('Change Device', 'setInterfaceIndex')
     def setInterfaceIndex(self, ifindex):
         for int in self.os().interfaces():
@@ -236,6 +236,12 @@ class IpRouteEntry(OSComponent):
         int = self.interface()
         if int: return int.getIp()
         return ""
+
+
+    def getInterfaceLink(self):
+        """Return a link to the interface"""
+        if self.interface(): return self.interface().getPrimaryUrlPath()
+        else: return ""
 
 
 InitializeClass(IpRouteEntry)
