@@ -138,13 +138,13 @@ class IpRouteEntry(OSComponent):
         if ipobj: return ipobj.device()
         
     
-    security.declareProtected('View', 'getInterfaceNameString')
-    def getInterfaceNameString(self):
+    security.declareProtected('View', 'getInterfaceName')
+    def getInterfaceName(self):
         """Return the interface name for this route as a string.
         If no interface is found return 'No Interface'.
         """
         if self.interface():
-            return self.interface().name
+            return self.interface().name()
         return "No Interface"
 
        
@@ -226,10 +226,6 @@ class IpRouteEntry(OSComponent):
         int = self.os().interfaces._getOb(intname,None)
         if int: self.interface.addRelation(int)
         else: log.warn("interface '%s' not found", intname)
-
-
-    def getInterfaceName(self):
-        return self.interface.getRelatedId()
 
 
     def getInterfaceIp(self):

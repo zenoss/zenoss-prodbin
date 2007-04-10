@@ -61,7 +61,7 @@
                 'misc_/SiteScopeParser/redball_img')">
       </td>
       <td class="tablevalues">
-      <a class=tablevalues tal:content="intf/viewName" 
+      <a class=tablevalues tal:content="intf/getInterfaceName" 
         tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
       </td>
       <td class="tablevalues">
@@ -442,7 +442,7 @@ Optional titlebar stuff
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getNextHopIp','NextHop')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getInterfaceNameString','Interface')"/>
+                            tableName,'getInterfaceName','Interface')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'routeproto','Protocol')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -469,7 +469,7 @@ Optional titlebar stuff
       <td class="tablevalues">
               <a tal:attributes="href route/getInterfaceLink;
                                  class string:tablevalues"
-                 tal:content="route/getInterfaceNameString">eth0</a>
+                 tal:content="route/getInterfaceName">eth0</a>
       </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
