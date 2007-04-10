@@ -354,7 +354,7 @@ class IpInterface(OSComponent):
         """Return the name of this interface.
         """
         if self.interfaceName: return self.interfaceName
-        elif self.name: return self.name
+        elif self.name(): return self.name()
         else: return "None"
 
     security.declareProtected('View', 'getInterfaceMacaddress')
