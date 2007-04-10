@@ -9,7 +9,7 @@
         objects here/getRRDTemplates;
         showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
-        tabletitle string:Performance Templates; ">
+        tabletitle string:Available Performance Templates; ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 

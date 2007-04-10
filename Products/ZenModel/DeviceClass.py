@@ -117,11 +117,6 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'performanceTemplates'
-                , 'name'          : 'Templates'
-                , 'action'        : 'performanceTemplates'
-                , 'permissions'   : (  permissions.view, )
-                },
             )
          },
         )
