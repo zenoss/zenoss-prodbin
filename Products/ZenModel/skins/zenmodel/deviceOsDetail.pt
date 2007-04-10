@@ -7,7 +7,9 @@
 <form method="post" tal:attributes="action here/absolute_url" 
     name="ipInterfaceListForm">
     
-<tal:block tal:define="unused here/cacheComponents;
+<tal:block 
+        tal:condition="here/interfaces/countObjects"
+        tal:define="unused here/cacheComponents;
         tableName string:interfacelist;
         objects here/interfaces/objectValuesAll;
         tabletitle string:Interfaces;
@@ -61,7 +63,7 @@
                 'misc_/SiteScopeParser/redball_img')">
       </td>
       <td class="tablevalues">
-      <a class=tablevalues tal:content="intf/getInterfaceName" 
+      <a class=tablevalues tal:content="intf/viewName" 
         tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
       </td>
       <td class="tablevalues">
@@ -105,12 +107,12 @@
 </tal:block>
 
 </form>
-<form method="post" 
-        tal:condition="python:here.deviceClass().zenPropertyString('zWinServices')"
-        tal:attributes="action here/absolute_url"
+<form method="post" tal:attributes="action here/absolute_url"
         name="winServiceListForm">
 
-<tal:block tal:define="tableName string:winserviceslist;
+<tal:block 
+    tal:condition="here/winservices/countObjects"
+    tal:define="tableName string:winserviceslist;
     objects here/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
@@ -177,7 +179,9 @@
 <form method="post" tal:attributes="action here/absolute_url" 
     name="osProcessListForm">
     
-<tal:block tal:define="tableName string:osprocesslist;
+<tal:block 
+    tal:condition="here/processes/countObjects"
+    tal:define="tableName string:osprocesslist;
     objects here/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
@@ -253,6 +257,7 @@ Optional titlebar stuff
     name="ipServiceListForm">
 
 <tal:block metal:define-macro="ipserviceList"
+    tal:condition="here/ipservices/countObjects"
     tal:define="tableName string:ipservicelist;
     objects here/ipservices/objectValuesAll;
     tabletitle string:IP Services;
@@ -332,6 +337,7 @@ Optional titlebar stuff
     name="fileSystemListForm">
 
 <tal:block metal:define-macro="fileSysList"
+    tal:condition="here/filesystems/countObjects"
     tal:define="tableName string:fileSyslist;
     objects here/filesystems/objectValuesAll;
     tabletitle string:File Systems;
@@ -426,6 +432,7 @@ Optional titlebar stuff
     name="ipRouteEntryListForm">
     
 <tal:block metal:define-macro="routeTableList"
+    tal:condition="here/routes/countObjects"
     tal:define="tableName string:routeTablelist;
     objects here/routes/objectValuesAll;
     tabletitle string:Routes;

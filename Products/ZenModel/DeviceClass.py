@@ -628,7 +628,6 @@ class DeviceClass(DeviceOrganizer):
         # Windows WMI collector properties
         devs._setProperty("zWinUser", "")
         devs._setProperty("zWinPassword", "")
-        devs._setProperty("zWinServices", False, type="boolean")
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
         

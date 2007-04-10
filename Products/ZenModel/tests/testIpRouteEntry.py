@@ -80,13 +80,13 @@ class TestIpRouteEntry(ZenModelBaseTest):
         self.rEntry.setInterfaceIndex(0)
         self.assert_(self.rEntry.getInterfaceIndex() == 0)
         self.assert_(self.rEntry.getInterfaceName() == 'test0')
-        self.assert_(self.rEntry.getInterfaceNameString() == 'iface0')
+        self.assert_(self.rEntry.getInterfaceName() == 'iface0')
         self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
 
         self.rEntry.setInterfaceIndex(1)
         self.assert_(self.rEntry.getInterfaceIndex() == 1)
         self.assert_(self.rEntry.getInterfaceName() == 'test1')
-        self.assert_(self.rEntry.getInterfaceNameString() == 'iface1')
+        self.assert_(self.rEntry.getInterfaceName() == 'iface1')
         self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
 
 
@@ -94,13 +94,13 @@ class TestIpRouteEntry(ZenModelBaseTest):
         self.rEntry.setInterfaceName('test0')
         self.assert_(self.rEntry.getInterfaceIndex() == 0)
         self.assert_(self.rEntry.getInterfaceName() == 'test0')
-        self.assert_(self.rEntry.getInterfaceNameString() == 'iface0')
+        self.assert_(self.rEntry.getInterfaceName() == 'iface0')
         self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
 
         self.rEntry.setInterfaceName('test1')
         self.assert_(self.rEntry.getInterfaceIndex() == 1)
         self.assert_(self.rEntry.getInterfaceName() == 'test1')
-        self.assert_(self.rEntry.getInterfaceNameString() == 'iface1')
+        self.assert_(self.rEntry.getInterfaceName() == 'iface1')
         self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
 
         
