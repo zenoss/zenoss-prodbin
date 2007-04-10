@@ -49,15 +49,21 @@ Dialog.Box.prototype = {
     },
     show: function(form, url) {
         if (url) this.fetch(url);
+        console.log('52');
         this.form = form;
         var dims = getViewportDimensions();
+        var vPos = getViewportPosition();
         setStyle(this.box, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.box);
-        setStyle(this.box, {'z-index':'5001','display':'none'});
+        console.log(this.box);
+        setStyle(this.box, {'z-index':'10002','display':'none'});
+        map(function(menu) {setStyle(menu, {'z-index':'9000'})}, 
+            concat($$('.menu'), $$('.devmovemenu')));
         setElementDimensions(this.dimbg, getViewportDimensions());
+        setElementPosition(this.dimbg, getViewportPosition());
         setElementPosition(this.box, {
-            x:(dims.w/2)-(bdims.w/2),
-            y:(dims.h/2)-(bdims.h/2)
+            x:((dims.w+vPos.x)/2)-(bdims.w/2),
+            y:((dims.h+vPos.y)/2)-(bdims.h/2)
         });
         this.moveBox('front');
         //connect(this.dimbg, 'onclick', bind(this.hide, this));
