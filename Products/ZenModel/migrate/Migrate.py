@@ -106,7 +106,8 @@ class Migration(ZenScriptBase):
     useDatabaseVersion = True
 
     def __init__(self):
-        ZenScriptBase.__init__(self, connect=True)
+        ZenScriptBase.__init__(self, connect=False)
+        self.connect()
         self.allSteps = allSteps[:]
         self.allSteps.sort()
 
@@ -208,6 +209,22 @@ class Migration(ZenScriptBase):
             self.message('rolling back changes')
             self.recover()
         self.message("Migration successful")
+
+
+    def parseOptions(self):
+        ZenScriptBase.parseOptions(self)
+        if self.args:
+            if self.args == ['run']:
+                sys.stderr.write('Use of "run" is depracated.\n')
+            elif self.args == ['help']:
+                sys.stderr.write('Use of "help" is depracated,'
+                                    'use --help instead.\n')
+                self.parser.print_help()
+                self.parser.exit()
+            elif self.args[0]:
+                self.parser.error('Unrecognized option(s): %s\n' %
+                    ', '.join(self.args) +
+                    'Use --help for list of options.\n')
 
 
     def buildOptions(self):
