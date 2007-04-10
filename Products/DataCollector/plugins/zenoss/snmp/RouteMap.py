@@ -55,7 +55,8 @@ class RouteMap(SnmpPlugin):
             om.setTarget = om.id + "/" + str(om.routemask)
             om.id = om.id + "_" + str(om.routemask)
             if om.routemask == 32: continue
-            om.routeproto = self.mapSnmpVal(om.routeproto, self.routeProtoMap)
+            routeproto = getattr(om, 'routeproto', 'other')
+            om.routeproto = self.mapSnmpVal(routeproto, self.routeProtoMap)
             if localOnly and om.routeproto != 'local':
                 continue
             om.routetype = self.mapSnmpVal(om.routetype, self.routeTypeMap)

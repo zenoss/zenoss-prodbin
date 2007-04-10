@@ -44,6 +44,8 @@ class DellCPUMap(SnmpPlugin):
         cpumap = {}
         for cpu in cputable.values():
             om = self.objectMap(cpu)
+            if not getattr(om, '_manuf', False):
+                continue
             try: cpufam = self.cpufamily[cpu['_familyidx']-1]
             except IndexError: cpufam = ""
             if not cpufam.startswith(om._manuf):
@@ -55,7 +57,7 @@ class DellCPUMap(SnmpPlugin):
             rm.append(om)
         
         for cache in cachetable.values():
-            cpu = cpumap.get(cache['cpusock'], None)
+            cpu = cpumap.get(cache.get('cpusock', None), None)
             if cpu is None: continue
             try: level = self.cacheLevel[cache['level']-1]
             except IndexError: level = None
