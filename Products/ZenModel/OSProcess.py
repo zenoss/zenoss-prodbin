@@ -19,6 +19,7 @@ def manage_addOSProcess(context, id, className, userCreated, REQUEST=None):
     """make an os process"""
     context._setObject(id, OSProcess(id))
     osp = context._getOb(id)
+    setattr(osp, 'procName', id)
     if className == '/': className = ''
     orgPath = "/Processes%s" % className
     classPath = "%s/osProcessClasses/%s" % (orgPath, id)

@@ -6,7 +6,7 @@ Are you sure you want to delete this component?<br/>
 <input type="submit" name="manage_deleteComponent:method"
     value="Yes, Delete this object"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        'lockableForm', '${here/absolute_url_path}')" />
+                        '${here/absolute_url_path}','lockableForm')" />                       
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

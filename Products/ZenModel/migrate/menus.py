@@ -87,7 +87,7 @@ class MenuRelations(Migrate.Step):
                         ),
              {'action': 'dialog_lock',
               'allowed_classes': ['Device',
-                                   'WinService'
+                                   'WinService',
                                    'FileSystem',
                                    'HardDisk',
                                    'IpInterface',
@@ -99,8 +99,7 @@ class MenuRelations(Migrate.Step):
               'isdialog': True,
               'permissions': ('Change Device',)},
              {'action': 'dialog_deleteComponent',
-              'allowed_classes': ['Device',
-                                'WinService'
+              'allowed_classes': ['WinService',
                                 'FileSystem',
                                 'HardDisk',
                                 'IpInterface',

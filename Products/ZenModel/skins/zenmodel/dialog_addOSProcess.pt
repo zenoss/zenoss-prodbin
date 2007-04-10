@@ -1,6 +1,6 @@
-<h2>Add OSProcess</h2>
+<h2>Add , componentNames=[], REQUEST=None)rocess</h2>
 <p>
-What would you like to name your OSProcess?<br/>
+What would you like to name your , componentNames=[], REQUEST=None)rocess?<br/>
 </p>
 <input type="hidden" name="userCreated" value="True">
 <br/>
@@ -14,8 +14,8 @@ tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
 </select><br/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addOSProcess:method"
-    value="Yes, Create this OSProcess"
+<input type="submit" name="add, componentNames=[], REQUEST=None)rocess:method"
+    value="Yes, Create this , componentNames=[], REQUEST=None)rocess"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}', 'addComponent')" />
 <input id="dialog_cancel" type="button" value="Cancel"
