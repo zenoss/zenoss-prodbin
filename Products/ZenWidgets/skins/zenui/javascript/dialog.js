@@ -57,7 +57,7 @@ Dialog.Box.prototype = {
         var bdims = getElementDimensions(this.box);
         console.log(this.box);
         setStyle(this.box, {'z-index':'10002','display':'none'});
-        map(function(menu) {setStyle(menu, {'z-index':'9000'})}, 
+        map(function(menu) {setStyle(menu, {'z-index':'3000'})}, 
             concat($$('.menu'), $$('.devmovemenu')));
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.dimbg, getViewportPosition());
