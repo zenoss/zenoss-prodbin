@@ -143,6 +143,11 @@ class RRDDaemon(Base):
         self.log.debug("Async update of collection properties")
         self.setPropertyItems(items)
 
+
+    def remote_updateDeviceList(self, devices):
+        self.log.debug("Async update of device list")
+
+
     def setPropertyItems(self, items):
         'extract configuration elements used by this server'
         table = dict(items)

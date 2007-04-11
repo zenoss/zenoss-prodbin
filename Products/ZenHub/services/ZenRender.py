@@ -1,3 +1,9 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
 
 from Products.ZenHub.HubService import HubService
 from twisted.web import resource, server
@@ -8,6 +14,8 @@ htmlResource = None
 import logging
 log = logging.getLogger("zenrender")
 
+__doc__ = "Provide a simple web server to forward render requests"
+
 class Render(resource.Resource):
 
     isLeaf = True
@@ -15,6 +23,7 @@ class Render(resource.Resource):
     def __init__(self):
         resource.Resource.__init__(self)
         self.renderers = {}
+
 
     def render_GET(self, request):
         gopts = request.args['gopts'][0]
@@ -37,9 +46,11 @@ class Render(resource.Resource):
                     log.warning("Skipping renderer %s" % instance)
         raise Exception("No renderer registered")
 
+
     def getChild(self, path, request):
         "Handle all paths"
         return self, ()
+
 
     def addRenderer(self, renderer):
         self.renderers[renderer.instance] = renderer

@@ -172,6 +172,7 @@ class Device:
     protocol = None
     lastScan = 0.
     snmpStatus = 0
+    lastChange = 0
 
     def __init__(self):
         # map process name to Process object above
@@ -263,7 +264,10 @@ class zenprocess(SnmpDaemon):
 
             self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
 
-            yield self.model().callRemote('getOSProcessConf', self.options.device)
+            devices = []
+            if self.options.device:
+                devices = [self.options.device]
+            yield self.model().callRemote('getOSProcessConf', devices)
             driver.next()
 
         return drive(doFetchConfig)
@@ -273,35 +277,59 @@ class zenprocess(SnmpDaemon):
         if doomed in self._devices:
              del self._devices[doomed]
 
+
+    def remote_updateDeviceList(self, devices):
+        self.log.debug("Async update device list %s" % devices)
+        doomed = Set(self._devices.keys())
+        updated = []
+        for device, lastChange in devices:
+            cfg = self._devices.get(device, None)
+            if not cfg or self._devices[device].lastChange < lastChange:
+                updated.append(device)
+            doomed.discard(device)
+        if updated:
+            log.info("Fetching the config for %s", updated)
+            d = self.model().callRemote('getOSProcessConf', devices)
+            d.addCallback(self.updateDevices, updated)
+            d.addErrback(self.error)
+        if doomed:
+            log.info("Removing %s", doomed)
+            for device in doomed:
+                del self._devices[device]
+
+
     def remote_updateDevice(self, cfg):
-        name = self.updateDevice(cfg)
-        self.log.debug("Async config update for %s", name)
+        self.log.debug("Async config update for %s", cfg[1][0])
+        self.updateDevices([cfg],[])
+
     
-    def updateDevice(self, cfg):
-        (name, addr, snmpConf), procs = cfg
-        community, version, timeout, tries = snmpConf
-        d = self._devices.setdefault(name, Device())
-        d.name = name
-        d.address = addr
-        d.community = community
-        d.version = version
-        d.timeout = timeout
-        d.tries = tries
-        d.updateConfig(procs)
-        d.protocol = self.snmpPort.protocol
-        return name
+    def updateDevices(self, cfgs, fetched):
+        names = Set()
+        for cfg in cfgs:
+            lastChange, (name, addr, snmpConf), procs = cfg
+            community, version, timeout, tries = snmpConf
+            names.add(name)
+            d = self._devices.setdefault(name, Device())
+            d.lastChange = lastChange
+            d.name = name
+            d.address = addr
+            d.community = community
+            d.version = version
+            d.timeout = timeout
+            d.tries = tries
+            d.updateConfig(procs)
+            d.protocol = self.snmpPort.protocol
+        for doomed in Set(fetched) - names:
+            if doomed in self._devices:
+                del self._devices[doomed]
     
 
     def start(self, driver):
         'Read the basic config needed to do anything'
         log.debug("fetching config")
-        yield self.fetchConfig();
-        n = driver.next()
-        removed = Set(self._devices.keys())
-        for cfg in n:
-            removed.discard(self.updateDevice(cfg))
-        for r in removed:
-            del self._devices[r]
+        devices = self._devices.keys()
+        yield self.fetchConfig()
+        self.updateDevices(driver.next(), devices)
 
         yield self.model().callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
@@ -317,6 +345,7 @@ class zenprocess(SnmpDaemon):
             d = self._devices.get(name)
             if d:
                 d.snmpStatus = count
+
 
     def updateProcessStatus(self, status):
         down = {}

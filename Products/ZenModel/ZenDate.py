@@ -24,6 +24,9 @@ class ZenDate(Persistent):
             date = DateTime(date)
         self.date = date
 
+    def __float__(self):
+        return float(self.date)
+
     def getDate(self):
         return self.date
    

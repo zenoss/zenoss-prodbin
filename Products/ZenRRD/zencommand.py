@@ -319,6 +319,7 @@ class Cmd:
 
 
     def updateConfig(self, cfg):
+        self.lastChange = cfg.lastChange
         self.device = cfg.device
         self.ipAddress = cfg.ipAddress
         self.port = cfg.port
@@ -374,13 +375,37 @@ class zencommand(RRDDaemon):
             
     def remote_updateConfig(self, config):
         self.log.debug("Async configuration update")
-        self.updateConfig([config])
+        self.updateConfig([config], [config[1]])
 
-    def updateConfig(self, config):
-        current = dict([((c.device,c.command), c) for c in self.schedule])
-        update = []
+    def remote_updateDeviceList(self, devices):
+        self.log.debug("Async update device list %s" % devices)
+        updated = []
+        lastChanges = dict(devices)     # map device name to last change
+        keep = []
+        for cmd in self.schedule:
+            if cmd.device in lastChanges:
+                if cmd.lastChange > lastChanges[cmd.device]:
+                    updated.append(device)
+                keep.append(cmd)
+            else:
+                log.info("Removing all commands for %s", cmd.device)
+        self.schedule = keep
+        if updated:
+            log.info("Fetching the config for %s", updated)
+            d = self.model().callRemote('getDataSourceCommands', devices)
+            d.addCallback(self.updateConfig, updated)
+            d.addErrback(self.error)
+
+    def updateConfig(self, config, expected):
+        expected = Set(expected)
+        current = {}
+        for c in self.schedule:
+            if c.device in expected:
+                current[c.device,c.command] = c
+        # keep all the commands we didn't ask for
+        update = [c for c in self.schedule if c.device not in expected]
         for c in config:
-            (device, ipAddress, port,
+            (lastChange, device, ipAddress, port,
              username, password,
              loginTimeout, commandTimeout, 
              keyPath, maxOids, commandPart) = c
@@ -390,9 +415,13 @@ class zencommand(RRDDaemon):
                 (useSsh, cycleTime,
                  component, eventClass, eventKey, severity, command, points) = cmd
                 obj = current.setdefault((device,command), Cmd())
+                del current[(device,command)]
                 obj.updateConfig(CommandConfig(locals()))
                 update.append(obj)
+        for device, command in current.keys():
+            log.info("Deleting command %s from %s", device, command)
         self.schedule = update
+        self.processSchedule()
 
     def heartbeatCycle(self, *ignored):
         "There is no master 'cycle' to send the hearbeat"
@@ -403,6 +432,7 @@ class zencommand(RRDDaemon):
         """Run through the schedule and start anything that needs to be done.
         Set a timer if we have nothing to do.
         """
+        log.info("%s - schedule has %d commands", '-'*10, len(self.schedule))
         if not self.options.cycle:
             for cmd in self.schedule:
                 if cmd.running() or cmd.lastStart == 0:
@@ -531,10 +561,13 @@ class zencommand(RRDDaemon):
                 
                 yield self.model().callRemote('getDefaultRRDCreateCommand')
                 createCommand = driver.next()
-                
+
+                devices = []
+                if self.options.device:
+                    devices = [self.options.device]
                 yield self.model().callRemote('getDataSourceCommands',
-                                            self.options.device)
-                self.updateConfig(driver.next())
+                                              devices)
+                self.updateConfig(driver.next(), devices)
 
                 self.rrd = RRDUtil(createCommand, 60)
 

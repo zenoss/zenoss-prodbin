@@ -1,10 +1,46 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
 from HubService import HubService
+
+from Products.ZenModel.Device import Device
+from Acquisition import aq_parent, aq_base
+
+from twisted.internet import reactor, defer
+from sets import Set
+
+class Procrastinate:
+    "A class to delay executing a change to a device"
+    
+    def __init__(self, cback):
+        self.cback = cback
+        self.devices = Set()
+        self.timer = None
+
+
+    def doLater(self, device):
+        if self.timer and not self.timer.called:
+            self.timer.cancel()
+        self.devices.add(device)
+        self.timer = reactor.callLater(5, self._doNow)
+
+
+    def _doNow(self, *unused):
+        if self.devices:
+            device = self.devices.pop()
+            self.cback(device).addBoth(self._doNow)
+
 
 class PerformanceConfig(HubService):
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.procrastinator = Procrastinate(self.pushConfig)
 
     def remote_propertyItems(self):
         return self.config.propertyItems()
@@ -17,10 +53,16 @@ class PerformanceConfig(HubService):
 
     def notifyAll(self, device):
         if device.perfServer().id == self.instance:
-            cfg = self.getDeviceConfig(device)
-            if cfg is not None:
-                for listener in self.listeners:
-                    self.sendDeviceConfig(listener, cfg)
+            self.procrastinator.doLater(device)
+
+    def pushConfig(self, device):
+        deferreds = []
+        cfg = self.getDeviceConfig(device)
+        if cfg is not None:
+            for listener in self.listeners:
+                print 'sending %s config' % device
+                deferreds.append(self.sendDeviceConfig(listener, cfg))
+        return defer.DeferredList(deferreds)
 
     def getDeviceConfig(self, device):
         "How to get the config for a device"
@@ -39,26 +81,36 @@ class PerformanceConfig(HubService):
         if isinstance(object, PerformanceConf):
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
-            
-        # somethinge else... hunt around for some devices
-        from Products.ZenModel.Device import Device
-        from Products.ZenModel.DeviceClass import DeviceClass
-        from Acquisition import aq_parent
+                devices = [
+                    (d.id, float(d.getLastChange())) for d in object.devices()
+                     ]
+                # listener.callRemote('updateDeviceList', devices)
 
+        # device has been changed:
+        if isinstance(object, Device):
+            self.notifyAll(object)
+            return
+            
+        # somethinge else... mark the devices as out-of-date
+        from Products.ZenModel.DeviceClass import DeviceClass
+
+        import transaction
         while object:
             # walk up until you hit an organizer or a device
             if isinstance(object, DeviceClass):
                 for device in object.getSubDevices():
-                    self.notifyAll(device)
+                    device.setLastChange()
+                    transaction.commit()
                 break
 
             if isinstance(object, Device):
-                self.notifyAll(object)
+                object.setLastChange()
+                transaction.commit()
                 break
 
             object = aq_parent(object)
 
-    def deleted(self, path):
+    def deleted(self, obj):
         for listener in self.listeners:
-            if 'Devices' in path:
-                listener.callRemote('deleteDevice', path[-1])
+            if isinstance(obj, Device):
+                listener.callRemote('deleteDevice', obj.id)

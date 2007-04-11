@@ -1,3 +1,10 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
 from PerformanceConfig import PerformanceConfig
 
 class SnmpPerfConfig(PerformanceConfig):
@@ -5,14 +12,18 @@ class SnmpPerfConfig(PerformanceConfig):
     def remote_getDevices(self, devices=None):
         return self.config.getDevices(devices)
 
+
     def remote_getDeviceUpdates(self, devices):
         return self.config.getDeviceUpdates(devices)
+
 
     def getDeviceConfig(self, device):
         return device.getSnmpOidTargets()
 
+
     def sendDeviceConfig(self, listener, config):
-        listener.callRemote('updateDeviceConfig', config)
+        return listener.callRemote('updateDeviceConfig', config)
+
 
     def update(self, object):
         from Products.ZenModel.RRDDataSource import RRDDataSource

@@ -197,7 +197,6 @@ class ZenPropertyManager(PropertyManager):
             if type_converters.has_key(ptype):
                 propvalue=type_converters[ptype](propvalue)
             self._setProperty(propname, propvalue, type=ptype)
-        self.notifyObjectChange(self)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -219,7 +218,6 @@ class ZenPropertyManager(PropertyManager):
         """
         if propname:
             self._delProperty(propname)
-        self.notifyObjectChange(self)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 

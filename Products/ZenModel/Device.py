@@ -27,6 +27,7 @@ from _mysql_exceptions import OperationalError
 from Products.ZenStatus import pingtree
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils import Time
 import RRDView
 
 # base classes for device
@@ -58,7 +59,6 @@ from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
-from ZenDate import ZenDate
 from Exceptions import *
 
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
@@ -331,8 +331,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         self._setObject(hw.id, hw)
         #self.commandStatus = "Not Tested"
         self._lastPollSnmpUpTime = ZenStatus(0)
-        self._snmpLastCollection = ZenDate('1968/1/8')
-        self._lastChange = ZenDate('1968/1/8')
+        self._snmpLastCollection = 0
+        self._lastChange = 0
 
 
 
@@ -378,16 +378,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if name == 'lastPollSnmpUpTime':
             return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
-            return self._snmpLastCollection.getDate()
+            return DateTime(self._snmpLastCollection)
         else:
             raise AttributeError, name
 
 
     def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks and ip creation"""
+        """override from PropertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
         if id == 'snmpLastCollection':
-            self.setSnmpLastCollection(value)
+            self._snmpLastCollection = float(value)
         else:
             ManagedEntity._setPropValue(self, id, value)
 
@@ -440,7 +440,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         procs = [ o.getOSProcessConf() for o in self.os.processes() \
                                             if o.monitored() ]
         if not procs: return None
-        return (self.getSnmpConnInfo(), procs)
+        return (float(self.getLastChange()), self.getSnmpConnInfo(), procs)
 
 
     def getSnmpOidTargets(self):
@@ -466,7 +466,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         for o in self.getMonitoredComponents():
             cmds.extend(o.getDataSourceCommands())
         if cmds:
-            return (self.id, self.getManageIp(), self.zCommandPort,
+            return (float(self.getLastChange()),
+                    self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
                     self.zKeyPath,self.zMaxOIDPerRequest,
@@ -612,24 +613,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def getLastChange(self):
         """Return DateTime of last change detected on this device.
         """
-        return self._lastChange.getDate()
+        return DateTime(float(self._lastChange))
 
     
     security.declareProtected('View', 'getLastChangeString')
     def getLastChangeString(self):
         """Return date string of last change detected on this device.
         """
-        return self._lastChange.getString()
+        return Time.LocalDateTime(float(self._lastChange))
 
 
     security.declareProtected('View', 'getSnmpLastCollection')
     def getSnmpLastCollection(self):
-        return self._snmpLastCollection.getDate()
+        return DateTime(float(self._snmpLastCollection))
 
     
     security.declareProtected('View', 'getSnmpLastCollectionString')
     def getSnmpLastCollectionString(self):
-        return self._snmpLastCollection.getString()
+        return Time.LocalDateTime(float(self._snmpLastCollection))
 
 
     security.declareProtected('Change Device', 'setManageIp')
@@ -879,15 +880,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def setLastChange(self, value=None):
         """Set the changed datetime for this device. value default is now.
         """
-        self._lastChange.setDate(value)
-        self.notifyObjectChange(self)
-
+        if value is None:
+            value = time.time()
+        self._lastChange = float(value)
 
     security.declareProtected('Change Device', 'setSnmpLastCollection')
     def setSnmpLastCollection(self, value=None):
         """Set the last time snmp collection occurred. value default is now.
         """
-        self._snmpLastCollection.setDate(value)
+        if value is None:
+            value = time.time()
+        self._snmpLastCollection = float(value)
 
 
     security.declareProtected('Change Device', 'addManufacturer')
@@ -1248,14 +1251,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """
         map(lambda o: o.exportXml(ofile, ignorerels), (self.hw, self.os))
 
-
     def zenPropertyOptions(self, propname):
-        "Provide a set of default options for a ZProperty"
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
             names = loadPlugins(self.dmd).keys()
             names.sort()
             return names
         return ManagedEntity.zenPropertyOptions(self, propname)
+
 
 InitializeClass(Device)

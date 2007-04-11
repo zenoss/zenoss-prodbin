@@ -1,3 +1,10 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
 from PerformanceConfig import PerformanceConfig
 
 class ProcessConfig(PerformanceConfig):
@@ -12,5 +19,5 @@ class ProcessConfig(PerformanceConfig):
         return device.getOSProcessConf()
 
     def sendDeviceConfig(self, listener, config):
-        listener.callRemote('updateDevice', config)
+        return listener.callRemote('updateDevice', config)
 

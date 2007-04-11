@@ -1,3 +1,10 @@
+#! /usr/bin/env python 
+#################################################################
+#
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
+#
+#################################################################
+
 from HubService import HubService
 from twisted.internet import reactor
 from twisted.spread import pb

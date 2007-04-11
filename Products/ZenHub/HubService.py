@@ -15,7 +15,7 @@ class HubService(pb.Referenceable):
     def update(self, object):
         pass
 
-    def deleted(self, path):
+    def deleted(self, object):
         pass
 
     def addListener(self, remote):

@@ -215,12 +215,12 @@ class PerformanceConf(Monitor, StatusColor):
                 pass
         return result
 
-    def getOSProcessConf(self, devname=None):
+    def getOSProcessConf(self, devices = None):
         '''Get the OS Process configuration for all devices.
         '''
         result = []
         for dev in self.devices():
-            if devname and dev.id != devname: continue
+            if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
             if dev.snmpMonitorDevice():
                 try:
@@ -233,12 +233,12 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
 
-    def getDataSourceCommands(self, devname=None):
+    def getDataSourceCommands(self, devices = None):
         '''Get the command configuration for all devices.
         '''
         result = []
         for dev in self.devices():
-            if devname and dev.id != devname: continue
+            if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
             if dev.monitorDevice():
                 try:

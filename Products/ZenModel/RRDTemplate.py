@@ -218,6 +218,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
+            self._p_changed = True
             if getattr(self.datasources,id,False):
                 if getattr(self, 'device', False):
                     perfConf = self.device().getPerformanceServer()

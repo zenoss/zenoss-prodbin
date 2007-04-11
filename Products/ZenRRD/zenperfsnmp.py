@@ -263,6 +263,24 @@ class zenperfsnmp(SnmpDaemon):
            not self.options.cycle:
             reactor.callLater(0, reactor.stop)
 
+    def remote_updateDeviceList(self, devices):
+        SnmpDaemon.remote_updateDeviceList(self, devices)
+        updated = []
+        doomed = Set(self.proxies.keys())
+        for device, lastChange in devices:
+            doomed.discard(device)
+            proxy = self.proxies.get(device)
+            if not proxy or proxy.lastChange < lastChange:
+                updated.append(device)
+        log.info("Deleting %s", doomed)
+        for d in doomed:
+            del self.proxies[d]
+        if updated:
+            log.info("Fetching configs: %s", updated)
+            d = self.model().callRemote('getDevices', updated)
+            d.addCallback(self.updateDeviceList, updated)
+            d.addErrback(self.error)
+
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
         
@@ -282,7 +300,7 @@ class zenperfsnmp(SnmpDaemon):
 
         log.info("fetching configs for %r", devices)
         yield self.model().callRemote('getDevices', devices)
-        self.updateDeviceList(devices, driver.next())
+        self.updateDeviceList(driver.next(), devices)
 
         log.info("fetching snmp status")
         yield self.model().callRemote('getSnmpStatus', self.options.device)
@@ -296,7 +314,7 @@ class zenperfsnmp(SnmpDaemon):
         
 
 
-    def updateDeviceList(self, requested, responses):
+    def updateDeviceList(self, responses, requested):
         'Update the config for devices devices'
         if self.options.device:
             self.log.debug('Gathering performance data for %s ' %
@@ -323,7 +341,8 @@ class zenperfsnmp(SnmpDaemon):
                 log.warning("Warning: device %s has a duplicate address %s",
                             name, proxy.ip)
             ips.add(ips)
-        self.log.info('Configured %d devices' % len(deviceNames))
+        self.log.info('Configured %d of %d devices',
+                      len(deviceNames), len(self.proxies))
 
 
     def updateAgentProxy(self,

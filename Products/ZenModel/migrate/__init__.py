@@ -71,4 +71,6 @@ import deviceTemplatesProperty
 import zlocal
 import evenbetterstandarderrormessage
 import zCollectorPlugins
+import zWinServices
 import hubqueue
+

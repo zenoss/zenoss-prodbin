@@ -673,4 +673,17 @@ class DeviceClass(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
                     
+    def zenPropertyOptions(self, propname):
+        "Provide a set of default options for a ZProperty"
+        if propname == 'zCollectorPlugins':
+            from Products.DataCollector.Plugins import loadPlugins
+            names = loadPlugins(self.dmd).keys()
+            names.sort()
+            return names
+        return DeviceOrganizer.zenPropertyOptions(self, propname)
+
+    def pushConfig(self):
+        "This will result in a push of all the devices to live collectors"
+        self._p_changed = True
+
 InitializeClass(DeviceClass)

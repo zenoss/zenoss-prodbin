@@ -1,7 +1,7 @@
 #! /usr/bin/env python 
 #################################################################
 #
-#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
@@ -43,18 +43,25 @@ XML_RPC_PORT = 8081
 PB_PORT = 8789
 
 class AuthXmlRpcService(XmlRpcService):
+    "Provide some level of authentication for XML/RPC calls"
 
     def __init__(self, dmd, checker):
         XmlRpcService.__init__(self, dmd)
         self.checker = checker
 
+
     def doRender(self, avatar, request):
+        "Render after authentication" 
         return XmlRpcService.render(self, request)
 
+
     def unauthorized(self, request):
+        "Give a hint to the user that their credentials were bad"
         self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
+
     
     def render(self, request):
+        "unpack the authorization header and check the credentials"
         auth = request.received_headers.get('authorization', None)
         if not auth:
             self.unauthorized(request)
@@ -75,10 +82,13 @@ class AuthXmlRpcService(XmlRpcService):
                 self.unauthorized()
         return server.NOT_DONE_YET
 
+
 class HubAvitar(pb.Avatar):
+    "Connect collectors to their configuration Services"
 
     def __init__(self, hub):
         self.hub = hub
+
 
     def perspective_getService(self,
                                serviceName,
@@ -91,18 +101,22 @@ class HubAvitar(pb.Avatar):
 
 
 class HubRealm(object):
+    "Gunk needed to connect PB to a login"
     implements(portal.IRealm)
+
 
     def __init__(self, hub):
         self.hubAvitar = HubAvitar(hub)
 
+
     def requestAvatar(self, collName, mind, *interfaces):
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
-        return pb.IPerspective, self.hubAvitar, lambda:None 
+        return pb.IPerspective, self.hubAvitar, lambda:None
+
 
 class ZenHub(ZCmdBase):
-    'Listen for xmlrpc requests and turn them into events'
+    'Listen for change requests provide them to collectors'
 
     totalTime = 0.
     totalEvents = 0
@@ -110,6 +124,7 @@ class ZenHub(ZCmdBase):
     name = 'zenhub'
 
     def __init__(self):
+        self.changes = []
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
         self.services = {}
@@ -125,32 +140,62 @@ class ZenHub(ZCmdBase):
         self.sendEvent(eventClass=App_Start, 
                        summary="%s started" % self.name,
                        severity=0)
-        self.processQueue()
+        reactor.callLater(5, self.processQueue)
+
+
+    def zeoConnect(self):
+        """override the kind of zeo connection we have so we
+        can get OID invalidations"""
+        from ZEO.cache import ClientCache as ClientCacheBase
+        class ClientCache(ClientCacheBase):
+            def invalidate(s, oid, version, tid):
+                self.changes.insert(0, oid)
+                ClientCacheBase.invalidate(s, oid, version, tid)
+
+        from ZEO.ClientStorage import ClientStorage as ClientStorageBase
+        class ClientStorage(ClientStorageBase):
+            ClientCacheClass = ClientCache
+
+        # the cache needs to be persistent to get changes
+        # made when it was not running
+        if self.options.pcachename is None:
+            self.options.pcachename = 'zenhub'
+        storage = ClientStorage((self.options.host, self.options.port),
+                                client=self.options.pcachename,
+                                var=self.options.pcachedir,
+                                cache_size=self.options.pcachesize*1024*1024)
+        from ZODB import DB
+        self.db = DB(storage, cache_size=self.options.cachesize)
+
 
     def processQueue(self):
+        "Process detected object changes"
         self.syncdb()
         try:
-            if self.dmd.hubQueue:
-                self.doProcessQueue(self.dmd.hubQueue)
-        except Exception:
-            self.log.exception("Exception processing queue")
-        transaction.commit()
+            self.doProcessQueue()
+        except Exception, ex:
+            self.log.exception(ex)
         reactor.callLater(1, self.processQueue)
 
-    def doProcessQueue(self, q):
-        while self.dmd.hubQueue:
-            path = q.pull()
-            from Products.ZenUtils.Utils import getObjByPath
+
+    def doProcessQueue(self):
+        "Process the changes"
+        while self.changes:
+            oid = self.changes.pop()
+            self.log.debug("Got oid %r" % oid)
+            obj = self.dmd._p_jar[oid]
+            self.log.debug("Object %r changed" % obj)
             try:
-                object = getObjByPath(self.dmd, path)
-            except NotFound:
-                self.log.debug("Object %s deleted", "/".join(path))
+                obj = obj.__of__(self.dmd).primaryAq()
+                print "Noticing object %s changed" %obj.getPrimaryUrlPath()
+            except AttributeError, ex:
+                print "Noticing object %s" %obj
                 for s in self.services.values():
-                    s.deleted(path)
+                    s.deleted(obj)
             else:
-                self.log.debug("Object %s changed", "/".join(path))
                 for s in self.services.values():
-                    s.update(object)
+                    s.update(obj)
+
 
     def sendEvent(self, **kw):
         if not 'device' in kw:
@@ -159,15 +204,18 @@ class ZenHub(ZCmdBase):
             kw['component'] = self.name
         self.zem.sendEvent(Event(**kw))
 
+
     def loadChecker(self):
+        "Load the password file"
         try:
             return checkers.FilePasswordDB(self.options.passwordfile)
         except Exception, ex:
-            log.exception("Unable to load %s", self.options.passwordfile)
+            self.log.exception("Unable to load %s", self.options.passwordfile)
         return []
 
 
     def getService(self, name, instance):
+        "Load services dynamically"
         try:
             return self.services[name, instance]
         except KeyError:
@@ -190,24 +238,19 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
 
         
-    def finish(self):
-        'things to do at shutdown: thread cleanup, logs and events'
-        #self.report()
-        self.sendEvent(eventClass=App_Stop, 
-                       summary="%s stopped" % self.name,
-                       severity=4)
-
-
     def sigTerm(self, signum, frame):
         'controlled shutdown of main loop on interrupt'
         try:
             ZCmdBase.sigTerm(self, signum, frame)
         except SystemExit:
+            self.sendEvent(eventClass=App_Stop, 
+                           summary="%s stopped" % self.name,
+                           severity=4)
             if reactor.running:
-                reactor.stop()
+                reactor.callLater(1, reactor.stop)
+
 
     def main(self):
-        reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
         reactor.run(installSignalHandlers=False)
 
 

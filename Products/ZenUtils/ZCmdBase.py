@@ -35,17 +35,19 @@ class ZCmdBase(ZenDaemon):
         self.app = app
         self.db = None
         if not app:
-            from ZEO import ClientStorage
-            from ZODB import DB
-            addr = (self.options.host, self.options.port)
-            storage=ClientStorage.ClientStorage(addr, 
-                            client=self.options.pcachename,
-                            var=self.options.pcachedir,
-                            cache_size=self.options.pcachesize*1024*1024)
-            self.db=DB(storage, cache_size=self.options.cachesize)
-            self.poollock = Lock()
+            self.zeoConnect()
+        self.poollock = Lock()
         self.getDataRoot()
         self.login()
+
+    def zeoConnect(self):
+        from ZEO.ClientStorage import ClientStorage
+        storage=ClientStorage((self.options.host, self.options.port),
+                              client=self.options.pcachename,
+                              var=self.options.pcachedir,
+                              cache_size=self.options.pcachesize*1024*1024)
+        from ZODB import DB
+        self.db = DB(storage, cache_size=self.options.cachesize)
 
 
     def login(self, name='admin', userfolder=None):
