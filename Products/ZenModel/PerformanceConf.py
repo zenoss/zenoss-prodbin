@@ -292,7 +292,8 @@ class PerformanceConf(Monitor, StatusColor):
                 width = o.split('=')[1].strip()
                 continue
             ngopts.append(o)
-        gopts = url_quote(zlib.compress('|'.join(ngopts)))
+        import base64
+        gopts = base64.urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
                 self.renderurl,gopts,drange, width)
         if self.renderurl.startswith("http"):

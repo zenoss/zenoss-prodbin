@@ -71,7 +71,8 @@ class RenderServer(RRDToolItem):
     def render(self, gopts=None, drange=None, remoteUrl=None, width=None,
                 ftype='PNG', REQUEST=None):
         """render a graph and return it"""
-        gopts = zlib.decompress(gopts)
+        import base64
+        gopts = zlib.decompress(base64.urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
         gopts.append('--width=%s' % width)
