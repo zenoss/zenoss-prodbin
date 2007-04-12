@@ -117,7 +117,7 @@ class MySqlSendEventMixin:
                 execute(curs, self.buildDetailInsert(evid, detaildata))
             if rescount != 1:
                 sql = ('select evid from %s where dedupid="%s"' % (
-                        event._action, decode(event.dedupid)))
+                        event._action, decode(self, event.dedupid)))
                 execute(curs, sql)
                 rs = curs.fetchone()
                 if rs:
@@ -231,7 +231,7 @@ class MySqlSendEventMixin:
             if statusdata.has_key('prodState'):
                 insert += "prodState=%d," % statusdata['prodState']
             insert += "summary='%s',%s=%s+1,%s=%.3f" % (
-                        self.escape(decode(statusdata.get('summary',''))), 
+                        self.escape(decode(self, statusdata.get('summary',''))), 
                         self.countField, self.countField, 
                         self.lastTimeField,statusdata['lastTime'])
         return insert
