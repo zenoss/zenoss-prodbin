@@ -704,12 +704,21 @@ class MenuRelations(Migrate.Step):
             'Subnetworks':[
                 dict(
                     id=         'deleteNetwork',
-                    description='Delete Network...',
+                    description='Delete Networks...',
                     action=     'dialog_deleteNetwork',
                     isdialog = True,
                     permissions=('Change Device',),
                     ),
                 ],
+            'IpAddresses':[
+                dict(
+                    id=         'deleteIpAddress',
+                    description='Delete IpAddresses...',
+                    action=     'dialog_deleteIpAddress',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                ],                    
             })
 
 

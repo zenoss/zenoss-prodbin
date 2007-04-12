@@ -157,7 +157,8 @@ tal:define="tabletitle string:Network;">
 <tal:block tal:define="objects here/ipaddresses/objectValuesAll;
     tableName string:networkoverviewipaddresses;
     tabletitle string:IP Addresses;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);"
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    menu_id string:IpAddresses"
     tal:condition="objects">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
@@ -192,6 +193,9 @@ tal:define="tabletitle string:Network;">
   </tr>
   <tr tal:repeat="ip batch">
     <td class="tablevalues" align="left">
+        <input tal:condition="here/isManager" 
+                type="checkbox" name="ipaddresses:list" 
+                tal:attributes="value ip/getId"/>
         <a href="_" 
         tal:attributes="href ip/absolute_url"
         tal:content="ip/getIpAddress">1.1.1.1/24</a>

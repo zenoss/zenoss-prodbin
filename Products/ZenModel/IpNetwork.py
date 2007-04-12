@@ -292,6 +292,15 @@ class IpNetwork(DeviceOrganizer):
         """get an ip on this network"""
         return self.ipaddresses._getOb(ip, None)
 
+    security.declareProtected('Change Network', 'manage_deleteIpAddresses')
+    def manage_deleteIpAddresses(self, ipaddresses=(), REQUEST=None):
+        """Delete ipaddresses by id from this network.
+        """
+        for ipaddress in ipaddresses:  
+            ip = self.getIpAddress(ipaddress)
+            self.ipaddresses.removeRelation(ip)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected('View', 'countIpAddresses')
     def countIpAddresses(self, inuse=True):
