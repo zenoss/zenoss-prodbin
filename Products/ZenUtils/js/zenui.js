@@ -191,6 +191,7 @@ function doHover() {
 function cancelHover() {
     var leftPane = $('leftPane');
     var paneToggle = $('paneToggle');
+    if (leftPane && paneToggle) {
     disconnectAll(paneToggle);
     disconnectAll(leftPane);
     disconnectAll('leftPaneToggle');
@@ -211,11 +212,12 @@ function cancelHover() {
     deleteCookie('Zenoss_Collapsed_Menu','/','');
     updateNodeAttributes(leftPane, {
         'style':'display:block'
-    });
+    });}
 }
 
 function checkForCollapsed() {
     var x = getCookie('Zenoss_Collapsed_Menu');
+    if ($('leftPaneToggle')){
     if (!x){
     disconnectAll('leftPaneToggle');
     connect('leftPaneToggle','onclick',toggleLeftPane);
@@ -234,7 +236,8 @@ function checkForCollapsed() {
     } else {
         hideLeftPane();
     }
+    }
 }
 
 addLoadEvent(checkForCollapsed);
-console.log("Left pane toggle javascript loaded.");
+log("Left pane toggle javascript loaded.");

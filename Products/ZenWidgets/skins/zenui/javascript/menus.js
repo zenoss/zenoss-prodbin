@@ -94,6 +94,9 @@ var registerSubmenu = function(menu, submenu) {
         smto[submenu] = setTimeout('hideSubMenu("'+submenu+'")', 500); });
     connect(submenu, 'onmouseout', function() {
         smto[submenu] = setTimeout('hideSubMenu("'+submenu+'")', 500); });
+    connect(submenu, 'onclick', function() {
+        hideSubMenu(submenu);
+    });
 }
 
 var registerMenu = function(button, menu) {
@@ -130,4 +133,4 @@ var registerMenu = function(button, menu) {
 }
 
 
-console.log('Menu javascript loaded.');
+log('Menu javascript loaded.');

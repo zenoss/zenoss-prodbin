@@ -49,13 +49,11 @@ Dialog.Box.prototype = {
     },
     show: function(form, url) {
         if (url) this.fetch(url);
-        console.log('52');
         this.form = form;
         var dims = getViewportDimensions();
         var vPos = getViewportPosition();
         setStyle(this.box, {'z-index':'1','display':'block'});
         var bdims = getElementDimensions(this.box);
-        console.log(this.box);
         setStyle(this.box, {'z-index':'10002','display':'none'});
         map(function(menu) {setStyle(menu, {'z-index':'3000'})}, 
             concat($$('.menu'), $$('.devmovemenu')));
@@ -94,4 +92,4 @@ Dialog.Box.prototype = {
     }
 }
 
-console.log("Dialog javascript loaded.")
+log("Dialog javascript loaded.")

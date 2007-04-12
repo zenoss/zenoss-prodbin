@@ -46,4 +46,4 @@ checkboxes = getCheckboxes();
 }
 
 addLoadEvent(connectCheckboxListeners);
-console.log("Checkbox javascript loaded.");
+log("Checkbox javascript loaded.");
