@@ -9,7 +9,7 @@ from _mysql_exceptions import ProgrammingError, OperationalError
 from ZEO.Exceptions import ClientDisconnected
 
 import Products.ZenUtils.guid as guid
-import Products.ZenUtils.Utils.zdecode as decode
+from Products.ZenUtils.Utils import zdecode as decode
 from Event import Event, EventHeartbeat, buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
