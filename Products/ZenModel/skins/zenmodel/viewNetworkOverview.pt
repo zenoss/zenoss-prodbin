@@ -85,7 +85,8 @@ tal:define="tabletitle string:Network;">
 <tal:block tal:define="objects here/children;
     tableName string:networkoverviewsubnets;
     tabletitle string:Subnetworks;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    menu_id string:Subnetworks">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 

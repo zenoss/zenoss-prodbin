@@ -701,6 +701,15 @@ class MenuRelations(Migrate.Step):
                     isdialog = True
                     )
                 ],
+            'Subnetworks':[
+                dict(
+                    id=         'deleteNetwork',
+                    description='Delete Network...',
+                    action=     'dialog_deleteNetwork',
+                    isdialog = True,
+                    permissions=('Change Device',),
+                    ),
+                ],
             })
 
 
