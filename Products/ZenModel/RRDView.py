@@ -18,14 +18,14 @@ from Products.ZenRRD.Exceptions import RRDObjectNotFound
 from Products.ZenUtils import Map
 
 from Products.ZenUtils.ZenTales import talesEval
-
-from RRDTemplate import ConfigurationError
+from Products.ZenModel.ConfigurationError import ConfigurationError
 
 CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
 class RRDViewError(Exception): pass
+
 
 class RRDView(object):
     """
