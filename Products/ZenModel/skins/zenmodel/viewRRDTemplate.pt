@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable python:here.isEditable(here)">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -67,14 +67,15 @@
 
 </form>
 <br/>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
         <tal:block tal:define="tableName string:rrdtempdslist; 
         objects here/getRRDDataSources;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
-        tabletitle string:Data Sources">
+        tabletitle string:Data Sources;
+		menu_id string:DataSource_list;">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -112,7 +113,7 @@
                 tal:content="ds/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
         </td>
-        <td tal:content="ds/getOidOrUrl"/>
+        <td tal:content="ds/getDescription"/>
         <td tal:content="ds/sourcetype"/>
         <td tal:content="ds/enabled"/>
     </tr>
@@ -123,14 +124,6 @@
     </tr>
     <tr class="tableheader" tal:condition="editable">
         <td colspan="5">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-          onkeypress="return submitViaEnter(event,'manage_addRRDDataSource');" 
-          name="manage_addRRDDataSource:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteRRDDataSources:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
@@ -147,14 +140,15 @@
 
 </form>
 <br/>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
         <tal:block tal:define="tableName string:rrdthreshsoldist; 
         objects here/thresholds;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
-        tabletitle string:Thresholds">
+        tabletitle string:Thresholds;
+		menu_id string:Threshold_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -206,14 +200,6 @@
     </tr>
     <tr class="tableheader" tal:condition="editable">
         <td colspan="5">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            onkeypress="return submitViaEnter(event,'manage_addRRDThreshold');" 
-            name="manage_addRRDThreshold:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteRRDThresholds:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
@@ -230,7 +216,7 @@
 
 </form>
 <br/>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -238,7 +224,8 @@
         objects here/getGraphs;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
-        tabletitle string:Graphs">
+        tabletitle string:Graphs;
+		menu_id string:Graph_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -307,20 +294,9 @@
     </tr>
     <tr class="tableheader" tal:condition="editable">
         <td colspan="6">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            onkeypress="return submitViaEnter(event,'manage_addRRDGraph');" 
-            name="manage_addRRDGraph:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteRRDGraphs:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_resequenceRRDGraphs:method" value=" Re-Sequence " />
         </td>
     </tr>
     </tal:block>

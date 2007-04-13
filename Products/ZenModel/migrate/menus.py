@@ -701,6 +701,77 @@ class MenuRelations(Migrate.Step):
                     isdialog = True
                     )
                 ],
+            'DataSource_list':[
+                dict(
+                    id = 'addDataSource',
+                    description = 'Add DataSource...',
+                    action = 'dialog_addDataSource',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id = 'deleteDataSource',
+                    description = 'Delete DataSource...',
+                    action = 'dialog_deleteDataSource',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                ],
+            'DataPoint_list':[
+                dict(
+                    id = 'addDataPoint',
+                    description = 'Add DataPoint...',
+                    action = 'dialog_addDataPoint',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id = 'deleteDataPoint',
+                    description = 'Delete DataPoint...',
+                    action = 'dialog_deleteDataPoint',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                ],
+            'Threshold_list':[
+                dict(
+                    id = 'addThreshold',
+                    description = 'Add Threshold...',
+                    action = 'dialog_addThreshold',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id = 'deleteThreshold',
+                    description = 'Delete Threshold...',
+                    action = 'dialog_deleteThreshold',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                ],
+            'Graph_list':[
+                dict(
+                    id = 'addGraph',
+                    description = 'Add Graph...',
+                    action = 'dialog_addGraph',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id = 'deleteGraph',
+                    description = 'Delete Graph...',
+                    action = 'dialog_deleteGraph',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                dict(
+                    id = 'resequenceGraphs',
+                    description = 'Re-sequence Graphs',
+                    action = 'manage_resequenceRRDGraphs',
+                    permissions= ('Change Device',),
+                    isdialog = True,
+                    ),
+                ],
             'Subnetworks':[
                 dict(
                     id=         'deleteNetwork',
