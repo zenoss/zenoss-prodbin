@@ -602,7 +602,7 @@ class MenuRelations(Migrate.Step):
             'IpRouteEntry':[
                 dict(
                     id=         'addIpRouteEntry',
-                    description='Add Route...',
+                    description='Add IpRouteEntry...',
                     action=     'dialog_addIpRouteEntry',
                     isdialog=True,
                     permissions=('Change Device',),
