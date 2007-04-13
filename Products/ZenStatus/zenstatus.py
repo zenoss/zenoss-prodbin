@@ -14,6 +14,7 @@ import Globals # make zope imports work
 from Products.ZenHub.PBDaemon import PBDaemon as Base
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 class Status:
     _running = 0
@@ -183,7 +184,7 @@ class ZenStatus(Base):
         heartbeatevt = dict(eventClass=Heartbeat,
                             component='ZenStatus',
                             device=getfqdn())
-        self.sendEvent(heartbeat, timeout=self.cycleInterval*3)
+        self.sendEvent(heartbeatevt, timeout=self.cycleInterval*3)
 
 
     def runSomeJobs(self):
