@@ -1,0 +1,16 @@
+<h2>Delete device</h2>
+
+<form action="_"  method="post" 
+        tal:define="device python:here.device()"
+        tal:attributes="action here/REQUEST/URL1">
+            
+<p>
+Are you sure you want to delete this device?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="deleteDevice:method" value="Delete Device" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+        onclick="$('dialog').hide()"/>
+</div>
+</form>

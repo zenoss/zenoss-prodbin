@@ -1,6 +1,5 @@
 <h2>Edit Lock</h2>
-<form method="post" tal:attributes="action here/absolute_url"
-    name="lockableForm">
+<form method="post" name="_" tal:attributes="action here/absolute_url">
 <p>
 Which lock status would you like to set on this object?<br/><br/>
 <input tal:attributes="name string:sendEventWhenBlocked;

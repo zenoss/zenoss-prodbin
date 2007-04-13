@@ -1,0 +1,18 @@
+<h2>Change the name of this device</h2>
+
+<form action="_"  method="post" 
+        tal:define="device python:here.device()"
+        tal:attributes="action here/REQUEST/URL1">
+            
+<p>
+What would you like to name this device?<br/>
+<br/>
+<input type="text" name="newId" size="25"/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="renameDevice:method" value="Rename Device" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+        onclick="$('dialog').hide()"/>
+</div>
+</form>

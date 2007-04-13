@@ -175,6 +175,10 @@ class MenuRelations(Migrate.Step):
                     id='deviceManagement_os',
                     permissions=('Change Device',)
                     ),
+                    
+                    
+                    
+                    
                 dict(action='serviceOrganizerManage',
                     allowed_classes=['ServiceOrganizer'],
                     description='Manage',
@@ -807,7 +811,55 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     permissions=('Change Device',),
                     ),
-                ],                    
+                ],       
+            'Manage': [
+                dict(
+                    id=         'changeClass',
+                    description='Change Class',
+                    action=     'dialog_changeClass',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+                dict(
+                    id=         'modelDevice',
+                    description='Model Device',
+                    action=     'collectDevice',
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+                dict(
+                    id=         'resetIp',
+                    description='Reset IP',
+                    action=     'dialog_resetIp',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+                dict(
+                    id=         'resetCommunity',
+                    description='Reset Community',
+                    action=     'manage_snmpCommunity',
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+                dict(
+                    id=         'renameDevice',
+                    description='Rename Device',
+                    action=     'dialog_renameDevice',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+                dict(
+                    id=         'deleteDevice',
+                    description='Delete Device',
+                    action=     'dialog_deleteDevice',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
+            ],             
             'Add': [
                 dict(
                     id=         'addIpInterface',

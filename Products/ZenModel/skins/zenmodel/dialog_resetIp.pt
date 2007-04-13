@@ -1,0 +1,19 @@
+<h2>Reset the manage IP of this device</h2>
+
+<form action="_"  method="post" 
+        tal:define="device python:here.device()"
+        tal:attributes="action here/REQUEST/URL1">
+            
+<p>
+What manage IP would you like to set on this device?<br/>
+<br/>
+<input type="text" name="ip" size="15"
+      tal:attributes="value device/getManageIp"/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="setManageIp:method" value="Reset IP" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+        onclick="$('dialog').hide()"/>
+</div>
+</form>       

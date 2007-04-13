@@ -1,0 +1,27 @@
+<h2>Change Device Class Path</h2>
+
+<form action="_"  method="post" 
+        tal:define="device python:here.device()"
+        tal:attributes="action here/REQUEST/URL1">
+<input type="hidden" name="deviceNames" 
+        tal:attributes="value device/getId" />
+<p>
+Which device class path would you like to set?<br/>
+<br/>
+<select name="moveTarget"
+        tal:define="
+        dcs device/deviceMoveTargets;
+        curdc device/getDeviceClassName">
+    <option tal:repeat="dc dcs" 
+        tal:attributes="value dc; selected python:dc==curdc"
+        tal:content="dc">/Server/Linux</option>
+</select>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="moveDevices:method"
+      value="Change" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>       
