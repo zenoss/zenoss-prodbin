@@ -84,7 +84,7 @@
     </tr>
     <tr tal:repeat="srv batch">
       <td class="tablevalues" 
-        tal:content="structure python:srv.getDeviceLink('deviceOsDetail')"/>
+        tal:content="structure python:srv.getDeviceLink('os/deviceOsDetail')"/>
       <td class="tablevalues">
         <a tal:attributes="href srv/getPrimaryUrlPath" 
             tal:content="srv/id">tcp-00514</a>

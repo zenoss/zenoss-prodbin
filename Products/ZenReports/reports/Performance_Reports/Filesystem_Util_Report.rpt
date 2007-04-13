@@ -36,7 +36,7 @@
     <tal:block tal:repeat="obj batch">
     <tr>
       <td class="tablevalues" 
-          tal:content="structure python:obj.filesystem.getDeviceLink('deviceOsDetail')"/>
+          tal:content="structure python:obj.filesystem.getDeviceLink('os/deviceOsDetail')"/>
       <td class="tablevalues">
           <a class=tablevalues tal:content="obj/filesystem/mount" 
              tal:attributes="href obj/filesystem/getPrimaryUrlPath"/>

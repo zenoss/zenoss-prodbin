@@ -28,7 +28,7 @@
     </tr>
     <tr tal:repeat="comp batch">
         <td class="tablevalues" 
-          tal:content="structure python:comp.getDeviceLink('deviceOsDetail')"/>
+          tal:content="structure python:comp.getDeviceLink('os/deviceOsDetail')"/>
         <td class="tablevalues">
             <a class="tablevalues" tal:attributes="href comp/getPrimaryUrlPath"
                 tal:content="comp/name">smtp</a>

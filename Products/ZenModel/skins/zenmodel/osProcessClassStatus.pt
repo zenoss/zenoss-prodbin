@@ -79,7 +79,7 @@
     </tr>
     <tr tal:repeat="proccl batch">
       <td class="tablevalues" 
-        tal:content="structure python:proccl.getDeviceLink('deviceOsDetail')"/>
+        tal:content="structure python:proccl.getDeviceLink('os/deviceOsDetail')"/>
       <td class="tablevalues">
         <a tal:attributes="href proccl/getPrimaryUrlPath" 
             tal:content="proccl/name">tcp-00514</a>

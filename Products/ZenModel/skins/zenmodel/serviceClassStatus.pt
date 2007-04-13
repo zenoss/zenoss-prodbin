@@ -79,7 +79,7 @@
     <tr tal:define="odd repeat/srv/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" 
-        tal:content="structure python:srv.getDeviceLink('deviceOsDetail')"/>
+        tal:content="structure python:srv.getDeviceLink('os/deviceOsDetail')"/>
       <td class="tablevalues">
         <a tal:attributes="href srv/getPrimaryUrlPath" 
             tal:content="srv/id">tcp-00514</a>
