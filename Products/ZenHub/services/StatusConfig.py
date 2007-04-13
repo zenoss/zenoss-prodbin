@@ -42,7 +42,7 @@ class StatusConfig(HubService):
         zem = self.dmd.ZenEventManager
         status = zem.getAllComponentStatus(Status_IpService)
         devices = Set([d.id for d in self.config.devices()])
-        return [x for x in status if status[0] in devices]
+        return [x for x in status.items() if x[0][0] in devices]
 
     def remote_services(self, configpath):
         smc = self.dmd.getObjByPath(configpath.lstrip('/'))
