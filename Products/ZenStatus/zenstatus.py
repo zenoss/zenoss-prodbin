@@ -31,6 +31,7 @@ class Status:
         self._start = time.time()
         self._defer = defer.Deferred()
         if not self._remaining:
+            self._stop = time.time()
             self._defer.callback(self)
         return self._defer
 
