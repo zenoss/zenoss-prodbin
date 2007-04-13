@@ -23,6 +23,9 @@ class XmlRpcService(xmlrpc.XMLRPC):
     def xmlrpc_getDeviceWinInfo(self, *args):
         return self.dmd.Devices.Server.Windows.getDeviceWinInfo(*args)
 
+    def xmlrpc_getWinServices(self, *args):
+        return self.dmd.Devices.Server.Windows.getWinServices(*args)
+
     def xmlrpc_applyDataMap(self, devName, datamap, 
                             relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
