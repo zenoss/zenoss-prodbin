@@ -47,6 +47,7 @@ class InterfaceMap(SnmpPlugin):
         # Interface Description
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
                 {
+		'.1': 'id',
                 '.18' : 'description',
                 '.15' : 'highSpeed',
                 }
@@ -70,6 +71,10 @@ class InterfaceMap(SnmpPlugin):
         # add interface alias (cisco description) to iftable
         for ifidx, data in ifalias.items():
             if not iftable.has_key(ifidx): continue
+            iftable[ifidx]['description'] = data.get('description', '')
+	    id = data.get('id', None)
+	    if id:
+		iftable[ifidx]['id'] = id
             iftable[ifidx]['description'] = data.get('description', '')
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
             if iftable[ifidx].get('speed',0) == 4294967295L:
@@ -97,7 +102,7 @@ class InterfaceMap(SnmpPlugin):
                 log.warn("ip points to missing ifindex %s skipping", strindex) 
                 continue
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
-            ip = iprow['ipAddress'].strip()+"/"+str(self.maskToBits(iprow['netmask'].strip()))
+            ip = iprow['ipAddress']+"/"+str(self.maskToBits(iprow['netmask']))
             om.setIpAddresses.append(ip)
             #om.ifindex = iprow.ifindex #FIXME ifindex is not set!
 
@@ -113,7 +118,6 @@ class InterfaceMap(SnmpPlugin):
         om.id = cleanstring(om.id) #take off \x00 at end of string
         # Left in interfaceName, but added title for
         # the sake of consistency
-        if not om.id: om.id = '%s' % iface['ifindex']
         om.interfaceName = om.id
         om.title = om.id
         om.id = self.prepId(om.interfaceName)
