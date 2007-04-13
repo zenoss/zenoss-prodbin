@@ -12,11 +12,11 @@ from Acquisition import aq_parent
 from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
-
+import Products.ZenModel.RRDDataSource as RRDDataSource
+from Products.ZenModel.BasicDataSource import BasicDataSource
+from Products.ZenModel.ConfigurationError import ConfigurationError
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
-
-class ConfigurationError(Exception): pass
 
 
 def manage_addRRDTemplate(context, id, REQUEST = None):
@@ -155,15 +155,20 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDDataSource')
-    def manage_addRRDDataSource(self, id, REQUEST=None):
+    def manage_addRRDDataSource(self, id, dsOption, REQUEST=None):
         """Add an RRDDataSource to this DeviceClass.
         """
-        from RRDDataSource import RRDDataSource
-        if not id: return self.callZenScreen(REQUEST)
-        org = RRDDataSource(id)
-        self.datasources._setObject(org.id, org)
+        ds = None
+        if id and dsOption:
+            ds = self.getDataSourceInstance(id, dsOption)
+            self.datasources._setObject(ds.id, ds)
         if REQUEST:
+            if ds:
+                #REQUEST['message'] = "DataSource Added"
+                url = '%s/datasources/%s' % (self.getPrimaryUrlPath(), ds.id)
+                REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
+        return ds
 
 
     security.declareProtected('Add Method Parameter', 'manage_addMethodParameter')
@@ -173,7 +178,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if not paramValue: return
         ds = self.datasources._getOb(newId)
         try:
-            from RRDDataSource import convertMethodParameter
+            #from RRDDataSource import convertMethodParameter
             convertMethodParameter(paramValue, paramType)
         except ValueError:
             REQUEST['message'] = "ERROR: %s could not be stored as type: %s" % (paramValue, paramType)
@@ -245,7 +250,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         org = RRDThreshold(id)
         self.thresholds._setObject(org.id, org)
         if REQUEST:
+            if org:
+                #REQUEST['message'] = "Threshold Added"
+                url = '%s/thresholds/%s' % (self.getPrimaryUrlPath(), org.id)
+                REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
+        return org
             
 
     def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
@@ -268,12 +278,18 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         graphs = self.getGraphs()
         if len(graphs) > 0:
             nextseq = graphs[-1].sequence + 1
+        graph = None
         if id:
             graph = RRDGraph(id)
             graph.sequence = nextseq
             self.graphs._setObject(graph.id, graph)
         if REQUEST:
+            if graph:
+                #REQUEST['message'] = "Graph Added"
+                url = '%s/graphs/%s' % (self.getPrimaryUrlPath(), graph.id)
+                REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
+        return graph
         
 
     security.declareProtected('Manage DMD', 'manage_deleteRRDGraphs')
@@ -307,6 +323,38 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+
+    def getDataSourceClasses(self):
+        dsClasses = [BasicDataSource]
+        for zp in self.dmd.packs():
+            dsClasses += zp.getDataSourceClasses()
+        return dsClasses
         
+        
+    def getDataSourceOptions(self):
+        ''' Returns a list of the available datasource options as a list
+        of (display name, dsOption)
+        '''
+        dsTypes = []
+        for dsClass in self.getDataSourceClasses():
+            dsTypes += [(t, '%s.%s' % (dsClass.__name__, t)) 
+                            for t in dsClass.sourcetypes]
+        return dsTypes
+        
+
+    def getDataSourceInstance(self, id, dsOption):
+        ''' Given one of the dsOptions returned by getDataSourceOptions)
+        return an instance of the that RRDDataSource subclass.
+        '''
+        dsClassName, dsType = dsOption.split('.')
+        for c in self.getDataSourceClasses():
+            if dsClassName == c.__name__:
+                ds = c(id)
+                ds.sourcetype = dsType
+                break
+        else:
+            raise ConfigurationError('Cannot find datasource class'
+                        ' for %s' % dsOption)
+        return ds
 
 InitializeClass(RRDTemplate)

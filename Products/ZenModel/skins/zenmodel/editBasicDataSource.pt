@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable python:here.isManager">
 
-<form method=post enctype="multipart/form-data"
+<form method="get" enctype="multipart/form-data"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -49,6 +49,91 @@
         <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/enabled"/>
     </tr>
+    <tr tal:condition="python:here.sourcetype=='SNMP'">
+        <td class="tableheader">OID</td>
+        <td class="tablevalues" tal:condition="editable">
+        <input class="tablevalues" type="text" name="oid" size="40"
+            tal:attributes="value here/oid" />
+        </td>
+      <td class="tablevalues" tal:condition="not:editable"
+        tal:content="here/oid"/>
+    </tr>
+
+    <span tal:condition="python:here.sourcetype=='XMLRPC'">
+        <tr>
+            <td class="tableheader">URL</td>
+            <td class="tablevalues" tal:condition="editable">
+            <input class="tablevalues" type="text" name="xmlrpcURL" size="40"
+                tal:attributes="value here/xmlrpcURL" />
+            </td>
+          <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/xmlrpcURL"/>
+        </tr>
+        <tr>
+            <td class="tableheader">Username</td>
+            <td class="tablevalues" tal:condition="editable">
+            <input class="tablevalues" type="text" name="xmlrpcUsername" size="40"
+                tal:attributes="value here/xmlrpcUsername" />
+            </td>
+          <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/xmlrpcUsername"/>
+        </tr>
+        <tr>
+            <td class="tableheader">Password</td>
+            <td class="tablevalues" tal:condition="editable">
+            <input class="tablevalues" type="text" name="xmlrpcPassword" size="40"
+                tal:attributes="value here/xmlrpcPassword" />
+            </td>
+          <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/xmlrpcPassword"/>
+        </tr>
+        <tr>
+            <td class="tableheader">Method Name</td>
+            <td class="tablevalues" tal:condition="editable">
+            <input class="tablevalues" type="text" name="xmlrpcMethodName" size="40"
+                tal:attributes="value here/xmlrpcMethodName" />
+            </td>
+          <td class="tablevalues" tal:condition="not:editable"
+            tal:content="here/xmlrpcMethodName"/>
+        </tr>
+        <tr>
+            <td class="tableheader">Method Parameters</td>
+            <td class="tablevalues" tal:condition="editable">
+            <select width="200" style="width: 200px"
+                class="tablevalues" name="xmlrpcMethodParameters:list" multiple
+                tal:define="curparams here/xmlrpcMethodParameters">
+                <option tal:repeat="dp here/getXmlRpcMethodParameters"
+                        tal:content="dp">content</option>
+                </select>
+            <br />
+            <input class="tablevalues" type="text" name="paramValue" size="10" />
+            <select class="tablevalues" name="paramType">
+                <option tal:repeat="type here/paramtypes" 
+                    tal:content="python:type">localhost</option>
+            </select>
+            <input class="tableheader" type="submit" value=" Add "
+               name="manage_addMethodParameter:method" />
+            <input class="tableheader" type="submit" value=" Delete Last "
+               name="manage_deleteMethodParameter:method" />
+            </td>
+            <td class="tablevalues" tal:condition="not:editable"
+                    tal:content="python:', '.join(here.xmlrpcMethodParameters)"/>
+
+        </tr>
+    </span>
+
+    <span tal:condition="python:here.sourcetype in ('COMMAND')">
+        <tr>
+            <td class="tableheader">Use SSH</td>
+            <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues" name="usessh:boolean">
+                <option tal:repeat="e python:(True,False)" tal:content="e"
+                        tal:attributes="value e; selected python:e==here.usessh"/>
+            </select>
+            </td>
+            <td class="tablevalues" tal:condition="not:editable" 
+                tal:content="here/usessh"/>
+        </tr>
 
         <tr>
             <td class="tableheader">Component</td>
@@ -145,7 +230,9 @@
 
         <tal:block tal:define="tableName string:rrdtempdplist; 
         objects here/datapoints;
-        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:DataPoints">
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+		tabletitle string:DataPoints;
+		menu_id string:DataPoint_list;">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -187,14 +274,6 @@
     </tr>
     <tr class="tableheader" tal:condition="editable">
         <td colspan="4">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-          onkeypress="return submitViaEnter(event,'manage_addRRDDataPoint');" 
-          name="manage_addRRDDataPoint:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteRRDDataPoints:method" value=" Delete " />
-        |
         <input class="tableheader" type="submit"
                 name="SelectButton" value="Select All" 
                 onClick="toggleSelect(this.form);return false"/>

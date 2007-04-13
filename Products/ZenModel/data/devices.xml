@@ -124,7 +124,7 @@ False
 Basic template that only collects sysUpTime.
 </property>
 <tomanycont id='datasources'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -171,7 +171,7 @@ True
 Monitors for OSProcess object
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -207,7 +207,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -339,7 +339,7 @@ True
 Standard ethernet interface template with 75% utilization threshold
 </property>
 <tomanycont id='datasources'>
-<object id='ifInErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -376,7 +376,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifInOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -416,7 +416,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -453,7 +453,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOperStatus' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -489,7 +489,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -526,7 +526,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -566,7 +566,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -766,7 +766,7 @@ True
 Standard ethernet interface template with 75% utilization threshold
 </property>
 <tomanycont id='datasources'>
-<object id='ifInErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -803,7 +803,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifInOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -843,7 +843,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifInUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -880,7 +880,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOperStatus' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -916,7 +916,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -953,7 +953,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -993,7 +993,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1217,7 +1217,7 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 Cisco template that collects cpu, free mem, and temp
 </property>
 <tomanycont id='datasources'>
-<object id='cpu5min' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1253,7 +1253,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem5minFree' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem5minFree' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1289,7 +1289,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1325,7 +1325,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='tempInlet' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='tempInlet' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1361,7 +1361,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='tempOutlet' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='tempOutlet' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1522,7 +1522,7 @@ True
 Cisco template that collects cpu and free memory
 </property>
 <tomanycont id='datasources'>
-<object id='cpu5min' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1558,7 +1558,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem5minFree' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem5minFree' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1594,7 +1594,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1757,7 +1757,7 @@ True
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1796,7 +1796,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1835,7 +1835,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1871,7 +1871,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memBuffer' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1910,7 +1910,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memCached' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1949,7 +1949,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1986,7 +1986,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2023,7 +2023,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2060,7 +2060,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2097,7 +2097,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2428,7 +2428,7 @@ True
 Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 </property>
 <tomanycont id='datasources'>
-<object id='usedBlocks' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2552,7 +2552,7 @@ HRSWInstalledMap
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2591,7 +2591,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2630,7 +2630,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2666,7 +2666,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memBuffer' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2705,7 +2705,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memCached' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2744,7 +2744,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2781,7 +2781,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2818,7 +2818,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2855,7 +2855,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -2892,7 +2892,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -3199,7 +3199,7 @@ True
 ZenPlugin template for late vintage unix device.  Has CPU threshold.
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -3401,7 +3401,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -3524,7 +3524,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='uptime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='uptime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -3814,7 +3814,7 @@ True
 Filesystem template that uses nagios and zendisk.py
 </property>
 <tomanycont id='datasources'>
-<object id='disk' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='disk' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -4053,7 +4053,7 @@ True
 Monitors for OSProcess object
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -4093,7 +4093,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -4229,7 +4229,7 @@ True
 Standard ethernet interface template with 75% utilization threshold
 </property>
 <tomanycont id='datasources'>
-<object id='intf' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='intf' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -4537,7 +4537,7 @@ True
 Windows template that requires Informant MIB
 </property>
 <tomanycont id='datasources'>
-<object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4573,7 +4573,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4612,7 +4612,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4648,7 +4648,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4847,7 +4847,7 @@ True
 HardDisk I/O template that requries Informat MIB
 </property>
 <tomanycont id='datasources'>
-<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4883,7 +4883,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -4980,7 +4980,7 @@ True
 ZenPlugin template for late vintage unix device.  Has CPU threshold.
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -5182,7 +5182,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -5544,7 +5544,7 @@ True
 APC Device Profile that tracks battery capacity, load and runtime
 </property>
 <tomanycont id='datasources'>
-<object id='batteryCapacity' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='batteryCapacity' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5580,7 +5580,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='batteryOutputLoad' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='batteryOutputLoad' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5616,7 +5616,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='batteryRunTimeRemaining' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='batteryRunTimeRemaining' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -5655,7 +5655,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
