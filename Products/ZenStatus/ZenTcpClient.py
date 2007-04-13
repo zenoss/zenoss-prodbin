@@ -78,15 +78,15 @@ class ZenTcpClient(protocol.ClientFactory):
         if self.msg == "pass" and self.status > 0:
             sev = 0
             self.msg = "device:%s service:%s back up" % (
-                        self.cfg.hostname, self.cfg.component)
+                        self.cfg.device, self.cfg.component)
             log.info(self.msg)
         elif self.msg != "pass":
             sev = self.cfg.failSeverity
             log.warn("device:%s service:%s down", 
-                     self.cfg.hostname, self.cfg.component)
+                     self.cfg.device, self.cfg.component)
         else:
             return None
-        return dict(device=self.cfg.hostname, 
+        return dict(device=self.cfg.device, 
                     component=self.cfg.component, 
                     ipAddress=self.cfg.ip, 
                     summary=self.msg, 
