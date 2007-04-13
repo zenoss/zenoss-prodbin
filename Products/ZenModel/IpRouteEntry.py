@@ -176,7 +176,7 @@ class IpRouteEntry(OSComponent):
         """Set this route target netip in the form 10.0.0.0/24.
         """
         netid, netmask = netip.split('/')
-        if localIpCheck(self, netip) or netmask = '0':
+        if localIpCheck(self, netip) or netmask == '0':
             self._target = netip
         else:
             net = self.getDmdRoot("Networks").createNet(netip)
