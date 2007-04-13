@@ -82,7 +82,7 @@ class ZenStatus(Base):
     def __init__(self):
         Base.__init__(self, keeproot=True)
         self.clients = {}
-        self.count = 0
+        self.counts = {}
         self.status = Status()
 
     def configService(self):
@@ -202,11 +202,11 @@ class ZenStatus(Base):
         evt = job.getEvent()
         if evt:
             self.sendEvent(evt)
-            self.count.setdefault(key, 0)
-            self.count[key] += 1
+            self.counts.setdefault(key, 0)
+            self.counts[key] += 1
         else:
             if key in self.counts:
-                del self.count[key] 
+                del self.counts[key] 
         
     def processError(self, error):
         self.log.warn(error.getErrorMessage())
