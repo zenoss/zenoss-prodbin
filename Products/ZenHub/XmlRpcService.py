@@ -21,7 +21,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
         return self.zem.getWmiConnIssues(*args)
 
     def xmlrpc_getDeviceWinInfo(self, *args):
-        return self.dmd.Device.Servers.Windows.getDeviceWinInfo(*args)
+        return self.dmd.Devices.Servers.Windows.getDeviceWinInfo(*args)
 
     def xmlrpc_applyDataMap(self, devName, datamap, 
                             relname="", compname="", modname=""):
