@@ -134,7 +134,7 @@ class ZenStatus(Base):
         self.log.debug("Getting service status")
         yield self.configService().callRemote('serviceStatus')
         self.counts = {}
-        for device, component, count in driver.next():
+        for (device, component), count in driver.next():
             self.counts[device, component] = count
 
         self.log.debug("Getting services")
