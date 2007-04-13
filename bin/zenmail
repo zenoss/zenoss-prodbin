@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+
+SUDO=sudo
+PRGHOME=$ZENHOME/Products/ZenEvents
+PRGNAME=zenmail.py
+CFGFILE=$CFGDIR/zenmail.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+
+generic "$@"
