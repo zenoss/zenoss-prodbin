@@ -9,7 +9,7 @@ from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel import interfaces
 from Products.ZenRelations.RelSchema import *
-
+from Products.ZenUtils.Utils import importClass
 import transaction
 
 import os
@@ -94,7 +94,7 @@ class ZenPack(ZenModelRM):
         xml.write("</objects>\n")
         path = zenPackPath(self.id, 'objects')
         if not os.path.isdir(path):
-            os.makeDirs(path)
+            os.mkdir(path)
         objects = file(os.path.join(path, 'objects.xml'), 'w')
         objects.write(xml.getvalue())
         objects.close()
@@ -140,6 +140,21 @@ class ZenPack(ZenPackBase):
             REQUEST['message'] = '%s has been exported' % self.id
             return self.callZenScreen(REQUEST)
 
+
+    def getDataSourceClasses(self):
+        dsClasses = []
+        for path, dirs, files in os.walk(self.path('datasources')):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for f in files:
+                if not f.startswith('.') \
+                        and f.endswith('.py') \
+                        and not f == '__init__.py':
+                    parts = path.split('/') + [f[:-3]]
+                    parts = parts[parts.index('Products'):]
+                    dsClasses.append(importClass('.'.join(parts)))
+        return dsClasses
+
+
 from Products.ZenModel.ZenPackLoader import *
 
 def zenPackPath(*parts):
@@ -183,6 +198,6 @@ class ZenPackBase(ZenPack):
             result.append((loader.name,
                            [item for item in loader.list(self, app)]))
         return result
-
+        
 
 InitializeClass(ZenPack)
