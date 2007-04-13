@@ -7,16 +7,17 @@ __doc__ = "Manage ZenPacks"
 
 import Globals
 from Products.ZenModel.ZenPack import ZenPackBase, zenPackPath
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 import transaction
 
 import os, sys
 
-class ZenPackCmd(ZCmdBase):
+class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
 
     def run(self):
         "Execute the user's request"
+        self.connect()
         if self.options.installPackName:
             self.install(self.extract(self.options.installPackName))
 
@@ -113,7 +114,6 @@ class ZenPackCmd(ZCmdBase):
         
     
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
         self.parser.add_option('--install',
                                dest='installPackName',
                                default=None,
@@ -132,6 +132,7 @@ class ZenPackCmd(ZCmdBase):
                                action="store_true",
                                default=False,
                                help="ignore an existing pack installation")
+        ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
     zp = ZenPackCmd()
