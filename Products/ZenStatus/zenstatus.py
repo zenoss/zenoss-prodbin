@@ -40,7 +40,7 @@ class Status:
         self._running += 1
         return d
 
-    def _stop(self, result):
+    def testStop(self, result):
         self._running -= 1
         if self.done():
             self._stop = time.time()
@@ -50,11 +50,11 @@ class Status:
 
     def success(self, result):
         self._success += 1 
-        return self._stop(result)
+        return self.testStop(result)
 
     def failure(self, result):
         self._failure += 1
-        return self._stop(result)
+        return self.testStop(result)
 
     def done(self):
         return self._running == 0 and not self._remaining
