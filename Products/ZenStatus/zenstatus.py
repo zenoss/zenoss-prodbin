@@ -4,186 +4,232 @@
 #
 #################################################################
 
-import socket
 import os
 import time
 import sys
 
-from twisted.internet import reactor
-from _mysql_exceptions import OperationalError
+from twisted.internet import reactor, defer
 
 import Globals # make zope imports work
+from Products.ZenHub.PBDaemon import PBDaemon as Base
+from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 
-from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
-from Products.ZenEvents.Event import Event, EventHeartbeat
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-import ZenTcpClient 
-
-class ZenStatus(ZCmdBase):
-
-    agent = "ZenTCP"
-    eventGroup = "TCPTest"
-    stopping = False
+class Status:
+    _running = 0
+    _fail = 0
+    _success = 0
+    _start = 0
+    _stop = 0
+    _defer = None
 
     def __init__(self):
-        ZCmdBase.__init__(self, keeproot=True)
+        self._remaining = []
+
+    def start(self, jobs):
+        self._remaining = jobs
+        self._start = time.time()
+        self._defer = defer.Deferred()
+        if not self._remaining:
+            self._defer.callback(self)
+        return self._defer
+
+    def next(self):
+        d = self._remaining.pop().start()
+        d.addCallbacks(self.success, self.failure)
+        self._running += 1
+        return d
+
+    def _stop(self, result):
+        self._running -= 1
+        if self.done():
+            self._stop = time.time()
+            self._defer, d = None, self._defer
+            d.callback(self)
+        return result
+
+    def success(self, result):
+        self._success += 1 
+        return self._stop(result)
+
+    def failure(self, result):
+        self._failure += 1
+        return self._stop(result)
+
+    def done(self):
+        return self._running == 0 and not self._remaining
+
+    def stats(self):
+        return (len(self._remaining),
+                self._running,
+                self._success,
+                self._fail)
+
+    def duration(self):
+        if self.done():
+            return self._stop - self._start
+        return time.time() - self._start
+
+
+class ZenStatus(Base):
+
+    agent = "ZenStatus"
+    initialServices = ['EventService', 'StatusConfig']
+    cycleInterval = 300
+    configCycleInterval = 20
+    properties = ('cycleInterval', 'configCycleInterval')
+
+    def __init__(self):
+        Base.__init__(self, keeproot=True)
         self.clients = {}
         self.count = 0
-        self.hostname = socket.getfqdn()
-        self.configpath = self.options.configpath
-        if self.configpath.startswith("/"):
-            self.configpath = self.configpath[1:]
-        self.smc = self.dmd.getObjByPath(self.configpath)
-        self.zem = self.dmd.ZenEventManager
-        self.sendEvent(Event(device=socket.getfqdn(), 
-                        eventClass=App_Start, 
-                        summary="zenstatus started",
-                        severity=0, component="zenstatus"))
-        self.log.info("started")
+        self.status = Status()
+
+    def configService(self):
+        class FakeService:
+            def callRemote(self, *args):
+                return defer.fail("Config Service is down")
+        try:
+            return self.services['StatusConfig']
+        except KeyError:
+            return FakeService()
+
+    def startScan(self, ignored=None):
+        d = drive(self.scanCycle)
+        if not self.options.cycle:
+            d.addBoth(lambda x: self.stop())
+
+    def connected(self):
+        d = drive(self.configCycle)
+        d.addCallbacks(self.startScan, self.configError)
+
+    def configError(self, why):
+        self.log.error(why.getErrorMessage())
+        self.stop()
+
+    def remote_setPropertyItems(self, items):
+        self.log.debug("Async update of collection properties")
+        self.setPropertyItems(items)
+
+    def setPropertyItems(self, items):
+        'extract configuration elements used by this server'
+        table = dict(items)
+        for name in self.properties:
+            value = table.get(name, None)
+            if value is not None:
+                if getattr(self, name) != value:
+                    self.log.debug('Updated %s config to %s' % (name, value))
+                setattr(self, name, value)
+
+    def remote_deleteDevice(self, device):
+        self.ipservices = [s for s in self.ipservices if s.cfg.device != device]
+
+    def configCycle(self, driver):
+        self.log.info("fetching property items")
+        yield self.configService().callRemote('propertyItems')
+        self.setPropertyItems(driver.next())
+
+        driveLater(self.configCycleInterval * 60, self.configCycle)
+
+        self.log.debug("Getting service status")
+        yield self.configService().callRemote('serviceStatus')
+        self.counts = {}
+        for device, component, count in driver.next():
+            self.counts[device, component] = count
+
+        self.log.debug("Getting services")
+        yield self.configService().callRemote('services',
+                                              self.options.configpath)
+        self.ipservices = []
+        for s in driver.next():
+            count = self.counts.get((s.device, s.component), 0)
+            self.ipservices.append(ZenTcpClient(s, count))
+        self.log.debug("ZenStatus configured")
+
+    def scanCycle(self, driver):
+        driveLater(self.cycleInterval, self.scanCycle)
+
+        if not self.status.done():
+            duration = self.status.duration()
+            self.log.warning("Scan cycle not complete in %.2f seconds",
+                             duration)
+            if duration < self.cycleInterval * 2:
+                self.log.warning("Waiting for the cycle to complete")
+                return
+            self.log.warning("Ditching this cycle")
+
+        self.log.debug("Getting down devices")
+        yield self.eventService().callRemote('getDevicePingIssues')
+        self.pingStatus = driver.next()
+
+        self.log.debug("Starting scan")
+        d = self.status.start(self.ipservices)
+        self.log.debug("Running jobs")
+        self.runSomeJobs()
+        yield d 
+        driver.next()
+        self.log.debug("Scan complete")
+        self.heartbeat()
+        
+    def heartbeat(self):
+        _, _, success, fail = self.status.stats()
+        self.log.info("Finished %d jobs (%d good, %d bad) in %.2f seconds",
+                      (success + fail), success, fail, self.status.duration())
+        if not self.options.cycle:
+            self.stop
+            return
+        from socket import getfqdn
+        heartbeatevt = dict(eventClass=Heartbeat,
+                            component='ZenStatus',
+                            device=getfqdn())
+        self.sendEvent(heartbeat, timeout=self.cycleInterval*3)
 
 
-    def cycleLoop(self):
-        """Our own reactor loop so we can control timeout.
-        """
-        start = time.time()
-        self.log.debug("starting cycle loop")
-        self.startTests()
-        reactor.startRunning(installSignalHandlers=False)
+    def runSomeJobs(self):
         while 1:
-            try:
-                reactor.runUntilCurrent()
-                if not self.clients or self.stopping:
-                    break
-                secs = reactor.timeout()
-                if secs is None: break
-                reactor.doIteration(secs)
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("unexpected error in reactorLoop")
-        self.log.debug("ended cycle loop runtime=%s", time.time()-start)
+            left, running, good, bad = self.status.stats()
+            self.log.debug("Status: left %d running %d good %d bad %d",
+                           left, running, good, bad)
+            if not left or running >= self.options.parallel:
+                break
+            d = self.status.next()
+            d.addCallbacks(self.processTest, self.processError)
+            self.log.debug("Started job")
 
-    
-    def startTests(self):
-        self.svcgen = self.smc.getSubComponents("IpService")
-        count = 0
-        while self.nextService() and self.count < self.options.parallel: pass
-
-
-    def nextService(self):
-        while True:
-            try:
-                svc = self.svcgen.next()
-            except StopIteration: return False
-            dev = svc.device()
-            if dev.getPingStatus() > 0: 
-                self.log.debug("skipping service %s on %s bad ping status.",
-                                svc.name(), dev.getId())
-                continue
-            if not dev.monitorDevice():
-                self.log.debug("skipping service %s on %s prod state too low.",
-                                svc.name(), dev.getId())
-                continue
-            if svc.getProtocol() != "tcp":
-                self.log.debug("skipping service %s on %s it is not TCP.",
-                                svc.name(), dev.getId())
-                continue
-            self.log.debug("adding service:%s on:%s", svc.name(), dev.getId())
-            self.count += 1
-            timeout = getattr(dev, 'zStatusConnectTimeout', 15.0)
-            d = ZenTcpClient.test(svc, timeout=timeout)
-            d.addCallback(self.processTest)
-            d.addErrback(self.processError)
-            key = (svc.getManageIp(), svc.name())
-            self.clients[key] = 1
-            return True 
-
-
-    def processTest(self, result):
-        key, evt = result
-        if evt: self.sendEvent(evt)
-        self.nextService()
-        if self.clients.has_key(key):
-            del self.clients[key] 
-
+    def processTest(self, job):
+        self.runSomeJobs()
+        key = job.cfg.device, job.cfg.component
+        evt = job.getEvent()
+        if evt:
+            self.sendEvent(evt)
+            self.count.setdefault(key, 0)
+            self.count[key] += 1
+        else:
+            if key in self.counts:
+                del self.count[key] 
         
     def processError(self, error):
         self.log.warn(error.getErrorMessage())
 
-        
-    def mainLoop(self):
-        # for the first run, quit on failure
-	try:
-          if self.options.cycle:
-            while not self.stopping:
-                start = time.time()
-                self.count = 0
-                try:
-                    self.syncdb()
-                    self.log.debug("starting zenstatus cycle")
-                    self.cycleLoop()
-                    self.log.info("tested %d in %3.2f seconds" % 
-                                (self.count, (time.time() - start)))
-                    self.sendHeartbeat()
-                except (SystemExit, KeyboardInterrupt): raise
-                except:
-                    self.log.exception("unknown exception in main loop")
-                runtime = time.time() - start
-                if runtime < self.options.cycletime:
-                    time.sleep(self.options.cycletime - runtime)
-          else:
-            self.cycleLoop()
-            self.sendHeartbeat()
-        finally:
-          self._stop()
-          self.log.info("stopped")
-
-
-    def stop(self):
-        """Stop zenstatus and its child threads.
-        """
-	self.stopping = True
-
-    def _stop(self):
-        self.log.info("stopping...")
-        if hasattr(self,"pingThread"):
-            self.pingThread.stop()
-        self.log.info("stopped")
-
-
-    def sendEvent(self, evt):
-        """Send an event for this monitor.
-        """
-        try:
-            self.zem.sendEvent(evt)
-        except OperationalError, e:
-            self.log.warn("failed sending event: %s", e)
-
-
-    def sendHeartbeat(self):
-        """Send a heartbeat event for this monitor.
-        """
-        timeout = self.options.cycletime*3
-        evt = EventHeartbeat(socket.getfqdn(), "zenstatus", timeout)
-        self.sendEvent(evt)
-
-
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
-        self.parser.add_option('--configpath', dest='configpath',
-                default="/Devices/Server",
-                help="path to our monitor config ie: "
-                     "/Devices/Server")
-        self.parser.add_option('--parallel', dest='parallel', 
-                default=50, type='int',
-                help="number of devices to collect at one time")
-        self.parser.add_option('--cycletime',
-            dest='cycletime', default=60, type="int",
-            help="check events every cycletime seconds")
-
+        Base.buildOptions(self)
+        p = self.parser
+        p.add_option('--configpath',
+                     dest='configpath',
+                     default="/Devices/Server",
+                     help="path to our monitor config ie: /Devices/Server")
+        p.add_option('--parallel',
+                     dest='parallel', 
+                     type='int',
+                     default=50,
+                     help="number of devices to collect at one time")
+        p.add_option('--cycletime',
+                     dest='cycletime',
+                     type="int",
+                     default=60,
+                     help="check events every cycletime seconds")
 
 
 if __name__=='__main__':
-    if sys.platform == 'win32':
-        time.time = time.clock
     pm = ZenStatus()
-    pm.mainLoop()
+    pm.run()

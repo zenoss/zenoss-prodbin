@@ -658,6 +658,35 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return statusCache
 
         
+    def getAllComponentStatus(self,
+                              statclass,
+                              countField=None,
+                              severity=3,
+                              state=1,
+                              where=""):
+        "Fetch the counts on all components matching statClass"
+        if countField == None: countField = self.countField
+        select = "select %s, %s, %s from %s where "\
+                  % (self.deviceField, self.componentField, countField,
+                     self.statusTable)
+        where = self._wand(where, "%s = '%s'", self.eventClassField, statclass)
+        where = self._wand(where, "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        select += where
+        conn = self.connect()
+        try:
+            curs = conn.cursor()
+            curs.execute(select)
+            result = {}
+            for dev, comp, count in curs.fetchall():
+                dev = self.cleanstring(dev)
+                comp = self.cleanstring(comp)
+                result[dev,comp] = 0
+            return result 
+        finally:
+            self.close(conn)
+
+
     def getComponentStatus(self, device, component, statclass=None,
                     countField=None, severity=3, state=1, where=""):
         """see IEventStatus

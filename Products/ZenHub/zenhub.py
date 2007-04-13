@@ -223,7 +223,7 @@ class ZenHub(ZCmdBase):
             try:
                 ctor = importClass(name)
             except ImportError:
-                ctor = importClass('services.%s' % name, name)
+                ctor = importClass('Products.ZenHub.services.%s' % name, name)
             svc = ctor(self.dmd, instance)
             self.services[name, instance] = svc
             return svc
