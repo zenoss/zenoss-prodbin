@@ -164,9 +164,10 @@ class Migration(ZenScriptBase):
 
         cleanup()
 
-        rl = ReportLoader(noopts=True, app=self.app)
-        rl.options.force = True
-        rl.loadDatabase()
+        if not self.options.steps:
+            rl = ReportLoader(noopts=True, app=self.app)
+            rl.options.force = True
+            rl.loadDatabase()
 
 
     def cutover(self):
@@ -293,6 +294,9 @@ class Migration(ZenScriptBase):
                         return True
                 return False
             self.allSteps = [s for s in self.allSteps if matches(s.name())]
+            if not self.allSteps:
+                log.error('No steps matching %s found' % self.options.steps)
+                return
             self.useDatabaseVersion = False
         log.debug("Level %s, steps = %s",
                   self.options.level, self.options.steps)
