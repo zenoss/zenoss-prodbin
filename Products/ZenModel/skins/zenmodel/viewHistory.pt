@@ -1,7 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-
 <tal:block tal:define="
 tabletitle string:Changes for ${here/getId}
                       ">

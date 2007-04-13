@@ -1,9 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url_path"
-            name="lockableForm"/>
-
 <tal:block metal:define-macro="deviceStatusInfo"
            tal:define=" tabletitle string:Status;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

@@ -1,4 +1,5 @@
 <h2>Add FileSystem</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <p>
 What would you like to name your FileSystem?<br/>
 </p>
@@ -9,9 +10,8 @@ Name:&nbsp;<input name="id"><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addFileSystem:method"
-    value="Yes, Create this FileSystem"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'addComponent')" />
+    value="Yes, Create this FileSystem" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

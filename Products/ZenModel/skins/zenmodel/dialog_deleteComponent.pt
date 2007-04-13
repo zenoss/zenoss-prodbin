@@ -1,12 +1,12 @@
 <h2>Delete component</h2>
+<form method="post" name="deleteForm">
 <p>
 Are you sure you want to delete this component?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteComponent:method"
-    value="Yes, Delete this object"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}','lockableForm')" />                       
+    value="Yes, Delete this object" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

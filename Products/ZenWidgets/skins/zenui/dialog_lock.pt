@@ -1,4 +1,6 @@
 <h2>Edit Lock</h2>
+<form method="post" tal:attributes="action here/absolute_url"
+    name="lockableForm">
 <p>
 Which lock status would you like to set on this object?<br/><br/>
 <input tal:attributes="name string:sendEventWhenBlocked;
@@ -6,19 +8,14 @@ Which lock status would you like to set on this object?<br/><br/>
                     checked here/sendEventWhenBlocked"
                     />Send event when actions are blocked by a lock<br/>
 </p>
-<p alight="right">
+<p align="right">
 <input type="submit" name="lockFromUpdates:method"
-    value="Lock from deletion and updates"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}','lockableForm')" /><br/>
-<input type="submit" name="lockFromDeletion:method"
-    value="Lock from deletion"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}','lockableForm')" /><br/>
+        value="Lock from deletion and updates" /><br/>
+<input type="submit" name="lockFromDeletion:method" 
+        value="Lock from deletion" /><br/>
 <input type="submit" name="unlock:method"
-    value="Unlock"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}','lockableForm')" /><br/>
+    value="Unlock"/><br/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </p>
+</form>

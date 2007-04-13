@@ -1,5 +1,6 @@
 <h2>Add IpRouteEntry</h2>
 <br/>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <input type="hidden" name="userCreated" value="True">
 <p style="text-align:right;">
 Destination:&nbsp;<input name="dest"><br/><br/>
@@ -25,9 +26,8 @@ tal:define="types here/os/routeTypeMap">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpRouteEntry:method"
-    value="Yes, Create this Route"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'addComponent')" />
+    value="Yes, Create this Route" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

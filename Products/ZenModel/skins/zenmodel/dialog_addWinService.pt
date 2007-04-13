@@ -1,4 +1,5 @@
 <h2>Add WinService</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <p>
 What would you like to name your WinService?<br/>
 </p>
@@ -10,9 +11,8 @@ Description:&nbsp;<input name="description"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addWinService:method"
-    value="Yes, Create this WinService"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'addComponent')" />
+    value="Yes, Create this WinService" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

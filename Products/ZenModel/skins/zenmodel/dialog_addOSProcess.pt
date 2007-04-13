@@ -1,4 +1,5 @@
 <h2>Add OSProcess</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <p>
 What would you like to name your OSProcess?<br/>
 </p>
@@ -15,9 +16,8 @@ tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addOSProcess:method"
-    value="Yes, Create this OSProcess"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'addComponent')" />
+    value="Yes, Create this OSProcess" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

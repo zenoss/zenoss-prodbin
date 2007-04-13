@@ -1,4 +1,5 @@
 <h2>Add IpInterface</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <p>
 What would you like to name your IpInterface?<br/>
 </p>
@@ -8,9 +9,8 @@ What would you like to name your IpInterface?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpInterface:method"
-    value="Yes, Create this IpInterface"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'addComponent')" />
+    value="Yes, Create this IpInterface" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
+</form>

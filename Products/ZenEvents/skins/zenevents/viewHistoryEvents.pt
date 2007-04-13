@@ -1,5 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
+
 <span metal:define-macro="body">
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
