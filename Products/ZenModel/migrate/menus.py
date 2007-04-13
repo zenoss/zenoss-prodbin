@@ -909,6 +909,22 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',),
                     allowed_classes = ('OperatingSystem',),
                     ),
+                dict(
+                    id=         'addReportOrganizer',
+                    description='Add Report Organizer...',
+                    action=     'dialog_addReportClass',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
+                    id=         'addReport',
+                    description='Add Report...',
+                    action=     'dialog_addReport',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),                 
                 ]
             })
         

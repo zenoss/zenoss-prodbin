@@ -1,0 +1,16 @@
+<h2>Add Report</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="_">
+<p>
+What would you like to name your Report?<br/>
+</p>
+<br/>
+<p style="text-align:center;">
+<input type="text" name="id">
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addDeviceReport:method"
+    value="Yes, Create this Report" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>
