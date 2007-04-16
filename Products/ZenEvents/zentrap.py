@@ -143,7 +143,7 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
                           3 : 'snmp_linkUp',
                           4 : 'snmp_authenticationFailure',
                           5 : 'snmp_egpNeighorLoss',
-                          6 : self.oid2name('%s.0.%d' % (enterprise, specific))
+                          6 : self.oid2name('%s' % (enterprise,))
                           }.get(generic, eventType + "_%d" % specific)
             for binding in extract(data, 'pdu/trap/variable_bindings'):
                 oid = grind(binding['name'])
