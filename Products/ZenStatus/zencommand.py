@@ -24,7 +24,8 @@ import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenEvents import Event
 
-from Products.ZenRRD.RRDDaemon import RRDDaemon, Threshold, ThresholdManager
+from Products.ZenRRD.RRDDaemon import RRDDaemon
+from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 

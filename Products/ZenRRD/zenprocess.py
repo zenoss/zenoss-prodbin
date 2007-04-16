@@ -41,7 +41,7 @@ from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
 
 from RRDUtil import RRDUtil
-from RRDDaemon import Threshold, ThresholdManager
+from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'

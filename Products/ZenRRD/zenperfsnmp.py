@@ -43,7 +43,7 @@ from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
 
 from RRDUtil import RRDUtil
-from RRDDaemon import Threshold, ThresholdManager
+from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
