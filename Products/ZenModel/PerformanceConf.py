@@ -20,6 +20,18 @@ import transaction
 import logging
 log = logging.getLogger("zen.PerformanceConf")
 
+try:
+    from base64 import urlsafe_b64encode
+    raise ImportError
+except ImportError, ex:
+    def urlsafe_b64encode(s):
+        import base64
+        s = base64.encodestring(s)
+        s = s.replace('+','-')
+        s = s.replace('/','_')
+        s = s.replace('\n','')
+        return s
+
 import xmlrpclib
 
 from sets import Set
@@ -293,7 +305,7 @@ class PerformanceConf(Monitor, StatusColor):
                 continue
             ngopts.append(o)
         import base64
-        gopts = base64.urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
+        gopts = urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
                 self.renderurl,gopts,drange, width)
         if self.renderurl.startswith("http"):
