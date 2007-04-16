@@ -67,23 +67,24 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stopEvent = stopEvent.copy()
         for evt in self.startEvent, self.stopEvent:
             evt.update(dict(component=self.name, device=getfqdn()))
-    
-    def connect(self):
 
+
+    def gotPerspective(self, perspective):
+        ''' This gets called every time we reconnect.
+        '''
+        self.log.warning("Reconnected to ZenHub")
+        self.perspective = perspective
+        d2 = self.getInitialServices()
+        if d.called:
+            self.log.debug('adding stop as getInitialServices errback')
+            d2.addErrback(lambda e: self.stop())
+        else:
+            self.log.debug('chaining getInitialServices with d2')
+            d2.chainDeferred(d)
+
+
+    def connect(self):
         d = defer.Deferred()
-        
-        def gotPerspective(perspective):
-            "Every time we reconnect this function is called"
-            self.log.warning("Connected to ZenHub")
-            self.perspective = perspective
-            d2 = self.getInitialServices()
-            if d.called:
-                self.log.debug('adding stop as getInitialServices errback')
-                d2.addErrback(lambda e: self.stop())
-            else:
-                self.log.debug('chaining getInitialServices with d2')
-                d2.chainDeferred(d)
-            
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s", self.options.hubHost)
         reactor.connectTCP(self.options.hubHost, self.options.hubPort, factory)
@@ -91,9 +92,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         password = self.options.password
         self.log.debug("Logging in as %s", username)
         c = credentials.UsernamePassword(username, password)
-        factory.gotPerspective = gotPerspective
+        factory.gotPerspective = self.gotPerspective
         factory.startLogin(c)
         return d
+
 
     def eventService(self):
         return self.services['EventService']
