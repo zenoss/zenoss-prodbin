@@ -102,7 +102,7 @@
           tal:content="structure here/hw/productClass/getPrimaryLink"/>
     </tr>
     <tr>
-      <td class="tableheader">OS Manufactuer</td>
+      <td class="tableheader">OS Manufacturer</td>
       <td class="tablevalues"
           tal:content="structure here/os/getManufacturerLink"/>
       <td class="tableheader">OS Version</td>

@@ -93,7 +93,7 @@ class Software(MEProduct):
 
     
     def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks and ip creation"""
+        """override from PropertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
         if id == 'installDate':
             self.setInstallDate(value)
@@ -137,7 +137,7 @@ class Software(MEProduct):
 
 
     def version(self):
-        """Return the verion of this software (from its softwareClass)
+        """Return the version of this software (from its softwareClass)
         """
         pclass = self.productClass()
         if pclass: return pclass.version
