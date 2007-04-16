@@ -68,7 +68,7 @@ class RelationshipBase(PrimaryPathManager):
 
     def addRelation(self, obj):
         """Form a bi-directional relation between self and obj."""
-        if obj == None: raise ZenRelationsError("Can not add None to relation")
+        if obj is None: raise ZenRelationsError("Can not add None to relation")
         if not isinstance(obj, self.remoteClass()):
             raise ZenSchemaError("%s restricted to class %s. %s is class %s" %
                 (self.id, self.remoteClass().__name__, 

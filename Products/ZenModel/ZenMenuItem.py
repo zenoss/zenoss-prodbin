@@ -25,6 +25,7 @@ class ZenMenuItem(ZenModelRM):
     isdialog = False
     banned_classes = () 
     allowed_classes = ()
+    ordering = 0.0
     
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
@@ -34,6 +35,7 @@ class ZenMenuItem(ZenModelRM):
         {'id':'banned_classes','type':'lines','mode':'w'},
         {'id':'allowed_classes','type':'lines','mode':'w'},
         {'id':'isdialog', 'type':'boolean','mode':'w'},
+        {'id':'ordering', 'type':'float','mode':'w'},
         )
 
     _relations =  (
@@ -48,5 +50,11 @@ class ZenMenuItem(ZenModelRM):
             parent = parent.getParentNode()
         return parent
 
+    def __cmp__(self, other):
+        if other and other.ordering:
+            return cmp(self.ordering, other.ordering)
+        else:
+            return cmp(self.ordering, 0.0)
+    
 InitializeClass(ZenMenuItem)
 
