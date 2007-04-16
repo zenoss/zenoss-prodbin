@@ -42,7 +42,8 @@ class Render(resource.Resource):
                     del args['ftype']
                     request.setHeader('Content-type', 'image/%s' % ftype)
                     def write(result):
-                        request.write(result)
+                        if result:
+                            request.write(result)
                         request.finish()
                     def error(reason):
                         log.error("Unable to fetch graph: %s", reason)
