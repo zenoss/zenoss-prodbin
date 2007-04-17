@@ -4,6 +4,10 @@
 #   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
 #################################################################
+#
+# Notes: database wants events in UTC time
+# Events page shows local time, as determined on the server where zenoss runs
+#
 
 __doc__='''zenmail
 
@@ -18,6 +22,9 @@ from twisted.mail.pop3client import POP3Client
 from twisted.internet import reactor, protocol, defer, task
 from twisted.internet.ssl import ClientContextFactory
 from zope.interface import implements
+from Products.ZenRRD.RRDDaemon import RRDDaemon
+from Products.ZenUtils.Driver import drive, driveLater
+
 
 from MessageProcessing import MessageProcessor
 
@@ -38,7 +45,7 @@ class POPProtocol(POP3Client):
         log.info('logging in...')
         login = self.login(self.factory.user, self.factory.passwd)
         login.addCallback(self._loggedIn)
-        login.addErrback(self._loggedIn)
+#        login.addErrback(self._loggedIn)
 
         login.chainDeferred(self.factory.deferred)
 
@@ -74,6 +81,7 @@ class POPProtocol(POP3Client):
 
 
     def _finished(self, downloadResults):
+        log.info('calling retrieveAndParse in %d seconds.' % self.factory.cycletime)
         reactor.callLater(self.factory.cycletime, self.retrieveAndParse)
 
     
@@ -97,11 +105,27 @@ class POPFactory(protocol.ClientFactory):
         self.deferred.errback(reason)
 
 
-class ZenMail(EventServer):
+class MailDaemon(EventServer, RRDDaemon):
+    # seconds
+    snmpCycleInterval = 1 * 60
+    heartBeatTimeout = snmpCycleInterval * 3
+
+    properties = RRDDaemon.properties + ('snmpCycleInterval',)
+    
+    def __init__(self, name):
+        EventServer.__init__(self)
+        RRDDaemon.__init__(self, name)
+        
+    def setPropertyItems(self, items):
+        RRDDaemon.setPropertyItems(self, items)
+        self.heartBeatTimeout = self.snmpCycleInterval * 3
+
+
+class ZenMail(MailDaemon):
     name = 'zenmail'
 
     def __init__(self):
-        EventServer.__init__(self)
+        MailDaemon.__init__(self, ZenMail.name)
 
         self.changeUser()
         self.processor = MessageProcessor(self.dmd.ZenEventManager)
@@ -110,7 +134,7 @@ class ZenMail(EventServer):
         popuser = self.options.popuser
         poppasswd = self.options.poppass
         usessl = self.options.usessl
-        cycletime = self.options.cycletime
+        cycletime = self.snmpCycleInterval
 
         log.info("creating POPFactory.")
         log.info("credentials user: %s; pass: %s" % (popuser, len(poppasswd) * '*'))
@@ -127,6 +151,16 @@ class ZenMail(EventServer):
             reactor.connectTCP(host, port, self.factor)
 
 
+    def startUpdateConfig(self, driver):
+        'Periodically ask the Zope server for performance monitor information.'
+        
+        log.info("fetching property items")
+        yield self.model().callRemote('propertyItems')
+        self.setPropertyItems(driver.next())
+
+        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
+
+
     def handleError(self, error):
         log.error(error)
         log.error(error.getErrorMessage())
@@ -139,11 +173,6 @@ class ZenMail(EventServer):
                                default=0,
                                type="int",
                                help="Use SSL when connecting to POP server")
-        self.parser.add_option('--cycletime',
-                               dest='cycletime',
-                               default="60",
-                               type="int",
-                               help="Number of seconds between polls")
         self.parser.add_option('--pophost',
                                dest='pophost', 
                                default="pop.zenoss.com",
