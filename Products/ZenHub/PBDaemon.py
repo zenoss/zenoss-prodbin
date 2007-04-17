@@ -90,7 +90,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def connect(self):
-        d = defer.Deferred()
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s", self.options.hubHost)
         reactor.connectTCP(self.options.hubHost, self.options.hubPort, factory)
@@ -100,7 +99,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.startLogin(c)
-        return d
+        return self.initialConnect
 
 
     def eventService(self):
@@ -163,8 +162,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         def errback(error):
             self.log.error('Unable to connect to zenhub: \n%s' % error)
             self.stop()
-        d.addCallback(callback)
-        d.addErrback(errback)
+        d.addCallbacks(callback, errback)
         reactor.run()
         self.log.info('%s shutting down' % self.name)
 
