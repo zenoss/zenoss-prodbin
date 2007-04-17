@@ -30,7 +30,7 @@ class zenwin(Base):
     initialServices = ['EventService', 'WmiConfig']
 
     heartbeat = dict(eventClass=Heartbeat,
-                     device=socket.getfqdn(),
+                     device=getfqdn(),
                      component='zenwin')
 
     def __init__(self):
