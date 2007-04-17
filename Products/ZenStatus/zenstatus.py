@@ -11,7 +11,7 @@ import sys
 from twisted.internet import reactor, defer
 
 import Globals # make zope imports work
-from Products.ZenHub.PBDaemon import PBDaemon as Base
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 from Products.ZenEvents.ZenEventClasses import Heartbeat
@@ -80,6 +80,7 @@ class ZenStatus(Base):
     cycleInterval = 300
     configCycleInterval = 20
     properties = ('cycleInterval', 'configCycleInterval')
+    reconfigureTimeout = None
 
     def __init__(self):
         Base.__init__(self, keeproot=True)
@@ -88,13 +89,7 @@ class ZenStatus(Base):
         self.status = Status()
 
     def configService(self):
-        class FakeService:
-            def callRemote(self, *args):
-                return defer.fail("Config Service is down")
-        try:
-            return self.services['StatusConfig']
-        except KeyError:
-            return FakeService()
+        return self.services.get('StatusConfig', FakeRemote())
 
     def startScan(self, ignored=None):
         d = drive(self.scanCycle)
@@ -108,6 +103,11 @@ class ZenStatus(Base):
     def configError(self, why):
         self.log.error(why.getErrorMessage())
         self.stop()
+
+    def remote_notifyConfigChanged(self):
+        if self.reconfigureTimeout and not self.reconfigureTimeout.called:
+            self.reconfigureTimeout.cancel()
+        self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
 
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
@@ -131,8 +131,13 @@ class ZenStatus(Base):
         yield self.configService().callRemote('propertyItems')
         self.setPropertyItems(driver.next())
 
-        driveLater(self.configCycleInterval * 60, self.configCycle)
+        d = driveLater(self.configCycleInterval * 60, self.configCycle)
+        d.addErrback(self.error)
 
+        yield drive(self.reconfigure)
+        driver.next()
+
+    def reconfigure(self, driver):
         self.log.debug("Getting service status")
         yield self.configService().callRemote('serviceStatus')
         self.counts = {}
@@ -147,9 +152,14 @@ class ZenStatus(Base):
             count = self.counts.get((s.device, s.component), 0)
             self.ipservices.append(ZenTcpClient(s, count))
         self.log.debug("ZenStatus configured")
+        
+
+    def error(self, why):
+        self.log.error(why.getErrorMessage())
 
     def scanCycle(self, driver):
-        driveLater(self.cycleInterval, self.scanCycle)
+        d = driveLater(self.cycleInterval, self.scanCycle)
+        d.addErrback(self.error)
 
         if not self.status.done():
             duration = self.status.duration()

@@ -74,9 +74,11 @@ def drive(callable):
 
 def driveLater(secs, callable):
     "Drive the callable at a later time"
+    d = defer.Deferred()
     def driveAgain():
-        drive(callable)
+        drive(callable).chainDeferred(d)
     reactor.callLater(secs, driveAgain)
+    return d
 
 
 def test():

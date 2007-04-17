@@ -53,6 +53,13 @@ DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
 DEFAULT_HUB_MONITOR = getfqdn()
 
+class HubDown(Exception): pass
+
+class FakeRemote:
+    def callRemote(self, name, *args):
+        from twisted.internet import defer
+        return defer.fail(HubDown("ZenHub is down"))
+
 class PBDaemon(ZenDaemon, pb.Referenceable):
     
     name = 'pbdaemon'
@@ -67,6 +74,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stopEvent = stopEvent.copy()
         for evt in self.startEvent, self.stopEvent:
             evt.update(dict(component=self.name, device=getfqdn()))
+        self.initialConnect = defer.Deferred()
 
 
     def gotPerspective(self, perspective):
@@ -75,11 +83,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.log.warning("Reconnected to ZenHub")
         self.perspective = perspective
         d2 = self.getInitialServices()
-        if d.called:
-            self.log.debug('adding stop as getInitialServices errback')
-            d2.addErrback(lambda e: self.stop())
-        else:
+        if self.initialConnect:
             self.log.debug('chaining getInitialServices with d2')
+            self.initialConnect, d = None, self.initialConnect
             d2.chainDeferred(d)
 
 
@@ -98,7 +104,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def eventService(self):
-        return self.services['EventService']
+        return self.services.get('EventService', FakeRemote())
 
 
     def getService(self, serviceName, serviceListeningInterface=None):

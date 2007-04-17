@@ -24,7 +24,7 @@ from Products.ZenUtils.Driver import drive
 from twisted.internet import reactor, defer
 from twisted.python import failure
 
-from Products.ZenHub.PBDaemon import PBDaemon as Base
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
 
 BAD_SEVERITY=Event.Warning
 
@@ -135,9 +135,7 @@ class RRDDaemon(Base):
                                       device=socket.getfqdn()))
 
     def getDevicePingIssues(self):
-        if 'EventService' in self.services:
-            return self.services['EventService'].callRemote('getDevicePingIssues')
-        return defer.fail("Not connected to ZenHub")
+        return self.eventService().callRemote('getDevicePingIssues')
 
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
@@ -195,8 +193,5 @@ class RRDDaemon(Base):
         self.stop()
 
     def model(self):
-        class Fake:
-            def callRemote(self, *args, **kwargs):
-                return defer.fail("No connection to ZenHub")
-        return self.services.get(self.initialServices[-1], Fake())
+        return self.services.get(self.initialServices[-1], FakeRemote())
 
