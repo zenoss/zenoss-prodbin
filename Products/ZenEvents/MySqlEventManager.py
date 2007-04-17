@@ -68,8 +68,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         sevsum = self.checkCache(select)
         if sevsum: return sevsum
         zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            conn = zem.connect()
             curs = conn.cursor()
             curs.execute(select)
             sumdata = {}
