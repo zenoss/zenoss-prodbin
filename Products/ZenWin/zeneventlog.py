@@ -1,6 +1,6 @@
 #################################################################
 #
-#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
 #################################################################
 
@@ -9,63 +9,38 @@ import os
 import gc
 import time
 import logging
-import xmlrpclib
-import socket
+from socket import getfqdn
 import pywintypes
 import pythoncom
 import wmiclient
 
-from zenutils.Utils import basicAuthUrl
-from zenutils.StatusMonitor import StatusMonitor
-from StatusTest import StatusTest
-from WinServiceTest import WinServiceTest
-from WinEventlog import WinEventlog
+import Globals
+from WinCollector import WinCollector as Base
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 
-class zeneventlog(StatusMonitor):
+TIMEOUT_CODE = 2147209215
+RPC_ERROR_CODE = 2147023170
 
-    manager = socket.getfqdn()
-    
-    startevt = {'eventClass':'/App/Start', 'device':socket.getfqdn(),
-                'summary': 'zeneventlog started', 
-                'component':'zeneventlog',
-                'severity':0}
-    stopevt = {'eventClass':'/App/Stop', 'device':socket.getfqdn(),
-                'summary': 'zeneventlog stopped', 
-                'component':'zeneventlog', 
-                'severity': 4}
-    heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
-                'component': 'zeneventlog'}
+class zeneventlog(Base):
 
+    agent = "zeneventlog"
 
-    def __init__(self, config=""):
-        StatusMonitor.__init__(self, config=config)
-        self.configCycleInterval = 20
+    def __init__(self):
+        Base.__init__(self)
         self.devices = {}
 
-
-    def validConfig(self):
-        """let getConfig know if we have a working config or not"""
-        return len(self.devices)
-
-
-    def loadConfig(self):
+    def updateDevices(self, devices):
         """get the config data from server"""
-        if time.time()-self.configTime > self.configCycleInterval*60:
-            self.log.info("reloading configuration")
-            url = basicAuthUrl(self.username, self.password,self.winurl)
-            server = xmlrpclib.Server(url)
-            polltime, devices = server.getDeviceWinInfo(0, True)
-            for name,user,passwd,sev,url in devices:
-                try:
-                    if self.checkwmi(name): 
-                        self.log.info('wmi prob on %s skipping', name)
-                        continue
-                    if self.devices.has_key(name): continue
-                    self.devices[name] = self.getWatcher(name,user,passwd,sev)
-                except pywintypes.com_error:
-                    self.log.exception("wmi connect failed on %s", name)
-            self.configTime = time.time()
-
+        for name,user,passwd,sev,url in devices:
+            try:
+                if name not in self.wmiprobs: 
+                    self.log.info('wmi prob on %s skipping', name)
+                    continue
+                if name in self.devices:
+                    continue
+                self.devices[name] = self.getWatcher(name,user,passwd,sev)
+            except pywintypes.com_error:
+                self.log.exception("wmi connect failed on %s", name)
 
 
     def getWatcher(self, name, user, passwd, minSeverity):
@@ -87,14 +62,15 @@ class zeneventlog(StatusMonitor):
         pythoncom.PumpWaitingMessages()
         baddevices = []
         for name, w in self.devices.items():
-            if self.checkwmi(name): continue
+            if name in self.wmiprobs:
+                continue
             self.log.debug("polling %s", name)
             try:
                 while 1:
-                    lrec = w()
-                    if not lrec.Message: continue
-                    evt = self.mkevt(name, lrec)
-                    self.zem.sendEvent(evt)
+                    lrec = w.nextEvent()
+                    if not lrec.Message:
+                        continue
+                    self.sendEvent(self.mkevt(name, lrec))
             except pywintypes.com_error, e:
                 msg = "wmi connection failed: "
                 code,txt,info,param = e
@@ -102,18 +78,20 @@ class zeneventlog(StatusMonitor):
                 if info:
                     wcode, source, descr, hfile, hcont, scode = info
                     scode = abs(scode)
-                    if descr: wmsg = descr.strip()
+                    if descr:
+                        wmsg = descr.strip()
                 msg += wmsg
-                if scode == 2147209215: # timeout
+                if scode == TIMEOUT_CODE:
                     self.log.debug("timeout %s", name)
-                elif scode == 2147023170: # rpc error
+                elif scode == RPC_ERROR_CODE:
                     self.log.warn("%s %s", name, msg)
                 else:
                     self.log.warn("%s %s", name, msg)
                     self.log.warn("removing %s", name)
                     baddevices.append(name)
-        for name in baddevices: del self.devices[name]
-        self.zem.sendEvent(self.heartbeat)
+        for name in baddevices:
+            del self.devices[name]
+        self.sendEvent(self.heartbeat)
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
@@ -127,20 +105,19 @@ class zeneventlog(StatusMonitor):
         evtkey = "%s_%s" % (lrec.SourceName, lrec.EventCode)
         sev = 4 - lrec.EventType     #lower severity by one level
         if sev < 1: sev = 1
-        evt = {}
-        evt['device'] = name
-        evt['eventClassKey'] = evtkey
-        evt['eventGroup'] = lrec.LogFile
-        evt['component'] = lrec.SourceName
-        evt['ntevid'] = lrec.EventCode
-        evt['summary'] = lrec.Message.strip()
-        evt['agent'] = "zeneventlog"
-        evt['severity'] = sev
-        evt['manager'] = self.manager
+        evt = dict(device=name,
+                   eventClassKey=evtkey,
+                   eventGroup=lrec.LogFile,
+                   component=lrec.SourceName,
+                   ntevid=lrec.EventCode,
+                   summary=lrec.Message.strip(),
+                   agent="zeneventlog",
+                   severity=sev,
+                   manager=self.manager)
         self.log.debug("device:%s msg:'%s'", name, lrec.Message)
         return evt
 
 
 if __name__ == "__main__":
     zw = zeneventlog()
-    zw.mainLoop()
+    zw.run()

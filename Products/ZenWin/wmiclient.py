@@ -105,7 +105,7 @@ class _watcher(object):
         self.event = event
 
 
-    def __call__(self, timeout=0):
+    def nextEvent(self, timeout=0):
         """Poll for next event wait timeout for response return value.
         """
         return self.event.NextEvent(timeout).Properties_("TargetInstance").Value
