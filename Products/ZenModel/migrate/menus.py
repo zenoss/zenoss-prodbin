@@ -368,7 +368,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True,
                     ),
                 dict(
-                    ordering=0.0, 
+                    ordering=1.0, 
                     id=         'moveOrganizer',
                     description='Move Organizers...',
                     action=     'dialog_moveOrganizer',
@@ -376,7 +376,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True,
                     ),
                 dict(
-                    ordering=0.0, 
+                    ordering=2.0, 
                     id=         'removeOrganizers',
                     description='Delete Organizers...',
                     action=     'dialog_removeOrganizer',
@@ -483,14 +483,14 @@ class MenuRelations(Migrate.Step):
                     permissions=('Manage DMD',),
                     isdialog=   True),
                 dict(
-                    ordering=0.0, 
+                    ordering=1.0, 
                     id=         'removeInstances',
                     description='Delete Mappings...',
                     action=     'dialog_removeInstances',
                     permissions=('Manage DMD',),
                     isdialog=   True),
                 dict(
-                    ordering=0.0, 
+                    ordering=2.0, 
                     id=         'moveInstances',
                     description='Move Mappings...',
                     action=     'dialog_moveInstances',
@@ -541,7 +541,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
-                    ordering=0.0, 
+                    ordering=1.0, 
                     id=         'removeZenPack',
                     description='Delete ZenPack',
                     permissions=('Manage DMD',),
@@ -815,6 +815,7 @@ class MenuRelations(Migrate.Step):
                 ],
             'DataSource_list':[
                 dict(
+                    ordering=0.0, 
                     id = 'addDataSource',
                     description = 'Add DataSource...',
                     action = 'dialog_addDataSource',
@@ -822,6 +823,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
+                    ordering=1.0, 
                     id = 'deleteDataSource',
                     description = 'Delete DataSource...',
                     action = 'dialog_deleteDataSource',
@@ -831,6 +833,7 @@ class MenuRelations(Migrate.Step):
                 ],
             'DataPoint_list':[
                 dict(
+                    ordering=0.0, 
                     id = 'addDataPoint',
                     description = 'Add DataPoint...',
                     action = 'dialog_addDataPoint',
@@ -838,6 +841,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
+                    ordering=1.0, 
                     id = 'deleteDataPoint',
                     description = 'Delete DataPoint...',
                     action = 'dialog_deleteDataPoint',
@@ -847,6 +851,7 @@ class MenuRelations(Migrate.Step):
                 ],
             'Threshold_list':[
                 dict(
+                    ordering=0.0, 
                     id = 'addThreshold',
                     description = 'Add Threshold...',
                     action = 'dialog_addThreshold',
@@ -854,6 +859,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
+                    ordering=1.0, 
                     id = 'deleteThreshold',
                     description = 'Delete Threshold...',
                     action = 'dialog_deleteThreshold',
@@ -863,6 +869,7 @@ class MenuRelations(Migrate.Step):
                 ],
             'Graph_list':[
                 dict(
+                    ordering=0.0, 
                     id = 'addGraph',
                     description = 'Add Graph...',
                     action = 'dialog_addGraph',
@@ -870,6 +877,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
+                    ordering=1.0, 
                     id = 'deleteGraph',
                     description = 'Delete Graph...',
                     action = 'dialog_deleteGraph',
@@ -877,6 +885,7 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     ),
                 dict(
+                    ordering=2.0, 
                     id = 'resequenceGraphs',
                     description = 'Re-sequence Graphs',
                     action = 'manage_resequenceRRDGraphs',
@@ -886,10 +895,18 @@ class MenuRelations(Migrate.Step):
                 ],
             'Subnetworks':[
                 dict(
-                    ordering=0.0, 
+                    ordering=1.0, 
                     id=         'deleteNetwork',
                     description='Delete Networks...',
                     action=     'dialog_deleteNetwork',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=0.0, 
+                    id=         'addNetwork',
+                    description='Add Network...',
+                    action=     'dialog_addNetwork',
                     isdialog=True,
                     permissions=('Change Device',),
                     ),
