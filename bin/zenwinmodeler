@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+. $ZENHOME/bin/zenfunctions
+
+PRGHOME=$ZENHOME/Products/ZenWin
+PRGNAME=zenwinmodeler.py
+CFGFILE=$CFGDIR/zenwinmodeler.conf
+PIDFILE=$VARDIR/$PRGNAME.pid
+generic "$@"
+
