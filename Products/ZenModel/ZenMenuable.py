@@ -116,7 +116,7 @@ class ZenMenuable:
             return None
         elif len(menus.keys())==1: 
             return menus.values()[0]
-        else: 
+        else:
             return menus
 
 InitializeClass(ZenMenuable)

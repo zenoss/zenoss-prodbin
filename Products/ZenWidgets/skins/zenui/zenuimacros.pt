@@ -21,11 +21,16 @@ Menu
 </tal:block>
 </a>
 </li>
-<div class="submenu" tal:attributes="id string:${menu}_submenu">
+<div class="submenu" 
+        tal:define="items python:here.getMenus(menu, here)"
+        tal:attributes="id string:${menu}_submenu">
+    <tal:block tal:condition="items">
+            <tal:block tal:define="dummy items/sort"/>
+    </tal:block>
     <div class="menu_top_rounded">&nbsp;</div>
     <div class="menu_bottom">&nbsp;</div>
     <ul>
-    <li tal:repeat="item python:here.getMenus(menu, here)">
+    <li tal:repeat="item items">
     <a tal:define="mypath python:test(item.action.startswith('javascript'),
                                 item.action,
                                 '%s/%s' % (basepath, item.action));
@@ -34,6 +39,8 @@ Menu
                     mypath)"
        tal:attributes="href actionpath" 
        tal:content="item/description">description</a>
+       <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+                  tal:content="item/ordering"/>
     </li>
     </ul>
 </div>

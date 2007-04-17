@@ -52,9 +52,9 @@ class ZenMenuItem(ZenModelRM):
 
     def __cmp__(self, other):
         if other and other.ordering:
-            return cmp(self.ordering, other.ordering)
+            return cmp(other.ordering, self.ordering)
         else:
-            return cmp(self.ordering, 0.0)
+            return cmp(0.0, self.ordering)
     
 InitializeClass(ZenMenuItem)
 
