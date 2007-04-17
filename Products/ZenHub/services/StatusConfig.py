@@ -57,8 +57,6 @@ class StatusConfig(HubService):
     def update(self, object):
         if not self.listeners: return
 
-        return
-
         # the PerformanceConf changed
         from Products.ZenModel.PerformanceConf import PerformanceConf
         if isinstance(object, PerformanceConf):
@@ -69,29 +67,8 @@ class StatusConfig(HubService):
                      ]
                 # listener.callRemote('updateDeviceList', devices)
 
-        # device has been changed:
-        if isinstance(object, Device):
-            self.notifyAll(object)
-            return
-            
-        # somethinge else... mark the devices as out-of-date
-        from Products.ZenModel.DeviceClass import DeviceClass
-
-        import transaction
-        while object:
-            # walk up until you hit an organizer or a device
-            if isinstance(object, DeviceClass):
-                for device in object.getSubDevices():
-                    device.setLastChange()
-                    transaction.commit()
-                break
-
-            if isinstance(object, Device):
-                object.setLastChange()
-                transaction.commit()
-                break
-
-            object = aq_parent(object)
+        for listener in self.listeners:
+            listener.callRemote('notifyConfigChanged')
 
     def deleted(self, obj):
         for listener in self.listeners:
