@@ -9,27 +9,22 @@ __doc__='''WmiService
 Provides Wmi config to zenwin clients.
 '''
 
-from twisted.spread import pb
-class ZenWinConfig(pb.Copyable, pb.RemoteCopy):
-
-    def __init__(self, monitor, devices):
-        self.monitor = monitor
-        self.devices = devices
-pb.setUnjellyableForClass(ZenWinConfig, ZenWinConfig)
-
 from Products.ZenHub.HubService import HubService
+from Products.DataCollector.ApplyDataMap import ApplyDataMap
+
 class WmiConfig(HubService):
     
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
-    def getDeviceWinInfo(self):
+    def remote_getDeviceWinInfo(self):
         """Return list of (devname,user,passwd,url) for each device.
         user and passwd are used to connect via wmi.
         """
         devinfo = []
-        for dev in self.config.device():
+        for dev in self.config.devices():
+            dev = dev.primaryAq()
             if not dev.monitorDevice(): continue
             if getattr(dev, 'zWmiMonitorIgnore', False): continue
             user = getattr(dev,'zWinUser','')
@@ -39,7 +34,7 @@ class WmiConfig(HubService):
         return devinfo
     
     
-    def getWinServices(self):
+    def remote_getWinServices(self):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """
         svcinfo = []
@@ -62,5 +57,20 @@ class WmiConfig(HubService):
         return svcinfo
 
     def remote_getConfig(self):
-        return ZenWinConfig(self.config.propertyItems(),
-                            self.getWinServices())
+        return self.config.propertyItems()
+
+    def remote_applyDataMap(self,
+                            url,
+                            datamap,
+                            relname="",
+                            compname="",
+                            modname=""):
+        dev = self.dmd.getObjByPath(url)
+        adm = ApplyDataMap()
+        return adm.applyDataMap(dev,
+                                datamap,
+                                relname=relname,
+                                compname=compname,
+                                modname=modname)
+        
+        

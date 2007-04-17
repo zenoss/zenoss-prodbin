@@ -7,63 +7,38 @@
 import os
 import time
 import sys
-import copy
-import xmlrpclib
 import logging
 import wmiclient
-import socket
+from socket import getfqdn
 import pywintypes
 
-from zenutils.Utils import prepId, basicAuthUrl
-from zenutils.StatusMonitor import StatusMonitor
-from zenutils.SendEvent import SendEvent
 
+import Globals
+from WinCollector import WinCollector as Base
+from Products.ZenEvents.ZenEventClasses import \
+     Heartbeat, Status_WinSrv, Status_Wmi
+from Products.ZenUtils.Utils import prepId
 
-class zenwinmodeler(StatusMonitor):
+class zenwinmodeler(Base):
     
-    evtClass = "/Status/WinSrv"
-    evtAgent = "zenwin"
+    evtClass = Status_WinSrv
+    agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
-    startevt = {'eventClass':'/App/Start', 'device':socket.getfqdn(),
-                'summary': 'zenwinmodeler started', 
-                'component':'zenwinmodeler',
-                'severity':0}
-    stopevt = {'eventClass':'/App/Stop', 'device':socket.getfqdn(),
-                'summary': 'zenwinmodeler stopped', 
-                'component':'zenwinmodeler', 
-                'severity': 4}
-    heartbeat = {'eventClass':'/Heartbeat', 'device':socket.getfqdn(),
-                'component': 'zenwinmodeler'}
+    deviceConfig = 'getDeviceWinInfo'
 
     def __init__(self):
-        StatusMonitor.__init__(self)
-        self.configCycleInterval = 0
+        Base.__init__(self)
         self.devices = []
-        self.lastStart = 0
-  
 
-    def validConfig(self):
-        return len(self.devices)
-   
-
-    def loadConfig(self):
-        """get the config data from server"""
-        self.log.info("reloading configuration")
-        url = basicAuthUrl(self.username, self.password,self.winurl)
-        server = xmlrpclib.Server(url)
-        self.lastStart, self.devices = \
-            server.getDeviceWinInfo(self.lastStart)
-        self.log.debug("laststart=%s", self.lastStart)
-
-            
     def processLoop(self):
         """For each device collect service info and send to server.
         """
-        self.lastStart = time.time()
+        self.log.error("devices %r", self.devices);
         for name, user, passwd, sev, url in self.devices:
-            if self.options.device and name != self.options.device: continue
+            if self.options.device and name != self.options.device:
+                continue
             try:
-                if self.checkwmi(name):
+                if name in self.wmiprobs:
                     self.log.warn("skipping %s has bad wmi state", name)
                     continue
                 self.log.info("collecting from %s using user %s", name, user)
@@ -71,14 +46,15 @@ class zenwinmodeler(StatusMonitor):
                 if not svcs: 
                     self.log.warn("failed collecting from %s", name)
                     continue
-                url = basicAuthUrl(self.username, self.password, url)
-                server = xmlrpclib.Server(url)
-                server.applyDataMap(svcs,"winservices","os",
-                                    "Products.ZenModel.WinService")
+                svc = self.configService()
+                d = svc.callRemote('applyDataMap', url, svcs,
+                                   'winservices', 'os',
+                                   'Products.ZenModel.WinService')
+                d.addErrback(self.error)
             except (SystemExit, KeyboardInterrupt): raise
             except pywintypes.com_error, e:
                 msg = "wmi failed "
-                code,txt,info,param = e
+                code, txt, info, param = e
                 wmsg = "%s: %s" % (abs(code), txt)
                 if info:
                     wcode, source, descr, hfile, hcont, scode = info
@@ -95,15 +71,16 @@ class zenwinmodeler(StatusMonitor):
         """
         data = []
         attrs = ("acceptPause","acceptStop","name","caption",
-                "pathName","serviceType","startMode","startName")
+                 "pathName","serviceType","startMode","startName")
         dev = wmiclient.WMI(name, user, passwd)
         dev.connect()
         wql = "select %s from Win32_Service" % (",".join(attrs))
         svcs = dev.query(wql)
         self.log.debug("query='%s'", wql)
         for svc in svcs:
-            sdata = {'id':prepId(svc.name), 'setServiceClass':
-                     {'name':svc.name, 'description':svc.caption}}
+            sdata = {'id':prepId(svc.name),
+                     'setServiceClass': {'name':svc.name,
+                                         'description':svc.caption}}
             for att in attrs:
                 if att in ("name", "caption"): continue
                 sdata[att] = getattr(svc,att,"")
@@ -111,24 +88,27 @@ class zenwinmodeler(StatusMonitor):
         return data
         
         
-    def sendFail(self, name, msg="", evtclass="/Status/Wmi", sev=3):
+    def sendFail(self, name, msg="", evtclass=Status_Wmi, sev=3):
         evt = { 'eventClass':evtclass, 
-                'agent': 'zenwinmodeler', 'component': '',
+                'agent': self.agent,
+                'component': '',
                 'severity':sev}
         if not msg:
             msg = "wmi connection failed %s" % name
         evt['summary'] = msg
         evt['device'] = name
-        self.zem.sendEvent(evt)
+        self.sendEvent(evt)
         #self.log.warn(msg)
         self.log.exception(msg)
         self.failed = True
 
+    def updateDevices(self, devices):
+        self.devices = devices
 
 
 if __name__=='__main__':
     zw = zenwinmodeler()
-    zw.mainLoop()
+    zw.run()
 
 
 

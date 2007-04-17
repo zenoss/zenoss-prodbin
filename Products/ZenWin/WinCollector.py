@@ -14,7 +14,6 @@ from twisted.internet import reactor, defer
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
-from Products.ZenHub.services import WmiConfig
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.Driver import drive, driveLater
 
@@ -32,6 +31,7 @@ class WinCollector(Base):
     heartbeat = dict(eventClass=Heartbeat,
                      device=getfqdn(),
                      component='zenwin')
+    deviceConfig = 'getDeviceWinInfo'
 
     def __init__(self):
         self.heartbeat['component'] = self.agent
@@ -81,31 +81,30 @@ class WinCollector(Base):
 
 
     def updateConfig(self, cfg):
-        for a, v in cfg.monitor:
+        for a, v in cfg:
             current = getattr(self, a, None)
             if current is not None and current != v:
                 self.log.info("Setting %s to %r", a, v);
                 setattr(self, a, v)
         self.heartbeat['timeout'] = self.cycleInterval*3
-        self.log.debug('Device data: %r' % (cfg.devices,))
-        self.updateDevices(cfg.devices)
-
 
     def error(self, why):
         why.printTraceback()
         self.log.error(why.getErrorMessage())
 
 
-    def reconfigure(self):
-        try:
-            d = self.configService().callRemote('getConfig')
-            d.addCallbacks(self.updateConfig, self.error)
-        except Exception, ex:
-            self.log.exception("Error fetching config")
-            return defer.fail(ex)
-        reactor.callLater(self.configCycleInterval, self.reconfigure)
-        return d
+    def startConfigCycle(self):
+        def doReconfigure(driver):
+            try:
+                yield self.configService().callRemote('getConfig')
+                self.updateConfig(driver.next())
+                yield self.configService().callRemote(self.deviceConfig)
+                self.updateDevices(driver.next())
+            except Exception, ex:
+                self.log.exception("Error fecthing config")
+            driveLater(self.configCycleInterval, doReconfigure)
+        return drive(doReconfigure)
 
     def connected(self):
-        d = self.reconfigure()
+        d = self.startConfigCycle()
         d.addCallback(self.startScan)
