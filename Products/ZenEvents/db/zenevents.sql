@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS status
     DevicePriority  smallint(6) default 3,
     eventClassMapping varchar(128) default "",
     PRIMARY KEY ( dedupid ),
-    Index evididx (evid)
+    Index evididx (evid),
+    Index clearidx (clearid)
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS history
