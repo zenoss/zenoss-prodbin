@@ -15,6 +15,7 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 from Commandable import Commandable
 from ZenMenuable import ZenMenuable
+from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
 
@@ -31,7 +32,7 @@ def manage_addServiceOrganizer(context, id, REQUEST = None):
 
 addServiceOrganizer = DTMLFile('dtml/addServiceOrganizer',globals())
 
-class ServiceOrganizer(Organizer, Commandable):
+class ServiceOrganizer(Organizer, Commandable, ZenPackable):
     meta_type = "ServiceOrganizer"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -42,7 +43,7 @@ class ServiceOrganizer(Organizer, Commandable):
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
 
-    _relations = Organizer._relations + (
+    _relations = Organizer._relations + ZenPackable._relations + (
         ("serviceclasses", ToManyCont(ToOne,"Products.ZenModel.ServiceClass","serviceorganizer")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )

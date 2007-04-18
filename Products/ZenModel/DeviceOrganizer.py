@@ -25,7 +25,8 @@ from AdministrativeRoleable import AdministrativeRoleable
 
 from Products.ZenRelations.RelSchema import *
 
-class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, MaintenanceWindowable, AdministrativeRoleable):
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
+                        MaintenanceWindowable, AdministrativeRoleable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.

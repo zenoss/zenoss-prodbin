@@ -16,6 +16,7 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
+from ZenPackable import ZenPackable
 
 from Organizer import Organizer
 from OSProcessClass import OSProcessClass
@@ -30,7 +31,7 @@ def manage_addOSProcessOrganizer(context, id, REQUEST = None):
 
 addOSProcessOrganizer = DTMLFile('dtml/addOSProcessOrganizer',globals())
 
-class OSProcessOrganizer(Organizer, Commandable):
+class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     meta_type = "OSProcessOrganizer"
     dmdRootName = "Processes"
     #default_catalog = "osprocessSearch"
@@ -41,7 +42,7 @@ class OSProcessOrganizer(Organizer, Commandable):
         {'id':'description', 'type':'text', 'mode':'w'},
         ) 
 
-    _relations = Organizer._relations + (
+    _relations = Organizer._relations + ZenPackable._relations + (
         ("osProcessClasses", ToManyCont(
             ToOne,"Products.ZenModel.OSProcessClass","osProcessOrganizer")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),

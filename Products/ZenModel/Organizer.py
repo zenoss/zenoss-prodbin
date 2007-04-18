@@ -23,7 +23,7 @@ from EventView import EventView
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
         
-class Organizer(ZenModelRM, EventView, ZenPackable):
+class Organizer(ZenModelRM, EventView):
     """
     OrganizerBase class is base for all hierarchical organization classes.
     It allows Organizers to be addressed and created with file system like
@@ -37,7 +37,7 @@ class Organizer(ZenModelRM, EventView, ZenPackable):
                     {'id':'description', 'type':'string', 'mode':'w'},
                    )
 
-    _relations = ZenModelRM._relations + ZenPackable._relations
+    _relations = ZenModelRM._relations
  
     security = ClassSecurityInfo()
     security.declareObjectProtected("View")

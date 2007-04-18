@@ -20,6 +20,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from DeviceOrganizer import DeviceOrganizer
+from ZenPackable import ZenPackable
 
 
 def manage_addLocation(context, id, description = "", REQUEST = None):
@@ -36,7 +37,7 @@ addLocation = DTMLFile('dtml/addLocation',globals())
 
 
 
-class Location(DeviceOrganizer):
+class Location(DeviceOrganizer, ZenPackable):
     """
     Location is a DeviceGroup Organizer that manages physical device Locations.
     """
@@ -46,7 +47,7 @@ class Location(DeviceOrganizer):
 
     portal_type = meta_type = event_key = 'Location'
     
-    _relations = DeviceOrganizer._relations + (
+    _relations = DeviceOrganizer._relations + ZenPackable._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","location")),
         ("networks", ToMany(ToOne,"Products.ZenModel.IpNetwork","location")),
         )

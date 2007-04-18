@@ -38,6 +38,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 from RRDTemplate import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
+from ZenPackable import ZenPackable
 
 _marker = "__MARKER___"
 
@@ -52,7 +53,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
 
 
-class DeviceClass(DeviceOrganizer):
+class DeviceClass(DeviceOrganizer, ZenPackable):
     """
     DeviceClass is a device organizer that manages the primary classification
     of device objects within the zenoss system.  It manages properties
@@ -80,7 +81,7 @@ class DeviceClass(DeviceOrganizer):
 
     default_catalog = 'deviceSearch'
     
-    _relations = DeviceOrganizer._relations + (
+    _relations = DeviceOrganizer._relations + ZenPackable._relations + (
         ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
         ("rrdTemplates", ToManyCont(ToOne,"Products.ZenModel.RRDTemplate","deviceClass")),
         )

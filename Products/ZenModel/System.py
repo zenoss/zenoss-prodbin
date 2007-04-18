@@ -22,6 +22,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
 
 from DeviceOrganizer import DeviceOrganizer
+from ZenPackable import ZenPackable
 
 
 def manage_addSystem(context, id, description = None, REQUEST = None):
@@ -38,7 +39,7 @@ addSystem = DTMLFile('dtml/addSystem',globals())
 
 
 
-class System(DeviceOrganizer):
+class System(DeviceOrganizer, ZenPackable):
     """
     System class is a device organizer that represents a business system.
     May need to manage "services" as well so that more sophisticated 
@@ -58,7 +59,7 @@ class System(DeviceOrganizer):
         {'id':'systemClass', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         )
-    _relations = DeviceOrganizer._relations + (
+    _relations = DeviceOrganizer._relations + ZenPackable._relations + (
         ("devices", ToMany(ToMany, "Products.ZenModel.Device", "systems")),
         )
 

@@ -17,6 +17,7 @@ from Globals import InitializeClass
 from Products.ZenRelations.RelSchema import *
 
 from DeviceOrganizer import DeviceOrganizer
+from ZenPackable import ZenPackable
 
 def manage_addDeviceGroup(context, id, description = None, REQUEST = None):
     """make a DeviceGroup"""
@@ -32,7 +33,7 @@ addDeviceGroup = DTMLFile('dtml/addDeviceGroup',globals())
 
 
 
-class DeviceGroup(DeviceOrganizer):
+class DeviceGroup(DeviceOrganizer, ZenPackable):
     """
     DeviceGroup is a DeviceGroup Organizer that allows generic device groupings.
     """
@@ -42,7 +43,7 @@ class DeviceGroup(DeviceOrganizer):
 
     portal_type = meta_type = event_key = 'DeviceGroup'
 
-    _relations = DeviceOrganizer._relations + (
+    _relations = DeviceOrganizer._relations + ZenPackable._relations + (
         ("devices", ToMany(ToMany,"Products.ZenModel.Device","groups")),
         )
 

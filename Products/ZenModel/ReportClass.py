@@ -23,6 +23,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Organizer import Organizer
 from Report import Report
+from ZenPackable import ZenPackable
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -34,12 +35,14 @@ def manage_addReportClass(context, id, title = None, REQUEST = None):
 
 addReportClass = DTMLFile('dtml/addReportClass',globals())
 
-class ReportClass(Organizer):
+class ReportClass(Organizer, ZenPackable):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
     sub_meta_types = ("ReportClass", "Report", 'DeviceReport')
 
+    _relations = Organizer._relations + ZenPackable._relations
+    
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
         { 

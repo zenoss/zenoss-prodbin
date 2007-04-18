@@ -17,6 +17,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 from Organizer import Organizer
 from MibModule import MibModule
+from ZenPackable import ZenPackable
 
 def manage_addMibOrganizer(context, id, REQUEST = None):
     """make a device class"""
@@ -29,7 +30,7 @@ def manage_addMibOrganizer(context, id, REQUEST = None):
 addMibOrganizer = DTMLFile('dtml/addMibOrganizer',globals())
 
 
-class MibOrganizer(Organizer):
+class MibOrganizer(Organizer, ZenPackable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -40,7 +41,7 @@ class MibOrganizer(Organizer):
     
     security = ClassSecurityInfo()
 
-    _relations = Organizer._relations + (
+    _relations = Organizer._relations + ZenPackable._relations + (
         ("mibs", ToManyCont(ToOne,"Products.ZenModel.MibModule","miborganizer")),
         )
 
