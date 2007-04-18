@@ -45,6 +45,13 @@ C="$C zentrap"
 C="$C zencommand"
 C="$C zenwin"
 C="$C zeneventlog"
+for i in $ZENHOME/Products/*/daemons/*
+do
+   if [ -x "$i" ]
+   then
+      C="$C `basename $i`"
+   fi
+done
 CMDS=$C
 
 reverse() {
