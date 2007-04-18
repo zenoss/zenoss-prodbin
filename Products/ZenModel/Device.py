@@ -1148,9 +1148,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             idx = dlh.rindex("</table>")
             response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
+            
+        from Products.DataCollector.zenmodeler import ZenModeler
+        sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
         try:
-            from Products.DataCollector.zenmodeler import ZenModeler
-            sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
             sc.options.force = True
             sc.generateEvents = generateEvents
             sc.collectSingle(self)
