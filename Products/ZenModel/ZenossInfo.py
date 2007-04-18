@@ -320,10 +320,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         masterScript = os.path.join(os.getenv('ZENHOME'), 'bin', 'zenoss')
         daemons = []
-        for line in open(masterScript).readlines():
-            match = re.match('C="\$C (.*)"$', line)
-            if match:
-                daemons.append(match.groups()[0])
+        for line in os.popen("%s list" % masterScript).readlines():
+            daemons.append(line.strip())
         return daemons
 
 
