@@ -134,9 +134,22 @@ class ZPLDaemons(ZenPackLoader):
 
     name = "Daemons"
 
+    def binPath(self, daemon):
+        return os.path.join(os.environ['ZENHOME'],
+                            'bin',
+                            os.path.basename(daemon))
+
     def load(self, pack, app):
         for fs in findFiles(pack, 'daemons'):
             os.chmod(fs, 0755)
+            os.symlink(fs, self.binPath(fs))
+
+    def unload(self, pack, app):
+        for fs in findFiles(pack, 'daemons'):
+            try:
+                os.remove(self.binPath(fs))
+            except OSError:
+                pass
 
     def list(self, pack, app):
         return [branchAfter(d, 'daemons') for d in findFiles(pack, 'daemons')]
