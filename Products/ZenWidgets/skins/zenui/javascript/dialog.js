@@ -12,6 +12,27 @@ Dialog.Box.prototype = {
     __init__: function(id) {
         this.makeDimBg();
         this.box = $(id);
+        this.framework = DIV(
+            {'class':'dialog_container'},
+            [
+            //top row
+            DIV({'class':'dbox_tl'},
+             [ DIV({'class':'dbox_tr'},
+               [ DIV({'class':'dbox_tc'}, null)])]),
+            //middle row
+            DIV({'class':'dbox_ml'},
+             [ DIV({'class':'dbox_mr'},
+               [ DIV({'class':'dbox_mc',
+                      'id':'dialog_content'}, null)])]),
+            //bottom row
+            DIV({'class':'dbox_bl'},
+             [ DIV({'class':'dbox_br'},
+               [ DIV({'class':'dbox_bc'}, null)])])
+            ]);
+        insertSiblingNodesBefore(this.box, this.framework);
+        setStyle(this.framework, {'position':'absolute'});
+        removeElement(this.box);
+        appendChildNodes($('dialog_content'), this.box);
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
         this.box.submit_form = bind(this.submit_form, this);
@@ -40,11 +61,12 @@ Dialog.Box.prototype = {
         }
     },
     moveBox: function(dir) {
-        this.box = removeElement(this.box);
+        this.framework = removeElement(this.framework);
         if(dir=='back') {
-            this.box = this.dimbg.parentNode.appendChild(this.box);
+            this.framework = this.dimbg.parentNode.appendChild(this.framework);
         } else {
-            this.box = this.dimbg.parentNode.insertBefore(this.box, this.dimbg);
+            this.framework = this.dimbg.parentNode.insertBefore(
+                this.framework, this.dimbg);
         }
     },
     show: function(form, url) {
@@ -52,27 +74,28 @@ Dialog.Box.prototype = {
         this.form = form;
         var dims = getViewportDimensions();
         var vPos = getViewportPosition();
-        setStyle(this.box, {'z-index':'1','display':'block'});
-        var bdims = getElementDimensions(this.box);
-        setStyle(this.box, {'z-index':'10002','display':'none'});
+        setStyle(this.framework, {'z-index':'1','display':'block'});
+        var bdims = getElementDimensions(this.framework);
+        setStyle(this.framework, {'z-index':'10002','display':'none'});
         map(function(menu) {setStyle(menu, {'z-index':'3000'})}, 
             concat($$('.menu'), $$('.devmovemenu')));
         setElementDimensions(this.dimbg, getViewportDimensions());
         setElementPosition(this.dimbg, getViewportPosition());
-        setElementPosition(this.box, {
+        setStyle(this.box, {'position':'relative'});
+        setElementPosition(this.framework, {
             x:((dims.w+vPos.x)/2)-(bdims.w/2),
             y:((dims.h+vPos.y)/2)-(bdims.h/2)
         });
         this.moveBox('front');
-        //connect(this.dimbg, 'onclick', bind(this.hide, this));
         connect('dialog_close','onclick',function(){$('dialog').hide()});
-        appear(this.dimbg, {duration:0.1, from:0.0, to:0.5});
+        appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
+        showElement(this.framework);
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
         this.box.innerHTML = this.defaultContent;
-        hideElement(this.box);
+        hideElement(this.framework);
         this.moveBox('back');
     },
     fetch: function(url) {
@@ -80,7 +103,7 @@ Dialog.Box.prototype = {
         d.addCallback(this.fill);
     },
     fill: function(request) {
-        $('dialog_content').innerHTML = request.responseText;
+        $('dialog_innercontent').innerHTML = request.responseText;
     },
     submit_form: function(action, formname) {
         var f = formname?document.forms[formname]:this.form

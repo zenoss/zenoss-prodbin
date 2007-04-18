@@ -3,16 +3,16 @@
 <script src="javascript/dialog.js"></script>
 <link href="css/dialog.css" rel="stylesheet" type="text/css" />
 <div id="dialog" class="dialog"> 
-<img id="dialog_close" src="img/close.gif" class="dialog_close"/>
-<div id="dialog_content">
+<div id="dialog_innercontent">
     <tal:block metal:define-slot="dialog_content">
         This is a dialog box.
 	</tal:block>
 </div>
+<img id="dialog_close" src="img/close.gif" class="dialog_close"/>
 </div>
 <script>
-new Dialog.Box($('dialog'));
-connect('dialog_close','onclick',function(){$('dialog').hide()});
+var mydialog = new Dialog.Box($('dialog'));
+connect('dialog_close','onclick', mydialog.box.hide);
 </script>
 </tal:block>
 

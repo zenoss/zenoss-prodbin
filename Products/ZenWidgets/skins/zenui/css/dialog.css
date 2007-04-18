@@ -1,12 +1,17 @@
-.dialog {
+#dialog {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    top: -5px;
+}
+
+.dialog_container {
     min-height: 200px;
     min-width: 300px;
-    background-color: lightyellow;
-    border: 2px solid darkgrey;
-    position: absolute;
-    padding: 2em;
     display:none;
+    padding: 0;
 }
+
 
 .dialog input,
 .dialog select{
@@ -19,17 +24,16 @@
     color: grey;
     line-height: 1.2em;
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 0px;
+    right: -2px;
     cursor: pointer;
 }
 
 #dialog_buttons {
-    position:absolute;
-    bottom: 0px;
-    right:0px;
     padding: 1em;
-    text-align:center;
+    text-align:right;
+    position: relative;
+    top: 10px;
 }
 
 #dialog_buttons input {
@@ -40,6 +44,73 @@
 #dialog_buttons input:hover {
     background-color: lightgrey;
 }
+
+#dialog_content {
+    position:relative;
+}
+
+#dialog_innercontent {
+    position:relative;
+    padding-top: 23px;
+}
+.dbox_tl {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll left 0pt;
+}
+.dbox_tc {
+    background: transparent url(img/dbox/tb.gif) repeat-x scroll 0pt;
+    height: 8px;
+    overflow:hidden;
+}
+.dbox_tr {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll right -8px;
+}
+.dbox_ml {
+    background: transparent url(img/dbox/l.gif) repeat-y scroll 0pt 50%;
+    overflow: hidden;
+    padding-left:4px;
+}
+.dbox_mc {
+    background: #666 url(img/dbox/tb.gif) repeat-x scroll 0pt -16px;
+    color: white;
+    opacity: 0.95;
+    font-family: "Tahoma","Helvetica","Arial",sans-serif;
+    font-size: 12px;
+    padding: 4px 10px;
+}
+.dbox_mc h3 {
+    display:inline;
+    font-size: 14px;
+    font-weight: bold;
+}
+.dbox_mr {
+    background: transparent url(img/dbox/r.gif) repeat-y scroll right center;
+    overflow: hidden;
+    padding-right:4px;
+}
+.dbox_bl {
+    background:transparent url(img/dbox/corners.gif) no-repeat scroll 0pt -16px;
+}
+.dbox_bc {
+    background: transparent url(img/dbox/tb.gif) repeat-x scroll 0pt -8px;
+    height: 8px;
+    overflow: hidden;
+}
+.dbox_br {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll right -24px;
+}
+.dbox_tl, .dbox_bl {
+    overflow: hidden;
+    padding-left: 8px;
+}
+.dbox_tr, .dbox_br {
+    overflow: hidden;
+    padding-right: 8px;
+}
+
+
+
+
+
 
 /* IE HACKS */
 
