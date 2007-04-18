@@ -52,7 +52,6 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
         return parent
 
     def __cmp__(self, other):
-        import pdb; pdb.set_trace()
         if isinstance(other, ZenMenuItem):
             if other and other.ordering:
                 return cmp(other.ordering, self.ordering)
