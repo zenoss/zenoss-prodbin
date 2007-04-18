@@ -5,7 +5,7 @@
         tal:attributes="action here/REQUEST/URL1">
             
 <p>
-What manage IP would you like to set on this device?<br/>
+What manage IP would you like to set on this device?  Leave blank to use DNS.<br/>
 <br/>
 <input type="text" name="ip" size="15"
       tal:attributes="value device/getManageIp"/>
