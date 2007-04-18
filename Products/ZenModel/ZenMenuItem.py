@@ -9,12 +9,13 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 
 import logging
 log = logging.getLogger("zen.Menu")
 
-class ZenMenuItem(ZenModelRM):
+class ZenMenuItem(ZenModelRM, ZenPackable):
     
     meta_type = 'ZenMenuItem'
     security = ClassSecurityInfo()
@@ -26,7 +27,7 @@ class ZenMenuItem(ZenModelRM):
     banned_classes = () 
     allowed_classes = ()
     ordering = 0.0
-    
+
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
         {'id':'action', 'type':'text', 'mode':'w'},
@@ -40,7 +41,7 @@ class ZenMenuItem(ZenModelRM):
 
     _relations =  (
         ("zenMenus", ToOne(ToManyCont, 'Products.ZenModel.ZenMenu', 'zenMenuItems')),
-        )
+        ) + ZenPackable._relations
 
     security = ClassSecurityInfo()
 
@@ -51,10 +52,13 @@ class ZenMenuItem(ZenModelRM):
         return parent
 
     def __cmp__(self, other):
-        if other and other.ordering:
-            return cmp(other.ordering, self.ordering)
-        else:
-            return cmp(0.0, self.ordering)
+        import pdb; pdb.set_trace()
+        if isinstance(other, ZenMenuItem):
+            if other and other.ordering:
+                return cmp(other.ordering, self.ordering)
+            else:
+                return cmp(0.0, self.ordering)
+        return cmp(id(self), id(other))
     
 InitializeClass(ZenMenuItem)
 
