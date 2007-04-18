@@ -63,17 +63,17 @@ class OSProcessOrganizer(Organizer, Commandable):
 #                , 'action'        : 'osProcessOrganizerManage'
 #                , 'permissions'   : ("Manage DMD",)
 #                },
-#                { 'id'            : 'zproperties'
-#                , 'name'          : 'zProperties'
-#                , 'action'        : 'zPropertyEdit'
-#                , 'permissions'   : ("Change Device",)
-#                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                { 'id'            : 'zproperties'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Change Device",)
                 },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

@@ -67,27 +67,27 @@ class OSProcessClass(ZenModelRM, Commandable):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                #{ 'id'            : 'edit'
-                #, 'name'          : 'Edit'
-                #, 'action'        : 'osProcessClassEdit'
-                #, 'permissions'   : ("Manage DMD", )
-                #},
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'osProcessClassEdit'
+                , 'permissions'   : ("Manage DMD", )
+                },
                 #{ 'id'            : 'manage'
                 #, 'name'          : 'Manage'
                 #, 'action'        : 'osProcessClassManage'
                 #, 'permissions'   : ("Manage DMD",)
                 #},
-                #{ 'id'            : 'zproperties'
-                #, 'name'          : 'zProperties'
-                #, 'action'        : 'zPropertyEdit'
-                #, 'permissions'   : ("Change Device",)
-                #},
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                { 'id'            : 'zproperties'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Change Device",)
                 },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

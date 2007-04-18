@@ -68,17 +68,17 @@ class ServiceOrganizer(Organizer, Commandable):
 #                , 'action'        : 'serviceOrganizerManage'
 #                , 'permissions'   : ("Manage DMD",)
 #                },
-#                { 'id'            : 'zproperties'
-#                , 'name'          : 'zProperties'
-#                , 'action'        : 'zPropertyEdit'
-#                , 'permissions'   : ("Change Device",)
-#                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                { 'id'            : 'zproperties'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Change Device",)
                 },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

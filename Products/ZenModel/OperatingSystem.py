@@ -112,6 +112,11 @@ class OperatingSystem(Software):
                 , 'action'        : '../viewHistory'
                 , 'permissions'   : (permissions.view, )
                 },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : '../editDevice'
+                , 'permissions'   : ("Change Device",)
+                },
             )
          },
         )

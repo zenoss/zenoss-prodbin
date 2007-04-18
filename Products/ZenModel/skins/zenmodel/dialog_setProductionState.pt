@@ -1,0 +1,27 @@
+<h2>Set Production State</h2>
+
+<form action="_"  method="post" 
+        tal:attributes="action here/REQUEST/URL1">
+<p>
+What production state would you like set?<br/>
+<br/>
+<select name="state:int"
+        tal:define="
+        pstates here/getProdStateConversions;
+        curstate device/productionState | 
+                request/productionState | python:1000"
+        >
+    <option tal:repeat="pstate pstates" 
+        tal:attributes="value python:pstate[1]; 
+            selected python:curstate == pstate[1]"
+        tal:content="python:pstate[0]">localhost</option>
+</select>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="setProdState:method"
+      value="Change" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>

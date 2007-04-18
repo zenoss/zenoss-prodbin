@@ -292,11 +292,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 #                , 'action'        : 'objRRDTemplate'
 #                , 'permissions'   : ("Change Device", )
 #                },
-#                { 'id'            : 'edit'
-#                , 'name'          : 'Edit'
-#                , 'action'        : 'editDevice'
-#                , 'permissions'   : ("Change Device",)
-#                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editDevice'
+                , 'permissions'   : ("Change Device",)
+                },
 #                { 'id'            : 'management'
 #                , 'name'          : 'Manage'
 #                , 'action'        : 'deviceManagement'
@@ -312,11 +312,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 #                , 'action'        : 'zPropertyEdit'
 #                , 'permissions'   : (permissions.view,)
 #                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (permissions.view, )
-                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (permissions.view, )
+#                },
+#                { 'id'            : 'zProperties'
+#                , 'name'          : 'zProperties'
+#                , 'action'        : 'zPropertyEdit'
+#                , 'permissions'   : (  permissions.view, )
+#                },
             )
          },
         )
@@ -845,36 +850,40 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         return self.convertStatus(self.getSnmpStatus())
 
     security.declareProtected('Change Device', 'setProdState')
-    def setProdState(self, state):
+    def setProdState(self, state, REQUEST=None):
         """Set a device's production state as an integer.
         """
         self.productionState = int(state)
         try:
             zem = self.dmd.ZenEventManager
+            conn = zem.connect()
             try:
-                conn = zem.connect()
                 curs = conn.cursor()
                 curs.execute("update status set prodState=%d where device='%s'" % (
                                 self.productionState, self.id))
             finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new prodState")
-
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+    
     security.declareProtected('Change Device', 'setPriority')
-    def setPriority(self, priority):
+    def setPriority(self, priority, REQUEST=None):
         """ Set a device's priority as an integer.
         """
         self.priority = int(priority)
         try:
             zem = self.dmd.ZenEventManager
+            conn = zem.connect()
             try:
-                conn = zem.connect()
                 curs = conn.cursor()
                 curs.execute("update status set DevicePriority=%d where device='%s'" % (
                                 self.priority, self.id))
             finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new priority")
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):

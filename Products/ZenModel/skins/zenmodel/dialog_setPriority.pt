@@ -1,0 +1,27 @@
+<h2>Set Priority</h2>
+
+<form action="_"  method="post" 
+        tal:attributes="action here/REQUEST/URL1">
+<p>
+What priority would you like set?<br/>
+<br/>
+<select name="priority:int"
+        tal:define="
+        priorities here/getPriorityConversions;
+        curpriority device/priority | 
+                request/priority | python:1000"
+        >
+    <option tal:repeat="priority priorities" 
+        tal:attributes="value python:priority[1]; 
+            selected python:curpriority == priority[1]"
+        tal:content="python:priority[0]">localhost</option>
+</select>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="setPriority:method"
+      value="Change" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>

@@ -103,12 +103,12 @@ class System(DeviceOrganizer):
                 #, 'action'        : 'deviceOrganizerManage'
                 #, 'permissions'   : ('Manage DMD',)
                 #},
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
+                #{ 'id'            : 'viewHistory'
+                #, 'name'          : 'Changes'
+                #, 'action'        : 'viewHistory'
+                #, 'permissions'   : (
+                #  permissions.view, )
+                #},
             )
          },
         )

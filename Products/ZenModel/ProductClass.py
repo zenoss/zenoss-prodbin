@@ -62,22 +62,22 @@ class ProductClass(ZenModelRM):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                #{ 'id'            : 'edit'
-                #, 'name'          : 'Edit'
-                #, 'action'        : 'editProductClass'
-                #, 'permissions'   : ("Manage DMD", )
-                #},
-                #{ 'id'            : 'config'
-                #, 'name'          : 'zProperties'
-                #, 'action'        : 'zPropertyEdit'
-                #, 'permissions'   : ("Manage DMD",)
-                #},
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editProductClass'
+                , 'permissions'   : ("Manage DMD", )
                 },
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
+                },
+                #{ 'id'            : 'viewHistory'
+                #, 'name'          : 'Changes'
+                #, 'action'        : 'viewHistory'
+                #, 'permissions'   : (
+                #  permissions.view, )
+                #},
             )
           },
         )

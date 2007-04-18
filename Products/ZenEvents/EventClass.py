@@ -92,17 +92,17 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                #{ 'id'            : 'config'
-                #, 'name'          : 'zProperties'
-                #, 'action'        : 'zPropertyEdit'
-                #, 'permissions'   : ("Change Device",)
-                #},
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Change Device",)
                 },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

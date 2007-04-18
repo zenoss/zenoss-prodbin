@@ -1,63 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-
-<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
-<input type="hidden" name="zenScreenName" 
-    tal:attributes="value template/id" /> 
-
-
-<tal:block tal:define="
-tabletitle string:Device Management;
-                      ">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<!--==================== 
-Optional titlebar stuff
-
-<tal:block metal:fill-slot="menuslot">
-</tal:block>
-<tal:block metal:fill-slot="filterslot">
-</tal:block>
-
-  ====================-->
-
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-
-    <span metal:use-macro="here/userCommandsMacros/macros/runCommand" />
-
-    <tr>
-        <td class="tableheader">
-            Set the Production State of all Devices within this Organizer
-        </td>
-        <td class="tableheader">
-                <select class="tableheader" name="state:int"
-                tal:define="
-                pstates here/getProdStateConversions;
-                curstate device/productionState | 
-                        request/productionState | python:1000"
-                >
-                    <option tal:repeat="pstate pstates" 
-                        tal:attributes="value python:pstate[1]; 
-                            selected python:curstate == pstate[1]"
-                        tal:content="python:pstate[0]">localhost</option>
-                </select>
-          <input class="tableheader" type="submit" name="setProdState:method"
-              value="Change" />
-        </td>
-    </tr>
-<!-- END TABLE CONTENTS -->
-
-</tal:block>
-</tal:block>
-</tal:block>
-
-</form>
-
-<br/>
-
 <span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>

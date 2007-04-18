@@ -74,11 +74,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 #                , 'action'        : 'osProcessManage'
 #                , 'permissions'   : ("Manage DMD",)
 #                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : ( Permissions.view, )
-                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : ( Permissions.view, )
+#                },
             )
          },
         )

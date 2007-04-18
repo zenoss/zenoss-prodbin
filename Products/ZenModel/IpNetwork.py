@@ -100,17 +100,17 @@ class IpNetwork(DeviceOrganizer):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-#                { 'id'            : 'config'
-#                , 'name'          : 'zProperties'
-#                , 'action'        : 'zPropertyEdit'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                { 'id'            : 'zProperties'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
                 },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
             )
           },
         )

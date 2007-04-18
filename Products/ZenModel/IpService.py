@@ -84,12 +84,12 @@ class IpService(Service):
 #                , 'action'        : 'ipServiceManage'
 #                , 'permissions'   : ("Manage DMD",)
 #                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

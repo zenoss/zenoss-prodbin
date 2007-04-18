@@ -112,11 +112,11 @@ class DeviceClass(DeviceOrganizer):
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (  permissions.view, )
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (  permissions.view, )
+#                },
             )
          },
         )

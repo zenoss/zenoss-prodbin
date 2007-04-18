@@ -157,12 +157,20 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, Ma
         return status
 
 
-    def setProdState(self, state):
+    def setProdState(self, state, REQUEST=None):
         """Set production state of all devices in this Organizer.
         """
         [ d.setProdState(state) for d in self.getSubDevices() ]
-
-    
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+            
+    def setPriority(self, priority, REQUEST=None):
+        """Set production state of all devices in this Organizer.
+        """
+        [ d.setPriority(priority) for d in self.getSubDevices() ]
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+            
     def _status(self, type, devrel="devices"):
         """build status info for device in this device group"""
         status = 0
