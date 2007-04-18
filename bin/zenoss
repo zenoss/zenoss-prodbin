@@ -87,7 +87,10 @@ case "$FUNC" in
         issue
         ;;
   list)
-	echo $CMDS
+	for i in $CMDS
+	do
+	    echo $i
+	done
 	;;
   *)
         echo $"Usage: $0 {start|stop|restart|status|list}"
