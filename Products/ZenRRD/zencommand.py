@@ -291,7 +291,7 @@ class Cmd:
 
     def nextRun(self):
         if self.running():
-            return self.lastStart
+            return self.lastStart + self.cycleTime
         return self.lastStop + self.cycleTime
 
 

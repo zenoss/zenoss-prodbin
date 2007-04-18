@@ -79,44 +79,33 @@ class ZenModeler(ZCmdBase):
     def selectPlugins(self, device, transport):
         """Build a list of active plugins for a device.  
         """
-        tpref = getattr(device,'zTransportPreference', 'snmp')
-        aqignore = getattr(device, 'zCollectorIgnorePlugins', "")
-        aqcollect = getattr(device, 'zCollectorCollectPlugins', "")
         names = getattr(device, 'zCollectorPlugins', [])
-        if transport == 'snmp' and device.zSnmpMonitorIgnore: return [] 
-        plugins = {}
+        result = []
+        collectTest = lambda x: False
+        ignoreTest = lambda x: False
+        if self.options.collectPlugins:
+            collectTest = re.compile(self.options.collectPlugins).search
+        elif self.options.ignorePlugins:
+            ignoreTest = re.compile(self.options.ignorePlugins).search
         for plugin in self.collectorPlugins.values():
-            pname = plugin.name()
+            if plugin.transport != transport:
+                continue
+            name = plugin.name()
             try:
-                if pname in names:
-                    self.log.debug("using %s on %s",pname, device.id)
-                    plugins[plugin.maptype] = plugin
-                elif not plugin.condition(device, self.log):
-                    self.log.debug("condition failed %s on %s",pname,device.id)
-                elif ((self.options.ignorePlugins 
-                    and re.search(self.options.ignorePlugins, pname))
-                    or (aqignore and re.search(aqignore, pname))):
-                    self.log.debug("ignore %s on %s",pname, device.id)
-                elif self.options.collectPlugins:
-                    if (re.search(self.options.collectPlugins, pname) and
-                        (not plugins.has_key(plugin.maptype) 
-                        or plugins[plugin.maptype].transport != tpref)):
-                        self.log.debug("--collect %s on %s", pname, device.id)
-                        plugins[plugin.maptype] = plugin
-                elif aqcollect and re.search(aqcollect, pname): 
-                    if (not plugins.has_key(plugin.maptype) 
-                        or plugins[plugin.maptype].transport != tpref):
-                        self.log.debug("zCollect %s on %s", pname, device.id)
-                        plugins[plugin.maptype] = plugin
-                elif not (self.options.collectPlugins or aqcollect):
-                    if (not plugins.has_key(plugin.maptype) 
-                        or plugins[plugin.maptype].transport != tpref):
-                        self.log.debug("collect %s on %s", pname, device.id)
-                        plugins[plugin.maptype] = plugin
+                if ignoreTest(name):
+                    self.log.debug("ignoring %s on %s",name, device.id)
+                elif name in names:
+                    self.log.debug("using %s on %s",name, device.id)
+                    result.append(plugin)
+                elif collectTest(name):
+                    self.log.debug("--collect %s on %s", name, device.id)
+                    result.append(plugin)
+                else:
+                    self.log.debug("skipping %s for %s", name, device.id)
             except (SystemExit, KeyboardInterrupt): raise
             except:
-                self.log.exception("failed to select plugin %s", pname)
-        return [ p for p in plugins.values() if p.transport == transport ]
+                self.log.exception("failed to select plugin %s", name)
+        return result
              
     
     def resolveDevice(self, device):
