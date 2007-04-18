@@ -168,11 +168,13 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    def getCommand(self, context):
+    def getCommand(self, context, cmd=None):
         """Return localized command target.
         """
         # Perform a TALES eval on the expression using self
-        exp = "string:"+ self.commandTemplate
+        if cmd is None:
+            cmd = self.commandTemplate
+        exp = "string:"+ cmd
         compiled = talesCompile(exp)    
         d = context.device()
         environ = {'dev' : d,

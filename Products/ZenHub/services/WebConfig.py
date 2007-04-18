@@ -9,70 +9,69 @@ __doc__='''WebConfig
 ZenHub service for handling zenweb configuration
 '''
 
-from HubService import HubService
+from PerformanceConfig import PerformanceConfig
+import transaction
+import logging
+log = logging.getLogger("zenhub")
 
-class WebConfig(HubService):
+class WebConfig(PerformanceConfig):
 
 
     def __init__(self, dmd, instance):
-        HubService.__init__(self, dmd, instance)
-        self.monitor = self.dmd.Monitors.Performance._getOb(self.instance)
+        PerformanceConfig.__init__(self, dmd, instance)
 
 
     def remote_getPageChecks(self):
         pageChecks = []
-        for dev in self.monitor.devices():
+        for dev in self.config.devices():
             dev = dev.primaryAq()
             pageChecks += self.getDevicePageChecks(dev)
         return pageChecks
-                
-        
-    def remote_getPageCheckUpdates(self):
-        return self.remote_getPageChecks()
-
-
-    def remote_getDefaultRRDCreateCommand(self):
-        return self.monitor.getDefaultRRDCreateCommand()
 
 
     def getDevicePageChecks(self, dev):
         result = []
+        log.debug('Getting pagechecks for %s' % dev.id)
         if not dev.monitorDevice():
+            log.warn('Not monitoring %' % dev.id)
             return result
         for templ in dev.getRRDTemplates():
-            threshs = dev.getThresholds(templ)
             dataSources = templ.getRRDDataSources('PAGECHECK')
-            for ds in dataSources:
-                if not ds.enabled: continue
+            for ds in [d for d in dataSources if d.enabled]:
                 points = [{'id': dp.id, 
-                            'path': '/'.join((dev.rrdPath(), dp.name())),
-                            'rrdType': dp.rrdtype,
-                            'rrdCmd': dp.createCmd,
-                            'minv': dp.rrdmin,
-                            'maxv': dp.rrdmax,
-                            'thesholds': threshs.get(dp.name(), []),
+                            #'path': '/'.join((dev.rrdPath(), dp.name())),
+                            #'rrdType': dp.rrdtype,
+                            #'rrdCmd': dp.createCmd,
+                            #'minv': dp.rrdmin,
+                            #'maxv': dp.rrdmax,
+                            #'thesholds': threshs.get(dp.name(), []),
                             }
                             for dp in ds.getRRDDataPoints()]
-                key = ds.eventKey or ds.id
                 result.append({
-                                'device': dev.id,
+                                'devId': dev.id,
                                 'manageIp': dev.manageIp,
-                                'timeout': dev.zCommandCommandTimeout,
-                                'datasource': ds.id or '',
-                                'datapoints': points or (),
-                                'defaultRrdCmd': 
-                                    self.monitor.getDefaultRRDCreateCommand(),
+                                'timeout': dp.pagecheckTimeout,
+                                'datasource': ds.id,
+                                'datapoints': points,
                                 'cycletime': ds.cycletime or '',
-                                'component': ds.component or '',
+                                'compId': ds.component or '',
                                 'eventClass': ds.eventClass or '',
-                                'eventKey': key or '',
-                                'severity': ds.severity or '',
+                                'eventKey': ds.eventKey or ds.id,
+                                'severity': ds.severity or 0,
                                 'userAgent': ds.userAgent or '',
-                                'recording': ds.recording or '',
                                 'initialUrl': ds.initialURL or '',
                                 'command': ds.getCommand(dev) or '',
-                                'commandHash': ds.commandHash or '',
                                 })
+        log.debug('%s pagechecks for %s', len(result), dev.id)
         return result
 
+
+    def getDeviceConfig(self, device):
+        "How to get the config for a device"
+        return self.getDevicePageChecks(device)
+
+
+    def sendDeviceConfig(self, listener, config):
+        "How to send the config to a device, probably via callRemote"
+        return listener.callRemote('updateDeviceConfig', config)
 
