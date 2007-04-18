@@ -183,18 +183,29 @@
 <div metal:define-slot="infoBar">
 <div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
 </div>
+
 <div id="messageSlot" tal:condition="python:hasattr(here.REQUEST,'message')">
-<img src="img/close.gif" style="position:absolute;top:3px;right:3px;"
+<div class="dbox_tl"><div class="dbox_tr"><div class="dbox_tc">
+</div></div></div>
+<div class="dbox_ml"><div class="dbox_mr"><div class="dbox_mc"
+style="position:relative;">
+
+<img src="img/close.gif" style="position:absolute;top:2px;right:2px;cursor:pointer"
             onclick="fade('messageSlot', {'duration':0.3} )"/>
 <span tal:content="here/REQUEST/message">Message</span>
+
+</div></div></div>
+<div class="dbox_bl"><div class="dbox_br"><div class="dbox_bc">
+</div></div></div>
+</div>
 <script>
     var pulseMessage = function() {
         showElement('messageSlot');
-        pulsate('messageSlot', {pulses:2});
+        pulsate('messageSlot', {pulses:2, duration:5});
     }
     addLoadEvent(pulseMessage);
 </script>
-</div>
+
 </div>
 
 <!-- ======================================================
