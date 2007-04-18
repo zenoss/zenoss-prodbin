@@ -91,7 +91,7 @@ class MenuRelations(Migrate.Step):
                     ordering=2.0, 
                     id=         'addToZenPack',
                     description='Add to ZenPack...',
-                    action=     'dialog_addToZenPack',
+                    action=     'dialog_addOneToZenPack',
                     permissions=('View',),
                     isdialog=True,
                     allowed_classes = ['ZenPackable'],
@@ -529,8 +529,9 @@ class MenuRelations(Migrate.Step):
                     permissions=('Manage DMD',),
                     isdialog=   True),
                 ],
-            # doesn't work:
-            # 'ReportClass_list':                [ZenPackItems],
+            'ReportClass_list': [
+                ZenPackItems
+                ],
             'ZenPack_list':[
                 dict(
                     ordering=1.0, 
