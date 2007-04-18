@@ -1,0 +1,12 @@
+<h2>Add Network</h2>
+<table>
+<tr><td>Name:       </td><td><input name="id"/></td></tr>
+</table>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addOrganizer:method"
+    value="Add Organizer"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>
