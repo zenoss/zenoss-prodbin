@@ -4,7 +4,7 @@ WMI_ROOT=/home/ecn/work/zenoss
 . $ZENHOME/bin/zenfunctions
 
 PRGHOME=$ZENHOME/Products/ZenWin
-PRGNAME=zenwin.py
+PRGNAME=zeneventlog.py
 CFGFILE=$CFGDIR/zeneventlog.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 generic "$@"

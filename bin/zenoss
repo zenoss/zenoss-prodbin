@@ -43,6 +43,8 @@ C="$C zenstatus"
 C="$C zenactions"
 C="$C zentrap"
 C="$C zencommand"
+C="$C zenwin"
+C="$C zeneventlog"
 CMDS=$C
 
 reverse() {
@@ -84,8 +86,11 @@ case "$FUNC" in
   status)
         issue
         ;;
+  list)
+	echo $CMDS
+	;;
   *)
-        echo $"Usage: $0 {start|stop|restart|status}"
+        echo $"Usage: $0 {start|stop|restart|status|list}"
         exit 1
 esac
 exit $?
