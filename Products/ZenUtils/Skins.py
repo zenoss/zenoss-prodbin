@@ -49,7 +49,10 @@ def unregisterSkin(self, base, positionAfter='custom'):
         skinstool = getToolByName(self, 'portal_skins')
         for layer in layers:
             if layer in skinstool.objectIds():
-                skinstool._delOb(layer)
+                try:
+                    skinstool._delOb(layer)
+                except AttributeError:
+                    pass
     except ImportError, e:
         if "Products.CMFCore.utils" in e.args: pass
         else: raise
