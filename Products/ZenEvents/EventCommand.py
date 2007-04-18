@@ -75,9 +75,9 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
     def _clearAlertState(self):
         """Clear state in alert_state before we are deleted.
         """
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
             curs = self.dmd.ZenEventManager.cursor()
             curs.execute(delcmd)

@@ -60,9 +60,9 @@ class EventClassMapping(Migrate.Step):
     version = Migrate.Version(1, 2, 0)
 
     def cutover(self, dmd):
+        zem = dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             for table in ('status', 'history'):
                 try:

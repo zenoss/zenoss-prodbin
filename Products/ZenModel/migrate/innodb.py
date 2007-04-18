@@ -14,9 +14,9 @@ class Innodb(Migrate.Step):
     version = Migrate.Version(1, 0, 0)
 
     def cutover(self, dmd):
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             curs.execute('SHOW TABLE STATUS')
             for row in curs.fetchall():

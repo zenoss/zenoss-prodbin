@@ -29,9 +29,9 @@ class MySqlEventMangerTest(unittest.TestCase):
 
     def tearDown(self):
         transaction.abort()
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             curs.execute("truncate status")
             curs.execute("truncate detail")

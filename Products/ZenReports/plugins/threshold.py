@@ -43,9 +43,9 @@ class threshold:
 
         sum = {}
         counts = {}
+        zem = dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             curs.execute(query)
             startDate = args['startDate']

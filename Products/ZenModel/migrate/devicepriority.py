@@ -61,9 +61,9 @@ class DevicePriority(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
 
     def cutover(self, dmd):
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             cmd = 'ALTER TABLE %s ADD COLUMN ' + \
                   '(DevicePriority smallint(6) default 3)'

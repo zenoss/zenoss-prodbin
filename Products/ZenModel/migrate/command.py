@@ -22,9 +22,9 @@ class Commands(Migrate.Step):
                     os.path.join(os.environ['ZENHOME'], 'libexec'))
         if dmd.Devices.hasProperty("zNagiosCycleTime"):
             dmd.Devices._delProperty("zNagiosCycleTime")
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             for name in 'zenagios', 'zencacti':
                 curs.execute('DELETE FROM heartbeat where component = "%s"' % name)

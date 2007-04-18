@@ -119,8 +119,8 @@ class Report:
              ') AS U  ' % env)
                   
         devices = {}
+        conn = zem.connect()
         try:
-            conn = zem.connect()
             curs = conn.cursor()
             curs.execute(s)
             while 1:

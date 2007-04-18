@@ -20,9 +20,9 @@ class MySqlSendEventThreadTest(unittest.TestCase):
 
     def tearDown(self):
         transaction.abort()
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             curs = conn.cursor()
             zem.curs.execute("truncate status")
         finally: zem.close(conn)

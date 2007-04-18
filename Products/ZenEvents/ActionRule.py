@@ -193,9 +193,9 @@ class ActionRule(ZenModelRM, EventFilter):
     def _clearAlertState(self):
         """Clear state in alert_state before we are deleted.
         """
+        zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
             log.debug("clear alert state '%s'", delcmd)
             curs = conn.cursor()

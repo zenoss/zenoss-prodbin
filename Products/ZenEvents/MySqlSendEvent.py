@@ -203,8 +203,8 @@ class MySqlSendEventMixin:
         insert += " on duplicate key update lastTime=Null"
         insert += ", timeout=%s" % evdict['timeout']
         try:
+            conn = self.connect()
             try:
-                conn = self.connect()
                 curs = conn.cursor()
                 execute(curs, insert)
             finally: self.close(conn)

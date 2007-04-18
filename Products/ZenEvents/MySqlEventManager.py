@@ -100,8 +100,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         '''
         count = 0
         zem = self.dmd.ZenEventManager
+        conn = zem.connect()
         try:
-            conn = zem.connect()
             curs = conn.cursor()
             for table in ('status', 'history'):
                 sql = 'select count(*) from status ' \
