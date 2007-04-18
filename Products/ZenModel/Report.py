@@ -68,6 +68,7 @@ class Report(ZopePageTemplate, ZenModelRM, ZenPackable):
 
     security = ClassSecurityInfo()
 
+    _relations = ZenPackable._relations
 
     pt_editForm = PageTemplateFile('www/reportEdit', globals(),
                                    __name__='pt_editForm')
