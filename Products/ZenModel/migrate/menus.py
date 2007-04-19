@@ -68,14 +68,7 @@ class MenuRelations(Migrate.Step):
 
         dmd.buildMenus(
             {
-            'TopLevel':[
-                dict(action='testTopLevel',
-                    allowed_classes=['Device'],
-                    description='Test Top Level',
-                    ordering=100.0,
-                    id='testTopLevel',
-                    ),
-            ],
+            'TopLevel':[],
             'Edit':[
                 dict(action='viewHistory',
                     allowed_classes=['Device',
