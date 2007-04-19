@@ -215,10 +215,10 @@ class OperatingSystem(Software):
             return self.callZenScreen(REQUEST)
 
 
-    def addIpInterface(self, id, REQUEST=None):
+    def addIpInterface(self, id, userCreated, REQUEST=None):
         """Add IpInterfaces.
         """
-        manage_addIpInterface(self.interfaces, id)
+        manage_addIpInterface(self.interfaces, id, userCreated)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(self.interfaces._getOb(id).absolute_url())
     

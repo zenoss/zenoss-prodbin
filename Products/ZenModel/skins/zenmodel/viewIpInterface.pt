@@ -2,12 +2,15 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
+    tal:define="manager here/isManager;
+                userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
 
-<tal:block metal:define-macro="objectperf" tal:define="
-                tabletitle string:IpInterface;">
+<tal:block metal:define-macro="objectperf" 
+        tal:define="tabletitle string:IpInterface;
+                    editable python:manager and userCreated">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -15,27 +18,25 @@
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
       <td class="tableheader" align=left>Name</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/viewName">eth0</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:interfaceName; 
                             value here/interfaceName">
       </td>
       <td class="tableheader" align=left>MAC Address</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/macaddress">00:11:22:AA:BB:CC</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:macaddress; 
                             value here/macaddress">
       </td>
     </tr>
     <tr>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/monitored"/>
       <td class="tableheader" align=left>IP Addresses</td>
-      <td class="tablevalues" colspan="3" tal:condition="not:here/isManager">
+      <td class="tablevalues" colspan="3" tal:condition="not:editable">
           <span tal:repeat="ip here/getIpAddressObjs" omit-tag="">
             <a class="tablevalues" 
                 tal:condition="python:hasattr(ip,'getIpAddress')"
@@ -46,8 +47,8 @@
                 tal:replace="ip">1.1.1.1/24</span>
           </span>
       </td>
-      <td class="tablevalues" colspan="3" tal:condition="here/isManager">
-          <textarea tal:condition="here/isManager"
+      <td class="tablevalues" colspan="3" tal:condition="editable">
+          <textarea tal:condition="editable"
                     name="ips:lines"
                     tal:attributes="class string:tablevalues; 
                             cols string:40;
@@ -57,25 +58,25 @@
     </tr>
     <tr>
       <td class="tableheader" align=left>Operational Status</td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="python:here.operStatus==1 and 'Up' or 'Down'">
         Up
       </td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <select class="tablevalues"  name="operStatus"
-          tal:condition="here/isManager">
+          tal:condition="editable">
           <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
               tal:attributes="value e; selected python:e==here.operStatus"/>
           </select>
       </td>
       <td class="tableheader" align=left>Administrative Status</td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:editable"
         tal:content="python:here.adminStatus==1 and 'Up' or 'Down'">
         Up
       </td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <select class="tablevalues"  name="adminStatus"
-          tal:condition="here/isManager">
+          tal:condition="editable">
           <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
               tal:attributes="value e; selected python:e==here.adminStatus"/>
           </select>
@@ -83,17 +84,17 @@
     </tr>
     <tr>
       <td class="tableheader" align=left>Type</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/type">Ethernet</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:type; 
                             value here/type">
       </td>
       <td class="tableheader" align=left>Speed</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/speed">100000000</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:speed; 
                             value here/speed">
@@ -101,17 +102,17 @@
     </tr>
     <tr>
       <td class="tableheader" align=left>MTU</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/mtu">1500</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:mtu; 
                             value here/mtu">
       </td>
       <td class="tableheader" align=left>SNMP Index</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/ifindex">100000000</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:ifindex; 
                             value here/ifindex">
@@ -119,21 +120,23 @@
     </tr>
     <tr>
       <td class="tableheader" align=left>Description</td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:editable" 
                             tal:content="here/description">A nice interface</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:description; 
                             value here/description">
       </td>
       <td class="tableheader">Monitor</td>
-      <td class="tablevalues" tal:condition="here/isManager">
+      <td class="tablevalues" tal:condition="not:editable"
+          tal:content="here/monitored"/>
+      <td class="tablevalues" tal:condition="editable">
           <select class="tablevalues"  name="monitor:boolean"
-          tal:condition="here/isManager">
+          tal:condition="editable">
           <option tal:repeat="e python:(True,False)" tal:content="e"
               tal:attributes="value e; selected python:e==here.monitored()"/>
           </select>
-          <tal:block tal:condition="not:here/isManager" 
+          <tal:block tal:condition="not:editable" 
               tal:content="here/monitored"/>
       </td>
     </tr>
@@ -146,7 +149,7 @@
       <td class="tableheader" align=left>Lock warnings</td>
       <td class="tablevalues" tal:content="here/lockWarning">Send event when blocked</td>
     </tr>
-    <tr tal:condition="here/isManager">
+    <tr tal:condition="editable">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />

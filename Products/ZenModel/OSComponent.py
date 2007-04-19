@@ -15,10 +15,10 @@ class OSComponent(DeviceComponent, ManagedEntity):
     isUserCreatedFlag = False
     
     def setUserCreateFlag(self):
-        isUserCreatedFlag = True
+        self.isUserCreatedFlag = True
         
     def isUserCreated(self):
-        return isUserCreatedFlag
+        return self.isUserCreatedFlag
 
     def device(self):
         """Return our device object for DeviceResultInt.

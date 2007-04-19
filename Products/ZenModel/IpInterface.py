@@ -36,13 +36,13 @@ from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
 from Products.ZenModel.Exceptions import *
 
-def manage_addIpInterface(context, id, REQUEST = None):
+def manage_addIpInterface(context, id, userCreated, REQUEST = None):
     """make a device"""
     d = IpInterface(id)
     context._setObject(id, d)
     d = context._getOb(id)
     d.interfaceName = id
-    
+    if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main')

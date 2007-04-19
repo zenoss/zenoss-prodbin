@@ -3,6 +3,7 @@
 <p>
 What would you like to name your IpInterface?<br/>
 </p>
+<input type="hidden" name="userCreated" value="True">
 <br/>
 <p style="text-align:center;">
 <input type="text" name="id">

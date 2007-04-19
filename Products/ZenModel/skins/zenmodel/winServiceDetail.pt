@@ -2,6 +2,8 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
+    tal:define="manager here/isManager;
+                userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -9,7 +11,8 @@
 
         <tal:block tal:define="message request/message | string:State at time:;
             tabletitle string:${message} ${here/getNowString};
-            menu_id string:Lockable">
+            menu_id string:Lockable;
+            editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -32,25 +35,25 @@
     </tr>
     <tr>
         <td class="tableheader">Description</td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/description"/>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:description;
                                    value here/description"/>
         </td>
         <td class="tableheader">Status</td>
-        <td tal:condition="here/isManager">
+        <td tal:condition="editable">
             <select class="tablevalues" name="status:int"
-                tal:condition="here/isManager">
+                tal:condition="editable">
                 <option tal:repeat="status here/getStatusConversions"
                     tal:content="python:status[0]"
                     tal:attributes="value python:status[1];
                         selected python:status==here.getStatus()" />
             </select>
         </td>
-        <td tal:condition="not:here/isManager"
+        <td tal:condition="not:editable"
             tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
@@ -59,41 +62,41 @@
         <td class="tableheader">Monitor</td>
         <td class="tablevalues">
             <select class="tablevalues"  name="monitor:boolean"
-            tal:condition="here/isManager">
+            tal:condition="editable">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
-            <tal:block tal:condition="not:here/isManager" 
+            <tal:block tal:condition="not:editable" 
                 tal:content="here/monitored"/>
         </td>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues">
             <select class="tableheader" name="severity:int"
-                tal:condition="here/isManager">
+                tal:condition="editable">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
-            <tal:block tal:condition="not:here/isManager" 
+            <tal:block tal:condition="not:editable" 
                 tal:content="here/getFailSeverityString"/>
         </td>
     </tr>
     <tr>
         <td class="tableheader">Service Type</td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/serviceType"/>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:serviceType;
                                    value here/serviceType">
         </td>
         <td class="tableheader">Cmd Name</td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/name"/>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:name;
                                    value here/name">
@@ -101,19 +104,19 @@
     </tr>
     <tr>
         <td class="tableheader">Start Mode</td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/startMode"/>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:startMode;
                                    value here/startMode">
         </td>
         <td class="tableheader">Start Name</td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/startName"/>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:startName;
                                    value here/startName">
@@ -123,23 +126,23 @@
         <td class="tableheader">Accept Pause</td>
         <td class="tablevalues">
             <select class="tablevalues" name="acceptPause:boolean"
-                    tal:condition="here/isManager">
+                    tal:condition="editable">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; 
                                 selected python:e==here.acceptPause"/>
             </select>
-            <tal:block tal:condition="not:here/isManager" 
+            <tal:block tal:condition="not:editable" 
                        tal:content="here/acceptPause"/>
         </td>
         <td class="tableheader">Accept Stop</td>
         <td class="tablevalues">
             <select class="tablevalues" name="acceptStop:boolean"
-                    tal:condition="here/isManager">
+                    tal:condition="editable">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; 
                                 selected python:e==here.acceptStop"/>
             </select>
-            <tal:block tal:condition="not:here/isManager" 
+            <tal:block tal:condition="not:editable" 
                        tal:content="here/acceptStop"/>
         </td>
     </tr>
@@ -147,10 +150,10 @@
         <td class="tableheader">Path Name</td>
         <td class="tablevalues" colspan="3" 
             tal:content="here/pathName"
-            tal:condition="not:here/isManager"/>
+            tal:condition="not:editable"/>
         <td class="tablevalues" colspan="3" 
-            tal:condition="here/isManager">
-            <input tal:condition="here/isManager"
+            tal:condition="editable">
+            <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:pathName;
                                    value here/pathName"/>

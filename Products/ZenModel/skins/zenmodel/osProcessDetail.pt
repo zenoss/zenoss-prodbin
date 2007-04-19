@@ -2,6 +2,8 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
+    tal:define="manager here/isManager;
+                userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -9,9 +11,10 @@
 
         <tal:block tal:define="
         message request/message | string:State at time:;
-        editable here/isManager; 
+        editable editable; 
         tabletitle string:${message} ${here/getNowString};
-        menu_id string:Lockable">
+        menu_id string:Lockable;
+        editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -29,16 +32,16 @@
             
     <tr>
         <td class="tableheader">Status</td>
-        <td tal:condition="here/isManager">
+        <td tal:condition="editable">
             <select class="tablevalue" name="status:int"
-                tal:condition="here/isManager">
+                tal:condition="editable">
                 <option tal:repeat="status here/getStatusConversions"
                     tal:content="python:status[0]"
                     tal:attributes="value python:status[1];
                         selected python:status == here.getStatus()" />
             </select>
         </td>
-        <td tal:condition="not:here/isManager"
+        <td tal:condition="not:editable"
             tal:define="status here/getStatus"
             tal:attributes="class python:here.getStatusCssClass(status)"
             tal:content="python:here.convertStatus(status)"/>
@@ -50,8 +53,8 @@
     </tr>
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <textarea tal:condition="here/isManager"
+        <td class="tablevalues" tal:condition="editable">
+            <textarea tal:condition="editable"
                       tal:attributes="class string:tablevalues;
                                    name string:name;
                                    rows string:3;
@@ -59,7 +62,7 @@
                       tal:content="here/name">Process Name
             </textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager" 
+        <td class="tablevalues" tal:condition="not:editable" 
                                 tal:content="here/name"/>
     </tr>
     <tr>
@@ -90,7 +93,7 @@
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues" tal:condition="editable">
             <select class="tablevalue" name="zFailSeverity:int"
-                tal:condition="here/isManager">
+                tal:condition="editable">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
