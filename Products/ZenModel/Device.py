@@ -740,7 +740,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         try:
             zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
                 findCommunity(self, self.manageIp, self.getDeviceClassPath(),
-                            port=self.zSnmpPort, version=zSnmpVer)
+                            port=self.zSnmpPort, version=self.zSnmpVer)
         except NoSnmp:
             pass
         else:

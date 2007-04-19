@@ -1,14 +1,14 @@
 <h2>Reset the manage IP of this device</h2>
 
-<form action="_"  method="post" 
-        tal:define="device python:here.device()"
-        tal:attributes="action here/REQUEST/URL1">
-            
+<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+
 <p>
 What manage IP would you like to set on this device?  Leave blank to use DNS.<br/>
+<tal:block tal:condition="python:getattr(here, 'device', None)">
 <br/>
 <input type="text" name="ip" size="15"
-      tal:attributes="value device/getManageIp"/>
+      tal:attributes="value python:here.device().getManageIp()"/>
+</tal:block>
 </p>
 <br/>
 <div id="dialog_buttons">
@@ -16,4 +16,4 @@ What manage IP would you like to set on this device?  Leave blank to use DNS.<br
 <input id="dialog_cancel" type="button" value="Cancel" 
         onclick="$('dialog').hide()"/>
 </div>
-</form>       
+</form>

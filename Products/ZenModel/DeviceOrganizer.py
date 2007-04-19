@@ -157,7 +157,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             status += group.snmpStatus()
         return status
 
-
     def setProdState(self, state, REQUEST=None):
         """Set production state of all devices in this Organizer.
         """
@@ -171,7 +170,28 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         [ d.setPriority(priority) for d in self.getSubDevices() ]
         if REQUEST:
             return self.callZenScreen(REQUEST)
-            
+    
+    def manage_snmpCommunity(self, REQUEST=None):
+        """reset Community on all devices in this Organizer.
+        """
+        [ d.manage_snmpCommunity() for d in self.getSubDevices() ]
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+    
+    def setManageIp(self, REQUEST=None):
+        """reset ip on all devices in this Organizer.
+        """
+        [ d.setManageIp() for d in self.getSubDevices() ]
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+    
+    def collectDevice(self, REQUEST=None):
+        """model all devices in this Organizer.
+        """
+        [ d.collectDevice() for d in self.getSubDevices() ]
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+             
     def _status(self, type, devrel="devices"):
         """build status info for device in this device group"""
         status = 0
