@@ -52,13 +52,15 @@
         
 
 <br/>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" name="oidMappingsForm" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
         <tal:block tal:define="tableName string:mibmodulenodeslist; 
         objects here/nodes;
-        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:OID Mappings">
+        batch python:here.ZenTableManager.getBatch(tableName,objects); 
+        tabletitle string:OID Mappings;
+        menu_id string:OIDMappings">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -86,6 +88,8 @@
     </tr>
     <tr class="tablevalues" tal:repeat="ds batch">
         <td>
+            <input type="checkbox" name="ids:list" 
+               tal:attributes="value ds/getId"/>
             <a tal:attributes="href ds/getPrimaryUrlPath" 
                 tal:content="ds/getId">name</a>
         </td>
@@ -107,13 +111,15 @@
 
 </form>
 <br/>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" name="trapsForm" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
         <tal:block tal:define="tableName string:mibmodulenotificationslist; 
         objects here/notifications;
-        batch python:here.ZenTableManager.getBatch(tableName,objects); tabletitle string:Traps">
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle string:Traps;
+        menu_id string:Traps">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -141,6 +147,8 @@
     </tr>
     <tr class="tablevalues" tal:repeat="ds batch">
         <td>
+            <input type="checkbox" name="ids:list" 
+                tal:attributes="value ds/getId"/>
             <a  tal:attributes="href ds/getPrimaryUrlPath" 
                 tal:content="ds/getId">name</a>
         </td>

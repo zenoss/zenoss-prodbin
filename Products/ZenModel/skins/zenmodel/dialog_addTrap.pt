@@ -1,0 +1,18 @@
+<h2>Add Trap</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addOIDMapping">
+<p>
+What would you like to name your Trap?<br/>
+</p>
+<br/>
+<p style="text-align:right;">
+Name:&nbsp;<input type="text" name="id"><br/><br/>
+OID:&nbsp;<input type="text" name="oid"><br/><br/>
+Type:&nbsp;<input type="text" name="nodetype">
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="addMibNotification:method"
+    value="Yes, Create this Trap" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>

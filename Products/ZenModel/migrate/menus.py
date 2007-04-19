@@ -1032,7 +1032,43 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',),
                     allowed_classes = ('ReportClass',),
                     )
-                ]
+                ],
+            'OIDMappings':[
+                dict(
+                    ordering=1.0, 
+                    id=         'addOIDMapping',
+                    description='Add OID Mapping...',
+                    action=     'dialog_addOIDMapping',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=2.0, 
+                    id=         'deleteOIDMapping',
+                    description='Delete OID Mapping...',
+                    action=     'dialog_deleteOIDMapping',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                ],
+            'Traps':[
+                dict(
+                    ordering=1.0, 
+                    id=         'addTrap',
+                    description='Add Trap...',
+                    action=     'dialog_addTrap',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=2.0, 
+                    id=         'deleteTrap',
+                    description='Delete Trap...',
+                    action=     'dialog_deleteTrap',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                ],             
             })
         
         dmd.Networks.buildMenus(

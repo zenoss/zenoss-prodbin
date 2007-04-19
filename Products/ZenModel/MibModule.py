@@ -69,19 +69,57 @@ class MibModule(ZenModelRM, ZenPackable):
     def notificationCount(self):
         return self.notifications.countObjects()
 
-    
-    def createMibNode(self, id, **kwargs):
-        """Create a MibNode 
+
+    def deleteMibNodes(self, ids=[], REQUEST=None):
+        """Delete MibNodes 
         """
-        from MibNode import MibNode
+        for node in self.nodes():
+            id = getattr(node, 'id', None)
+            if id in ids:
+                self.nodes._delObject(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    def addMibNode(self, id, oid, nodetype, REQUEST=None):
+        """Add a MibNode 
+        """
+        self.createMibNode(id, oid=oid, nodetype=nodetype)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    def createMibNotification(self, id, **kwargs):
+        """Create a MibNotification 
+        """
+        from MibNotification import MibNotification
         if self.oid2name(kwargs['oid']):
             return None
-        node = MibNode(id, **kwargs) 
+        node = MibNotification(id, **kwargs) 
         self.nodes._setObject(node.id, node)
         node = self.nodes._getOb(node.id)
         return node 
 
 
+    def deleteMibNotifications(self, ids=[], REQUEST=None):
+        """Delete MibNotifications 
+        """
+        for notification in self.notifications():
+            id = getattr(notification, 'id', None)
+            if id in ids:
+                self.notifications._delObject(id)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    def addMibNotification(self, id, oid, nodetype, REQUEST=None):
+        """Add a MibNotification 
+        """
+        self.createMibNotification(id, oid=oid, nodetype=nodetype)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+            
+            
     def createMibNotification(self, id, **kwargs):
         """Create a MibNotification 
         """
