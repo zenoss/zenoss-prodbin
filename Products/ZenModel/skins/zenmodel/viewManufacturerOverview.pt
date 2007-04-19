@@ -60,11 +60,10 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/> 
 
-
-
         <tal:block tal:define="
         tableName string:manufacturerproducts;
         objects here/products/objectValuesAll;
+        showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:Products">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
