@@ -33,7 +33,7 @@ class WebConfig(PerformanceConfig):
         result = []
         log.debug('Getting pagechecks for %s' % dev.id)
         if not dev.monitorDevice():
-            log.warn('Not monitoring %' % dev.id)
+            log.warn('Not monitoring %s' % dev.id)
             return result
         for templ in dev.getRRDTemplates():
             dataSources = templ.getRRDDataSources('PAGECHECK')
