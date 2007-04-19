@@ -8,7 +8,8 @@ function zenPageInit(){
     // set the state of the leftPane
     // - this is a bit of a hack
     // - it does not change the state of an existing unless it finds
-    var as = document.getElementById("leftPane").getElementsByTagName("A");
+
+    var as = $$('#leftPane a');
     for(var i=0; i< as.length; i++){
         if( location.pathname.indexOf(as[i].pathname) != -1){
             as[i].className = 'selected';

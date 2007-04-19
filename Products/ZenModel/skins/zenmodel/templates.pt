@@ -198,7 +198,7 @@ style="position:relative;">
 <div class="dbox_bl"><div class="dbox_br"><div class="dbox_bc">
 </div></div></div>
 </div>
-<script>
+<script tal:condition="python:hasattr(here.REQUEST,'message')">
     var pulseMessage = function() {
         showElement('messageSlot');
         pulsate('messageSlot', {pulses:2, duration:5});
