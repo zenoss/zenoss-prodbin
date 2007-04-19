@@ -90,6 +90,16 @@ class RRDView(object):
         return result
         
         
+    def getRRDDataPoint(self, dpName):
+        result = None
+        for t in self.getRRDTemplates():
+            for dp in t.getRRDDataPoints():
+                if dp.name() == dpName:
+                    result = dp
+                    break
+        return result
+        
+        
     def getRRDValues(self, dsnames, start=None, end=None, function="LAST"):
         """Return a dict of key value pairs where dsnames are the keys.
         """

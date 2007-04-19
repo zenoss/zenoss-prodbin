@@ -9,9 +9,12 @@ __doc__='''RRDService
 Provides RRD services to zenhub clients.
 '''
 
+import os.path
 from HubService import HubService
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenRRD.ThresholdManager import ThresholdManager, Threshold
+import logging
+log = logging.getLogger("zenhub")
 
 
 class RRDService(HubService):
@@ -30,46 +33,46 @@ class RRDService(HubService):
         ''' Write the given data to it's rrd file.
         Also check any thresholds and send events if value is out of bounds.
         '''
+        log.debug('Writing %s %s' % (dpName, value))
         dev = self.getDeviceOrComponent(devId, compType, compId)
-        dp = d.getDataPoint(dpName)
+        dp = dev.getRRDDataPoint(dpName)
+        if not dp:
+            log.warn('Did not find datapoint %s on device %s', dpName, devId)
+            return None
         rrdKey = (dev.getPrimaryPath(), dp.getPrimaryPath())
-        if self.rrd.has_key(key):
+        rrdCreateCmd = dp.createCmd or self.getDefaultRRDCreateCommand(dev)
+        if self.rrd.has_key(rrdKey):
             rrd = self.rrd[rrdKey]
         else:
-            rrd = self.rrd.setdefault(rrdKey,
-                    RRDUtil(dp.createCmd or self.getDefaultRRDCreateCommand(),
-                            dp.datasource.cycletime))        
-        value = rrd.save(os.path.join(dev.rrdPath(), dp.name),
+            rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)
+            self.rrd[rrdKey] = rrd
+        value = rrd.save(os.path.join(dev.rrdPath(), dp.name()),
                         value, 
-                        dp.rrdtype, 
-                        dp.createCmd or self.getDefaultRRDCreateCommand(), 
-                        dp.datasource.cycleTime,
+                        dp.rrdtype,
+                        rrdCreateCmd,
+                        dp.datasource.cycletime,
                         dp.rrdmin,
                         dp.rrdmax)
         self.checkThresholds(dev, dp, value)
         return value
 
 
-    def getDefaultRRDCreateCommand(self):
-        ''' Return the rrd create command to be used if a datapoint doesn't
-        explicitly give one.
-        '''
-        raise 'Not Implemented'
+    def getDefaultRRDCreateCommand(self, device):
+        return device.perfServer().getDefaultRRDCreateCommand()
+        
 
-
-    def getDeviceOrComponent(deviceId, compId, compType):
+    def getDeviceOrComponent(self, devId, compId, compType):
         ''' If a compId is given then try to return that component.  If unable
         to find it or if compId is not specified then try to return the
         given device.  If unable to find then return None.
         '''
         d = None
-        device = self.dmd.Devices.findDevice(deviceId)
+        device = self.dmd.Devices.findDevice(devId)
         if device:
-            if componentId:
-                for component in device.getDeviceComponents():
-                    if component.meta_type == componentType \
-                            and component.id == componentId:
-                        d = component
+            if compId:
+                for comp in device.getDeviceComponents():
+                    if comp.meta_type == compType and comp.id == compId:
+                        d = comp
                         break
             else:
                 d = device
@@ -86,18 +89,22 @@ class RRDService(HubService):
         # Loop through the enabled thresholds on the template containing
         # this datapoint.
         for t in [t for t in dp.datasource.rrdTemplate.thresholds()
-                    if t.enabled and dp.name() in t.dsnames()]:
+                    if t.enabled and dp.name() in t.dsnames]:
+            log.debug('Checking %s value of %s against threshold %s: %s:%s' %
+                (dp.name(), value, t.id, t.getMinval(dev), t.getMaxval(dev)))
             countKey = (dev.getPrimaryPath(), dp.getPrimaryPath(), t.id)
-            count = self.status.setdefault(countKey, 0)
+            count = self.counts.setdefault(countKey, 0)
             limit = None
             how = None
             maxv = t.getMaxval(dev)
             if maxv is not None and value > maxv:
+                log.debug('threshold exceeded')
                 limit = maxv
                 how = 'exceeded'
             else:
                 minv = t.getMinval(dev)
                 if minv is not None and value < minv:
+                    log.debug('threshold not met')
                     limit = minv
                     how = 'not met'
             # Only need to take action if threshold was exceeded or if it was
@@ -123,13 +130,13 @@ class RRDService(HubService):
                     summary = ('%s %s threshold restored' %
                                 (devId, dp.name()) +
                                 ' current value: %.2f' % float(value))
-                self.zenm.sendEvent(
+                self.zem.sendEvent(dict(
                                 device=devId,
                                 summary=summary,
                                 eventClass=t.eventClass,
                                 eventKey=dp.name(),
                                 component=compId,
-                                severity=severity)
+                                severity=severity))
 
 
 

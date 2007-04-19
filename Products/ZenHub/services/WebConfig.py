@@ -68,10 +68,11 @@ class WebConfig(PerformanceConfig):
 
     def getDeviceConfig(self, device):
         "How to get the config for a device"
-        return self.getDevicePageChecks(device)
+        return (device.id, self.getDevicePageChecks(device))
 
 
     def sendDeviceConfig(self, listener, config):
         "How to send the config to a device, probably via callRemote"
-        return listener.callRemote('updateDeviceConfig', config)
+        devId, testConfigs = config
+        return listener.callRemote('updateDeviceConfig', devId, testConfigs)
 

@@ -103,7 +103,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def eventService(self):
-        return self.services.get('EventService', FakeRemote())
+        return self.getServiceNow('EventService')
+        
+        
+    def getServiceNow(self, svcName):
+        return self.services.get(svcName, None) or FakeRemote()
 
 
     def getService(self, serviceName, serviceListeningInterface=None):
