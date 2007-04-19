@@ -43,8 +43,12 @@ C="$C zenstatus"
 C="$C zenactions"
 C="$C zentrap"
 C="$C zencommand"
-C="$C zenwin"
-C="$C zeneventlog"
+if [ -f $ZENHOME/lib/python/pywmi.py ]
+then
+    C="$C zenwin"
+    C="$C zeneventlog"
+    C="$C zenmodeler"
+fi
 for i in $ZENHOME/Products/*/daemons/*
 do
    if [ -x "$i" ]
