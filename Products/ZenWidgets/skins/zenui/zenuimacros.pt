@@ -14,15 +14,14 @@
 <div class="menu_bottom">&nbsp;</div>
 <ul class="zenMenu">
 <tal:block tal:repeat="menu menu_ids">
-<li tal:condition="python:here.getMenus(menu, here)">
-<a href="javascript:void(0)" tal:attributes="id string:${menu}_parent">
-<tal:block tal:content="menu">
-Menu
-</tal:block>
-</a>
+<tal:block tal:define="menus python:here.getMenus(menu, here)">
+<li tal:condition="python:menus and len(menus) > 1">
+        <a href="javascript:void(0)" tal:attributes="id string:${menu}_parent">
+        <tal:block tal:content="menu">Menu</tal:block>
+        </a>
 </li>
 <div class="submenu" 
-        tal:define="items python:here.getMenus(menu, here)"
+        tal:define="items menus"
         tal:attributes="id string:${menu}_submenu">
     <tal:block tal:condition="items">
             <tal:block tal:define="dummy items/sort"/>
@@ -44,12 +43,52 @@ Menu
     </li>
     </ul>
 </div>
-<script tal:condition="python:here.getMenus(menu, here)"
+<script tal:condition="menus"
 tal:content="string:
     registerSubmenu('${menu}_parent','${menu}_submenu');">javascript madness
 </script>
 </tal:block>
+</tal:block>
+
 <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommandMenu"/>
+
+<tal:block tal:repeat="menu menu_ids">
+<tal:block tal:define="menus python:here.getMenus(menu, here)">
+<li tal:condition="python:menus and len(menus) == 1">
+<tal:block tal:define="item python:menus[0]">
+    <a tal:define="mypath python:test(item.action.startswith('javascript'),
+        item.action,
+        '%s/%s' % (basepath, item.action));
+        actionpath python:test(item.isdialog, 
+        'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
+        mypath)"
+        tal:attributes="href actionpath" 
+        tal:content="item/description">description</a>
+     <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+             tal:content="item/ordering"/>
+</tal:block>
+</li>
+</tal:block>
+</tal:block>
+
+<tal:block tal:define="items python:here.getMenus('TopLevel', here)">
+<tal:block tal:condition="items">
+        <tal:block tal:define="dummy items/sort"/>
+</tal:block>
+<li tal:repeat="item items">
+    <a tal:define="mypath python:test(item.action.startswith('javascript'),
+        item.action,
+        '%s/%s' % (basepath, item.action));
+        actionpath python:test(item.isdialog, 
+        'javascript:$(\'dialog\').show(this.event, \'%s\')' % mypath,
+        mypath)"
+        tal:attributes="href actionpath" 
+        tal:content="item/description">description</a>
+    <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+            tal:content="item/ordering"/>
+</li>
+</tal:block>
+
 </ul>
 </div>
 </div>
