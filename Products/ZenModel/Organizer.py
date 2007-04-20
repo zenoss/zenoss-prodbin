@@ -24,7 +24,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
-from Products.ZenUtils.Exceptions import ZenPathError
+from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
@@ -90,11 +90,15 @@ class Organizer(ZenModelRM, EventView):
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """add a device group to the database"""
         if not newPath: return self.callZenScreen(REQUEST)
-        if newPath.startswith("/"):
-            self.createOrganizer(newPath)
-        else:
-            org = self.__class__(newPath)
-            self._setObject(org.id, org)
+        try:
+            if newPath.startswith("/"):
+                self.createOrganizer(newPath)
+            else:
+                org = self.__class__(newPath)
+                self._setObject(org.id, org)
+        except ZentinelException, e:
+            if REQUEST:
+                REQUEST['message'] = 'Error: %s' % e
         if REQUEST: return self.callZenScreen(REQUEST)
             
 
