@@ -21,8 +21,6 @@
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
         <th class="tableheader"></th>
-        <th class="tableheader" align="center">O</th>
-        <th class="tableheader" align="center">A</th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -33,6 +31,8 @@
         <th tal:condition="here/zIfDescription"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')"/>
+        <th class="tableheader" align="center">O</th>
+        <th class="tableheader" align="center">A</th>
         <th class="tableheader" align="center">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
@@ -46,18 +46,6 @@
       <td class="tablevalues" align="center">
          <input type="checkbox" name="componentNames:list" 
                 tal:attributes="value intf/getRelationshipManagerId"/>
-      </td>
-      <td class="tablevalues" align="center">
-      <img border="0"
-        tal:attributes="src python:test(intf.operStatus==1,
-                'misc_/SiteScopeParser/greenball_img',
-                'misc_/SiteScopeParser/redball_img')">
-      </td>
-      <td class="tablevalues" align="center">
-      <img border="0"
-        tal:attributes="src python:test(intf.adminStatus==1,
-                'misc_/SiteScopeParser/greenball_img',
-                'misc_/SiteScopeParser/redball_img')">
       </td>
       <td class="tablevalues">
       <a class=tablevalues tal:content="intf/viewName" 
@@ -87,13 +75,25 @@
         A really nice interface
       </td>
       <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.operStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues" align="center">
+      <img border="0"
+        tal:attributes="src python:test(intf.adminStatus==1,
+                'misc_/SiteScopeParser/greenball_img',
+                'misc_/SiteScopeParser/redball_img')">
+      </td>
+      <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
       <img tal:condition="intf/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan=7 class="tableheader" align='center'>
+        <td colspan="9" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
@@ -123,8 +123,6 @@
     <tr>
         <th class="tableheader"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getServiceClass','Class')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'caption','Caption')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'startMode','StartMode')"/>
@@ -143,24 +141,24 @@
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
-        <td tal:content="structure srv/getServiceClassLink"/>
-        <td><a class="tablevalues" tal:content="srv/caption"
+        <td class="tablevalues"><a class="tablevalues" tal:content="srv/caption"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
         <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
         <td class="tablevalues" tal:content="srv/name"/>
-        <td tal:define="status srv/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
-        <td class="tablevalues" align="center">
+		<td class="tablevalues" align="center" width="40">
+			<img border="0"
+			tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())">
+		</td>
+        <td class="tablevalues" align="center" width="40">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'
+        <td colspan="7" class="tableheader" align='center'
 			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
@@ -221,23 +219,26 @@ Optional titlebar stuff
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value proc/getRelationshipManagerId"/>
         </td>
-        <td tal:content="structure proc/getOSProcessClassLink"/>
-        <td><a class="tablevalues" tal:content="python:proc.name()[:50]"
+        <td class="tablevalues" 
+				tal:content="structure proc/getOSProcessClassLink"/>
+        <td class="tablevalues">
+				<a class="tablevalues" tal:content="python:proc.name()[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
         </td>
-        <td tal:content="proc/alertOnRestart"/>
-        <td tal:content="proc/getFailSeverityString"/>
-        <td tal:define="status proc/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
-        <td class="tablevalues" align="center">
+        <td class="tablevalues" tal:content="proc/alertOnRestart"/>
+        <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
+		<td class="tablevalues" align="center" width="40">
+			<img border="0"
+			tal:attributes="src python:here.getStatusImgSrc(proc.getStatus())">
+		</td>
+        <td class="tablevalues" align="center" width="40">
         <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="6" class="tableheader" align='center'>
+        <td colspan="7" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool">
             </form>
         </td>
@@ -269,8 +270,6 @@ Optional titlebar stuff
     <tr>
         <th class="tableheader"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getServiceClass','Class')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getKeyword','Name')">Name
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -297,28 +296,28 @@ Optional titlebar stuff
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
-        <td tal:content="structure srv/getServiceClassLink"/>
-        <td><a class="tablevalues" tal:content="srv/name"
+        <td class="tablevalues"><a class="tablevalues" tal:content="srv/name"
                 tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
         </td>
-        <td tal:content="srv/protocol"/>
-        <td tal:content="srv/port"/>
-        <td>
+        <td class="tablevalues" tal:content="srv/protocol"/>
+        <td class="tablevalues" tal:content="srv/port"/>
+        <td class="tablevalues">
             <span tal:omit-tag="" tal:repeat="ip srv/ipaddresses"
                 tal:content="ip"/>
         </td>
-        <td tal:content="srv/getDescription"/>
-        <td tal:define="status srv/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
-        <td class="tablevalues" align="center">
+        <td class="tablevalues" tal:content="srv/getDescription"/>
+		<td class="tablevalues" align="center" width="40">
+			<img border="0"
+			tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())">
+		</td>
+        <td class="tablevalues" align="center" width="40">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="6" class="tableheader" align='center'
+        <td colspan="8" class="tableheader" align='center'
 			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
@@ -404,14 +403,14 @@ Optional titlebar stuff
         tal:content="fsys/storageDevice">vol
       </td>
       -->
-      <td class="tablevalues" align="center">
+      <td class="tablevalues" align="center" width="40">
       <img tal:condition="fsys/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
       <img tal:condition="fsys/isLockedFromUpdates" border="0" src="locked-update-icon.png">
       </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'
+        <td colspan="7" class="tableheader" align='center'
 			tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool">
             </form>
@@ -486,7 +485,7 @@ Optional titlebar stuff
     </tr>
     </tal:block>
     <tr>
-        <td colspan="5" class="tableheader" align='center'>
+        <td colspan="7" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navtool">
             </form>
         </td>

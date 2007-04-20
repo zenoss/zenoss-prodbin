@@ -1023,6 +1023,22 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if status < 0: status = "unknown"
         elif status > 3: status = 3
         return "zenstatus_%s" % status
+        
+        
+    def getStatusImgSrc(self, status):
+        ''' Return the img source for a status number
+        '''
+        if status < 0:
+            src = 'magenta'
+        if status == 0:
+            src = 'green'
+        elif status == 1:
+            src = 'yellow'
+        elif status == 2:
+            src = 'yellow'
+        else:
+            src = 'red'
+        return 'misc_/SiteScopeParser/%sball_img' % src
 
 
     def getEventCssClass(self, severity, acked=False):

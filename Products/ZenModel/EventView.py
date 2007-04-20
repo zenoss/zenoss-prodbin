@@ -87,6 +87,12 @@ class EventView(object):
         return self.getEventManager().getEventOwnerListME(self, severity, state)
 
     
+    def getStatusImgSrc(self, status):
+        ''' Return the image source for a status number
+        '''
+        return self.getEventManager().getStatusImgSrc(status)
+
+
     def getStatusCssClass(self, status):
         """Return the css class for a status number.
         """
