@@ -1,28 +1,47 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
 #! /usr/bin/env python 
-#################################################################
-#
-#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
-#
-#################################################################
 
 __doc__='''zenbackup
 
 Creates backup of zope data files, zenoss conf files and the events database.
 '''
 
-import Globals
-from Products.ZenUtils.CmdBase import CmdBase
+import Globalsfrom Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 import sys
 import os
-import os.path
-import tempfile
+import os.pathimport tempfile
 from datetime import date
 import getpass
 import ConfigParser
 import time
 import commands
-
 from zenbackupcommon import *
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
 

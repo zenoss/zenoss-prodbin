@@ -1,9 +1,26 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
 #! /usr/bin/env python 
-#################################################################
-#
-#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
-#
-#################################################################
 
 __doc__='''zenrestore
 
@@ -15,14 +32,12 @@ from Products.ZenUtils.CmdBase import CmdBase
 import sys
 import os
 import os.path
-import tempfile
-import ConfigParser
+import tempfileimport ConfigParser
 
 from zenbackupcommon import *
 
 
 class ZenRestore(CmdBase):
-
 
     def __init__(self, noopts=0):
         CmdBase.__init__(self, noopts)
