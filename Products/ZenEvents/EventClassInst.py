@@ -54,7 +54,8 @@ class EventClassPropertyMixin(object):
         evt._action = getattr(self, "zEventAction", "status")
         sev = getattr(self, "zEventSeverity", -1)
         if sev >= 0:
-            evt.severity = sev
+            if evt.severity > 0:
+                evt.severity = sev
         return evt
 
     def applyTransform(self, evt, device):
