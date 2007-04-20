@@ -1068,7 +1068,49 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     permissions=('Change Device',),
                     ),
-                ],             
+                ],      
+            'Templates':[
+                dict(
+                    ordering=20.0, 
+                    id=         'addTemplate',
+                    description='Add Template...',
+                    action=     'dialog_addTemplate',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=19.0, 
+                    id=         'deleteTemplates',
+                    description='Delete Templates...',
+                    action=     'dialog_deleteTemplates',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=18.0, 
+                    id=         'copyTemplates',
+                    description='Copy Templates...',
+                    action=     'dialog_copyTemplates',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=18.0, 
+                    id=         'pasteTemplates',
+                    description='Paste Templates Into...',
+                    action=     'dialog_pasteTemplates',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=16.0, 
+                    id=         'exportTemplates',
+                    description='Export Templates...',
+                    action=     'dialog_exportTemplates',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    ),
+                ],       
             })
         
         dmd.Networks.buildMenus(

@@ -2,14 +2,14 @@
 <tal:block metal:fill-slot="contentPane">
 <form method="post" tal:attributes="action here/absolute_url_path">
 
-
 <tal:block metal:define-macro="rrdtemplatelist"
     tal:define="
         tableName string:rrdtemplatelist;
         objects here/getRRDTemplates;
         showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
-        tabletitle string:Available Performance Templates; ">
+        tabletitle string:Available Performance Templates; 
+        menu_id string:Templates">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -49,47 +49,13 @@
         <td tal:content="temp/description"/>
     </tr>
     </tal:block>
+    
     <tr>
         <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
-
-    <tr class="tableheader" tal:condition="here/isManager">
-        <td colspan="4">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            onkeypress="return submitViaEnter(event,'manage_addRRDTemplate');" 
-            name="manage_addRRDTemplate:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" value="Copy"
-            name="manage_copyRRDTemplates:method"/>
-        <tal:block tal:condition="here/cb_dataValid">
-        |
-        <input class="tableheader" type="submit" value="Paste"
-            name="manage_pasteRRDTemplates:method"/>
-        </tal:block>
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteRRDTemplates:method" value=" Delete " />
-        |
-
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-
-        |
-
-        <input class="tableheader" type="submit" 
-            name="manage_exportRRDTemplates:method" value=" Export " />
-        to 
-        <select class="tableheader" name="dest">
-            <option value="filesystem" selected="True">File System</option>
-            <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
-        </select>
-        
-        </td>
-    </tr>
+    
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

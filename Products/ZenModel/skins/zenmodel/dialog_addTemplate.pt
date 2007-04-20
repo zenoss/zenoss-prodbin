@@ -1,0 +1,15 @@
+<h2>Add Template</h2>
+<p>
+What would you like to name your Template?<br/>
+</p>
+<p style="text-align:right;">
+Name:&nbsp;<input type="text" name="id"/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addRRDTemplate:method"
+    value="Yes, Create this Template" 
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                                '${here/absolute_url_path}')"/>
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

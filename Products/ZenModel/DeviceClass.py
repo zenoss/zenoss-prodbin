@@ -461,14 +461,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return cp
 
 
-    def manage_pasteRRDTemplates(self, cb_copy_data=None, REQUEST=None):
+    def manage_pasteRRDTemplates(self, moveTarget=None, cb_copy_data=None, REQUEST=None):
         """Paste RRDTemplates that have been copied before.
         """
         cp = None
         if cb_copy_data: cp = cb_copy_data
         elif REQUEST:
             cp = REQUEST.get("__cp",None)
-        if cp: self.rrdTemplates.manage_pasteObjects(cp)
+        
+        if cp:
+            if moveTarget:
+                target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
+                target.rrdTemplates.manage_pasteObjects(cp)
+            else:
+                self.rrdTemplates.manage_pasteObjects(cp)
+            
         if REQUEST:
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')

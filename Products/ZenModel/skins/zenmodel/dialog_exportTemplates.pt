@@ -1,0 +1,18 @@
+<h2>Export Templates</h2>
+<br/><br/>
+<p>
+Where would you like to export these templates?<br/>
+</p>
+<select class="tableheader" name="dest">
+    <option value="filesystem" selected="True">File System</option>
+    <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
+</select>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="manage_exportRRDTemplates:method"
+    value="Export"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
