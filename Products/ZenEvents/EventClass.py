@@ -19,6 +19,7 @@ from EventClassInst import EventClassInst, EventClassPropertyMixin
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenModel.ManagedEntity import ManagedEntity
+from Products.ZenModel.ZenPackable import ZenPackable
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
@@ -37,7 +38,7 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
 addEventClass = DTMLFile('dtml/addEventClass',globals())
 
 
-class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity):
+class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable):
     """
     EventClass organizer
     """
