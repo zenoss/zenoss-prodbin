@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,8 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
-#   Copyright (c) 2006 Three Rings Design, Inc. All rights reserved.
 
 __doc__='''zenperfxmlrpc
 
