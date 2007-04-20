@@ -1,3 +1,15 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 #!/usr/bin/python
 import os
 for d, dirs, filenames in os.walk(os.path.join(os.environ['ZENHOME'], 'perf')):
@@ -7,3 +19,4 @@ for d, dirs, filenames in os.walk(os.path.join(os.environ['ZENHOME'], 'perf')):
         if not f.endswith('.rrd'): continue
 	base = os.path.basename(f[:-4])
 	os.rename(fullpath, os.path.join(d, '%s_%s.rrd' % (base, base)))
+

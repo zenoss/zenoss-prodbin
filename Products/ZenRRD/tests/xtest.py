@@ -1,3 +1,15 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SocketServer import TCPServer
 TCPServer.allow_reuse_address = True
@@ -17,3 +29,4 @@ s.register_function(load, 'load')
 s.register_function(load2, 'load2')
 s.register_function(cs, 'cs')
 s.serve_forever()
+

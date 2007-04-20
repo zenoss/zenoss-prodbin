@@ -1,9 +1,16 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 #! /usr/bin/env python 
-#################################################################
-#
-#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
-#
-#################################################################
 
 __doc__='''xtest.py
 
@@ -22,7 +29,6 @@ from Products.ZenEvents.ZenEventClasses import Status_Perf
 # that contains one dictionary per test event.
 # Each of these dictionaries should have values for device, summary, component
 # and severity.
-#
 #Example:
 #
 #events = [
