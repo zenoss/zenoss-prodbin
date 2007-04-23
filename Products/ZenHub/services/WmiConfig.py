@@ -74,10 +74,12 @@ class WmiConfig(HubService):
                             modname=""):
         dev = self.dmd.getObjByPath(url)
         adm = ApplyDataMap()
-        return adm.applyDataMap(dev,
-                                datamap,
-                                relname=relname,
-                                compname=compname,
-                                modname=modname)
-        
+        result = adm.applyDataMap(dev,
+                                  datamap,
+                                  relname=relname,
+                                  compname=compname,
+                                  modname=modname)
+        import transaction
+        transaction.commit()
+        return result
         
