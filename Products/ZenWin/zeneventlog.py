@@ -34,6 +34,7 @@ class zeneventlog(Base):
     def __init__(self):
         Base.__init__(self)
         self.devices = {}
+	self.manager = getfqdn()
 
     def updateDevices(self, devices):
         """get the config data from server"""
@@ -48,23 +49,24 @@ class zeneventlog(Base):
             except Exception, ex:
                 msg = summary='WMI connect error on %s: %s' % (name, ex)
                 self.log.exception(msg)
-                self.sendEvent(dict(device=name,
-                                    eventKey=Status_Wmi_Conn,
-                                    agent=self.agent,
-                                    severity=Event.Error,
-                                    manager=self.manager))
+                self.sendEvent(dict(summary=msg,
+                                   device=name,
+                                   eventKey=Status_Wmi_Conn,
+                                   agent=self.agent,
+                                   severity=Event.Error,
+				   manager=self.manager))
 
 
     def getWatcher(self, name, user, passwd, minSeverity):
-        """Setup WMI connection to monitored server. 
-        """
-        c = wmiclient.WMI(name, user, passwd)
-        c.connect()
-        wql = """SELECT * FROM __InstanceCreationEvent where """\
-                """TargetInstance ISA 'Win32_NTLogEvent' """\
-                """and TargetInstance.EventType <= %d"""\
-              % minSeverity
-        return c.watcher(wql)
+       """Setup WMI connection to monitored server. 
+       """
+       c = wmiclient.WMI(name, user, passwd)
+       c.connect()
+       wql = """SELECT * FROM __InstanceCreationEvent where """\
+               """TargetInstance ISA 'Win32_NTLogEvent' """\
+               """and TargetInstance.EventType <= %d"""\
+             % minSeverity
+       return c.watcher(wql)
 
         
     def processLoop(self):
