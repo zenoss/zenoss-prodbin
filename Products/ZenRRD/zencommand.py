@@ -575,6 +575,8 @@ class zencommand(RRDDaemon):
                     devices = [self.options.device]
                 yield self.model().callRemote('getDataSourceCommands',
                                               devices)
+                if not devices:
+                    devices = list(Set([c.device for c in self.schedule]))
                 self.updateConfig(driver.next(), devices)
 
                 self.rrd = RRDUtil(createCommand, 60)
