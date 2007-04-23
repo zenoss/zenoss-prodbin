@@ -76,6 +76,33 @@ class MenuRelations(Migrate.Step):
         dmd.buildMenus(
             {
             'TopLevel':[],
+            'Menus':[
+                ZenPackItems,
+                dict(action='dialog_addMenuItem',
+                    allowed_classes=['DataRoot',],
+                    description='Add Menu Item...',
+                    ordering=90.0,
+                    isdialog=True,
+                    permissions=('Manage DMD',),
+                    id='addMenuItem'
+                    ),
+                dict(action='dialog_deleteMenuItems',
+                    allowed_classes=['DataRoot',],
+                    description='Delete Menu Items...',
+                    ordering=80.0,
+                    isdialog=True,
+                    permissions=('Manage DMD',),
+                    id='deleteMenuItems'
+                    ),
+                dict(action='dialog_saveOrdering',
+                    allowed_classes=['DataRoot',],
+                    description='Save Ordering...',
+                    ordering=70.0,
+                    isdialog=True,
+                    permissions=('Manage DMD',),
+                    id='saveOrdering'
+                    ),
+            ],
             'Edit':[
                 dict(action='viewHistory',
                     allowed_classes=['Device',

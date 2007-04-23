@@ -1,0 +1,18 @@
+<h2>Add Menu Item</h2>
+<p>
+What would you like to name your Menu Item?<br/>
+</p>
+<p style="text-align:right;">
+ID:&nbsp;<input name="id"><br/>
+Description:&nbsp;<input name="description"><br/>
+Action:&nbsp;<input name="action"><br/>
+Ordering:&nbsp;<input name="ordering" size="5"><br/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addZenMenuItem:method"
+    value="Create Menu Item" 
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                                    '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

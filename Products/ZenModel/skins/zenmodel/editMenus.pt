@@ -1,0 +1,80 @@
+
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane"
+        tal:define="menus here/getMenus;
+        menuid python:request.get('menuid', 'TopLevel')">
+
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+
+<form method="post" action="/zport/dmd/editMenus">
+        Menu ID:&nbsp;<select class="tablevalues" name="menuid" onchange="form.submit()">
+                <option tal:repeat="vmenuid menus"
+                        tal:content="vmenuid"
+                        tal:attributes="selected python:vmenuid==menuid"/>
+        </select>
+</form>
+<br/>
+
+<tal:block tal:condition="menuid">
+<form method=post 
+        tal:attributes="name menuid"
+        tal:define="menuitems python:menus[menuid]">
+        
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
+<input type="hidden" name="menuid" tal:attributes="value menuid" /> 
+<input type="hidden" name="ids:list" tal:attributes="value menuid"/>
+        
+        <tal:block tal:define="tabletitle python:'Menu: %s' % menuid;
+            dummy python:menuitems.sort();
+            menu_id string:Menus">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th class="tableheader"></th>
+        <th class="tableheader">Ordering</th>
+        <th class="tableheader">Menu Item</th>
+    </tr>
+    
+    <tr tal:repeat="menuitem menuitems">
+      <td class="tablevalues">
+              <input tal:attributes="class string:tablevalues;
+                      type string:checkbox;
+                      name string:delids;
+                      value menuitem/id"/>
+      </td>
+      <td class="tablevalues">
+              <input tal:attributes="class string:tablevalues;
+                type string:text;
+                size string:5;
+                name menuitem/id;
+                value menuitem/ordering"/>
+      </td>
+      <td class="tablevalues">
+              <tal:block tal:content="menuitem/description"/>
+      </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+</tal:block>
+
+</tal:block>
+</tal:block>

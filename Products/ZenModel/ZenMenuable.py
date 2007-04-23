@@ -10,14 +10,13 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
+from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized, Permissions
 from ZenMenu import ZenMenu
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_parent, aq_chain
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import cmpClassNames
 from zExceptions import NotFound
-
 
 class ZenMenuable:
     """ ZenMenuable is a mixin providing menuing.
@@ -42,6 +41,44 @@ class ZenMenuable:
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
         return mu
+
+
+    security.declareProtected('Change Device', 'manage_addZenMenuItem')
+    def manage_addZenMenuItem(self, menuid, id=None, description='', action='', 
+            permissions=(Permissions.view,), isdialog=False, isglobal=True, 
+            banned_classes=(), allowed_classes=(), ordering=0.0, REQUEST=None):
+        """ Add ZenMenuItem
+        """
+        menu = getattr(self.zenMenus, menuid, None) 
+        if not menu: menu = self.manage_addZenMenu(menuid)
+        menu.manage_addZenMenuItem(id, description, action, 
+                permissions, isdialog, isglobal, 
+                banned_classes, allowed_classes, ordering)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Change Device', 'manage_deleteZenMenuItem')
+    def manage_deleteZenMenuItem(self, menuid, delids=(), REQUEST=None):
+        """ Delete Menu Items """
+        menu = getattr(self.zenMenus, menuid, None) 
+        if menu:
+            menu.manage_deleteZenMenuItem(delids)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
+                
+    security.declareProtected('Change Device', 'manage_saveMenuItemOrdering')
+    def manage_saveMenuItemOrdering(self, menuid, REQUEST=None):
+        """ Delete Menu Items """
+        menu = getattr(self.zenMenus, menuid, None)
+        if menu and REQUEST:
+            for menuitem in menu.getMenus(menuid):
+                ordering = REQUEST[menuitem.id]
+                setattr(menuitem, 'ordering', ordering)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
 
     security.declareProtected('Change Device', 'manage_addItemsToZenMenu')
     def manage_addItemsToZenMenu(self, menuid, items=[{}]):

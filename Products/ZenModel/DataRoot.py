@@ -137,6 +137,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'menus'
+                , 'name'          : 'Menus'
+                , 'action'        : 'editMenus'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
