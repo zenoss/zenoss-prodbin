@@ -410,31 +410,38 @@ class IpNetwork(DeviceOrganizer):
         zcat.addColumn('getPrimaryId')
 
 
-    def discoverDevices(self,REQUEST = None):
+    def discoverDevices(self, organizerPaths=None, REQUEST = None):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
-        """
+        """      
+        if not organizerPaths: return self.callZenScreen(REQUEST)
+        
         if REQUEST:
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
             response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
-        try:
-            zendiscCmd = "zendisc run --net=%s" % self.id
-            log.info('Executing command: %s' % zendiscCmd)
-            from popen2 import Popen4
-            f = Popen4(zendiscCmd)
-            while 1:
-                s = f.fromchild.readline()
-                if not s: break
-                else: log.info(s)
-            log.info('Done')
-        except (SystemExit, KeyboardInterrupt): raise
-        except ZentinelException, e:
-            log.critical(e)
-        except: raise
+        
+        orgroot = self.getDmdRoot(self.dmdRootName)
+        from popen2 import Popen4
+        for organizerName in organizerPaths:
+            try:
+                organizer = orgroot.getOrganizer(organizerName)
+                zendiscCmd = "zendisc run --net=%s" % organizer.id
+                log.info('Executing command: %s' % zendiscCmd)
+                f = Popen4(zendiscCmd)
+                while 1:
+                    s = f.fromchild.readline()
+                    if not s: break
+                    else: log.info(s)
+            except (SystemExit, KeyboardInterrupt): raise
+            except ZentinelException, e:
+                log.critical(e)
+            except: raise
+        log.info('Done')
+        
         if REQUEST:
             self.loaderFooter(response)
             clearWebLoggingStream(handler)

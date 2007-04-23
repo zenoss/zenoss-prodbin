@@ -936,19 +936,30 @@ class MenuRelations(Migrate.Step):
                 ],
             'Subnetworks':[
                 dict(
-                    ordering=1.0, 
+                    ordering=90.0, 
+                    id=             'discoverDevices',
+                    description=    'Discover Devices', 
+                    action=     ('javascript:submitFormToMethod('
+                                 '"subnetworkForm", "discoverDevices")'),
+                    allowed_classes= ('IpNetwork',),
+                    permissions=('Change Device',),
+                    ),
+                dict(
+                    ordering=80.0, 
                     id=         'deleteNetwork',
                     description='Delete Networks...',
                     action=     'dialog_deleteNetwork',
                     isdialog=True,
+                    allowed_classes= ('IpNetwork',),
                     permissions=('Change Device',),
                     ),
                 dict(
-                    ordering=2.0, 
+                    ordering=70.0, 
                     id=         'addNetwork',
                     description='Add Network...',
                     action=     'dialog_addNetwork',
                     isdialog=True,
+                    allowed_classes= ('IpNetwork',),
                     permissions=('Change Device',),
                     ),
                 ],
@@ -1185,19 +1196,8 @@ class MenuRelations(Migrate.Step):
                     isdialog=True,
                     permissions=('Change Device',),
                     ),
-                ],       
+                ],
             })
-        
-        dmd.Networks.buildMenus(
-            {'Actions':[
-                dict(
-                    ordering=1.0, 
-                    id=             'discover',
-                    description=    'Discover Devices', 
-                    action=         'discoverDevices', 
-                    allowed_classes= ('IpNetwork',)
-                    )
-                ]
-            })
+            
             
 MenuRelations()
