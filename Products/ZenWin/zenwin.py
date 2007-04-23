@@ -35,7 +35,6 @@ class StatusTest:
         self.username = username
         self.password = password
         self.services = dict([(k.lower(), v) for k, v in services.items()])
-        print self.services
 
 class zenwin(Base):
 
@@ -56,8 +55,6 @@ class zenwin(Base):
                    summary=msg, eventClass=Status_WinSrv,
                    agent= self.agent, severity= sev,
                    eventGroup= "StatusTest", manager=getfqdn())
-        import pprint
-        pprint.pprint(evt)
         if sev > 0:
             self.log.critical(msg)
         else:
@@ -120,7 +117,6 @@ class zenwin(Base):
             s = w.nextEvent(100)
             if not s.state:
                 return
-            print srec.name, s.name, s.state
             if s.state == 'Stopped':
                 self.serviceStopped(srec, s.name.lower())
             if s.state == 'Running':
