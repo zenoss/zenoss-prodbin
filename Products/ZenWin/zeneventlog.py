@@ -23,7 +23,9 @@ import wmiclient
 
 import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE, RPC_ERROR_CODE
-from Products.ZenEvents.ZenEventClasses import Heartbeat
+from Products.ZenHub.services import WmiConfig
+from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn
+from Products.ZenEvents import Event
 
 class zeneventlog(Base):
 
@@ -43,8 +45,14 @@ class zeneventlog(Base):
                 if name in self.devices:
                     continue
                 self.devices[name] = self.getWatcher(name,user,passwd,sev)
-            except pywintypes.com_error:
-                self.log.exception("wmi connect failed on %s", name)
+            except Exception, ex:
+                msg = summary='WMI connect error on %s: %s' % (name, ex)
+                self.log.exception(msg)
+                self.sendEvent(dict(device=name,
+                                    eventKey=Status_Wmi_Conn,
+                                    agent=self.agent,
+                                    severity=Event.Error,
+                                    manager=self.manager))
 
 
     def getWatcher(self, name, user, passwd, minSeverity):
