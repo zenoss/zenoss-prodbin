@@ -60,7 +60,7 @@ if [ -f $ZENHOME/lib/python/pywmi.py ]
 then
     C="$C zenwin"
     C="$C zeneventlog"
-    C="$C zenmodeler"
+    C="$C zenwinmodeler"
 fi
 for i in $ZENHOME/Products/*/daemons/*
 do
