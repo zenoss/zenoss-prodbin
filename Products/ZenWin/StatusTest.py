@@ -93,7 +93,8 @@ class StatusTest(WMI):
                     if descr: wmsg = descr.strip()
                 msg += wmsg
                 self.sendFail(msg)
-            except:
+            except Exception, ex:
+                log.exception("Unkhandled exception", ex)
                 msg = "plugin %s failed on %s" % (plugin.name,self.name)
                 self.sendFail(msg)
 
