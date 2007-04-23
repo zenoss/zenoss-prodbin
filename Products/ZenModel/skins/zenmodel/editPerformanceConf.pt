@@ -24,6 +24,13 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
     <tr>
+      <td class="tableheader">WMI Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="wmiCycleInterval:int" 
+            size="10" tal:attributes="value here/wmiCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader">Snmp Cycle Interval (secs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="snmpCycleInterval:int" 

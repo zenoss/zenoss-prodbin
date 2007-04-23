@@ -80,6 +80,8 @@
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'regex','Regex')"/>
@@ -88,9 +90,18 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'count','Count')"/>
     </tr>
-    <tr tal:repeat="svcinst batch">
+    <tr tal:repeat="svcinst batch" tal:define="editable here/isManager">
+        <td>
+            <input tal:condition="editable" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value svcinst/sequence"/>
+            <input tal:condition="editable"
+                type="hidden" name="origseq:list"
+                tal:attributes="value svcinst/sequence" />
+            <span tal:condition="not:editable" tal:content="svcinst/sequence"/>
+        </td>
         <td class="tablevalues">
-            <input tal:condition="here/isManager" 
+            <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value svcinst/getId"/>
             <a tal:attributes="href svcinst/getPrimaryUrlPath"

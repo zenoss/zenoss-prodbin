@@ -88,6 +88,7 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
+    wmiCycleInterval = 60
     snmpCycleInterval = 300
     configCycleInterval = 30
     renderurl = ''
@@ -104,6 +105,7 @@ class PerformanceConf(Monitor, StatusColor):
         )
 
     _properties = (
+        {'id':'wmiCycleInterval','type':'int','mode':'w'},
         {'id':'snmpCycleInterval','type':'int','mode':'w'},
         {'id':'configCycleInterval','type':'int','mode':'w'},
         {'id':'renderurl','type':'string','mode':'w'},
