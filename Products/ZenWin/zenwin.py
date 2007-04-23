@@ -139,7 +139,16 @@ class zenwin(Base):
             if device.name in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.name)
                 continue
-            self.processDevice(device)
+            try:
+                self.processDevice(device)
+            except Exception, ex:
+	        self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
+				    (device.name, ex), 
+				    device=device.name,
+				    agent=self.agent,
+			            eventClass=Status_Wmi_Conn))
+                self.wmiprobs.append(device.name)
+
 
     def updateDevices(self, devices):
         config = []
