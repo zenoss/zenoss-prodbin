@@ -57,16 +57,23 @@ class ReportClass(Organizer, ZenPackable):
             'actions'        :
             ( 
                 { 'id'            : 'view'
-                , 'name'          : 'View'
+                , 'name'          : 'Status'
                 , 'action'        : 'viewReportClass'
                 , 'permissions'   : ( "View",)
-                , 'visible'       : 0
+                , 'visible'       : 1
                 },
             )
           },
         )
     
     security = ClassSecurityInfo()
+
+    def manage_addReportClass(self, id, title = None, REQUEST = None):
+        """make a device class"""
+        dc = ReportClass(id, title)
+        self._setObject(id, dc)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     def reports(self):

@@ -1,14 +1,11 @@
-<h2>Add Report Organizer</h2>
+<h2>Delete Report Classes</h2>
 <p>
-What would you like to name your Report Organizer?<br/>
+Are you sure you would like to delete these Report Classes?<br/>
 </p>
 <br/>
-<p style="text-align:right;">
-Name:&nbsp;<input type="text" name="id">
-</p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addReportClass:method"
-    value="Yes, Create this Report Organizer"
+<input type="submit" name="manage_deleteOrganizers:method"
+    value="Yes, Delete these Report Classes"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                             '${here/getPrimaryUrlPath}', 'reportClassForm')" />
 <input id="dialog_cancel" type="button" value="Cancel"

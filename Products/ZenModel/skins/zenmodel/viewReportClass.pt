@@ -1,7 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form tal:attributes="method string:post;
+                name string:reportClassForm;
+                action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -69,7 +71,9 @@
 
 </form>
 <br>
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form tal:attributes="method string:post;
+        name string:reportForm;
+        action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -77,7 +81,8 @@
         objects here/reports;
         showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
-        tabletitle string:Reports"
+        tabletitle string:Reports;
+        menu_id string:Report_list"
         tal:condition="objects">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -116,29 +121,6 @@
         <td colspan="2" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
-    </tr>
-    <tr tal:condition="python:here.isManager() and here.id=='Device Reports'">
-    <td class="tableheader" colspan="2">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addDeviceReport:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" name="moveReports:method"
-                value="Move To" />
-        <select class="tableheader" name="moveTarget"
-        tal:define="targets here/childMoveTargets">
-            <option value=""></option>
-            <option tal:repeat="target targets" 
-                tal:content="target">/Server/Linux</option>
-        </select> 
-        |
-        <input class="tableheader" type="submit" 
-            name="zmanage_delObjects:method" value=" Delete " />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-    </td>
     </tr>
 
         <!-- END TABLE CONTENTS -->

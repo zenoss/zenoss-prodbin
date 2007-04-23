@@ -1,14 +1,11 @@
-<h2>Add Report</h2>
+<h2>Delete Reports</h2>
 <p>
-What would you like to name your Report?<br/>
+Are you sure you would like to delete these Reports?<br/>
 </p>
 <br/>
-<p style="text-align:right;">
-Name:&nbsp;<input type="text" name="id">
-</p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addDeviceReport:method"
-    value="Yes, Create this Report"
+<input type="submit" name="zmanage_delObjects:method"
+    value="Yes, Delete these Reports"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                             '${here/getPrimaryUrlPath}', 'reportForm')" />
 <input id="dialog_cancel" type="button" value="Cancel"

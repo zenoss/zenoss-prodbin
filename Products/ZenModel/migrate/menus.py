@@ -522,7 +522,55 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True),
                 ],
             'ReportClass_list': [
-                ZenPackItems
+                ZenPackItems,
+                dict(
+                    ordering=90.0, 
+                    id=         'addReportClass',
+                    description='Add Report Organizer...',
+                    action=     'dialog_addReportClass',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
+                    ordering=80.0, 
+                    id=         'deleteReportClasses',
+                    description='Delete Report Organizers...',
+                    action=     'dialog_deleteReportClasses',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                ],
+            'Report_list': [
+                ZenPackItems,
+                dict(
+                    ordering=90.0, 
+                    id=         'addDeviceReport',
+                    description='Add Device Report...',
+                    action=     'dialog_addReport',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
+                    ordering=80.0, 
+                    id=         'deleteDeviceReports',
+                    description='Delete Device Reports...',
+                    action=     'dialog_deleteReports',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
+                    ordering=70.0, 
+                    id=         'moveDeviceReports',
+                    description='Move Device Reports...',
+                    action=     'dialog_moveReports',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
                 ],
             'ZenPack_list':[
                 dict(
@@ -988,6 +1036,24 @@ class MenuRelations(Migrate.Step):
             ],             
             'Add': [
                 dict(
+                    ordering=90.0, 
+                    id=         'addReportClass',
+                    description='Add Report Organizer...',
+                    action=     'dialog_addReportClass',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
+                    ordering=90.0, 
+                    id=         'addDeviceReport',
+                    description='Add Device Report...',
+                    action=     'dialog_addReport',
+                    isdialog=True,
+                    permissions=('Change Device',),
+                    allowed_classes = ('ReportClass',),
+                    ),
+                dict(
                     ordering=1.0, 
                     id=         'addIpInterface',
                     description='Add IpInterface...',
@@ -1041,24 +1107,6 @@ class MenuRelations(Migrate.Step):
                     permissions=('Change Device',),
                     allowed_classes = ('OperatingSystem',),
                     ),
-                dict(
-                    ordering=7.0, 
-                    id=         'addReportOrganizer',
-                    description='Add Report Organizer...',
-                    action=     'dialog_addReportClass',
-                    isdialog=True,
-                    permissions=('Change Device',),
-                    allowed_classes = ('ReportClass',),
-                    ),
-                dict(
-                    ordering=8.0, 
-                    id=         'addDeviceReport',
-                    description='Add Device Report...',
-                    action=     'dialog_addReport',
-                    isdialog=True,
-                    permissions=('Change Device',),
-                    allowed_classes = ('ReportClass',),
-                    )
                 ],
             'OIDMappings':[
                 dict(
