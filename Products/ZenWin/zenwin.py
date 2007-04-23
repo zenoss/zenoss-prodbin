@@ -16,17 +16,26 @@ import os
 import time
 from socket import getfqdn
 import pythoncom
+from wmiclient import WMI
+import pywintypes
 
 from twisted.internet import reactor, defer
 
 import Globals
-from WinCollector import WinCollector as Base
+from WinCollector import WinCollector as Base, TIMEOUT_CODE
 from Products.ZenHub.services import WmiConfig
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn
+from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinSrv
 
-from StatusTest import StatusTest
 from WinServiceTest import WinServiceTest
 from WinEventlog import WinEventlog
+
+class StatusTest:
+    def __init__(self, name, username, password, services):
+        self.name = name
+        self.username = username
+        self.password = password
+        self.services = dict([(k.lower(), v) for k, v in services.items()])
+        print self.services
 
 class zenwin(Base):
 
@@ -37,110 +46,113 @@ class zenwin(Base):
         Base.__init__(self)
         self.wmiprobs = []
         self.devices = []
+        self.watchers = {}
+        self.statmsg = "Windows Service '%s' is %s"
 
-
-    def getPlugins(self):
-        """Build a list of plugin instances for a device.
-        """
-        plugins = (WinServiceTest(), WinEventlog())
-        if not self.options.load:
-            self.options.load = ['WinServiceTest']
-        plugins = [p for p in plugins if p.name in self.options.load]
-        if not plugins:
-            self.stop()
-            raise SystemExit("No plugins found for list: '%s'" % (
-                             ",".join(self.options.load)))
-        pnames = [p.name for p in plugins] 
-        return plugins
-
-
-    def processLoop(self, unused=None):
-        """Run WMI queries in two stages ExecQuery in semi-sync mode.
-        then process results later (when they have already returned)
-        """
-        self.count = 0
-        if self.options.debug:
-            # in debug mode open wmi connections sequentially (ie no threads)
-            for srec in self.devices:
-                if srec.name not in self.wmiprobs:
-                    srec.run()
-                else:
-                    self.log.warn("skipping %s no wmi connection",srec.name)
+    def mkevt(self, devname, svcname, msg, sev):
+        "Compose an event"
+        name = "WinServiceTest"
+        evt = dict(device=devname, component=svcname,
+                   summary=msg, eventClass=Status_WinSrv,
+                   agent= self.agent, severity= sev,
+                   eventGroup= "StatusTest", manager=getfqdn())
+        import pprint
+        pprint.pprint(evt)
+        if sev > 0:
+            self.log.critical(msg)
         else:
-            # connect to WMI service in separate thread if no
-            # ping problem detected.
-            devices = self.devices[:]
-            running = []
-            now = time.time()
-            while devices or running:
-                self.log.debug("devices:%d runing:%d",
-                               len(devices), len(running))
-                running = [ srec for srec in running if not srec.done() ]
-                needthreads = self.options.threads - len(running)
-                while devices and needthreads > 0:
-                    srec = devices.pop()
-                    if srec.name not in self.wmiprobs:
-                        srec.start()
-                        self.count += 1
-                        self.log.debug("count = %d", self.count)
-                        running.append(srec)
-                        needthreads -= 1
-                    else: 
-                        self.log.warn("skipping %s no wmi connection",srec.name)
-                if needthreads == 0 or not devices:
-                    time.sleep(1)
-                if time.time() - now > self.cycleInterval*2:
-                    problems = ', '.join([r.name for r in running])
-                    self.log.warning('%d servers (%s) still collecting '
-                                     'after %d seconds, giving up',
-                                     len(running),
-                                     problems,
-                                     self.cycleInterval*2)
-                    for r in running[:]:
-                        evt = { 'eventClass': Status_Wmi_Conn,
-                                'agent': self.agent,
-                                'severity':'4',
-                                'summary': 'Timeout failure during WMI check',
-                                'device': r.name,
-                                'component' : ''}
-                        self.sendEvent(evt)
-                        running.remove(r)
-                    break
+            self.log.info(msg)
+        return evt
 
-        #[ srec.close() for srec in self.devices ]
-        sys.stdout.flush()
-        self.sendEvent(self.heartbeat)
-        import gc; gc.collect()
-        self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
-        self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
-        if hasattr(sys, "gettotalrefcount"):
-            self.log.info("ref: %d", sys.gettotalrefcount())
+    def serviceStopped(self, srec, name):
+        self.log.warning('%s: %s stopped' % (srec.name, name))
+        if name not in srec.services: return
+        status, severity = srec.services[name]
+        srec.services[name] = status + 1, severity
+        if status == 0:
+            msg = self.statmsg % (name, "down")
+            self.sendEvent(self.mkevt(srec.name, name, msg, severity))
+            self.log.info("svc down %s, %s", srec.name, name)
+            
+    def serviceRunning(self, srec, name):
+        self.log.info('%s: %s running' % (srec.name, name))
+        if name not in srec.services: return
+        status, severity = srec.services[name]
+        srec.services[name] = 0, severity
+        if status != 0:
+            msg = self.statmsg % (name, "up")
+            self.sendEvent(self.mkevt(srec.name, name, msg, 0))
+            self.log.info("svc up %s, %s", srec.name, name)
 
+    def scanDevice(self, srec):
+        if not srec.services:
+            return None
+        wql = "select Name from Win32_Service where State='Running'"
+        w = WMI(srec.name, srec.username, srec.password)
+        w.connect()
+        svcs = [ svc.Name.lower() for svc in w.query(wql) ]
+        nextFd = os.open('/dev/null', os.O_RDONLY)
+        for name, (status, severity) in srec.services.items():
+            name = name.lower()
+            self.log.debug("service: %s status: %d", name, status)
+            if name not in svcs:
+                self.serviceStopped(srec, name)
+            elif status > 0:
+                self.serviceRunning(srec, name)
+        w.close()
+        del w
+        import gc
+        gc.collect()
+
+    def getWatcher(self, srec):
+        wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
+               """TargetInstance ISA 'Win32_Service' """)
+        w = WMI(srec.name, srec.username, srec.password)
+        w.connect()
+        return w.watcher(wql)
+
+    def processDevice(self, srec):
+        w = self.watchers.get(srec.name, None)
+        if not w:
+            self.scanDevice(srec)
+            self.watchers[srec.name] = w = self.getWatcher(srec)
+        try:
+            s = w.nextEvent(100)
+            if not s.state:
+                return
+            print srec.name, s.name, s.state
+            if s.state == 'Stopped':
+                self.serviceStopped(srec, s.name.lower())
+            if s.state == 'Running':
+                self.serviceRunning(srec, s.name.lower())
+        except pywintypes.com_error, e:
+            code,txt,info,param = e
+            if info:
+                wcode, source, descr, hfile, hcont, scode = info
+                scode = abs(scode)
+            if scode != TIMEOUT_CODE:
+                w.close()
+                del self.watchers[srec.name]
+
+    def processLoop(self):
+        for device in self.devices:
+            if device.name in self.wmiprobs:
+                self.log.debug("WMI problems on %s: skipping" % device.name)
+                continue
+            self.processDevice(device)
 
     def updateDevices(self, devices):
         config = []
         for n,u,p,s in devices:
-            if self.options.device and self.options.device != n: continue
-            st = StatusTest(self, n, u, p, s, self.options.debug)
-            st.setPlugins(self.getPlugins())
+            if self.options.device and self.options.device != n:
+                continue
+            st = StatusTest(n, u, p, s)
             config.append(st) 
         if devices:
             self.devices = config
     
     def buildOptions(self):
         Base.buildOptions(self)
-        self.parser.add_option('--threads',
-                               dest='threads', 
-                               default=4,
-                               type="int",
-                               help="number of parallel threads "
-                                    "during collection")
-        self.parser.add_option("-l", "--load",
-                               action="append", 
-                               dest="load",
-                               default=[],
-                               help="plugin name to load can "
-                                    "have more than one")
 
 
 if __name__ == "__main__":

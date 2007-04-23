@@ -28,9 +28,12 @@ from StatusTest import StatusTest
 from WinServiceTest import WinServiceTest
 from WinEventlog import WinEventlog
 
+TIMEOUT_CODE = 2147209215
+RPC_ERROR_CODE = 2147023170
+
 class WinCollector(Base):
 
-    cycleInterval = 60.
+    wmiCycleInterval = 60.
     configCycleInterval = 20.
 
     initialServices = ['EventService', 'WmiConfig']
@@ -61,10 +64,11 @@ class WinCollector(Base):
             self.wmiprobs = driver.next()
             self.log.debug("Wmi Probs %r", (self.wmiprobs,))
             self.processLoop()
+            self.sendEvent(self.heartbeat)
         except Exception, ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
-        driveLater(max(0, self.cycleInterval - delay), self.scanCycle)
+        driveLater(max(0, self.wmiCycleInterval - delay), self.scanCycle)
 
         
     def buildOptions(self):
@@ -93,7 +97,7 @@ class WinCollector(Base):
             if current is not None and current != v:
                 self.log.info("Setting %s to %r", a, v);
                 setattr(self, a, v)
-        self.heartbeat['timeout'] = self.cycleInterval*3
+        self.heartbeat['timeout'] = self.wmiCycleInterval*3
 
     def error(self, why):
         why.printTraceback()

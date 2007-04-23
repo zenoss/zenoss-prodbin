@@ -22,11 +22,8 @@ import pythoncom
 import wmiclient
 
 import Globals
-from WinCollector import WinCollector as Base
+from WinCollector import WinCollector as Base, TIMEOUT_CODE, RPC_ERROR_CODE
 from Products.ZenEvents.ZenEventClasses import Heartbeat
-
-TIMEOUT_CODE = 2147209215
-RPC_ERROR_CODE = 2147023170
 
 class zeneventlog(Base):
 
