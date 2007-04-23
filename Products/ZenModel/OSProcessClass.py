@@ -27,12 +27,7 @@ from ZenModelRM import ZenModelRM
 def manage_addOSProcessClass(context, id=None, REQUEST = None):
     """make a device class"""
     if id:
-        sc = OSProcessClass(id)
-        context._setObject(id, sc)
-        sc = context._getOb(id)
-        sc.createCatalog()
-        sc.buildZProperties()
-
+        context.manage_addOSProcessClass(id)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
@@ -47,12 +42,14 @@ class OSProcessClass(ZenModelRM, Commandable):
     regex = ""
     ignoreParameters = False
     description = ""
+    sequence = 0
     
     _properties = (
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'ignoreParameters', 'type':'boolean', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
+        {'id':'sequence', 'type':'int', 'mode':'w'},
         ) 
 
     _relations = (

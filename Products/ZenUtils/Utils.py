@@ -501,3 +501,24 @@ def cmpClassNames(obj, classnames):
         x.extend(thisclass.__bases__)
         finalnames.add(thisclass.__name__)
     return bool( Set(classnames).intersection(finalnames) )
+
+def resequence(context, objects, seqmap, origseq, REQUEST):
+    if seqmap and origseq:
+        try:
+            origseq = tuple([long(s) for s in origseq])
+            seqmap = tuple([float(s) for s in seqmap])
+        except ValueError:
+            origseq = ()
+            seqmap = ()
+        if origseq:
+            for oldSeq, newSeq in zip(origseq, seqmap):
+                objects[oldSeq].sequence = newSeq
+    def sort(x):
+        x = list(x)
+        x.sort(lambda a, b: cmp(a.sequence, b.sequence))
+        return x
+    for i, obj in enumerate(sort(objects)):
+        obj.sequence = i
+    if REQUEST:
+        REQUEST['RESPONSE'].redirect(context.getPrimaryUrlPath())
+    

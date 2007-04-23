@@ -406,7 +406,7 @@ class MenuRelations(Migrate.Step):
                     ordering=90.0, 
                     id=         'addOSProcess',
                     description='Add Process...',
-                    action=     'dialog_addOSProcess',
+                    action=     'dialog_addOSProcessClass',
                     permissions=('Manage DMD',),
                     isdialog=   True),
                 dict(
@@ -423,6 +423,13 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_moveOSProcesses',
                     permissions=('Manage DMD',),
                     isdialog=   True),
+                dict(
+                    ordering=3.0, 
+                    id =          'resequenceOsProcesses',
+                    description = 'Re-sequence Processes',
+                    action =      'javascript:submitFormToMethod("processList", "manage_resequenceProcesses")',
+                    permissions= ('Manage DMD',)
+                    ),
                     ],
             'Manufacturer_list':               [
                 ZenPackItems,
@@ -929,9 +936,8 @@ class MenuRelations(Migrate.Step):
                     ordering=80.0, 
                     id = 'resequenceGraphs',
                     description = 'Re-sequence Graphs',
-                    action = 'manage_resequenceRRDGraphs',
+                    action = 'javascript:submitFormToMethod("graphList", "manage_resequenceRRDGraphs")',
                     permissions= ('Change Device',),
-                    isdialog=True,
                     ),
                 ],
             'Subnetworks':[

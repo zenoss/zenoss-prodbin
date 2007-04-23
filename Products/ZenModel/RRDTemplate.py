@@ -314,21 +314,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def manage_resequenceRRDGraphs(self, seqmap=(), origseq=(), REQUEST=None):
         """Reorder the sequecne of the RRDGraphs.
         """
-        if seqmap and origseq:
-            try:
-                origseq = tuple([long(s) for s in origseq])
-                seqmap = tuple([float(s) for s in seqmap])
-            except ValueError:
-                origseq = ()
-                seqmap = ()
-            if origseq:
-                graphs = self.getGraphs()
-                for oldSeq, newSeq in zip(origseq, seqmap):
-                    graphs[oldSeq].sequence = newSeq
-        for i, graph in enumerate(self.getGraphs()):
-            graph.sequence = i
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
+        from Products.ZenUtils.Utils import resequence
+        return resequence(self, self.getGraphs(), seqmap, origseq, REQUEST)
 
 
     def getDataSourceClasses(self):

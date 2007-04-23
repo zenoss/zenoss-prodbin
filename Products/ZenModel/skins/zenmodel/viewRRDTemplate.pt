@@ -216,7 +216,7 @@
 
 </form>
 <br/>
-<form method="POST" tal:attributes="action here/absolute_url_path">
+<form method="POST" tal:attributes="action here/absolute_url_path" name="graphList">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 

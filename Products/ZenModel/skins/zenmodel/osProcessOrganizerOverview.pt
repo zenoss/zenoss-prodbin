@@ -62,7 +62,7 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" name="processList" tal:attributes="action here/absolute_url_path">
 
 <tal:block tal:define="objects here/osProcessClasses;
 	menu_id string:OSProcess_list;

@@ -1,0 +1,15 @@
+<h2>Add OSProcess</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
+<p>
+What would you like to name your OSProcess?<br/>
+</p>
+<p style="text-align:right;">
+Name:&nbsp;<input type="text" name="id"><br/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addOSProcessClass:method"
+    value="Yes, Create this OSProcess" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>

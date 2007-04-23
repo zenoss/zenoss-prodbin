@@ -119,12 +119,19 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         """
         if id:
             sc = OSProcessClass(id)
+            sc.sequence = len(self.osProcessClasses()) 
             self.osProcessClasses._setObject(id, sc)
         if REQUEST:
             return self.callZenScreen(REQUEST)
         else:
             return self.osProcessClasses._getOb(id)
 
+
+    def manage_resequenceProcesses(self, seqmap=(), origseq=(), REQUEST=None):
+        "resequence the OsProcesses"
+        from Products.ZenUtils.Utils import resequence
+        return resequence(self,
+                          self.osProcessClasses(), seqmap, origseq, REQUEST)
     
     def unmonitorOSProcessClasses(self, ids=None, REQUEST=None):
         return self.monitorOSProcessClasses(ids, False, REQUEST)
@@ -152,6 +159,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             for p in klass.instances():
                 p.device().os.processes._delObject(p.id)
             self.osProcessClasses._delObject(id)
+        self.manage_resequenceProcesses()
         if REQUEST: return self()
 
 
