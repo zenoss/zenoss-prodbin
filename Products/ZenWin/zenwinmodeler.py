@@ -31,7 +31,7 @@ from Products.ZenUtils.Utils import prepId
 class zenwinmodeler(Base):
     
     evtClass = Status_WinSrv
-    agent = "zenwinmodeler"
+    name = agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
     deviceConfig = 'getDeviceWinInfo'
 

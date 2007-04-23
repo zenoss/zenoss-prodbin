@@ -30,7 +30,7 @@ RPC_ERROR_CODE = 2147023170
 
 class zeneventlog(Base):
 
-    agent = "zeneventlog"
+    name = agent = "zeneventlog"
 
     def __init__(self):
         Base.__init__(self)
@@ -40,7 +40,7 @@ class zeneventlog(Base):
         """get the config data from server"""
         for name, user, passwd, sev, url in devices:
             try:
-                if name not in self.wmiprobs: 
+                if name in self.wmiprobs: 
                     self.log.info('wmi prob on %s skipping', name)
                     continue
                 if name in self.devices:

@@ -30,7 +30,8 @@ from WinEventlog import WinEventlog
 
 class zenwin(Base):
 
-    agent = "zenwin"
+    name = agent = "zenwin"
+    deviceConfig  = 'getWinServices'
 
     def __init__(self):
         Base.__init__(self)
@@ -118,7 +119,7 @@ class zenwin(Base):
 
     def updateDevices(self, devices):
         config = []
-        for n,u,p,s,_ in devices:
+        for n,u,p,s in devices:
             if self.options.device and self.options.device != n: continue
             st = StatusTest(self, n, u, p, s, self.options.debug)
             st.setPlugins(self.getPlugins())
