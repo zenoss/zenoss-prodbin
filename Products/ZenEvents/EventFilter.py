@@ -49,7 +49,6 @@ class EventFilter(object):
         addDevices('Systems', 'Systems', 'systems')
         addDevices('Groups', 'Device Groups', 'deviceGroups')
         addDevices('Devices', 'Device Class', 'deviceClass')
-        addDevices('Events', 'Event Class', 'eventClass')
         esconv = [(b, a) for a, b in EventManagerBase.eventStateConversions]
         sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
         pconv = [d.split(':') for d in DataRoot.prodStateConversions]
@@ -57,7 +56,9 @@ class EventFilter(object):
         dpconv = [x.split(':') for x in DataRoot.priorityConversions]
         dpconv = [(int(b), a) for a, b in dpconv]
         owners = [(n, n) for n in self.dmd.ZenUsers.getAllUserSettingsNames()]
+        organizers = [(n, n) for n in self.dmd.Events.getOrganizerNames()]
         return dict(
+            eventClass=Select('Event Class', organizers),
             summary=Text("Summary"),
             prodState=Enumerated("Production State",pconv),
             severity=Enumerated("Severity",sconv),
