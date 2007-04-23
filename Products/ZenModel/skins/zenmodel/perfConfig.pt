@@ -62,69 +62,7 @@
 </tal:block>
 </tal:block>
 
-
-<tal:block tal:define="
-    tabletitle string:Import
-                      ">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<!--==================== 
-Optional titlebar stuff
-
-<tal:block metal:fill-slot="menuslot">
-</tal:block>
-<tal:block metal:fill-slot="filterslot">
-</tal:block>
-
-  ====================-->
-
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-
-    <tr class="tableheader" tal:condition="here/isManager">
-        <td colspan="6">
-            Import templates to PerfConf from the desired source
-        </td>
-    </tr>
-    <tr class="tableheader" tal:condition="here/isManager">
-        <td colspan="6">
-
-            <input class="tableheader" type="submit" value="Import"
-                name="manage_importRRDTemplates:method" />
-            from
-            <select class="tableheader" name="filenames" multiple="True" size="5">
-                <option tal:repeat="filedata here/getRRDImportFilesData"
-                    tal:attributes="value filedata/filename" 
-                    tal:content="filedata/display" />
-            </select>
-            <!--
-            and/or from URLs:
-            <textarea class="tableheader" name="urlnames"
-                cols="50" rows="4"
-                style="overflow:scroll;"></textarea>
-            <br />
-            -->
-            Delete file(s) after import?
-            <input type="checkbox" name="dodelete" />
-        </td>
-    </tr>
-    <!--
-    <tr class="tableheader" tal:condition="here/isManager">
-        <td colspan="6">
-            <input class="tableheader" type="submit" 
-              name="manage_importRRDTemplates:method" value="Browse" 
-              disabled="True" />
-            for templates on Zenoss.net
-        </td>
-    </tr>
-    -->
-<!-- END TABLE CONTENTS -->
-
-</tal:block>
-</tal:block>
-</tal:block>
-
 </form>
+
 </tal:block>
 </tal:block>
