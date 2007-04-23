@@ -117,14 +117,14 @@ class zenwin(Base):
 
 
     def updateDevices(self, devices):
-        devices = []
-        for n,u,p,s in devices:
+        config = []
+        for n,u,p,s,_ in devices:
             if self.options.device and self.options.device != n: continue
             st = StatusTest(self, n, u, p, s, self.options.debug)
             st.setPlugins(self.getPlugins())
-            devices.append(st) 
+            config.append(st) 
         if devices:
-            self.devices = devices
+            self.devices = config
     
     def buildOptions(self):
         Base.buildOptions(self)
