@@ -108,8 +108,8 @@ class WinCollector(Base):
                 yield self.configService().callRemote(self.deviceConfig)
                 self.updateDevices(driver.next())
             except Exception, ex:
-                self.log.exception("Error fecthing config")
-            driveLater(self.configCycleInterval, doReconfigure)
+                self.log.exception("Error fetching config")
+            driveLater(self.configCycleInterval * 60, doReconfigure)
         return drive(doReconfigure)
 
     def connected(self):
