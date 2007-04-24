@@ -38,7 +38,7 @@
                 <option tal:repeat="status here/getStatusConversions"
                     tal:content="python:status[0]"
                     tal:attributes="value python:status[1];
-                        selected python:status == here.getStatus()" />
+                        selected python:status[1]==here.getStatus()" />
             </select>
         </td>
         <td tal:condition="not:editable"

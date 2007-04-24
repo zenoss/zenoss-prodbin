@@ -24,7 +24,7 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
     s = WinService(id)
     context._setObject(id, s)
     s = context._getOb(id)
-    setattr(s, 'name', id)
+    #setattr(s, 'name', id)
     setattr(s, 'description', description)
     args = {'name':id, 'description':description}
     s.setServiceClass(args)
@@ -124,7 +124,7 @@ class WinService(Service):
 
     security.declareProtected('Manage DMD', 'manage_editService')
     def manage_editService(self, status, 
-                            name, description, 
+                            id, description, 
                             acceptPause, acceptStop,
                             pathName, serviceType,
                             startMode, startName,
@@ -133,11 +133,10 @@ class WinService(Service):
         """Edit a Service from a web page.
         """
         serviceClassChanged = False
-        if name != self.name:
+        if id != self.id:
             serviceClassChanged = True
             self.winservices._remoteRemove(self)
-            setattr(self, 'name', name)
-            setattr(self, 'id', name)
+            setattr(self, 'id', id)
             self.winservices._setObject(name, self)
 
         if description != self.description:

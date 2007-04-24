@@ -34,7 +34,7 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     s = IpService(id)
     context._setObject(id, s)
     s = context._getOb(id)
-    setattr(s, 'name', id)
+    #setattr(s, 'name', id)
     setattr(s, 'protocol', protocol)
     setattr(s, 'port', int(port))
     args = {'protocol':protocol, 'port':int(port)}
@@ -179,15 +179,14 @@ class IpService(Service):
     
     
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, status, name, ipaddresses, protocol, port, description, 
+    def manage_editService(self, status, id, ipaddresses, protocol, port, description, 
                             monitor=False, severity=5, sendString="",
                             expectRegex="", REQUEST=None):
         """Edit a Service from a web page.
         """
-        if name != self.name:
+        if id != self.id:
             self.ipservices._remoteRemove(self)
-            setattr(self, 'name', name)
-            setattr(self, 'id', name)
+            setattr(self, 'id', id)
             self.ipservices._setObject(name, self)
             
         setattr(self, 'status', status)

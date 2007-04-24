@@ -36,7 +36,7 @@
                 <option tal:repeat="status here/getStatusConversions"
                     tal:content="python:status[0]"
                     tal:attributes="value python:status[1];
-                        selected python:status==here.getStatus()" />
+                        selected python:status[1]==here.getStatus()" />
             </select>
         </td>
         <td tal:condition="not:editable"
@@ -52,12 +52,12 @@
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="not:editable" 
-                              tal:content="here/name"/>
+                              tal:content="here/id"/>
         <td class="tablevalues" tal:condition="editable">
             <input tal:attributes="class string:tablevalues; 
                               size string:50;
-                              name string:name; 
-                              value here/name">
+                              name string:id; 
+                              value here/id">
         </td>
     </tr>
     <tr>
