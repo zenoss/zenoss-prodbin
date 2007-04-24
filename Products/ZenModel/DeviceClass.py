@@ -206,32 +206,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
-    def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
-        """ Provide a method to set device groups from any organizer """
-        if not groupPaths or not deviceNames: return self()
-        if type(deviceNames) == type(''): deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.setGroups(groupPaths)
-        if REQUEST: REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
-
-    def setSystems(self, systemPaths=None, deviceNames=None, REQUEST=None):
-        """ Provide a method to set device systems from any organizer """
-        if not systemPaths or not deviceNames: return self()
-        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.setSystems(systemPaths)
-        if REQUEST: return self()
-
-    def setLocation(self, locationPath=None, deviceNames=None, REQUEST=None):
-        """ Provide a method to set device location from any organizer """
-        if not locationPath or not deviceNames: return self()
-        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.setLocation(locationPath)
-        if REQUEST: return self()
 
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
@@ -645,49 +619,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zWinPassword", "")
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
-        
 
 
-    def removeDevices(self, deviceNames=None, REQUEST=None):
-        """see IManageDevice"""
-        if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.deleteDevice()
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-    def unlockDevices(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
-        """Unlock devices"""
-        if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.unlock(sendEventWhenBlocked)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-    
-    def lockDevicesFromDeletion(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
-        """Lock devices from being deleted"""
-        if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.lockFromDeletion(sendEventWhenBlocked)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-    def lockDevicesFromUpdates(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
-        """Lock devices from being deleted or updated"""
-        if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.findDevice(devname)
-            dev.lockFromUpdates(sendEventWhenBlocked)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-                    
     def zenPropertyOptions(self, propname):
         "Provide a set of default options for a ZProperty"
         if propname == 'zCollectorPlugins':
