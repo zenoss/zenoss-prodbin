@@ -28,6 +28,7 @@ from DateTime import DateTime
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.AdministrativeRole import AdministrativeRole
 
 from ZenModelRM import ZenModelRM
 import Products.ZenUtils.Utils as Utils
