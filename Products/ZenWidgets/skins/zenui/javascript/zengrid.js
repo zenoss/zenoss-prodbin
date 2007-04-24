@@ -143,13 +143,14 @@ ZenGrid.prototype = {
         this.buffer = buffer;
         this.maxRows = 300;
         this.numRows = 15;
-        this.rowHeight = 22;
+        this.rowHeight = 32;
         this.checkedArray = new Array();
         this.url = url;
         this.lastparams = {};
         this.fields = [];
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
+        this.fontProportion = this.getFontProportion();
         this.buildHTML();
         this.clearFirst = false;
         this.lock = new DeferredLock();
@@ -163,12 +164,15 @@ ZenGrid.prototype = {
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
-        connect(currentWindow(), 'onresize', 
-            bind(function(e) {
-                this.refreshWidths();
-                this.refreshTable(this.lastOffset); 
-            }, this)
-        );
+    },
+    getFontProportion: function() {
+        var x = SPAN({class:'ruler'}, 
+            'abcdefghijklmnopqrstuvwxyz');
+        appendChildNodes(document.body, x);
+        var myw = getElementDimensions(x).w/26;
+        removeElement(x);
+        log(myw);
+        return myw;
     },
     addMouseWheelListening: function() {
         if (this.container.addEventListener)
@@ -200,15 +204,18 @@ ZenGrid.prototype = {
     },
     getColLengths: function() {
         var lens = new Array();
-        var fieldMapping = {
-            summary: 10,
-            firstTime: -4,
-            lastTime: -4,
-            component: -5
+        this.fieldMapping = {
+            summary: 0,
+            firstTime: 0,
+            lastTime: 0,
+            component: -3,
+            count: +3
         }
+        this.fieldOffsetTotal = 0;
+        //this.fieldOffsetTotal = 10+-4+-4+-5;
         for (i=0;i<this.fields.length;i++) {
             var field = this.fields[i];
-            var offset = fieldMapping[field[0]] || 0;
+            var offset = this.fieldMapping[field[0]] || 0;
             lens[lens.length] = field[1] + offset;
         }
         return lens
@@ -259,15 +266,22 @@ ZenGrid.prototype = {
         var i = String(indx);
         cells = map(function(x) {return TD({
             'class':'cell',
-            'id':x[0]+'_'+i}, null)},
+            'id':x[0]+'_'+i}, 
+                DIV({'class':'cell_inner'}, null))},
             this.fields);
         return TR({'class':'zengrid_row'}, cells);
     },
     populateRow: function(row, data) {
-        var stuffz = row.getElementsByTagName('td');
+        var stuffz = getElementsByTagAndClassName('div', 'cell_inner', row)
         for (i=0;i<stuffz.length;i++) {
             stuffz[i].innerHTML = data[i];
-            addElementClass(stuffz[i], data[data.length-1]);
+            //addElementClass(stuffz[i], data[data.length-1]);
+        }
+
+        if (isManager) {
+            var cb = INPUT({type:'checkbox',
+                style: 'visibility:hidden;'}, null);
+            replaceChildNodes(stuffz[0], cb);
         }
     },
     getColgroup: function() {
@@ -276,7 +290,7 @@ ZenGrid.prototype = {
             if (parseFloat(w)<3) w=String(3);
             return createDOM( 'col', {width: w+'%'}, null)
         }, widths);
-        colgroup = createDOM('colgroup', {span:widths.length, height:'22px'}, 
+        colgroup = createDOM('colgroup', {span:widths.length, height:'32px'}, 
             cols);
         return colgroup;
     },
@@ -293,11 +307,13 @@ ZenGrid.prototype = {
     },
     refreshWidths: function() {
         var widths = this.getColLengths();
-        var parentwidth = getElementDimensions(this.container).w;
-        this.abswidths = map(
-            bind( function(p) {
-                return parseInt(parentwidth*(p/100));
-            }, this), widths);
+        var parentwidth = getElementDimensions(this.viewport).w;
+        this.abswidths = new Array();
+        for (i=0;i<widths.length;i++) {
+            var p = widths[i];
+            var myw = parseInt(parentwidth*(p/100));
+            this.abswidths[i] = myw;
+        }
     },
     refreshFields: function() {
         var updateColumns = bind(function() {
@@ -328,17 +344,17 @@ ZenGrid.prototype = {
         table = this.zgtable;
         var cells = table.getElementsByTagName('td');
         for (i=0;(cell=cells[i]);i++){
-            cell.innerHTML = '';
+            replaceChildNodes(cell, null);
         }
     },
     setTableNumRows: function(numrows) {
         this.rowEls = map(this.getBlankRow, range(numrows));
         replaceChildNodes(this.output, this.rowEls);
         setElementDimensions(this.viewport,
-            {h:parseInt(numrows*(this.rowHeight+3))}
+            {h:parseInt(numrows*(this.rowHeight))}
         );
 
-        var scrollHeight = parseInt(numrows * (this.rowHeight+3));
+        var scrollHeight = parseInt(numrows * (this.rowHeight));
         if (scrollHeight<=getElementDimensions(this.zgtable).h) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
@@ -361,25 +377,19 @@ ZenGrid.prototype = {
                                 value:evid};
             if (this.checkedArray[evid]) chkboxparams.checked=true;
                 var chkbox = INPUT(chkboxparams, null);
-            var yo = rows[i].getElementsByTagName('td');
+            var yo = getElementsByTagAndClassName('td', 'cell', rows[i]);
+            var divs = getElementsByTagAndClassName('div','cell_inner', rows[i]);
             var firstcol = yo[0];
             if (isManager) {
                 mydata = concat([''],mydata);
-                replaceChildNodes(firstcol, chkbox);
+                replaceChildNodes(divs[0], chkbox);
                 setElementClass(firstcol, 'cell ' + mydata[mydata.length-1])
                 connect(chkbox, 'onclick', this.markAsChecked);
             }
             for (j=isManager?1:0;j<yo.length;j++) {
                 var cellwidth = this.abswidths[j]
-                var truncated = String(mydata[j]).substring(0, 
-                    (cellwidth / 6.8)-3);
-                if (this.fields[j][0]=='count') truncated = String(
-                    mydata[j]);
-                if (truncated.length < String(mydata[j]).length) 
-                    truncated += '...';
-                if (yo[j].innerHTML!=truncated) yo[j].innerHTML = truncated;
-                if (yo[j].title!=mydata[j])
-                    updateNodeAttributes(yo[j], {title:mydata[j]});
+                divs[j].innerHTML = mydata[j];
+                divs[j].title = this.abswidths[j];
                 var newClass = 'cell ' + mydata[mydata.length-1];
                 if (yo[j].className!=newClass)
                     setElementClass(yo[j], newClass)
@@ -391,11 +401,19 @@ ZenGrid.prototype = {
     getTotalRows: function() {
         cb = bind(function(r) {
             this.buffer.totalRows = r;
-            this.setScrollHeight(this.buffer.totalRows*(this.rowHeight+3));
+            this.setScrollHeight(this.buffer.totalRows*(this.rowHeight));
             this.lock.release();
         }, this);
         d = loadJSONDoc('getEventCount');
         d.addCallback(cb);
+    },
+    getHeaderWidths: function() {
+        var myws = new Array();
+        for (i=0;i<this.fields.length;i++) {
+            var width = this.fields[i][0].length * this.fontProportion * 12;
+            myws[myws.length] = width;
+        }
+        return myws
     },
     buildHTML: function() {
         var getId = function(thing) { 
@@ -409,18 +427,21 @@ ZenGrid.prototype = {
         this.headcolgroup = createDOM('colgroup', null, null);
         this.colgroup = createDOM( 'colgroup', 
             {style: 'height:'+this.rowHeight+'px'}, null );
-        this.zgtable = TABLE( {id: getId('table')}, [
+        this.zgtable = TABLE( {id: getId('table'),
+            cellspacing:0, cellpadding:0}, [
             THEAD(null, null),
             this.colgroup,
             this.output,
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
-        this.headers = TABLE( {id: getId('headers')}, [
+        this.headers = TABLE( {id: getId('headers'), class:"zg_headers",
+            cellspacing:0, cellpadding:0}, [
             this.headcolgroup,
             TBODY(null, null)
         ]);
-        this.innercont = DIV( {id:getId('innercont')}, [this.viewport, this.scrollbar]);
+        this.innercont = DIV( {id:getId('innercont')}, 
+            [this.viewport, this.scrollbar]);
         setStyle(this.zgtable, {
             'width': '100%',
             'border': 'medium none',
@@ -432,9 +453,10 @@ ZenGrid.prototype = {
             'width':'98%'
         });
         setStyle(this.innercont, {
-            'width':'98%'
+            'width':'100%'
         });
         setStyle(this.viewport, {
+            'width':'98%',
             'height':this.rowHeight*(this.numRows)+'px',
             'overflow':'hidden',
             'float':'left',
@@ -464,12 +486,22 @@ ZenGrid.prototype = {
     },
     scrollToPixel: function(pixel) {
         this.lastPixelOffset = this.lastPixelOffset || 0;
-        this.refreshTable(parseInt(pixel/this.rowHeight));
+        var diff = (pixel-this.lastPixelOffset) % this.rowHeight;
+        if (diff) {
+            pixel += diff;
+        }
+        var newOffset = Math.round(pixel/this.rowHeight);
+        this.refreshTable(newOffset);
         this.scrollbar.scrollTop = pixel;
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
-        this.scrollToPixel(this.scrollbar.scrollTop);
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout (
+            bind(function() {
+                this.scrollToPixel(this.scrollbar.scrollTop)
+                log(this.scrollbar.scrollTop);
+            }, this), 50);
     },
     refreshFromFormElement: function(e) {
         node = e.src();
