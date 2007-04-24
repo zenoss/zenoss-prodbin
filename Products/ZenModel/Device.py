@@ -1162,6 +1162,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
             idx = dlh.rindex("</table>")
+            dlh = dlh[:idx]
+            idx = dlh.rindex("</table>")
+            dlh = dlh[:idx]
             response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
             
@@ -1179,7 +1182,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             log.info('collected snmp information for device %s',self.id)
                             
         if REQUEST and setlog:
-            response.write(self.deviceLoggingFooter())
+            response.write(self.loggingFooter())
             clearWebLoggingStream(handler)
 
 

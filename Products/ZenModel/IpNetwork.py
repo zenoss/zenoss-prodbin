@@ -419,8 +419,11 @@ class IpNetwork(DeviceOrganizer):
         
         if REQUEST:
             response = REQUEST.RESPONSE
-            dlh = self.deviceLoggingHeader()
+            dlh = self.discoverLoggingHeader()
             idx = dlh.rindex("</table>")
+            dlh = dlh[:idx]
+            idx = dlh.rindex("</table>")
+            dlh = dlh[:idx]
             response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
         
