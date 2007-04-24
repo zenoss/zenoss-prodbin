@@ -64,11 +64,6 @@
         <input class="tablevalues" type="text" name="cycleInterval:int" 
             tal:attributes="value here/cycleInterval" />
       </td>
-      <td class="tableheader" align="left">Snmp Cycle Interval (secs)</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snmpCycleInterval:int" 
-            tal:attributes="value here/snmpCycleInterval" />
-      </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Maximum Failures</td>

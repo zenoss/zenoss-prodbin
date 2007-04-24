@@ -46,10 +46,6 @@
       <td class="tableheader" align="left">Cycle Interval</td>
       <td class="tablevalues" align="left"
           tal:content="here/cycleInterval">tries</td>
-      <td class="tableheader" align="left">Snmp Cycle Interval</td>
-      <td class="tablevalues" align="left"
-          tal:content="here/snmpCycleInterval">tries
-      </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Maximum Failures</td>
