@@ -25,6 +25,7 @@ import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE
 from Products.ZenHub.services import WmiConfig
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinSrv
+from Products.ZenEvents import Event
 
 from WinServiceTest import WinServiceTest
 from WinEventlog import WinEventlog
@@ -131,6 +132,7 @@ class zenwin(Base):
                 del self.watchers[srec.name]
 
     def processLoop(self):
+        print [d.name for d in self.devices]
         for device in self.devices:
             if device.name in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.name)
@@ -139,7 +141,8 @@ class zenwin(Base):
                 self.processDevice(device)
             except Exception, ex:
 	        self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
-				    (device.name, ex), 
+				    (device.name, ex),
+                                    severity=Event.Error,
 				    device=device.name,
 				    agent=self.agent,
 			            eventClass=Status_Wmi_Conn))
