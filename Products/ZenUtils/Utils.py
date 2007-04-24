@@ -510,9 +510,10 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
         except ValueError:
             origseq = ()
             seqmap = ()
+        orig = dict([(o.sequence, o) for o in objects])
         if origseq:
             for oldSeq, newSeq in zip(origseq, seqmap):
-                objects[oldSeq].sequence = newSeq
+                orig[oldSeq].sequence = newSeq
     def sort(x):
         x = list(x)
         x.sort(lambda a, b: cmp(a.sequence, b.sequence))
@@ -520,5 +521,5 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
     for i, obj in enumerate(sort(objects)):
         obj.sequence = i
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.getPrimaryUrlPath())
+        return context.callZenScreen(REQUEST)
     
