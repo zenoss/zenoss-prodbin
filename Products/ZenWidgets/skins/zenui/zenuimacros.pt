@@ -139,7 +139,7 @@ registerMenu('contextmenu_btn', 'contextmenu_items');
 <input type="text" name="filter" id="filter"
     onfocus="select(this)"
     tal:attributes="value ts/filter | string:;
-    onkeypress python:test(tableName, 'submitViaEnter(event)',
+    onkeypress python:test(tableName, 'handleFilterbox(event)',
         'getPageViaEnter(event)' )" />
 </div>
 </tal:block>

@@ -40,11 +40,7 @@ class ZEvent(Event):
     def getDataForJSON(self, fields):
         """ returns data ready for serialization
         """
-        def val(field): return getattr(self, field, None)
-        data = dict([(field, val(field)) for field in fields])
-        data['cssclass']=self.getCssClass()
-        return data
-
+        return map(lambda x:getattr(self, x, None), list(fields)+['evid'])
 
     def getDataListWithLinks(self, fields, cssClass=''):
         """return a list of data elements that map to the fields parameter.

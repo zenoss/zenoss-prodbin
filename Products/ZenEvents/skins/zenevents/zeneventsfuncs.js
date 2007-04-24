@@ -65,7 +65,8 @@ var resetLoadStatus = function() {
 
 //load the event list
 var getTablePage = function(form) {
-    log("getTablePage url=", form.url.value);
+    //log("getTablePage url=", form.url.value);
+    log(queryString(form));
 
     var rate = parseInt(form.refreshRate.value)
     if (rate < 1) {
@@ -122,7 +123,7 @@ var getPageViaEnter = function(evt) {
     var charCode = (evt.charCode) ? evt.charCode : 
         ((evt.which) ? evt.which : evt.keyCode);
     if (charCode == 13 || charCode == 3) {
-        form.resetStart.value=1;
+        //form.resetStart.value=1;
         getTablePage(form);
         return false;
     }
@@ -224,6 +225,15 @@ var refreshData = function() {
     if (autoRefresh) {
         callLater(refresh, refreshData, eventsurl);
     }
+}
+
+var LSTimeout;
+var doEventLivesearch = function(field, zengrid) {
+    filters = field.value;
+    clearTimeout(LSTimeout);
+    LSTimeout = setTimeout(
+        function () { zengrid.refreshWithParams({filter:filters}) },
+        500);
 }
 
 addLoadEvent(refreshData)

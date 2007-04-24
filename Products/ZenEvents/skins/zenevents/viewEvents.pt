@@ -2,8 +2,11 @@
 <tal:block metal:fill-slot="contentPane">
 
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
+<script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
+<style>
+</style>
 <form name="control" method="post" 
     tal:attributes="action here/absolute_url_path"
     tal:define="
@@ -27,8 +30,7 @@
 <tal:block metal:fill-slot="filterslot">    
 <div class="temp_filterbox"> 
             Sev
-            <select class="tableheader" name="severity:int" id="severity"
-                    onchange="getTablePage(this.form)">
+            <select class="tableheader" name="severity:int" id="severity">
                 <option tal:repeat="sev here/ZenEventManager/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; 
@@ -36,8 +38,7 @@
             </select>
             &nbsp; &nbsp;
             State
-            <select class="tableheader" name="state:int" id="state"
-                    onchange="getTablePage(this.form)">
+            <select class="tableheader" name="state:int" id="state">
                 <option tal:repeat="st here/ZenEventManager/getEventStates"
                     tal:content="python:st[0]"
                     tal:attributes="value python:st[1]; 
@@ -49,13 +50,25 @@
                 onclick="startRefresh(this, this.form);">
             <input class="tableheader" type="text" name="refreshRate" 
                 size='2' value='60'>
-        <tal:block metal:use-macro="here/zenuimacros/macros/filterboxinline"/>
+        <div class="filterbox"
+             tal:define=" tableName tableName | nothing;
+                         ts request;
+                         message request/SESSION/message | nothing;">
+        <input type="text" name="filter" id="filter"
+            onfocus="select(this)"
+            tal:attributes="value ts/filter | string:;"/>
+        </div>
+        <style>.filterbox{position:relative;top:0px;
+        left:0px;right:0px;bottom:0px;display:inline;
+        padding-right:20px;margin-left:20px;}</style>
 </div>
 </tal:block>
 
 <tal:block metal:fill-slot="zentablecontents">
+<!-- BEGIN TABLE CONTENTS -->
 
     <tal:block metal:define-macro="header">
+<!--
     <input type='hidden' name='sortedHeader' 
         tal:attributes="value sortedHeader"/>
     <input type='hidden' name='sortedSence' value="">
@@ -87,9 +100,44 @@
                 onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
+-->
     </tal:block>
+<tr><td>
 
+<style>
+.leftfloat { float:left }
+td.cell {
+    font-family: Trebuchet,verdana,helvetica,sans-serif;
+    font-size: 11px;
+    line-height: 12px;
+    margin: 0px;
+    overflow: hidden;
+    white-space: nowrap;
+    border-spacing: 1px;
+    border: 1px solid #666;
+    height: 22px;
+    cursor: default;
+}
+</style>
+
+<div id="gridcontainer" style="width:100%;">
+
+</div>
+
+<script>
+addLoadEvent( function() {
+    var b = new ZenGridBuffer();
+    var mygrid = new ZenGrid('gridcontainer', 'getJSONEventsInfo',
+        'mygrid', b);
+    connect('filter', 'onkeyup', mygrid.doEventLivesearch);
+    connect('state', 'onchange', mygrid.refreshFromFormElement);
+    connect('severity', 'onchange', mygrid.refreshFromFormElement);
+});
+</script>
+</td></tr>
+<!-- END TABLE CONTENTS -->
 </tal:block>
+
 </tal:block>
 
 </tal:block>

@@ -29,7 +29,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from Globals import InitializeClass
 from Globals import DTMLFile
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 import DateTime
 from AccessControl import Permissions as permissions
 
@@ -270,7 +270,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
         
     def getEventList(self, resultFields=[], where="", orderby="", severity=None,
-                    state=0, startdate=None, enddate=None, offset=0, rows=0):
+                    state=0, startdate=None, enddate=None, offset=0, rows=0,
+                    getTotalCount=False, filter=""):
         """see IEventList.
         """
         try:
@@ -278,14 +279,20 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 resultFields = self.defaultResultFields
             resultFields = list(resultFields)
             resultFields.extend(self.defaultFields)
-
-            select = ["select ", ','.join(resultFields),
+            calcfoundrows = ''
+            if getTotalCount: 
+                calcfoundrows = 'SQL_CALC_FOUND_ROWS'
+            select = ["select ", calcfoundrows, ','.join(resultFields),
                         "from %s where" % self.statusTable ]
                         
             if not where:
                 where = self.defaultWhere
             where = self._wand(where, "%s >= %s", self.severityField, severity)
             where = self._wand(where, "%s <= %s", self.stateField, state)
+            if filter:
+                where += ' and (%s) ' % (' or '.join(['%s LIKE "%%%s%%"' % (
+                            x, filter) for x in resultFields]))
+                log.info(where)
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
@@ -301,12 +308,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 select.append("limit %d, %d" % (offset, rows))
             select.append(';')
             select = " ".join(select)
-            #print select
-            retdata = self.checkCache(select)
-            if not retdata:
+            if getTotalCount: 
+                try: retdata, totalCount = self.checkCache(select)
+                except TypeError: retdata, totalCount = self.checkCache(select), 100
+            else: retdata = self.checkCache(select)
+            if not False:
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
+                    log.info(select)
                     curs.execute(select)
                     retdata = []
                     # iterate through the data results and convert to python
@@ -315,10 +325,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         row = map(self.convert, resultFields, row)
                         evt = ZEvent(self, resultFields, row)
                         retdata.append(evt)
+                    if getTotalCount:
+                        curs.execute("SELECT FOUND_ROWS()")
+                        totalCount = curs.fetchone()[0]
                 finally: self.close(conn)
-                self.addToCache(select, retdata)
+                if getTotalCount: self.addToCache(select, (retdata, totalCount))
+                else: self.addToCache(select, retdata)
                 self.cleanCache()
-            return retdata
+            if getTotalCount: 
+                return retdata, totalCount
+            else: return retdata
         except:
             log.exception("Failure querying events")
             raise
@@ -372,7 +388,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         conn = self.connect()
         try:
             curs = conn.cursor()
-            #print selectevent
             curs.execute(selectevent)
             evrow = curs.fetchone()
             if not evrow:
@@ -410,7 +425,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.addToCache(cachekey, event)
         self.cleanCache()
         return event
-
 
     def getStatusME(self, me, statusclass=None, **kwargs):
         """
@@ -922,19 +936,55 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return info
             
-
+    security.declareProtected('View','getJSONHistoryEventsInfo')
+    def getJSONHistoryEventsInfo(self, **kwargs):
+        kwargs['history'] = True
+        return self.getJSONEventsInfo(**kwargs)
 
     security.declareProtected('View','getJSONEventsInfo')
-    def getJSONEventsInfo(self, fields=[], simple=False, REQUEST=None):
+    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
+                          getTotalCount=True, 
+                          filter='', severity=2, state=1, 
+                          orderby='', history=False, REQUEST=None):
         """
         Event data in JSON format.
         """
+        argnames = 'offset count getTotalCount filter severity state orderby'.split()
+        myargs = {}
+        for arg in argnames:
+            try: 
+                try: myargs[arg] = int(REQUEST[arg])
+                except ValueError: myargs[arg] = REQUEST[arg]
+            except KeyError: myargs[arg] = eval(arg)
+        myargs['rows'] = myargs['count']; del myargs['count']
+        if myargs['orderby']=='count': myargs['orderby']=='rows';
         if not fields: fields = self.defaultResultFields
-        data = self.getEventList()
-        data = [x.getDataForJSON(fields) for x in data]
-        final = (fields, data)
-        return simplejson.dumps(final)
+        if history: data, totalCount = self.dmd.ZenEventHistory.getEventList(**myargs)
+        else: data, totalCount = self.getEventList(**myargs)
+        results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
+        return simplejson.dumps((results, totalCount))
 
+    security.declareProtected('View','getJSONFields')
+    def getJSONFields(self, fields=[]):
+        if not fields: fields = self.defaultResultFields
+        lens = map(self.getAvgFieldLength, fields)
+        total = sum(lens)
+        lens = map(lambda x:x/total*100, lens)
+        zipped = zip(fields, lens)
+        return simplejson.dumps(zipped)
+
+    def getAvgFieldLength(self, fieldname):
+        conn = self.connect()
+        try:
+            curs = conn.cursor()
+            selstatement = ("SELECT AVG(CHAR_LENGTH(mycol)) FROM (SELECT %s AS "
+                            "mycol FROM %s LIMIT 50) AS a;") % (fieldname,
+                                self.statusTable)
+            curs.execute(selstatement)
+            avglen = curs.fetchone()
+        finally: self.close(conn)
+        if not avglen: return 0.
+        else: return float(avglen[0])
 
         
     #==========================================================================

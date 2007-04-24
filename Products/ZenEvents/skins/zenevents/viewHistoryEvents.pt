@@ -4,6 +4,7 @@
 <span metal:define-macro="body">
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
+<script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
 <script type="text/javascript" 
         src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
@@ -73,6 +74,7 @@ menu_id string:HistoryEvent_list;
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
+    <!--
     <tal:block metal:use-macro="here/viewEvents/macros/header"/>
     <tbody id="eventsBody">
         <span metal:use-macro="here/getHistoryEventListPage/macros/page"/>
@@ -86,6 +88,45 @@ menu_id string:HistoryEvent_list;
                             </td>
         </tr>
     </tal:block>
+    -->
+<tr><td>
+
+<style>
+.leftfloat { float:left }
+td.cell {
+    font-family: Trebuchet,verdana,helvetica,sans-serif;
+    font-size: 11px;
+    line-height: 12px;
+    margin: 0px;
+    overflow: hidden;
+    white-space: nowrap;
+    border-spacing: 1px;
+    border: 1px solid #666;
+    height: 22px;
+    cursor: default;
+}
+</style>
+
+<div id="gridcontainer" style="width:100%;">
+
+</div>
+
+<script tal:content="string:
+ var thisurl = '${here/absolute_url_path}'">
+ </script>
+
+<script>
+addLoadEvent( function() {
+    var b = new ZenGridBuffer();
+    var mygrid = new ZenGrid('gridcontainer', 
+        thisurl + '/ZenEventHistory/getJSONEventsInfo',
+        'mygrid', b);
+    connect('filter', 'onkeyup', mygrid.doEventLivesearch);
+    connect('state', 'onchange', mygrid.refreshFromFormElement);
+    connect('severity', 'onchange', mygrid.refreshFromFormElement);
+});
+</script>
+</td></tr>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

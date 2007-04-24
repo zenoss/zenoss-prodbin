@@ -3,7 +3,7 @@ var currentCheckbox;
 var isCheckbox = function(elem) { 
     return (elem.type=='checkbox') }
 
-function getCheckboxes() {
+function getCheckboxes(elem) {
     var inputs = getElementsByTagAndClassName('input', null);
     return filter(isCheckbox, inputs);
 }
@@ -14,11 +14,14 @@ function selectCheckboxRange(start, end) {
     newstate = -checkboxes[end].checked;
     var todo = checkboxes.slice(a, b+1);
     for (i=0;(box=todo[i]);i++) {
-        box.checked = newstate;
+        if ((!box.checked && newstate) ||
+            (box.checked && !newstate)) box.click();
+        //box.checked = newstate;
     }
 }
 
 function getIndex(box) {
+    log(checkboxes.length+" Checkboxes extant");
     return findIdentical(checkboxes, box);
 }
 
@@ -35,12 +38,13 @@ function handleChange(e) {
     currentCheckbox = t;
 }
 
+var CbCxs = new Array();
 function connectCheckboxListeners() {
-checkboxes = getCheckboxes();
+    disconnectAllTo(handleChange);
+    checkboxes = getCheckboxes();
     for (i=0; i<checkboxes.length; i++){
         var box = checkboxes[i];
         connect(box, 'onkeypress', handleChange);
-        disconnectAll(box, 'onclick');
         connect(box, 'onclick', handleChange);
     }
 }
