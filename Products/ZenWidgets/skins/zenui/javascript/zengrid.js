@@ -300,7 +300,8 @@ ZenGrid.prototype = {
             connect(cells[i], 'onclick',
                 bind(function(e) {
                     var cell = e.src();
-                    this.refreshWithParams({'orderby': cell.innerHTML });
+                    var f = cell.getElementsByTagName('div')[0].innerHTML;
+                    this.refreshWithParams({'orderby': f });
                 }, this)
             );
         }
