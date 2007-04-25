@@ -66,6 +66,12 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
+                { 'id'            : 'resequence'
+                , 'name'          : 'Sequence'
+                , 'action'        : 'osProcessResequence'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
 #                { 'id'            : 'manage'
 #                , 'name'          : 'Manage'
 #                , 'action'        : 'osProcessOrganizerManage'

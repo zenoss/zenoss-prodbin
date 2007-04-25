@@ -28,3 +28,4 @@ class ZCollectorDecoding(Migrate.Step):
 
 ZCollectorDecoding()
 
+

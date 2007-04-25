@@ -10,6 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+# For complete information please visit: http://www.zenoss.com/oss/
 
 __doc__='''
 
@@ -423,6 +428,8 @@ class MenuRelations(Migrate.Step):
                     action=     'dialog_moveOSProcesses',
                     permissions=('Manage DMD',),
                     isdialog=   True),
+                    ],
+            'OSProcessResequence_list': [
                 dict(
                     ordering=3.0, 
                     id =          'resequenceOsProcesses',
@@ -430,7 +437,7 @@ class MenuRelations(Migrate.Step):
                     action =      'javascript:submitFormToMethod("processList", "manage_resequenceProcesses")',
                     permissions= ('Manage DMD',)
                     ),
-                    ],
+                ],
             'Manufacturer_list':               [
                 ZenPackItems,
                 dict(

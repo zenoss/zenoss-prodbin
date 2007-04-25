@@ -23,3 +23,4 @@ server = xmlrpclib.Server(url,transport=trans)
 
 i = server.render
 
+

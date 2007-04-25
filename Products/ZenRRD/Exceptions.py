@@ -26,3 +26,4 @@ class RRDTemplateError(RRDException): pass
 class RRDGraphError(RRDException): pass
 
 
+

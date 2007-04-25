@@ -27,3 +27,4 @@ def initialize(registrar):
         permission="Add DMD Objects",
         constructors = (addRenderServer, manage_addRenderServer),
         )
+

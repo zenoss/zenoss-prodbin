@@ -22,3 +22,5 @@ class ZenPathError(ZentinelException):
     """When walking a path something along the way wasn't found."""
     pass
 
+
+

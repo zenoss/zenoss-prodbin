@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-# This plugin gives you a sample of how to do more custom graphs.
+
 # It probably isn't a great example to follow style-wise.
 
 import os

@@ -25,3 +25,4 @@ class EventNewClasses(Migrate.Step):
 
 EventNewClasses()
 
+

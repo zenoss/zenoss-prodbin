@@ -26,3 +26,4 @@ class uname(CommandPlugin):
         om.uname = results.strip()
         return om
 
+

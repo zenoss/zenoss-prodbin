@@ -1,0 +1,71 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post" name="processList" tal:attributes="action here/absolute_url_path">
+
+<tal:block 
+        tal:define="objects here/getSubOSProcessClassesGen;
+	menu_id string:OSProcessResequence_list;
+        tableName string:osprocessresequencelist;
+        tabletitle string:Processes Order;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
+<input type="hidden" name="zenScreenName" 
+    tal:attributes="value template/id"/>
+    <span tal:condition="objects" tal:omit-tag="">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Folder')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'regex','Regex')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'zMonitor','Monitor')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'count','Count')"/>
+    </tr>
+    <tr tal:repeat="svcinst batch" tal:define="editable here/isManager">
+        <td>
+            <input tal:condition="editable" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value svcinst/sequence"/>
+            <input tal:condition="editable"
+                type="hidden" name="origseq:list"
+                tal:attributes="value svcinst/sequence" />
+            <span tal:condition="not:editable" tal:content="svcinst/sequence"/>
+        </td>
+        <td class="tablevalues">
+	   <a tal:attributes="href python:svcinst.getPrimaryParent().getPrimaryUrlPath()" 
+	      tal:content="python:svcinst.getPrimaryParent().getOrganizerName()"/>
+        </td>
+        <td class="tablevalues">
+            <a tal:attributes="href svcinst/getPrimaryUrlPath"
+            tal:content="svcinst/name">Name</a>
+        </td>
+        <td class="tablevalues" tal:content="svcinst/regex"/>
+        <td class="tablevalues" tal:content="svcinst/zMonitor"/>
+        <td class="tablevalues" tal:content="svcinst/count"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
+    </span>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+</form>
+
+</tal:block>
+</tal:block>
+

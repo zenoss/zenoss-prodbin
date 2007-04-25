@@ -30,3 +30,4 @@ class ZLocalIps(Migrate.Step):
             dmd.Devices._setProperty("zLocalInterfaceNames", '^lo|^vmnet')
 
 ZLocalIps()
+

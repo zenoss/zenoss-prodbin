@@ -11,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 __doc__='''zenperfxmlrpc
 
 Gets xmlrpc performance data and stores it in the RRD files.

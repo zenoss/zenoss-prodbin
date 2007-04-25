@@ -22,8 +22,12 @@ from HubService import HubService
 class EventService(HubService):
 
     def remote_sendEvent(self, evt):
-        'XMLRPC requests are processed asynchronously in a thread'
-        return self.zem.sendEvent(evt)
+        try:
+            return self.zem.sendEvent(evt)
+        except Exception, ex:
+            import logging
+            log = logging.getLogger('log')
+            log.exception(ex)
 
 
     def remote_sendEvents(self, evts):

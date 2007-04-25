@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#!/usr/bin/env python2.1
 
 
 __doc__=''' ZenPing

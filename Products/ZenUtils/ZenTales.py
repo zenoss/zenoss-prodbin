@@ -30,3 +30,4 @@ def talesCompile(express):
     if not compiled:
         _compiled[express] = compiled = getEngine().compile(express)
     return compiled
+

@@ -23,3 +23,4 @@ devices = server.getPingDevices()
 for device in devices:
     print device
 
+

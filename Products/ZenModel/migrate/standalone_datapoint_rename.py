@@ -20,3 +20,5 @@ for d, dirs, filenames in os.walk(os.path.join(os.environ['ZENHOME'], 'perf')):
 	base = os.path.basename(f[:-4])
 	os.rename(fullpath, os.path.join(d, '%s_%s.rrd' % (base, base)))
 
+
+

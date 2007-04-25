@@ -28,3 +28,4 @@ def reversedSummary(summary):
     summary['function'] = swapper.get(current, current)
     return summary
 
+

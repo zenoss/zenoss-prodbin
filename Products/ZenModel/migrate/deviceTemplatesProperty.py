@@ -22,3 +22,5 @@ class DeviceTemplatesProperty(Migrate.Step):
 
 DeviceTemplatesProperty()
 
+
+

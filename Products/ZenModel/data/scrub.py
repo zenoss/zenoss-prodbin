@@ -23,3 +23,4 @@ for line in lines:
     for regex, sub in subs:
         line = re.sub(regex, sub, line) 
 
+

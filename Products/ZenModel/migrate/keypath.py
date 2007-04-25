@@ -27,3 +27,4 @@ class KeyPath(Migrate.Step):
             dmd.Devices._setProperty("zKeyPath", "~/.ssh/id_dsa")
 
 KeyPath()
+

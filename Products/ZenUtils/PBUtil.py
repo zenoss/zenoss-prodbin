@@ -10,8 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 # taken from r1.10 of buildbot.sf.net/buildbot/pbutil.py
+
 # flumotion has nearly the same code
+
 """Base classes handy for use with PB clients.
 """
 

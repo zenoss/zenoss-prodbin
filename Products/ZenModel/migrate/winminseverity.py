@@ -27,3 +27,4 @@ class WinMinSeverity(Migrate.Step):
 
 WinMinSeverity()
 
+

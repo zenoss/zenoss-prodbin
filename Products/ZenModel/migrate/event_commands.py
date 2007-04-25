@@ -25,3 +25,4 @@ class EventCommands(Migrate.Step):
 
 EventCommands()
 
+

@@ -30,3 +30,4 @@ class EventDBName(Migrate.Step):
             dmd.ZenEventHistory.database = 'events'
 
 EventDBName()
+

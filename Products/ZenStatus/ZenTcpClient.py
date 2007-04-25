@@ -28,7 +28,6 @@ from Products.ZenEvents.ZenEventClasses import Status_IpService
 from socket import getfqdn
 hostname = getfqdn()
 
-# this is needed to do the setUnjellyableForClass
 from Products.ZenHub.services.StatusConfig import ServiceConfig
 
 class ZenTcpTest(protocol.Protocol):

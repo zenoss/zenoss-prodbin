@@ -10,11 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-# This program is part of Zenoss Core, an open source monitoring platform.
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 as published by
-# the Free Software Foundation.
-# For complete information please visit: http://www.zenoss.com/oss/
+
 ''' pingmonitor
 creates a queue of hosts to be pinged (jobs),
 and pings them until they respond, or the
