@@ -98,9 +98,6 @@ class zenwin(Base):
             elif status > 0:
                 self.serviceRunning(srec, name)
         w.close()
-        del w
-        import gc
-        gc.collect()
 
     def getWatcher(self, srec):
         wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
@@ -128,7 +125,6 @@ class zenwin(Base):
                 wcode, source, descr, hfile, hcont, scode = info
                 scode = abs(scode)
             if scode != TIMEOUT_CODE:
-                w.close()
                 del self.watchers[srec.name]
 
     def processLoop(self):
