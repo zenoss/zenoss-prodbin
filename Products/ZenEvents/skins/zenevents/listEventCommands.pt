@@ -83,7 +83,6 @@
         </tal:block>
         
 
-<input type="submit" name="manage_editCommands:method" value="Submit"/>
 </form>
 </tal:block>
 </tal:block>

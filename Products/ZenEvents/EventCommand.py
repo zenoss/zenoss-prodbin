@@ -91,7 +91,7 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         conn = zem.connect()
         try:
             delcmd = "delete from alert_state where %s" % self.sqlwhere()
-            curs = self.dmd.ZenEventManager.cursor()
+            curs = conn.cursor()
             curs.execute(delcmd)
         finally: zem.close(conn)
 

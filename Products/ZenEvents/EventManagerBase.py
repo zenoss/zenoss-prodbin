@@ -1408,10 +1408,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def manage_deleteCommands(self, ids, REQUEST=None):
         "add a new EventCommand"
         for id in ids:
-            try:
-                self.commands._delObject(id)
-            except (AttributeError, KeyError):
-                pass
+            self.commands._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
