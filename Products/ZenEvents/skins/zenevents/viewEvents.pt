@@ -147,15 +147,14 @@ div.cell_inner {
 
 </div>
 
-<script tal:content="string:
+<script>
 addLoadEvent( function() {
     var b = new ZenGridBuffer();
-    var mygrid = new ZenGrid('gridcontainer', 'getJSONEventsInfo',
-        ${resultFields}, 'mygrid', b);
+    var mygrid = new ZenGrid('gridcontainer', 'getJSONEventsInfo', 'mygrid', b);
     connect('filter', 'onkeyup', mygrid.doEventLivesearch);
     connect('state', 'onchange', mygrid.refreshFromFormElement);
     connect('severity', 'onchange', mygrid.refreshFromFormElement);
-});">
+});
 </script>
 </td></tr>
 <!-- END TABLE CONTENTS -->

@@ -939,13 +939,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return info
             
-
-    security.declareProtected('View','getJSONHistoryEventsInfo')
-    def getJSONHistoryEventsInfo(self, context, **kwargs):
-        kwargs['history'] = True
-        return self.getJSONEventsInfo(context, **kwargs)
-
-
     security.declareProtected('View','getJSONEventsInfo')
     def getJSONEventsInfo(self, context, offset=0, count=50,
                           getTotalCount=True, 
@@ -954,7 +947,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """ Event data in JSON format.
         """
         fields = self.lookupManagedEntityResultFields(context.event_key)
-        if orderby=='count': orderby='rows'
         data, totalCount = self.getEventListME(context, 
             offset=offset, rows=count, resultFields=fields,
             getTotalCount=getTotalCount, filter=filter, severity=severity,

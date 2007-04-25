@@ -9,6 +9,51 @@ var Class={
 
 var isManager = true;
 
+var ZenGridLoadingMsg = Class.create();
+ZenGridLoadingMsg.prototype = {
+    __init__: function(msg) {
+        bindMethods(this);
+        this.framework = DIV(
+            {'class':'zengridload_container'},
+            [
+            //top row
+            DIV({'class':'dbox_tl'},
+             [ DIV({'class':'dbox_tr'},
+               [ DIV({'class':'dbox_tc'}, null)])]),
+            //middle row
+            DIV({'class':'dbox_ml'},
+             [ DIV({'class':'dbox_mr'},
+               [ DIV({'class':'dbox_mc',
+                      'id':'zengridload_content'}, msg)])]),
+            //bottom row
+            DIV({'class':'dbox_bl'},
+             [ DIV({'class':'dbox_br'},
+               [ DIV({'class':'dbox_bc'}, null)])])
+            ]);
+        appendChildNodes(currentDocument().body, this.framework);
+        setStyle(this.framework, {
+            'width':'15em',
+            'position':'absolute',
+            'z-index':'11000',
+            'top':'0',
+            'left':'100',
+            'visibility':'visible'
+        });
+        setStyle($('zengridload_content'), {
+            'font-weight':'bold',
+            'font-size':'2em',
+            'text-align':'center'
+
+        });
+
+    },
+    show: function() {
+        setStyle(this.framework, {'visibility':'visible'});
+    },
+    hide: function() {
+        setStyle(this.framework, {'visibility':'hidden'});
+    }
+}
 var ZenGridBuffer = Class.create();
 
 ZenGridBuffer.prototype = {
@@ -61,6 +106,8 @@ ZenGridBuffer.prototype = {
             if (newSize > this.maxQuery)
                 newSize = this.maxQuery;
         }
+        if (newSize > this.maxQuery)
+            newSize = this.maxQuery;
         return newSize;
     },
     queryOffset: function(offset) {
@@ -137,13 +184,12 @@ ZenGridBuffer.prototype = {
 var ZenGrid = Class.create();
 
 ZenGrid.prototype = {
-    __init__: function(container, url, fields, gridId, buffer) {
+    __init__: function(container, url, gridId, buffer, isHistory) {
         bindMethods(this);
-        this.fieldnames = fields;
+        this.isHistory = isHistory || 0;
         this.container = $(container);
         this.gridId = gridId;
         this.buffer = buffer;
-        this.maxRows = 300;
         this.numRows = 15;
         this.rowHeight = 32;
         this.checkedArray = new Array();
@@ -157,6 +203,7 @@ ZenGrid.prototype = {
         this.clearFirst = false;
         this.lock = new DeferredLock();
         this.scrollTimeout = null;
+        this.loadingbox = new ZenGridLoadingMsg('Loading...');
         fieldlock = this.lock.acquire();
         fieldlock.addCallback(this.refreshFields);
         updatelock = this.lock.acquire();
@@ -200,7 +247,7 @@ ZenGrid.prototype = {
     },
     scrollTable: function(delta) {
         if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
-        var pixelDelta = delta * this.rowHeight;
+        var pixelDelta = delta * (this.rowHeight+4);
         this.scrollbar.scrollTop -= pixelDelta;
     },
     getColLengths: function() {
@@ -243,12 +290,13 @@ ZenGrid.prototype = {
          bind(function(r) {
              result = r; //evalJSON(r.responseText); // For POST
              this.buffer.totalRows = result[1];
-             this.setScrollHeight(this.buffer.totalRows*this.rowHeight);
+             this.setScrollHeight(this.buffer.totalRows*(this.rowHeight+4));
              this.buffer.update(result[0], offset);
              this.lock.release();
          }, this));
     },
     refreshTable: function(offset) {
+        this.showLoading();
         var offset = offset || this.lastOffset;
         if (offset + this.numRows > this.buffer.startPos + this.buffer.size ||
                 offset < this.buffer.startPos - this.numRows) {
@@ -335,7 +383,9 @@ ZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             this.lock.release();
         }, this);
-        var x = loadJSONDoc('getJSONFields');
+        fieldparams = {};
+        if (this.isHistory) fieldparams['history'] = 1;
+        var x = loadJSONDoc('getJSONFields', fieldparams);
         x.addCallback(bind(function(r){
             this.fields=r;
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
@@ -353,20 +403,19 @@ ZenGrid.prototype = {
         this.rowEls = map(this.getBlankRow, range(numrows));
         replaceChildNodes(this.output, this.rowEls);
         setElementDimensions(this.viewport,
-            {h:parseInt(numrows*(this.rowHeight))}
+            {h:parseInt(numrows*(this.rowHeight+4))}
         );
-
-        var scrollHeight = parseInt(numrows * (this.rowHeight));
+        var scrollHeight = parseInt(numrows * (this.rowHeight+4));
         if (scrollHeight<=getElementDimensions(this.zgtable).h) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
-        setElementDimensions(this.scrollbar, {h:scrollHeight});
+            setElementDimensions(this.scrollbar, {h:scrollHeight});
         }
     },
     populateTable: function(data) {
-        var tableLength = data.length > this.maxRows ? 
-            this.maxRows : data.length;
-        if (tableLength != this.numRows){ 
+        var tableLength = data.length > this.numRows ? 
+            this.numRows : data.length;
+        if (tableLength != this.rowEls.length){ 
             this.clearTable();
             this.setTableNumRows(tableLength);
         }
@@ -379,7 +428,7 @@ ZenGrid.prototype = {
                                 value:evid};
             if (this.checkedArray[evid]) chkboxparams.checked=true;
                 var chkbox = INPUT(chkboxparams, null);
-            var yo = getElementsByTagAndClassName('td', 'cell', rows[i]);
+            var yo = rows[i].getElementsByTagName('td');
             var divs = getElementsByTagAndClassName('div','cell_inner', rows[i]);
             var firstcol = yo[0];
             if (isManager) {
@@ -405,11 +454,12 @@ ZenGrid.prototype = {
 
         }
         connectCheckboxListeners();
+        this.killLoading();
     },
     getTotalRows: function() {
         cb = bind(function(r) {
             this.buffer.totalRows = r;
-            this.setScrollHeight(this.buffer.totalRows*(this.rowHeight));
+            this.setScrollHeight(this.buffer.totalRows*(this.rowHeight+4));
             this.lock.release();
         }, this);
         d = loadJSONDoc('getEventCount');
@@ -465,7 +515,7 @@ ZenGrid.prototype = {
         });
         setStyle(this.viewport, {
             'width':'98%',
-            'height':this.rowHeight*(this.numRows)+'px',
+            'height':(this.rowHeight+4)*(this.numRows)+'px',
             'overflow':'hidden',
             'float':'left',
             'border':'1px solid black',
@@ -479,9 +529,9 @@ ZenGrid.prototype = {
               'position': 'relative',
               'left': '-3px',
               'width': '19px',
-              'height': this.rowHeight*(this.numRows)+'px' 
+              'height': (this.rowHeight+4)*(this.numRows)+'px' 
         });
-        var scrollHeight = this.buffer.totalRows * (this.rowHeight+3);
+        var scrollHeight = this.buffer.totalRows * (this.rowHeight+4);
         this.setScrollHeight(scrollHeight);
         appendChildNodes(this.container, this.headers, this.innercont);
     },
@@ -494,18 +544,20 @@ ZenGrid.prototype = {
     },
     scrollToPixel: function(pixel) {
         this.lastPixelOffset = this.lastPixelOffset || 0;
-        var diff = (pixel-this.lastPixelOffset) % this.rowHeight;
-        if (diff) {
-            pixel += diff;
-        }
-        var newOffset = Math.round(pixel/this.rowHeight);
+        //var diff = (pixel-this.lastPixelOffset) % (this.rowHeight+4);
+        //if (diff) {
+            //pixel += diff;
+        //}
+        var newOffset = Math.round(pixel/(this.rowHeight+4));
         this.refreshTable(newOffset);
         this.scrollbar.scrollTop = pixel;
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
+        this.showLoading();
         clearTimeout(this.scrollTimeout);
         this.nextScrollPosition = this.scrollbar.scrollTop || 0;
+        if (this.nextScrollPosition==0) this.scrollToPixel(this.nextScrollPosition);
         this.scrollTimeout = setTimeout (
             bind(function() {
                 this.scrollToPixel(this.nextScrollPosition)
@@ -515,7 +567,7 @@ ZenGrid.prototype = {
         node = e.src();
         id = node.id;
         params = {};
-        params[id] = node.value;
+        if (!!node.value) params[id] = node.value;
         this.refreshWithParams(params)
     },
     LSTimeout: null,
@@ -548,8 +600,19 @@ ZenGrid.prototype = {
     markAsChecked: function(e) {
         var node = e.src();
         this.checkedArray[node.value] = node.checked;
+    },
+    showLoading: function() {
+        clearTimeout(this.isLoading);
+        this.isLoading = setTimeout( bind(function() {
+            this.loadingbox.show();
+        }, this), 500);
+    },
+    killLoading: function() {
+        clearTimeout(this.isLoading);
+        if (this.loadingbox) {
+            this.loadingbox.hide();
+        }
     }
-
 }
 
 log('ZenGrid javascript loaded.');
