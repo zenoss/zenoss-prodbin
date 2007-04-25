@@ -61,8 +61,8 @@ class WinCollector(Base):
         now = time.time()
         try:
             yield self.eventService().callRemote('getWmiConnIssues')
-            self.wmiprobs = driver.next()
-            self.log.debug("Wmi Probs %r", (self.wmiprobs,))
+            self.wmiprobs = [e[0] for e in driver.next()]
+            self.log.debug("Wmi Probs %r", self.wmiprobs)
             self.processLoop()
             self.sendEvent(self.heartbeat)
         except Exception, ex:
