@@ -207,6 +207,17 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
 
+    def removeDevices(self, deviceNames=None, REQUEST=None):
+        """see IManageDevice"""
+        if not deviceNames: return self()
+        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.deleteDevice()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+        
+        
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
         """getEventDeviceInfo() -> return the info for NcoEventPopulator"""

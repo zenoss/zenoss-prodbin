@@ -41,7 +41,7 @@ class DeviceManagerBase:
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
     
-    '''
+
     def removeDevices(self, deviceNames=None, REQUEST=None):
         """see IManageDevice"""
         if not deviceNames: return self()
@@ -49,17 +49,6 @@ class DeviceManagerBase:
         for devname in deviceNames:
             self.devices._delObject(devname)
         if REQUEST: return self()
-    '''
-        
-    def removeDevices(self, deviceNames=None, REQUEST=None):
-        """see IManageDevice"""
-        if not deviceNames: return self()
-        if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
-        for devname in deviceNames:
-            dev = self.devices._getOb(devname)
-            dev.deleteDevice()
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
 
 
     def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
