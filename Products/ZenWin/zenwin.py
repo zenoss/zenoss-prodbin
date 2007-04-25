@@ -109,9 +109,12 @@ class zenwin(Base):
         w = self.watchers.get(srec.name, None)
         if not w:
             self.scanDevice(srec)
+            self.deviceUp(srec)
             self.watchers[srec.name] = w = self.getWatcher(srec)
         try:
+            self.log.debug("Querying %s", srec.name)
             s = w.nextEvent(100)
+            self.deviceUp(srec)
             if not s.state:
                 return
             if s.state == 'Stopped':
@@ -124,7 +127,7 @@ class zenwin(Base):
                 wcode, source, descr, hfile, hcont, scode = info
                 scode = abs(scode)
             if scode != TIMEOUT_CODE:
-                del self.watchers[srec.name]
+                self.deviceDown(srec, str(ex))
 
     def processLoop(self):
         print [d.name for d in self.devices]
@@ -135,14 +138,31 @@ class zenwin(Base):
             try:
                 self.processDevice(device)
             except Exception, ex:
-	        self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
-				    (device.name, ex),
-                                    severity=Event.Error,
-				    device=device.name,
-				    agent=self.agent,
-			            eventClass=Status_Wmi_Conn))
-                self.wmiprobs.append(device.name)
+                self.deviceDown(device, str(ex))
 
+    def deviceDown(self, device, message):
+        if device.name in self.watchers:
+            del self.watchers[device.name]
+        self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
+                            (device.name, message),
+                            severity=Event.Error,
+                            device=device.name,
+                            agent=self.agent,
+                            eventClass=Status_Wmi_Conn))
+        self.wmiprobs.append(device.name)
+        self.log.warning("WMI Connection to %s went down" % device.name)
+
+    def deviceUp(self, device):
+        print device.name, self.wmiprobs
+        print device.name in self.wmiprobs
+        if device.name in self.wmiprobs:
+            self.wmiprobs.remove(device.name)
+            self.log.info("WMI Connection to %s up" % device.name)
+            self.sendEvent(dict(summary="Wmi connection to %s up." % device.name,
+                                severity=Event.Clear,
+                                device=device.name,
+                                agent=self.agent,
+                                eventClass=Status_Wmi_Conn))
 
     def updateDevices(self, devices):
         config = []
