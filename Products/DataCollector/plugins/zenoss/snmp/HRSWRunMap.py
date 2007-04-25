@@ -60,7 +60,9 @@ class HRSWRunMap(SnmpPlugin):
             fullname = (om.procName + " " + om.parameters).rstrip()
 
             processes = device.getDmdRoot("Processes")
-            for pc in processes.getSubOSProcessClassesGen():
+            pcs = list(processes.getSubOSProcessClassesGen())
+            pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+            for pc in pcs:
                 if pc.match(fullname):
                     om.setOSProcessClass = pc.getPrimaryDmdId()
                     id = om.procName
