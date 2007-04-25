@@ -1,8 +1,15 @@
-#################################################################
+###########################################################################
 #
-#   Copyright (c) 2006 Zentinel Systems, Inc. All rights reserved.
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
 #
-#################################################################
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 import os
 import unittest
 
@@ -91,8 +98,9 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         gen = PortalGenerator()
         gen.create(self.app, 'zport', True)
         # builder params:
-        # portal, evtuser, evtpass, evtdb, smtphost, smtpport, snpphost, snppport
-        builder = Builder(self.app.zport, 'dbuser', 'dbpass', 'dbtable',
+        # portal, cvthost, evtuser, evtpass, evtdb,
+        #    smtphost, smtpport, snpphost, snppport
+        builder = Builder(self.app.zport, 'localhost', 'dbuser', 'dbpass', 'dbtable',
             'localhost', '25', 'localhost', '0')
         builder.build()
         self.dmd = builder.dmd
