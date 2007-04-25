@@ -36,56 +36,31 @@ class EventView(object):
         return self.ZenEventHistory
 
 
-    def getResultFields(self):
-        if hasattr(self, 'event_key'):
-            return self.getEventManager().lookupManagedEntityResultFields(
-                                                                self.event_key)
-        else:
-            return self.getEventManager().defaultResultFields
-        
-
-    def getHistResultFields(self):
-        if hasattr(self, 'event_key'):
-            return self.getEventHistory().lookupManagedEntityResultFields(
-                                                                self.event_key) 
-        else:
-            return self.getEventHistory().lookupResultFields()
-        
-
-    def getEventList(self, **kwargs):
+    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
+                          getTotalCount=True, 
+                          filter='', severity=2, state=1, 
+                          orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
-        if hasattr(self, 'event_key'):
-            return self.getEventManager().getEventListME(self, **kwargs)
-        else:
-            return self.getEventManager().getEventList(**kwargs)
-        
+        kwargs = locals(); del kwargs['self']
+        return self.getEventManager().getJSONEventsInfo(self, **kwargs)
 
-    def getEventHistoryList(self, **kwargs):
+
+    def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
+                          getTotalCount=True, 
+                          filter='', severity=2, state=1, 
+                          orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
-        if hasattr(self, 'event_key'):            
-            return self.getEventHistory().getEventListME(self, **kwargs)
-        else:
-            return self.getEventHistory().getEventList(**kwargs)
-        
-
-    def getJSONEventsInfo(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        return self.getEventManager().getJSONEventsInfo(**kwargs)
+        kwargs = locals(); del kwargs['self']
+        return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
 
 
     def getJSONFields(self, **kwargs):
         """Return the current event list for this managed entity.
         """
-        return self.getEventManager().getJSONFields(**kwargs)
-
-
-    def getJSONHistoryEventsInfo(self, **kwargs):
-        """Return the current history event list for this managed entity.
-        """
-        return self.getEventHistory().getJSONEventsInfo(**kwargs)
+        kwargs = locals(); del kwargs['self']
+        return self.getEventHistory().getJSONFields(self, **kwargs)
 
 
     def getStatus(self, statusclass=None, **kwargs):
