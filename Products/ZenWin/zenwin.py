@@ -24,7 +24,7 @@ from twisted.internet import reactor, defer
 import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE
 from Products.ZenHub.services import WmiConfig
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinSrv
+from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
 
 from WinServiceTest import WinServiceTest
@@ -35,7 +35,7 @@ class StatusTest:
         self.name = name
         self.username = username
         self.password = password
-        self.services = dict([(k.lower(), v) for k, v in services.items()])
+        self.services = dict([(k, v) for k, v in services.items()])
 
 class zenwin(Base):
 
@@ -53,7 +53,7 @@ class zenwin(Base):
         "Compose an event"
         name = "WinServiceTest"
         evt = dict(device=devname, component=svcname,
-                   summary=msg, eventClass=Status_WinSrv,
+                   summary=msg, eventClass=Status_WinService,
                    agent= self.agent, severity= sev,
                    eventGroup= "StatusTest", manager=getfqdn())
         if sev > 0:
@@ -88,10 +88,9 @@ class zenwin(Base):
         wql = "select Name from Win32_Service where State='Running'"
         w = WMI(srec.name, srec.username, srec.password)
         w.connect()
-        svcs = [ svc.Name.lower() for svc in w.query(wql) ]
+        svcs = [ svc.Name for svc in w.query(wql) ]
         nextFd = os.open('/dev/null', os.O_RDONLY)
         for name, (status, severity) in srec.services.items():
-            name = name.lower()
             self.log.debug("service: %s status: %d", name, status)
             if name not in svcs:
                 self.serviceStopped(srec, name)
@@ -116,9 +115,9 @@ class zenwin(Base):
             if not s.state:
                 return
             if s.state == 'Stopped':
-                self.serviceStopped(srec, s.name.lower())
+                self.serviceStopped(srec, s.name)
             if s.state == 'Running':
-                self.serviceRunning(srec, s.name.lower())
+                self.serviceRunning(srec, s.name)
         except pywintypes.com_error, e:
             code,txt,info,param = e
             if info:
