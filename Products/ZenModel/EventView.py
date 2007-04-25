@@ -56,11 +56,10 @@ class EventView(object):
         return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
 
 
-    def getJSONFields(self, **kwargs):
+    def getJSONFields(self):
         """Return the current event list for this managed entity.
         """
-        kwargs = locals(); del kwargs['self']
-        return self.getEventHistory().getJSONFields(self, **kwargs)
+        return self.getEventManager().getJSONFields(self)
 
 
     def getStatus(self, statusclass=None, **kwargs):

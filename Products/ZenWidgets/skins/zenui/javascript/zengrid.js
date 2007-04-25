@@ -206,14 +206,13 @@ ZenGrid.prototype = {
     getColLengths: function() {
         var lens = new Array();
         this.fieldMapping = {
-            summary: 0,
+            summary: -2,
             firstTime: 0,
             lastTime: 0,
-            component: -3,
+            component: -1,
             count: +3
         }
         this.fieldOffsetTotal = 0;
-        //this.fieldOffsetTotal = 10+-4+-4+-5;
         for (i=0;i<this.fields.length;i++) {
             var field = this.fields[i];
             var offset = this.fieldMapping[field[0]] || 0;
@@ -234,7 +233,7 @@ ZenGrid.prototype = {
         this.lastOffset = offset;
         var qs = update(this.lastparams, {
             'offset': this.buffer.queryOffset(offset),
-            'fields:list': this.fieldnames,
+            //'fields:list': this.fieldnames,
             'count': this.buffer.querySize(offset), 
             'getTotalCount': 1
         });
@@ -336,7 +335,7 @@ ZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             this.lock.release();
         }, this);
-        var x = loadJSONDoc('getJSONFields', {'fields:list':this.fieldnames});
+        var x = loadJSONDoc('getJSONFields');
         x.addCallback(bind(function(r){
             this.fields=r;
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
@@ -507,7 +506,6 @@ ZenGrid.prototype = {
     handleScroll: function() {
         clearTimeout(this.scrollTimeout);
         this.nextScrollPosition = this.scrollbar.scrollTop || 0;
-        log(this.nextScrollPosition);
         this.scrollTimeout = setTimeout (
             bind(function() {
                 this.scrollToPixel(this.nextScrollPosition)

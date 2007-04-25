@@ -265,13 +265,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventListME(self, me, **kwargs):
         where = self.lookupManagedEntityWhere(me)
-        resultfields = self.lookupManagedEntityResultFields(me.event_key)
-        return self.getEventList(resultFields=resultfields,where=where,**kwargs)
+        try:
+            resultFields = kwargs['resultFields']; del kwargs['resultFields']
+        except KeyError: 
+            resultFields = self.lookupManagedEntityResultFields(me.event_key)
+        return self.getEventList(resultFields=resultFields,where=where,**kwargs)
 
         
     def getEventList(self, resultFields=[], where="", orderby="", severity=None,
                     state=0, startdate=None, enddate=None, offset=0, rows=0,
-                    getTotalCount=False, filter=""):
+                    getTotalCount=False, filter="", **kwargs):
         """see IEventList.
         """
         try:
@@ -305,7 +308,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 select.append("order by")
                 select.append(orderby)
             if rows:
-                select.append("limit %d, %d" % (offset, rows))
+                select.append("limit %s, %s" % (offset, rows))
             select.append(';')
             select = " ".join(select)
             if getTotalCount: 
@@ -936,40 +939,39 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return info
             
+
     security.declareProtected('View','getJSONHistoryEventsInfo')
-    def getJSONHistoryEventsInfo(self, **kwargs):
+    def getJSONHistoryEventsInfo(self, context, **kwargs):
         kwargs['history'] = True
-        return self.getJSONEventsInfo(**kwargs)
+        return self.getJSONEventsInfo(context, **kwargs)
+
 
     security.declareProtected('View','getJSONEventsInfo')
-    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
+    def getJSONEventsInfo(self, context, offset=0, count=50,
                           getTotalCount=True, 
                           filter='', severity=2, state=1, 
-                          orderby='', REQUEST=None):
+                          orderby='', **kwargs):
         """ Event data in JSON format.
         """
-        argnames = ('offset count getTotalCount ' 
-                   'filter severity state orderby').split()
-        myargs = {}
-        for arg in argnames:
-            myargs[arg] = eval(arg)
-        if not fields: fields = self.defaultResultFields
-        myargs['resultFields'] = fields
-        myargs['rows'] = myargs['count']; del myargs['count']
-        if myargs['orderby']=='count': myargs['orderby']=='rows';
-        data, totalCount = self.getEventList(**myargs)
+        fields = self.lookupManagedEntityResultFields(context.event_key)
+        if orderby=='count': orderby='rows'
+        data, totalCount = self.getEventListME(context, 
+            offset=offset, rows=count, resultFields=fields,
+            getTotalCount=getTotalCount, filter=filter, severity=severity,
+            state=state, orderby=orderby)
         results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
         return simplejson.dumps((results, totalCount))
 
+
     security.declareProtected('View','getJSONFields')
-    def getJSONFields(self, fields=[], REQUEST=None):
-        if not fields:
-            fields = self.defaultResultFields
+    def getJSONFields(self, context):
+        fields = self.lookupManagedEntityResultFields(context.event_key)
         lens = map(self.getAvgFieldLength, fields)
         total = sum(lens)
         lens = map(lambda x:x/total*100, lens)
         zipped = zip(fields, lens)
         return simplejson.dumps(zipped)
+
 
     def getAvgFieldLength(self, fieldname):
         conn = self.connect()
