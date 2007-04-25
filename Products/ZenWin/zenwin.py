@@ -127,7 +127,7 @@ class zenwin(Base):
                 wcode, source, descr, hfile, hcont, scode = info
                 scode = abs(scode)
             if scode != TIMEOUT_CODE:
-                self.deviceDown(srec, str(ex))
+                self.deviceDown(srec, str(e))
 
     def processLoop(self):
         print [d.name for d in self.devices]
