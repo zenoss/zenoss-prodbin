@@ -15,6 +15,7 @@
     orderby request/ev_orderby | here/eventOrderby | string:;
     resultFields request/ev_resultfields | here/getResultFields | 
                     zem/defaultResultFields;
+    resultFields python:'[\'%s\']'%('\',\''.join(resultFields));
     evcontrol here/ZenEventManager/eventControls;
     evcolspan python:len(resultFields)+1+evcontrol+1;
     severity request/severity | python:2;
@@ -117,11 +118,15 @@ td.cell {
     cursor: default;
     padding: 0;
 }
+.zg_headers {
+    position: relative;
+    left: 1px;
+}
 .zg_headers td.cell {
     font-weight: bold;
     padding 0;
     border: medium none;
-    border-left: 1px solid #888;
+    border-right: 1px solid #888;
 }
 .zg_headers td.cell:hover {
     background-color: #888;
@@ -130,6 +135,7 @@ td.cell {
 div.cell_inner {
     padding:0 3px;margin:0;
     overflow:hidden;
+    height: 32px;
     white-space: normal;
     font-size: 12px;
     line-height: 132%;
@@ -141,15 +147,15 @@ div.cell_inner {
 
 </div>
 
-<script>
+<script tal:content="string:
 addLoadEvent( function() {
     var b = new ZenGridBuffer();
     var mygrid = new ZenGrid('gridcontainer', 'getJSONEventsInfo',
-        'mygrid', b);
+        ${resultFields}, 'mygrid', b);
     connect('filter', 'onkeyup', mygrid.doEventLivesearch);
     connect('state', 'onchange', mygrid.refreshFromFormElement);
     connect('severity', 'onchange', mygrid.refreshFromFormElement);
-});
+});">
 </script>
 </td></tr>
 <!-- END TABLE CONTENTS -->

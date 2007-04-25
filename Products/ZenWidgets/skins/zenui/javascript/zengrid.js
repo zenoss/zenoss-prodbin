@@ -1,3 +1,4 @@
+
 var Class={
     create:function(){
         return function(){
@@ -136,8 +137,9 @@ ZenGridBuffer.prototype = {
 var ZenGrid = Class.create();
 
 ZenGrid.prototype = {
-    __init__: function(container, url, gridId, buffer) {
+    __init__: function(container, url, fields, gridId, buffer) {
         bindMethods(this);
+        this.fieldnames = fields;
         this.container = $(container);
         this.gridId = gridId;
         this.buffer = buffer;
@@ -171,7 +173,6 @@ ZenGrid.prototype = {
         appendChildNodes(document.body, x);
         var myw = getElementDimensions(x).w/26;
         removeElement(x);
-        log(myw);
         return myw;
     },
     addMouseWheelListening: function() {
@@ -233,6 +234,7 @@ ZenGrid.prototype = {
         this.lastOffset = offset;
         var qs = update(this.lastparams, {
             'offset': this.buffer.queryOffset(offset),
+            'fields:list': this.fieldnames,
             'count': this.buffer.querySize(offset), 
             'getTotalCount': 1
         });
@@ -295,7 +297,7 @@ ZenGrid.prototype = {
         return colgroup;
     },
     connectHeaders: function(cells) {
-        for(i=0;i<cells.length;i++) { 
+        for(i=isManager?1:0;i<cells.length;i++) { 
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick',
                 bind(function(e) {
@@ -334,7 +336,7 @@ ZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             this.lock.release();
         }, this);
-        var x = loadJSONDoc('getJSONFields');
+        var x = loadJSONDoc('getJSONFields', {'fields:list':this.fieldnames});
         x.addCallback(bind(function(r){
             this.fields=r;
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
@@ -343,7 +345,7 @@ ZenGrid.prototype = {
     },
     clearTable: function() {
         table = this.zgtable;
-        var cells = table.getElementsByTagName('td');
+        var cells = getElementsByTagAndClassName('div', 'cell_inner', table);
         for (i=0;(cell=cells[i]);i++){
             replaceChildNodes(cell, null);
         }
@@ -389,7 +391,13 @@ ZenGrid.prototype = {
             }
             for (j=isManager?1:0;j<yo.length;j++) {
                 var cellwidth = this.abswidths[j]
-                divs[j].innerHTML = mydata[j];
+                switch (this.fields[j][0]) {
+                    case 'firstTime':
+                    case 'lastTime':
+                        replaceChildNodes(divs[j], isoTimestamp(mydata[j]));
+                    default:
+                        divs[j].innerHTML = mydata[j];
+                }
                 divs[j].title = this.abswidths[j];
                 var newClass = 'cell ' + mydata[mydata.length-1];
                 if (yo[j].className!=newClass)
@@ -498,10 +506,11 @@ ZenGrid.prototype = {
     },
     handleScroll: function() {
         clearTimeout(this.scrollTimeout);
+        this.nextScrollPosition = this.scrollbar.scrollTop || 0;
+        log(this.nextScrollPosition);
         this.scrollTimeout = setTimeout (
             bind(function() {
-                this.scrollToPixel(this.scrollbar.scrollTop)
-                log(this.scrollbar.scrollTop);
+                this.scrollToPixel(this.nextScrollPosition)
             }, this), 50);
     },
     refreshFromFormElement: function(e) {

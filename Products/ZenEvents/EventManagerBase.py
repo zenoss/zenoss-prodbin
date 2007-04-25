@@ -945,28 +945,26 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
                           getTotalCount=True, 
                           filter='', severity=2, state=1, 
-                          orderby='', history=False, REQUEST=None):
+                          orderby='', REQUEST=None):
+        """ Event data in JSON format.
         """
-        Event data in JSON format.
-        """
-        argnames = 'offset count getTotalCount filter severity state orderby'.split()
+        argnames = ('offset count getTotalCount ' 
+                   'filter severity state orderby').split()
         myargs = {}
         for arg in argnames:
-            try: 
-                try: myargs[arg] = int(REQUEST[arg])
-                except ValueError: myargs[arg] = REQUEST[arg]
-            except KeyError: myargs[arg] = eval(arg)
+            myargs[arg] = eval(arg)
+        if not fields: fields = self.defaultResultFields
+        myargs['resultFields'] = fields
         myargs['rows'] = myargs['count']; del myargs['count']
         if myargs['orderby']=='count': myargs['orderby']=='rows';
-        if not fields: fields = self.defaultResultFields
-        if history: data, totalCount = self.dmd.ZenEventHistory.getEventList(**myargs)
-        else: data, totalCount = self.getEventList(**myargs)
+        data, totalCount = self.getEventList(**myargs)
         results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
         return simplejson.dumps((results, totalCount))
 
     security.declareProtected('View','getJSONFields')
-    def getJSONFields(self, fields=[]):
-        if not fields: fields = self.defaultResultFields
+    def getJSONFields(self, fields=[], REQUEST=None):
+        if not fields:
+            fields = self.defaultResultFields
         lens = map(self.getAvgFieldLength, fields)
         total = sum(lens)
         lens = map(lambda x:x/total*100, lens)

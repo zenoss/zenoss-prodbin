@@ -70,6 +70,24 @@ class EventView(object):
             return self.getEventHistory().getEventList(**kwargs)
         
 
+    def getJSONEventsInfo(self, **kwargs):
+        """Return the current event list for this managed entity.
+        """
+        return self.getEventManager().getJSONEventsInfo(**kwargs)
+
+
+    def getJSONFields(self, **kwargs):
+        """Return the current event list for this managed entity.
+        """
+        return self.getEventManager().getJSONFields(**kwargs)
+
+
+    def getJSONHistoryEventsInfo(self, **kwargs):
+        """Return the current history event list for this managed entity.
+        """
+        return self.getEventHistory().getJSONEventsInfo(**kwargs)
+
+
     def getStatus(self, statusclass=None, **kwargs):
         """Return the status number for this device of class statClass.
         """

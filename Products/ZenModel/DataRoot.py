@@ -217,40 +217,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
 
-    def getResultFields(self):
-        """Result fields for dashboard.
-        """
-        return ('device','summary','lastTime','count')
-       
-
-    def getEventList(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        return self.ZenEventManager.getEventList(**kwargs)
-
 
     def getEventCount(self, **kwargs):
         """Return the current event list for this managed entity.
         """
         return self.ZenEventManager.getEventCount(**kwargs)
 
-
-    def getJSONHistoryEventsInfo(self, **kwargs):
-        kwargs['REQUEST'] = self.REQUEST
-        return self.ZenEventHistory.getJSONEventsInfo(**kwargs)
-
-
-    def getJSONEventsInfo(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        kwargs['REQUEST'] = self.REQUEST
-        return self.ZenEventManager.getJSONEventsInfo(**kwargs)
-
-    def getJSONFields(self, **kwargs):
-        """Return the current event list for this managed entity.
-        """
-        return self.ZenEventManager.getJSONFields(**kwargs)
-        
 
     def getDmdRoots(self):
         return filter(lambda o: o.isInTree, self.objectValues())
