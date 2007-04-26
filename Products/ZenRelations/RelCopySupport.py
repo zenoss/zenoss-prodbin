@@ -22,6 +22,7 @@ $Id: RelCopySupport.py,v 1.15 2004/04/13 22:02:18 edahl Exp $"""
 
 __version__ = '$Revision: 1.15 $'
 
+import sys
 import types
 
 # base class for RelCopyContainer
