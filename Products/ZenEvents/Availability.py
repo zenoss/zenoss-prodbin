@@ -163,7 +163,7 @@ class Report:
         result = []
         for (d, c), v in devices.items():
             dev = deviceLookup.get(d, None)
-            sys = (dev and dev.getSystemNamesString()) or ''
+            sys = (dev and dev.getSystemNames()) or ''
             result.append( Availability(d, c, v, total, sys) )
         # add in the devices that have the component, but no events
         if self.component:
