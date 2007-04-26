@@ -16,8 +16,13 @@
 
 <tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
 
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr><th class="tabletitle" colspan="7">Monitored Interfaces</th></tr>
+<form method="POST" tal:attributes="action request/URL; name string:deviceList"
+			tal:define="tabletitle string:Monitored Interfaces;
+                        showfilterbox python:True;
+						tblcolspan string:7">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'device','Device')"/>
@@ -53,10 +58,13 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
-</table>
+</tal:block>
+</tal:block>
+</form>
+
+</tal:block>
 </tal:block>
 </tal:block>
 
-</tal:block>
 </tal:block>
 </tal:block>
