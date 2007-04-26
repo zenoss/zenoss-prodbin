@@ -214,8 +214,12 @@ class ZenPropertyManager(PropertyManager):
             if pfilt(name):
                 if self.zenPropIsPassword(name) and self._onlystars(value):
                     continue
-                if getattr(self, name, None) != value:
+                if name == 'zCollectorPlugins':
+                    if tuple(getattr(self, name, ())) != tuple(value):
+                        self.setZenProperty(name, value)
+                elif getattr(self, name, None) != value:
                     self.setZenProperty(name, value)
+
         return self.callZenScreen(REQUEST)
 
     
