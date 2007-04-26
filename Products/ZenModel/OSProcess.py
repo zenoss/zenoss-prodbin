@@ -76,16 +76,16 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 #                , 'action'        : 'objRRDTemplate'
 #                , 'permissions'   : ("Change Device", )
 #                },
-#                { 'id'            : 'manage'
-#                , 'name'          : 'Manage'
-#                , 'action'        : 'osProcessManage'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : ( Permissions.view, )
-#                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'osProcessManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ( Permissions.view, )
+                },
             )
          },
         )

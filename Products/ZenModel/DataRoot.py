@@ -146,7 +146,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
                   permissions.view, )
@@ -223,9 +223,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def checkValidId(self, new_id):
         """Checks a valid id"""
+        test_id = unquote(new_id)
         try: 
-            checkValidId(self, unquote(new_id))
-            return True
+            checkValidId(self, test_id)
+            if getattr(self, test_id, False):
+                return 'The id "%s" id already being used.' % test_id
+            else:
+                return True
         except:
             return str(sys.exc_info()[1])
     

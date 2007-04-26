@@ -1,15 +1,8 @@
-###########################################################################
+#################################################################
 #
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 as published by
-# the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
+#################################################################
 
 import os
 
@@ -62,7 +55,7 @@ class NagiosCmd(ZenModelRM):
                 , 'action'        : 'editNagiosCmd'
                 , 'permissions'   : ( Permissions.view, )
                 },
-                { 'name'          : 'Changes'
+                { 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },

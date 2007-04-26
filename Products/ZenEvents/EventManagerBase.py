@@ -225,7 +225,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'changes'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( permissions.view, )
                 },
@@ -265,16 +265,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventListME(self, me, **kwargs):
         where = self.lookupManagedEntityWhere(me)
-        try:
-            resultFields = kwargs['resultFields']; del kwargs['resultFields']
-        except KeyError: 
-            resultFields = self.lookupManagedEntityResultFields(me.event_key)
-        return self.getEventList(resultFields=resultFields,where=where,**kwargs)
+        resultfields = self.lookupManagedEntityResultFields(me.event_key)
+        return self.getEventList(resultFields=resultfields,where=where,**kwargs)
 
         
     def getEventList(self, resultFields=[], where="", orderby="", severity=None,
                     state=0, startdate=None, enddate=None, offset=0, rows=0,
-                    getTotalCount=False, filter="", **kwargs):
+                    getTotalCount=False, filter=""):
         """see IEventList.
         """
         try:
@@ -308,7 +305,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 select.append("order by")
                 select.append(orderby)
             if rows:
-                select.append("limit %s, %s" % (offset, rows))
+                select.append("limit %d, %d" % (offset, rows))
             select.append(';')
             select = " ".join(select)
             if getTotalCount: 
@@ -633,7 +630,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getAvailability(self, state, **kw):
         import Availability
-        for name in "device", "component", "eventClass", "systems":
+        for name in "device", "component", "eventClass":
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
         try:
@@ -939,32 +936,42 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
         return info
             
+    security.declareProtected('View','getJSONHistoryEventsInfo')
+    def getJSONHistoryEventsInfo(self, **kwargs):
+        kwargs['history'] = True
+        return self.getJSONEventsInfo(**kwargs)
+
     security.declareProtected('View','getJSONEventsInfo')
-    def getJSONEventsInfo(self, context, offset=0, count=50,
+    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
                           getTotalCount=True, 
-                          startdate=None, enddate=None,
                           filter='', severity=2, state=1, 
-                          orderby='', **kwargs):
-        """ Event data in JSON format.
+                          orderby='', history=False, REQUEST=None):
         """
-        fields = self.lookupManagedEntityResultFields(context.event_key)
-        data, totalCount = self.getEventListME(context, 
-            offset=offset, rows=count, resultFields=fields,
-            getTotalCount=getTotalCount, filter=filter, severity=severity,
-            state=state, orderby=orderby, startdate=startdate, enddate=enddate)
+        Event data in JSON format.
+        """
+        argnames = 'offset count getTotalCount filter severity state orderby'.split()
+        myargs = {}
+        for arg in argnames:
+            try: 
+                try: myargs[arg] = int(REQUEST[arg])
+                except ValueError: myargs[arg] = REQUEST[arg]
+            except KeyError: myargs[arg] = eval(arg)
+        myargs['rows'] = myargs['count']; del myargs['count']
+        if myargs['orderby']=='count': myargs['orderby']=='rows';
+        if not fields: fields = self.defaultResultFields
+        if history: data, totalCount = self.dmd.ZenEventHistory.getEventList(**myargs)
+        else: data, totalCount = self.getEventList(**myargs)
         results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
         return simplejson.dumps((results, totalCount))
 
-
     security.declareProtected('View','getJSONFields')
-    def getJSONFields(self, context):
-        fields = self.lookupManagedEntityResultFields(context.event_key)
+    def getJSONFields(self, fields=[]):
+        if not fields: fields = self.defaultResultFields
         lens = map(self.getAvgFieldLength, fields)
         total = sum(lens)
         lens = map(lambda x:x/total*100, lens)
         zipped = zip(fields, lens)
         return simplejson.dumps(zipped)
-
 
     def getAvgFieldLength(self, fieldname):
         conn = self.connect()
@@ -1183,7 +1190,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         eventDict = dict(
             summary = REQUEST['summary'],
-            message = REQUEST['message'],
             device = REQUEST['device'],
             component = REQUEST['component'],
             severity = REQUEST['severity'],

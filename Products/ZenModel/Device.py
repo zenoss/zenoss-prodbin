@@ -320,7 +320,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 #                , 'permissions'   : (permissions.view,)
 #                },
 #                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
+#                , 'name'          : 'Modifications'
 #                , 'action'        : 'viewHistory'
 #                , 'permissions'   : (permissions.view, )
 #                },
@@ -588,12 +588,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def getSystemNames(self):
         """get the system names for this device"""
         return map(lambda x: x.getOrganizerName(), self.systems())
-
-
-    security.declareProtected('View', 'getSystemNamesString')
-    def getSystemNamesString(self, sep=', '):
-        """get the system names for this device as a string"""
-        return sep.join(self.getSystemNames())
 
 
     security.declareProtected('View', 'getDeviceGroupNames')

@@ -133,11 +133,11 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (Permissions.view, )
                 },
-                #{ 'id'            : 'viewHistory'
-                #, 'name'          : 'Changes'
-                #, 'action'        : 'viewHistory'
-                #, 'permissions'   : (Permissions.view, )
-                #},
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (Permissions.view, )
+                },
             )
          },
         )
