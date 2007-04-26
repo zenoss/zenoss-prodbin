@@ -42,7 +42,7 @@ ZenPackItems = dict(
     )
 
 class MenuRelations(Migrate.Step):
-    version = Migrate.Version(1, 2, 0)
+    version = Migrate.Version(2, 0, 0)
 
     def cutover(self, dmd):
         dmd.buildRelations()
@@ -108,7 +108,7 @@ class MenuRelations(Migrate.Step):
                     id='saveOrdering'
                     ),
             ],
-            'Edit':[
+            'More':[
                 dict(action='viewHistory',
                     allowed_classes=['Device',
                     'DeviceClass',
@@ -279,7 +279,7 @@ class MenuRelations(Migrate.Step):
                     permissions=('Manage DMD',)
                     ),
                 dict(action='editManufacturer',
-                    allowed_classes=['Manufacturer'],
+                    allowed_classes=['Manufacturer',],
                     description='Edit',
                     ordering=60.0, 
                     id='editManufacturer',

@@ -1,15 +1,8 @@
-###########################################################################
+#################################################################
 #
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+#   Copyright (c) 2007 Zenoss, Inc. All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 as published by
-# the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
+#################################################################
 
 __doc__='Add eventClassMapping to status and history tables'
 
@@ -64,7 +57,7 @@ trigger = """
 
 
 class EventClassMapping(Migrate.Step):
-    version = Migrate.Version(1, 2, 0)
+    version = Migrate.Version(2, 0, 0)
 
     def cutover(self, dmd):
         zem = dmd.ZenEventManager
