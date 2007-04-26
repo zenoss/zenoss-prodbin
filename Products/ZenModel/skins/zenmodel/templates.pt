@@ -268,10 +268,11 @@ style="position:relative;">
 <!-- ======================================================
      tabsPane
  ====================================================== -->
-<div id="tabsPane" metal:define-macro="tabsPane">
-   <table class="tabtable" cellpadding="0" cellspacing="0"
+<div id="tabsPane" metal:define-macro="tabsPane"
         tal:define="ztabs python:here.zentinelTabs(template.id);
                     tabnames python:[x['name'] for x in ztabs]">
+   <table class="tabtable" cellpadding="0" cellspacing="0"
+           tal:condition="ztabs">
        <tr>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 

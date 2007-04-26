@@ -135,7 +135,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
 
     def zentinelTabs(self, templateName):
-        if templateName == 'viewEvents': return []
+        if self.id == self.dmdRootName and templateName == 'viewEvents': 
+            return []
         return super(EventClass, self).zentinelTabs(templateName)
 
     

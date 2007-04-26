@@ -133,7 +133,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     
     def zentinelTabs(self, templateName):
-        if templateName == 'deviceList': return []
+        if self.id == self.dmdRootName and templateName == 'deviceList': 
+            return []
         return super(DeviceClass, self).zentinelTabs(templateName)
 
     
