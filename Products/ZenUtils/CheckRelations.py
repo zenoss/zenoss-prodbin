@@ -27,9 +27,9 @@ from Acquisition import aq_parent
 
 from Products.ZenUtils.Utils import getAllConfmonObjects
 
-from ZCmdBase import ZCmdBase
+from ZenScriptBase import ZenScriptBase
 
-class CheckRelations(ZCmdBase):
+class CheckRelations(ZenScriptBase):
 
     def rebuild(self):
         repair = self.options.repair
@@ -53,7 +53,7 @@ class CheckRelations(ZCmdBase):
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        ZenScriptBase.buildOptions(self)
 
         self.parser.add_option('-r', '--repair',
                     dest='repair', action="store_true",
@@ -69,5 +69,5 @@ class CheckRelations(ZCmdBase):
 
 
 if __name__ == "__main__":
-    tmbk = CheckRelations()
+    tmbk = CheckRelations(connect=True)
     tmbk.rebuild()
