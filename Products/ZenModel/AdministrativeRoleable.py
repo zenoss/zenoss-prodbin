@@ -15,6 +15,8 @@ AdministrativeRoleable.py
 
 Created by Marc Irlandez on 2007-04-05.
 """
+
+import types
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 
