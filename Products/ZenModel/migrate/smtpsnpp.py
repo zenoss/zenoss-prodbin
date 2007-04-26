@@ -17,8 +17,25 @@ Add settings for smtp/snpp host/port to dmd
 
 '''
 import Migrate
-import Products.ZenUtils.Utils as Utils
 import os.path
+
+def parseconfig(options):
+    """parse a config file which has key value pairs delimited by white space"""
+    if not os.path.exists(options.configfile):
+        print >>sys.stderr, "WARN: config file %s not found skipping" % (
+                            options.configfile)
+        return
+    lines = open(options.configfile).readlines()
+    for line in lines:
+        if line.lstrip().startswith('#'): continue
+	if line.strip() == '': continue
+        key, value = line.split(None, 1)
+        value = value.rstrip('\r\n')
+        key = key.lower()
+        defval = getattr(options, key, None)
+        if defval: value = type(defval)(value)
+        setattr(options, key, value)
+
 
 class OptionsBucket:
     pass
@@ -30,7 +47,7 @@ class smtpsnpp(Migrate.Step):
         options = OptionsBucket()
         options.configfile = os.path.join(
                             os.environ['ZENHOME'], 'etc', 'zenactions.conf')
-        Utils.parseconfig(options)
+        parseconfig(options)
         if not hasattr(dmd, 'smtpHost'):
             dmd.smtpHost = getattr(options, 'smtphost', '') or 'localhost'
         if not hasattr(dmd, 'smtpPort'):

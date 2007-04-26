@@ -23,7 +23,6 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 #from Products.ZenUtils.Step import Step
 import Products.ZenEvents.Event as Event
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
-from Products.ZenHub.zenhub import PB_PORT
 
 import socket
 
@@ -31,10 +30,12 @@ from twisted.internet import reactor, defer
 from twisted.cred import credentials
 from twisted.spread import pb
 
-from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, Heartbeat
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
+                                                Clear, Warning
 
 from socket import getfqdn
 
+PB_PORT = 8789
 
 DEFAULT_HUB_HOST = 'localhost'
 DEFAULT_HUB_PORT = PB_PORT
@@ -44,13 +45,13 @@ DEFAULT_HUB_PASSWORD = 'zenoss'
 startEvent = {
     'eventClass': App_Start, 
     'summary': 'started',
-    'severity': Event.Clear,
+    'severity': Clear,
     }
 
 stopEvent = {
     'eventClass':App_Stop, 
     'summary': 'stopped',
-    'severity': Event.Warning,
+    'severity': Warning,
     }
 
 
@@ -114,6 +115,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         
         
     def getServiceNow(self, svcName):
+        if not self.services.has_key(svcName):
+            self.log.error('getServiceNow returning FakeRemote for %s' % svcName)
         return self.services.get(svcName, None) or FakeRemote()
 
 
@@ -140,7 +143,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.error('Could not retrieve service %s' % serviceName)
             if serviceName in self.service:
                 del self.services[serviceName]
-            return error
+            #return error
         d = self.perspective.callRemote('getService',
                                         serviceName,
                                         self.options.monitor,
@@ -213,7 +216,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             # Maybe this is overkill and if we have an operable
             # event service we should just log events that don't get sent
             # and then drop them.
-            self.log.error('Error sending event')
+            self.log.error('Error sending event: %s' % error)
             self.eventQueue.append(event)
         if event:
             self.eventQueue.append(event)

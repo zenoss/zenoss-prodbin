@@ -39,3 +39,6 @@ Status_Wmi_Conn = "/Status/Wmi/Conn"
 Status_WinService = "/Status/WinService"
 Status_XmlRpc = "/Status/XmlRpc"
 Unknown = "/Unknown"
+
+Severities = 'Clear Debug Info Warning Error Critical'.split() 
+Clear, Debug, Info, Warning, Error, Critical = range(6) 

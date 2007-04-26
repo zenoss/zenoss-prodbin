@@ -12,7 +12,7 @@
 ###########################################################################
 #! /usr/bin/env python 
 
-from HubService import HubService
+from Products.ZenHub.HubService import HubService
 
 from Products.ZenModel.Device import Device
 from Acquisition import aq_parent, aq_base
