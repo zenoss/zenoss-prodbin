@@ -32,7 +32,8 @@ __doc__='''zenbackup
 Creates backup of zope data files, zenoss conf files and the events database.
 '''
 
-import Globalsfrom Products.ZenUtils.CmdBase import CmdBase
+import Globals
+from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 import sys
 import os
