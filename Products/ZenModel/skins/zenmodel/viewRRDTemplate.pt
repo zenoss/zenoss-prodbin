@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane"
-    tal:define="editable python:here.isEditable(here)">
+    tal:define="editable python:here.isEditable(here);
+				templ nocall:here;">
 <form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
