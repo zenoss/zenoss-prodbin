@@ -42,19 +42,20 @@ td.cell {
     cursor: pointer;
 }
 .zg_headers {
+    height: 20px;
     position: relative;
     left: 1px;
-    height: 20px !important;
 }
 .zg_headers td.cell {
     font-weight: bold;
     padding 0;
     border: medium none;
     border-right: 1px solid #888;
-    height:20px !important;
+    height:20px;
 }
 .zg_headers td.cell div.cell_inner {
-    height:20px !important;
+    height:20px;
+    width: 85%;
 }
 div.event_detail {
     background: transparent url(img/event_detail.png) top left;
@@ -71,6 +72,7 @@ div.event_detail {
     color: white;
 }
 div.cell_inner {
+    background-color: transparent;
     padding:0 3px;margin:0;
     overflow:hidden;
     height: 32px;

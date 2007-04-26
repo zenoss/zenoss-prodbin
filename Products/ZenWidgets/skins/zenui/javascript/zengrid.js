@@ -194,8 +194,17 @@ ZenGrid.prototype = {
         this.url = this.absurl + '/' + url;
         this.lastparams = {};
         this.fields = [];
+        this.fieldMapping = {
+            summary: -2,
+            firstTime: 0,
+            lastTime: 0,
+            component: -1,
+            count: +3
+        }
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
+        var isMSIE//@cc_on=1;
+        this.rowSizePlus = this.rowHeight+(isMSIE?5:3);
         this.buildHTML();
         this.selectstatus = 'none';
         this.clearFirst = false;
@@ -285,13 +294,6 @@ ZenGrid.prototype = {
     },
     getColLengths: function() {
         var lens = new Array();
-        this.fieldMapping = {
-            summary: -2,
-            firstTime: 0,
-            lastTime: 0,
-            component: -1,
-            count: +3
-        }
         this.fieldOffsetTotal = 0;
         for (i=0;i<this.fields.length;i++) {
             var field = this.fields[i];
@@ -375,8 +377,8 @@ ZenGrid.prototype = {
             if (parseFloat(w)<3) w=String(3);
             return createDOM( 'col', {width: w+'%'}, null)
         }, widths);
-        cols[0].width='0*';
-        cols[cols.length-1].width='32';
+        updateNodeAttributes(cols[0], {width:'0*'});
+        updateNodeAttributes(cols[cols.length-1], {width:'32'});
         colgroup = createDOM('colgroup', {span:widths.length, height:'32px'}, 
             cols);
         return colgroup;
@@ -384,14 +386,44 @@ ZenGrid.prototype = {
     connectHeaders: function(cells) {
         for(i=isManager?1:0;i<cells.length;i++) { 
             setStyle(cells[i], {'cursor':'pointer'});
-            connect(cells[i], 'onclick',
-                bind(function(e) {
-                    var cell = e.src();
-                    var f = cell.getElementsByTagName('div')[0].innerHTML;
-                    this.refreshWithParams({'orderby': f });
-                }, this)
-            );
+            connect(cells[i], 'onclick', this.toggleSortOrder);
         }
+    },
+    toggleSortOrder: function(e) {
+        var cell = e.src();
+        var f = cell.getElementsByTagName('div')[0].innerHTML;
+        var headcells = this.headers.getElementsByTagName('td');
+        var clearcell = function(cell){setStyle(cell,{'background':null,'color':null})}
+        map(clearcell, headcells);
+        if (this.lastparams) {
+            switch(this.lastparams['orderby']) {
+                case (f + ' ASC'):
+                    setStyle(cell, {
+                        'background':'#888 url(img/arrow.d.gif) right no-repeat',
+                        'color':'white'
+                    });
+                    this.refreshWithParams({'orderby': f + ' DESC'});
+                    return;
+                case (f + ' DESC'):
+                    clearcell(cell);
+                    this.refreshWithParams({'orderby': ''});
+                    return;
+                default:
+                    setStyle(cell, {
+                        'background':'#888 url(img/arrow.u.gif) right no-repeat',
+                        'color':'white'
+                    });
+                    this.refreshWithParams({'orderby':f + ' ASC'});
+                    return;
+            }
+        } else {
+            setStyle(cell, {
+                'background':'#888 url(img/arrow.u.gif) right no-repeat',
+                'color':'white'
+            });
+            this.refreshWithParams({'orderby':f + ' ASC'});
+        }
+
     },
     refreshWidths: function() {
         var widths = this.getColLengths();
@@ -408,10 +440,8 @@ ZenGrid.prototype = {
             var numcols = this.fields.length;
             var fields = map(function(x){return x[0]}, this.fields);
             this.refreshWidths();
-
             this.colgroup = swapDOM(this.colgroup, this.getColgroup());
             this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
-
             var headerrow = this.getBlankRow('head');
             replaceChildNodes(this.headers.getElementsByTagName('tbody')[0],
                 headerrow);
@@ -444,7 +474,7 @@ ZenGrid.prototype = {
             {h:parseInt(this.rowToPixel(numrows))}
         );
         var scrollHeight = parseInt(this.rowToPixel(numrows));
-        if (scrollHeight<=getElementDimensions(this.zgtable).h) {
+        if (scrollHeight<=getElementDimensions(this.zgtable).h-2) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
             setElementDimensions(this.scrollbar, {h:scrollHeight});
@@ -491,11 +521,9 @@ ZenGrid.prototype = {
                 mydata = concat([''],mydata);
                 divs[0].innerHTML = chkbox;
                 setStyle(divs[0], {'width':'20px'});
-                //setElementClass(firstcol, 'cell ' + mydata[mydata.length-1])
                 connect($(evid), 'onclick', this.markAsChecked);
             }
             var lastcol = yo[yo.length-1];
-            //setElementClass(lastcol, 'cell ' + mydata[mydata.length-1])
             setElementClass(divs[yo.length-1], 'event_detail');    
             disconnectAll(divs[yo.length-1]);
             connect(divs[yo.length-1], 'onclick', function() {
@@ -507,9 +535,6 @@ ZenGrid.prototype = {
                 var cellwidth = this.abswidths[j]
                 divs[j].innerHTML = mydata[j];
                 yo[j].title = mydata[j];
-                //var newClass = 'cell ' + mydata[mydata.length-1];
-                //if (yo[j].className!=newClass)
-                    //setElementClass(yo[j], newClass)
             }
 
         }
@@ -553,10 +578,8 @@ ZenGrid.prototype = {
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
-        this.statusBar = DIV( {id:getId('statusbar'), class:'zg_statusbar'}, 
-            SPAN({id:'currentRows'}, String(0+1 + '-' +
-            parseInt(parseInt(0)+parseInt(this.numRows)) + 
-            ' of ' + this.buffer.totalRows)),
+        this.statusBar = DIV( {id:getId('statusbar'), 'class':'zg_statusbar'}, 
+            SPAN({id:'currentRows'}, String(0+1 +'-'+ parseInt(parseInt(0)+parseInt(this.numRows)) +  ' of ' + this.buffer.totalRows)),
         [   'Select:  ',
             UL(null,
             [
@@ -567,7 +590,7 @@ ZenGrid.prototype = {
             ])
         ]
         );
-        this.headers = TABLE( {id: getId('headers'), class:"zg_headers",
+        this.headers = TABLE( {id: getId('headers'), 'class':"zg_headers",
             cellspacing:0, cellpadding:0}, [
             this.headcolgroup,
             TBODY(null, null)
@@ -586,6 +609,7 @@ ZenGrid.prototype = {
         });
         setStyle(this.innercont, {
             'width':'100%'
+
         });
         setStyle(this.viewport, {
             'width':'98%',
@@ -593,11 +617,12 @@ ZenGrid.prototype = {
             'overflow':'hidden',
             'float':'left',
             'border':'1px solid black',
-            'border-right':'medium none'
+            'border-right':'medium none',
+            'border-bottom':'medium none'
         });
         addElementClass(this.viewport, 'leftfloat');
         setStyle(this.scrollbar, 
-            { 'border': '1px solid black',
+            { //'border': '1px solid black',
               'border-left': 'medium none',
               'overflow': 'auto',
               'z-index':'300',
@@ -622,10 +647,10 @@ ZenGrid.prototype = {
         );
     },
     rowToPixel: function(row) {
-        return row * (this.rowHeight+4);
+        return row * (this.rowSizePlus);
     },
     pixelToRow: function(pixel) {
-        var prow = parseInt(pixel/(this.rowHeight+4));
+        var prow = parseInt(pixel/(this.rowSizePlus));
         return Math.max(0, prow);
     },
     scrollToPixel: function(pixel) {
@@ -633,8 +658,8 @@ ZenGrid.prototype = {
         if (diff==0.00) return;
         var sign = Math.abs(diff)/diff;
         pixel = sign<0?
-        Math.ceil(pixel/(this.rowHeight+4))*(this.rowHeight+4):
-        Math.floor(pixel/(this.rowHeight+4))*(this.rowHeight+4);
+        Math.ceil(pixel/(this.rowSizePlus))*(this.rowSizePlus):
+        Math.floor(pixel/(this.rowSizePlus))*(this.rowSizePlus);
         var newOffset = this.pixelToRow(pixel);
         this.updateStatusBar(newOffset);
         if (newOffset==0) this.refreshTable(newOffset);
@@ -702,14 +727,16 @@ ZenGrid.prototype = {
     },
     showLoading: function() {
         clearTimeout(this.isLoading);
-        this.isLoading = setTimeout( bind(function() {
-            var p = this.getViewportCenter();
-            var d = getElementDimensions(this.loadingbox);
-            var pos = {x:p.x-(d.w/2),y:p.y-(d.h/2)};
-            this.loadingbox.style.top = pos.y;
-            this.loadingbox.style.left = pos.x;
-            this.loadingbox.show(p);
-        }, this), 500);
+        var isIE//@cc_on=1;
+        if(isIE) createLoggingPane();
+//        //this.isLoading = setTimeout( bind(function() {
+//            //var p = this.getViewportCenter();
+//            var d = getElementDimensions(this.loadingbox);
+//            var pos = {x:p.x-(d.w/2),y:p.y-(d.h/2)};
+//            //this.loadingbox.style.top = pos.y;
+//            //this.loadingbox.style.left = pos.x;
+//            this.loadingbox.show(p);
+//        }, this), 500);
     },
     killLoading: function() {
         clearTimeout(this.isLoading);
@@ -717,9 +744,30 @@ ZenGrid.prototype = {
             this.loadingbox.hide();
         }
     },
-    resizeColumn: function(index, pixeldiff) {
+    resizeColumn: function(index, fromindex, pixeldiff) {
         var cols = this.colgroup.getElementsByTagName('col');
-        var old = cols(index).width;
+        var hcols = this.headcolgroup.getElementsByTagName('col');
+        var oldint = parseFloat(cols[index].width);
+        var oldfint = parseFloat(cols[fromindex].width);
+        var parentwidth = getElementDimensions(this.viewport).w;
+        var old = (oldint/100.00) * parentwidth;
+        var fold = (oldfint/100.00) * parentwidth;
+        var neww = (old + pixeldiff)/parentwidth * 100.00;
+        var feww = (pixeldiff - fold)/parentwidth * 100.00;
+        var tofield = this.fields[index][0];
+        var toval = this.fieldMapping[tofield];
+        var fromfield = this.fields[fromindex][0];
+        var fromval = this.fieldMapping[fromfield];
+        if (pixeldiff>0&&(neww<0||feww>0)) 
+            neww=toval;
+        if (pixeldiff<0&&(feww<0||neww>0))
+            neww=fromval;
+        neww = oldint-neww;
+        this.fieldMapping[tofield] = Math.max(toval-neww, oldint);
+        this.fieldMapping[fromfield] = Math.min(fromval+neww, -oldint);
+        this.colgroup = swapDOM(this.colgroup, this.getColgroup());
+        this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
+        //this.refreshTable(this.lastOffset);
     }
 }
 
