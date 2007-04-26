@@ -32,7 +32,8 @@ from Products.ZenUtils.CmdBase import CmdBase
 import sys
 import os
 import os.path
-import tempfileimport ConfigParser
+import tempfile
+import ConfigParser
 
 from zenbackupcommon import *
 

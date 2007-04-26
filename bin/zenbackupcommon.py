@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -20,7 +21,6 @@
 # under the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 # For complete information please visit: http://www.zenoss.com/oss/
-#! /usr/bin/env python 
 
 __doc__='''zenbackupcommon.py
 
@@ -32,6 +32,7 @@ BACKUP_DIR = 'zenbackup'
 CONFIG_FILE = 'backup.settings'
 CONFIG_SECTION = 'zenbackup'
 
-CONFIG_FIELDS = (   ('dbname', 'events', 'database'),                    ('dbuser', 'root', 'username'),
+CONFIG_FIELDS = (   ('dbname', 'events', 'database'),
+                    ('dbuser', 'root', 'username'),
                     ('dbpass', '', 'password'))
                 

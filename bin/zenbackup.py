@@ -37,7 +37,8 @@ from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 import sys
 import os
-import os.pathimport tempfile
+import os.path
+import tempfile
 from datetime import date
 import getpass
 import ConfigParser
