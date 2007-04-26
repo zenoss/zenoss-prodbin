@@ -87,13 +87,20 @@
 </table>
 </form>
 
-<table class="zentable" cellpadding="3" cellspacing="1">
-  <tr><th class="tabletitle" colspan="3">Device Availability</th></tr>
+<form method="POST" tal:attributes="action request/URL;"
+			tal:define="tabletitle string:Device Availability;
+                        showfilterbox python:True;
+						tblcolspan string:4">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
   <tr>
     <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'device','Device')"/>
     <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'component','Component')"/>
+    <th tal:replace="structure python:tm.getTableHeader(
+                          tableName,'systems','Systems')"/>
     <th tal:replace="structure python:tm.getTableHeader(
                           tableName,'availability','Availability')"/>
   </tr>
@@ -111,6 +118,8 @@
           tal:condition="not:comp" 
           tal:content="avail/component"/>
       <td class="tablevalues" 
+		  tal:content="avail/systems" />
+      <td class="tablevalues" 
           tal:condition="comp">
           <a tal:content="avail/component"
              tal:attributes="href comp/getPrimaryUrlPath"/>
@@ -123,7 +132,10 @@
       <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
       </td>
   </tr>
-</table>
+
+</tal:block>
+</tal:block>
+</form>
 </span>
 </tal:block>
 </tal:block>

@@ -633,7 +633,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getAvailability(self, state, **kw):
         import Availability
-        for name in "device", "component", "eventClass":
+        for name in "device", "component", "eventClass", "systems":
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
         try:

@@ -39,8 +39,9 @@ class Availability:
     security.setDefaultAccess('allow')
     
     "Simple record for holding availability information"
-    def __init__(self, device, component, downtime, total):
+    def __init__(self, device, component, downtime, total, systems=''):
         self.device = device
+        self.systems = systems
         self.component = component
         self.availability = max(0, 1 - (downtime / total))
 
@@ -158,15 +159,19 @@ class Report:
             if not self.component:
                 for d in dmd.Devices.getSubDevices():
                     devices.setdefault( (d.id, self.component), 0)
+        deviceLookup = dict([(d.id, d) for d in deviceList])
         result = []
         for (d, c), v in devices.items():
-            result.append( Availability(d, c, v, total) )
+            dev = deviceLookup.get(d, None)
+            sys = (dev and dev.getSystemNamesString()) or ''
+            result.append( Availability(d, c, v, total, sys) )
         # add in the devices that have the component, but no events
         if self.component:
             for d in deviceList:
                 for c in d.getMonitoredComponents():
                     if c.name().find(self.component) >= 0:
-                        a = Availability(d.id, c.name(), 0, total)
+                        a = Availability(d.id, c.name(), 0, total, 
+                                                        d.getSystemsString())
                         result.append(a)
         return result
 
