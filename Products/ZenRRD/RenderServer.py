@@ -83,13 +83,15 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('View', 'render')
-    def render(self, gopts=None, drange=None, remoteUrl=None, width=None,
+    def render(self, gopts=None, start=None, end=None, drange=None, remoteUrl=None, width=None,
                 ftype='PNG', REQUEST=None):
         """render a graph and return it"""
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
         gopts.append('--width=%s' % width)
+        gopts.append('--start=%s' % start)
+        gopts.append('--end=%s' % end)
         drange = int(drange)
         id = self.graphId(gopts, drange, ftype)
         graph = self.getGraph(id, ftype, REQUEST)

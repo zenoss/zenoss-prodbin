@@ -11,10 +11,10 @@ if (typeof(isie)=='undefined') var isie = navigator.userAgent.indexOf('MSIE') !=
 var zoom_factor = 1.5;
 var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
-var end_re = /--end%3Dnow-([0-9]*)s%7C/;
-var width_re  = /--width%3D([0-9]*)%7C/;
+var end_re = /&end=now-([0-9]*)s/;
+var width_re  = /&width=([0-9]*)/;
 var height_re = /--height%3D([0-9]*)%7C/;
-var start_re = /--start%3Dend-([0-9]*)s%7C/;
+var start_re = /&start=end-([0-9]*)s/;
 var comment_re = /COMMENT%3A.*?%5Cc%7C/;
 var dashes_re = /(--.*?%7C)([^\-])/;
 
@@ -125,14 +125,14 @@ ZenRRDGraph.prototype = {
 
     startString : function(s) {
         s = s || this.start;
-        var x = "--start=end-" + String(s) + "s|";
-        return escape(x);
+        var x = "&start=end-" + String(s) + "s";
+        return x;
     },
 
     endString : function(e) {
         e = e || this.end;
-        var x = "--end=now-" + String(e) + "s|";
-        return escape(x);
+        var x = "&end=now-" + String(e) + "s";
+        return x;
     },
 
     setZoom : function(e) {
@@ -193,16 +193,16 @@ ZenRRDGraph.prototype = {
             newurl = href.replace(end_re, end_url);
             newurl = newurl.replace(start_re, start_url);
         } else {
-            newurl = href.replace("--height", start_url+end_url+'--height');
+            newurl = href+=start_url+end_url;
         };
         newurl = newurl.replace(drange_re, "&drange=" + String(this.drange));
         this.setDates();
         this.setComment();
-        dashes = dashes_re.exec(newurl);
-        comurl = newurl.replace(dashes[1], dashes[1] + this.comment);
-        newurl = newurl.match(comment_re)?
-                 newurl.replace(comment_re, this.comment):
-                 comurl;
+        //dashes = dashes_re.exec(newurl);
+        //comurl = newurl.replace(dashes[1], dashes[1] + this.comment);
+        //newurl = newurl.match(comment_re)?
+                 //newurl.replace(comment_re, this.comment):
+                 //comurl;
         this.url = newurl;
     },
 
