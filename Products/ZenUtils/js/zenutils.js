@@ -44,3 +44,26 @@ function wheel(event){
            event.preventDefault();
        event.returnValue = false;
 }
+
+function checkValidId(input_id){
+    var errmsg = $('errmsg');
+    var input = $(input_id);
+    var label = $(input_id+'_label');
+    var new_id = escape(input.value);
+
+    errmsg.innerHTML = "";
+    Morph(input_id, {"style": {"color": "black"}});
+    Morph(label.id, {"style": {"color": "white"}});
+    
+    d = callLater(0, doXHR, 'checkValidId', {queryString:{'new_id':new_id}});
+    d.addCallback(function (r) { 
+        if (r.responseText != 'True') {
+            Morph(input_id, {"style": {"color": "red"}});
+            Morph(label.id, {"style": {"color": "red"}});
+            errmsg.innerHTML = r.responseText;
+            shake(input);
+            shake(label);
+            shake(errmsg);
+        }   
+    });
+}

@@ -1,10 +1,16 @@
 <h2>Add a New Graph:</h2>
 <form tal:attributes="action here/absolute_url_path;" method="post" name="addGraph">
 <input type="hidden" name="zenScreenName" value="here/absolute_url_path"/> 
-<table>
-<tr><td>Name:       </td><td><input name="id"/></td></tr>
-</table>
-<br>
+
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="id"
+       onblur="checkValidId(this.id)"><br/>
+</p>
+
 <div align="center">
 <input type="submit" name="manage_addRRDGraph:method" value="Add"/>
 <input id="dialog_cancel" type="button" value="Cancel" 

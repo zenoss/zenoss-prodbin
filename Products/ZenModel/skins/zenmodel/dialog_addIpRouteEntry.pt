@@ -2,8 +2,13 @@
 <br/>
 <form method="post" tal:attributes="action here/absolute_url" name="addComponent">
 <input type="hidden" name="userCreated" value="True">
+<span id="errmsg" style="color:red;"></span>
+<br/>
 <p style="text-align:right;">
-Destination:&nbsp;<input name="dest"><br/><br/>
+<span id="new_id_label">Destination:&nbsp;</span>
+<input id="new_id" 
+       name="dest"
+       onblur="checkValidId(this.id)"><br/><br/>
 Next Hop:&nbsp;<input name="nexthopid"><br/><br/>
 Interface:&nbsp;<select name="interface"
 tal:define="interfaces here/os/interfaces/objectValuesAll">

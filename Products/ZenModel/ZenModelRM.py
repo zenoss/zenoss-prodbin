@@ -35,7 +35,6 @@ from Products.ZenUtils.Utils import getSubObjects
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 
-
 class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     """
     Base class for all Persistent classes that have relationships.
@@ -55,7 +54,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         self.createdTime = DateTime(time.time())
         RelationshipManager.__init__(self, id, title, buildRelations)
 
-   
     security.declareProtected('Manage DMD', 'rename')
     def rename(self, newId, REQUEST=None):
         """Delete device from the DMD"""

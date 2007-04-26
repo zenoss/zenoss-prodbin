@@ -18,12 +18,13 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
-import re
+import re, sys
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
+from OFS.ObjectManager import checkValidId
 from ImageFile import ImageFile
 from Globals import HTMLFile, DTMLFile
 from Globals import InitializeClass
@@ -37,6 +38,8 @@ from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
 import socket
+
+from urllib import unquote
 
 from AccessControl import Permissions as permissions
 
@@ -217,6 +220,21 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
 
+
+    def checkValidId(self, new_id):
+        """Checks a valid id"""
+        try: 
+            checkValidId(self, unquote(new_id))
+            return True
+        except:
+            return str(sys.exc_info()[1])
+    
+    
+    def getResultFields(self):
+        """Result fields for dashboard.
+        """
+        return ('device','summary','lastTime','count')
+       
 
     def getEventCount(self, **kwargs):
         """Return the current event list for this managed entity.

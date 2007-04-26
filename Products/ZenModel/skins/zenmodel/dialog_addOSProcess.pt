@@ -4,9 +4,13 @@
 What would you like to name your OSProcess?<br/>
 </p>
 <input type="hidden" name="userCreated" value="True">
+<span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
-Name:&nbsp;<input type="text" name="id"><br/><br/>
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="id"
+       onblur="checkValidId(this.id)"><br/><br/>
 Process Class:&nbsp;<select name="className"
 tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
     <option tal:repeat="target targets"

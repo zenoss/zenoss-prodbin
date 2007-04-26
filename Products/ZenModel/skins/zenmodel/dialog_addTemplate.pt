@@ -2,8 +2,13 @@
 <p>
 What would you like to name your Template?<br/>
 </p>
+<span id="errmsg" style="color:red;"></span>
+<br/>
 <p style="text-align:right;">
-Name:&nbsp;<input type="text" name="id"/>
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="id"
+       onblur="checkValidId(this.id)"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addRRDTemplate:method"

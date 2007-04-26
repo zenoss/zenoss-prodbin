@@ -1,7 +1,14 @@
 <h2>Add Network</h2>
-<table>
-<tr><td>Name:       </td><td><input name="newPath"/></td></tr>
-</table>
+
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="newPath"
+       onblur="checkValidId(this.id)"><br/>
+</p>
+
 <div id="dialog_buttons">
 <input type="submit" name="manage_addOrganizer:method"
     value="Add Network"

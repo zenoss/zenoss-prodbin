@@ -1,10 +1,14 @@
 <h2>Add Manufacturer</h2>
 <p>
-What would you like to name this manufacturer?
+What would you like to name this manufacturer?<br/>
 </p>
+<span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:center;">
-<input type="text" name="manufacturerName"/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="manufacturerName"
+       onblur="checkValidId(this.id)"><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addManufacturer:method"

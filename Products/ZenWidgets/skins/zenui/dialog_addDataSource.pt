@@ -1,19 +1,19 @@
 <h2>Add a New DataSource:</h2>
 <form tal:attributes="action here/absolute_url_path;" method="post" name="addDataSource">
 <input type="hidden" name="zenScreenName" value="here/absolute_url_path"/> 
-<table>
-<tr><td>Name:       </td><td><input name="id"/></td></tr>
-<tr>
-	<td>Type: </td>
-	<td>
-		<select name='dsOption'>
-			<option tal:repeat="option here/getDataSourceOptions"
-					tal:attributes="value python: option[1]" 
-					tal:content="python: option[0]" />
-		</select>
-	</td>
-</tr>
-</table>
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="id"
+       onblur="checkValidId(this.id)"><br/><br/>
+Type:&nbsp;<select name='dsOption'>
+        <option tal:repeat="option here/getDataSourceOptions"
+                tal:attributes="value python: option[1]" 
+                tal:content="python: option[0]" />
+</select>
+</p>
 <br>
 <div align="center">
 <input type="submit" name="manage_addRRDDataSource:method" value="Add"/>

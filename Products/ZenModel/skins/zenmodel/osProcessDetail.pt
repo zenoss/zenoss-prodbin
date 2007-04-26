@@ -11,7 +11,6 @@
 
         <tal:block tal:define="
         message request/message | string:State at time:;
-        editable editable; 
         tabletitle string:${message} ${here/getNowString};
         menu_id string:Lockable;
         editable python:manager and userCreated">

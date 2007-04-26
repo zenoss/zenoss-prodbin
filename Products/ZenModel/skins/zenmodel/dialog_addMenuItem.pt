@@ -2,11 +2,16 @@
 <p>
 What would you like to name your Menu Item?<br/>
 </p>
+<span id="errmsg" style="color:red;"></span>
+<br/>
 <p style="text-align:right;">
-ID:&nbsp;<input name="id"><br/>
-Description:&nbsp;<input name="description"><br/>
-Action:&nbsp;<input name="action"><br/>
-Ordering:&nbsp;<input name="ordering" size="5"><br/>
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="id"
+       onblur="checkValidId(this.id)"><br/><br/>
+Description:&nbsp;<input name="description"><br/><br/>
+Action:&nbsp;<input name="action"><br/><br/>
+Ordering:&nbsp;<input name="ordering" size="5"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addZenMenuItem:method"

@@ -1,8 +1,17 @@
 <h2>Create a new ZenPack:</h2>
 <form tal:attributes="action here/absolute_url_path;" method="post" name="addZenPack">
-<input type="hidden" name="zenScreenName" value="/zport/dmd/viewZenPacks"/> 
+<input type="hidden" name="zenScreenName" value="/zport/dmd/viewZenPacks"/>
+
+<span id="errmsg" style="color:red;"></span>
+
 <table>
-<tr><td>Name:         </td><td><input name="id"/></td></tr>
+<tr><td>
+        <span id="new_id_label">ID:&nbsp;</span>:
+</td><td>
+        <input id="new_id" 
+               name="id"
+               onblur="checkValidId(this.id)">
+</td></tr>
 <tr><td>Author:       </td><td><input name="author"/></td></tr>
 <tr><td>Organization: </td><td><input name="organization"/></td></tr>
 <tr><td>Version:      </td><td><input name="version"/></td></tr>
