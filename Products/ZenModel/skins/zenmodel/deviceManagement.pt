@@ -7,93 +7,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
-
-<input type="hidden" name="zenScreenName" 
-    tal:attributes="value template/id" /> 
-
-
-<tal:block tal:define="tabletitle string:Device Management;">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-    <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" /> 
-    <tr>
-        <td class="tableheader" align="left">Device Class Path</td>
-        <td class="tableheader" align="left" colspan=3>
-            <select class="tableheader" name="moveTarget"
-            tal:define="
-            dcs here/deviceMoveTargets;
-            curdc here/getDeviceClassName"
-            >
-                <option tal:repeat="dc dcs" 
-                    tal:attributes="value dc; selected python:dc==curdc"
-                    tal:content="dc">/Server/Linux</option>
-            </select>
-          <input type="hidden" name="deviceNames" 
-            tal:attributes="value here/getId" />
-          <input class="tableheader" type="submit" name="moveDevices:method"
-              value="Change" />
-        </td>
-    </tr>
-  <tr>  
-  <td class=tableheader>Run configuration collection against this device</td>
-  <td class=tableheader>
-      <input class="tableheader" type="submit" name="collectDevice:method"
-          value=" Collect Configuration " />
-  </td>
-  </tr>
-  <tr>
-  <td class=tableheader>Reset the manage ip of this device</td>
-  <td class=tableheader>
-      <input class="tableheader" type="text" name="ip" size="15"
-            onkeypress="return submitViaEnter(event, 'setManageIp');"
-            tal:attributes="value here/getManageIp"/>
-      <input class="tableheader" type="submit" name="setManageIp:method"
-          value=" reset ip " />
-  </td>
-  </tr>
-  <tr>
-  <td class=tableheader>Reset the SNMP Community of this device</td>
-  <td class=tableheader>
-      <input class="tableheader" type="submit" 
-        name="manage_snmpCommunity:method" value=" reset community " />
-  </td>
-  </tr>
-  <tr>
-  <td class=tableheader>Change the name of this device</td>
-  <td class=tableheader>
-      <input class="tableheader" type="text" name="newId" size="25"
-            onkeypress="return submitViaEnter(event, 'renameDevice')" />
-      <input class="tableheader" type="submit" name="renameDevice:method"
-          value=" rename device " />
-  </td>
-  </tr>
-  <tr>
-  <td class=tableheader>Clear heartbeat events on this device</td>
-  <td class=tableheader>
-      <input class="tableheader" type="submit" 
-        name="manage_deleteHeartbeat:method" value=" Clear " />
-  </td>
-  </tr>
-  <tr>
-  <td class=tableheader>Delete this device from the database</td>
-  <td class=tableheader>
-      <input class="tableheader" type="submit" name="deleteDevice:method"
-          value=" Delete Device " />
-  </td>
-  </tr>
-<!-- END TABLE CONTENTS -->
-
-</tal:block>
-</tal:block>
-</tal:block>
-
-</form>
-
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
 <span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
@@ -104,7 +17,6 @@
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="adminRolesTable">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-
 
 <tal:block tal:define="
     objects here/adminRoles/objectValuesAll;
@@ -169,7 +81,7 @@ Optional titlebar stuff
   </tr>
   </tal:block>
   <tr>
-    <td colspan="5" class="tableheader">
+    <td colspan="0" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
