@@ -102,14 +102,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             'icon'           : 'DeviceClass_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDeviceClass',
-            'immediate_view' : 'deviceList',
+            'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             (
-                { 'id'            : 'devicelist'
-                , 'name'          : 'Devices'
-                , 'action'        : 'deviceList'
-                , 'permissions'   : ( permissions.view, )
-                },
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'deviceOrganizerStatus'
@@ -135,6 +130,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         )
 
     security = ClassSecurityInfo()
+
+    
+    def zentinelTabs(self, templateName):
+        if templateName == 'deviceList': return []
+        return super(DeviceClass, self).zentinelTabs(templateName)
 
     
     def getPeerDeviceClassNames(self, pyclass=None):
@@ -552,7 +552,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zPythonClass", "")
 
         # production state threshold at which to start monitoring boxes
-        devs._setProperty("zProdStateThreshold", 500, type="int")
+        devs._setProperty("zProdStateThreshold", 300, type="int")
 
         # Display the ifdescripion field or not
         devs._setProperty("zIfDescription", False, type="boolean")

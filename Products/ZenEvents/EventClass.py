@@ -78,15 +78,15 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             'icon'           : 'EventClass.gif',
             'product'        : 'ZenEvents',
             'factory'        : 'manage_addEventClass',
-            'immediate_view' : 'viewEvents',
+            'immediate_view' : 'eventClassStatus',
             'actions'        :
             ( 
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
+#                { 'id'            : 'events'
+#                , 'name'          : 'Events'
+#                , 'action'        : 'viewEvents'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'eventClassStatus'
@@ -133,6 +133,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     )
     severities = dict([(b, a) for a, b in severityConversions])
 
+
+    def zentinelTabs(self, templateName):
+        if templateName == 'viewEvents': return []
+        return super(EventClass, self).zentinelTabs(templateName)
+
+    
     def getSubEventClasses(self):
         """Return all EventClass objects below this one.
         """
