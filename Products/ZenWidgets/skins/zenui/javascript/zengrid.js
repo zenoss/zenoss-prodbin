@@ -192,7 +192,9 @@ ZenGrid.prototype = {
         this.rowHeight = 32;
         this.checkedArray = new Array();
         this.url = this.absurl + '/' + url;
-        this.lastparams = {};
+        this.lastparams = this.isHistory?{startdate:$('startdate').value,
+                                          enddate:$('enddate').value }:
+                          {};
         this.fields = [];
         this.fieldMapping = {
             summary: -2,
@@ -496,8 +498,8 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var zem = this.isHistory?'/zport/dmd/ZenEventHistory':
-            '/zport/dmd/ZenEventManager';
+        var zem = this.isHistory?this.absurl+'/ZenEventHistory':
+                                 this.absurl+'/ZenEventManager';
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
@@ -526,9 +528,10 @@ ZenGrid.prototype = {
             var lastcol = yo[yo.length-1];
             setElementClass(divs[yo.length-1], 'event_detail');    
             disconnectAll(divs[yo.length-1]);
-            connect(divs[yo.length-1], 'onclick', function() {
-                eventWindow(zem, evid);
-            });
+            var geteventwindow = function(zeml, evidl) {
+                return function() { eventWindow(zeml, evidl) }
+            }
+            connect(divs[yo.length-1], 'onclick', geteventwindow(zem, evid));
             divs[yo.length-1].title = "View detailed information" + 
                 " about this event."
             for (j=isManager?1:0;j<yo.length-1;j++) {
