@@ -6,3 +6,76 @@
     margin: 0;
 }
 
+.leftfloat { float:left }
+span.ruler,
+td.cell {
+    background-color: transparent;
+    margin: 0px;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 32px;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #888;
+    cursor: default;
+    padding: 0;
+}
+.zg_statusbar {
+    height:18px;
+    padding: 2px;
+    border-bottom: 1px solid #888;
+    background-color: white;
+}
+#currentRows {
+    font-weight: bold;
+    float: right;
+}
+.zg_statusbar ul {
+    list-style-type: none;
+    display: inline;
+    margin: 0; padding: 0;
+}
+.zg_statusbar li {
+    display:inline;
+    text-decoration: underline;
+    color: darkblue;
+    margin: 0 4px;
+    cursor: pointer;
+}
+.zg_headers {
+    position: relative;
+    left: 1px;
+    height: 20px !important;
+}
+.zg_headers td.cell {
+    font-weight: bold;
+    padding 0;
+    border: medium none;
+    border-right: 1px solid #888;
+    height:20px !important;
+}
+.zg_headers td.cell div.cell_inner {
+    height:20px !important;
+}
+div.event_detail {
+    background: transparent url(img/event_detail.png) top left;
+    height: 32px;
+    width: 32px;
+    cursor:pointer;cursor:hand;
+}
+.zg_headers div.event_detail {
+    background-image: url();
+    height: 20px;
+}
+.zg_headers td.cell:hover {
+    background-color: #888;
+    color: white;
+}
+div.cell_inner {
+    padding:0 3px;margin:0;
+    overflow:hidden;
+    height: 32px;
+    white-space: normal;
+    font-size: 12px;
+    line-height: 132%;
+    vertical-align: middle;
+}

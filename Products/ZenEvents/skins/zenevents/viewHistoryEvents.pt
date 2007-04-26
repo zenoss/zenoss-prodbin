@@ -2,6 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <span metal:define-macro="body">
+<link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
 <script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
@@ -91,56 +92,20 @@ menu_id string:HistoryEvent_list;
     -->
 <tr><td>
 
-<style>
-.leftfloat { float:left }
-span.ruler,
-td.cell {
-    margin: 0px;
-    overflow: hidden;
-    white-space: nowrap;
-    height: 32px;
-    border-bottom: 1px solid #000;
-    border-right: 1px solid #888;
-    cursor: default;
-    padding: 0;
-}
-.zg_headers {
-    position: relative;
-    left: 1px;
-}
-.zg_headers td.cell {
-    font-weight: bold;
-    padding 0;
-    border: medium none;
-    border-right: 1px solid #888;
-}
-.zg_headers td.cell:hover {
-    background-color: #888;
-    color: white;
-}
-div.cell_inner {
-    padding:0 3px;margin:0;
-    overflow:hidden;
-    height: 32px;
-    white-space: normal;
-    font-size: 12px;
-    line-height: 132%;
-    vertical-align: middle;
-}
-</style>
 
 <div id="gridcontainer" style="width:100%;">
 
 </div>
 
 <script>
+var mybuffer, myzengrid;
 addLoadEvent( function() {
-    var b = new ZenGridBuffer();
-    var mygrid = new ZenGrid('gridcontainer', 
-        'getJSONHistoryEventsInfo', 'mygrid', b, 1);
-    connect('filter', 'onkeyup', mygrid.doEventLivesearch);
-    connect('state', 'onchange', mygrid.refreshFromFormElement);
-    connect('severity', 'onchange', mygrid.refreshFromFormElement);
+    mybuffer = new ZenGridBuffer();
+    myzengrid = new ZenGrid('gridcontainer', 
+        'getJSONHistoryEventsInfo', 'mygrid', mybuffer);
+    //connect('filter', 'onkeyup', myzengrid.doEventLivesearch);
+    //connect('state', 'onchange', myzengrid.refreshFromFormElement);
+    //connect('severity', 'onchange', myzengrid.refreshFromFormElement);
 });
 </script>
 </td></tr>

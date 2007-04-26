@@ -34,10 +34,7 @@ ZenGridLoadingMsg.prototype = {
         setStyle(this.framework, {
             'width':'15em',
             'position':'absolute',
-            'z-index':'11000',
-            'top':'0',
-            'left':'100',
-            'visibility':'visible'
+            'z-index':'11000'
         });
         setStyle($('zengridload_content'), {
             'font-weight':'bold',
@@ -47,11 +44,11 @@ ZenGridLoadingMsg.prototype = {
         });
 
     },
-    show: function() {
-        setStyle(this.framework, {'visibility':'visible'});
+    show: function(center) {
+        setStyle(this.framework, {'display':'block'});
     },
     hide: function() {
-        setStyle(this.framework, {'visibility':'hidden'});
+        setStyle(this.framework, {'display':'none'});
     }
 }
 var ZenGridBuffer = Class.create();
@@ -190,7 +187,7 @@ ZenGrid.prototype = {
         this.container = $(container);
         this.gridId = gridId;
         this.buffer = buffer;
-        this.numRows = 15;
+        this.numRows = 10;
         this.rowHeight = 32;
         this.checkedArray = new Array();
         this.url = url;
@@ -198,29 +195,60 @@ ZenGrid.prototype = {
         this.fields = [];
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
-        this.fontProportion = this.getFontProportion();
         this.buildHTML();
+        this.selectstatus = 'none';
         this.clearFirst = false;
         this.lock = new DeferredLock();
         this.scrollTimeout = null;
         this.loadingbox = new ZenGridLoadingMsg('Loading...');
+        this.showLoading();
         fieldlock = this.lock.acquire();
         fieldlock.addCallback(this.refreshFields);
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
             this.refreshTable(this.lastOffset);
+            this.updateStatusBar(this.lastOffset);
             this.lock.release();
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
     },
-    getFontProportion: function() {
-        var x = SPAN({class:'ruler'}, 
-            'abcdefghijklmnopqrstuvwxyz');
-        appendChildNodes(document.body, x);
-        var myw = getElementDimensions(x).w/26;
-        removeElement(x);
-        return myw;
+    setSelectNone: function() {
+        this.checkedArray = new Array();
+        var cbs = this.viewport.getElementsByTagName('input');
+        for (i=0;i<cbs.length;i++) {
+            cbs[i].checked=null;
+        }
+        this.selectstatus = 'none';
+    },
+    setSelectAll: function() {
+        this.checkedArray = new Array();
+        var cbs = this.viewport.getElementsByTagName('input');
+        for (i=0;i<cbs.length;i++) {
+            cbs[i].checked=true;
+        }
+        this.selectstatus = 'all';
+    },
+    setSelectAcked: function() {
+        this.checkedArray = new Array();
+        var cbs = this.viewport.getElementsByTagName('input');
+        var rows = this.zgtable.getElementsByTagName('tr');
+        for (i=0;i<cbs.length;i++) {
+            rowclass = rows[i].className;
+            cbs[i].checked=null;
+            if (rowclass.match('acked')) cbs[i].checked=true;
+        }
+        this.selectstatus = 'acked';
+    },
+    setSelectUnacked: function() {
+        this.checkedArray = new Array();
+        var cbs = this.viewport.getElementsByTagName('input');
+        for (i=0;i<cbs.length;i++) {
+            rowclass = rows[i].className;
+            cbs[i].checked=null;
+            if (rowclass.match('noack')) cbs[i].checked=true;
+        }
+        this.selectstatus = 'unacked';
     },
     addMouseWheelListening: function() {
         if (this.container.addEventListener)
@@ -247,7 +275,7 @@ ZenGrid.prototype = {
     },
     scrollTable: function(delta) {
         if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
-        var pixelDelta = delta * (this.rowHeight+4);
+        var pixelDelta = this.rowToPixel(delta);
         this.scrollbar.scrollTop -= pixelDelta;
     },
     getColLengths: function() {
@@ -290,7 +318,7 @@ ZenGrid.prototype = {
          bind(function(r) {
              result = r; //evalJSON(r.responseText); // For POST
              this.buffer.totalRows = result[1];
-             this.setScrollHeight(this.buffer.totalRows*(this.rowHeight+4));
+             this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], offset);
              this.lock.release();
          }, this));
@@ -298,6 +326,7 @@ ZenGrid.prototype = {
     refreshTable: function(offset) {
         this.showLoading();
         var offset = offset || this.lastOffset;
+        this.scrollbar.scrollTop = this.rowToPixel(offset);
         if (offset + this.numRows > this.buffer.startPos + this.buffer.size ||
                 offset < this.buffer.startPos - this.numRows) {
             d = this.lock.acquire();
@@ -321,17 +350,18 @@ ZenGrid.prototype = {
         return TR({'class':'zengrid_row'}, cells);
     },
     populateRow: function(row, data) {
-        var stuffz = getElementsByTagAndClassName('div', 'cell_inner', row)
-        for (i=0;i<stuffz.length;i++) {
+        var stuffz = row.getElementsByTagName('div')
+        for (i=0;i<stuffz.length-1;i++) {
             stuffz[i].innerHTML = data[i];
-            //addElementClass(stuffz[i], data[data.length-1]);
         }
+        setElementClass(stuffz[stuffz.length-1], 'event_detail');    
 
         if (isManager) {
-            var cb = INPUT({type:'checkbox',
-                style: 'visibility:hidden;'}, null);
-            replaceChildNodes(stuffz[0], cb);
+            var cb = '<input type="checkbox" style="visibility:hidden"/>';
+            stuffz[0].innerHTML = cb;
         }
+        setStyle(stuffz[0], {'width':'20px'});
+        setStyle(stuffz[stuffz.length-1], {'width':'32px'});
     },
     getColgroup: function() {
         var widths = this.getColLengths();
@@ -339,6 +369,8 @@ ZenGrid.prototype = {
             if (parseFloat(w)<3) w=String(3);
             return createDOM( 'col', {width: w+'%'}, null)
         }, widths);
+        cols[0].width='0*';
+        cols[cols.length-1].width='32';
         colgroup = createDOM('colgroup', {span:widths.length, height:'32px'}, 
             cols);
         return colgroup;
@@ -387,7 +419,7 @@ ZenGrid.prototype = {
         if (this.isHistory) fieldparams['history'] = 1;
         var x = loadJSONDoc('getJSONFields', fieldparams);
         x.addCallback(bind(function(r){
-            this.fields=r;
+            this.fields=concat(r,[['&nbsp;','']]);
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
             updateColumns();
         }, this));
@@ -396,60 +428,82 @@ ZenGrid.prototype = {
         table = this.zgtable;
         var cells = getElementsByTagAndClassName('div', 'cell_inner', table);
         for (i=0;(cell=cells[i]);i++){
-            replaceChildNodes(cell, null);
+            cell.innerHTML='';
         }
     },
     setTableNumRows: function(numrows) {
         this.rowEls = map(this.getBlankRow, range(numrows));
         replaceChildNodes(this.output, this.rowEls);
         setElementDimensions(this.viewport,
-            {h:parseInt(numrows*(this.rowHeight+4))}
+            {h:parseInt(this.rowToPixel(numrows))}
         );
-        var scrollHeight = parseInt(numrows * (this.rowHeight+4));
+        var scrollHeight = parseInt(this.rowToPixel(numrows));
         if (scrollHeight<=getElementDimensions(this.zgtable).h) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
             setElementDimensions(this.scrollbar, {h:scrollHeight});
         }
     },
+    shouldBeChecked: function(evid, klass) {
+        if (this.checkedArray[evid]=='checked') 
+            return true;
+        if (this.checkedArray[evid]=='blank')
+            return false;
+        switch (this.selectstatus) {
+            case 'none': return false;
+            case 'all': return true;
+            case 'acked':
+                return !!klass.match('acked');
+            case 'unacked':
+                return !!klass.match('noack');
+        }
+        return false;
+    },
     populateTable: function(data) {
+        var zem = this.isHistory?'/zport/dmd/ZenEventHistory':
+            '/zport/dmd/ZenEventManager';
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
-            this.clearTable();
+            //this.clearTable();
             this.setTableNumRows(tableLength);
         }
         rows = this.rowEls;
         disconnectAllTo(this.markAsChecked);
         for (i=0;i<rows.length&&i<data.length;i++) {
             var mydata = data[i];
+            setElementClass(rows[i], mydata[mydata.length-1])
             var evid = mydata[mydata.length-2];
-            var chkboxparams = {type:'checkbox', name:'evids:list',
-                                value:evid};
-            if (this.checkedArray[evid]) chkboxparams.checked=true;
-                var chkbox = INPUT(chkboxparams, null);
+            var chkbox = '<input type="checkbox" name="evids:list" ';
+            if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
+                chkbox+='checked ';
+            chkbox += 'value="'+evid+'" id="'+evid+'"/>';
             var yo = rows[i].getElementsByTagName('td');
-            var divs = getElementsByTagAndClassName('div','cell_inner', rows[i]);
+            var divs = rows[i].getElementsByTagName('div');
             var firstcol = yo[0];
             if (isManager) {
                 mydata = concat([''],mydata);
-                replaceChildNodes(divs[0], chkbox);
-                setElementClass(firstcol, 'cell ' + mydata[mydata.length-1])
-                connect(chkbox, 'onclick', this.markAsChecked);
+                divs[0].innerHTML = chkbox;
+                setStyle(divs[0], {'width':'20px'});
+                //setElementClass(firstcol, 'cell ' + mydata[mydata.length-1])
+                connect($(evid), 'onclick', this.markAsChecked);
             }
-            for (j=isManager?1:0;j<yo.length;j++) {
+            var lastcol = yo[yo.length-1];
+            //setElementClass(lastcol, 'cell ' + mydata[mydata.length-1])
+            setElementClass(divs[yo.length-1], 'event_detail');    
+            disconnectAll(divs[yo.length-1]);
+            connect(divs[yo.length-1], 'onclick', function() {
+                eventWindow(zem, evid);
+            });
+            divs[yo.length-1].title = "View detailed information" + 
+                " about this event."
+            for (j=isManager?1:0;j<yo.length-1;j++) {
                 var cellwidth = this.abswidths[j]
-                switch (this.fields[j][0]) {
-                    case 'firstTime':
-                    case 'lastTime':
-                        replaceChildNodes(divs[j], isoTimestamp(mydata[j]));
-                    default:
-                        divs[j].innerHTML = mydata[j];
-                }
-                divs[j].title = this.abswidths[j];
-                var newClass = 'cell ' + mydata[mydata.length-1];
-                if (yo[j].className!=newClass)
-                    setElementClass(yo[j], newClass)
+                divs[j].innerHTML = mydata[j];
+                yo[j].title = mydata[j];
+                //var newClass = 'cell ' + mydata[mydata.length-1];
+                //if (yo[j].className!=newClass)
+                    //setElementClass(yo[j], newClass)
             }
 
         }
@@ -459,7 +513,7 @@ ZenGrid.prototype = {
     getTotalRows: function() {
         cb = bind(function(r) {
             this.buffer.totalRows = r;
-            this.setScrollHeight(this.buffer.totalRows*(this.rowHeight+4));
+            this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
             this.lock.release();
         }, this);
         d = loadJSONDoc('getEventCount');
@@ -493,6 +547,20 @@ ZenGrid.prototype = {
             TFOOT(null, null)
         ]);
         this.viewport = DIV( {id: getId('viewport')}, this.zgtable );
+        this.statusBar = DIV( {id:getId('statusbar'), class:'zg_statusbar'}, 
+            SPAN({id:'currentRows'}, String(0+1 + '-' +
+            parseInt(parseInt(0)+parseInt(this.numRows)) + 
+            ' of ' + this.buffer.totalRows)),
+        [   'Select:  ',
+            UL(null,
+            [
+                LI({'id':'setSelectNone'}, 'None'),
+                LI({'id':'setSelectAll'}, 'All'),
+                LI({'id':'setSelectAcked'}, 'Acknowledged'),
+                LI({'id':'setSelectUnacked'}, 'Unacknowledged')
+            ])
+        ]
+        );
         this.headers = TABLE( {id: getId('headers'), class:"zg_headers",
             cellspacing:0, cellpadding:0}, [
             this.headcolgroup,
@@ -515,7 +583,7 @@ ZenGrid.prototype = {
         });
         setStyle(this.viewport, {
             'width':'98%',
-            'height':(this.rowHeight+4)*(this.numRows)+'px',
+            'height':this.rowToPixel(this.numRows)+'px',
             'overflow':'hidden',
             'float':'left',
             'border':'1px solid black',
@@ -526,14 +594,19 @@ ZenGrid.prototype = {
             { 'border': '1px solid black',
               'border-left': 'medium none',
               'overflow': 'auto',
+              'z-index':'300',
               'position': 'relative',
               'left': '-3px',
               'width': '19px',
-              'height': (this.rowHeight+4)*(this.numRows)+'px' 
+              'height': this.rowToPixel(this.numRows)+'px' 
         });
-        var scrollHeight = this.buffer.totalRows * (this.rowHeight+4);
+        var scrollHeight = this.rowToPixel(this.buffer.totalRows);
         this.setScrollHeight(scrollHeight);
-        appendChildNodes(this.container, this.headers, this.innercont);
+        appendChildNodes(this.container, this.statusBar, this.headers, this.innercont);
+        connect('setSelectNone', 'onclick', this.setSelectNone);
+        connect('setSelectAll', 'onclick', this.setSelectAll);
+        connect('setSelectAcked', 'onclick', this.setSelectAcked);
+        connect('setSelectUnacked', 'onclick', this.setSelectUnacked);
     },
 
     setScrollHeight: function(scrlheight) {
@@ -542,26 +615,34 @@ ZenGrid.prototype = {
             {'height':String(parseInt(scrlheight)) + 'px'}
         );
     },
+    rowToPixel: function(row) {
+        return row * (this.rowHeight+4);
+    },
+    pixelToRow: function(pixel) {
+        var prow = parseInt(pixel/(this.rowHeight+4));
+        return Math.max(0, prow);
+    },
     scrollToPixel: function(pixel) {
-        this.lastPixelOffset = this.lastPixelOffset || 0;
-        //var diff = (pixel-this.lastPixelOffset) % (this.rowHeight+4);
-        //if (diff) {
-            //pixel += diff;
-        //}
-        var newOffset = Math.round(pixel/(this.rowHeight+4));
+        var diff = this.lastPixelOffset-pixel;
+        if (diff==0.00) return;
+        var sign = Math.abs(diff)/diff;
+        pixel = sign<0?
+        Math.ceil(pixel/(this.rowHeight+4))*(this.rowHeight+4):
+        Math.floor(pixel/(this.rowHeight+4))*(this.rowHeight+4);
+        var newOffset = this.pixelToRow(pixel);
+        this.updateStatusBar(newOffset);
         this.refreshTable(newOffset);
-        this.scrollbar.scrollTop = pixel;
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
         this.showLoading();
-        clearTimeout(this.scrollTimeout);
+        //clearTimeout(this.scrollTimeout);
         this.nextScrollPosition = this.scrollbar.scrollTop || 0;
         if (this.nextScrollPosition==0) this.scrollToPixel(this.nextScrollPosition);
-        this.scrollTimeout = setTimeout (
-            bind(function() {
+        //this.scrollTimeout = setTimeout (
+            //bind(function() {
                 this.scrollToPixel(this.nextScrollPosition)
-            }, this), 50);
+            //}, this), 0);
     },
     refreshFromFormElement: function(e) {
         node = e.src();
@@ -597,14 +678,31 @@ ZenGrid.prototype = {
         }, this),
         500);
     },
+    updateStatusBar: function(rownum) {
+        $('currentRows').innerHTML = rownum+1 + '-' +
+            parseInt(parseInt(rownum)+parseInt(this.numRows)) + 
+            ' of ' + this.buffer.totalRows;
+    },
     markAsChecked: function(e) {
         var node = e.src();
-        this.checkedArray[node.value] = node.checked;
+
+        this.checkedArray[node.value] = node.checked?
+            'checked':'blank'
+    },
+    getViewportCenter: function() {
+        var dims = getElementDimensions(this.viewport);
+        var pos = getElementPosition(this.viewport);
+        return {x:(dims.w/2)+pos.x, y:(dims.h/2)+pos.y}
     },
     showLoading: function() {
         clearTimeout(this.isLoading);
         this.isLoading = setTimeout( bind(function() {
-            this.loadingbox.show();
+            var p = this.getViewportCenter();
+            var d = getElementDimensions(this.loadingbox);
+            var pos = {x:p.x-(d.w/2),y:p.y-(d.h/2)};
+            this.loadingbox.style.top = pos.y;
+            this.loadingbox.style.left = pos.x;
+            this.loadingbox.show(p);
         }, this), 500);
     },
     killLoading: function() {
