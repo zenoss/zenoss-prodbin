@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -25,7 +26,6 @@
 # under the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 # For complete information please visit: http://www.zenoss.com/oss/
-#! /usr/bin/env python 
 
 __doc__='''zenbackup
 
