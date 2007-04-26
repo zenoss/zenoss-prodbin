@@ -772,7 +772,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """edit device relations and attributes"""
         self.hw.tag = tag
         self.hw.serialNumber = serialNumber
-        if self.zSnmpCommunity != zSnmpCommunity:
+        if (zSnmpCommunity and 
+            self.zSnmpCommunity != zSnmpCommunity):
             self.setZenProperty("zSnmpCommunity", zSnmpCommunity)
         if self.zSnmpPort != zSnmpPort:
             self.setZenProperty("zSnmpPort", zSnmpPort)
