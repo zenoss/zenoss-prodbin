@@ -6,8 +6,13 @@
             
 <p>
 What would you like to name this device?<br/>
+<span id="errmsg" style="color:red;"></span>
 <br/>
-<input type="text" name="newId" size="25"/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" 
+       name="newId"
+       onblur="checkValidId(this.id)"><br/><br/>
 </p>
 <br/>
 <div id="dialog_buttons">
