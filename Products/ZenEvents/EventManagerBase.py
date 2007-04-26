@@ -1182,6 +1182,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         eventDict = dict(
             summary = REQUEST['summary'],
+            message = REQUEST['message'],
             device = REQUEST['device'],
             component = REQUEST['component'],
             severity = REQUEST['severity'],

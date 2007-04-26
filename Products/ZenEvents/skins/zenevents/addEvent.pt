@@ -18,12 +18,22 @@
 <!-- BEGIN TABLE CONTENTS -->
         <tr>
             <td class="tableheader" align="left">
+                Summary
+            </td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" 
+		            size="50" name="summary" maxlen="128"
+                    tal:attributes="value event/summary | nothing" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">
                 Message
             </td>
             <td class="tablevalues" align="left">
-                <textarea rows="3" cols="60" name="summary"
+                <textarea rows="3" cols="60" name="message"
                     class="tablevalues"
-                    tal:content="event/summary | nothing"></textarea>
+                    tal:content="event/message | nothing"></textarea>
             </td>
         </tr>
         <tr>
