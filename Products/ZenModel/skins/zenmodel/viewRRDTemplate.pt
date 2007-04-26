@@ -278,9 +278,7 @@
         </td>
         <td>
             <tal:block tal:repeat="ds graph/dsnames">
-                <tal:block tal:define="templ python:(hasattr(here, 'getRRDTemplate') and here.getRRDTemplate()) or here">
-                    <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in templ.getRRDDataPointNames()"><span class='errorvalues'> (invalid)</span></tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
-                </tal:block>
+                <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in templ.getRRDDataPointNames()"><span class='errorvalues'> (invalid)</span></tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
             </tal:block>
         </td>
         <td tal:content="graph/units"/>
