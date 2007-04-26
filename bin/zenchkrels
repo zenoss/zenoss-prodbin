@@ -10,4 +10,4 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 . $ZENHOME/bin/zenfunctions 
-$PYTHON $ZENHOME/Products/ZenUtils/CheckRelations.py $*
+$PYTHON $ZENHOME/Products/ZenUtils/CheckRelations.py "$CMD" $*
