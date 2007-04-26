@@ -77,11 +77,10 @@
 		name="subdeviceForm">
     <tal:block tal:define="objects here/children;
             tableName string:children;
-            tblcolspan string:5;
             menu_id string:Organizer_list;
             batch python:here.ZenTableManager.getBatch(tableName,objects);
             showfilterbox python:True;
-            tblcolspan string:5;
+            tblcolspan string:6;
             tabletitle string:Sub-${here/dmdRootName}">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
@@ -138,7 +137,7 @@
         </tr>
         </tal:block>
         <tr>
-            <td colspan="6" class="tableheader">
+            <td colspan="0" class="tableheader">
                 <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
             </td>
         </tr>

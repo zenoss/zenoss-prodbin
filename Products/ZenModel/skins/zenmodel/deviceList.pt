@@ -7,7 +7,7 @@
     tal:define="
         tableName string:devicelist;
         objects here/devices/getSubDevicesGen;
-        tblcolspan string:5;
+        tblcolspan string:6;
         batch python: here.ZenTableManager.getBatch(tableName,objects);"
 >
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
@@ -22,7 +22,7 @@
 
     <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
 	<tr>
-	<td colspan="5" class="tableheader" align='center'>
+	<td colspan="0" class="tableheader" align='center'>
 		<tal:block
 		 metal:use-macro="here/zenTableNavigation/macros/navbodypagedevice"/>
 	</td>

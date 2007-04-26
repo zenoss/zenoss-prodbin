@@ -54,7 +54,7 @@
         <td class="tablevalues" tal:content="svcinst/count"/>
     </tr>
     <tr>
-        <td colspan="6" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>

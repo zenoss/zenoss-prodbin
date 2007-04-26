@@ -39,7 +39,7 @@
         <td class="tablevalues" align=center tal:content="svcorg/countClasses"/>
     </tr>
     <tr>
-        <td colspan="6" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
@@ -101,7 +101,7 @@
         <td class="tablevalues" tal:content="svcinst/count"/>
     </tr>
     <tr>
-        <td colspan="5" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>

@@ -118,7 +118,7 @@
         <td tal:content="ds/enabled"/>
     </tr>
     <tr>
-        <td colspan="5" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
@@ -194,7 +194,7 @@
         <td tal:content="thresh/enabled"/>
     </tr>
     <tr>
-        <td colspan="5" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
@@ -288,7 +288,7 @@
         <td tal:content="graph/width"/>
     </tr>
     <tr>
-        <td colspan="6" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>

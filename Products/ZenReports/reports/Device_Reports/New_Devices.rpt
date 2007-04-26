@@ -43,7 +43,7 @@
 		<td class="tablevalues" tal:content="device/getLastChangeString"/>
     </tr>
     <tr>
-        <td colspan="5" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>
