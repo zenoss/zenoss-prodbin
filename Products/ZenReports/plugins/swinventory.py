@@ -12,8 +12,8 @@ class swinventory:
                     print m.id, p.id, p.instances.countObjects()
                     report.append(
                         Utils.Record(
-                            mname = m.id,
-                            swname = p.id,
+                            manuf = m,
+                            soft = p,
                             count = p.instances.countObjects()
                         )
                     )
