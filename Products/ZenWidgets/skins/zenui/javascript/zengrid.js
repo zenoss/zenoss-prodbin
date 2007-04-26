@@ -207,7 +207,11 @@ ZenGrid.prototype = {
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
             this.refreshTable(this.lastOffset);
-            this.updateStatusBar(this.lastOffset);
+            this.lock.release();
+        }, this));
+        statuslock = this.lock.acquire();
+        statuslock.addCallback(bind(function(r){
+            //this.updateStatusBar(this.lastOffset);
             this.lock.release();
         }, this));
         this.addMouseWheelListening();
@@ -337,6 +341,7 @@ ZenGrid.prototype = {
         popLock = this.lock.acquire();
         popLock.addCallback(bind(function() {
             this.lock.release();
+            this.updateStatusBar(offset);
             this.populateTable(this.buffer.getRows(offset, this.numRows));
         }, this));
     },
@@ -631,18 +636,17 @@ ZenGrid.prototype = {
         Math.floor(pixel/(this.rowHeight+4))*(this.rowHeight+4);
         var newOffset = this.pixelToRow(pixel);
         this.updateStatusBar(newOffset);
-        this.refreshTable(newOffset);
+        if (newOffset==0) this.refreshTable(newOffset);
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout (
+            bind(function() {
+                this.refreshTable(newOffset);
+            }, this), 100);
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
         this.showLoading();
-        //clearTimeout(this.scrollTimeout);
-        this.nextScrollPosition = this.scrollbar.scrollTop || 0;
-        if (this.nextScrollPosition==0) this.scrollToPixel(this.nextScrollPosition);
-        //this.scrollTimeout = setTimeout (
-            //bind(function() {
-                this.scrollToPixel(this.nextScrollPosition)
-            //}, this), 0);
+        this.scrollToPixel(this.scrollbar.scrollTop||0)
     },
     refreshFromFormElement: function(e) {
         node = e.src();
@@ -680,8 +684,9 @@ ZenGrid.prototype = {
     },
     updateStatusBar: function(rownum) {
         $('currentRows').innerHTML = rownum+1 + '-' +
-            parseInt(parseInt(rownum)+parseInt(this.numRows)) + 
-            ' of ' + this.buffer.totalRows;
+            parseInt(parseInt(rownum)+
+            Math.min(parseInt(this.numRows), parseInt(this.buffer.totalRows))
+        ) + ' of ' + this.buffer.totalRows;
     },
     markAsChecked: function(e) {
         var node = e.src();
@@ -710,6 +715,10 @@ ZenGrid.prototype = {
         if (this.loadingbox) {
             this.loadingbox.hide();
         }
+    },
+    resizeColumn: function(index, pixeldiff) {
+        var cols = this.colgroup.getElementsByTagName('col');
+        var old = cols(index).width;
     }
 }
 
