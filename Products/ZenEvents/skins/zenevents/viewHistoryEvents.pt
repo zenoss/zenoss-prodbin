@@ -10,24 +10,6 @@
         src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
-<script type="text/javascript">
-function datePickerClosed(targetInput) {
-    if (targetInput.name == "startdate") {
-        startdate = targetInput.value;
-        enddateInput = targetInput.form.enddate;
-    } else {
-        startdate = targetInput.form.startdate.value;
-        enddateInput = targetInput;
-    } 
-    var sdate = getFieldDate(startdate);
-    var edate = getFieldDate(enddateInput.value);
-    if (sdate.getTime() + 86400000 >= edate.getTime()) {
-        edate = new Date(sdate.getTime() + 86400000);
-        enddateInput.value = getDateString(edate);
-    }
-    return true;
-};
-</script>
 
 <form method="post" tal:attributes="action here/absolute_url_path"
       name="history_events"
@@ -67,8 +49,6 @@ menu_id string:HistoryEvent_list;
         tal:attributes="value here/todayDate"/>
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('enddate');" />
-    <input class="tableheader" type="submit" name="search" value=" Search " 
-        onclick="getTablePage(this.form);return false;"/>
 </div>
 </tal:block>
 
@@ -106,6 +86,31 @@ addLoadEvent( function() {
         '${here/absolute_url_path}', 1 );
 });">
 </script>
+
+<script type="text/javascript">
+function datePickerClosed(targetInput) {
+    if (targetInput.name == "startdate") {
+        startdate = targetInput.value;
+        enddateInput = targetInput.form.enddate;
+    } else {
+        startdate = targetInput.form.startdate.value;
+        enddateInput = targetInput;
+    } 
+    var sdate = getFieldDate(startdate);
+    var edate = getFieldDate(enddateInput.value);
+    if (sdate.getTime() + 86400000 >= edate.getTime()) {
+        edate = new Date(sdate.getTime() + 86400000);
+        enddateInput.value = getDateString(edate);
+    }
+    myzengrid.refreshWithParams({
+        startdate:$('startdate').value,
+        enddate:$('enddate').value
+    });
+    return true;
+
+};
+</script>
+
 </td></tr>
 <!-- END TABLE CONTENTS -->
 

@@ -48,6 +48,7 @@ class EventView(object):
 
     def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
                           getTotalCount=True, 
+                          startdate=None, enddate=None,
                           filter='', severity=2, state=1, 
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.

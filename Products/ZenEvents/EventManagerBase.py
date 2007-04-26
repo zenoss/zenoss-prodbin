@@ -942,6 +942,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     security.declareProtected('View','getJSONEventsInfo')
     def getJSONEventsInfo(self, context, offset=0, count=50,
                           getTotalCount=True, 
+                          startdate=None, enddate=None,
                           filter='', severity=2, state=1, 
                           orderby='', **kwargs):
         """ Event data in JSON format.
@@ -950,7 +951,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         data, totalCount = self.getEventListME(context, 
             offset=offset, rows=count, resultFields=fields,
             getTotalCount=getTotalCount, filter=filter, severity=severity,
-            state=state, orderby=orderby)
+            state=state, orderby=orderby, startdate=startdate, enddate=enddate)
         results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
         return simplejson.dumps((results, totalCount))
 
