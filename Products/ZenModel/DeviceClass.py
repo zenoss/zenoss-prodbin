@@ -115,16 +115,16 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (  permissions.view, )
+                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : (permissions.view,)
                 },
-#                { 'id'            : 'historyEvents'
-#                , 'name'          : 'History'
-#                , 'action'        : 'viewHistoryEvents'
-#                , 'permissions'   : (  permissions.view, )
-#                },
             )
          },
         )
