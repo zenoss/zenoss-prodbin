@@ -85,12 +85,12 @@ class MySqlSendEventMixin:
             dedupid = map(self.escape, dedupid)
             event.dedupid = "|".join(dedupid)
 
-        if getattr(event, "message", False):
-            event.summary = event.message[:128]
-        if getattr(event, "summary", False):
-            event.message = event.summary
-            event.summary = event.summary[:128]
-
+        # If either message or summary is empty then try to copy from the other.
+        # Make sure summary is truncated to 128
+        if not getattr(event, 'message', False):
+            event.message = getattr(event, 'summary', '')
+        event.summary = (getattr(event, 'summary', '') or event.message)[:128]
+        
         cleanup = lambda : None
         evid = None
         try:
