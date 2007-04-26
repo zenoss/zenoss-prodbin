@@ -69,7 +69,8 @@ class EventServer(ZCmdBase):
         ZCmdBase.__init__(self, keeproot=True)
         self.stats = Stats()
         self.zem = self.dmd.ZenEventManager
-        self.sendEvent(Event(device=socket.getfqdn(), 
+        self.myfqdn = socket.getfqdn()
+        self.sendEvent(Event(device=self.myfqdn, 
                                eventClass=App_Start, 
                                summary="%s started" % self.name,
                                severity=0,
@@ -109,6 +110,7 @@ class EventServer(ZCmdBase):
     def sendEvent(self, evt):
         "wrapper for sending an event"
         self.zem._p_jar.sync()
+        evt.manager = self.myfqdn
         self.zem.sendEvent(evt)
 
 
@@ -124,7 +126,7 @@ class EventServer(ZCmdBase):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
         seconds = 10
-        evt = EventHeartbeat(socket.getfqdn(), self.name, 3*seconds)
+        evt = EventHeartbeat(self.myfqdn, self.name, 3*seconds)
         self.q.put(evt)
         reactor.callLater(seconds, self.heartbeat)
 
@@ -153,7 +155,7 @@ class EventServer(ZCmdBase):
         'things to do at shutdown: thread cleanup, logs and events'
         self.q.put(None)
         self.report()
-        self.sendEvent(Event(device=socket.getfqdn(), 
+        self.sendEvent(Event(device=self.myfqdn, 
                              eventClass=App_Stop, 
                              summary="%s stopped" % self.name,
                              severity=4,

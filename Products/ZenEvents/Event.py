@@ -80,7 +80,6 @@ class Event(object):
         self._action = "status"
         self._fields = kwargs.get('fields',[])
         self.eventKey = ''
-        self.manager = socket.getfqdn()
         if kwargs: self.updateFromDict(kwargs)
 
     
