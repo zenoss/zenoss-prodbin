@@ -97,16 +97,14 @@ menu_id string:HistoryEvent_list;
 
 </div>
 
-<script>
+<script tal:content="string:
 var mybuffer, myzengrid;
 addLoadEvent( function() {
     mybuffer = new ZenGridBuffer();
     myzengrid = new ZenGrid('gridcontainer', 
-        'getJSONHistoryEventsInfo', 'mygrid', mybuffer);
-    //connect('filter', 'onkeyup', myzengrid.doEventLivesearch);
-    //connect('state', 'onchange', myzengrid.refreshFromFormElement);
-    //connect('severity', 'onchange', myzengrid.refreshFromFormElement);
-});
+        'getJSONHistoryEventsInfo', 'mygrid', mybuffer,
+        '${here/absolute_url_path}', 1 );
+});">
 </script>
 </td></tr>
 <!-- END TABLE CONTENTS -->

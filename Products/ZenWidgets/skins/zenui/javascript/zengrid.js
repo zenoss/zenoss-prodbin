@@ -181,8 +181,9 @@ ZenGridBuffer.prototype = {
 var ZenGrid = Class.create();
 
 ZenGrid.prototype = {
-    __init__: function(container, url, gridId, buffer, isHistory) {
+    __init__: function(container, url, gridId, buffer, absurl, isHistory) {
         bindMethods(this);
+        this.absurl = absurl;
         this.isHistory = isHistory || 0;
         this.container = $(container);
         this.gridId = gridId;
@@ -190,7 +191,7 @@ ZenGrid.prototype = {
         this.numRows = 10;
         this.rowHeight = 32;
         this.checkedArray = new Array();
-        this.url = url;
+        this.url = this.absurl + '/' + url;
         this.lastparams = {};
         this.fields = [];
         this.lastOffset = 0;
@@ -420,9 +421,9 @@ ZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             this.lock.release();
         }, this);
-        fieldparams = {};
+        fieldparams = {}; 
         if (this.isHistory) fieldparams['history'] = 1;
-        var x = loadJSONDoc('getJSONFields', fieldparams);
+            var x = loadJSONDoc(this.absurl + '/getJSONFields', fieldparams);
         x.addCallback(bind(function(r){
             this.fields=concat(r,[['&nbsp;','']]);
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
