@@ -95,6 +95,19 @@ class SnmpClient(object):
 
 
     def doRun(self, driver):
+        # test snmp connectivity
+        log.debug("Testing SNMP configuration")
+        yield self.proxy.walk('.1', timeout=self.timeout, retryCount=self.tries)
+        try:
+            driver.next()
+        except Exception, ex:
+            log.error("Unable to talk to device %s on %s:%s using community '%s'",
+                      self.device.id,
+                      self.proxy.ip,
+                      self.proxy.port or 161,
+                      self.proxy.community)
+            return
+
         changed = True
         if not self.options.force and self.device.snmpOid.startswith(".1.3.6.1.4.1.9"):
             yield drive(self.checkCiscoChange)
