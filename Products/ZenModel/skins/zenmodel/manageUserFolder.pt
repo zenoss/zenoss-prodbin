@@ -21,12 +21,13 @@ function ConfirmPagerTest() {
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/absolute_url_path" id="users">
+<form method="get" tal:attributes="action here/absolute_url_path" id="users">
 
 
         <tal:block tal:define="tableName string:userlist;
        ztm here/ZenTableManager;
        objects here/getAllUserSettings;
+       showfilterbox python:True;
        batch python:ztm.getBatch(tableName, objects); tabletitle string:User Folder">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -89,8 +90,8 @@ function ConfirmPagerTest() {
     </tr>
     </tal:block>
     <tr>
-        <td colspan="0" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
     <tr tal:condition="here/isManager">
