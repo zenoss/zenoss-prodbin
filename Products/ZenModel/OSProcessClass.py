@@ -158,4 +158,11 @@ class OSProcessClass(ZenModelRM, Commandable):
         return self.instances()        
 
 
+    def getPrimaryParentOrgName(self):
+        ''' Return the organizer name for the primary parent
+        '''
+        return self.getPrimaryParent().getOrganizerName()
+        
+
+
 InitializeClass(OSProcessClass)

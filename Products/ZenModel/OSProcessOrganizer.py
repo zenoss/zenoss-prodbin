@@ -101,6 +101,16 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             self.buildZProperties()
 
 
+    def zentinelTabs(self, templateName):
+        """Return a list of hashs that define the screen tabs for this object.
+        [{'name':'Name','action':'template','selected':False},...]
+        """
+        tabs = Organizer.zentinelTabs(self, templateName)
+        if self.getPrimaryId() != '/zport/dmd/Processes':
+            tabs = [t for t in tabs if t['id'] != 'resequence']
+        return tabs
+
+
     def getSubOSProcessClassesGen(self):
         """Return generator that goes through all process classes.
         """
@@ -109,6 +119,18 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         for subgroup in self.children():
             for proc in subgroup.getSubOSProcessClassesGen():
                 yield proc
+                
+                
+    def getSubOSProcessClassesSorted(self):
+        '''Return list of the process classes sorted by sequence.
+        '''
+        def cmpProc(a, b):
+            return cmp(a.sequence, b.sequence)
+        procs = list(self.getSubOSProcessClassesGen())
+        procs.sort(cmpProc)
+        for i, p in enumerate(procs):
+            p.sequence = i
+        return procs
 
         
     def countClasses(self):
@@ -136,8 +158,8 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     def manage_resequenceProcesses(self, seqmap=(), origseq=(), REQUEST=None):
         "resequence the OsProcesses"
         from Products.ZenUtils.Utils import resequence
-        return resequence(self,
-                          self.osProcessClasses(), seqmap, origseq, REQUEST)
+        return resequence(self, self.getSubOSProcessClassesGen(), 
+                            seqmap, origseq, REQUEST)
     
     def unmonitorOSProcessClasses(self, ids=None, REQUEST=None):
         return self.monitorOSProcessClasses(ids, False, REQUEST)

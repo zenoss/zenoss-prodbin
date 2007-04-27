@@ -1,14 +1,16 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" name="processList" tal:attributes="action here/absolute_url_path">
+<form method="POST" name="processList" tal:attributes="action here/absolute_url_path">
 
 <tal:block 
-        tal:define="objects here/getSubOSProcessClassesGen;
-	menu_id string:OSProcessResequence_list;
+        tal:define="objects here/getSubOSProcessClassesSorted;
+		menu_id string:OSProcessResequence_list;
         tableName string:osprocessresequencelist;
         tabletitle string:Processes Order;
-        batch python:here.ZenTableManager.getBatch(tableName,objects);">
+		
+        batch python:here.ZenTableManager.getBatch(tableName, objects,
+							sortedHeader='sequence');">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -21,7 +23,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'sequence','Folder')"/>
+                    tableName,'getPrimaryParentOrgName','Folder')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -52,11 +54,6 @@
         <td class="tablevalues" tal:content="svcinst/regex"/>
         <td class="tablevalues" tal:content="svcinst/zMonitor"/>
         <td class="tablevalues" tal:content="svcinst/count"/>
-    </tr>
-    <tr>
-        <td colspan="0" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
-        </td>
     </tr>
     </span>
 <!-- END TABLE CONTENTS -->
