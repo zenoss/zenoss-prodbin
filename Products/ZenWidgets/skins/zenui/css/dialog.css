@@ -1,3 +1,15 @@
+.zengridload_container {
+    width: 15em;
+    z-index: 11000;
+    position: absolute;
+    display: none;
+}
+#zengridload_content {
+    font-weight: bold;
+    font-size: 2em;
+    text-align: center;
+}
+
 #dialog {
     margin: 0;
     padding: 0;

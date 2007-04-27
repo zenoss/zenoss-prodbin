@@ -30,25 +30,25 @@ ZenGridLoadingMsg.prototype = {
              [ DIV({'class':'dbox_br'},
                [ DIV({'class':'dbox_bc'}, null)])])
             ]);
-        appendChildNodes(currentDocument().body, this.framework);
-        setStyle(this.framework, {
-            'width':'15em',
-            'position':'absolute',
-            'z-index':'11000'
-        });
-        setStyle($('zengridload_content'), {
-            'font-weight':'bold',
-            'font-size':'2em',
-            'text-align':'center'
-
-        });
+        appendChildNodes($('frame'), this.framework);
+        this.show();
 
     },
-    show: function(center) {
-        setStyle(this.framework, {'display':'block'});
+    getViewportCenter: function() {
+        var dims = getViewportDimensions();
+        var pos = getViewportPosition();
+        return new Coordinates((dims.w/2)+pos.x, (dims.h/2)+pos.y);
+    },
+    show: function(msg) {
+        if (msg) $('zengridload_content').innerHTML = msg;
+        var p = this.getViewportCenter();
+        var d = getElementDimensions(this.framework);
+        var pos = new Coordinates(p.x-(d.w/2),p.y-(d.h/2));
+        setElementPosition(this.framework, pos);
+        showElement(this.framework);
     },
     hide: function() {
-        setStyle(this.framework, {'display':'none'});
+        hideElement(this.framework);
     }
 }
 var ZenGridBuffer = Class.create();
@@ -201,21 +201,21 @@ ZenGrid.prototype = {
         this.lock = new DeferredLock();
         this.scrollTimeout = null;
         this.loadingbox = new ZenGridLoadingMsg('Loading...');
-        this.showLoading();
+        //this.showLoading();
         fieldlock = this.lock.acquire();
         fieldlock.addCallback(this.refreshFields);
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
-            this.refreshTable(this.lastOffset);
+            this.resizeTable();
             this.lock.release();
         }, this));
         statuslock = this.lock.acquire();
         statuslock.addCallback(bind(function(r){
-            //this.updateStatusBar(this.lastOffset);
             this.lock.release();
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
+        connect(currentWindow(), 'onresize', this.resizeTable);
     },
     setSelectNone: function() {
         this.checkedArray = new Array();
@@ -310,7 +310,7 @@ ZenGrid.prototype = {
             'getTotalCount': 1
         });
         var d = loadJSONDoc(url, qs);
-        d.addErrback(function(x) { log("BROKEN! " + x)});
+        d.addErrback(function(x) { alert('Cannot communicate with the server!') });
         d.addCallback(
          bind(function(r) {
              result = r; 
@@ -540,8 +540,8 @@ ZenGrid.prototype = {
             }
 
         }
-        connectCheckboxListeners();
         this.killLoading();
+        connectCheckboxListeners();
     },
     getTotalRows: function() {
         cb = bind(function(r) {
@@ -673,7 +673,7 @@ ZenGrid.prototype = {
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
-        this.showLoading();
+        //this.showLoading();
         this.scrollToPixel(this.scrollbar.scrollTop||0)
     },
     refreshFromFormElement: function(e) {
@@ -722,29 +722,28 @@ ZenGrid.prototype = {
         this.checkedArray[node.value] = node.checked?
             'checked':'blank'
     },
-    getViewportCenter: function() {
-        var dims = getElementDimensions(this.viewport);
-        var pos = getElementPosition(this.viewport);
-        return {x:(dims.w/2)+pos.x, y:(dims.h/2)+pos.y}
-    },
     showLoading: function() {
-        clearTimeout(this.isLoading);
-        var isIE//@cc_on=1;
-        //if(isIE) createLoggingPane();
-//        //this.isLoading = setTimeout( bind(function() {
-//            //var p = this.getViewportCenter();
-//            var d = getElementDimensions(this.loadingbox);
-//            var pos = {x:p.x-(d.w/2),y:p.y-(d.h/2)};
-//            //this.loadingbox.style.top = pos.y;
-//            //this.loadingbox.style.left = pos.x;
-//            this.loadingbox.show(p);
-//        }, this), 500);
+        if (this.isLoading) clearTimeout(this.isLoading);
+        this.isLoading = setTimeout( bind(function() {
+            this.loadingbox.show();
+        }, this), 500);
     },
     killLoading: function() {
-        clearTimeout(this.isLoading);
-        if (this.loadingbox) {
-            this.loadingbox.hide();
-        }
+        if (this.isLoading) clearTimeout(this.isLoading);
+        this.loadingbox.hide();
+    },
+    resizeTable: function() {
+        var maxTableBottom = getViewportDimensions().h +
+            getViewportPosition().y;
+        var curTableBottom = getElementDimensions(this.viewport).h +
+            getElementPosition(this.viewport).y;
+        var diff = maxTableBottom - curTableBottom;
+        var rowdiff = Math.floor(diff/this.rowSizePlus);
+        this.numRows += rowdiff;
+        this.setTableNumRows(
+            Math.min(this.rowEls.length + rowdiff, this.buffer.totalRows));
+        this.refreshTable(this.lastOffset);
+        this.updateStatusBar(this.lastOffset);
     },
     resizeColumn: function(index, fromindex, pixeldiff) {
         var cols = this.colgroup.getElementsByTagName('col');
