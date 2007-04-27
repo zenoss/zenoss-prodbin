@@ -240,7 +240,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 objects = [Wrapper(o.get(field, ''), o) for o in objects]
             else:
                 objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
-            objects = dictAwareSort(objects, (('field', rule, sence),))
+            objects = sort(objects, (('field', rule, sence),))
             return [w.cargo for w in objects]
         
         if (getattr(aq_base(request), 'sortedHeader', False) 
@@ -248,7 +248,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
             sortedHeader = request.sortedHeader
             sortedSence = request.sortedSence
             sortRule = getattr(aq_base(request), "sortRule", "cmp")
-            objects = mySort(objects, sortedHeader, sortRule, sortedSence)
+            objects = dictAwareSort(objects, sortedHeader, sortRule, sortedSence)
         return objects
   
 
