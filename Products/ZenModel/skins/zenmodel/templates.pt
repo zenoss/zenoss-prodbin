@@ -214,8 +214,8 @@ style="position:relative;">
     <p id="mainviews">Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
-        <li><a href="/zport/dmd/Events/viewEvents">Event Console</a></li>
-        <li><a href="/zport/dmd/Devices/deviceList">Device List</a></li>
+        <li><a href="/zport/dmd/Events/viewEvents?notabs=1">Event Console</a></li>
+        <li><a href="/zport/dmd/Devices/deviceList?notabs=1">Device List</a></li>
         <li><a href="/zport/dmd/Networks">Networks</a></li>
     </ul>
     <p id="mainviews">Classes</p>
@@ -271,7 +271,7 @@ style="position:relative;">
         tal:define="ztabs python:here.zentinelTabs(template.id);
                     tabnames python:[x['name'] for x in ztabs]">
    <table class="tabtable" cellpadding="0" cellspacing="0"
-           tal:condition="ztabs">
+           tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
        <tr>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 

@@ -132,13 +132,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         ('Default', -1),
     )
     severities = dict([(b, a) for a, b in severityConversions])
-
-
-    def zentinelTabs(self, templateName):
-        if self.id == self.dmdRootName and templateName == 'viewEvents': 
-            return []
-        return super(EventClass, self).zentinelTabs(templateName)
-
     
     def getSubEventClasses(self):
         """Return all EventClass objects below this one.

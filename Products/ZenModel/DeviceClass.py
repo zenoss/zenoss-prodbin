@@ -130,13 +130,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         )
 
     security = ClassSecurityInfo()
-
-    
-    def zentinelTabs(self, templateName):
-        if self.id == self.dmdRootName and templateName == 'deviceList': 
-            return []
-        return super(DeviceClass, self).zentinelTabs(templateName)
-
     
     def getPeerDeviceClassNames(self, pyclass=None):
         "Return a list of all device paths that have the python class pyclass"
