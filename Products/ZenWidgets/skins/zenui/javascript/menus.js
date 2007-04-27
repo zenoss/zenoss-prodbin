@@ -51,14 +51,23 @@ var hideSubMenu = function(sub) {
 }
 
 var hideMenu = function(menu) {
-    setStyle(menu, {'visibility':'hidden','z-index':'1'});
+    setStyle(menu, {'visibility':'hidden','z-index':'1', 'overflow':'hidden'});
+    if (navigator.userAgent.match('Mac')) {
+        try {setStyle(eventZenGrid.scrollbar, {'overflow':'auto'})}
+        catch(e) {noop()};
+    }
 }
 
 var showMenu = function(rel, menu) {
     dropOtherMenuButtons(rel);
     var relPos = calcMenuPos(rel, menu);
     setElementPosition(menu, relPos);
-    setStyle(menu, {'visibility':'visible','z-index':'10000','opacity':'0.98'});
+    setStyle(menu, {'visibility':'visible','z-index':'10000','opacity':'0.98',
+                    'overflow':'hidden'});
+    if (navigator.userAgent.match('Mac')) {
+        try {setStyle(eventZenGrid.scrollbar, {'overflow':'hidden'})}
+        catch(e) {noop()};
+    }
 }
 
 var showContextMenu = function() {
