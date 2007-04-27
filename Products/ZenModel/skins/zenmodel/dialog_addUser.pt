@@ -1,0 +1,18 @@
+<h2>Add User</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">Username:&nbsp;</span>
+<input id="new_id" 
+       name="userid"
+       tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
+Email:&nbsp;<input name="email"><br/><br/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addUser:method"
+    value="Yes, Create this User" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
+</form>

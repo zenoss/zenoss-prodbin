@@ -28,7 +28,9 @@ function ConfirmPagerTest() {
        ztm here/ZenTableManager;
        objects here/getAllUserSettings;
        showfilterbox python:True;
-       batch python:ztm.getBatch(tableName, objects); tabletitle string:User Folder">
+       batch python:ztm.getBatch(tableName, objects); 
+       tabletitle string:User Folder;
+       menu_id string:User_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -45,10 +47,6 @@ function ConfirmPagerTest() {
         <!-- BEGIN TABLE CONTENTS -->
             
     
-    <tr tal:condition="exists: request/message">
-        <th class=tabletitle colspan=4
-            tal:content="request/message" />
-    </tr>
     <tr>
         <th tal:replace="structure python:ztm.getTableHeader(
                             tableName,'primarySortKey','UserId')"/>
@@ -90,27 +88,9 @@ function ConfirmPagerTest() {
     </tr>
     </tal:block>
     <tr>
-        <td colspan="4" class="tableheader">
+        <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
-    </tr>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="4">
-        Userid:
-        <input class="tableheader" type="text" name="userid" size=10/>
-        Email:
-        <input class="tableheader" type="text" name="email"
-           onkeypress="return submitViaEnter(event,'manage_addUser');"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addUser:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteUsers:method" value=" Delete " />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-    </td>
     </tr>
 
         <!-- END TABLE CONTENTS -->

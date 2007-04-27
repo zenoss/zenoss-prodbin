@@ -165,6 +165,10 @@ padding-right:20px;margin-left:20px;}</style>
                       pathtrans)"
     tal:condition="menuitems">
 
+        <tal:block tal:condition="menuitems">
+                <tal:block tal:define="dummy menuitems/sort"/>
+        </tal:block>
+
         <div class="devmovemenu" tal:attributes="id string:${menu_id}_btn">
            &nbsp; 
         </div>
@@ -187,6 +191,8 @@ mypath python:test(item.action.startswith('javascript'),
    <input tal:attributes="id string:${thisid}input" type="hidden"/>
    <a tal:attributes="id thisid; href actionpath" 
     tal:content="item/description">description</a>
+   <tal:block tal:condition="python:getattr(request, 'showMenuOrder', None)" 
+              tal:content="item/ordering"/>
 </tal:block>
 
             </li>

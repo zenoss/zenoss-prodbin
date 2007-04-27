@@ -240,6 +240,25 @@ class MenuRelations(Migrate.Step):
                     permissions=('View',)
                     ),
                 ],
+            'User_list':            [
+                ZenPackItems,
+                dict(
+                    ordering=90.0, 
+                    id=         'addUser',
+                    description='Add New User...',
+                    action=     'dialog_addUser',
+                    permissions=('Manage DMD',),
+                    isdialog=   True,
+                    ),
+                dict(
+                    ordering=70.0, 
+                    id=         'deleteUser',
+                    description='Delete Users...',
+                    action=     'dialog_deleteUsers',
+                    permissions=('Manage DMD',),
+                    isdialog=True
+                    ),
+            ],
             'Organizer_list':            [
                 ZenPackItems,
                 dict(
@@ -484,7 +503,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=1.01, 
                     id=         'removeZenPack',
-                    description='Delete ZenPack',
+                    description='Delete ZenPack...',
                     permissions=('Manage DMD',),
                     action=     'dialog_removeZenPacks',
                     isdialog=True,
@@ -876,7 +895,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=90.0, 
                     id=         'changeClass',
-                    description='Change Class',
+                    description='Change Class...',
                     action=     'dialog_changeClass',
                     isdialog=True,
                     permissions=('Change Device',),
@@ -885,7 +904,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=80.0, 
                     id=         'setProductionState',
-                    description='Set Production State',
+                    description='Set Production State...',
                     action=     'dialog_setProductionState',
                     permissions=('Change Device',),
                     isdialog=True,
@@ -894,7 +913,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=70.0, 
                     id=         'setPriority',
-                    description='Set Priority',
+                    description='Set Priority...',
                     action=     'dialog_setPriority',
                     isdialog=True,
                     permissions=('Change Device',),
@@ -911,7 +930,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=50.0, 
                     id=         'resetIp',
-                    description='Reset IP',
+                    description='Reset IP...',
                     action=     'dialog_resetIp',
                     isdialog=True,
                     permissions=('Change Device',),
@@ -928,7 +947,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=30.0, 
                     id=         'renameDevice',
-                    description='Rename Device',
+                    description='Rename Device...',
                     action=     'dialog_renameDevice',
                     isdialog=True,
                     permissions=('Change Device',),
@@ -937,7 +956,7 @@ class MenuRelations(Migrate.Step):
                 dict(
                     ordering=20.0, 
                     id=         'deleteDevice',
-                    description='Delete Device',
+                    description='Delete Device...',
                     action=     'dialog_deleteDevice',
                     isdialog=True,
                     permissions=('Change Device',),
@@ -953,7 +972,7 @@ class MenuRelations(Migrate.Step):
                     'IpService',
                     'OSProcess',
                     'IpRouteEntry'],
-                    description='Lock',
+                    description='Lock...',
                     ordering=10.0, 
                     id='lockObject',
                     isdialog=True,
