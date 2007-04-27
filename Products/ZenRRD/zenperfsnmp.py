@@ -229,6 +229,8 @@ class zenperfsnmp(SnmpDaemon):
     
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
+    perfsnmpConfigInterval = 5*60
+    properties = RRDDaemon.properties + ('perfsnmpCycleInterval',)
     initialServices = SnmpDaemon.initialServices + ['SnmpPerfConfig']
 
     def __init__(self):
@@ -237,7 +239,6 @@ class zenperfsnmp(SnmpDaemon):
         self.proxies = {}
         self.queryWorkList = Set()
         self.unresponsiveDevices = Set()
-        self.cycleComplete = False
         self.snmpOidsRequested = 0
         perfRoot = performancePath('')
         makeDirs(perfRoot)
@@ -265,8 +266,7 @@ class zenperfsnmp(SnmpDaemon):
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
-        if self.cycleComplete and \
-           not self.options.daemon and \
+        if not self.options.daemon and \
            not self.options.cycle:
             reactor.callLater(0, reactor.stop)
 

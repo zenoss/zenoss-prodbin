@@ -33,10 +33,10 @@ RPC_ERROR_CODE = 2147023170
 
 class WinCollector(Base):
 
-    wmiCycleInterval = 60.
     configCycleInterval = 20.
 
     initialServices = ['EventService', 'WmiConfig']
+    attributes = ('configCycleInterval',)
 
     heartbeat = dict(eventClass=Heartbeat,
                      device=getfqdn(),
@@ -68,8 +68,10 @@ class WinCollector(Base):
         except Exception, ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
-        driveLater(max(0, self.wmiCycleInterval - delay), self.scanCycle)
+        driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
 
+    def cycleInterval(self):
+        return 60
         
     def buildOptions(self):
         Base.buildOptions(self)
@@ -92,12 +94,13 @@ class WinCollector(Base):
 
 
     def updateConfig(self, cfg):
-        for a, v in cfg:
-            current = getattr(self, a, None)
-            if current is not None and current != v:
-                self.log.info("Setting %s to %r", a, v);
-                setattr(self, a, v)
-        self.heartbeat['timeout'] = self.wmiCycleInterval*3
+        cfg = dict(cfg)
+        for attribute in self.attributes:
+            current = getattr(self, attribute, None)
+            value = cfg.get(attribute)
+            if current is not None and current != value:
+                self.log.info("Setting %s to %r", attribute, value);
+                setattr(self, attribute, value)
 
     def error(self, why):
         why.printTraceback()

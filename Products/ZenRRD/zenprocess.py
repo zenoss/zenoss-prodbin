@@ -248,6 +248,8 @@ class zenprocess(SnmpDaemon):
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
     initialServices = SnmpDaemon.initialServices + ['ProcessConfig']
+    processConfigInterval = 5*60
+    properties = RRDDaemon.properties + ('processCycleInterval',)
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
@@ -492,7 +494,7 @@ class zenprocess(SnmpDaemon):
 
     def periodic(self, unused=None):
         "Basic SNMP scan loop"
-        reactor.callLater(self.snmpCycleInterval, self.periodic)
+        reactor.callLater(self.processCycleInterval, self.periodic)
 
         if self.scanning:
             running, unstarted, finished = self.scanning.status()

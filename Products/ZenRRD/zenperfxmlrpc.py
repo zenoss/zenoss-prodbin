@@ -188,7 +188,6 @@ class zenperfxmlrpc(RRDDaemon):
         self.devices = {}
         self.queryWorkList = Set()
         self.unresponsiveDevices = Set()
-        self.cycleComplete = False
         self.methodsRequested = 0
         perfRoot = performancePath('')
         if not os.path.exists(perfRoot):
@@ -217,8 +216,7 @@ class zenperfxmlrpc(RRDDaemon):
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
-        if self.cycleComplete and \
-           not self.options.daemon and \
+        if not self.options.daemon and \
            not self.options.cycle:
             reactor.stop()
 

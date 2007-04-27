@@ -48,7 +48,7 @@ class ZenPing(ZCmdBase):
     timeOut = 1.5
     tries = 2
     chunk = 75
-    cycleInterval = 60
+    pingCycleInterval = 60
     configCycleInterval = 20*60
     maxFailures = 2
     pinger = None
@@ -98,7 +98,7 @@ class ZenPing(ZCmdBase):
         changed = False
         smc = self.dmd.getObjByPath(self.configpath)
         for att in ("timeOut", "tries", "chunk",
-                    "cycleInterval", "configCycleInterval",
+                    "pingCycleInterval", "configCycleInterval",
                     "maxFailures",):
             before = getattr(self, att)
             after = getattr(smc, att)
@@ -159,7 +159,7 @@ class ZenPing(ZCmdBase):
 
     def pingCycle(self):
         "Start a new run against the ping job tree"
-        reactor.callLater(self.cycleInterval, self.pingCycle)
+        reactor.callLater(self.pingCycleInterval, self.pingCycle)
 
         if self.pingTreeIter == None:
             self.start = time.time()

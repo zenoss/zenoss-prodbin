@@ -24,17 +24,52 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
     <tr>
-      <td class="tableheader">WMI Cycle Interval (secs)</td>
+      <td class="tableheader">Event Log Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="wmiCycleInterval:int" 
-            size="10" tal:attributes="value here/wmiCycleInterval"/>
+        <input class="tablevalues" type="text" name="eventlogCycleInterval:int" 
+            size="10" tal:attributes="value here/eventlogCycleInterval"/>
       </td>
     </tr>
     <tr>
-      <td class="tableheader">Snmp Cycle Interval (secs)</td>
+      <td class="tableheader">SNMP Performance Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snmpCycleInterval:int" 
-            size="10" tal:attributes="value here/snmpCycleInterval"/>
+        <input class="tablevalues" type="text" name="perfsnmpCycleInterval:int" 
+            size="10" tal:attributes="value here/perfsnmpCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pingCycleInterval:int" 
+            size="10" tal:attributes="value here/pingCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Process Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="processCycleInterval:int" 
+            size="10" tal:attributes="value here/processCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Status Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="statusCycleInterval:int" 
+            size="10" tal:attributes="value here/statusCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Windows Service Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="winCycleInterval:int" 
+            size="10" tal:attributes="value here/winCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Windows Modeler Cycle Interval (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="winmodelerCycleInterval:int" 
+            size="10" tal:attributes="value here/winmodelerCycleInterval"/>
       </td>
     </tr>
     <tr>

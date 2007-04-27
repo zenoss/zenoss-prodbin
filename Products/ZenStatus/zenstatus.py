@@ -84,9 +84,9 @@ class ZenStatus(Base):
 
     agent = "ZenStatus"
     initialServices = ['EventService', 'StatusConfig']
-    cycleInterval = 300
+    statusCycleInterval = 300
     configCycleInterval = 20
-    properties = ('cycleInterval', 'configCycleInterval')
+    properties = ('statusCycleInterval', 'configCycleInterval')
     reconfigureTimeout = None
 
     def __init__(self):
@@ -165,14 +165,14 @@ class ZenStatus(Base):
         self.log.error(why.getErrorMessage())
 
     def scanCycle(self, driver):
-        d = driveLater(self.cycleInterval, self.scanCycle)
+        d = driveLater(self.statusCycleInterval, self.scanCycle)
         d.addErrback(self.error)
 
         if not self.status.done():
             duration = self.status.duration()
             self.log.warning("Scan cycle not complete in %.2f seconds",
                              duration)
-            if duration < self.cycleInterval * 2:
+            if duration < self.statusCycleInterval * 2:
                 self.log.warning("Waiting for the cycle to complete")
                 return
             self.log.warning("Ditching this cycle")
@@ -201,7 +201,7 @@ class ZenStatus(Base):
         heartbeatevt = dict(eventClass=Heartbeat,
                             component='ZenStatus',
                             device=getfqdn())
-        self.sendEvent(heartbeatevt, timeout=self.cycleInterval*3)
+        self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
 
 
     def runSomeJobs(self):

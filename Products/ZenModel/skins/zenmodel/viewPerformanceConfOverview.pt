@@ -21,12 +21,32 @@
             
     
     <tr>
-      <td class="tableheader">WMI Cycle Interval (secs)</td>
-      <td class="tablevalues" tal:content="here/wmiCycleInterval" />
+      <td class="tableheader">Event Log Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/eventlogCycleInterval" />
     </tr>
     <tr>
-      <td class="tableheader">Snmp Cycle Interval (secs)</td>
-      <td class="tablevalues" tal:content="here/snmpCycleInterval" />
+      <td class="tableheader">SNMP Performance Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/perfsnmpCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/pingCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Process Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/processCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Status Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/statusCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Windows Service Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/winCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Windows Modeler Cycle Interval (secs)</td>
+      <td class="tablevalues" tal:content="here/winmodelerCycleInterval" />
     </tr>
     <tr>
       <td class="tableheader">Config Cycle Interval (mins)</td>

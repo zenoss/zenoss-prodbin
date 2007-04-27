@@ -30,6 +30,8 @@ from Products.ZenEvents import Event
 from WinServiceTest import WinServiceTest
 from WinEventlog import WinEventlog
 
+ERRtimeout = 88
+
 class StatusTest:
     def __init__(self, name, username, password, services):
         self.name = name
@@ -41,6 +43,7 @@ class zenwin(Base):
 
     name = agent = "zenwin"
     deviceConfig  = 'getWinServices'
+    attributes = Base.attributes + ('winmodelerCycleInterval',)
 
     def __init__(self):
         Base.__init__(self)
@@ -48,6 +51,7 @@ class zenwin(Base):
         self.devices = []
         self.watchers = {}
         self.statmsg = "Windows Service '%s' is %s"
+        self.winCycleInterval = 60
 
     def mkevt(self, devname, svcname, msg, sev):
         "Compose an event"
@@ -125,6 +129,9 @@ class zenwin(Base):
             code,txt,info,param = e
             if info:
                 wcode, source, descr, hfile, hcont, scode = info
+                if wcode == ERRtimeout:
+                    return
+                self.log.debug("Codes: %r %r %r %r %r %r" % info)
                 scode = abs(scode)
             if scode != TIMEOUT_CODE:
                 self.deviceDown(srec, str(e))
@@ -164,6 +171,10 @@ class zenwin(Base):
                                 agent=self.agent,
                                 eventClass=Status_Wmi_Conn))
 
+    def updateConfig(self, cfg):
+        Base.updateConfig(self, cfg)
+        self.heartbeat['timeout'] = self.winCycleInterval*3
+
     def updateDevices(self, devices):
         config = []
         for n,u,p,s in devices:
@@ -174,6 +185,9 @@ class zenwin(Base):
         if devices:
             self.devices = config
     
+    def cycleInterval(self):
+        return self.winCycleInterval
+        
     def buildOptions(self):
         Base.buildOptions(self)
 

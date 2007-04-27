@@ -32,6 +32,7 @@ class zenwinmodeler(Base):
     name = agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
     deviceConfig = 'getDeviceWinInfo'
+    attributes = Base.attributes + ('winmodelerCycleInterval',)
 
     def __init__(self):
         Base.__init__(self)
@@ -109,6 +110,9 @@ class zenwinmodeler(Base):
         self.log.exception(msg)
         self.failed = True
 
+    def cycleInterval(self):
+        return self.winmodelerCycleInterval
+        
     def updateDevices(self, devices):
         self.devices = devices
 

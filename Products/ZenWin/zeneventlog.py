@@ -31,6 +31,8 @@ class zeneventlog(Base):
 
     name = agent = "zeneventlog"
 
+    attributes = Base.attributes + ('eventlogCycleInterval',)
+
     def __init__(self):
         Base.__init__(self)
         self.devices = {}
@@ -131,6 +133,9 @@ class zeneventlog(Base):
         self.log.debug("device:%s msg:'%s'", name, lrec.Message)
         return evt
 
+    def cycleInterval(self):
+        return self.eventlogCycleInterval
+        
 
 if __name__ == "__main__":
     zw = zeneventlog()

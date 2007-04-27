@@ -88,9 +88,16 @@ class PerformanceConf(Monitor, StatusColor):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
-    wmiCycleInterval = 60
-    snmpCycleInterval = 300
-    configCycleInterval = 30
+    eventlogCycleInterval = 60
+    perfsnmpCycleInterval = 300
+    pingCycleInterval = 60
+    processCycleInterval = 300
+    statusCycleInterval = 60
+    winCycleInterval = 60
+    winmodelerCycleInterval = 60
+    
+    configCycleInterval = 6*60
+
     renderurl = ''
     renderuser = ''
     renderpass = ''
@@ -105,8 +112,13 @@ class PerformanceConf(Monitor, StatusColor):
         )
 
     _properties = (
-        {'id':'wmiCycleInterval','type':'int','mode':'w'},
-        {'id':'snmpCycleInterval','type':'int','mode':'w'},
+        {'id':'eventlogCycleInterval','type':'int','mode':'w'},
+        {'id':'perfsnmpCycleInterval','type':'int','mode':'w'},
+        {'id':'pingCycleInterval','type':'int','mode':'w'},
+        {'id':'processCycleInterval','type':'int','mode':'w'},
+        {'id':'statusCycleInterval','type':'int','mode':'w'},
+        {'id':'winCycleInterval','type':'int','mode':'w'},
+        {'id':'winmodelerCycleInterval','type':'int','mode':'w'},
         {'id':'configCycleInterval','type':'int','mode':'w'},
         {'id':'renderurl','type':'string','mode':'w'},
         {'id':'renderuser','type':'string','mode':'w'},
