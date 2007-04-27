@@ -173,6 +173,13 @@ class MenuRelations(Migrate.Step):
                     id='pushConfig_os',
                     permissions=('Change Device',)
                     ),
+                dict(action='editCustSchema',
+                    allowed_classes=['DeviceClass',],
+                    description='Custom Schema',
+                    ordering=60.0, 
+                    id='editCustSchema',
+                    permissions=('Change Device',)
+                    ),
                 dict(action='deviceCustomEdit',
                     allowed_classes=['Device'],
                     description='Custom',
