@@ -398,8 +398,7 @@ class ZenModeler(ZCmdBase):
         self.log.info("stopping...")
         self.applyData.stop()
         transaction.abort()
-        if reactor.running:
-            reactor.crash()
+        reactor.callLater(0., reactor.crash)
 
 
     def mainLoop(self):
