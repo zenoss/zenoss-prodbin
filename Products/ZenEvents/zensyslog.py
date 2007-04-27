@@ -114,14 +114,16 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
             self.olog.info(message)
 
-        lookupPointer(ipaddr,timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()) )
+        ptr = '.'.join(ipaddr.split('.')[::-1]) + '.in-addr.arpa'
+        lookupPointer(ptr, timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()))
 
 
-    def gotHostname(self, host, data):
+    def gotHostname(self, response, data):
         "send the resolved address, if possible, and the event via the thread"
-        if isinstance(host, failure.Failure):
-            host = data[1]
-        self.q.put( (host,) + data )
+        if isinstance(response, failure.Failure):
+            self.q.put( (data[1],) + data )
+        else:
+            self.q.put( (str(response[0][0].payload.name),) + data )
 
 
     def doHandleRequest(self, host, msg, ipaddr, rtime):
