@@ -59,116 +59,103 @@ ZenGridBuffer.prototype = {
         this.size = 0;
         this.rows = new Array();
         this.updating = false;
-        this.lastOffset = 0;
-        this.maxQuery = 300;
+        this.grid = null;
+        this.maxQuery = 50;
         this.totalRows = 0;
         this.numRows = 0;
         this.numCols = 0;
-        this.pageSize = 15;
+        this.pageSize = 10;
         this.bufferSize = 5; 
-        this.marginFactor = 0.15; 
+        this.marginFactor = 0.2; 
         bindMethods(this);
     },
-    setNumCols: function(n) {this.numCols = n;},
-    setNumRows: function(n) {this.numRows = n;},
     tolerance: function() {
         return parseInt(this.bufferSize * this.pageSize * this.marginFactor);
     },
     endPos: function() {return this.startPos + this.rows.length;},
-    closeToTop: function(pos) {
-        return pos - this.startPos < this.tolerance();
-    },
-    closeToBottom: function(pos) {
-        return this.endPos() - (pos + this.pageSize) < this.tolerance();
-    },
-    isNearLimit: function(pos) {
-        return (!this.isAtTop() && this.closeToTop(pos)) ||
-               (!this.isAtBottom() && this.closeToBottom(pos));
-    },
-    isAtTop: function() { return this.startPos == 0; },
-    isAtBottom: function() { return this.endPos() == this.numRows; },
-    querySize: function(offset) {
-        var newOffset = this.queryOffset(offset);
+    querySize: function(newOffset) {
         var newSize = 0;
-        if (newOffset>=this.startPos) {
-            var endOffset = this.maxQuery + newOffset;
-            if (endOffset > this.numRows)
-                endOffset = this.totalRows;
-            newSize = endOffset - newOffset;
-                if(newOffset==0&&newSize<this.maxQuery){
-                    newSize = this.maxQuery;
-                }
-        } else {
-            var newSize = this.startPos - newOffset;
-            if (newSize > this.maxQuery)
+        if (newOffset >= this.startPos) { //appending
+            var endQueryOffset = this.maxQuery + this.grid.lastOffset;
+            newSize = endQueryOffset - newOffset;
+            if(newOffset==0 && newSize < this.maxQuery)
                 newSize = this.maxQuery;
+        } else { // prepending
+            newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
-        if (newSize > this.maxQuery)
-            newSize = this.maxQuery;
         return newSize;
     },
     queryOffset: function(offset) {
         var newOffset = offset;
-        if (offset > this.startPos) {
-            newOffset = offset>this.endPos()?offset:this.endPos();
-        } else {
-            if (offset + this.maxQuery>=this.startPos) {
-                newOffset = this.startPos - this.maxQuery;
-                if (newOffset<0) newOffset = 0;
+        var goingup = Math.abs(this.startPos - this.grid.lastOffset);
+        var goingdown = Math.abs(this.grid.lastOffset - this.endPos());
+        var reverse = goingup < goingdown;
+        if (offset > this.startPos && !reverse){ 
+            newOffset = Math.max(offset, this.endPos()); //appending
+        }
+        else if (offset > this.startPos && reverse) {
+            newOffset = Math.max(0, 
+                offset - this.maxQuery + (2*this.tolerance()));
+            if (offset-newOffset-this.maxQuery<this.tolerance()) {
+                newOffset += this.tolerance()
+            }
+            if (offset-newOffset-this.maxQuery<this.tolerance()) {
+                newOffset += (2*this.tolerance());
             }
         }
-        this.lastOffset = newOffset;
+        else if (offset + this.maxQuery >= this.startPos) {
+            newOffset = Math.max(this.startPos - this.maxQuery, 0); //prepending
+
+            if (offset-newOffset-this.maxQuery<this.tolerance()) {
+                newOffset = Math.min(offset, newOffset + (2*this.tolerance()));
+            }
+        }
         return newOffset;
     },
     getRows: function(start, count) {
-        var sPos = start - this.startPos;
-        var ePos = sPos + count;
-        if (ePos>this.size) ePos = this.size;
+        var bPos = start - this.startPos;
+        var ePos = Math.min(bPos+count, this.size);
         var results = new Array();
-        var index = 0;
-        for( i = sPos; i<ePos; i++){
-            results[index++] = this.rows[i]
-        };
+        for (var i=bPos; i<ePos; i++)
+            results.push(this.rows[i]);
         return results;
     },
-    loadRows: function(response) {
-        var rows = response;
-        return rows;
+    isInRange: function(start) {
+        var lastRow = Math.min(start + this.pageSize);
+        return (start >= this.startPos)&&(lastRow<=this.endPos())&&(this.size!=0);
     },
     update: function(response, start) {
-        var newRows = this.loadRows(response);
-        if (this.rows.length == 0) {
+        var newRows = response;
+        if (newRows==null) return;
+        this.rcvdRows = newRows.length;
+        if (this.rows.length==0) { // initial load
             this.rows = newRows;
-            this.size = this.rows.length;
-            //this.startPos = start;
-            return;
-        }
-        if (start > this.startPos) { 
+            this.startPos = start;
+        } else if (start > this.startPos) { // appending
             if (this.startPos + this.rows.length < start) {
-                this.rows =  newRows;
+                this.rows = newRows;
                 this.startPos = start;
-             } else {
-                 this.rows = this.rows.concat( newRows.slice(0, newRows.length));
-                 if (this.rows.length > this.maxQuery) {
+            } else {
+                this.rows = this.rows.concat( newRows.slice(0, newRows.length));
+                if (this.rows.length > this.maxQuery) {
                     var fullSize = this.rows.length;
-                    this.rows = this.rows.slice(this.rows.length - 
-                        this.maxQuery, this.rows.length);
-                    this.startPos = this.startPos +  (fullSize - this.rows.length);
-                 }
-             }
-           } else { 
-             if (start + newRows.length < this.startPos) {
-                this.rows =  newRows;
-         } else {
-            this.rows = newRows.slice(0, this.startPos).concat(this.rows);
-            if (this.rows.length > this.maxQuery) 
-               this.rows = this.rows.slice(0, this.maxQuery)
-         }
-         this.startPos =  start;
-      }
-      this.size = this.rows.length;
-      //this.startPos = start;
-
+                    this.rows = this.rows.slice(
+                        this.rows.length - this.maxQuery, this.rows.length
+                    );
+                    this.startPos = this.startPos + (fullSize - this.rows.length);
+                }
+            }
+        } else { //prepending
+            if (start + newRows.length < this.startPos) {
+                this.rows = newRows;
+            } else {
+                this.rows = newRows.slice(0, this.startPos).concat(this.rows);
+                if (this.maxQuery && this.rows.length > this.maxQuery)
+                    this.rows = this.rows.slice(0, this.maxQuery)
+            }
+            this.startPos = start;
+        }
+        this.size = this.rows.length;
     },
     clear: function() {
         this.rows = new Array();
@@ -188,6 +175,7 @@ ZenGrid.prototype = {
         this.container = $(container);
         this.gridId = gridId;
         this.buffer = buffer;
+        this.buffer.grid = this;
         this.numRows = 10;
         this.rowHeight = 32;
         this.checkedArray = new Array();
@@ -308,41 +296,52 @@ ZenGrid.prototype = {
         this.buffer.clear();
         if (offset) this.lastOffset = offset;
         this.url = url || this.url;
-        //this.clearFirst = true;
         update(this.lastparams, params);
         this.refreshTable(this.lastOffset);
     },
     query: function(offset) {
         var url = this.url || 'getJSONEventsInfo';
         this.lastOffset = offset;
+        bufOffset = this.buffer.queryOffset(offset);
+        bufSize = this.buffer.querySize(bufOffset);
         var qs = update(this.lastparams, {
-            'offset': this.buffer.queryOffset(offset),
-            //'fields:list': this.fieldnames,
-            'count': this.buffer.querySize(offset), 
+            'offset': bufOffset,
+            'count': bufSize,
             'getTotalCount': 1
         });
         var d = loadJSONDoc(url, qs);
         d.addErrback(function(x) { log("BROKEN! " + x)});
         d.addCallback(
          bind(function(r) {
-             result = r; //evalJSON(r.responseText); // For POST
+             result = r; 
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
-             this.buffer.update(result[0], offset);
+             this.buffer.update(result[0], bufOffset);
              this.lock.release();
          }, this));
     },
     refreshTable: function(offset) {
         this.showLoading();
-        var offset = offset || this.lastOffset;
+        var lastOffset = this.lastOffset;
+        this.lastOffset = offset;
         this.scrollbar.scrollTop = this.rowToPixel(offset);
-        if (offset + this.numRows > this.buffer.startPos + this.buffer.size ||
-                offset < this.buffer.startPos - this.numRows) {
-            d = this.lock.acquire();
-            d.addCallback(bind(function() {
-              this.query(offset);
-            }, this));
-        };
+        var inRange = this.buffer.isInRange(offset);
+        if (inRange) {
+            this.populateTable(this.buffer.getRows(offset, this.numRows));
+            if (offset > lastOffset) {
+                if (offset+this.buffer.pageSize < 
+                    this.buffer.endPos()-this.buffer.tolerance()) return;
+            } else if (offset < lastOffset) {
+                if (offset > this.buffer.startPos + this.buffer.tolerance()) 
+                    return;
+                if (this.buffer.startPos==0) return;
+            } else return;
+        }
+        if (offset >= this.buffer.totalRows && this.buffer.rcvdRows) return;
+        d = this.lock.acquire();
+        d.addCallback(bind(function() {
+          this.query(offset);
+        }, this));
         popLock = this.lock.acquire();
         popLock.addCallback(bind(function() {
             this.lock.release();
@@ -731,7 +730,7 @@ ZenGrid.prototype = {
     showLoading: function() {
         clearTimeout(this.isLoading);
         var isIE//@cc_on=1;
-        if(isIE) createLoggingPane();
+        //if(isIE) createLoggingPane();
 //        //this.isLoading = setTimeout( bind(function() {
 //            //var p = this.getViewportCenter();
 //            var d = getElementDimensions(this.loadingbox);
