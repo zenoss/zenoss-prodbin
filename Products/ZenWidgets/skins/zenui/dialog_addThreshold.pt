@@ -8,7 +8,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url_path}', this.id)"><br/>
 
 <div align="center">
 <input type="submit" name="manage_addRRDThreshold:method" value="Add"/>

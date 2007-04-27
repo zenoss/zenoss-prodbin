@@ -12,7 +12,7 @@ What would you like to name this device?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="newId"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/><br/>
 </p>
 <br/>
 <div id="dialog_buttons">

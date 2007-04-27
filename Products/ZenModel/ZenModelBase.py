@@ -21,6 +21,10 @@ import copy
 import re
 import time
 
+import sys 
+from urllib import unquote
+from OFS.ObjectManager import checkValidId as globalCheckValidId
+
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
@@ -75,6 +79,20 @@ class ZenModelBase(object):
     def prepId(self, id, subchar='_'):
         return globalPrepId(id, subchar)
 
+    def checkValidId(self, id):
+        """Checks a valid id
+        """
+        new_id = unquote(id)
+        try: 
+            globalCheckValidId(self, new_id)
+            try:
+                globalCheckValidId(self, self.prepId(id=new_id))
+                return True
+            except:
+                return str(sys.exc_info()[1])
+        except:
+            return str(sys.exc_info()[1])
+        
     def getIdLink(self):
         """Return an A link to this object with its id as the name.
         """

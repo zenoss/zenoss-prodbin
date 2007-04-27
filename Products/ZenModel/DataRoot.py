@@ -18,13 +18,12 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
-import re, sys
+import re
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
-from OFS.ObjectManager import checkValidId
 from ImageFile import ImageFile
 from Globals import HTMLFile, DTMLFile
 from Globals import InitializeClass
@@ -38,8 +37,6 @@ from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
 import socket
-
-from urllib import unquote
 
 from AccessControl import Permissions as permissions
 
@@ -131,7 +128,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'dataRootManage'
                 , 'permissions'   : ('Manage DMD',)
                 },
@@ -221,20 +218,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ZenModelRM.__init__(self, id, title)
 
 
-    def checkValidId(self, new_id):
-        """Checks a valid id
-        """
-        test_id = unquote(new_id)
-        try: 
-            checkValidId(self, test_id)
-            if getattr(self, test_id, False):
-                return 'The id "%s" id already being used.' % test_id
-            else:
-                return True
-        except:
-            return str(sys.exc_info()[1])
-    
-    
     def getResultFields(self):
         """Result fields for dashboard.
         """

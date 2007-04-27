@@ -10,7 +10,7 @@
 </td><td>
         <input id="new_id" 
                name="id"
-               onblur="checkValidId(this.id)">
+               tal:attributes="onblur string:checkValidId('${here/absolute_url_path}', this.id)">
 </td></tr>
 <tr><td>Author:       </td><td><input name="author"/></td></tr>
 <tr><td>Organization: </td><td><input name="organization"/></td></tr>

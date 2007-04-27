@@ -9,7 +9,7 @@ What would you like to name your Trap?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
         name="id"
-        onblur="checkValidId(this.id)"><br/><br/>
+        tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
 OID:&nbsp;<input type="text" name="oid"><br/><br/>
 Type:&nbsp;<input type="text" name="nodetype">
 </p>

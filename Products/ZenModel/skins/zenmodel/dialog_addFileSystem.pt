@@ -10,7 +10,7 @@ What would you like to name your FileSystem?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addFileSystem:method"

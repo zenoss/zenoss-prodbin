@@ -8,7 +8,7 @@
 <span id="new_id_label">Destination:&nbsp;</span>
 <input id="new_id" 
        name="dest"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
 Next Hop:&nbsp;<input name="nexthopid"><br/><br/>
 Interface:&nbsp;<select name="interface"
 tal:define="interfaces here/os/interfaces/objectValuesAll">

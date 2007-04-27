@@ -7,7 +7,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url_path}', this.id)"><br/><br/>
 Type:&nbsp;<select name='dsOption'>
         <option tal:repeat="option here/getDataSourceOptions"
                 tal:attributes="value python: option[1]" 

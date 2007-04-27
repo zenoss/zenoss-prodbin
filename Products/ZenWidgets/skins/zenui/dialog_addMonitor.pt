@@ -8,7 +8,7 @@ What would you like to name this monitor?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url_path}', this.id)"><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addMonitor:method"

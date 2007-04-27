@@ -10,7 +10,7 @@ What would you like to name your OSProcess?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/Processes/absolute_url}', this.id)"><br/><br/>
 Process Class:&nbsp;<select name="className"
 tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
     <option tal:repeat="target targets"

@@ -6,7 +6,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="newPath"
-       onblur="checkValidId(this.id)"><br/>
+       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/>
 </p>
 
 <div id="dialog_buttons">

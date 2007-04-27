@@ -45,7 +45,7 @@ function wheel(event){
        event.returnValue = false;
 }
 
-function checkValidId(input_id){
+function checkValidId(path, input_id){
     var errmsg = $('errmsg');
     var input = $(input_id);
     var label = $(input_id+'_label');
@@ -55,7 +55,7 @@ function checkValidId(input_id){
     Morph(input_id, {"style": {"color": "black"}});
     Morph(label.id, {"style": {"color": "white"}});
     
-    d = callLater(0, doXHR, 'checkValidId', {queryString:{'new_id':new_id}});
+    d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
     d.addCallback(function (r) { 
         if (r.responseText != 'True') {
             Morph(input_id, {"style": {"color": "red"}});

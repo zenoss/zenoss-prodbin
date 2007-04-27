@@ -8,7 +8,7 @@ What would you like to name your Menu Item?<br/>
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" 
        name="id"
-       onblur="checkValidId(this.id)"><br/><br/>
+       tal:attributes="onblur string:checkValidId('${here/absolute_url_path}', this.id)"><br/><br/>
 Description:&nbsp;<input name="description"><br/><br/>
 Action:&nbsp;<input name="action"><br/><br/>
 Ordering:&nbsp;<input name="ordering" size="5"><br/><br/>
