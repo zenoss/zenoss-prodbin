@@ -86,21 +86,21 @@ class Manufacturer(ZenModelRM, ZenPackable):
                 , 'action'        : 'viewManufacturerOverview'
                 , 'permissions'   : (permissions.view, )
                 },
-                #{ 'id'            : 'edit'
-                #, 'name'          : 'Edit'
-                #, 'action'        : 'editManufacturer'
-                #, 'permissions'   : ("Manage DMD", )
-                #},
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editManufacturer'
+                , 'permissions'   : ("Manage DMD", )
+                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Manage DMD",)
                 },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : (permissions.view, )
-#                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (permissions.view, )
+                },
             )
           },
         )

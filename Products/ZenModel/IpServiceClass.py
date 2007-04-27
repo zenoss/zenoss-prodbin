@@ -69,22 +69,22 @@ class IpServiceClass(ServiceClass):
                 , 'action'        : 'ipServiceClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-#                { 'id'            : 'manage'
-#                , 'name'          : 'Manage'
-#                , 'action'        : 'ipServiceClassManage'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Manage'
+                , 'action'        : 'ipServiceClassManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : (
-#                  Permissions.view, )
-#                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
             )
          },
         )

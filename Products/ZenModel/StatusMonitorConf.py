@@ -101,13 +101,13 @@ class StatusMonitorConf(Monitor, StatusColor):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-#                { 'id'            : 'edit'
-#                , 'name'          : 'Edit'
-#                , 'action'        : 'editStatusMonitorConf'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
+                { 'id'            : 'edit'
+                , 'name'          : 'Edit'
+                , 'action'        : 'editStatusMonitorConf'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
                   permissions.view, )

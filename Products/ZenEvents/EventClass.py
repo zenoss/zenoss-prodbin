@@ -110,6 +110,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
             )
          },
         )

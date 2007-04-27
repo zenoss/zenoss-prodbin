@@ -62,7 +62,7 @@ class NagiosCmd(ZenModelRM):
                 , 'action'        : 'editNagiosCmd'
                 , 'permissions'   : ( Permissions.view, )
                 },
-                { 'name'          : 'Changes'
+                { 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },

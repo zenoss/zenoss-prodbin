@@ -71,7 +71,7 @@ class NagiosTemplate(ZenModelRM):
                 , 'action'        : 'viewNagiosTemplate'
                 , 'permissions'   : ( Permissions.view, )
                 },
-                { 'name'          : 'Changes'
+                { 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },

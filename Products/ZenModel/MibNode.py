@@ -44,7 +44,7 @@ class MibNode(MibBase):
                 , 'permissions'   : ( Permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },

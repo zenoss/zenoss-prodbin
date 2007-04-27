@@ -76,7 +76,7 @@ class Software(MEProduct):
                   permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
                   permissions.view, )

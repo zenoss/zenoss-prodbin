@@ -320,7 +320,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 #                , 'permissions'   : (permissions.view,)
 #                },
 #                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Changes'
+#                , 'name'          : 'Modifications'
 #                , 'action'        : 'viewHistory'
 #                , 'permissions'   : (permissions.view, )
 #                },

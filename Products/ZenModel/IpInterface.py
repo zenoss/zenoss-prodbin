@@ -129,7 +129,7 @@ class IpInterface(OSComponent):
 #                , 'permissions'   : ("Change Device", )
 #                },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Changes'
+                , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ('View',)
                 },
