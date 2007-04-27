@@ -23,6 +23,9 @@
     page string:getEventListPage;
     ">
 <input type='hidden' name='zenScreenName' tal:attributes="value template/id" />
+<input type='hidden' name='notabs' 
+        tal:condition="python:getattr(request, 'notabs', False)"
+        tal:attributes="value string:1" />
 <tal:block metal:define-macro="eventTable">
 <tal:block tal:define="tabletitle string:Event List;menu_id string:Event_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
