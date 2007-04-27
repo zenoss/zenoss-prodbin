@@ -97,7 +97,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
                 , 'permissions'   : ("Manage DMD",)
                 },
 #                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Modifications'
+#                , 'name'          : 'Changes'
 #                , 'action'        : 'viewHistory'
 #                , 'permissions'   : (permissions.view, )
 #                },

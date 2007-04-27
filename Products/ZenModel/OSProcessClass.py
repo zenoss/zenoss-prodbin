@@ -76,22 +76,22 @@ class OSProcessClass(ZenModelRM, Commandable):
                 , 'action'        : 'osProcessClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'osProcessClassManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+                #{ 'id'            : 'manage'
+                #, 'name'          : 'Manage'
+                #, 'action'        : 'osProcessClassManage'
+                #, 'permissions'   : ("Manage DMD",)
+                #},
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Changes'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )

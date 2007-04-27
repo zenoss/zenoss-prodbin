@@ -81,12 +81,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             'immediate_view' : 'eventClassStatus',
             'actions'        :
             ( 
-#                { 'id'            : 'events'
-#                , 'name'          : 'Events'
-#                , 'action'        : 'viewEvents'
-#                , 'permissions'   : (
-#                  Permissions.view, )
-#                },
                 { 'id'            : 'classes'
                 , 'name'          : 'Classes'
                 , 'action'        : 'eventClassStatus'
@@ -96,6 +90,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 { 'id'            : 'eventList'
                 , 'name'          : 'Mappings'
                 , 'action'        : 'eventMappingList'
+                , 'permissions'   : (
+                  Permissions.view, )
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   Permissions.view, )
                 },
@@ -109,12 +109,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
                 },
             )
          },

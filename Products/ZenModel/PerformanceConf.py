@@ -135,7 +135,7 @@ class PerformanceConf(Monitor, StatusColor):
 #                , 'permissions'   : ("Manage DMD",)
 #                },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
+                , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
                   permissions.view, )

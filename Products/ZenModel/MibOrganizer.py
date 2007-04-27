@@ -1,8 +1,15 @@
-#################################################################
+###########################################################################
 #
-#   Copyright (c) 2006 Zenoss, Inc. All rights reserved.
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
 #
-#################################################################
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 
 import types
 
@@ -17,6 +24,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 from Organizer import Organizer
 from MibModule import MibModule
+from ZenPackable import ZenPackable
 
 def manage_addMibOrganizer(context, id, REQUEST = None):
     """make a device class"""
@@ -29,7 +37,7 @@ def manage_addMibOrganizer(context, id, REQUEST = None):
 addMibOrganizer = DTMLFile('dtml/addMibOrganizer',globals())
 
 
-class MibOrganizer(Organizer):
+class MibOrganizer(Organizer, ZenPackable):
     """
     DeviceOrganizer is the base class for device organizers.
     It has lots of methods for rolling up device statistics and information.
@@ -40,7 +48,7 @@ class MibOrganizer(Organizer):
     
     security = ClassSecurityInfo()
 
-    _relations = Organizer._relations + (
+    _relations = Organizer._relations + ZenPackable._relations + (
         ("mibs", ToManyCont(ToOne,"Products.ZenModel.MibModule","miborganizer")),
         )
 
@@ -57,7 +65,7 @@ class MibOrganizer(Organizer):
                 , 'permissions'   : ( Permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
+                , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },

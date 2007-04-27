@@ -69,13 +69,13 @@ class WinService(Service):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Manage'
-                , 'action'        : 'winServiceManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+                #{ 'id'            : 'manage'
+                #, 'name'          : 'Manage'
+                #, 'action'        : 'winServiceManage'
+                #, 'permissions'   : ("Manage DMD",)
+                #},
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
+                , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : (
                   Permissions.view, )

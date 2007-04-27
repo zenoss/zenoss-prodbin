@@ -47,7 +47,7 @@ class ActionRuleWindow(MaintenanceWindow):
                 , 'permissions'   : ( Permissions.view, )
                 },
                 { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
+                , 'name'          : 'Changes'
                 , 'action'        : 'viewHistory'
                 , 'permissions'   : ( Permissions.view, )
                 },
