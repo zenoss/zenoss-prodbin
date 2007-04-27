@@ -230,7 +230,7 @@ class zenperfsnmp(SnmpDaemon):
     # these names need to match the property values in StatusMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
     perfsnmpConfigInterval = 5*60
-    properties = RRDDaemon.properties + ('perfsnmpCycleInterval',)
+    properties = SnmpDaemon.properties + ('perfsnmpCycleInterval',)
     initialServices = SnmpDaemon.initialServices + ['SnmpPerfConfig']
 
     def __init__(self):

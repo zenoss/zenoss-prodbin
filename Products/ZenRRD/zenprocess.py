@@ -249,7 +249,7 @@ class zenprocess(SnmpDaemon):
                     'eventGroup' : 'Process' }
     initialServices = SnmpDaemon.initialServices + ['ProcessConfig']
     processConfigInterval = 5*60
-    properties = RRDDaemon.properties + ('processCycleInterval',)
+    properties = SnmpDaemon.properties + ('processCycleInterval',)
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
