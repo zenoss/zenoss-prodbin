@@ -40,7 +40,7 @@ class StatusConfig(HubService):
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
-        self.config = self.dmd.Monitors.StatusMonitors._getOb(self.instance)
+        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
     def remote_propertyItems(self):
         return self.config.propertyItems()
