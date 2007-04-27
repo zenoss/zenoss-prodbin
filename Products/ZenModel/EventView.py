@@ -38,6 +38,7 @@ class EventView(object):
 
     def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
                           getTotalCount=True, 
+                          
                           filter='', severity=2, state=1, 
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
@@ -68,8 +69,7 @@ class EventView(object):
         """Return the status number for this device of class statClass.
         """
         try:
-            return self.getEventManager().getStatusME(self, 
-                                        statusclass=statusclass, **kwargs)
+            return self.getEventManager().getStatusME(self, statusclass=statusclass, **kwargs)
         except MySQLError: 
             log.exception("exception getting status")
             return -1
@@ -113,6 +113,16 @@ class EventView(object):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    #security.declareProtected('Manage Events','manage_deleteBatchEvents')
+    def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], REQUEST=None, **kwargs):
+        """Delete events form this managed entity.
+        """
+        evids = self.getEventManager().getEventBatchME(self, selectstatus,
+                                            goodevids, badevids, **kwargs)
+        return self.manage_deleteEvents(evids, REQUEST)
+
+
     security.declareProtected('Manage Events','manage_undeleteEvents')
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
@@ -121,6 +131,16 @@ class EventView(object):
         if REQUEST: 
             REQUEST['message'] = '%s events undeleted.' % len(evids)
             return self.callZenScreen(REQUEST)
+
+
+    #security.declareProtected('Manage Events','manage_undeleteBatchEvents')
+    def manage_undeleteBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], REQUEST=None, **kwargs):
+        """Delete events form this managed entity.
+        """
+        evids = self.getEventManager().getEventBatchME(self, selectstatus,
+                                            goodevids, badevids, **kwargs)
+        return self.manage_undeleteEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
@@ -139,6 +159,16 @@ class EventView(object):
         """
         self.getEventManager().manage_ackEvents(evids)
         if REQUEST: return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage Events','manage_ackBatchEvents')
+    def manage_ackBatchEvents(self, selectstatus='none', goodevids=[], 
+                                badevids=[], REQUEST=None, **kwargs):
+        """Delete events form this managed entity.
+        """
+        evids = self.getEventManager().getEventBatchME(self, selectstatus,
+                                            goodevids, badevids, **kwargs)
+        return self.manage_ackEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_setEventStates')

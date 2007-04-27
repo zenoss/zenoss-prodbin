@@ -734,8 +734,7 @@ class MenuRelations(Migrate.Step):
                     ordering=80.0, 
                     id=         'acknowledgeEvents',
                     description='Acknowledge Events',
-                    action=     ('javascript:submitFormToMethod('
-                                 '"control", "manage_ackEvents")'),
+                    action=     ('javascript:eventZenGrid.acknowledgeBatch()'),
                     permissions=('Manage DMD',)
                     ),
                 dict(

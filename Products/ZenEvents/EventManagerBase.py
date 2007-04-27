@@ -271,9 +271,35 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             resultFields = self.lookupManagedEntityResultFields(me.event_key)
         return self.getEventList(resultFields=resultFields,where=where,**kwargs)
 
+
+    def getEventBatchME(self, me, selectstatus=None, 
+                        goodevids=[], badevids=[], **kwargs):
+        where = self.lookupManagedEntityWhere(me)
+        badevidsstr, goodevidsstr = '',''
+        if badevids: badevidsstr = " and evid not in ('%s')" %(
+                                            "','".join(badevids))
+        if goodevids: goodevidsstr = " and evid in ('%s')" %(
+                                            "','".join(goodevids))
+        if selectstatus=='all':
+            where += badevidsstr
+        elif selectstatus=='none':
+            where += goodevidsstr or ' and 0'
+        elif selectstatus=='acked':
+            oper = bool(goodevidsstr) and ' or' or ' and'
+            where += goodevidsstr + oper + " (eventstate=1 %s) " % badevidsstr
+        elif selectstatus=='unacked':
+            oper = bool(goodevidsstr) and ' or' or 'and'
+            where += goodevidsstr + oper + " (eventstate=0 %s) " % badevidsstr
+        try:
+            resultFields = kwargs['resultFields']; del kwargs['resultFields']
+        except KeyError: 
+            resultFields = self.lookupManagedEntityResultFields(me.event_key)
+        events = self.getEventList(resultFields=resultFields,where=where,**kwargs)
+        return [ev.evid for ev in events]
+
         
     def getEventList(self, resultFields=[], where="", orderby="", severity=None,
-                    state=0, startdate=None, enddate=None, offset=0, rows=0,
+                    state=2, startdate=None, enddate=None, offset=0, rows=0,
                     getTotalCount=False, filter="", **kwargs):
         """see IEventList.
         """

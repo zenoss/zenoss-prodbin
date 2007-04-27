@@ -180,6 +180,8 @@ ZenGrid.prototype = {
         this.rowHeight = 32;
         this.checkedArray = new Array();
         this.url = this.absurl + '/' + url;
+        this.zem = this.isHistory?this.absurl+'/ZenEventHistory':
+                                 this.absurl+'/ZenEventManager';
         this.lastparams = this.isHistory?{startdate:$('startdate').value,
                                           enddate:$('enddate').value }:
                           {};
@@ -240,7 +242,9 @@ ZenGrid.prototype = {
         for (i=0;i<cbs.length;i++) {
             rowclass = rows[i].className;
             cbs[i].checked=null;
-            if (rowclass.match('acked')) cbs[i].checked=true;
+            if (rowclass.match('acked')) {
+                cbs[i].checked=true;
+            }
         }
         this.selectstatus = 'acked';
     },
@@ -250,7 +254,9 @@ ZenGrid.prototype = {
         for (i=0;i<cbs.length;i++) {
             rowclass = rows[i].className;
             cbs[i].checked=null;
-            if (rowclass.match('noack')) cbs[i].checked=true;
+            if (rowclass.match('noack')) {
+                cbs[i].checked=true;
+            }
         }
         this.selectstatus = 'unacked';
     },
@@ -499,8 +505,6 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var zem = this.isHistory?this.absurl+'/ZenEventHistory':
-                                 this.absurl+'/ZenEventManager';
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
@@ -532,7 +536,7 @@ ZenGrid.prototype = {
             var geteventwindow = function(zeml, evidl) {
                 return function() { eventWindow(zeml, evidl) }
             }
-            connect(divs[yo.length-1], 'onclick', geteventwindow(zem, evid));
+            connect(divs[yo.length-1], 'onclick', geteventwindow(this.zem, evid));
             divs[yo.length-1].title = "View detailed information" + 
                 " about this event."
             for (j=isManager?1:0;j<yo.length-1;j++) {
@@ -666,7 +670,8 @@ ZenGrid.prototype = {
         Math.floor(pixel/(this.rowSizePlus))*(this.rowSizePlus);
         var newOffset = this.pixelToRow(pixel);
         this.updateStatusBar(newOffset);
-        if (newOffset==0) this.refreshTable(newOffset);
+        if (newOffset==0||newOffset==this.buffer.totalRows-this.numRows) 
+            this.refreshTable(newOffset);
         clearTimeout(this.scrollTimeout);
         this.scrollTimeout = setTimeout (
             bind(function() {
@@ -675,7 +680,6 @@ ZenGrid.prototype = {
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
-        //this.showLoading();
         this.scrollToPixel(this.scrollbar.scrollTop||0)
     },
     refreshFromFormElement: function(e) {
@@ -720,9 +724,7 @@ ZenGrid.prototype = {
     },
     markAsChecked: function(e) {
         var node = e.src();
-
-        this.checkedArray[node.value] = node.checked?
-            'checked':'blank'
+        this.checkedArray[node.value] = node.checked?'checked':'blank';
     },
     showLoading: function() {
         if (this.isLoading) clearTimeout(this.isLoading);
@@ -741,11 +743,9 @@ ZenGrid.prototype = {
             Math.max(0,
                 getElementDimensions(this.viewport).h +
                 getElementPosition(this.viewport).y);
-        log("Current: " + curTableBottom);
-        log("Max: " + maxTableBottom);
         var diff = maxTableBottom - curTableBottom;
         var rowdiff = Math.floor(diff/this.rowSizePlus);
-        if (rowdiff==0) return;
+        if (rowdiff==0 && this.buffer.totalRows!=0) return;
         this.numRows = this.buffer.pageSize = Math.max(1, this.numRows + rowdiff);
         this.setTableNumRows( Math.min( this.numRows, this.buffer.totalRows));
         this.refreshTable(this.lastOffset);
@@ -776,9 +776,70 @@ ZenGrid.prototype = {
         this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
         //this.refreshTable(this.lastOffset);
     },
-    getEvidSummary: function() {
-        //this.checkedArray;
-        //this.selectstatus;
+    deleteBatch: function() {
+        var url = this.absurl + '/manage_deleteBatchEvents';
+        var selectstatus = this.selectstatus;
+        var goodevids = [];
+        var badevids = [];
+        for (var evid in this.checkedArray) {
+            if (this.checkedArray[evid]=='checked') goodevids.push(evid);
+            else badevids.push(evid);
+        }
+        qs = {  'selectstatus':selectstatus, 
+                'goodevids':goodevids,
+                'badevids':badevids         }
+        qs = update(qs, this.lastparams);
+        d = doXHR(url, {queryString:qs}); 
+        d.addCallback(bind(
+            function(r) { 
+                this.buffer.clear();
+                this.refreshTable(this.lastOffset);
+                this.setSelectNone();
+            }, this));
+    },
+    undeleteBatch: function() {
+        var url = this.absurl + '/manage_undeleteBatchEvents';
+        var selectstatus = this.selectstatus;
+        var goodevids = [];
+        var badevids = [];
+        for (var evid in this.checkedArray) {
+            if (this.checkedArray[evid]=='checked') goodevids.push(evid);
+            else badevids.push(evid);
+        }
+        qs = {  'selectstatus':selectstatus, 
+                'goodevids':goodevids,
+                'badevids':badevids         }
+        qs = update(qs, this.lastparams);
+        d = doXHR(url, {queryString:qs}); 
+        d.addCallback(bind(
+            function(r) { 
+                this.buffer.clear();
+                this.refreshTable(this.lastOffset);
+                this.setSelectNone();
+            }, this));
+
+    },
+    acknowledgeBatch: function() {
+        var url = this.absurl + '/manage_ackBatchEvents';
+        var selectstatus = this.selectstatus;
+        var goodevids = [];
+        var badevids = [];
+        for (var evid in this.checkedArray) {
+            if (this.checkedArray[evid]=='checked') goodevids.push(evid);
+            else badevids.push(evid);
+        }
+        qs = {  'selectstatus':selectstatus, 
+                'goodevids':goodevids,
+                'badevids':badevids         }
+        qs = update(qs, this.lastparams);
+        this.showLoading();
+        d = doXHR(url, {queryString:qs}); 
+        d.addCallback(bind(
+            function(r) { 
+                this.buffer.clear();
+                this.refreshTable(this.lastOffset);
+                this.setSelectNone();
+            }, this));
     }
 }
 
