@@ -60,6 +60,7 @@ class EventFilter(object):
         return dict(
             eventClass=Select('Event Class', organizers),
             summary=Text("Summary"),
+            location=Text("Location"),
             prodState=Enumerated("Production State",pconv),
             severity=Enumerated("Severity",sconv),
             eventState=Enumerated("Event State",esconv),
