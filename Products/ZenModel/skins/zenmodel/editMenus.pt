@@ -1,16 +1,18 @@
 
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane"
-        tal:define="menus here/getMenus;
+        tal:define="menus here/zenMenus;
         menuid python:request.get('menuid', 'TopLevel')">
 
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
 
 <form method="post" action="/zport/dmd/editMenus">
-        Menu ID:&nbsp;<select class="tablevalues" name="menuid" onchange="form.submit()">
-                <option tal:repeat="vmenuid menus"
-                        tal:content="vmenuid"
-                        tal:attributes="selected python:vmenuid==menuid"/>
+        Menu ID:&nbsp;<select class="tablevalues" 
+                name="menuid" 
+                onchange="form.submit()">
+                <option tal:repeat="menu menus"
+                        tal:content="menu/id"
+                        tal:attributes="selected python:menu.id==menuid"/>
         </select>
 </form>
 <br/>
@@ -18,7 +20,7 @@
 <tal:block tal:condition="menuid">
 <form method=post 
         tal:attributes="name menuid"
-        tal:define="menuitems python:menus[menuid]">
+        tal:define="menuitems python:getattr(here.zenMenus, menuid).zenMenuItems()">
         
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
 <input type="hidden" name="menuid" tal:attributes="value menuid" /> 
@@ -45,6 +47,8 @@
         <th class="tableheader"></th>
         <th class="tableheader">Ordering</th>
         <th class="tableheader">Menu Item</th>
+        <th class="tableheader">Description</th>
+        <th class="tableheader">Action</th>
     </tr>
     
     <tr tal:repeat="menuitem menuitems">
@@ -62,7 +66,13 @@
                 value menuitem/ordering"/>
       </td>
       <td class="tablevalues">
+              <tal:block tal:content="menuitem/id"/>
+      </td>
+      <td class="tablevalues">
               <tal:block tal:content="menuitem/description"/>
+      </td>
+      <td class="tablevalues">
+              <tal:block tal:content="menuitem/action"/>
       </td>
     </tr>
 
