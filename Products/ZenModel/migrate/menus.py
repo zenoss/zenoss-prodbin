@@ -201,17 +201,6 @@ class MenuRelations(Migrate.Step):
                     id='deviceManagement_os',
                     permissions=('Change Device',)
                     ),
-                dict(action='deviceOrganizerManage',
-                    allowed_classes=['DeviceOrganizer',
-                    'DeviceGroup',
-                    'Location',
-                    'DeviceClass', 
-                    'System'],
-                    description='Administration',
-                    ordering=70.0, 
-                    id='deviceOrganizerManage',
-                    permissions=('Manage DMD',)
-                    ),
                 dict(action='eventClassInstSequence',
                     allowed_classes=['EventClassInst'],
                     description='Sequence',

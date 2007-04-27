@@ -73,7 +73,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
                   Permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'osProcessOrganizerManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

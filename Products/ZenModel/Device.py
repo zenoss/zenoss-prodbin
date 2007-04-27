@@ -305,7 +305,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 , 'permissions'   : ("Change Device",)
                 },
 #                { 'id'            : 'management'
-#                , 'name'          : 'Manage'
+#                , 'name'          : 'Administration'
 #                , 'action'        : 'deviceManagement'
 #                , 'permissions'   : ("Change Device",)
 #                },

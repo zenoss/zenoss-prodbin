@@ -67,7 +67,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                   permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'
                 , 'permissions'   : ('Manage DMD',)
                 },

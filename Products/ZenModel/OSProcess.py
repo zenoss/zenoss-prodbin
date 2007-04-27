@@ -77,7 +77,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 #                , 'permissions'   : ("Change Device", )
 #                },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'osProcessManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

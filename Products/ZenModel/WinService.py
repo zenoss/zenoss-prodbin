@@ -70,7 +70,7 @@ class WinService(Service):
                   Permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'winServiceManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

@@ -207,7 +207,7 @@ class Commandable:
     def getPathToManageTab(self, commandId=None):
         # Try to dig up a management tab from the factory information.
         candidates = [a for a in self.factory_type_information[0]['actions'] 
-                        if a['name'] == 'Manage']
+                        if a['name'] == 'Administration']
         if candidates:
             action = candidates[0]
             url = '%s/%s' % (self.getPrimaryUrlPath(), action['action'])

@@ -93,7 +93,7 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
                 , 'permissions'   : ("Manage DMD", )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'serviceClassManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

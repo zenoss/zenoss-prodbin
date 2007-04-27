@@ -70,7 +70,7 @@ class IpServiceClass(ServiceClass):
                 , 'permissions'   : ("Manage DMD", )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'ipServiceClassManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

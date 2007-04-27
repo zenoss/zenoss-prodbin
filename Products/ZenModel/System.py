@@ -107,7 +107,7 @@ class System(DeviceOrganizer, ZenPackable):
                   permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'
                 , 'permissions'   : ('Manage DMD',)
                 },

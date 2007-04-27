@@ -72,7 +72,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                   Permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'serviceOrganizerManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

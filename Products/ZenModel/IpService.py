@@ -87,7 +87,7 @@ class IpService(Service):
                   Permissions.view, )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'ipServiceManage'
                 , 'permissions'   : ("Manage DMD",)
                 },

@@ -77,7 +77,7 @@ class OSProcessClass(ZenModelRM, Commandable):
                 , 'permissions'   : ("Manage DMD", )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Manage'
+                , 'name'          : 'Administration'
                 , 'action'        : 'osProcessClassManage'
                 , 'permissions'   : ("Manage DMD",)
                 },
