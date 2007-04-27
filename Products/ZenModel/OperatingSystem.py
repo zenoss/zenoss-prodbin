@@ -114,11 +114,11 @@ class OperatingSystem(Software):
                 , 'action'        : '../viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : '../viewHistory'
-                , 'permissions'   : (permissions.view, )
-                },
+                #{ 'id'            : 'viewHistory'
+                #, 'name'          : 'Modifications'
+                #, 'action'        : '../viewHistory'
+                #, 'permissions'   : (permissions.view, )
+                #},
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : '../editDevice'

@@ -117,6 +117,13 @@ class MenuRelations(Migrate.Step):
                     id='viewHistory',
                     permissions=('Change Device',)
                     ),
+                dict(action='../viewHistory',
+                    allowed_classes=['OperatingSystem',],
+                    description='Modifications',
+                    ordering=2.0,
+                    id='viewHistory_os',
+                    permissions=('Change Device',)
+                    ),
                 dict(action='objRRDTemplate',
                     allowed_classes=['Device',
                     'FileSystem',

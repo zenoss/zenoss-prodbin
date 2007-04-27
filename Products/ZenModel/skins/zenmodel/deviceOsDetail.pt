@@ -19,8 +19,9 @@
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
+
     <tr tal:condition="batch">
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -31,9 +32,9 @@
         <th tal:condition="here/zIfDescription"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')"/>
-        <th class="tableheader" align="center">O</th>
-        <th class="tableheader" align="center">A</th>
-        <th class="tableheader" align="center">Lock</th>
+        <th class="tableheader" align="center" width="30">O</th>
+        <th class="tableheader" align="center" width="30">A</th>
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -77,14 +78,14 @@
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
-                'misc_/SiteScopeParser/greenball_img',
-                'misc_/SiteScopeParser/redball_img')">
+                '/zport/dmd/img/green_dot.png',
+                '/zport/dmd/img/red_dot.png')">
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.adminStatus==1,
-                'misc_/SiteScopeParser/greenball_img',
-                'misc_/SiteScopeParser/redball_img')">
+                '/zport/dmd/img/green_dot.png',
+                '/zport/dmd/img/red_dot.png')">
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
@@ -121,7 +122,7 @@
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'caption','Caption')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -131,8 +132,9 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Lock</th>
+                        tableName,'getStatus','Status','cmp')"
+                        width="60" />
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -199,7 +201,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getOSProcessClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -209,8 +211,9 @@ Optional titlebar stuff
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getFailSeverityString','Fail Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Lock</th>
+                        tableName,'getStatus','Status','cmp')"
+                        width="60" />
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tal:block tal:repeat="proc batch">
     <tr tal:define="odd repeat/proc/odd"
@@ -268,7 +271,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getKeyword','Name')">Name
         </th>
@@ -286,8 +289,9 @@ Optional titlebar stuff
                             Description
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'getStatus','Status','cmp')"/>
-        <th class="tableheader" align="center">Lock</th>
+                        tableName,'getStatus','Status','cmp')"
+                        width="60" />
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
     <tr tal:define="odd repeat/srv/odd"
@@ -346,7 +350,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="objects">
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'mount','Mount')">Mount
         </th>
@@ -367,7 +371,7 @@ Optional titlebar stuff
                             tableName,'storageDevice','Storage Device')">Device
         </th>
         -->
-        <th class="tableheader" align="center">Lock</th>
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tr tal:condition="not:objects">
         <th class="tableheader" align="left">
@@ -439,7 +443,7 @@ Optional titlebar stuff
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr tal:condition="batch">
-        <th class="tableheader"></th>
+        <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Destination')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -450,7 +454,7 @@ Optional titlebar stuff
                             tableName,'routeproto','Protocol')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'routetype','Type')"/>
-        <th class="tableheader" align="center">Lock</th>
+        <th class="tableheader" align="center" width="30">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">

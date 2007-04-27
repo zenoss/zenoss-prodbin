@@ -1085,7 +1085,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         ''' Return the img source for a status number
         '''
         if status < 0:
-            src = 'magenta'
+            src = 'purple'
         if status == 0:
             src = 'green'
         elif status == 1:
@@ -1094,7 +1094,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             src = 'yellow'
         else:
             src = 'red'
-        return 'misc_/SiteScopeParser/%sball_img' % src
+        return '/zport/dmd/img/%s_dot.png' % src
 
 
     def getEventCssClass(self, severity, acked=False):

@@ -7,7 +7,7 @@ Which lock status would you like to set on this object?<br/><br/>
                     checked here/sendEventWhenBlocked"
                     />Send event when actions are blocked by a lock<br/>
 </p>
-<p align="right">
+<p  style="text-align:right;">
 <input type="submit" name="lockFromUpdates:method"
         value="Lock from deletion and updates" /><br/>
 <input type="submit" name="lockFromDeletion:method" 
