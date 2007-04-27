@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
