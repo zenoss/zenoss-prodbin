@@ -16,8 +16,14 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <tr><th class="tabletitle" colspan="7">Notification Schedules</th><tr>
+
+<form method="get" tal:attributes="action request/URL;"
+			tal:define="tabletitle string:Notification Schedules;
+                        showfilterbox python:True;
+						tblcolspan string:7">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr class="tableheader">
        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'getUserid','User')"/>
@@ -54,11 +60,15 @@
             </tr>
         </span>
     <tr>
-        <td colspan="7" class="tableheader" align='center'>
-            <form metal:use-macro="here/miscmacros/macros/navtool"></form>
+        <td colspan="6" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
-</table>
+
+</tal:block>
+</tal:block>
+</form>
+
 </tal:block>
 </tal:block>
 

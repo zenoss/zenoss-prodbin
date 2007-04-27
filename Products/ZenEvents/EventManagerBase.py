@@ -671,12 +671,18 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         alink = "<a href='%s'>%s</a>" % (
                                 dev.getPrimaryUrlPath(), dev.id)
                     else: alink = devname
-                    statusCache.append([alink, comp, dtime])
+                    statusCache.append([alink, comp, dtime, devname])
                 if limit:
                     statusCache = statusCache[:limit]
                 cleanup()
             finally: self.close(conn)
         return statusCache
+
+
+    def getHeartbeatObjects(self, failures=True, simple=False, limit=0, db=None):
+        beats = self.getHeartbeat(failures, simple, limit, db)
+        return [{'alink':b[0], 'comp':b[1], 'dtime':b[2], 'devId':b[3]}
+                for b in beats]
 
         
     def getAllComponentStatus(self,

@@ -17,7 +17,7 @@
 <tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
 
 <form method="POST" tal:attributes="action request/URL; name string:deviceList"
-			tal:define="tabletitle string:Monitored Interfaces;
+			tal:define="tabletitle string:Interface Utilization;
                         showfilterbox python:True;
 						tblcolspan string:7">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

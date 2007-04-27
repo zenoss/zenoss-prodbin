@@ -1,3 +1,8 @@
+## Script (Python) "getSortedTableState"
+##parameters=tableName,key
+##bind context=context
+##title=Return a value from a tables current session informtion
+
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,10 +15,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-## Script (Python) "getSortedTableState"
-##parameters=tableName,key
-##bind context=context
-##title=Return a value from a tables current session informtion
 
 request=context.REQUEST
 session=request.SESSION

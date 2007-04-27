@@ -15,10 +15,14 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
+
+<form method="POST" tal:attributes="action request/URL;"
+			tal:define="tabletitle string:New Devices;
+                        showfilterbox python:True;
+						tblcolspan string:5">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'primarySortKey','Name')"/>
@@ -47,7 +51,11 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>
-</table>
+
+</tal:block>
+</tal:block>
+</form>
+
 </tal:block>
 </tal:block>
 

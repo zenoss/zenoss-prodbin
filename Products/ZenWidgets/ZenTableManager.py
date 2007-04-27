@@ -145,18 +145,19 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def getBatch(self, tableName, objects, **keys):
         """Filter, sort and batch objects and pass return set.
         """
+        if not objects:
+            objects = []
         tableState = self.setupTableState(tableName, **keys)
         if tableState.onlyMonitored and objects:
             objects = [o for o in objects if o.monitored()]
         if tableState.filter and objects:
             objects = self.filterObjects(objects, tableState.filter, 
                                         tableState.filterFields)
+        # objects is frequently a generator.  Need a list in order to sort
+        if not isinstance(objects, list):
+            objects = list(objects)
         if tableState.sortedHeader:
             objects = self.sortObjects(objects, tableState)
-        else:
-            # objects needs to be list not generator.  sortObjects() takes
-            # care of this for the other condition above.
-            objects = list(objects)
         tableState.totalobjs = len(objects)
         tableState.buildPageNavigation(objects)
         if not hasattr(self.REQUEST, 'doExport'):
@@ -211,7 +212,10 @@ class ZenTableManager(SimpleItem, PropertyManager):
         for obj in objects:
             target = []
             for field in filterFields:
-                value = getattr(obj, field, None)
+                if isinstance(obj, dict):
+                    value = obj.get(field, None)
+                else:
+                    value = getattr(obj, field, None)
                 if callable(value):
                     value = value()
                 if type(value) not in types.StringTypes:
@@ -225,12 +229,26 @@ class ZenTableManager(SimpleItem, PropertyManager):
     def sortObjects(self, objects, request):
         """Sort objects.
         """
+        def dictAwareSort(objects, field, rule, sence):
+            if not objects:
+                return objects
+            class Wrapper:
+                def __init__(self, field, cargo):
+                    self.field = field
+                    self.cargo = cargo
+            if isinstance(objects[0], dict):
+                objects = [Wrapper(o.get(field, ''), o) for o in objects]
+            else:
+                objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
+            objects = dictAwareSort(objects, (('field', rule, sence),))
+            return [w.cargo for w in objects]
+        
         if (getattr(aq_base(request), 'sortedHeader', False) 
             and getattr(aq_base(request),"sortedSence", False)):
             sortedHeader = request.sortedHeader
             sortedSence = request.sortedSence
             sortRule = getattr(aq_base(request), "sortRule", "cmp")
-            objects = sort(objects, ((sortedHeader, sortRule, sortedSence),))
+            objects = mySort(objects, sortedHeader, sortRule, sortedSence)
         return objects
   
 

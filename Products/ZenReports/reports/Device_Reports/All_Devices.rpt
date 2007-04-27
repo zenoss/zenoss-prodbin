@@ -9,10 +9,20 @@
 	    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 	</tal:block>
 	<tal:block metal:fill-slot="contentPane">
-	<table class="zentable" cellpadding="3" cellspacing="1">
+		<form method="POST" tal:attributes="action request/URL;"
+					tal:define="tabletitle string:All Devices;
+		                        showfilterbox python:True;
+								tblcolspan string:6">
+		<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+		<tal:block metal:fill-slot="zentablecontents">
+		
 	    <span metal:use-macro="here/deviceListMacro/macros/devListReportBody" 
 	            tal:omit-tag="" />  
-	</table>
+
+		</tal:block>
+		</tal:block>
+		</form>
+	
 	</tal:block>
 	</tal:block>
 </tal:block>

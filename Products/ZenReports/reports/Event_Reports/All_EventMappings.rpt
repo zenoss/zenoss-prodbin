@@ -14,13 +14,14 @@
     <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
-<table class="zentable" cellpadding="3" cellspacing="1">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tr>
-      <th class=tabletitle align=left colspan="6">
-        Event Classes
-      </th>
-    </tr>
+
+<form method="POST" tal:attributes="action request/URL;"
+			tal:define="tabletitle string:All Event Mappings;
+                        showfilterbox python:True;
+						tblcolspan string:4">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getDmdKey','Name')"/>
@@ -46,7 +47,11 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>
-</table>
+
+</tal:block>
+</tal:block>
+</form>
+
 </tal:block>
 </tal:block>
 
