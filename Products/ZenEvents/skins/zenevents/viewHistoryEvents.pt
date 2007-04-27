@@ -78,11 +78,11 @@ menu_id string:HistoryEvent_list;
 </div>
 
 <script tal:content="string:
-var mybuffer, myzengrid;
+var eventZenGridBuffer, eventZenGrid;
 addLoadEvent( function() {
-    mybuffer = new ZenGridBuffer();
-    myzengrid = new ZenGrid('gridcontainer', 
-        'getJSONHistoryEventsInfo', 'mygrid', mybuffer,
+    eventZenGridBuffer = new ZenGridBuffer();
+    eventZenGrid = new ZenGrid('gridcontainer', 
+        'getJSONHistoryEventsInfo', 'mygrid', eventZenGridBuffer,
         '${here/absolute_url_path}', 1 );
 });">
 </script>
@@ -102,7 +102,7 @@ function datePickerClosed(targetInput) {
         edate = new Date(sdate.getTime() + 86400000);
         enddateInput.value = getDateString(edate);
     }
-    myzengrid.refreshWithParams({
+    eventZenGrid.refreshWithParams({
         startdate:$('startdate').value,
         enddate:$('enddate').value
     });

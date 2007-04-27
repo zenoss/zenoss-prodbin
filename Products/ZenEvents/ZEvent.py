@@ -17,6 +17,7 @@
 #   version 2.1 of the License, or (at your option) any later version.
 
 import cgi
+import urllib
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -40,7 +41,7 @@ class ZEvent(Event):
     def getDataForJSON(self, fields):
         """ returns data ready for serialization
         """
-        return map(lambda x:getattr(self, x, None), list(fields)+['evid'])
+        return self.getDataListWithLinks(list(fields)+['evid'])
 
     def getDataListWithLinks(self, fields, cssClass=''):
         """return a list of data elements that map to the fields parameter.
@@ -49,17 +50,15 @@ class ZEvent(Event):
         for field in fields:
             value = getattr(self, field)
             _shortvalue = str(value) or ''
-            if len(_shortvalue) > 50:
-                _shortvalue = _shortvalue[:47]+'...'
+            #if len(_shortvalue) > 50:
+            #    _shortvalue = _shortvalue[:47]+'...'
             if field == "device":
-                value = ('<a class="%s"' % (cssClass) +
+                value = urllib.quote('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/deviceSearchResults'
                             '?query=%s">%s</a>' % (value, _shortvalue))
             elif field == 'eventClass':
-                value = ('<a class="%s" ' % (cssClass) +
+                value = urllib.quote('<a class="%s" ' % (cssClass) +
                         'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
-            elif field == 'summary' or field == 'message':
-                value = cgi.escape(_shortvalue)
             else:
                 value = _shortvalue
             data.append(value)

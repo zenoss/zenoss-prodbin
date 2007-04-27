@@ -185,10 +185,10 @@ ZenGrid.prototype = {
                           {};
         this.fields = [];
         this.fieldMapping = {
-            summary: -2,
+            summary: -4,
             firstTime: 0,
             lastTime: 0,
-            component: -1,
+            component: +1,
             count: +3
         }
         this.lastOffset = 0;
@@ -475,7 +475,9 @@ ZenGrid.prototype = {
             {h:parseInt(this.rowToPixel(numrows))}
         );
         var scrollHeight = parseInt(this.rowToPixel(numrows));
-        if (scrollHeight<=getElementDimensions(this.zgtable).h-2) {
+        if (scrollHeight <= 0) 
+            setElementDimensions(this.scrollbar, {h:0});
+        else if (scrollHeight<=getElementDimensions(this.zgtable).h-2) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
             setElementDimensions(this.scrollbar, {h:scrollHeight});
@@ -535,8 +537,8 @@ ZenGrid.prototype = {
                 " about this event."
             for (j=isManager?1:0;j<yo.length-1;j++) {
                 var cellwidth = this.abswidths[j]
-                divs[j].innerHTML = mydata[j];
-                yo[j].title = mydata[j];
+                divs[j].innerHTML = unescape(mydata[j]);
+                yo[j].title = scrapeText(divs[j]);
             }
 
         }
@@ -734,14 +736,18 @@ ZenGrid.prototype = {
     },
     resizeTable: function() {
         var maxTableBottom = getViewportDimensions().h +
-            getViewportPosition().y;
-        var curTableBottom = getElementDimensions(this.viewport).h +
-            getElementPosition(this.viewport).y;
+            getViewportPosition().y - 20;
+        var curTableBottom = 
+            Math.max(0,
+                getElementDimensions(this.viewport).h +
+                getElementPosition(this.viewport).y);
+        log("Current: " + curTableBottom);
+        log("Max: " + maxTableBottom);
         var diff = maxTableBottom - curTableBottom;
         var rowdiff = Math.floor(diff/this.rowSizePlus);
-        this.numRows += rowdiff;
-        this.setTableNumRows(
-            Math.min(this.rowEls.length + rowdiff, this.buffer.totalRows));
+        if (rowdiff==0) return;
+        this.numRows = this.buffer.pageSize = Math.max(1, this.numRows + rowdiff);
+        this.setTableNumRows( Math.min( this.numRows, this.buffer.totalRows));
         this.refreshTable(this.lastOffset);
         this.updateStatusBar(this.lastOffset);
     },
@@ -769,6 +775,10 @@ ZenGrid.prototype = {
         this.colgroup = swapDOM(this.colgroup, this.getColgroup());
         this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
         //this.refreshTable(this.lastOffset);
+    },
+    getEvidSummary: function() {
+        //this.checkedArray;
+        //this.selectstatus;
     }
 }
 

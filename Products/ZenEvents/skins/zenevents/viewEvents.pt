@@ -111,15 +111,16 @@
 </div>
 
 <script tal:content="string:
-var mybuffer, myzengrid;
+var eventZenGridBuffer, eventZenGrid;
 addLoadEvent( function() {
-    mybuffer = new ZenGridBuffer();
-    myzengrid = new ZenGrid('gridcontainer', 
-        'getJSONEventsInfo', 'mygrid', mybuffer, '${here/absolute_url_path}');
+    eventZenGridBuffer = new ZenGridBuffer();
+    eventZenGrid = new ZenGrid('gridcontainer', 
+        'getJSONEventsInfo', 'mygrid', eventZenGridBuffer, 
+        '${here/absolute_url_path}');
 
-    connect('filter', 'onkeyup', myzengrid.doEventLivesearch);
-    connect('state', 'onchange', myzengrid.refreshFromFormElement);
-    connect('severity', 'onchange', myzengrid.refreshFromFormElement);
+    connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
+    connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
+    connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
 });">
 </script>
 </td></tr>
