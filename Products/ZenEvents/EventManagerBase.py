@@ -1008,8 +1008,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             curs.execute(selstatement)
             avglen = curs.fetchone()
         finally: self.close(conn)
-        if not avglen: return 0.
-        else: return float(avglen[0])
+        try: return float(avglen[0])
+        except TypeError: return 10. 
 
         
     #==========================================================================
