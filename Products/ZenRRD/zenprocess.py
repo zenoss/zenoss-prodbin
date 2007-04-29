@@ -248,7 +248,8 @@ class zenprocess(SnmpDaemon):
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
     initialServices = SnmpDaemon.initialServices + ['ProcessConfig']
-    processConfigInterval = 5*60
+    processConfigInterval = 20*60
+    processCycleInterval = 5*60
     properties = SnmpDaemon.properties + ('processCycleInterval',)
 
     def __init__(self):
