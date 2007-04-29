@@ -20,3 +20,28 @@ table.innerzentable tr td {
     padding: 1px;
     font-size: 8pt;
 }
+
+
+.zentable_selectionbar {
+    height:14px;
+    font-size: 10px;
+    line-height: 14px;
+    padding: 2px;
+    border-left: 3px solid #5a6f8f;
+    border-right: 3px solid #5a6f8f;
+    position: relative;
+    top: -2px;
+    text-align: left;
+}
+.zentable_selectionbar ul {
+    list-style-type: none;
+    display: inline;
+    margin: 0; padding: 0;
+}
+.zentable_selectionbar li {
+    display:inline;
+    text-decoration: underline;
+    color: darkblue;
+    margin: 0 4px;
+    cursor: pointer;
+}

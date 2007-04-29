@@ -239,5 +239,49 @@ function checkForCollapsed() {
     }
 }
 
+function getChildCheckboxes(element) {
+    return filter(
+        function(x){return x.type=='checkbox'},
+        element.getElementsByTagName('input')
+    )
+}
+
+var tablesOnPage=0;
+function insertSelBar(table) {
+    var getselall = function() {
+        return function() {selectAllCheckboxes(table)}
+    }
+    var getselnone = function() {
+        return function() {selectNoneCheckboxes(table)}
+    }
+    var all = LI(null, 'All');
+    var nun = LI(null, 'None');
+    var selbar = DIV({'class':'zentable_selectionbar'}, 
+        [ 'Select:  ', UL(null, [all, nun ]) ]);
+    insertSiblingNodesBefore(table, selbar);
+    connect(all, 'onclick', getselall());
+    connect(nun, 'onclick', getselnone());
+}
+
+function selectAllCheckboxes(table) {
+    var cbs = getChildCheckboxes(table);
+    map(function(x){x.checked=true},cbs);
+}
+
+function selectNoneCheckboxes(table) {
+    var cbs = getChildCheckboxes(table);
+    map(function(x){x.checked=null},cbs);
+}
+
+function addSelectionBar() {
+    var tables = getElementsByTagAndClassName('table', 'innerzentable');
+    for (i=0;i<tables.length;i++) {
+        var inputs = tables[i].getElementsByTagName('input');
+        var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
+        if (cbs.length) insertSelBar(tables[i]);
+    }
+}
+
+addLoadEvent(addSelectionBar);
 addLoadEvent(checkForCollapsed);
 log("Left pane toggle javascript loaded.");
