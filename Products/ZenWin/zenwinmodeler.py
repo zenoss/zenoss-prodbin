@@ -23,12 +23,12 @@ import pywintypes
 import Globals
 from WinCollector import WinCollector as Base
 from Products.ZenEvents.ZenEventClasses import \
-     Heartbeat, Status_WinSrv, Status_Wmi
+     Heartbeat, Status_WinService, Status_Wmi
 from Products.ZenUtils.Utils import prepId
 
 class zenwinmodeler(Base):
     
-    evtClass = Status_WinSrv
+    evtClass = Status_WinService
     name = agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
     deviceConfig = 'getDeviceWinInfo'
