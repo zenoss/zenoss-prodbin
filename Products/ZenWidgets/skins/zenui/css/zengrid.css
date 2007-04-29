@@ -23,7 +23,7 @@ td.cell {
     height:18px;
     padding: 2px;
     border-bottom: 1px solid #888;
-    background-color: white;
+    background: transparent url('img/stripe.png');
 }
 #currentRows {
     font-weight: bold;

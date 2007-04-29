@@ -32,6 +32,7 @@ table.innerzentable tr td {
     position: relative;
     top: -2px;
     text-align: left;
+    background: transparent url('img/stripe.png');
 }
 .zentable_selectionbar ul {
     list-style-type: none;
