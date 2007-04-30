@@ -38,6 +38,7 @@ class zeneventlog(Base):
         Base.__init__(self)
         self.devices = {}
 	self.manager = getfqdn()
+        self.start()
 
     def updateDevices(self, devices):
         """get the config data from server"""
@@ -112,7 +113,6 @@ class zeneventlog(Base):
                     baddevices.append(name)
         for name in baddevices:
             del self.devices[name]
-        self.sendEvent(self.heartbeat)
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())

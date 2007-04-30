@@ -18,6 +18,8 @@ Provides Wmi config to zenwin clients.
 
 from Products.ZenHub.HubService import HubService
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceClass import DeviceClass
 
 class WmiConfig(HubService):
     
@@ -83,3 +85,22 @@ class WmiConfig(HubService):
         transaction.commit()
         return result
         
+    def update(self, object):
+        if isinstance(object, DeviceClass):
+            objects = object.getSubDevices()
+        else:
+            objects = [object]
+        for object in objects:
+            if not isinstance(object, Device):
+                return
+            if not object.monitorDevice():
+                return
+            if getattr(object, 'zWmiMonitorIgnore', False):
+                return
+            for listener in self.listeners:
+                return listener.callRemote('notifyConfigChanged')
+
+    def deleted(self, obj):
+        for listener in self.listeners:
+            if isinstance(obj, Device):
+                listener.callRemote('deleteDevice', obj.id)

@@ -52,6 +52,7 @@ class zenwin(Base):
         self.watchers = {}
         self.statmsg = "Windows Service '%s' is %s"
         self.winCycleInterval = 60
+        self.start()
 
     def mkevt(self, devname, svcname, msg, sev):
         "Compose an event"
@@ -184,6 +185,9 @@ class zenwin(Base):
             config.append(st) 
         if devices:
             self.devices = config
+
+    def remote_deleteDevice(self, device):
+        self.devices = [d for d in self.devices if d.name != device]
     
     def cycleInterval(self):
         return self.winCycleInterval

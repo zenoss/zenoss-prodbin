@@ -32,12 +32,17 @@ class zenwinmodeler(Base):
     name = agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
     deviceConfig = 'getDeviceWinInfo'
+    winmodelerCycleInterval = 20*60
     attributes = Base.attributes + ('winmodelerCycleInterval',)
 
     def __init__(self):
         Base.__init__(self)
         self.devices = []
+        self.start()
 
+    def remote_deleteDevice(self, device):
+        self.devices = [d for d in self.devices if d.name != device]
+    
     def processLoop(self):
         """For each device collect service info and send to server.
         """

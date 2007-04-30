@@ -21,7 +21,7 @@ from twisted.internet import reactor, defer
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
-from Products.ZenEvents.ZenEventClasses import Heartbeat
+from Products.ZenEvents.ZenEventClasses import Heartbeat, App_Start, Clear
 from Products.ZenUtils.Driver import drive, driveLater
 
 from StatusTest import StatusTest
@@ -39,15 +39,33 @@ class WinCollector(Base):
     attributes = ('configCycleInterval',)
 
     heartbeat = dict(eventClass=Heartbeat,
-                     device=getfqdn(),
-                     component='zenwin')
+                     device=getfqdn())
     deviceConfig = 'getDeviceWinInfo'
 
     def __init__(self):
         self.heartbeat['component'] = self.agent
         self.wmiprobs = []
         Base.__init__(self)
+        self.reconfigureTimeout = None
 
+
+    def start(self):
+        self.heartbeat['component']=self.agent
+        self.log.info("Starting %s", self.agent)
+        self.sendEvent(dict(eventClass=App_Start,
+                            summary='Starting %s' % self.agent,
+                            device=getfqdn(),
+                            severity=Clear,
+                            component=self.agent))
+
+    def remote_notifyConfigChanged(self):
+        self.log.info("Async config notifiation")
+        if self.reconfigureTimeout and not self.reconfigureTimeout.called:
+            self.reconfigureTimeout.cancel()
+        self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
+
+    def remote_deleteDevice(self):
+        pass
 
     def processLoop(self):
         pass
@@ -64,6 +82,7 @@ class WinCollector(Base):
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
             self.processLoop()
+            self.heartbeat['timeout'] = self.cycleInterval() * 3
             self.sendEvent(self.heartbeat)
         except Exception, ex:
             self.log.exception("Error processing main loop")
@@ -107,17 +126,24 @@ class WinCollector(Base):
         self.log.error(why.getErrorMessage())
 
 
+    def reconfigure(self, driver):
+        try:
+            yield self.eventService().callRemote('getWmiConnIssues')
+            self.wmiprobs = [e[0] for e in driver.next()]
+            self.log.debug("Wmi Probs %r", self.wmiprobs)
+            yield self.configService().callRemote('getConfig')
+            self.updateConfig(driver.next())
+            yield self.configService().callRemote(self.deviceConfig)
+            self.updateDevices(driver.next())
+        except Exception, ex:
+            self.log.exception("Error fetching config")
+
+
     def startConfigCycle(self):
-        def doReconfigure(driver):
-            try:
-                yield self.configService().callRemote('getConfig')
-                self.updateConfig(driver.next())
-                yield self.configService().callRemote(self.deviceConfig)
-                self.updateDevices(driver.next())
-            except Exception, ex:
-                self.log.exception("Error fetching config")
-            driveLater(self.configCycleInterval * 60, doReconfigure)
-        return drive(doReconfigure)
+        def driveAgain(result):
+            driveLater(self.configCycleInterval * 60, self.reconfigure)
+            return result
+        return drive(self.reconfigure).addBoth(driveAgain)
 
     def connected(self):
         d = self.startConfigCycle()
