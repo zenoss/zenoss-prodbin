@@ -181,7 +181,7 @@ class OSProcessOrganizer(Organizer, ZenPackable):
         if type(ids) == types.StringType: ids = (ids,)
         for id in ids:
             # delete related os process instances
-            klass = self.osProcessClasses[id]
+            klass = self.osProcessClasses._getOb(id)
             for p in klass.instances():
                 p.device().os.processes._delObject(p.id)
             self.osProcessClasses._delObject(id)
