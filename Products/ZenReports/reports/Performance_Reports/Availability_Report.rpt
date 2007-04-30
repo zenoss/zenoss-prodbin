@@ -8,7 +8,7 @@
     sts python:tm.setReqTableState;
     device python:sts(tableName, 'device', '');
     component python:sts(tableName, 'component', '');
-    severity python:sts(tableName, 'severity', 'Error');
+    severity python:sts(tableName, 'severity', '4');
     eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
     startDate python:sts(tableName, 'startDate', 
                          zem.defaultAvailabilityStart());
@@ -71,11 +71,11 @@
        </td>
        <td class="tableheader">Severity:</td>
        <td class="tablevalues"><select class="tablevalues" name="severity">
-            <option tal:repeat="sev here/dmd/ZenEventManager/severities"
-                    tal:content="sev"
+            <option tal:repeat="sev here/dmd/ZenEventManager/getSeverities"
+                    tal:content="python:sev[0]"
                     tal:attributes="
-                       value sev;
-                       selected python:sev==severity;
+                       value python:sev[1];
+                       selected python:str(sev[1])==str(severity);
                     "/>
            </select>
        </td>

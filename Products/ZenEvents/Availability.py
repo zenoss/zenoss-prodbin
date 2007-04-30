@@ -171,7 +171,7 @@ class Report:
                 for c in d.getMonitoredComponents():
                     if c.name().find(self.component) >= 0:
                         a = Availability(d.id, c.name(), 0, total, 
-                                                        d.getSystemsString())
+                                                        d.getSystemNamesString())
                         result.append(a)
         return result
 
