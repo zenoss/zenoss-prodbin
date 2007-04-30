@@ -102,7 +102,13 @@ registerMenu('contextmenu_btn', 'contextmenu_items');
 <tal:block metal:define-macro="tabletitle">
 <th class="tabletitle" tal:attributes="colspan tblcolspan|string:1">
 <div class="tabletitlecontainer">
-    <div class="leftcorner">&nbsp;</div>
+    <div class="leftcorner">
+<tal:block metal:define-slot="menuslot">
+    <tal:block tal:condition="menu_id | python:False">
+        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
+    </tal:block>
+</tal:block>
+</div>
 <tal:block metal:define-slot="titleslot">
     <span class="tabletitletext" tal:content="tabletitle | string:Items">
         Title
@@ -111,11 +117,6 @@ registerMenu('contextmenu_btn', 'contextmenu_items');
 <tal:block metal:define-slot="filterslot">
     <tal:block tal:condition="showfilterbox | python:False">
         <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
-    </tal:block>
-</tal:block>
-<tal:block metal:define-slot="menuslot">
-    <tal:block tal:condition="menu_id | python:False">
-        <tal:block metal:use-macro="here/zenuimacros/macros/devmovemenu"/>
     </tal:block>
 </tal:block>
     <div class="rightcorner">&nbsp;</div>

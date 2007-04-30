@@ -1,3 +1,6 @@
+
+* { zoom: 1 }
+
 /* IE6 fix only */
 * html #leftPane ul li {
     border-top: 1px solid white;
@@ -50,5 +53,7 @@ table.zentable {
 z-index: 5000;
 }
 
-.devmovemenuitems {
+div.contextmenuitems,
+div.menu {
+    zoom: 1;
 }

@@ -27,7 +27,7 @@ var calcMenuPos = function(rel, menu) {
     finalDims = $(menu).className=='devmovemenuitems'?{x:0, y:0}:{x:0, y:24};
     totalX = pPos.x + mDims.w;
     finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:finalDims.x;
-    finalDims.x = $(menu).className=='devmovemenuitems'?-mDims.w:finalDims.x;
+    finalDims.x = $(menu).className=='devmovemenuitems'?4-pDims.w:finalDims.x;
     totalY = pPos.y + pDims.h + mDims.h;
     var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];
     if (totalY>=vDims.h+vPos.y) {
@@ -66,7 +66,8 @@ var showMenu = function(rel, menu) {
     dropOtherMenuButtons(rel);
     var relPos = calcMenuPos(rel, menu);
     setElementPosition(menu, relPos);
-    setStyle(menu, {'visibility':'visible','z-index':'10000','opacity':'0.98' });
+    setStyle(menu, {'visibility':'visible','z-index':'10000','opacity':'0.98',
+                    'zoom':1});
     if (navigator.userAgent.match('Mac')) {
         try {setStyle(eventZenGrid.scrollbar, {'overflow':'hidden'})}
         catch(e) {noop()};

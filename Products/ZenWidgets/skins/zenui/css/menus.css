@@ -118,12 +118,12 @@ div.menuselected {
 
 div.devmovemenu {
     width: 52px;
-    border-left: 1px inset #666;
+    border-right: 1px solid #333;
     height: 25px;
-    background: #E0E0E0 url('img/actions_button.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/actions_button_left.gif') bottom left no-repeat;
     position:absolute;
     z-index: 4000;
-    right:0px;
+    right:-1px;
     bottom: 0px;
 }
 
@@ -133,7 +133,7 @@ div.devmovemenu span {
 }
 
 div.devmovemenu:hover {
-    background: #E0E0E0 url('img/actions_button_depressed.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/actions_button_depressed_left.gif') bottom left no-repeat;
 }
 
 .menu * {
