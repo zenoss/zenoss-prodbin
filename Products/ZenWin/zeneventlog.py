@@ -31,6 +31,7 @@ class zeneventlog(Base):
 
     name = agent = "zeneventlog"
 
+    eventlogCycleInterval = 5*60
     attributes = Base.attributes + ('eventlogCycleInterval',)
 
     def __init__(self):
@@ -59,6 +60,10 @@ class zeneventlog(Base):
 				   manager=self.manager))
 
 
+    def remote_deleteDevice(self, device):
+        if device in self.devices:
+            del self.devices[device]
+    
     def getWatcher(self, name, user, passwd, minSeverity):
        """Setup WMI connection to monitored server. 
        """
