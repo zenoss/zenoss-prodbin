@@ -130,11 +130,9 @@ var getPageViaEnter = function(evt) {
     return true;
 };
 
-
 var startRefresh = function(button, form) {
     if (autoRefresh) {
         log("stopAutoRefresh");
-        refreshControl.cancel()
         button.value = 'Start Refresh';
         autoRefresh=0
     } else {
@@ -213,20 +211,6 @@ var updateError = function(err) {
     //$("dashTime").innerHTML = "<b class='errortitle'>Lost Connection to Zenoss</b>";
 }
 
-var refreshData = function() {
-    //logger.debuggingBookmarklet(true)
-    //log("loading");
-    var eventsurl = eventsurl | null;
-    if (!eventsurl) return;
-    var defr = cancelWithTimeout(
-        loadJSONDoc(eventsurl), cancelSecs);
-    defr.addCallback(updateEventsListing);
-    defr.addErrback(updateError);
-    if (autoRefresh) {
-        callLater(refresh, refreshData, eventsurl);
-    }
-}
-
 var LSTimeout;
 var doEventLivesearch = function(field, zengrid) {
     filters = field.value;
@@ -236,4 +220,21 @@ var doEventLivesearch = function(field, zengrid) {
         500);
 }
 
-addLoadEvent(refreshData)
+var RefreshManager = Class.create();
+RefreshManager.prototype = {
+    __init__: function(time, func) {
+        bindMethods(this);
+        this.time = time;
+        this.func = func;
+        this.doRefresh();
+    },
+    doRefresh: function() {
+        this.func();
+        this.current = callLater(this.time, this.doRefresh);
+    },
+    cancelRefresh: function() {
+        if(this.current) this.current.cancel();
+        this.current = null;
+    }
+}
+

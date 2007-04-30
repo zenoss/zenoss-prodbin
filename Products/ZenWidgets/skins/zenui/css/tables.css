@@ -49,3 +49,8 @@ table.innerzentable tr td {
     margin: 0 4px;
     cursor: pointer;
 }
+
+.tabletitlecontainer input.tableheader {
+    margin-left: 3px;
+    border: 1px solid darkgrey;
+}

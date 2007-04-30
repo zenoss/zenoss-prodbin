@@ -60,7 +60,7 @@ ZenGridBuffer.prototype = {
         this.rows = new Array();
         this.updating = false;
         this.grid = null;
-        this.maxQuery = 50;
+        this.maxQuery = 100;
         this.totalRows = 0;
         this.numRows = 0;
         this.numCols = 0;
@@ -219,6 +219,24 @@ ZenGrid.prototype = {
         connect(this.scrollbar, 'onscroll', this.handleScroll);
         connect(currentWindow(), 'onresize', this.resizeTable);
     },
+    turnRefreshOn: function() {
+        var time = $('refreshRate').value;
+        this.refreshMgr = new RefreshManager(time, this.refresh);
+        var button = $('refreshButton');
+        setStyle(button, 
+            {'background-image':'url(img/refresh_off.png)'});
+        button.onclick = this.turnRefreshOff;
+        button.blur();
+    },
+    turnRefreshOff: function() {
+        var button = $('refreshButton');
+        this.refreshMgr.cancelRefresh();
+        delete this.refreshMgr;
+        setStyle(button,
+            {'background-image':'url(img/refresh_on.png)'});
+        button.onclick = this.turnRefreshOn;
+        button.blur();
+    },
     setSelectNone: function() {
         this.checkedArray = new Array();
         var cbs = this.viewport.getElementsByTagName('input');
@@ -304,6 +322,24 @@ ZenGrid.prototype = {
         this.url = url || this.url;
         update(this.lastparams, params);
         this.refreshTable(this.lastOffset);
+    },
+    refresh: function() {
+        bufOffset = this.buffer.startPos;
+        qs = update(this.lastparams, {
+                'offset':this.buffer.startPos,
+                'count':this.buffer.size });
+        var d = loadJSONDoc(this.url, qs);
+        d.addErrback(function(x) { alert('Cannot communicate with the server!') });
+        d.addCallback(
+         bind(function(r) {
+             result = r; 
+             this.buffer.totalRows = result[1];
+             this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
+             this.buffer.clear();
+             this.buffer.update(result[0], bufOffset);
+             this.updateStatusBar(this.lastOffset);
+             this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
+         }, this));
     },
     query: function(offset) {
         var url = this.url || 'getJSONEventsInfo';

@@ -49,11 +49,14 @@
                                     selected python:st[1]==state" />
             </select>
             &nbsp; &nbsp;
-            <input class="navcontrol" type="button" 
-                name="refresh" value="Start Refresh"
-                onclick="startRefresh(this, this.form);">
+            <input class="navcontrol" type="button" id="refreshButton"
+                name="refresh" 
+                style="width:50px;background:transparent 
+                       url(img/refresh_on.png) no-repeat;
+                       cursor:pointer;height:20px;"
+                onclick="eventZenGrid.turnRefreshOn($('refreshRate').value)">
             <input class="tableheader" type="text" name="refreshRate" 
-                size='2' value='60'>
+                id="refreshRate" size='2' value='60'>
         <div class="filterbox"
              tal:define=" tableName tableName | nothing;
                          ts request;
