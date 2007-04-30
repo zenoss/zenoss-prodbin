@@ -2,6 +2,7 @@ table.innerzentable {
     margin: 0px;
     padding: 0pt;
     border: 3px solid #5a6f8f;
+    border-top: medium none;
     position: relative;
     width: 100%;
     top: -3px;
@@ -29,6 +30,8 @@ table.innerzentable tr td {
     padding: 2px;
     border-left: 3px solid #5a6f8f;
     border-right: 3px solid #5a6f8f;
+    border-top: 1px solid #5a6f8f;
+    border-bottom: 1px solid #5a6f8f;
     position: relative;
     top: -2px;
     text-align: left;
