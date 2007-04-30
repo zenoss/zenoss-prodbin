@@ -90,7 +90,6 @@ class PerformanceConf(Monitor, StatusColor):
 
     eventlogCycleInterval = 60
     perfsnmpCycleInterval = 300
-    pingCycleInterval = 60
     processCycleInterval = 300
     statusCycleInterval = 60
     winCycleInterval = 60
@@ -114,7 +113,6 @@ class PerformanceConf(Monitor, StatusColor):
     _properties = (
         {'id':'eventlogCycleInterval','type':'int','mode':'w'},
         {'id':'perfsnmpCycleInterval','type':'int','mode':'w'},
-        {'id':'pingCycleInterval','type':'int','mode':'w'},
         {'id':'processCycleInterval','type':'int','mode':'w'},
         {'id':'statusCycleInterval','type':'int','mode':'w'},
         {'id':'winCycleInterval','type':'int','mode':'w'},
