@@ -78,14 +78,14 @@
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
-                '/zport/dmd/img/green_dot.png',
-                '/zport/dmd/img/red_dot.png')">
+				here.getStatusImgSrc(0),
+				here.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.adminStatus==1,
-                '/zport/dmd/img/green_dot.png',
-                '/zport/dmd/img/red_dot.png')">
+				here.getStatusImgSrc(0),
+				here.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
@@ -150,8 +150,8 @@
         <td class="tablevalues" tal:content="srv/startName"/>
         <td class="tablevalues" tal:content="srv/name"/>
 		<td class="tablevalues" align="center" width="40">
-			<img border="0"
-			tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())">
+      		<img border="0" tal:attributes="src 
+					python:here.getStatusImgSrc(srv.getStatus())" />
 		</td>
         <td class="tablevalues" align="center" width="40">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
@@ -231,8 +231,8 @@ Optional titlebar stuff
         <td class="tablevalues" tal:content="proc/alertOnRestart"/>
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
 		<td class="tablevalues" align="center" width="40">
-			<img border="0"
-			tal:attributes="src python:here.getStatusImgSrc(proc.getStatus())">
+      		<img border="0" tal:attributes="src 
+					python:here.getStatusImgSrc(proc.getStatus())" />
 		</td>
         <td class="tablevalues" align="center" width="40">
         <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
@@ -311,8 +311,8 @@ Optional titlebar stuff
         </td>
         <td class="tablevalues" tal:content="srv/getDescription"/>
 		<td class="tablevalues" align="center" width="40">
-			<img border="0"
-			tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())">
+      		<img border="0" tal:attributes="src 
+					python:here.getStatusImgSrc(srv.getStatus())" />
 		</td>
         <td class="tablevalues" align="center" width="40">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
