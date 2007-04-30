@@ -29,6 +29,7 @@ from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
+from Products.ZenUtils import Time
 
 from ZenModelRM import ZenModelRM
 import Products.ZenUtils.Utils as Utils
@@ -164,7 +165,7 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST: kw = REQUEST.form
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
-            REQUEST['message'] = "User created at time:"
+            REQUEST['message'] = Time.SaveMessage()
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -202,7 +203,7 @@ class UserSettingsManager(ZenModelRM):
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
-            REQUEST['message'] = "User saved at time:"
+            REQUEST['message'] = Time.SaveMessage()
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -236,7 +237,7 @@ class UserSettingsManager(ZenModelRM):
                     mobj.adminRoles._delObject(ar.id)
                 self._delObject(userid)
         if REQUEST:
-            REQUEST['message'] = "User saved at time:"
+            REQUEST['message'] = Time.SaveMessage()
             return self.callZenScreen(REQUEST)
 
 
@@ -453,7 +454,7 @@ class UserSettings(ZenModelRM):
 
         # finish up
         if REQUEST:
-            REQUEST['message'] = "User saved at time:"
+            REQUEST['message'] = Time.SaveMessage()
             return self.callZenScreen(REQUEST)
         else:
             return user
