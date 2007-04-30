@@ -115,11 +115,25 @@ class EventView(object):
 
     #security.declareProtected('Manage Events','manage_deleteBatchEvents')
     def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
-                                    badevids=[], REQUEST=None, **kwargs):
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
-        evids = self.getEventManager().getEventBatchME(self, selectstatus,
-                                            goodevids, badevids, **kwargs)
+        evids = self.getEventManager().getEventBatchME(self, 
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
         return self.manage_deleteEvents(evids, REQUEST)
 
 
@@ -135,11 +149,25 @@ class EventView(object):
 
     #security.declareProtected('Manage Events','manage_undeleteBatchEvents')
     def manage_undeleteBatchEvents(self, selectstatus='none', goodevids=[],
-                                    badevids=[], REQUEST=None, **kwargs):
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
-        evids = self.getEventManager().getEventBatchME(self, selectstatus,
-                                            goodevids, badevids, **kwargs)
+        evids = self.getEventManager().getEventBatchME(self, 
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
         return self.manage_undeleteEvents(evids, REQUEST)
 
 
@@ -162,12 +190,26 @@ class EventView(object):
 
 
     security.declareProtected('Manage Events','manage_ackBatchEvents')
-    def manage_ackBatchEvents(self, selectstatus='none', goodevids=[], 
-                                badevids=[], REQUEST=None, **kwargs):
+    def manage_ackBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
-        evids = self.getEventManager().getEventBatchME(self, selectstatus,
-                                            goodevids, badevids, **kwargs)
+        evids = self.getEventManager().getEventBatchME(self, 
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
         return self.manage_ackEvents(evids, REQUEST)
 
 

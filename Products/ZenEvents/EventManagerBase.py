@@ -273,6 +273,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     def getEventBatchME(self, me, selectstatus=None, 
+                        resultFields=[], where="", orderby="", severity=None,
+                        state=2, startdate=None, enddate=None, offset=0, rows=0,
+                        getTotalCount=False, filter="",
                         goodevids=[], badevids=[], **kwargs):
         where = self.lookupManagedEntityWhere(me)
         badevidsstr, goodevidsstr = '',''
@@ -294,7 +297,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
         except KeyError: 
             resultFields = self.lookupManagedEntityResultFields(me.event_key)
-        events = self.getEventList(resultFields=resultFields,where=where,**kwargs)
+        events = self.getEventList(
+                                    filter=filter,
+                                    offset=offset,
+                                    getTotalCount=False,
+                                    startdate=startdate, 
+                                    enddate=enddate, severity=severity,
+                                    state=state, orderby=orderby,
+                                    resultFields=resultFields,
+                                    where=where,**kwargs)
+        print events
         return [ev.evid for ev in events]
 
         
