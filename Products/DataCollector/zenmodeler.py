@@ -101,7 +101,7 @@ class ZenModeler(ZCmdBase):
             try:
                 if ignoreTest(name):
                     self.log.debug("ignoring %s on %s",name, device.id)
-                elif name in names:
+                elif name in names and not self.options.collectPlugins:
                     self.log.debug("using %s on %s",name, device.id)
                     result.append(plugin)
                 elif collectTest(name):
