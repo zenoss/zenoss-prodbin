@@ -34,15 +34,15 @@
         menu_id string:Organizer_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:SubClasses; ">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
-    <span tal:condition="objects" tal:omit-tag="">
+    <tal:block tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')">
@@ -85,7 +85,7 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    </span>
+    </tal:block>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="6">
     <span metal:define-macro="editor" tal:omit-tag="">
@@ -114,15 +114,15 @@
 	menu_id string:EventMapping_list;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:EventClass Mappings; ">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
-    <span tal:condition="objects" tal:omit-tag="">
+    <tal:block tal:condition="objects" tal:omit-tag="">
     <tal:block metal:define-macro="mapbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -164,7 +164,7 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    </span>
+    </tal:block>
     <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="4">
         <input class="tableheader" type="submit"

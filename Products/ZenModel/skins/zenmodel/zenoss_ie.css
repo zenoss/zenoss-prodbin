@@ -23,10 +23,32 @@ th.tabletitle {
 }
 
 div.tabletitlecontainer {
-    top: 5px;
+    height:;
+    background: transparent url(img/titlebar_bg.gif) repeat-x top left;
 }
-
 
 #selectedtablinehider {
     margin-left: -49px;
+}
+
+
+table.innerzentable {
+    position: relative;
+    top: 1px;
+}
+
+div.zentable_selectionbar {
+    height: 12px;
+}
+
+.tabletitletext {
+    display: block;
+    height: 25px;
+}
+
+table.zentable {
+z-index: 5000;
+}
+
+.devmovemenuitems {
 }

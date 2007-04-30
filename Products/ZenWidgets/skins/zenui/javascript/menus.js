@@ -75,11 +75,16 @@ var showContextMenu = function() {
 }
 
 var dropOtherMenuButtons = function(button) {
-    var lowerButton = function(btn) { setStyle(btn, {'z-index':'9000'})};
-    mymenu = $(button).parentNode;
-    others = $$("div.littlemenu");
+    var lowerButton = function(btn) { setStyle(btn, {'z-index':'2000'})};
+    try {
+        mymenu = getFirstParentByTagAndClassName($(button).parentNode, 'div',
+        'tabletitlecontainer');
+    } catch(e) {
+        mymenu = null;
+    }
+    others = $$("div.tabletitlecontainer");
     map(lowerButton, others);
-    setStyle(mymenu, {'z-index':'10000'});
+    if (mymenu) setStyle(mymenu, {'z-index':'10000'});
 }
 
 var hideOtherSubmenus = function(menu, submenu) {

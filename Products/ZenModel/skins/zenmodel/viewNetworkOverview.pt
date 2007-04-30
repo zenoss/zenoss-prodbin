@@ -89,12 +89,12 @@ tal:define="tabletitle string:Network;">
     tabletitle string:Subnetworks;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     menu_id string:Subnetworks">
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-  <span tal:condition="objects">
+  <tal:block tal:condition="objects">
   <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Address','cmp')">
@@ -138,7 +138,7 @@ tal:define="tabletitle string:Network;">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-  </span>
+  </tal:block>
   <tr tal:condition="here/isManager">
     <td class="tableheader" colspan="5">
         <span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />

@@ -465,11 +465,9 @@ th.subtabletitle {
 }
 
 div.tabletitlecontainer {
-    width: 100%;
     position: relative;
     height:25px; 
-    padding: 0pt;
-    margin: 0pt;
+    z-index: 1999;
 }
 
 .tabletitlecontainer .rightcorner,
@@ -477,6 +475,7 @@ div.tabletitlecontainer {
     position: absolute;
     bottom: 0px;
     z-index: 2005;
+    height:25px;
 }
 
 .tabletitletext {

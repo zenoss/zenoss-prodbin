@@ -23,7 +23,7 @@
 
 <!-- BEGIN TABLE CONTENTS -->
 
-    <span metal:use-macro="here/deviceListMacro/macros/devListBody"/>
+    <span metal:use-macro="here/deviceListMacro/macros/devListBody" />
 	<tr>
 	<td colspan="0" class="tableheader" align='center'>
 		<tal:block
