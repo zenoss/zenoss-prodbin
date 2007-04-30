@@ -278,10 +278,14 @@ class RenderServer(RRDToolItem):
         return id
     
     def _loadfile(self, filename):
-        f = open(filename)
-        graph = f.read()
-        f.close()
-        return graph
+        try:
+            f = open(filename)
+            graph = f.read()
+            f.close()
+            return graph
+        except IOError:
+            log.info("File: %s not created yet." % filename);
+            return None
 
 
     def setupCache(self):
@@ -299,7 +303,7 @@ class RenderServer(RRDToolItem):
         """add graph to temporary folder"""
         cache = self.setupCache()
         graph = self._loadfile(filename)
-        cache.addToCache(id, graph)
+        if graph: cache.addToCache(id, graph)
 
 
     def getGraph(self, id, ftype, REQUEST):
