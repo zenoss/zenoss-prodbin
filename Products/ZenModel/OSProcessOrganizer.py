@@ -21,7 +21,6 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
-from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable
 
@@ -38,7 +37,7 @@ def manage_addOSProcessOrganizer(context, id, REQUEST = None):
 
 addOSProcessOrganizer = DTMLFile('dtml/addOSProcessOrganizer',globals())
 
-class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
+class OSProcessOrganizer(Organizer, ZenPackable):
     meta_type = "OSProcessOrganizer"
     dmdRootName = "Processes"
     #default_catalog = "osprocessSearch"
@@ -52,7 +51,6 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
     _relations = Organizer._relations + ZenPackable._relations + (
         ("osProcessClasses", ToManyCont(
             ToOne,"Products.ZenModel.OSProcessClass","osProcessOrganizer")),
-        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
     factory_type_information = ( 
@@ -212,18 +210,6 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         self._setProperty("zAlertOnRestart", False, type="boolean")
         self._setProperty("zMonitor", True, type="boolean")
         self._setProperty("zFailSeverity", 4, type="int")
-
-
-    def getUserCommandTargets(self):
-        ''' Called by Commandable.doCommand() to ascertain objects on which
-        a UserCommand should be executed.
-        '''
-        targets = []
-        for osc in self.osProcessClasses():
-            targets += osc.getUserCommandTargets()
-        for org in self.children():
-            targets += org.getUserCommandTargets()
-        return targets            
 
 
 InitializeClass(OSProcessOrganizer)

@@ -20,7 +20,6 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
-from Commandable import Commandable
 from ZenMenuable import ZenMenuable
 from ZenPackable import ZenPackable
 
@@ -39,7 +38,7 @@ def manage_addServiceOrganizer(context, id, REQUEST = None):
 
 addServiceOrganizer = DTMLFile('dtml/addServiceOrganizer',globals())
 
-class ServiceOrganizer(Organizer, Commandable, ZenPackable):
+class ServiceOrganizer(Organizer, ZenPackable):
     meta_type = "ServiceOrganizer"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -52,7 +51,6 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
 
     _relations = Organizer._relations + ZenPackable._relations + (
         ("serviceclasses", ToManyCont(ToOne,"Products.ZenModel.ServiceClass","serviceorganizer")),
-        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
         
     factory_type_information = ( 
@@ -214,18 +212,6 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('serviceKeys', 'KeywordIndex')
         zcat.addColumn('getPrimaryId')
-
-
-    def getUserCommandTargets(self):
-        ''' Called by Commandable.doCommand() to ascertain objects on which
-        a UserCommand should be executed.
-        '''
-        targets = []
-        for sc in self.serviceclasses():
-            targets += sc.getUserCommandTargets()
-        for so in self.children():
-            targets += so.getUserCommandTargets()
-        return targets            
 
 
 InitializeClass(ServiceOrganizer)
