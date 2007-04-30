@@ -28,12 +28,15 @@ class ZenPackCmd(ZenScriptBase):
         if self.options.installPackName:
             self.install(self.extract(self.options.installPackName))
 
-        if self.options.removePackName:
+        elif self.options.removePackName:
             self.remove(self.options.removePackName)
 
-        if self.options.list:
+        elif self.options.list:
             for zp in self.dmd.packs():
-                print '%s (%s)' % (zp.id, sys.modules[zp.__module__].__file__)
+                f = sys.modules[zp.__module__].__file__
+                if f.endswith('.pyc'):
+                    f = f[:-1]
+                print '%s (%s)' % (zp.id, f)
                 for extensionType, lst in zp.list(self.app):
                     print '  %s:' % extensionType
                     for item in lst:

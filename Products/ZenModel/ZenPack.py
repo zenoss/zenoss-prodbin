@@ -180,7 +180,8 @@ class ZenPackBase(ZenPack):
         )        
     
     zope.interface.implements(interfaces.IZenPack)
-    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins())
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins(),
+                ZPLDataSources(), ZPLLibraries())
 
     def __init__(self, id):
         ZenPack.__init__(self, id)

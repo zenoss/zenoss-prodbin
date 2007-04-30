@@ -137,6 +137,11 @@ class ZPLReport(ZPLObject):
         rl.options.force = True
         rl.loadDirectory(pack.path('reports'))
 
+
+    def list(self, pack, app):
+        return [branchAfter(d, 'reports') for r in findFiles(pack, 'reports')]
+
+
 class ZPLDaemons(ZenPackLoader):
 
     name = "Daemons"
@@ -190,3 +195,26 @@ class ZPLSkins(ZenPackLoader):
 
     def list(self, pack, app):
         return [branchAfter(d, 'skins') for d in findDirectories(pack, 'skins')]
+
+
+class ZPLDataSources(ZenPackLoader):
+
+    name = "DataSources"
+
+
+    def list(self, pack, app):
+        return [branchAfter(d, 'datasources')
+                for d in findFiles(pack, 'datasources',
+                lambda f: not f.endswith('.pyc') and f != '__init__.py')]
+
+
+class ZPLLibraries(ZenPackLoader):
+
+    name = "Libraries"
+
+
+    def list(self, pack, app):
+        d = pack.path('lib')
+        if os.path.isdir(d):
+            return [l for l in os.listdir(d)]
+        return []
