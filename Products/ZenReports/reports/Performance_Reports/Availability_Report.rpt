@@ -118,12 +118,12 @@
           tal:condition="not:comp" 
           tal:content="avail/component"/>
       <td class="tablevalues" 
-		  tal:content="avail/systems" />
-      <td class="tablevalues" 
           tal:condition="comp">
           <a tal:content="avail/component"
              tal:attributes="href comp/getPrimaryUrlPath"/>
       </td>
+      <td class="tablevalues" 
+		  tal:content="avail/systems" />
       <td class="tablevalues" tal:content="avail/floatStr"/>
    </tr>
   </tal:block>
