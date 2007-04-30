@@ -4,9 +4,6 @@
 
 <tal:block tal:condition="not:msie">
     <script src="/zport/js/MochiKit.js"></script>
-    <script src="/zport/js/DragAndDrop.js"></script>
-    <script src="/zport/js/Sortable.js"></script>
-    <script src="zendragdrop.js"></script>
 </tal:block>
 
 <form method="post"
@@ -57,26 +54,11 @@
 			   tal:define="propName python:prop+':'+ptype;
                                        ta python:'ta_' + prop;
 				       ul python:'ul_' + prop;">
-		  <div style="float:left;">
-		    <textarea tal:content="pvalue" 
-		              tal:attributes="name propName; id ta"/>
-		    <h5>Plugins (drag to change order)</h5>
-		  </div>
-		  <div style="float:left;">
-		    <ul tal:attributes="name propName; id ul"
-		        class="sortable_list fieldlist">
-		      <li class="sortable_item fieldlist"
-			 tal:repeat="plugin python:
-			 [x for x in popts if x not in here.zCollectorPlugins]"
-			 tal:content="plugin"/>
-		    </ul>
-		    <h5>Available fields (drag to other list to add)</h5>
-		  </div>
-		  <script tal:content="
-		          python:'''var x = new ZenDragDropList('%s', '%s');''' % (ta, ul)
-                  "/> 
-		<!-- =========== swoopy sortable selector =============== -->
+		<a tal:attributes="href string:${request/URL1}/zSortableProperty?prop=${prop}">
+		    Edit
+                </a>
 		</tal:block>
+		<!-- =========== swoopy sortable selector =============== -->
 	    </span>
             <span tal:condition="python: prop=='zEventSeverity'">
             <select class="tablevalues" 

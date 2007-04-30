@@ -1,0 +1,94 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<tal:block define="msie python:'MSIE' in here.REQUEST.HTTP_USER_AGENT">
+
+<tal:block tal:condition="not:msie">
+    <script src="/zport/js/MochiKit.js"></script>
+    <script src="/zport/js/DragAndDrop.js"></script>
+    <script src="/zport/js/Sortable.js"></script>
+    <script src="/zport/js/MochiKit.js"></script>
+    <script src="zendragdrop.js"></script>
+</tal:block>
+
+<form method="post"
+    tal:attributes="action string:${request/URL1}">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+<tal:block tal:define="tabletitle string:Sortable Selection;
+	               prop request/prop;">
+
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+      <th class="tableheader" 
+      	  tal:content="python: 'Name: ' + prop" 
+          align="center"/>
+    </tr><tr>
+      <th class="tableheader" align="center"
+           tal:content="python: 'Path: ' + here.zenPropertyPath(prop)"/> 
+    </tr><tr>
+      <td class="tablevalues" tal:condition="not: here/isManager"
+        tal:content="python: here.zenPropertyString(prop)"/>
+      <td class="tablevalues" tal:condition="here/isManager"
+        tal:define="pvalue python:here.zenPropertyString(prop);
+                    popts python:here.zenPropertyOptions(prop);">
+	    <span>
+		<tal:block tal:condition="python:msie or not popts">
+		    <textarea class="tablevalues" rows='3' cols="33"
+			tal:attributes="name python:prop+':lines'"
+			tal:content="pvalue">
+		    </textarea>        
+		</tal:block>
+		<!-- =========== swoopy sortable selector ============ -->
+		<tal:block tal:condition="python:not msie and popts"
+			   tal:define="propName python:prop+':lines';
+                                       ta python:'ta_' + prop;
+				       ul python:'ul_' + prop;">
+		  <div style="float:left;">
+		    <textarea tal:content="pvalue" 
+		              tal:attributes="name propName; id ta"/>
+		    <h5>Plugins (drag to change order)</h5>
+		  </div>
+		  <div style="float:left;">
+		    <ul tal:attributes="name propName; id ul"
+		        class="sortable_list fieldlist">
+		      <li class="sortable_item fieldlist"
+			 tal:repeat="plugin python:
+			 [x for x in popts if x not in here.zCollectorPlugins]"
+			 tal:content="plugin"/>
+		    </ul>
+		    <h5>Available fields (drag to other list to add)</h5>
+		  </div>
+		  <script tal:content="
+		          python:'''var x = new ZenDragDropList('%s', '%s');''' % (ta, ul)
+                  "/> 
+		<!-- =========== swoopy sortable selector =============== -->
+		</tal:block>
+	    </span>
+      </td>
+    </tr>
+    <tr class="tableheader" tal:condition="here/isManager">
+    <td colspan="5">
+        <input type="hidden" name="propname" tal:attributes="value prop"/>
+        <input type="hidden" name="prop" tal:attributes="value prop"/>
+        <input class="tableheader" type="submit" 
+            name="saveZenProperties:method" value=" Save " />
+        <input class="tableheader" type="submit" 
+            name="deleteZenProperty:method" value=" Delete " />
+    </td>
+    </tr>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+
+</tal:block>
+</tal:block>
+</tal:block>
+
