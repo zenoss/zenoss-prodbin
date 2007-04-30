@@ -273,6 +273,9 @@ style="position:relative;">
    <table class="tabtable" cellpadding="0" cellspacing="0"
            tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
        <tr>
+        <td class="contextmenutab">
+        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
+        </td>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 
                                 and 'tabletitleselected'">
@@ -294,9 +297,6 @@ style="position:relative;">
            <div id="selectedtablinehider">
             Other Page
            </div>
-        </td>
-        <td class="contextmenutab">
-        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
         </td>
        </tr>
    </table>

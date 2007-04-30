@@ -26,7 +26,7 @@ var calcMenuPos = function(rel, menu) {
     var vPos = getViewportPosition();
     finalDims = $(menu).className=='devmovemenuitems'?{x:0, y:0}:{x:0, y:24};
     totalX = pPos.x + mDims.w;
-    finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:finalDims.x;
+    finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:3+finalDims.x;
     finalDims.x = $(menu).className=='devmovemenuitems'?4-pDims.w:finalDims.x;
     totalY = pPos.y + pDims.h + mDims.h;
     var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];

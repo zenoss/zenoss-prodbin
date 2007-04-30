@@ -341,14 +341,15 @@ table.tabtable td.contextmenutab a.tabletitle {
     width: 53px;
     height: 25px;
     padding: 0pt;
+    border: 0;
     border-top: 0pt;
     border-right: 0pt;
+    margin-right: -1px;
     margin-bottom: -1px;
-    margin-left: -1px;
-    background-image: url('img/contextmenu_tab.gif');
+    background-image: url('img/actions_button_left.gif');
 }
 table.tabtable td.contextmenutab a.tabletitle:hover {
-    background-image: url('img/contextmenu_tab_depressed.gif');
+    background-image: url('img/actions_button_depressed_left.gif');
 }
 
 table.tabtable td.tabletitleselected  {

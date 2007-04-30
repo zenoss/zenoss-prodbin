@@ -25,7 +25,6 @@ table.innerzentable tr td {
     font-size: 8pt;
 }
 
-
 .zentable_selectionbar {
     height:14px;
     font-size: 10px;
@@ -41,11 +40,13 @@ table.innerzentable tr td {
     text-align: left;
     background: transparent url('img/stripe.png');
 }
+
 .zentable_selectionbar ul {
     list-style-type: none;
     display: inline;
     margin: 0; padding: 0;
 }
+
 .zentable_selectionbar li {
     display:inline;
     text-decoration: underline;
