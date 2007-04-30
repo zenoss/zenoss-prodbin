@@ -64,6 +64,11 @@
         <input class="tablevalues" type="text" name="cycleInterval:int" 
             tal:attributes="value here/cycleInterval" />
       </td>
+      <td class="tableheader" align="left">Config Reload Interval (mins)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="configCycleInterval:int" 
+            tal:attributes="value here/configCycleInterval" />
+      </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Maximum Failures</td>
@@ -71,11 +76,7 @@
         <input class="tablevalues" type="text" name="maxFailures:int" 
             tal:attributes="value here/maxFailures" />
       </td>
-      <td class="tableheader" align="left">Config Reload Interval (mins)</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="configCycleInterval:int" 
-            tal:attributes="value here/configCycleInterval" />
-      </td>
+      <td class="tableheader" colspan='2'/>
     </tr>
     <tr>
         <td class=tableheader align="left" >
