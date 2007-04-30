@@ -363,12 +363,14 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceCustomSummary(self, gopts):
         "fill out full path for custom gopts and call to server"
         gopts = self._fullPerformancePath(gopts)
-        if self.renderurl.startswith("http"):
-            url = basicAuthUrl(self.renderuser, self.renderpass,
-                                self.renderurl)
+        renderurl = str(self.renderurl)
+        if renderurl.startswith("http"):
+            url = basicAuthUrl(str(self.renderuser), 
+			       str(self.renderpass), 
+			       renderurl)
             server = xmlrpclib.Server(url)
         else:
-            server = self.getObjByPath(self.renderurl)
+            server = self.getObjByPath(renderurl)
         return server.summary(gopts)
 
 
