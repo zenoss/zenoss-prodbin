@@ -139,7 +139,7 @@ class ZPLReport(ZPLObject):
 
 
     def list(self, pack, app):
-        return [branchAfter(d, 'reports') for r in findFiles(pack, 'reports')]
+        return [branchAfter(r, 'reports') for r in findFiles(pack, 'reports')]
 
 
 class ZPLDaemons(ZenPackLoader):
