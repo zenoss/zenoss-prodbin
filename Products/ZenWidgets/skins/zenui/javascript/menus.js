@@ -52,6 +52,10 @@ var hideSubMenu = function(sub) {
 
 var hideMenu = function(menu) {
     setStyle(menu, {'visibility':'hidden','z-index':'1'});
+    try {
+    setStyle(getFirstParentByTagAndClassName(menu, 'div',
+        'tabletitlecontainer'), {'z-index':'1'});
+    } catch(e){noop()}
     if (navigator.userAgent.match('Mac')) {
         try {setStyle(eventZenGrid.scrollbar, {'overflow':'auto'})}
         catch(e) {noop()};
@@ -75,7 +79,7 @@ var showContextMenu = function() {
 }
 
 var dropOtherMenuButtons = function(button) {
-    var lowerButton = function(btn) { setStyle(btn, {'z-index':'2000'})};
+    var lowerButton = function(btn) { setStyle(btn, {'z-index':'1'})};
     try {
         mymenu = getFirstParentByTagAndClassName($(button).parentNode, 'div',
         'tabletitlecontainer');
