@@ -279,6 +279,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         goodevids=[], badevids=[], **kwargs):
         where = self.lookupManagedEntityWhere(me)
         badevidsstr, goodevidsstr = '',''
+        if not isinstance(goodevids, (list, tuple)): goodevids = [goodevids]
+        if not isinstance(badevids, (list, tuple)): badevids = [badevids]
         if badevids: badevidsstr = " and evid not in ('%s')" %(
                                             "','".join(badevids))
         if goodevids: goodevidsstr = " and evid in ('%s')" %(
