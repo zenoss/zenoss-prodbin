@@ -127,6 +127,7 @@ class MonitorClass(ZenModelRM, Folder):
                 if child.hasObject(id):
                     child._delObject(id)
         if REQUEST:
+            REQUEST['message'] = 'Monitor deleted'
             return self.callZenScreen(REQUEST)
 
 
@@ -138,7 +139,9 @@ class MonitorClass(ZenModelRM, Folder):
                                                       child.sub_class), values)
         ctor = values[child.sub_class]
         if id: child._setObject(id, ctor(id))
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = 'Monitor created'
+            return self.callZenScreen(REQUEST)
 
 
     def exportXmlHook(self, ofile, ignorerels):
