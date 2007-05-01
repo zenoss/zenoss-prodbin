@@ -11,7 +11,10 @@ What would you like to name your Trap?<br/>
         name="id"
         tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
 OID:&nbsp;<input type="text" name="oid"><br/><br/>
-Type:&nbsp;<input type="text" name="nodetype">
+Type:&nbsp;<select class="tableheader" name="nodetype">
+    <option tal:repeat="type here/types"
+        tal:content="type">/Thing</option>
+</select>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addMibNotification:method"

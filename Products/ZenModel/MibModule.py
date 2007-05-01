@@ -22,6 +22,8 @@ from ZenPackable import ZenPackable
 
 class MibModule(ZenModelRM, ZenPackable):
 
+    types = ('COUNTER', 'GAUGE', 'DERIVE', 'ABSOLUTE')
+
     language = ""
     contact = ""
     description = ""
