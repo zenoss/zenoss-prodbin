@@ -96,13 +96,13 @@ class MibModule(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    def createMibNotification(self, id, **kwargs):
+    def createMibNode(self, id, **kwargs):
         """Create a MibNotification 
         """
-        from MibNotification import MibNotification
+        from MibNode import MibNode
         if self.oid2name(kwargs['oid']):
             return None
-        node = MibNotification(id, **kwargs) 
+        node = MibNode(id, **kwargs) 
         self.nodes._setObject(node.id, node)
         node = self.nodes._getOb(node.id)
         return node 
