@@ -14,7 +14,7 @@ Where would you like to move these reports?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="moveReports:method"
-    value="Move"
+    value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}', 'reportForm')" />
 <input id="dialog_cancel" type="button" value="Cancel"

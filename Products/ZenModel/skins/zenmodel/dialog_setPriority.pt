@@ -20,7 +20,7 @@ What priority would you like set?<br/>
 <br/>
 <div id="dialog_buttons">
 <input type="submit" name="setPriority:method"
-      value="Change" />
+      value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

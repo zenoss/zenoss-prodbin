@@ -18,7 +18,7 @@ Protocol:&nbsp;<select name="protocol">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpService:method"
-    value="Yes, Create this IpService" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

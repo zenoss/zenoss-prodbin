@@ -4,7 +4,7 @@ Are you sure you want to delete these networks?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteOrganizers:method"
-    value="Yes, Delete these networks"
+    value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />                       
 <input id="dialog_cancel" type="button" value="Cancel"

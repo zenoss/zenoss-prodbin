@@ -13,7 +13,7 @@ What would you like to name your OSProcess?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addOSProcessClass:method"
-    value="Yes, Create this OSProcess" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

@@ -20,7 +20,7 @@ tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addOSProcess:method"
-    value="Yes, Create this OSProcess" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

@@ -9,7 +9,7 @@ Are you sure you want to delete this device?<br/>
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="deleteDevice:method" value="Delete Device" />
+<input type="submit" name="deleteDevice:method" value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel" 
         onclick="$('dialog').hide()"/>
 </div>

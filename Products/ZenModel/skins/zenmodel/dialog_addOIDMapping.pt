@@ -15,7 +15,7 @@ Type:&nbsp;<input type="text" name="nodetype">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addMibNode:method"
-    value="Yes, Create this OID Mapping" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

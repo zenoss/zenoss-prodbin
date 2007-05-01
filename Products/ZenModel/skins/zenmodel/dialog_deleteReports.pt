@@ -5,7 +5,7 @@ Are you sure you would like to delete these Reports?<br/>
 <br/>
 <div id="dialog_buttons">
 <input type="submit" name="zmanage_delObjects:method"
-    value="Yes, Delete these Reports"
+    value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                             '${here/getPrimaryUrlPath}', 'reportForm')" />
 <input id="dialog_cancel" type="button" value="Cancel"

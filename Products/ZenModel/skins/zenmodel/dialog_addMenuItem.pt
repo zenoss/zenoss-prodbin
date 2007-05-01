@@ -15,7 +15,7 @@ Ordering:&nbsp;<input name="ordering" size="5"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addZenMenuItem:method"
-    value="Create Menu Item" 
+    value="OK" 
     tal:attributes="onclick string:return $$('dialog').submit_form(
                                     '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"

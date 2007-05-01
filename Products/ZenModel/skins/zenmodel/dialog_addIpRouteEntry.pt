@@ -31,7 +31,7 @@ tal:define="types here/os/routeTypeMap">
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="addIpRouteEntry:method"
-    value="Yes, Create this Route" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

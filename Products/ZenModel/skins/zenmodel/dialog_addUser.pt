@@ -11,7 +11,7 @@ Email:&nbsp;<input name="email"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_addUser:method"
-    value="Yes, Create this User" />
+    value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
