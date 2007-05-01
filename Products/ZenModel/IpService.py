@@ -86,11 +86,11 @@ class IpService(Service):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'ipServiceManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'ipServiceManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'

@@ -69,11 +69,11 @@ class IpServiceClass(ServiceClass):
                 , 'action'        : 'ipServiceClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'ipServiceClassManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'ipServiceClassManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

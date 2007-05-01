@@ -70,11 +70,11 @@ class OSProcessOrganizer(Organizer, ZenPackable):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessOrganizerManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'osProcessOrganizerManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

@@ -74,11 +74,11 @@ class OSProcess(OSComponent, ZenPackable):
 #                , 'action'        : 'objRRDTemplate'
 #                , 'permissions'   : ("Change Device", )
 #                },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'osProcessManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'

@@ -69,11 +69,11 @@ class ServiceOrganizer(Organizer, ZenPackable):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'serviceOrganizerManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'serviceOrganizerManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

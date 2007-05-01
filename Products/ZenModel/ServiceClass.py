@@ -90,11 +90,11 @@ class ServiceClass(ZenModelRM, ZenPackable):
                 , 'action'        : 'serviceClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'serviceClassManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'serviceClassManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

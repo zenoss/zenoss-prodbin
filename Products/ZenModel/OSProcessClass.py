@@ -74,11 +74,11 @@ class OSProcessClass(ZenModelRM):
                 , 'action'        : 'osProcessClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'osProcessClassManage'
-                , 'permissions'   : ("Manage DMD",)
-                },
+#                { 'id'            : 'manage'
+#                , 'name'          : 'Administration'
+#                , 'action'        : 'osProcessClassManage'
+#                , 'permissions'   : ("Manage DMD",)
+#                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
