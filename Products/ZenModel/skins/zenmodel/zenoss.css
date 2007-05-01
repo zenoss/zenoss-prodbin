@@ -354,15 +354,28 @@ table.tabtable td.contextmenutab a.tabletitle:hover {
 
 table.tabtable td.tabletitleselected  {
     color: #333333;
-    height:32px;
+    height: 29px;
     font-size:8pt;
     padding: 0px;
     border: 0px;
-	line-height: 26px;
-    width: 101px;
-	background: transparent url(img/tab_bg_selected.gif) no-repeat bottom left;
 }
-
+table.tabtable div.tableft {
+    background: transparent url(img/tab_bg_selected.gif) no-repeat left 0pt;
+    height: 30px;
+    overflow: hidden;
+}
+table.tabtable div.tabright {
+    background: transparent url(img/tab_bg_selected.gif) no-repeat right 0pt;
+    height: 30px;
+    overflow: hidden;
+}
+table.tabtable div.tabcenter {
+    margin: 0px 14px;
+    padding: 0px 10px;
+    height: 32px;
+    background: transparent url(img/tab_bg_selected_cont.gif) repeat-x scroll 1pt 0pt; 
+    overflow: hidden;
+}
 table.tabtable td.tabletitleselected a,
 table.tabtable td.tabletitleselected a:visited, 
 table.tabtable td.tabletitleselected a:link   {
@@ -370,10 +383,8 @@ table.tabtable td.tabletitleselected a:link   {
 	display: block;
     padding: 0pt;
     border: 0pt;
-    width: 100%;
-    height: 100%;
     font-size:10pt;
-	line-height: 34px;
+    margin-top: 3px;
     background: none;
 }
 
@@ -423,12 +434,11 @@ a.tabletitle {
 }
 
 #selectedtablinehider {
-    width: 99px;
-    background-color: #E0E0E0;
+    background-color: blue;
     height: 3px;
     z-index: 2999;
     position: absolute;
-    margin-top: -2px;
+    margin-top: 0px;
     margin-left: 1px;
 }
 

@@ -281,14 +281,29 @@ style="position:relative;">
                                 and 'tabletitleselected'">
 
 
+    <tal:block tal:condition="python:tab.get('selected', None)">
+    <div class="tableft">
+         <div class="tabright">
+             <div class="tabcenter">
+           <a class="tabletitle" tal:content="tab/name"
+               tal:attributes="href python:
+                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
+                >TabName</a>
+             </div>
+         </div>
+     </div>
+     </tal:block>
+     <tal:block condition="python:not tab.get('selected', None)">
            <a class="tabletitle" tal:content="tab/name"
                tal:attributes="href python:
                    '%s/%s'% (here.absolute_url_path(),tab['action']);"
                 >TabName</a>
 
+     </tal:block>
+
 
            <div id="selectedtablinehider"
-           tal:condition="python:tab.get('selected',None)">
+       tal:condition="python:tab.get('selected',None)">
            </div>
 
            </td>
