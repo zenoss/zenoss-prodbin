@@ -1,20 +1,16 @@
 <h2>Add Report</h2>
-<p>
-What would you like to name your Report?<br/>
-</p>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" 
-       name="id"
-       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/>
+<input id="new_id" name="id"
+ tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)">
+<br/><br/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addDeviceReport:method"
-    value="OK"
+<input type="submit" name="manage_addDeviceReport:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                             '${here/getPrimaryUrlPath}', 'reportForm')" />
 <input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+        onclick="$('dialog').hide()"/>
 </div>

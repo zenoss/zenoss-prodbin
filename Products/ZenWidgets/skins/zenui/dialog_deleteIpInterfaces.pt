@@ -5,7 +5,7 @@ Are you sure you want to remove these IpInterfaces?<br/>
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="deleteIpInterfaces:method" value="Yes"
+<input type="submit" name="deleteIpInterfaces:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/os/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"

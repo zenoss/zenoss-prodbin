@@ -38,6 +38,7 @@ def manage_addReportClass(context, id, title = None, REQUEST = None):
     context._setObject(id, dc)
 
     if REQUEST is not None:
+        REQUEST['message'] = "Report organizer created"
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
 addReportClass = DTMLFile('dtml/addReportClass',globals())
@@ -73,6 +74,7 @@ class ReportClass(Organizer, ZenPackable):
         dc = ReportClass(id, title)
         self._setObject(id, dc)
         if REQUEST:
+            REQUEST['message'] = "Report organizer created"
             return self.callZenScreen(REQUEST)
 
 
@@ -99,6 +101,7 @@ class ReportClass(Organizer, ZenPackable):
             dr = DeviceReport(id)
             self._setObject(id, dr)
         if REQUEST:
+            REQUEST['message'] = "Device report created"
             return self.callZenScreen(REQUEST)
 
     
@@ -114,6 +117,7 @@ class ReportClass(Organizer, ZenPackable):
             self._delObject(rptname)
             target._setObject(rptname, rpt)
         if REQUEST:
+            REQUEST['message'] = "Device reports moved"
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
     
      

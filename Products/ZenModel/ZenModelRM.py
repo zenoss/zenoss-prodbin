@@ -63,6 +63,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             parent.manage_renameObject(self.getId(), newId)
             renamed = True
         if REQUEST:
+            REQUEST['message'] = "Object renamed"
             return self.callZenScreen(REQUEST, renamed)
         return renamed
 
@@ -94,6 +95,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             id = prefix + id
         self._setProperty(id.strip(), value, type, label, visible)
         if REQUEST:
+            REQUEST['message'] = "Property added"
             return self.callZenScreen(REQUEST)
 
     def zmanage_exportObject(self, context=None, REQUEST=None):
@@ -170,6 +172,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             if doDelete and xmlfile in filenames:
                 os.unlink(xmlfile)
         if REQUEST:
+            REQUEST['message'] = "Objects imported"
             return self.callZenScreen(REQUEST)
 
 
@@ -184,6 +187,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for id in ids:
             self._delProperty(id)
         if REQUEST:
+            REQUEST['message'] = "Properties deleted"
             return self.callZenScreen(REQUEST)
 
    
@@ -195,6 +199,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for id in ids:
             target._delObject(id)
         if REQUEST:
+            REQUEST['message'] = "Objects deleted"
             return self.callZenScreen(REQUEST)
         
 

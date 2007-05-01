@@ -5,9 +5,10 @@ Are you sure you want to undelete these events?<br/>
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="button" name="manage_undeleteEvents:method"
-    value="Yes"
-    tal:attributes="onclick string:$$('dialog').hide();;eventZenGrid.undeleteBatch()" />
+<input type="submit" name="manage_undeleteEvents:method"
+    value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
