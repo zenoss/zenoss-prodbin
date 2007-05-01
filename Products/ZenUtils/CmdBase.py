@@ -22,6 +22,7 @@ $Id: CmdBase.py,v 1.10 2004/04/04 02:22:21 edahl Exp $"""
 __version__ = "$Revision: 1.10 $"[11:-2]
 
 import os
+import sys
 import logging
 import logging.config
 from optparse import OptionParser

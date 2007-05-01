@@ -93,7 +93,7 @@ class ZenDaemon(CmdBase):
                 pwrec = pwd.getpwnam(self.options.uid)
                 os.setuid(pwrec.pw_uid)
                 os.environ['HOME'] = pwrec.pw_dir
-            except KeyError:
+            except (KeyError, OSError):
                 print >>sys.stderr, "WARN: user:%s not found running as:%s"%(
                                     self.options.uid,cname)
 
