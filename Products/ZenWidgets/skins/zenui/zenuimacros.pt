@@ -157,7 +157,7 @@ padding-right:20px;margin-left:20px;}</style>
 
 <tal:block metal:define-macro="devmovemenu">
 
-
+<tal:block tal:condition="python:hasattr(here, 'getMenus')">
 <div class="littlemenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
                 pathtrans here/REQUEST/PATH_TRANSLATED;
@@ -206,6 +206,7 @@ mypath python:test(item.action.startswith('javascript'),
         ">
         </script>
     </div>
+</tal:block>
 </tal:block>
 
 <!--===================================

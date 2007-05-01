@@ -274,14 +274,19 @@ style="position:relative;">
            tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
        <tr tal:define="menu_ids menu_ids |
            python:['Actions','Add','Manage','More']">
-        <td class="contextmenutab"
-            tal:condition="python:here.getMenus(menu_ids, here)">
+        <tal:block tal:condition="python:hasattr(here, 'getMenus')">
+        <td class="contextmenutab" 
+            tal:condition="python:here.getMenus(menu_ids, here)" >
         <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
         </td>
         <td class="tabtableleftcap"
-            tal:condition="python:not here.getMenus(menu_ids, here)">
+            tal:condition="python:not here.getMenus(menu_ids, here)" >
             &nbsp;
         </td>
+        </tal:block>
+        <tal:block tal:condition="python:not hasattr(here, 'getMenus')">
+        <td class="tabtableleftcap"> &nbsp; </td>
+        </tal:block>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 
                                 and 'tabletitleselected'">
