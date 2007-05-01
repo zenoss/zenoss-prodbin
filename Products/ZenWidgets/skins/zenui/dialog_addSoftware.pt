@@ -1,0 +1,19 @@
+<h2>Add Software</h2>
+<p>
+What is this software called?<br/>
+</p>
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">Name:&nbsp;</span>
+<input id="prodName" 
+       name="prodName"/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addSoftware:method"
+    value="Add"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>

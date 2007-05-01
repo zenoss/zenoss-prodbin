@@ -728,6 +728,41 @@ class MenuRelations(Migrate.Step):
                                 'isdialog': True,
                                 'ordering': 80.0,
                                 'permissions': ('Manage DMD',)}],
+            'Product_list':            [
+                ZenPackItems,
+                dict(
+                    ordering=90.0, 
+                    id=         'addHardware',
+                    description='Add New Hardware...',
+                    action=     'dialog_addHardware',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
+                    ordering=80.0, 
+                    id=         'addSoftware',
+                    description='Add New Software...',
+                    action=     'dialog_addSoftware',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
+                    ordering=70.0, 
+                    id=         'moveToManufacturer',
+                    description='Move To Manufacturer...',
+                    action=     'dialog_moveToManufacturer',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
+                    ordering=60.0, 
+                    id=         'deleteProducts',
+                    description='Delete Products...',
+                    action=     'dialog_deleteProducts',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    )
+            ],
 'ReportClass_list': [  {  'action': 'dialog_addToZenPack',
                          'description': 'Add to ZenPack...',
                          'id': 'addToZenPack',

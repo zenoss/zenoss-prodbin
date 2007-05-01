@@ -1,0 +1,21 @@
+<h2>Move Products</h2>
+<p>
+To which manufacturer would you like to move these products?<br/>
+</p>
+<br/>
+<p style="text-align:center;">
+<select class="tableheader" name="moveTarget"
+    tal:define="targets here/getManufacturerNames">
+    <option value=""></option>
+    <option tal:repeat="target targets"
+        tal:content="target">Thing</option>
+</select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="moveProducts:method"
+    value="Move"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>
