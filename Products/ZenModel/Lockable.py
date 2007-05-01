@@ -91,6 +91,7 @@ class Lockable(object):
                 dc.unlock(sendEventWhenBlocked)
         
         if REQUEST:
+            REQUEST['message'] = "Unlocked"
             return self.callZenScreen(REQUEST)
     
     def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
@@ -106,6 +107,7 @@ class Lockable(object):
                 dc.lockFromDeletion(sendEventWhenBlocked)
                 
         if REQUEST:
+            REQUEST['message'] = "Locked from deletion"
             return self.callZenScreen(REQUEST)
     
     def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
@@ -121,6 +123,7 @@ class Lockable(object):
                 dc.lockFromUpdates(sendEventWhenBlocked)
                     
         if REQUEST:
+            REQUEST['message'] = "Locked from updates and deletion"
             return self.callZenScreen(REQUEST)
     
     def lockStatus(self):

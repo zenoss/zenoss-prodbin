@@ -184,6 +184,7 @@ def manage_addDevice(context, id, REQUEST = None):
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
+        REQUEST['message'] = "Device created"
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
@@ -661,6 +662,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             except socket.error: ip = ""
         self.manageIp = ip
         if REQUEST:
+            if ip: REQUEST['message'] = "Manage IP set"
+            else: REQUEST['message'] = "Not a valid IP"
             return self.callZenScreen(REQUEST)
         else:
             return self.manageIp
@@ -879,7 +882,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new prodState")
+            if REQUEST:
+                REQUEST['message'] = "Failed to update events with new production state"
+                return self.callZenScreen(REQUEST)
+                
         if REQUEST:
+            REQUEST['message'] = "Production state set"
             return self.callZenScreen(REQUEST)
     
     security.declareProtected('Change Device', 'setPriority')
@@ -897,7 +905,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new priority")
+            if REQUEST:
+                REQUEST['message'] = "Failed to update events with new priority"
+                return self.callZenScreen(REQUEST)
+                
         if REQUEST:
+            REQUEST['message'] = "Priority set"
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('Change Device', 'setLastChange')
@@ -933,8 +946,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             return self.callZenScreen(REQUEST)
 
 
-
-
     security.declareProtected('Change Device', 'setHWProduct')
     def setHWProduct(self, newHWProductName=None, hwManufacturer=None, 
                         REQUEST=None):
@@ -946,7 +957,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             added = True
         if REQUEST:
             if added:
+                REQUEST['message'] = "Hardware product set"
                 REQUEST['hwProductName'] = newHWProductName
+            else:
+                REQUEST['message'] = "Hardware product was not set"
             return self.callZenScreen(REQUEST)
 
 
@@ -958,7 +972,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                                         newOSProductName, osManufacturer)
         if REQUEST:
             if newOSProductName:
+                REQUEST['message'] = "OS Product set"
                 REQUEST['osProductName'] = newOSProductName
+            else:
+                REQUEST['message'] = "OS Product was not set"
             return self.callZenScreen(REQUEST)
 
 
@@ -1048,7 +1065,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         sys = self.getDmdRoot("Systems").createOrganizer(newSystemPath)
         self.addRelation("systems", sys)
         if REQUEST:
-
+            REQUEST['message'] = "System added"
             return self.callZenScreen(REQUEST)
 
 
@@ -1192,6 +1209,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if REQUEST and setlog:
             response.write(self.loggingFooter())
             clearWebLoggingStream(handler)
+            REQUEST['message'] = "Configuration collected"
 
 
 
@@ -1203,6 +1221,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         self.getEventManager().manage_deleteAllEvents(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
+            REQUEST['message'] = "Device deleted"
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus")
 
@@ -1216,7 +1235,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             parent = self.getPrimaryParent()
             parent.manage_renameObject(self.getId(), newId)
             self.setLastChange()
-        if REQUEST: return self()
+        if REQUEST: 
+            REQUEST['message'] = "Device renamed"
+            return self()
 
 
     def manage_afterAdd(self, item, container):

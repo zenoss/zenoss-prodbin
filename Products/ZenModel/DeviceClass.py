@@ -198,6 +198,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             target.devices._setObject(devname, dev)
             dev.setLastChange()
         if REQUEST:
+            REQUEST['message'] = "Devices moved to %s" % moveTarget
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
 
@@ -209,6 +210,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev = self.findDevice(devname)
             dev.deleteDevice()
         if REQUEST:
+            REQUEST['message'] = "Devices deleted"
             return self.callZenScreen(REQUEST)
 
     def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
@@ -218,7 +220,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         for devname in deviceNames:
             dev = self.findDevice(devname)
             dev.setGroups(groupPaths)
-        if REQUEST: REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
+        if REQUEST: 
+            REQUEST['message'] = "Groups set"
+            REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
 
     def setSystems(self, systemPaths=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device systems from any organizer """
@@ -227,7 +231,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         for devname in deviceNames:
             dev = self.findDevice(devname)
             dev.setSystems(systemPaths)
-        if REQUEST: return self()
+        if REQUEST: 
+            REQUEST['message'] = "Systems set"
+            return self()
 
     def setLocation(self, locationPath=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device location from any organizer """
@@ -236,7 +242,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         for devname in deviceNames:
             dev = self.findDevice(devname)
             dev.setLocation(locationPath)
-        if REQUEST: return self()
+        if REQUEST: 
+            REQUEST['message'] = "Location set"
+            return self()
 
 
     def unlockDevices(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
@@ -247,6 +255,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev = self.findDevice(devname)
             dev.unlock(sendEventWhenBlocked)
         if REQUEST:
+            REQUEST['message'] = "Devices unlocked"
             return self.callZenScreen(REQUEST)
 
     def lockDevicesFromDeletion(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
@@ -257,6 +266,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev = self.findDevice(devname)
             dev.lockFromDeletion(sendEventWhenBlocked)
         if REQUEST:
+            REQUEST['message'] = "Devices locked from deletion"
             return self.callZenScreen(REQUEST)
 
     def lockDevicesFromUpdates(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
@@ -267,6 +277,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev = self.findDevice(devname)
             dev.lockFromUpdates(sendEventWhenBlocked)
         if REQUEST:
+            REQUEST['message'] = "Devices locked from updates and deletion"
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('View', 'getEventDeviceInfo')
@@ -485,7 +496,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         id = self.prepId(id)
         org = RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = "Template added"
+            return self.callZenScreen(REQUEST)
             
 
     def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
@@ -498,6 +511,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             resp=REQUEST['RESPONSE']
             resp.setCookie('__cp', cp, path='/zport/dmd')
             REQUEST['__cp'] = cp
+            REQUEST['message'] = "Templates copied"
             return self.callZenScreen(REQUEST)
         return cp
 
@@ -521,6 +535,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
             REQUEST['__cp'] = None
+            REQUEST['message'] = "Templates pasted"
             return self.callZenScreen(REQUEST)
 
 
@@ -534,7 +549,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             if (getattr(aq_base(self), 'rrdTemplates', False)
                 and getattr(aq_base(self.rrdTemplates),id,False)):
                 self.rrdTemplates._delObject(id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = "Templates deleted"
+            return self.callZenScreen(REQUEST)
 
     def manage_exportRRDTemplates(self, ids=(), REQUEST=None):
         """Export RRDTemplates from this DeviceClass 
@@ -548,6 +565,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             if templates and obj:
                 self.zmanage_exportObject(obj, REQUEST)
         if REQUEST:
+            REQUEST['message'] = "Templates exported"
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('Add DMD Objects', 'manage_importRRDTemplates')
