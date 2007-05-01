@@ -23,6 +23,8 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
+from sets import Set
+
 class Status:
     _running = 0
     _fail = 0
@@ -179,10 +181,11 @@ class ZenStatus(Base):
 
         self.log.debug("Getting down devices")
         yield self.eventService().callRemote('getDevicePingIssues')
-        self.pingStatus = driver.next()
+        ignored = Set([s[0] for s in driver.next()])
 
         self.log.debug("Starting scan")
-        d = self.status.start(self.ipservices)
+        d = self.status.start([i for i in self.ipservices
+                               if i.cfg.device not in ignored])
         self.log.debug("Running jobs")
         self.runSomeJobs()
         yield d 
