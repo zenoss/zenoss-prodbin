@@ -78,14 +78,14 @@
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
-				here.getStatusImgSrc(0),
-				here.getStatusImgSrc(3))" />
+                here.getStatusImgSrc(0),
+                here.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.adminStatus==1,
-				here.getStatusImgSrc(0),
-				here.getStatusImgSrc(3))" />
+                here.getStatusImgSrc(0),
+                here.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
@@ -149,10 +149,10 @@
         <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
         <td class="tablevalues" tal:content="srv/name"/>
-		<td class="tablevalues" align="center" width="40">
-      		<img border="0" tal:attributes="src 
-					python:here.getStatusImgSrc(srv.getStatus())" />
-		</td>
+        <td class="tablevalues" align="center" width="40">
+                <img border="0" tal:attributes="src 
+                python:here.getStatusImgSrc(srv.getStatus())" />
+        </td>
         <td class="tablevalues" align="center" width="40">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
@@ -161,7 +161,7 @@
     </tal:block>
     <tr>
         <td colspan="0" class="tableheader" align='center'
-			tal:define="useOnlyMonitored python:1">
+                tal:define="useOnlyMonitored python:1">
             <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>
@@ -223,17 +223,17 @@ Optional titlebar stuff
                   tal:attributes="value proc/getRelationshipManagerId"/>
         </td>
         <td class="tablevalues" 
-				tal:content="structure proc/getOSProcessClassLink"/>
+                tal:content="structure proc/getOSProcessClassLink"/>
         <td class="tablevalues">
-				<a class="tablevalues" tal:content="python:proc.name()[:50]"
+        <a class="tablevalues" tal:content="python:proc.name()[:50]"
                 tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
         </td>
         <td class="tablevalues" tal:content="proc/alertOnRestart"/>
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
-		<td class="tablevalues" align="center" width="40">
-      		<img border="0" tal:attributes="src 
-					python:here.getStatusImgSrc(proc.getStatus())" />
-		</td>
+        <td class="tablevalues" align="center" width="40">
+                <img border="0" tal:attributes="src 
+                        python:here.getStatusImgSrc(proc.getStatus())" />
+        </td>
         <td class="tablevalues" align="center" width="40">
         <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-update-icon.png">
