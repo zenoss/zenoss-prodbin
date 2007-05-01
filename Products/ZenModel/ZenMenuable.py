@@ -161,6 +161,7 @@ class ZenMenuable:
         keys = menus.keys()
         for key in keys:
             menus[key] = menus[key].values()
+            if not menus[key]: del menus[key]
         if not menus: 
             return None
         elif len(menus.keys())==1: 
