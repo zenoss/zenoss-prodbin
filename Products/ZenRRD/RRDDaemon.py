@@ -58,8 +58,8 @@ class RRDDaemon(Base):
 
     def __init__(self, name):
         self.events = []
-        Base.__init__(self)
         self.name = name
+        Base.__init__(self)
         evt = self.heartbeatevt.copy()
         self.heartbeatevt.update(dict(component=name,
                                       device=socket.getfqdn()))
