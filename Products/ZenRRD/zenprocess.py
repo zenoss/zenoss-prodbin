@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''zenprocess
 
@@ -537,6 +537,11 @@ class zenprocess(SnmpDaemon):
         if isinstance(results, failure.Failure):
             self.error(results)
             return results
+        parts = {}
+        for success, values in results:
+            if success:
+                parts.update(values)
+        results = parts
         byConf = reverseDict(device.pids)
         for pidConf, pids in byConf.items():
             if len(pids) != 1:
