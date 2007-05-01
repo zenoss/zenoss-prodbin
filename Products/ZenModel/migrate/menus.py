@@ -210,13 +210,13 @@ class MenuRelations(Migrate.Step):
                     id='deviceManagement_os',
                     permissions=('Change Device',)
                     ),
-                dict(action='eventClassInstSequence',
-                    allowed_classes=['EventClassInst'],
-                    description='Sequence',
-                    ordering=20.0, 
-                    id='eventClassInstSequence',
-                    permissions=('View',)
-                    ),
+                #dict(action='eventClassInstSequence',
+                #    allowed_classes=['EventClassInst'],
+                #    description='Sequence',
+                #    ordering=20.0, 
+                #    id='eventClassInstSequence',
+                #    permissions=('View',)
+                #    ),
                 dict(action='performanceTemplates',
                     allowed_classes=['DeviceClass'],
                     description='All Templates',

@@ -113,11 +113,11 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                 , 'action'        : 'eventClassInstEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                #{ 'id'            : 'sequence'
-                #, 'name'          : 'Sequence'
-                #, 'action'        : 'eventClassInstSequence'
-                #, 'permissions'   : (Permissions.view,)
-                #},
+                { 'id'            : 'sequence'
+                , 'name'          : 'Sequence'
+                , 'action'        : 'eventClassInstSequence'
+                , 'permissions'   : (Permissions.view,)
+                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
