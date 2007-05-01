@@ -65,9 +65,10 @@ class PerformanceConfig(HubService):
     def pushConfig(self, device):
         deferreds = []
         cfg = self.getDeviceConfig(device)
-        if cfg is not None:
-            for listener in self.listeners:
-                print 'sending %s config' % device
+        for listener in self.listeners:
+            if cfg is None:
+                deferreds.append(listener.callRemote('deleteDevice', device.id))
+            else:
                 deferreds.append(self.sendDeviceConfig(listener, cfg))
         return defer.DeferredList(deferreds)
 
