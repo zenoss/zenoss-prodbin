@@ -1,38 +1,41 @@
 <h2>Add IpRouteEntry</h2>
 <br/>
-<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
+<form method="post" tal:attributes="action here/absolute_url" name="_">
 <input type="hidden" name="userCreated" value="True">
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">Destination:&nbsp;</span>
-<input id="new_id" 
-       name="dest"
-       tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
-Next Hop:&nbsp;<input name="nexthopid"><br/><br/>
+<input id="new_id" name="dest"
+ tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)">
+ <br/><br/>
+Next Hop:&nbsp;<input name="nexthopid">
+<br/><br/>
 Interface:&nbsp;<select name="interface"
 tal:define="interfaces here/os/interfaces/objectValuesAll">
     <option tal:repeat="interface interfaces"
         tal:attributes="value interface/name"
         tal:content="interface/name">/</option>
-</select><br/><br/>
+</select>
+<br/><br/>
 Protocol:&nbsp;<select name="routeproto"
 tal:define="protocols here/os/routeProtoMap">
     <option tal:repeat="protocol protocols"
         tal:attributes="value protocol"
         tal:content="protocol">/</option>
-</select><br/><br/>
+</select>
+<br/><br/>
 Type:&nbsp;<select name="routetype"
 tal:define="types here/os/routeTypeMap">
     <option tal:repeat="type types"
         tal:attributes="value type"
         tal:content="type">/</option>
-</select><br/><br/>
+</select>
+<br/><br/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addIpRouteEntry:method"
-    value="OK" />
+<input type="submit" name="addIpRouteEntry:method" value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+        onclick="$('dialog').hide()"/>
 </div>
 </form>

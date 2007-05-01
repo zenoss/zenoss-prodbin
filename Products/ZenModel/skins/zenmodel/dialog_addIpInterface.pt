@@ -1,21 +1,16 @@
 <h2>Add IpInterface</h2>
-<form method="post" tal:attributes="action here/absolute_url" name="addComponent">
-<p>
-What would you like to name your IpInterface?<br/>
-</p>
+<form method="post" tal:attributes="action here/absolute_url" name="_">
 <input type="hidden" name="userCreated" value="True">
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" 
-       name="id"
-       tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)"><br/><br/>
+<input id="new_id" name="id" 
+  tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)">
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addIpInterface:method"
-    value="OK" />
+<input type="submit" name="addIpInterface:method" value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+        onclick="$('dialog').hide()"/>
 </div>
 </form>

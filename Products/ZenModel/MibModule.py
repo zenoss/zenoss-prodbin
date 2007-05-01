@@ -93,7 +93,10 @@ class MibModule(ZenModelRM, ZenPackable):
     def addMibNode(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNode 
         """
-        self.createMibNode(id, oid=oid, nodetype=nodetype)
+        if self.createMibNode(id, oid=oid, nodetype=nodetype):
+            REQUEST['message'] = 'OID Mapping created'
+        else:
+            REQUEST['message'] = 'Invalid OID'
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -124,7 +127,10 @@ class MibModule(ZenModelRM, ZenPackable):
     def addMibNotification(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNotification 
         """
-        self.createMibNotification(id, oid=oid, nodetype=nodetype)
+        if self.createMibNotification(id, oid=oid, nodetype=nodetype):
+            REQUEST['message'] = 'Trap created'
+        else:
+            REQUEST['message'] = 'Invalid OID'
         if REQUEST:
             return self.callZenScreen(REQUEST)
             
@@ -138,8 +144,8 @@ class MibModule(ZenModelRM, ZenPackable):
         node = MibNotification(id, **kwargs) 
         self.notifications._setObject(node.id, node)
         node = self.notifications._getOb(node.id)
-        return node 
-        
+        return node
+    
     
     def manage_afterAdd(self, item, container):
         """

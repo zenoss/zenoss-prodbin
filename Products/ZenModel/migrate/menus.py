@@ -986,6 +986,14 @@ class MenuRelations(Migrate.Step):
                     id='pushConfig_os',
                     permissions=('Change Device',)
                     ),
+                dict(
+                    ordering=5.0, 
+                    id=         'clearHeartbeats',
+                    description='Clear Heartbeats',
+                    action=     'manage_deleteHeartbeat',
+                    permissions=('Change Device',),
+                    allowed_classes = ('Device','OperatingSystem'),
+                    ),
             ],             
             'Add': [
                 dict(

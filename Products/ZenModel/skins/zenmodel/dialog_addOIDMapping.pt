@@ -1,8 +1,5 @@
 <h2>Add OID Mapping</h2>
-<form method="post" tal:attributes="action here/absolute_url" name="addOIDMapping">
-<p>
-What would you like to name your OID Mapping?<br/>
-</p>
+<form method="post" tal:attributes="action here/absolute_url" name="_">
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
@@ -17,8 +14,7 @@ Type:&nbsp;<select class="tableheader" name="nodetype">
 </select>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addMibNode:method"
-    value="OK" />
+<input type="submit" name="addMibNode:method" value="OK" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
