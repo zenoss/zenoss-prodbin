@@ -1228,17 +1228,28 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         ''' Create an event from user supplied data
         '''
         eventDict = dict(
-            summary = REQUEST['summary'],
-            message = REQUEST['message'],
-            device = REQUEST['device'],
-            component = REQUEST['component'],
-            severity = REQUEST['severity'],
-            eventClassKey = REQUEST['eventClassKey'],
-            eventClass = REQUEST['eclass'],
+            summary = REQUEST.get('summary', ''),
+            message = REQUEST.get('message', ''),
+            device = REQUEST.get('device', ''),
+            component = REQUEST.get('component', ''),
+            severity = REQUEST.get('severity', ''),
+            eventClassKey = REQUEST.get('eventClassKey', ''),
             )
-        evid = self.sendEvent(eventDict)
+        # We don't want to put empty eventClass into the dict because that
+        # can keep the event from being mapped to /Unknown correctly.
+        if REQUEST.get('eclass', None):
+            eventDict['eventClass'] = REQUEST['eclass']
+        # sendEvent insists on a device or a component. Can be bogus.
+        if not eventDict['device'] and not eventDict['component']:
+            if REQUEST:
+                REQUEST['message'] = 'You must specify a device and/or a component.'
+                return self.callZenScreen(REQUEST)
+            else:
+                return
+        evid = self.sendEvent(eventDict)            
         if REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
+
 
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)
@@ -1252,7 +1263,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             evids = ",".join([ "'%s'" % evid for evid in evids])
             whereClause = ' where evid in (%s)' % evids
             self.deleteEvents(whereClause, 'Deleted by user')
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            num = len(evids)
+            REQUEST['message'] = 'Moved %s event%s to History.' % (
+                                    num, (num != 1 and 's') or '')
+            return self.callZenScreen(REQUEST)
 
     def undeleteEvents(self, whereClause, reason):
         fields = ','.join( self.getFieldList() )
@@ -1322,7 +1337,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             except KeyError:
                 reason += 'unknown (%d)' % eventState
             self.updateEvents(update, whereClause, reason)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = reason
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
@@ -1332,6 +1349,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         evclass = None
         evmap = None
+        numCreated = 0
+        numNotUnknown = 0
+        numNoKey = 0
         if eventClass and evids:
             evclass = self.getDmdRoot("Events").getOrganizer(eventClass)
             sel = """select eventClassKey, eventClass, message 
@@ -1343,12 +1363,41 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 curs.execute(sel);
                 for row in curs.fetchall():
                     evclasskey, curevclass, msg = row
-                    if curevclass != Unknown or not evclasskey: continue
+                    if curevclass != Unknown:
+                        numNotUnknown += 1
+                        continue                        
+                    if not evclasskey:
+                        numNoKey += 1
+                        continue
                     evmap = evclass.createInstance(evclasskey)
                     evmap.eventClassKey = evclasskey
                     evmap.example = msg
+                    numCreated += 1
             finally: self.close(conn)
+        elif REQUEST:
+            if not evids:
+                REQUEST['message'] = 'No events selected.'
+            elif not eventClass:
+                REQUEST['message'] = 'No event class selected.'
+                
         if REQUEST:
+            msg = REQUEST.get('message', '')
+            if numNotUnknown:
+                msg += ((msg and ' ') + 
+                        '%s event%s %s not class /Unknown.' % (
+                            numNotUnknown, 
+                            (numNotUnknown != 1 and 's') or '',
+                            (numNotUnknown != 1 and 'are') or 'is'))
+            if numNoKey:
+                msg += ((msg and ' ') +
+                        '%s event%s %s not have an event class key.' % (
+                            numNoKey,
+                            (numNoKey != 1 and 's') or '',
+                            (numNoKey != 1 and 'do') or 'does'))
+            msg += (msg and ' ') + 'Created %s event mapping%s.' % (
+                            numCreated,
+                            (numCreated != 1 and 's') or '')
+            REQUEST['message'] = msg
             if len(evids) == 1 and evmap: return evmap()
             elif evclass and evmap: return evclass()
 
