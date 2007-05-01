@@ -166,6 +166,9 @@ div.devmovemenu:hover {
 ul.zenMenu > li > a {
     background: transparent url(img/expandable_menu_arrow.gif) 150px no-repeat;
 }
+ul.zenMenu > li.toplevelmenu > a {
+    background-image: url() !important;
+}
 
 div.devmovemenuitems ul.zenMenu li a {
     background: #666 url();
