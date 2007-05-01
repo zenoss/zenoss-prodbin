@@ -1126,7 +1126,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         if status < 0:
             src = 'purple'
-        if status == 0:
+        elif status == 0:
             src = 'green'
         elif status == 1:
             src = 'yellow'
