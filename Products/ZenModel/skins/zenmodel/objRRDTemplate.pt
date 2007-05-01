@@ -2,25 +2,15 @@
 <tal:block metal:fill-slot="contentPane">
 <tal:block tal:repeat="templ here/getRRDTemplates">
 <tal:block tal:define="editable python:templ.isEditable(here)">
-<form method="post" tal:attributes="action here/absolute_url_path">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
         <tal:block tal:define=" tabletitle string:">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
 
+<form method="post" tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
                             
     <tr class="tableheader">
         <td>
@@ -39,14 +29,11 @@
     <tr>
         <td class="tableheader" colspan="2" tal:content="templ/description"/>
     </tr>
+</form>
 
         <!-- END TABLE CONTENTS -->
 
-        </tal:block>
-        </tal:block>
-        </tal:block>
-
-</form>
+<tr><td colspan='2'>
 <br/>
 
 
@@ -106,8 +93,13 @@
 </tal:block>
 </form>
 
-</tal:block>        
-</tal:block>        
+</td></tr>
 
+        </tal:block>
+        </tal:block>
+        </tal:block>
+
+</tal:block>        
+</tal:block>        
 </tal:block>
 </tal:block>

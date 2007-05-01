@@ -2,6 +2,7 @@
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable python:here.isEditable(here);
 				templ nocall:here;">
+
 <form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
@@ -44,18 +45,9 @@
     </td>
     </tr>
     <tr>
-        <td class="tableheader" colspan="1">
+        <td class="tableheader" colspan="2">
             <input class="tableheader" type="submit" value="Save"
                 name="zmanage_editProperties:method" />
-        </td>
-        <td class="tableheader" colspan="1">
-            <input class="tableheader" type="submit" value="Export"
-                name="zmanage_exportObject:method" />
-            to
-            <select class="tableheader" name="dest">
-                <option value="filesystem" selected="True">File System</option>
-                <!-- option value="zenossdotnet">Your Zenoss.net Account</option /-->
-            </select>
         </td>
     </tr>
 
