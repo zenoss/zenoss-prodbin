@@ -104,6 +104,10 @@ Dialog.Box.prototype = {
     },
     fill: function(request) {
         $('dialog_innercontent').innerHTML = request.responseText;
+        var els = findChildElements($('dialog_innercontent'), ['input','select']);
+        els = filter(function(x){return x.type!='button'&&x.type!='submit'}, els);
+        var first = els[0];
+        first.focus();
     },
     submit_form: function(action, formname) {
         var f = formname?document.forms[formname]:this.form
