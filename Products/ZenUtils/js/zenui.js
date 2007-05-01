@@ -141,12 +141,15 @@ function doHover() {
     var paneToggle = $('paneToggle');
     var leftPaneToggle = $('leftPaneToggle');
     var lpPopup = leftPane;
+    setStyle(paneToggle, {
+        'z-index':'10000'
+    });
     setStyle(lpPopup, {
         'position':'absolute',
 //        'background-color':'white',
 //        'padding':'2px',
 //        'padding-top':'2px',
-        'z-index':'3000'
+        'z-index':'10000'
     });
     connect(leftPane, 'onmouseover', function(){
         clearTimeout(t);
@@ -192,6 +195,8 @@ function cancelHover() {
     var leftPane = $('leftPane');
     var paneToggle = $('paneToggle');
     if (leftPane && paneToggle) {
+        setStyle(paneToggle, {'z-index':'1'});
+        setStyle(leftPane, {'z-index':'1'});
     disconnectAll(paneToggle);
     disconnectAll(leftPane);
     disconnectAll('leftPaneToggle');
