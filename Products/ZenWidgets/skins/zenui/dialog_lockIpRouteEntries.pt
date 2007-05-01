@@ -1,25 +1,25 @@
-
 <h2>Edit Lock</h2>
-<p>
-Which lock status would you like to set on these IpRouteEntries?<br/><br/>
+<p style="text-align:right;">
 <input tal:attributes="name string:sendEventWhenBlocked;
-                    type string:checkbox;
-                    checked here/sendEventWhenBlocked"
-                    />Send event when actions are blocked by a lock<br/>
-</p>
-<p alight="right">
+    type string:checkbox;
+    checked here/sendEventWhenBlocked"
+    />Send event when actions are blocked by a lock
+<br/><br/>
 <input type="submit" name="lockIpRouteEntriesFromUpdates:method"
     value="Lock from deletion and updates"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/os/absolute_url_path}')" /><br/>
+                        '${here/os/absolute_url_path}')" />
+<br/><br/>
 <input type="submit" name="lockIpRouteEntriesFromDeletion:method"
     value="Lock from deletion"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/os/absolute_url_path}')" /><br/>
+                        '${here/os/absolute_url_path}')" />
+<br/><br/>
 <input type="submit" name="unlockIpRouteEntries:method"
     value="Unlock"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/os/absolute_url_path}')" /><br/>
+                        '${here/os/absolute_url_path}')" />
+<br/><br/>
 <input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+        onclick="$('dialog').hide()"/>
 </p>

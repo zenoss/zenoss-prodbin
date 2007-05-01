@@ -189,6 +189,7 @@ class OperatingSystem(Software):
             dc = context._getOb(componentName)
             dc.manage_deleteComponent()
         if REQUEST:
+            REQUEST['message'] = 'Device components deleted'
             return self.callZenScreen(REQUEST)
 
     def unlockDeviceComponents(self, context, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):

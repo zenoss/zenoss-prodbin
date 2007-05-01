@@ -436,6 +436,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         cmps.extend(self.os.interfaces())
         cmps.extend(self.os.filesystems())
         cmps.extend(self.os.processes())
+        cmps.extend(self.os.routes())
         cmps.extend(self.hw.harddisks())
         return cmps
 

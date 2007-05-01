@@ -1,20 +1,20 @@
 <h2>Edit Lock</h2>
 <form method="post" name="_" tal:attributes="action here/absolute_url">
-<p>
-Which lock status would you like to set on this object?<br/><br/>
+<p style="text-align:right;">
 <input tal:attributes="name string:sendEventWhenBlocked;
-                    type string:checkbox;
-                    checked here/sendEventWhenBlocked"
-                    />Send event when actions are blocked by a lock<br/>
-</p>
-<p  style="text-align:right;">
+    type string:checkbox;
+    checked here/sendEventWhenBlocked"
+    />Send event when actions are blocked by a lock
+<br/><br/>
 <input type="submit" name="lockFromUpdates:method"
-        value="Lock from deletion and updates" /><br/>
+        value="Lock from deletion and updates" />
+<br/><br/>
 <input type="submit" name="lockFromDeletion:method" 
-        value="Lock from deletion" /><br/>
-<input type="submit" name="unlock:method"
-    value="Unlock"/><br/>
+        value="Lock from deletion" />
+<br/><br/>
+<input type="submit" name="unlock:method" value="Unlock"/>
+<br/><br/>
 <input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+        onclick="$('dialog').hide()"/>
 </p>
 </form>

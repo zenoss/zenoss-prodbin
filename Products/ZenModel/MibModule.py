@@ -87,17 +87,17 @@ class MibModule(ZenModelRM, ZenPackable):
             if id in ids:
                 self.nodes._delObject(id)
         if REQUEST:
+            REQUEST['message'] = 'OID Mappings deleted'
             return self.callZenScreen(REQUEST)
 
 
     def addMibNode(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNode 
         """
-        if self.createMibNode(id, oid=oid, nodetype=nodetype):
-            REQUEST['message'] = 'OID Mapping created'
-        else:
-            REQUEST['message'] = 'Invalid OID'
+        node = self.createMibNode(id, oid=oid, nodetype=nodetype)
         if REQUEST:
+            if node: REQUEST['message'] = 'OID Mapping created'
+            else: REQUEST['message'] = 'Invalid OID'
             return self.callZenScreen(REQUEST)
 
 
@@ -121,17 +121,17 @@ class MibModule(ZenModelRM, ZenPackable):
             if id in ids:
                 self.notifications._delObject(id)
         if REQUEST:
+            REQUEST['message'] = 'Traps deleted'
             return self.callZenScreen(REQUEST)
 
 
     def addMibNotification(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNotification 
         """
-        if self.createMibNotification(id, oid=oid, nodetype=nodetype):
-            REQUEST['message'] = 'Trap created'
-        else:
-            REQUEST['message'] = 'Invalid OID'
+        notification = self.createMibNotification(id, oid=oid, nodetype=nodetype)
         if REQUEST:
+            if notification: REQUEST['message'] = 'Trap created'
+            else: REQUEST['message'] = 'Invalid OID'
             return self.callZenScreen(REQUEST)
             
             
