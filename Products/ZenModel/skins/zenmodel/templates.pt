@@ -278,6 +278,10 @@ style="position:relative;">
             tal:condition="python:here.getMenus(menu_ids, here)">
         <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
         </td>
+        <td class="tabtableleftcap"
+            tal:condition="python:not here.getMenus(menu_ids, here)">
+            &nbsp;
+        </td>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 
                                 and 'tabletitleselected'">

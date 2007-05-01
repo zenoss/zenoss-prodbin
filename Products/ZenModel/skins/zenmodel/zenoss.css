@@ -355,7 +355,12 @@ table.tabtable td.contextmenutab a.tabletitle:hover {
 
 table.tabtable td.tabtablecap {
     background: transparent url('img/tabtable_rounded_cap.gif') 0px 8px no-repeat;
-    width: 30px;
+    width: 21px;
+}
+
+table.tabtable td.tabtableleftcap {
+    background: transparent url('img/tabtable_rounded_cap_left.gif') 0px 8px no-repeat;
+    width: 21px;
 }
 
 table.tabtable td.tabletitleselected  {
