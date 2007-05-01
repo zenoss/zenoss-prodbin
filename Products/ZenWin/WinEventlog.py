@@ -14,14 +14,13 @@ import socket
 import logging
 log = logging.getLogger("zen.WinEventlog")
 
+from Products.ZenEvents.ZenEventClasses import Status_Wmi
+
 class WinEventlog(object):
 
-    name = "WinEventlog"
+    agent = name = "zeneventlog"
     manager = socket.getfqdn()
-    evtAgent = "WinEventlog"
     evtAlertGroup = "Eventlog"
-    failure = {'eventClass':'/Status/WinEventlog', 'agent': 'zenwin',
-                'severity':4}
     statmsg = "Windows Service '%s' is %s"
     
     eventlogFields = "EventCode,EventType,Message,SourceName,TimeGenerated"
@@ -65,9 +64,10 @@ class WinEventlog(object):
         evt['component'] = lrec.SourceName
         evt['ntevid'] = lrec.EventCode
         evt['summary'] = lrec.Message.strip()
-        evt['agent'] = self.evtAgent
+        evt['agent'] = self.agent
         evt['severity'] = sev
         evt['eventGroup'] = self.evtAlertGroup
         evt['manager'] = self.manager
+        evt['eventClass'] = Status_Wmi
         log.debug("device:%s msg:'%s'", srec.name, lrec.Message)
         return evt
