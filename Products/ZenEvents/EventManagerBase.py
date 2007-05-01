@@ -876,7 +876,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         data = {}
         data['systemevents'] = self.getOrganizerSummary(
                                         'Systems','viewEvents', simple)
-        data['heartbeat'] = self.getHeartbeat()
+        # Dashboard just wants the first 3 elements of each heartbeat
+        data['heartbeat'] = [h[:3] for h in self.getHeartbeat()]
         data['deviceevents'] = self.getDeviceDashboard(simple)
         self.addToCache("dashboardinfo", data)
         self.cleanCache()
