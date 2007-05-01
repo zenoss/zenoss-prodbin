@@ -49,7 +49,8 @@
 				       ul python:'ul_' + prop;">
 		  <div style="float:left;">
 		    <textarea tal:content="pvalue" 
-		              tal:attributes="name propName; id ta"/>
+		              tal:attributes="name propName; id ta"
+                      rows="20" style="height:350px;width:250px"/>
 		    <h5>Plugins (drag to change order)</h5>
 		  </div>
 		  <div style="float:left;">
