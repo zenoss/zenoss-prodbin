@@ -83,6 +83,7 @@ class ZenModelBase(object):
         """Checks a valid id
         """
         new_id = unquote(id)
+        new_id = new_id.replace('/', '_')
         try: 
             globalCheckValidId(self, new_id)
             try:
