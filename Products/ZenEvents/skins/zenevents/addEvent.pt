@@ -18,16 +18,6 @@
 <!-- BEGIN TABLE CONTENTS -->
         <tr>
             <td class="tableheader" align="left">
-                Summary
-            </td>
-            <td class="tablevalues" align="left">
-                <input class="tablevalues" type="text" 
-		            size="50" name="summary" maxlen="128"
-                    tal:attributes="value event/summary | nothing" />
-            </td>
-        </tr>
-        <tr>
-            <td class="tableheader" align="left">
                 Message
             </td>
             <td class="tablevalues" align="left">
