@@ -319,6 +319,7 @@ table.tabtable {
 }
 
 table.tabtable td {
+    height: 32px;
 	margin: 0px;
 	text-align: center;
     vertical-align: bottom;
@@ -346,17 +347,23 @@ table.tabtable td.contextmenutab a.tabletitle {
     border-right: 0pt;
     margin-right: -1px;
     margin-bottom: -1px;
-    background-image: url('img/actions_button_left.gif');
+    background-image: url('img/contextmenu_tab.gif');
 }
 table.tabtable td.contextmenutab a.tabletitle:hover {
-    background-image: url('img/actions_button_depressed_left.gif');
+    background-image: url('img/contextmenu_tab_depressed.gif');
+}
+
+table.tabtable td.tabtablecap {
+    background: transparent url('img/tabtable_rounded_cap.gif') 0px 8px no-repeat;
+    width: 30px;
 }
 
 table.tabtable td.tabletitleselected  {
     color: #333333;
     height: 29px;
     font-size:8pt;
-    padding: 0px;
+    padding-top: 3px;
+    background-color: white;
     border: 0px;
 }
 table.tabtable div.tableft {
