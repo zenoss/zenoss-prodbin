@@ -165,7 +165,7 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST: kw = REQUEST.form
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
-            REQUEST['message'] = Time.SaveMessage()
+            REQUEST['message'] = "User added"
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -237,7 +237,7 @@ class UserSettingsManager(ZenModelRM):
                     mobj.adminRoles._delObject(ar.id)
                 self._delObject(userid)
         if REQUEST:
-            REQUEST['message'] = Time.SaveMessage()
+            REQUEST['message'] = "Users deleted"
             return self.callZenScreen(REQUEST)
 
 

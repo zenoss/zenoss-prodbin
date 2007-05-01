@@ -97,9 +97,10 @@ class Organizer(ZenModelRM, EventView):
                 org = self.__class__(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
-            if REQUEST:
-                REQUEST['message'] = 'Error: %s' % e
-        if REQUEST: return self.callZenScreen(REQUEST)
+            if REQUEST: REQUEST['message'] = 'Error: %s' % e
+        if REQUEST: 
+            REQUEST['message'] = "Organizer added"
+            return self.callZenScreen(REQUEST)
             
 
     security.declareProtected('Delete objects', 'manage_deleteOrganizer')
@@ -122,10 +123,14 @@ class Organizer(ZenModelRM, EventView):
     def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
         """Delete a list of Organizers from the database using their ids.
         """
-        if not organizerPaths: return self.callZenScreen(REQUEST)
+        if not organizerPaths: 
+            REQUEST['message'] = "Organizer not specified, not deleted"
+            return self.callZenScreen(REQUEST)
         for organizerName in organizerPaths:
             self.manage_deleteOrganizer(organizerName)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            REQUEST['message'] = "Organizer deleted"
+            return self.callZenScreen(REQUEST)
             
     
     def deviceMoveTargets(self):
@@ -146,9 +151,12 @@ class Organizer(ZenModelRM, EventView):
             self._delObject(organizerName)
             target._setObject(organizerName, obj)
             movedStuff = True
-        if REQUEST and movedStuff: return target.callZenScreen(REQUEST)
-        
-    
+        if REQUEST:
+            if movedStuff: REQUEST['message'] = "Organizer moved"
+            else: REQUEST['message'] = "No organizers were moved"
+            return target.callZenScreen(REQUEST)
+            
+            
     def createOrganizer(self, path):
         """Create and return and an Organizer from its path."""
         return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), 

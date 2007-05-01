@@ -1,14 +1,13 @@
 <h2>Add Mib Module</h2>
-<p>
-What would you like to name this module?
-</p>
+<span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:center;">
-<input type="text" name="id"/>
-</p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addMibModule:method"
-    value="Add"
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" name="id"
+ tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', 
+this.id)">
+<br/><br/>
+<input type="submit" name="manage_addMibModule:method" value="Add"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"

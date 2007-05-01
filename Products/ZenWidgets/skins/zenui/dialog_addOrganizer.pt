@@ -1,16 +1,12 @@
 <h2>Add Organizer</h2>
-<p>
-What would you like to name this organizer?
-</p>
 <span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:right;">
-<span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" 
-       name="newPath"
-       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/>
-</p>
 <div id="dialog_buttons">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" name="newPath"
+ tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', 
+this.id)">
+<br/><br/>
 <input type="submit" name="manage_addOrganizer:method"
     value="Add Organizer"
     tal:attributes="onclick string:return $$('dialog').submit_form(

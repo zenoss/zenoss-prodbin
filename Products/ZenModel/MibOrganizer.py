@@ -125,6 +125,7 @@ class MibOrganizer(Organizer, ZenPackable):
         mm = MibModule(id)
         self.mibs._setObject(id, mm)
         if REQUEST:
+            REQUEST['message'] = "Mib Module created"
             return self.callZenScreen(REQUEST)
         else:
             return self.mibs._getOb(id)
@@ -137,7 +138,9 @@ class MibOrganizer(Organizer, ZenPackable):
         if type(ids) == types.StringType: ids = (ids,)
         for id in ids:
             self.mibs._delObject(id)
-        if REQUEST: return self()
+        if REQUEST: 
+            REQUEST['message'] = "Mib Module deleted"
+            return self()
 
 
     def moveMibModules(self, moveTarget, ids=None, REQUEST=None):
@@ -152,6 +155,7 @@ class MibOrganizer(Organizer, ZenPackable):
             self.mibs._delObject(id)
             target.mibs._setObject(id, rec)
         if REQUEST:
+            REQUEST['message'] = "Mib Module moved"
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
 
