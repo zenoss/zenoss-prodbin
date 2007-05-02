@@ -596,7 +596,7 @@ class MenuRelations(Migrate.Step):
              'ordering': 60.0,
              'permissions': ('View',)},
           {  'action': 'deviceManagement',
-             'allowed_classes': ['Device'],
+             'allowed_classes': ['Device', 'DeviceOrganizer'],
              'description': 'Administration',
              'id': 'deviceManagement',
              'ordering': 50.0,

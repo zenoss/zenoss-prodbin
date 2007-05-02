@@ -111,33 +111,5 @@ Optional titlebar stuff
 
 </form>
 
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
-
-<tal:block metal:define-macro="graphLinks" tal:condition="here/havePydot"
-    tal:define="routers string:${here/absolute_url_path}/deviceGraphRouters;
-                tabletitle string:Graphs;
-                networks string:${here/absolute_url_path}/deviceGraphNets">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-    <tr>
-      <td class="tableheader">Relative Network Graph</td>
-      <td class="tablevalues" colspan="3"><a tal:attributes="href
-routers">Image Link</a> (routers only)</td>
-    </tr>
-    <tr>
-      <td class="tableheader">Detailed Relative Network Graph</td>
-      <td class="tablevalues" colspan="3"><a tal:attributes="href
-networks">Image Link</a> (routers and networks)</td>
-    </tr>
-<!-- END TABLE CONTENTS -->
-
-</tal:block>
-</tal:block>
-</tal:block>
-
 </tal:block>
 </tal:block>

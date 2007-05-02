@@ -87,7 +87,6 @@
                 tal:attributes="value template/id"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
-        <tal:block tal:condition="objects" tal:omit-tag="">
         <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')">
@@ -141,7 +140,6 @@
                 <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
             </td>
         </tr>
-        </tal:block>
 </tal:block>
 </tal:block>
 </tal:block>
