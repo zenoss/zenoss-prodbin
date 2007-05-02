@@ -316,6 +316,7 @@ table.tabtable {
 	height: 23px;
 	margin: 0px;
 	padding: 0px;
+    table-layout: fixed;
 }
 
 table.tabtable td {
@@ -323,6 +324,7 @@ table.tabtable td {
 	margin: 0px;
 	text-align: center;
     vertical-align: bottom;
+    position: relative;
 }
 
 table.tabtable td a.tabletitle {
@@ -354,40 +356,52 @@ table.tabtable td.contextmenutab a.tabletitle:hover {
 }
 
 table.tabtable td.tabtablecap {
-    background: transparent url('img/tabtable_rounded_cap.gif') 0px 8px no-repeat;
+    background: transparent url('img/tabtable_rounded_cap.gif') 0px 11px no-repeat;
     width: 21px;
 }
 
 table.tabtable td.tabtableleftcap {
-    background: transparent url('img/tabtable_rounded_cap_left.gif') 0px 8px no-repeat;
+    background: transparent url('img/tabtable_rounded_cap_left.gif') 0px 11px no-repeat;
     width: 21px;
 }
 
 table.tabtable td.tabletitleselected  {
+    white-space: nowrap;
     color: #333333;
-    height: 29px;
+    height: 32px;
     font-size:8pt;
     padding-top: 3px;
     background-color: white;
     border: 0px;
 }
+
+table.tabtable td.tabletitleselected div.tablinehider {
+    background-color: #E0E0E0;
+    height: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+    position: absolute;
+    bottom: -3px;
+    width: 75%;
+}
+
 table.tabtable div.tableft {
     background: transparent url(img/tab_bg_selected.gif) no-repeat left 0pt;
-    height: 30px;
-    overflow: hidden;
+    height: 32px;
 }
+
 table.tabtable div.tabright {
     background: transparent url(img/tab_bg_selected.gif) no-repeat right 0pt;
-    height: 30px;
-    overflow: hidden;
+    height: 32px;
 }
+
 table.tabtable div.tabcenter {
     margin: 0px 14px;
     padding: 0px 10px;
     height: 32px;
     background: transparent url(img/tab_bg_selected_cont.gif) repeat-x scroll 1pt 0pt; 
-    overflow: hidden;
 }
+
 table.tabtable td.tabletitleselected a,
 table.tabtable td.tabletitleselected a:visited, 
 table.tabtable td.tabletitleselected a:link   {
@@ -399,8 +413,6 @@ table.tabtable td.tabletitleselected a:link   {
     margin-top: 3px;
     background: none;
 }
-
-
 
 table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -446,7 +458,6 @@ a.tabletitle {
 }
 
 #selectedtablinehider {
-    background-color: blue;
     height: 3px;
     z-index: 2999;
     position: absolute;

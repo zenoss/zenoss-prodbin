@@ -317,6 +317,7 @@ style="position:relative;">
 
 
     <tal:block tal:condition="python:tab.get('selected', None)">
+    <div class="tablinehider"></div>
     <div class="tableft">
          <div class="tabright">
              <div class="tabcenter">
