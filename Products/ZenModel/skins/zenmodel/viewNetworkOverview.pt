@@ -139,11 +139,7 @@ tal:define="tabletitle string:Network;">
     </td>
   </tr>
   </tal:block>
-  <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="5">
-        <span metal:use-macro="here/deviceOrganizerStatus/macros/editor" />
-    </td>
-  </tr>
+
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

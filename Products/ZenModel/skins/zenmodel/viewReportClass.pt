@@ -56,11 +56,6 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
-    <tr tal:condition="here/isManager">
-        <td class="tableheader" colspan="3">
-            <span metal:use-macro="here/deviceOrganizerStatus/macros/editor"/>
-        </td>
-    </tr>
 
         <!-- END TABLE CONTENTS -->
 
