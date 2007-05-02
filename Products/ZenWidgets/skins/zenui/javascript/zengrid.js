@@ -187,11 +187,12 @@ ZenGrid.prototype = {
                           {};
         this.fields = [];
         this.fieldMapping = {
-            summary: -4,
-            firstTime: 0,
-            lastTime: 0,
-            component: +1,
+            summary: -9,
+            component: +6,
+            //eventClass: +2,
             count: +3
+            //firstTime: -1,
+            //lastTime: -1
         }
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
@@ -331,15 +332,16 @@ ZenGrid.prototype = {
         var d = loadJSONDoc(this.url, qs);
         d.addErrback(function(x) { alert('Cannot communicate with the server!') });
         d.addCallback(
-         bind(function(r) {
-             result = r; 
-             this.buffer.totalRows = result[1];
-             this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
-             this.buffer.clear();
-             this.buffer.update(result[0], bufOffset);
-             this.updateStatusBar(this.lastOffset);
-             this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
-         }, this));
+            bind(function(r) {
+                result = r; 
+                this.buffer.totalRows = result[1];
+                this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
+                this.buffer.clear();
+                this.buffer.update(result[0], bufOffset);
+                this.updateStatusBar(this.lastOffset);
+                this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
+            }, this)
+        );
     },
     query: function(offset) {
         var url = this.url || 'getJSONEventsInfo';
@@ -541,6 +543,7 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
+        console.profile();
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
@@ -584,6 +587,7 @@ ZenGrid.prototype = {
         }
         this.killLoading();
         connectCheckboxListeners();
+        console.profileEnd();
     },
     getTotalRows: function() {
         cb = bind(function(r) {
@@ -791,23 +795,19 @@ ZenGrid.prototype = {
         var cols = this.colgroup.getElementsByTagName('col');
         var hcols = this.headcolgroup.getElementsByTagName('col');
         var oldint = parseFloat(cols[index].width);
-        var oldfint = parseFloat(cols[fromindex].width);
         var parentwidth = getElementDimensions(this.viewport).w;
         var old = (oldint/100.00) * parentwidth;
-        var fold = (oldfint/100.00) * parentwidth;
         var neww = (old + pixeldiff)/parentwidth * 100.00;
-        var feww = (pixeldiff - fold)/parentwidth * 100.00;
         var tofield = this.fields[index][0];
         var toval = this.fieldMapping[tofield];
         var fromfield = this.fields[fromindex][0];
         var fromval = this.fieldMapping[fromfield];
-        if (pixeldiff>0&&(neww<0||feww>0)) 
-            neww=toval;
-        if (pixeldiff<0&&(feww<0||neww>0))
-            neww=fromval;
+        log(neww, toval, fromval);
         neww = oldint-neww;
-        this.fieldMapping[tofield] = Math.max(toval-neww, oldint);
-        this.fieldMapping[fromfield] = Math.min(fromval+neww, -oldint);
+        if (toval-neww<0) neww=toval;
+        else if (fromval+neww<0) neww=-fromval;
+        this.fieldMapping[tofield] = Math.max(toval-neww, 0);
+        this.fieldMapping[fromfield] = Math.max(fromval+neww, 0);
         this.colgroup = swapDOM(this.colgroup, this.getColgroup());
         this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
         //this.refreshTable(this.lastOffset);

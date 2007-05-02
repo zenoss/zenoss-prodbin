@@ -57,6 +57,7 @@ class ZEvent(Event):
                             ' href="/zport/dmd/deviceSearchResults'
                             '?query=%s">%s</a>' % (value, _shortvalue))
             elif field == 'eventClass':
+                _shortvalue = _shortvalue.replace('/','/&shy;')
                 value = urllib.quote('<a class="%s" ' % (cssClass) +
                         'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
             else:
