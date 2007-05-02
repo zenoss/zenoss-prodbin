@@ -172,7 +172,7 @@ class Commandable:
         return res
 
 
-    security.declareProtected('Change Device', 'getUserCommands')
+    security.declareProtected('View', 'getUserCommands')
     def getUserCommands(self, asDict=False):
         ''' Get the user commands available in this context
         '''
