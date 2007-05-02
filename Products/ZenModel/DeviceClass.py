@@ -218,6 +218,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             REQUEST['message'] = "Devices deleted"
             return self.callZenScreen(REQUEST)
 
+    def setPerformanceMonitor(self, performanceMonitor, deviceNames=None, REQUEST=None):
+        """ Provide a method to set performance monitor from any organizer """
+        if not performanceMonitor or not deviceNames:
+            return self()
+        if type(deviceNames) == type(''): deviceNames = (deviceNames,)
+        for devname in deviceNames:
+            dev = self.findDevice(devname)
+            dev.setPerformanceMonitor(performanceMonitor)
+        if REQUEST: 
+            REQUEST['message'] = "Performance monitor set to %s" % performanceMonitor
+            REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
+            
     def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device groups from any organizer """
         if not groupPaths or not deviceNames: return self()
@@ -248,7 +260,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev = self.findDevice(devname)
             dev.setLocation(locationPath)
         if REQUEST: 
-            REQUEST['message'] = "Location set"
+            REQUEST['message'] = "Location set to %s" % locationPath
             return self()
 
 
