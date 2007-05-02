@@ -26,6 +26,7 @@
     page string:getHistoryEventListPage;
     ">
 
+<input type='hidden' name='zenScreenName' tal:attributes="value template/id" />
 
 <tal:block tal:define="
 tabletitle string:Event History;

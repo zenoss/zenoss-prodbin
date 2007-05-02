@@ -107,6 +107,10 @@ class ZenModelBase(object):
         in functions that are called from forms to get back to the correct
         screen with the correct context.
         """
+        if getattr(REQUEST, 'dontRender', False):
+            # EventView uses a FakeRequest class to avoid the overhead
+            # of rendering pages as result of ajax calls.
+            return ''
         screenName = REQUEST.get("zenScreenName", "")
         if redirect:
             nurl = "%s/%s" % (self.getPrimaryUrlPath(), screenName)

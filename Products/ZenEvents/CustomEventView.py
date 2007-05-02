@@ -151,17 +151,14 @@ class CustomEventView(ZenModelRM, EventFilter):
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
-        self.getEventManager().manage_deleteEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_deleteEvents(evids, REQUEST)
+
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
-        self.getEventManager().manage_undeleteEvents(evids)
-        if REQUEST: 
-            REQUEST['message'] = "%s events undeleted." % len(evids)
-            return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_undeleteEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
@@ -170,27 +167,27 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         dev = self.device()
         if dev: 
-            self.getEventManager().manage_deleteHeartbeat(dev.id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+            return self.getEventManager().manage_deleteHeartbeat(dev.id, REQUEST)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
-        self.getEventManager().manage_ackEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_ackEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
-        self.getEventManager().manage_setEventStates(eventState, evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_setEventStates(
+                                                eventState, evids, REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_setEventStates')
+    security.declareProtected('Manage Events','manage_createEventMap')
     def manage_createEventMap(self, eventClass=None, evids=(), REQUEST=None):
         """Create an event map from an event or list of events.
         """

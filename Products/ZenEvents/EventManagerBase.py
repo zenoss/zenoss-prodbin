@@ -1260,12 +1260,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         "Delete the given event ids"
         if type(evids) == type(''):
             evids = [evids]
+        num = len(evids)
         if evids:
             evids = ",".join([ "'%s'" % evid for evid in evids])
             whereClause = ' where evid in (%s)' % evids
             self.deleteEvents(whereClause, 'Deleted by user')
         if REQUEST:
-            num = len(evids)
             REQUEST['message'] = 'Moved %s event%s to History.' % (
                                     num, (num != 1 and 's') or '')
             return self.callZenScreen(REQUEST)
@@ -1285,13 +1285,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         "Move the given event ids into status and delete from history"
         if type(evids) == type(''):
             evids = [evids]
+        num = len(evids)
         if evids:
-            l = len(evids)
             evids = ",".join([ "'%s'" % evid for evid in evids])
             whereClause = ' where evid in (%s)' % evids
             self.undeleteEvents(whereClause, 'Undeleted by user')
         if REQUEST: 
-            REQUEST['message'] = "%s events undeleted." % l
+            REQUEST['message'] = "%s events undeleted." % num
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage Events','manage_deleteAllEvents')
@@ -1299,7 +1299,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         "Delete the events for a given Device (used for deleting the device"
         whereClause = 'where device = "%s"' % devname
         self.deleteEvents(whereClause, 'Device deleted')
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            REQUEST['message'] = 'Deleted all events for %s' % devname
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
@@ -1311,7 +1313,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 curs = conn.cursor()
                 curs.execute(delete);
             finally: self.close(conn)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            REQUEST['message'] = 'Moved heartbeat(s) to History'
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackEvents')
@@ -1324,6 +1328,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
+        reason = None
         if eventState and evids:
             eventState = int(eventState)
             userid = ""
@@ -1338,8 +1343,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             except KeyError:
                 reason += 'unknown (%d)' % eventState
             self.updateEvents(update, whereClause, reason)
-        if REQUEST: 
-            REQUEST['message'] = reason
+        if REQUEST:
+            if reason:
+                REQUEST['message'] = reason
+            else:
+                REQUEST['message'] = 'no reason'
             return self.callZenScreen(REQUEST)
 
 
@@ -1399,6 +1407,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                             numCreated,
                             (numCreated != 1 and 's') or '')
             REQUEST['message'] = msg
+            # EventView might pass a fake Request during an ajax call from
+            # event console.  Don't bother rendering anything in this case.
+            if getattr(REQUEST, 'dontRender', False):
+                return ''
             if len(evids) == 1 and evmap: return evmap()
             elif evclass and evmap: return evclass()
 

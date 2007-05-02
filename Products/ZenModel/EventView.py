@@ -18,6 +18,23 @@ from _mysql_exceptions import MySQLError
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
+class FakeRequest(dict):
+    ''' Used for ajax calls from event console and elsewhere.  This is used
+    as a container for REQUEST['message'] which we are interested in.  It has
+    the advantage over the regular REQUEST object in that it won't actually
+    bother to render anything when callZenScreen() is called with one.
+    '''
+    dontRender = True
+    
+    def __init__(self, *args, **kw):
+        dict.__init__(self, *args, **kw)
+        self['oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'] = True
+        
+    def setMessage(self, R):
+        if R and self.get('message', ''):
+            R['message'] = self['message']
+
+
 class EventView(object):
 
     security = ClassSecurityInfo()
@@ -109,8 +126,16 @@ class EventView(object):
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
-        self.getEventManager().manage_deleteEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        # If we pass REQUEST in to the getEventManager().manage_deleteEvents()
+        # call we don't get a proper refresh of the event console.  It only
+        # works if self.callZenScreen() is called from here rather than down
+        # in the event manager.  I'm not sure why.  Using FakeResult to fetch
+        # the message seems like best workaround for now.
+        request = FakeRequest()
+        self.getEventManager().manage_deleteEvents(evids, request)
+        if REQUEST:
+            request.setMessage(REQUEST)
+            return self.callZenScreen(REQUEST)
 
 
     #security.declareProtected('Manage Events','manage_deleteBatchEvents')
@@ -134,16 +159,19 @@ class EventView(object):
                                             enddate=enddate, severity=severity,
                                             state=state, orderby=orderby, 
                                             **kwargs)
-        return self.manage_deleteEvents(evids, REQUEST)
+        request = FakeRequest()
+        self.manage_deleteEvents(evids, request)
+        return request.get('message', '')
 
 
     security.declareProtected('Manage Events','manage_undeleteEvents')
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
-        self.getEventManager().manage_undeleteEvents(evids)
-        if REQUEST: 
-            REQUEST['message'] = '%s events undeleted.' % len(evids)
+        request = FakeRequest()
+        self.getEventManager().manage_undeleteEvents(evids, request)
+        if REQUEST:
+            request.setMessage(REQUEST)
             return self.callZenScreen(REQUEST)
 
 
@@ -155,7 +183,9 @@ class EventView(object):
                                     startdate=None, enddate=None,
                                     severity=2, state=1, orderby='',
                                     REQUEST=None, **kwargs):
-        """Delete events form this managed entity.
+        """Delete events form this managed entity.  
+        Only called from event console, so uses FakeRequest to avoid
+        page rendering.
         """
         evids = self.getEventManager().getEventBatchME(self, 
                                             selectstatus=selectstatus,
@@ -168,7 +198,9 @@ class EventView(object):
                                             enddate=enddate, severity=severity,
                                             state=state, orderby=orderby, 
                                             **kwargs)
-        return self.manage_undeleteEvents(evids, REQUEST)
+        request = FakeRequest()
+        self.manage_undeleteEvents(evids, request)
+        return request.get('message', '')
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
@@ -177,16 +209,16 @@ class EventView(object):
         """
         dev = self.device()
         if dev: 
-            self.getEventManager().manage_deleteHeartbeat(dev.id)
-        if REQUEST: return self.callZenScreen(REQUEST)
+            return self.getEventManager().manage_deleteHeartbeat(dev.id, REQUEST)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
-        self.getEventManager().manage_ackEvents(evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_ackEvents(evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_ackBatchEvents')
@@ -198,6 +230,8 @@ class EventView(object):
                                     severity=2, state=1, orderby='',
                                     REQUEST=None, **kwargs):
         """Delete events form this managed entity.
+        Only called from event console, so uses FakeRequest to avoid
+        page rendering.
         """
         evids = self.getEventManager().getEventBatchME(self, 
                                             selectstatus=selectstatus,
@@ -210,15 +244,17 @@ class EventView(object):
                                             enddate=enddate, severity=severity,
                                             state=state, orderby=orderby, 
                                             **kwargs)
-        return self.manage_ackEvents(evids, REQUEST)
+        request = FakeRequest()
+        self.manage_ackEvents(evids, request)
+        return request.get('message', '')
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
-        self.getEventManager().manage_setEventStates(eventState, evids)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        return self.getEventManager().manage_setEventStates(
+                                                eventState, evids, REQUEST)
 
 
     security.declareProtected('Manage Events','manage_createEventMap')

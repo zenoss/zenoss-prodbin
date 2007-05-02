@@ -184,25 +184,49 @@
 <div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
 </div>
 
-<div id="messageSlot" tal:condition="python:hasattr(here.REQUEST,'message')"
-onclick="fade('messageSlot', {'duration':0.3} )" >
+<div id="messageSlot" style="{display: none;}"
+	onclick="fade('messageSlot', {'duration':0.3} )" >
 <div class="dbox_tl"><div class="dbox_tr"><div class="dbox_tc">
 </div></div></div>
 <div class="dbox_ml"><div class="dbox_mr"><div class="dbox_mc"
 style="position:relative;">
 
-<span tal:content="here/REQUEST/message">Message</span>
+<span id="messageSpan" 
+		tal:content="python:here.REQUEST.get('message', '')">Message</span>
 
 </div></div></div>
 <div class="dbox_bl"><div class="dbox_br"><div class="dbox_bc">
 </div></div></div>
 </div>
-<script tal:condition="python:hasattr(here.REQUEST,'message')">
+<script>
+	var initialMsg = '';
+</script>
+<script tal:condition="here/REQUEST/message|nothing"
+		tal:content="structure string:
+	initialMsg = '${here/REQUEST/message}';
+	">
+</script>
+<script>
     var pulseMessage = function() {
-        showElement('messageSlot');
         pulsate('messageSlot', {pulses:2, duration:3});
-    }
-    addLoadEvent(pulseMessage);
+	}
+
+	var showMessage = function(msg) {
+		if (0 == msg.length) {
+			hideElement('messageSlot');
+		}
+		else {			
+			getElement('messageSpan').innerHTML = msg;
+			showElement('messageSlot');
+			pulseMessage();
+		}
+	}
+	
+	var showInitialMsg = function() {
+		showMessage(initialMsg);
+	}
+
+	addLoadEvent(showInitialMsg);
 </script>
 
 </div>
