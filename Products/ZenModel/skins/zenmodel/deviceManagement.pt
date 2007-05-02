@@ -23,7 +23,8 @@
     editable here/isManager;
     tableName string:deviceadminroles;
     tabletitle string:Administrators;
-    batch python:here.ZenTableManager.getBatch(tableName,objects); ">
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    menu_id string:Administrator_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
@@ -85,23 +86,6 @@ Optional titlebar stuff
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="5">
-        <select class="tableheader" name="newId" 
-            tal:define="us python:here.ZenUsers.getAllUserSettingsNames(
-                        here.adminRoles.objectIds())">
-            <option tal:repeat="u us" tal:content="u"/>
-        </select>
-        <input class="tableheader" type="submit" 
-            name="manage_addAdministrativeRole:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_editAdministrativeRoles:method" value=" Save " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteAdministrativeRole:method" value=" Delete " />
-    </td>
-    </tr>
 
 <!-- END TABLE CONTENTS -->
 

@@ -6,7 +6,8 @@
     editable here/isManager;
     showfilterbox python:True;
     tableName string:userCommands;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    batch python:here.ZenTableManager.getBatch(tableName,objects);
+    menu_id string:UserCommand_list">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type='hidden' name='tableName' tal:attributes="value tableName" />
 
@@ -61,18 +62,7 @@ Optional titlebar stuff
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="5">
-        <input type="hidden" name="id" tal:attributes="value here/getId"/>
-        <input class="tableheader" type="text" name="newId"/>
 
-        <input class="tableheader" type="submit" 
-            name="manage_addUserCommand:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteUserCommand:method" value=" Delete " />
-    </td>
-    </tr>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

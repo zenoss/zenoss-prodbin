@@ -91,11 +91,11 @@ class Manufacturer(ZenModelRM, ZenPackable):
                 , 'action'        : 'editManufacturer'
                 , 'permissions'   : ("Manage DMD", )
                 },
-                #{ 'id'            : 'config'
-                #, 'name'          : 'zProperties'
-                #, 'action'        : 'zPropertyEdit'
-                #, 'permissions'   : ("Manage DMD",)
-                #},
+                { 'id'            : 'config'
+                , 'name'          : 'zProperties'
+                , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'

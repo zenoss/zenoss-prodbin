@@ -1,0 +1,18 @@
+<h2>Add Event View</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="_">
+<input type="hidden" name="zenScreenName"
+         tal:attributes="value string:editEventViews" /> 
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" name="id"
+ tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)">
+<br/><br/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addCustomEventView:method" value="OK" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>
+</form>

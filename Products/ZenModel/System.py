@@ -106,11 +106,11 @@ class System(DeviceOrganizer, ZenPackable):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'manage'
-                , 'name'          : 'Administration'
-                , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : ('Manage DMD',)
-                },
+                #{ 'id'            : 'manage'
+                #, 'name'          : 'Administration'
+                #, 'action'        : 'deviceOrganizerManage'
+                #, 'permissions'   : ('Manage DMD',)
+                #},
             )
          },
         )

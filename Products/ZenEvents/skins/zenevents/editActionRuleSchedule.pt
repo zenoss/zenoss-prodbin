@@ -5,10 +5,12 @@
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
-        <tal:block tal:define="objects here/windows/objectValuesAll;
-    tableName string:actionrulewindow;
-    batch python:here.ZenTableManager.getBatch(tableName,objects); 
-            tabletitle string:Active Periods">
+        <tal:block tal:define="
+                objects here/windows/objectValuesAll;
+                tableName string:actionrulewindow;
+                batch python:here.ZenTableManager.getBatch(tableName,objects); 
+                tabletitle string:Active Periods;
+                menu_id string:ActionRuleWindow_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -66,17 +68,6 @@
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="7">
-        <input type="hidden" name="id" tal:attributes="value here/getId"/>
-        <input class="tableheader" type="text" name="newId"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addActionRuleWindow:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteActionRuleWindow:method" value=" Delete " />
-    </td>
-    </tr>
 
         <!-- END TABLE CONTENTS -->
 

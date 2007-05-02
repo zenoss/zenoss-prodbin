@@ -4,11 +4,13 @@
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
-        <tal:block tal:define="objects python:here.objectValues(spec='CustomEventView');
-    tableName string:eventactionrules;
-    zem here/ZenTableManager;
-    batch python:zem.getBatch(tableName,objects); 
-            tabletitle string:">
+        <tal:block tal:define="
+                objects python:here.objectValues(spec='CustomEventView');
+                tableName string:eventactionrules;
+                zem here/ZenTableManager;
+                batch python:zem.getBatch(tableName,objects); 
+                tabletitle string:Event Views;
+                menu_id string:EventView_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -64,16 +66,6 @@
     <tr>
         <td colspan="0" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
-        </td>
-    </tr>
-    <tr tal:condition="here/iseditable">
-        <td class="tableheader" colspan="4">
-        <input class="tableheader" type="text" name="id"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addCustomEventView:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteObjects:method" value=" Delete " />
         </td>
     </tr>
 

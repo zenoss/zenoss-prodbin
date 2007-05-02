@@ -7,7 +7,8 @@
     objects here/maintenanceWindows/objectValuesAll;
     tableName string:devicemaintenancewindow;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
-    tabletitle string:Maintenance Windows;">
+    tabletitle string:Maintenance Windows;
+    menu_id string:MaintenanceWindow_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
@@ -77,17 +78,7 @@ Optional titlebar stuff
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="7">
-        <input type="hidden" name="id" tal:attributes="value here/getId"/>
-        <input class="tableheader" type="text" name="newId"/>
-        <input class="tableheader" type="submit" 
-            name="manage_addMaintenanceWindow:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteMaintenanceWindow:method" value=" Delete " />
-    </td>
-    </tr>
+
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

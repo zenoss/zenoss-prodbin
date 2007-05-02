@@ -1,0 +1,21 @@
+<h2>Add Administrator</h2>
+<form method="post" tal:attributes="action here/absolute_url" name="_">
+<input type="hidden" name="zenScreenName"
+         tal:attributes="value string:deviceManagement" /> 
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">Administrator:&nbsp;</span>
+<select class="tableheader" name="newId" 
+    tal:define="us python:here.ZenUsers.getAllUserSettingsNames(
+                here.adminRoles.objectIds())">
+    <option tal:repeat="u us" tal:content="u"/>
+</select>
+<br/><br/>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="manage_addAdministrativeRole:method" value="OK" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>
+</form>
