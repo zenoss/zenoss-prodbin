@@ -121,13 +121,24 @@ class MonitorClass(ZenModelRM, Folder):
 
     def manage_removeMonitor(self, ids = None, submon = None, REQUEST=None):
         'Add an object of sub_class, from a module of the same name'
+        msg = ''
         child = self._getOb(submon) or self
         if ids:
-            for id in ids:
-                if child.hasObject(id):
-                    child._delObject(id)
+            if len(ids) < len(child._objects):
+                num = 0
+                for id in ids:
+                    if child.hasObject(id):
+                        child._delObject(id)
+                        num += 1
+                msg = 'Deleted %s monitors' % num
+                        
+            else:
+                msg = 'You must have at least one monitor'
+        else:
+            msg = 'No monitors are selected'
         if REQUEST:
-            REQUEST['message'] = 'Monitor deleted'
+            if msg:
+                REQUEST['message'] = msg
             return self.callZenScreen(REQUEST)
 
 
