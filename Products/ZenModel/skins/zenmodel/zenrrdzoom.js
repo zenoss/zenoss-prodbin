@@ -47,16 +47,18 @@ Date.prototype.toPretty = function() {
 
 
 var table = function(obj, newme) {
-    _height = function(o) { return String(o.height + 14)+'px'; };
+    _height = function(o) {
+	return String(getElementDimensions(o).h + 14)+'px'; 
+    };
     return TABLE({'id':obj.id + '_table'},
     TBODY({'id':obj.id + '_tbody'},
     [TR(null,[TD({'rowspan':'2','style':'background-color:lightgrey;'
     },INPUT({'type':'button',
-    'id':obj.id + '_panl','style':'height:'+_height(obj)+';border:1px solid grey;' + 
+    'id':obj.id + '_panl','style':'border:1px solid grey;' + 
     'cursor:pointer','value':'<', 'onfocus':'this.blur();'},"<")),
     TD({'rowspan':'2'},newme),TD({'rowspan':'2','style':'background-color:lightgrey;'
     },INPUT({'type':'button',
-    'id':obj.id + '_panr','style':'height:'+_height(obj)+';border:1px solid grey;'+
+    'id':obj.id + '_panr','style':'border:1px solid grey;'+
     'cursor:pointer','value':'>','onfocus':'this.blur();'},">")),
     TD({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:grey;'+
     'width:3em;text-align:center;' +'border:1px solid grey;'},
@@ -79,6 +81,7 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
+	this.loadImage();
     },
 
     updateFromUrl: function() {
@@ -249,10 +252,13 @@ ZenRRDGraph.prototype = {
             if (this.obj.src!=this.url) {
                 this.obj.src = this.url;
             };
+	    var myh = getElementDimensions(this.obj).h;
+	    setElementDimensions(this.panl, {'h':myh});
+	    setElementDimensions(this.panr, {'h':myh});
             disconnectAll(this.buffer);
             delete this.buffer;
         };
-        var x = connect(this.buffer, 'onload', onSuccess.bind(this));
+        var x = connect(this.buffer, 'onload', bind(onSuccess, this));
         this.buffer.src = this.url;
     },
 
