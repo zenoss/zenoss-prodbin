@@ -128,16 +128,11 @@
                             value here/description">
       </td>
       <td class="tableheader">Monitor</td>
-      <td class="tablevalues" tal:condition="not:editable"
-          tal:content="here/monitored"/>
-      <td class="tablevalues" tal:condition="editable">
-          <select class="tablevalues"  name="monitor:boolean"
-          tal:condition="editable">
+      <td class="tablevalues">
+          <select class="tablevalues"  name="monitor:boolean">
           <option tal:repeat="e python:(True,False)" tal:content="e"
               tal:attributes="value e; selected python:e==here.monitored()"/>
           </select>
-          <tal:block tal:condition="not:editable" 
-              tal:content="here/monitored"/>
       </td>
     </tr>
     <tr>
@@ -149,7 +144,7 @@
       <td class="tableheader" align=left>Lock warnings</td>
       <td class="tablevalues" tal:content="here/lockWarning">Send event when blocked</td>
     </tr>
-    <tr tal:condition="editable">
+    <tr>
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />

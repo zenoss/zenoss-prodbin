@@ -14,17 +14,12 @@
       <td class=tableheader width="16%" align=left>Name</td>
       <td class=tablevalues width="16%" tal:content="here/description">sd0</td>
         <td class="tableheader">Monitor</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <select class="tablevalues"  name="monitor:boolean"
-            tal:condition="here/isManager">
+        <td class="tablevalues">
+            <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
-            <tal:block tal:condition="not:here/isManager" 
-                tal:content="here/monitored"/>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/monitored"/>
       </tr>
       <tr>
       <td class=tableheader width="16%" align=left>Snmp Index</td>

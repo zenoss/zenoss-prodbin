@@ -2,7 +2,7 @@
     tal:condition="python:hasattr(here, 'getMenus')">
 
 <div class="menu" tal:define="
-        menu_ids menu_ids | python:['Actions', 'Add', 'Manage', 'More'];
+        menu_ids menu_ids | python:['More','Manage','Actions','Add'];
         basepath here/absolute_url_path"
         tal:condition="python:here.getMenus(menu_ids, here)">
 <div tal:attributes="id string:contextmenu_btn">

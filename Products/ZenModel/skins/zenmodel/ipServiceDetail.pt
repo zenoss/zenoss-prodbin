@@ -97,13 +97,10 @@
     <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues" tal:condition="not: here/cantMonitor">
-            <select class="tablevalues"  name="monitor:boolean"
-            tal:condition="editable">
+            <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/monitored"/>
         </td>
         <td class="tablevalues" tal:condition="here/cantMonitor"
             tal:content="here/monitored"/>
@@ -111,12 +108,9 @@
     <tr>
         <td class="tableheader">Send String</td>
         <td class="tablevalues" tal:condition="not: here/cantMonitor">
-            <input tal:condition="editable"
-                tal:attributes="class string:tablevalues;
+            <input tal:attributes="class string:tablevalues;
                                 name string:sendString;
                                 value here/getSendString"/>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/getSendString"/>
         </td>
         <td class="tablevalues" tal:condition="here/cantMonitor"
             tal:content="here/getSendString"/>
@@ -125,10 +119,7 @@
         <td class="tableheader">Expect Regex</td>
         <td class="tablevalues" tal:condition="not: here/cantMonitor">
             <input class="tablevalues" type="text" name="expectRegex" 
-                tal:condition="editable"
                 tal:attributes="value here/getExpectRegex"/>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/getExpectRegex"/>
         </td>
         <td class="tablevalues" tal:condition="here/cantMonitor"
             tal:content="here/getExpectRegex"/>
@@ -136,15 +127,12 @@
     <tr>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues" tal:condition="not: here/cantMonitor">
-            <select class="tableheader" name="severity:int"
-                tal:condition="editable">
+            <select class="tableheader" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/getFailSeverityString"/>
         </td>
         <td class="tablevalues" tal:condition="here/cantMonitor"
             tal:content="here/getFailSeverityString"/>

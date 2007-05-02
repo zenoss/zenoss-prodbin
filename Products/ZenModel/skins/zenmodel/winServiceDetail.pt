@@ -61,13 +61,10 @@
     <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues">
-            <select class="tablevalues"  name="monitor:boolean"
-            tal:condition="editable">
+            <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/monitored"/>
         </td>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues">
