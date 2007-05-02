@@ -30,7 +30,7 @@ from Products.ZenEvents import Event
 from WinServiceTest import WinServiceTest
 from WinEventlog import WinEventlog
 
-ERRtimeout = 88
+ERRtimeout = 1726
 
 class StatusTest:
     def __init__(self, name, username, password, services):
