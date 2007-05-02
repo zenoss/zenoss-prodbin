@@ -1017,11 +1017,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         conn = self.connect()
         try:
             curs = conn.cursor()
-            selstatement = ("SELECT AVG(CHAR_LENGTH(mycol))+5 FROM (SELECT %s AS "
-                            "mycol FROM %s LIMIT 50) AS a;") % (fieldname,
-                                self.statusTable)
+            selstatement = ("SELECT AVG(CHAR_LENGTH(mycol))+20 FROM (SELECT %s AS "
+                            "mycol FROM %s WHERE %s IS NOT NULL LIMIT 500) AS "
+                            "a;") % (fieldname, self.statusTable, fieldname)
             curs.execute(selstatement)
             avglen = curs.fetchone()
+            print fieldname, avglen
         finally: self.close(conn)
         try: return float(avglen[0])
         except TypeError: return 10. 

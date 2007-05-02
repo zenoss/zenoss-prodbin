@@ -187,10 +187,10 @@ ZenGrid.prototype = {
                           {};
         this.fields = [];
         this.fieldMapping = {
-            summary: -9,
-            component: +6,
+            //summary: -9,
+            //component: +6,
             //eventClass: +2,
-            count: +3
+            //count: +3
             //firstTime: -1,
             //lastTime: -1
         }
@@ -543,7 +543,6 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        console.profile();
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
@@ -587,7 +586,6 @@ ZenGrid.prototype = {
         }
         this.killLoading();
         connectCheckboxListeners();
-        console.profileEnd();
     },
     getTotalRows: function() {
         cb = bind(function(r) {
