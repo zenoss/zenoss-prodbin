@@ -34,6 +34,8 @@ if not hasattr(pas, '_createInitialUser'):
 
 # monkey patches for the PAS login form
 from Products.PluggableAuthService.plugins import CookieAuthHelper
+import urlparse
+import urllib
 
 def manage_afterAdd(self, item, container):
     """We don't want CookieAuthHelper setting the login attribute, we we'll
@@ -63,12 +65,21 @@ def login(self):
         pas_instance.updateCredentials(request, response, login, password)
     
     came_from = request.form.get('came_from') or ''
-    if 'submitted' not in came_from:
-        came_from += '?submitted=%s' % submitted
+    submittedQs = 'submitted=%s' % submitted
+    if came_from:
+        parts = urlparse.urlsplit(came_from)
+        if 'submitted' not in [p.split('=')[0] for p in parts[3].split('&')]:
+            queryPart = '&'.join([parts[3], submittedQs])
+            parts = (parts[:3] + (queryPart,) + parts[4:])
+            came_from = urlparse.urlunsplit(parts)
+    else:
+        came_from = '/zport/dmd?%s' % submittedQs
     if self.dmd.acceptedTerms:
         url = came_from
     else:
-        url = "%s/zenoss_terms/?came_from=%s" % (self.absolute_url(), came_from)
+        url = "%s/zenoss_terms/?came_from=%s" % (
+                    self.absolute_url(), urllib.quote(came_from))
+
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
