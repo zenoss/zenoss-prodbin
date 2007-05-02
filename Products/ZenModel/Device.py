@@ -1225,6 +1225,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         parent._delObject(self.getId())
         if REQUEST:
             REQUEST['message'] = "Device deleted"
+            if parent.getId()=='devices': 
+                parent = parent.getPrimaryParent()
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus")
 
