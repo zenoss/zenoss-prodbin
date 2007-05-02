@@ -36,9 +36,9 @@
     <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues">
-            <select class="tablevalues"  name="monitor:boolean">
+            <select class="tablevalues"  name="zMonitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; selected python:e==here.monitored()"/>
+                tal:attributes="value e; selected python:e==here.zMonitor()"/>
             </select>
         </td>
     </tr>
