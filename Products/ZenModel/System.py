@@ -111,12 +111,6 @@ class System(DeviceOrganizer, ZenPackable):
                 , 'action'        : 'deviceOrganizerManage'
                 , 'permissions'   : ('Manage DMD',)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
             )
          },
         )

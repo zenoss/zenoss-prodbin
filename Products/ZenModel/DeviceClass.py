@@ -125,6 +125,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : (permissions.view,)
                 },
+                { 'id'            : 'templates'
+                , 'name'          : 'Templates'
+                , 'action'        : 'perfConfig'
+                , 'permissions'   : ('Manage DMD',)
+                },
             )
          },
         )

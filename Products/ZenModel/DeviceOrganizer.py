@@ -71,12 +71,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 , 'action'        : 'deviceOrganizerManage'
                 , 'permissions'   : ('Manage DMD',)
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
             )
          },
         )

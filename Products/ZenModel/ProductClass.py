@@ -25,10 +25,11 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
+from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
 
-class ProductClass(ZenModelRM):
+class ProductClass(ZenModelRM, ZenPackable):
 
 
     meta_type = "ProductClass"
