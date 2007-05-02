@@ -27,7 +27,7 @@
         tal:condition="python:getattr(request, 'notabs', False)"
         tal:attributes="value string:1" />
 <tal:block metal:define-macro="eventTable">
-<tal:block tal:define="tabletitle string:Event List;menu_id string:Event_list">
+<tal:block tal:define="tabletitle string:;menu_id string:Event_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!-- Custom filter widgets -->

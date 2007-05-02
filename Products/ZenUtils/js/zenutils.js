@@ -67,3 +67,20 @@ function checkValidId(path, input_id){
         }   
     });
 }
+
+function connectTextareas() {
+    var resizeArea = function(area) {
+        var vDims = getViewportDimensions();
+        var vPos = getViewportPosition();
+        var aDims = getElementDimensions(area);
+        var aPos = getElementPosition(area);
+        var rightedge_area = aDims.w + aPos.x;
+        var rightedge_vp = vDims.w + vPos.x;
+        aDims.w += rightedge_vp-rightedge_area-50;
+        setElementDimensions(area, aDims);
+    }
+    connect(currentWindow(), 'onresize', function(e) {
+        map(resizeArea, $$('textarea'));
+    });
+    map(resizeArea, $$('textarea'));
+}
