@@ -140,6 +140,7 @@ div.devmovemenu:hover {
     padding:0;
     margin:0;
     font-weight: normal;
+    position: relative;
 }
 .menu {
     position: relative;
