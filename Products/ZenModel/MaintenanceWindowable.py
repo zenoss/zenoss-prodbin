@@ -16,6 +16,7 @@ MaintenanceWindowable.py
 Created by Marc Irlandez on 2007-04-05.
 """
 from AccessControl import ClassSecurityInfo
+from MaintenanceWindow import MaintenanceWindow
 
 class MaintenanceWindowable:
 
