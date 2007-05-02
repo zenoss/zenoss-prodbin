@@ -446,9 +446,7 @@ def sendPage(recipient, msg, snppHost, snppPort):
         pmsg = Pager.Message(msg)
         page = Pager.Pager((rcpt,), pmsg, snppHost, snppPort)
         page.send()
-    except socket.error:
-        # Need to figure out what exceptions might be thrown above
-        # and explicitly catch them here.
+    except (Pager.SNPPException, Pager.PagerException, socket.error):
         result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
     else:
         result = (True, '')
