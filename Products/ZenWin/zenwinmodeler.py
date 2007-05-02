@@ -85,7 +85,7 @@ class zenwinmodeler(Base):
         data = []
         attrs = ("acceptPause","acceptStop","name","caption",
                  "pathName","serviceType","startMode","startName")
-        dev = wmiclient.WMI(name, user, passwd)
+        dev = wmiclient.WMI(*map(str, (name, user, passwd)))
         dev.connect()
         wql = "select %s from Win32_Service" % (",".join(attrs))
         svcs = dev.query(wql)

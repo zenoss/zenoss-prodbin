@@ -87,11 +87,14 @@ class zenwin(Base):
             self.sendEvent(self.mkevt(srec.name, name, msg, 0))
             self.log.info("svc up %s, %s", srec.name, name)
 
+    def _wmi(self, srec):
+        return WMI(str(srec.name), str(srec.username), str(srec.password))
+
     def scanDevice(self, srec):
         if not srec.services:
             return None
         wql = "select Name from Win32_Service where State='Running'"
-        w = WMI(srec.name, srec.username, srec.password)
+        w = self._wmi(srec)
         w.connect()
         svcs = [ svc.Name for svc in w.query(wql) ]
         nextFd = os.open('/dev/null', os.O_RDONLY)
@@ -106,7 +109,7 @@ class zenwin(Base):
     def getWatcher(self, srec):
         wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
                """TargetInstance ISA 'Win32_Service' """)
-        w = WMI(srec.name, srec.username, srec.password)
+        w = self._wmi(srec)
         w.connect()
         return w.watcher(wql)
 

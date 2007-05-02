@@ -68,7 +68,7 @@ class zeneventlog(Base):
     def getWatcher(self, name, user, passwd, minSeverity):
        """Setup WMI connection to monitored server. 
        """
-       c = wmiclient.WMI(name, user, passwd)
+       c = wmiclient.WMI(*map(str, (name, user, passwd) ))
        c.connect()
        wql = """SELECT * FROM __InstanceCreationEvent where """\
                """TargetInstance ISA 'Win32_NTLogEvent' """\
