@@ -119,6 +119,13 @@ function ConfirmPagerTest() {
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Dashboard Organizer</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="dashboardOrganizer" 
+            tal:attributes="value here/dashboardOrganizer" />
+      </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan=3>

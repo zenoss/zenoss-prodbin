@@ -16,14 +16,17 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
+    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" src="/zport/js/zenutils.js"></script>
+    <script tal:define="userSettings python:here.ZenUsers.getUserSettings()"
+        tal:content="string:
+            var dashparams = {'organizer':'${userSettings/dashboardOrganizer}'};
+            var refresh = ${userSettings/dashboardRefresh};
+            var timeout = ${userSettings/dashboardTimeout};
+    "></script>
     <script type="text/javascript">
         var dashurl='/zport/dmd/ZenEventManager/getDashboardInfo'
     </script>
-    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
-    <script type="text/javascript" src="/zport/js/zenutils.js"></script>
-    <script type="text/javascript" 
-        tal:define="userSettings python:here.ZenUsers.getUserSettings()" 
-        tal:content="string:var refresh=${userSettings/dashboardRefresh}; var timeout=${userSettings/dashboardTimeout}"/>
     <script type="text/javascript" src="dashboard.js"></script>
     <table width=100%>
    <tr>
@@ -36,11 +39,13 @@
 
 <!-- Begin Systems Portlet -->
 
-<tal:block tal:define="tabletitle string:Systems Level Event Summary">
+<tal:block tal:define="userSettings python:here.ZenUsers.getUserSettings();
+    tabletitle string: ${userSettings/dashboardOrganizer} Level Event Summary">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <div metal:fill-slot="zentablecontents" tal:omit-tag="">
                 <tr>
-                    <th class="tableheader">System</th>
+                    <th class="tableheader" tal:content="
+                        python:userSettings.dashboardOrganizer[:-1]"></th>
                     <th class="tableheader">Critical</th>
                     <th class="tableheader">Error</th>
                     <th class="tableheader">Warn</th>

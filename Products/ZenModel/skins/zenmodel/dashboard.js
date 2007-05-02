@@ -87,7 +87,7 @@ updateError = function(err) {
 refreshData = function() {
     log("Loading dashboard data...");
     var defr = cancelWithTimeout(
-        loadJSONDoc(dashurl), timeout); // timeout set on Dashboard
+        loadJSONDoc(dashurl, dashparams), timeout); // timeout set on Dashboard
     defr.addCallback(updateDashboard);
     defr.addErrback(updateError);
     callLater(refresh, refreshData, dashurl); // refresh set on Dashboard

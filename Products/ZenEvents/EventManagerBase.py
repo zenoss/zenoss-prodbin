@@ -868,14 +868,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     
    
     security.declareProtected('View','getDashboardInfo')
-    def getDashboardInfo(self, simple=False, REQUEST=None):
+    def getDashboardInfo(self, simple=False, organizer='Devices', REQUEST=None):
         """Return a dictionary that has all info for the dashboard.
         """
         data = self.checkCache("dashboardinfo%s" % simple)
         if data: return data
         data = {}
         data['systemevents'] = self.getOrganizerSummary(
-                                        'Systems','viewEvents', simple)
+                                        organizer,'viewEvents', simple)
         # Dashboard just wants the first 3 elements of each heartbeat
         data['heartbeat'] = [h[:3] for h in self.getHeartbeat()]
         data['deviceevents'] = self.getDeviceDashboard(simple)

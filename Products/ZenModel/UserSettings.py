@@ -314,6 +314,7 @@ class UserSettings(ZenModelRM):
     escalationMinutes = 0
     dashboardRefresh = 30
     dashboardTimeout = 25
+    dashboardOrganizer = 'Devices' 
     
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
@@ -327,6 +328,7 @@ class UserSettings(ZenModelRM):
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
         {'id':'dashboardRefresh', 'type':'int', 'mode':'w'},
         {'id':'dashboardTimeout', 'type':'int', 'mode':'w'},
+        {'id':'dashboardOrganizer', 'type':'string', 'mode':'w'},
     )
  
 
