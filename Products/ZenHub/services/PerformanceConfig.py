@@ -59,7 +59,7 @@ class PerformanceConfig(HubService):
         return self.config.getDefaultRRDCreateCommand(*args, **kwargs)
 
     def notifyAll(self, device):
-        if device.perfServer().id == self.instance:
+        if device.perfServer.getRelatedId() == self.instance:
             self.procrastinator.doLater(device)
 
     def pushConfig(self, device):
