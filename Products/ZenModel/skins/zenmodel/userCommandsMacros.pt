@@ -71,10 +71,6 @@ Optional titlebar stuff
         |
         <input class="tableheader" type="submit" 
             name="manage_deleteUserCommand:method" value=" Delete " />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
     </td>
     </tr>
 <!-- END TABLE CONTENTS -->

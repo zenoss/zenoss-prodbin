@@ -57,15 +57,6 @@ Optional titlebar stuff
         </td>
     </tr>
     </span>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="6">
-    <span metal:define-macro="editor" tal:omit-tag="">
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-    </span>
-    </td>
-    </tr>
 
 <!-- END TABLE CONTENTS -->
 
@@ -130,13 +121,6 @@ Optional titlebar stuff
         </td>
     </tr>
     </span>
-    <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="5">
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
-    </td>
-    </tr>
 
 <!-- END TABLE CONTENTS -->
 

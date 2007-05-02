@@ -111,10 +111,6 @@
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
     </td>
   </tr>
-  <tr tal:condition="here/isManager">
-    <td class="tableheader" colspan="4">
-    </td>
-  </tr>
 
         <!-- END TABLE CONTENTS -->
 

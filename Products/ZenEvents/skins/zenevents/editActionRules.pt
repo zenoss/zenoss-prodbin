@@ -64,10 +64,6 @@
         |
         <input class="tableheader" type="submit" 
             name="manage_deleteObjects:method" value=" Delete " />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
         </td>
     </tr>
 

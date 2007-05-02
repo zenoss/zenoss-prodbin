@@ -22,10 +22,6 @@
             name="removeDevices:method" value="Delete" 
 			tal:attributes="onclick string:return SetFormAction(event, '${here/absolute_url_path}');"
 />
-        |
-        <input class="tableheader" type="submit"
-                name="SelectButton" value="Select All" 
-                onClick="toggleSelect(this.form);return false"/>
     </td>-->
 </tr>
 
