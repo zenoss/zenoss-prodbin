@@ -451,9 +451,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def getOSProcessConf(self):
         """Return process monitoring configuration.
         """
+        if not self.snmpMonitorDevice():
+            return None
         procs = [ o.getOSProcessConf() for o in self.os.processes() \
-                                            if o.monitored() ]
-        if not procs: return None
+                  if o.monitored() ]
+        if not procs:
+            return None
         return (float(self.getLastChange()), self.getSnmpConnInfo(), procs)
 
 

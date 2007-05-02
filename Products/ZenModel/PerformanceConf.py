@@ -251,16 +251,16 @@ class PerformanceConf(Monitor, StatusColor):
         '''
         result = []
         for dev in self.devices():
-            if devices and dev.id not in devices: continue
+            if devices and dev.id not in devices:
+                continue
             dev = dev.primaryAq()
-            if dev.snmpMonitorDevice():
-                try:
-                    procinfo = dev.getOSProcessConf()
-                    if procinfo is None: continue
+            try:
+                procinfo = dev.getOSProcessConf()
+                if procinfo:
                     result.append(procinfo)
-                except POSError: raise
-                except:
-                    log.exception("device %s", dev.id)
+            except POSError: raise
+            except:
+                log.exception("device %s", dev.id)
         return result
 
 
