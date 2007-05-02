@@ -121,8 +121,13 @@ function ConfirmPagerTest() {
     <tr>
       <td class="tableheader" align="left">Dashboard Organizer</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="dashboardOrganizer" 
-            tal:attributes="value here/dashboardOrganizer" />
+        <select class="tablevalues" name="dashboardOrganizer"
+                tal:define="options 
+                    python:['Devices','Systems','Groups','Locations']">
+            <option tal:repeat="option options" tal:content="option"
+                tal:attributes="selected
+                python:here.dashboardOrganizer==option"/>
+        </select>
       </td>
     </tr>
     <tr>
