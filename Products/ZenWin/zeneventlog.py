@@ -24,7 +24,7 @@ import wmiclient
 import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE, RPC_ERROR_CODE
 from Products.ZenHub.services import WmiConfig
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn
+from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_Wmi
 from Products.ZenEvents import Event
 
 class zeneventlog(Base):
@@ -127,6 +127,7 @@ class zeneventlog(Base):
         sev = 4 - lrec.EventType     #lower severity by one level
         if sev < 1: sev = 1
         evt = dict(device=name,
+		   eventKey=Status_Wmi,
                    eventClassKey=evtkey,
                    eventGroup=lrec.LogFile,
                    component=lrec.SourceName,
