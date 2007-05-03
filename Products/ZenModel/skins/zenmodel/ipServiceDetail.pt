@@ -30,19 +30,10 @@
             
     <tr>
         <td class="tableheader">Status</td>
-        <td tal:condition="editable">
-            <select class="tablevalues" name="status:int"
-                tal:condition="editable">
-                <option tal:repeat="status here/getStatusConversions"
-                    tal:content="python:status[0]"
-                    tal:attributes="value python:status[1];
-                        selected python:status[1]==here.getStatus()" />
-            </select>
+        <td class='tablevalues'>
+            <img border="0" tal:attributes="src 
+                python:here.getStatusImgSrc(here.getStatus())" />
         </td>
-        <td tal:condition="not:editable"
-            tal:define="status here/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
     </tr>
     <tr>
         <td class="tableheader">Service Class</td>
