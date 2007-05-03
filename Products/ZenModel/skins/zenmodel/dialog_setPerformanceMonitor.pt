@@ -1,0 +1,21 @@
+<h2>Set Performance Monitor</h2>
+<br/>
+<p style="text-align:center;font-size:0.8em;">
+Performance Monitor:&nbsp;<select class="tablevalues" name="performanceMonitor"
+        tal:define="
+        crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
+        curcrk here/getPerformanceServerName | request/performanceMonitor |
+            string:localhost">
+            <option tal:repeat="crk crks" 
+                tal:attributes="value crk; 
+                    selected python:curcrk and crk in curcrk"
+                tal:content="crk">localhost</option>
+        </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setPerformanceMonitor:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/getPrimaryUrlPath}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>
