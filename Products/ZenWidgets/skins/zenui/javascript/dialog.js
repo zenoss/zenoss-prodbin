@@ -84,7 +84,7 @@ Dialog.Box.prototype = {
         setStyle(this.box, {'position':'relative'});
         setElementPosition(this.framework, {
             x:((dims.w+vPos.x)/2)-(bdims.w/2),
-            y:((dims.h+vPos.y)/2)-(bdims.h/2)
+            y:((dims.h/2)+vPos.y)-(bdims.h/2)
         });
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
