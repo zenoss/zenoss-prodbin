@@ -89,7 +89,7 @@
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
       <img tal:condition="intf/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="intf/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="intf/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>
@@ -156,7 +156,7 @@
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="srv/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -238,7 +238,7 @@ Optional titlebar stuff
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="proc/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -319,7 +319,7 @@ Optional titlebar stuff
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
         <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="srv/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
@@ -413,7 +413,7 @@ Optional titlebar stuff
       <td class="tablevalues" align="center" width="60">
       <img tal:condition="fsys/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
       <img tal:condition="fsys/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="fsys/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="fsys/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>
@@ -488,7 +488,7 @@ Optional titlebar stuff
                src="locked-delete-icon.png">
       <img tal:condition="route/isLockedFromUpdates" border="0"
                src="locked-update-icon.png">
-      <img tal:condition="route/isLockedFromUpdates" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="route/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>
