@@ -54,10 +54,10 @@ class HRSWRunMap(SnmpPlugin):
         procs = Set()
         for proc in fstable.values():
             om = self.objectMap(proc)
-            if getattr(om, '_procPath', False):
+            ppath = getattr(om, '_procPath', False) 
+            if ppath and ppath.find('\\') == -1:
                 om.procName = om._procPath
-                del om.procPath
-            elif not getattr(om, 'procName', false): 
+            elif not getattr(om, 'procName', False): 
                 log.warn("Skipping process with no name")
                 continue
 
