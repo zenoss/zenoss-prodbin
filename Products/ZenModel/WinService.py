@@ -123,36 +123,25 @@ class WinService(Service):
     primarySortKey = caption
 
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, status, 
-                            id, description, 
-                            acceptPause, acceptStop,
-                            pathName, serviceType,
-                            startMode, startName,
+    def manage_editService(self, id=None, description=None, 
+                            acceptPause=None, acceptStop=None,
+                            pathName=None, serviceType=None,
+                            startMode=None, startName=None,
                             monitor=False, severity=5, 
                             REQUEST=None):
         """Edit a Service from a web page.
         """
-        serviceClassChanged = False
-        if id != self.id:
-            serviceClassChanged = True
-            self.winservices._remoteRemove(self)
-            setattr(self, 'id', id)
-            self.winservices._setObject(name, self)
+        if id:
+            if self.rename(id) or description != self.description:
+                self.description = description
+                self.setServiceClass({'name':name, 'description':description})
 
-        if description != self.description:
-            serviceClassChanged = True
-            setattr(self, 'description', description)
-        
-        if serviceClassChanged:
-            self.setServiceClass({'name':name, 'description':description})
-        
-        setattr(self, 'status', status)
-        setattr(self, 'acceptPause', acceptPause)
-        setattr(self, 'acceptStop', acceptStop)
-        setattr(self, 'pathName', pathName)
-        setattr(self, 'serviceType', serviceType)
-        setattr(self, 'startMode', startMode)
-        setattr(self, 'startName', startName)
+            self.acceptPause = acceptPause
+            self.acceptStop = acceptStop
+            self.pathName = pathName
+            self.serviceType = serviceType
+            self.startMode = startMode
+            self.startName = startName
         
         return super(WinService, self).manage_editService(monitor, severity, 
                                     REQUEST=REQUEST)

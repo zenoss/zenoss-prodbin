@@ -69,11 +69,11 @@ class OSProcess(OSComponent, ZenPackable):
                 , 'action'        : 'osProcessDetail'
                 , 'permissions'   : ( Permissions.view, )
                 },
-#                { 'id'            : 'perfConf'
-#                , 'name'          : 'PerfConf'
-#                , 'action'        : 'objRRDTemplate'
-#                , 'permissions'   : ("Change Device", )
-#                },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'Template'
+                , 'action'        : 'objRRDTemplate'
+                , 'permissions'   : ("Change Device", )
+                },
 #                { 'id'            : 'manage'
 #                , 'name'          : 'Administration'
 #                , 'action'        : 'osProcessManage'

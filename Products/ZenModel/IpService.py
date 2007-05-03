@@ -179,22 +179,23 @@ class IpService(Service):
     
     
     security.declareProtected('Manage DMD', 'manage_editService')
-    def manage_editService(self, status, id, ipaddresses, protocol, port, description, 
-                            monitor=False, severity=5, sendString="",
-                            expectRegex="", REQUEST=None):
+    def manage_editService(self, id=None, 
+                        status=None, ipaddresses=None, 
+                        protocol=None, port=None,
+                        description=None, 
+                        monitor=False, severity=5, sendString="",
+                        expectRegex="", REQUEST=None):
         """Edit a Service from a web page.
         """
-        if id != self.id:
-            self.ipservices._remoteRemove(self)
-            setattr(self, 'id', id)
-            self.ipservices._setObject(name, self)
-            
-        setattr(self, 'status', status)
-        setattr(self, 'ipaddresses', ipaddresses)
-        setattr(self, 'description', description)
-        setattr(self, 'protocol', protocol)
-        setattr(self, 'port', int(port))
-        self.setServiceClass({'protocol':protocol, 'port':int(port)})
+        if id:
+            self.rename(id)
+            if status: self.status = status
+            self.ipaddresses = ipaddresses
+            self.description = description
+            self.protocol = protocol
+            self.port = int(port)
+            if protocol != self.protocol or port != self.port:
+                self.setServiceClass({'protocol':protocol, 'port':int(port)})
         
         msg = []
         msg.append(self.setAqProperty("sendString", sendString, "string"))

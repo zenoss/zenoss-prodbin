@@ -68,15 +68,12 @@
         </td>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues">
-            <select class="tableheader" name="severity:int"
-                tal:condition="editable">
+            <select class="tableheader" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
-            <tal:block tal:condition="not:editable" 
-                tal:content="here/getFailSeverityString"/>
         </td>
     </tr>
     <tr>

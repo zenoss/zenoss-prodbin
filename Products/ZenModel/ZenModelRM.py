@@ -63,7 +63,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             parent.manage_renameObject(self.getId(), newId)
             renamed = True
         if REQUEST:
-            REQUEST['message'] = "Object renamed"
+            if renamed: REQUEST['message'] = "Object renamed"
             return self.callZenScreen(REQUEST, renamed)
         return renamed
 
