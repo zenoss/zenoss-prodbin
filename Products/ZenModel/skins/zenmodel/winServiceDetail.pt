@@ -9,8 +9,8 @@
         tal:attributes="value template/id" /> 
 
 
-        <tal:block tal:define="message request/message | string:State at time:;
-            tabletitle string:${message} ${here/getNowString};
+        <tal:block tal:define="
+            tabletitle string:Windows Service;
             menu_id string:Lockable;
             editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -34,29 +34,20 @@
             tal:content="structure here/getServiceClassLink"/>
     </tr>
     <tr>
-        <td class="tableheader">Description</td>
+        <td class="tableheader">Cmd Name</td>
         <td class="tablevalues" tal:condition="not:editable"
-                                tal:content="here/description"/>
+                                tal:content="here/id"/>
         <td class="tablevalues" tal:condition="editable">
             <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
-                                   name string:description;
-                                   value here/description"/>
+                                   name string:id;
+                                   value here/id">
         </td>
         <td class="tableheader">Status</td>
-        <td tal:condition="editable">
-            <select class="tablevalues" name="status:int"
-                tal:condition="editable">
-                <option tal:repeat="status here/getStatusConversions"
-                    tal:content="python:status[0]"
-                    tal:attributes="value python:status[1];
-                        selected python:status[1]==here.getStatus()" />
-            </select>
+        <td class='tablevalues'>
+            <img border="0" tal:attributes="src 
+                python:here.getStatusImgSrc(here.getStatus())" />
         </td>
-        <td tal:condition="not:editable"
-            tal:define="status here/getStatus"
-            tal:attributes="class python:here.getStatusCssClass(status)"
-            tal:content="python:here.convertStatus(status)"/>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -68,7 +59,7 @@
         </td>
         <td class="tableheader">Fail Severity</td>
         <td class="tablevalues">
-            <select class="tableheader" name="severity:int">
+            <select class="tablevalues" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1];
@@ -77,6 +68,15 @@
         </td>
     </tr>
     <tr>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" tal:condition="not:editable"
+                                tal:content="here/description"/>
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
+                   tal:attributes="class string:tablevalues;
+                                   name string:description;
+                                   value here/description"/>
+        </td>
         <td class="tableheader">Service Type</td>
         <td class="tablevalues" tal:condition="not:editable"
                                 tal:content="here/serviceType"/>
@@ -85,15 +85,6 @@
                    tal:attributes="class string:tablevalues;
                                    name string:serviceType;
                                    value here/serviceType">
-        </td>
-        <td class="tableheader">Cmd Name</td>
-        <td class="tablevalues" tal:condition="not:editable"
-                                tal:content="here/id"/>
-        <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:id;
-                                   value here/id">
         </td>
     </tr>
     <tr>
@@ -142,18 +133,16 @@
     </tr>
     <tr>
         <td class="tableheader">Path Name</td>
-        <td class="tablevalues" colspan="3" 
+        <td class="tablevalues" 
             tal:content="here/pathName"
             tal:condition="not:editable"/>
-        <td class="tablevalues" colspan="3" 
+        <td class="tablevalues" 
             tal:condition="editable">
             <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
                                    name string:pathName;
                                    value here/pathName"/>
         </td>
-    </tr>
-    <tr>
       <td class=tableheader align=left>Locks</td>
       <td class=tablevalues>
           <img tal:condition="here/isLockedFromDeletion" 

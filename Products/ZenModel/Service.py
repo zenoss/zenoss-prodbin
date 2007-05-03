@@ -106,6 +106,6 @@ class Service(OSComponent, ZenPackable):
         self.index_object()
         if not msg: msg.append("No action needed")
         if REQUEST:
-            REQUEST['message'] = ", ".join(msg) + ":"
+            REQUEST['message'] = ", ".join(msg)
             return self.callZenScreen(REQUEST)
 

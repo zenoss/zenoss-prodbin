@@ -16,6 +16,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import prepId
 
 from Service import Service
 
@@ -131,20 +132,25 @@ class WinService(Service):
                             REQUEST=None):
         """Edit a Service from a web page.
         """
-        if id:
-            if self.rename(id) or description != self.description:
-                self.description = description
-                self.setServiceClass({'name':id, 'description':description})
-
+        if id is not None:
+            self.description = description
             self.acceptPause = acceptPause
             self.acceptStop = acceptStop
             self.pathName = pathName
             self.serviceType = serviceType
             self.startMode = startMode
             self.startName = startName
-        
-        return super(WinService, self).manage_editService(monitor, severity, 
-                                    REQUEST=REQUEST)
+        renamed = False
+        if self.id != id:
+            id = prepId(id)
+            self.setServiceClass({'name':id, 'description':description})
+            renamed = self.rename(id)
+        tmpl = super(WinService, self).manage_editService(monitor, severity,
+                                                    REQUEST=REQUEST)
+        if REQUEST and renamed:
+            REQUEST['message'] = "Object renamed to: %s" % self.id
+            return self.callZenScreen(REQUEST, renamed)
+        return tmpl
 
 InitializeClass(WinService)
 
