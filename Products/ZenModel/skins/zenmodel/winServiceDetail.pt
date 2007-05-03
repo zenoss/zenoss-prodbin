@@ -30,8 +30,13 @@
             
     <tr>
         <td class="tableheader">Service Class</td>
-        <td class="tablevalues" colspan="3"
+        <td class="tablevalues"
             tal:content="structure here/getServiceClassLink"/>
+        <td class="tableheader">Status</td>
+        <td class='tablevalues'>
+            <img border="0" tal:attributes="src 
+                python:here.getStatusImgSrc(here.getStatus())" />
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Cmd Name</td>
@@ -43,11 +48,15 @@
                                    name string:id;
                                    value here/id">
         </td>
-        <td class="tableheader">Status</td>
-        <td class='tablevalues'>
-            <img border="0" tal:attributes="src 
-                python:here.getStatusImgSrc(here.getStatus())" />
-        </td>
+      <td class=tableheader align=left>Locks</td>
+      <td class=tablevalues>
+          <img tal:condition="here/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+          <img tal:condition="here/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
+      </td>
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
@@ -133,25 +142,16 @@
     </tr>
     <tr>
         <td class="tableheader">Path Name</td>
-        <td class="tablevalues" 
+        <td class="tablevalues" colspan='3' 
             tal:content="here/pathName"
             tal:condition="not:editable"/>
-        <td class="tablevalues" 
+        <td class="tablevalues" colspan='3' 
             tal:condition="editable">
-            <input tal:condition="editable"
+            <input tal:condition="editable" size=30
                    tal:attributes="class string:tablevalues;
                                    name string:pathName;
                                    value here/pathName"/>
         </td>
-      <td class=tableheader align=left>Locks</td>
-      <td class=tablevalues>
-          <img tal:condition="here/isLockedFromDeletion" 
-              border="0" src="locked-delete-icon.png">
-          <img tal:condition="here/isLockedFromUpdates" 
-              border="0" src="locked-update-icon.png">
-          <img tal:condition="here/sendEventWhenBlocked" 
-              border="0" src="locked-sendevent-icon.png">
-      </td>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan="4">
