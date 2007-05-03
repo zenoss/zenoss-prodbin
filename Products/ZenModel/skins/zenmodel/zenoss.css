@@ -356,12 +356,12 @@ table.tabtable td.contextmenutab a.tabletitle:hover {
 }
 
 table.tabtable td.tabtablecap {
-    background: transparent url('img/tabtable_rounded_cap.gif') 0px 11px no-repeat;
+    background: transparent url('img/tabtable_rounded_cap.gif') bottom left no-repeat;
     width: 21px;
 }
 
 table.tabtable td.tabtableleftcap {
-    background: transparent url('img/tabtable_rounded_cap_left.gif') 0px 11px no-repeat;
+    background: transparent url('img/tabtable_rounded_cap_left.gif') bottom left no-repeat;
     width: 21px;
 }
 
