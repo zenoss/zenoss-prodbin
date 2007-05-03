@@ -132,6 +132,7 @@ class WinService(Service):
                             REQUEST=None):
         """Edit a Service from a web page.
         """
+        renamed = False
         if id is not None:
             self.description = description
             self.acceptPause = acceptPause
@@ -140,11 +141,10 @@ class WinService(Service):
             self.serviceType = serviceType
             self.startMode = startMode
             self.startName = startName
-        renamed = False
-        if self.id != id:
-            id = prepId(id)
-            self.setServiceClass({'name':id, 'description':description})
-            renamed = self.rename(id)
+            if self.id != id:
+                id = prepId(id)
+                self.setServiceClass({'name':id, 'description':description})
+                renamed = self.rename(id)
         tmpl = super(WinService, self).manage_editService(monitor, severity,
                                                     REQUEST=REQUEST)
         if REQUEST and renamed:
