@@ -131,6 +131,7 @@
     <script src="javascript/selection.js"></script>
     <script src="js/zenui.js"></script>
     <script src="js/zenutils.js"></script>
+    <script src="imageloader.js"></script>
     <script src="javascript/menus.js"></script>
     <!--[if IE]>
         <link rel="stylesheet" type="text/css" title="zenoss"

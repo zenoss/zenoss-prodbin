@@ -1,3 +1,11 @@
+var Class={
+    create:function(){
+        return function(){
+            this.__init__.apply(this,arguments);
+        }
+    }
+}
+
 postJSONDoc = function (url, postVars) {
         var req = getXMLHttpRequest();
         req.open("POST", url, true);
@@ -84,3 +92,28 @@ function connectTextareas() {
     });
     map(resizeArea, $$('textarea'));
 }
+
+
+ImagePreloader = Class.create();
+ImagePreloader.prototype = {
+    __init__: function() {
+        bindMethods(this);
+        this.buffer = new Image(25, 25);
+        this.queue = new Array();
+        this.lock = new DeferredLock();
+    },
+    add: function(img) {
+        this.queue.push(img);
+        this.start();
+    },
+    start: function() {
+        var d = this.lock.acquire();
+        d.addCallback(this.next);
+    },
+    next: function() {
+        var img = this.queue.pop();
+        if (img) this.buffer.src = img;
+        this.lock.release();
+    }
+}
+
