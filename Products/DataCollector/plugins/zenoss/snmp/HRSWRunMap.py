@@ -37,7 +37,8 @@ class HRSWRunMap(SnmpPlugin):
         GetTableMap('hrSWRunEntry', '.1.3.6.1.2.1.25.4.2.1',
             {
              '.1': 'snmpindex',
-             '.4': 'procName',
+             '.2': 'procName',
+             '.4': '_procPath',
              '.5': 'parameters',
              }
         ),
@@ -53,7 +54,10 @@ class HRSWRunMap(SnmpPlugin):
         procs = Set()
         for proc in fstable.values():
             om = self.objectMap(proc)
-            if not hasattr(om, 'procName') or om.procName == "": 
+            if getattr(om, '_procPath', False):
+                om.procName = om._procPath
+                del om.procPath
+            elif not getattr(om, 'procName', false): 
                 log.warn("Skipping process with no name")
                 continue
 
