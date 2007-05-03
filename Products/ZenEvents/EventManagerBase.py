@@ -1127,7 +1127,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         ''' Return the img source for a status number
         '''
         if status < 0:
-            src = 'purple'
+            src = 'grey'
         elif status == 0:
             src = 'green'
         elif status == 1:
