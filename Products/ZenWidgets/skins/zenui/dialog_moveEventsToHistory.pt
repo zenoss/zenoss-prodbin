@@ -7,8 +7,7 @@ Are you sure you want to move these events to the history?<br/>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteEvents:method"
     value="OK"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
+    onclick="$('dialog').hide();eventZenGrid.deleteBatch()"/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

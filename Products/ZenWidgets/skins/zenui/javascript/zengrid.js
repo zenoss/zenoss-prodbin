@@ -829,6 +829,7 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
+                showMessage(r.responseText);
             }, this));
     },
     undeleteBatch: function() {
@@ -850,6 +851,7 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
+                showMessage(r.responseText);
             }, this));
 
     },
