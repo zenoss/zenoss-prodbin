@@ -156,13 +156,11 @@
     </tr>
     <tr>
       <td class="tableheader" align=left>Locks</td>
-      <td class="tablevalues">
+      <td class="tablevalues" colspan=3>
           <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
           <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      </td>
-      <td class="tableheader" align=left>Lock warnings</td>
-      <td class="tablevalues" tal:content="here/lockWarning">
-        Send event when blocked
+          <img tal:condition="here/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     <tr tal:condition="editable">
