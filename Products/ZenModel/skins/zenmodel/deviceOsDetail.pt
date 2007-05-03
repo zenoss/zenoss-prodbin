@@ -5,7 +5,6 @@
     name="ipInterfaceListForm">
     
 <tal:block 
-        tal:condition="here/interfaces/countObjects"
         tal:define="unused here/cacheComponents;
         tableName string:interfacelist;
         objects here/interfaces/objectValuesAll;
@@ -432,7 +431,6 @@ Optional titlebar stuff
     name="ipRouteEntryListForm">
     
 <tal:block metal:define-macro="routeTableList"
-    tal:condition="here/routes/countObjects"
     tal:define="tableName string:routeTablelist;
     objects here/routes/objectValuesAll;
     tabletitle string:Routes;
