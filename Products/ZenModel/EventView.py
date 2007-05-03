@@ -187,7 +187,7 @@ class EventView(object):
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
-        evids = self.getEventManager().getEventBatchME(self, 
+        evids = self.getEventHistory().getEventBatchME(self, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
                                             badevids=badevids, 

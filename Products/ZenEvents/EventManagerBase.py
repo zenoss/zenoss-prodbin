@@ -308,7 +308,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     state=state, orderby=orderby,
                                     resultFields=resultFields,
                                     where=where,**kwargs)
-        print events
         return [ev.evid for ev in events]
 
         
@@ -327,7 +326,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 calcfoundrows = 'SQL_CALC_FOUND_ROWS'
             select = ["select ", calcfoundrows, ','.join(resultFields),
                         "from %s where" % self.statusTable ]
-                        
             if not where:
                 where = self.defaultWhere
             where = self._wand(where, "%s >= %s", self.severityField, severity)
@@ -335,7 +333,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if filter:
                 where += ' and (%s) ' % (' or '.join(['%s LIKE "%%%s%%"' % (
                             x, filter) for x in resultFields]))
-                log.info(where)
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
                 where += " and %s >= '%s' and %s <= '%s'" % (
@@ -359,7 +356,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
-                    log.info(select)
                     curs.execute(select)
                     retdata = []
                     # iterate through the data results and convert to python
@@ -1022,7 +1018,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                             "a;") % (fieldname, self.statusTable, fieldname)
             curs.execute(selstatement)
             avglen = curs.fetchone()
-            print fieldname, avglen
         finally: self.close(conn)
         try: return float(avglen[0])
         except TypeError: return 10. 
