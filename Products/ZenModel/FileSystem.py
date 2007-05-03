@@ -106,7 +106,7 @@ class FileSystem(OSComponent):
 
     
     def totalBytes(self):
-        return self.blockSize * self.totalBlocks
+        return int(self.blockSize) * int(self.totalBlocks)
 
     def totalBytesString(self):
         return convToUnits(self.totalBytes())
@@ -162,5 +162,27 @@ class FileSystem(OSComponent):
     def viewName(self): return self.mount
     name = viewName
 
+    def manage_editFileSystem(self, monitor=False,
+                mount=None, storageDevice=None, 
+                type=None, blockSize=None, 
+                totalFiles=None, maxNameLen=None, 
+                snmpindex=None, REQUEST=None):
+        """Edit a Service from a web page.
+        """
+        if mount:
+            self.mount = mount
+            self.storageDevice = storageDevice
+            self.type = type
+            self.blockSize = blockSize
+            self.totalFiles = totalFiles
+            self.maxNameLen = maxNameLen
+            self.snmpindex = snmpindex
+        
+        self.monitor = monitor
 
+        if REQUEST:
+            REQUEST['message'] = "FileSystem updated"
+            return self.callZenScreen(REQUEST)
+            
+            
 InitializeClass(FileSystem)

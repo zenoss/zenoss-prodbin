@@ -65,34 +65,13 @@
                                    value here/blockSize">
       </td>
       <td class="tableheader" align=left>Total Bytes</td>
-      <td class="tablevalues" tal:condition="not:editable"
-                              tal:content="here/totalBytesString">/usr</td>
-      <td class="tablevalues" tal:condition="editable">
-          <input tal:condition="editable"
-                 tal:attributes="class string:tablevalues;
-                                 name string:totalBytesString;
-                                 value here/totalBytesString">
-      </td>
+      <td class="tablevalues" tal:content="here/totalBytesString">/usr</td>
     </tr>
     <tr>
       <td class="tableheader" align=left>Used Bytes</td>
-      <td class="tablevalues" tal:condition="not:editable" 
-                              tal:content="here/usedBytesString">1</td>
-      <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:usedBytesString;
-                                   value here/usedBytesString">
-      </td>
+      <td class="tablevalues" tal:content="here/usedBytesString">1</td>
       <td class="tableheader" align=left>Available Bytes</td>
-      <td class="tablevalues" colspan="3" tal:condition="not:editable"
-                                          tal:content="here/availBytesString"/>
-      <td class="tablevalues" tal:condition="editable">
-        <input tal:condition="editable"
-               tal:attributes="class string:tablevalues;
-                               name string:availBytesString;
-                               value here/availBytesString">
-      </td>
+      <td class="tablevalues" colspan="3" tal:content="here/availBytesString"/>
     </tr>
     <tr>
       <td class="tableheader" align=left>Total Files</td>
@@ -105,39 +84,19 @@
                                    value here/totalFiles">
       </td>
       <td class="tableheader" align=left>Available Files</td>
-      <td class="tablevalues" tal:condition="not:editable"
-                              tal:content="here/availFiles">1</td>
-      <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:availFiles;
-                                   value here/availFiles">
-      </td>
+      <td class="tablevalues" tal:content="here/availFiles">1</td>
     </tr>
     <tr>
       <td class="tableheader" align=left>Capacity Bytes</td>
-      <td class="tablevalues" tal:condition="not:editable"
-                              tal:content="string:${here/capacity}%">1</td>
-      <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:capacity;
-                                   value here/capacity">
-      </td>
+      <td class="tablevalues" tal:content="string:${here/capacity}">1</td>
       <td class="tableheader" align=left>Capacity Files</td>
-      <td class="tablevalues" tal:condition="not:editable"
-                              tal:content="string:${here/inodeCapacity}%">1</td>
-      <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                   name string:inodeCapacity;
-                                   value here/inodeCapacity">
-      </td>
+      <td class="tablevalues" tal:content="string:${here/inodeCapacity}%">1</td>
     </tr>
     <tr>
       <td class="tableheader" align=left>Max Name Length</td>
-      <td class="tablevalues" tal:condition="not:editable"
-                              tal:content="here/maxNameLen">1</td>
+      <td class="tablevalues" 
+              tal:condition="not:editable"
+              tal:content="here/maxNameLen">1</td>
       <td class="tablevalues" tal:condition="editable">
             <input tal:condition="editable"
                    tal:attributes="class string:tablevalues;
@@ -163,10 +122,10 @@
               border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
-    <tr tal:condition="editable">
+    <tr>
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
-                name="zmanage_editProperties:method" />
+                name="manage_editFileSystem:method" />
         </td>
     </tr>
     
