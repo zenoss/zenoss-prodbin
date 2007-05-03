@@ -79,13 +79,13 @@ class DeviceManagerBase:
         if REQUEST: return self()
 
 
-    def unlockDevices(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
+    def unlockDevices(self, deviceNames=None, REQUEST=None):
         """Unlock devices"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.devices._getOb(devname)
-            dev.unlock(sendEventWhenBlocked)
+            dev.unlock()
         if REQUEST:
             return self.callZenScreen(REQUEST)
 

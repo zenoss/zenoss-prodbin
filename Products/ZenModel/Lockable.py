@@ -78,17 +78,14 @@ class Lockable(object):
     def unsetSendEventWhenBlockedFlag(self):
         self.sendEventWhenBlockedFlag = False
         
-    def unlock(self, sendEventWhenBlocked=None, REQUEST=None):
+    def unlock(self, REQUEST=None):
         """Unlock object"""
         self.modelerLock = UNLOCKED
-        if sendEventWhenBlocked:
-            self.setSendEventWhenBlockedFlag()
-        else:
-            self.unsetSendEventWhenBlockedFlag()
+        self.unsetSendEventWhenBlockedFlag()
         
         if self.meta_type == 'Device':
             for dc in self.getDeviceComponents():
-                dc.unlock(sendEventWhenBlocked)
+                dc.unlock()
         
         if REQUEST:
             REQUEST['message'] = "Unlocked"

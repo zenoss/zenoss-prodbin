@@ -191,13 +191,13 @@ class OperatingSystem(Software):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def unlockDeviceComponents(self, context, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockDeviceComponents(self, context, componentNames=[], REQUEST=None):
         """Unlock device components"""
         if not componentNames: return self()
         if type(componentNames) in types.StringTypes: componentNames = (componentNames,)
         for componentName in componentNames:
             dc = context._getOb(componentName)
-            dc.unlock(sendEventWhenBlocked)
+            dc.unlock()
         if REQUEST:
             return self.callZenScreen(REQUEST)
             
@@ -238,9 +238,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'IpInterfaces deleted'
             return self.callZenScreen(REQUEST)
 
-    def unlockIpInterfaces(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockIpInterfaces(self, componentNames=[], REQUEST=None):
         """Unlock IpInterfaces"""
-        self.unlockDeviceComponents(self.interfaces, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.interfaces, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'IpInterfaces unlocked'
             return self.callZenScreen(REQUEST)
@@ -282,9 +282,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'WinServices deleted'
             return self.callZenScreen(REQUEST)
         
-    def unlockWinServices(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockWinServices(self, componentNames=[], REQUEST=None):
         """Unlock WinServices"""
-        self.unlockDeviceComponents(self.winservices, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.winservices, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'WinServices unlocked'
             return self.callZenScreen(REQUEST)
@@ -325,9 +325,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'OSProcesses deleted'
             return self.callZenScreen(REQUEST)
         
-    def unlockOSProcesses(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockOSProcesses(self, componentNames=[], REQUEST=None):
         """Unlock OSProcesses"""
-        self.unlockDeviceComponents(self.processes, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.processes, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'OSProcesses unlocked'
             return self.callZenScreen(REQUEST)
@@ -371,9 +371,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'IpServices deleted'
             return self.callZenScreen(REQUEST)
         
-    def unlockIpServices(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockIpServices(self, componentNames=[], REQUEST=None):
         """Unlock IpServices"""
-        self.unlockDeviceComponents(self.ipservices, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.ipservices, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'IpServices unlocked'
             return self.callZenScreen(REQUEST)
@@ -409,9 +409,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'FileSystems deleted'
             return self.callZenScreen(REQUEST)
         
-    def unlockFileSystems(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockFileSystems(self, componentNames=[], REQUEST=None):
         """Unlock FileSystems"""
-        self.unlockDeviceComponents(self.filesystems, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.filesystems, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'FileSystems unlocked'
             return self.callZenScreen(REQUEST)
@@ -459,9 +459,9 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'IpRouteEntries deleted'
             return self.callZenScreen(REQUEST)
         
-    def unlockIpRouteEntries(self, componentNames=[], sendEventWhenBlocked=None, REQUEST=None):
+    def unlockIpRouteEntries(self, componentNames=[], REQUEST=None):
         """Unlock IpRouteEntries"""
-        self.unlockDeviceComponents(self.routes, componentNames, sendEventWhenBlocked, REQUEST)
+        self.unlockDeviceComponents(self.routes, componentNames, REQUEST)
         if REQUEST: 
             REQUEST['message'] = 'IpRouteEntries unlocked'
             return self.callZenScreen(REQUEST)
