@@ -134,7 +134,7 @@ class WinService(Service):
         if id:
             if self.rename(id) or description != self.description:
                 self.description = description
-                self.setServiceClass({'name':name, 'description':description})
+                self.setServiceClass({'name':id, 'description':description})
 
             self.acceptPause = acceptPause
             self.acceptStop = acceptStop
