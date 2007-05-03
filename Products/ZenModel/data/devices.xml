@@ -2,7 +2,7 @@
 <objects>
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
-500
+300
 </property>
 <property visible="True" type="boolean" id="zIfDescription" >
 False
@@ -34,17 +34,32 @@ False
 <property visible="True" type="int" id="zIpServiceMapMaxPort" >
 1024
 </property>
+<property visible="True" type="lines" id="zDeviceTemplates" >
+['Device']
+</property>
+<property visible="True" type="string" id="zLocalIpAddresses" >
+^127|^0\.0|^169\.254|^224
+</property>
+<property visible="True" type="string" id="zLocalInterfaceNames" >
+^lo|^vmnet
+</property>
 <property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
 False
 </property>
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
 False
 </property>
+<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
+False
+</property>
 <property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
 False
 </property>
-<property visible="True" type="string" id="zTransportPreference" >
-snmp
+<property visible="True" type="float" id="zStatusConnectTimeout" >
+15.0
+</property>
+<property visible="True" type="lines" id="zCollectorPlugins" >
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap')
 </property>
 <property visible="True" type="int" id="zCollectorClientTimeout" >
 180
@@ -70,6 +85,9 @@ ssh
 <property visible="True" type="string" id="zCommandExistanceTest" >
 test -f %s
 </property>
+<property visible="True" type="string" id="zCommandPath" >
+/usr/local/zenoss/libexec
+</property>
 <property visible="True" type="string" id="zTelnetLoginRegex" >
 ogin:.$
 </property>
@@ -91,16 +109,16 @@ True
 <property visible="True" type="float" id="zTelnetPromptTimeout" >
 10.0
 </property>
+<property visible="True" type="string" id="zKeyPath" >
+~/.ssh/id_dsa
+</property>
+<property visible="True" type="int" id="zMaxOIDPerRequest" >
+40
+</property>
 <property visible="True" type="int" id="zWinEventlogMinSeverity" >
 2
 </property>
 <property visible="True" type="boolean" id="zWinEventlog" >
-False
-</property>
-<property visible="True" type="string" id="zCommandPath" >
-/usr/local/zenoss/libexec
-</property>
-<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
 False
 </property>
 <property visible="True" type="date" id="cDateTest" >
@@ -108,15 +126,6 @@ False
 </property>
 <property visible="True" type="int" id="zCommandCycleTime" >
 60
-</property>
-<property visible="True" type="float" id="zStatusConnectTimeout" >
-15.0
-</property>
-<property visible="True" type="string" id="zKeyPath" >
-~/.ssh/id_dsa
-</property>
-<property visible="True" type="int" id="zMaxOIDPerRequest" >
-40
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -128,20 +137,20 @@ Basic template that only collects sysUpTime.
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.1.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -171,15 +180,45 @@ True
 Monitors for OSProcess object
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="int" id="cycletime" mode="w" >
+300
+</property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<tomanycont id='datapoints'>
+<object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+SNMP
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClass" mode="w" >
 /
@@ -189,6 +228,9 @@ False
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -214,50 +256,17 @@ SNMP
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-False
-</property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-SNMP
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -417,14 +426,8 @@ Standard ethernet interface template with 75% utilization threshold
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.14
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -432,14 +435,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.14
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -454,14 +465,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.10
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -469,17 +474,25 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.10
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
 <property type="string" id="rpn" mode="w" >
 8,*
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -494,14 +507,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.11
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -509,14 +516,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.11
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -531,20 +546,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.2.1.2.2.1.8
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.2.1.2.2.1.8
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -567,14 +582,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.20
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -582,14 +591,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.20
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -604,14 +621,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.16
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -619,17 +630,25 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.16
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
 <property type="string" id="rpn" mode="w" >
 8,*
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -644,14 +663,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.17
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -659,14 +672,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.17
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -844,14 +865,8 @@ Standard ethernet interface template with 75% utilization threshold
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.14
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -859,14 +874,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.14
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -881,14 +904,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.10
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -896,17 +913,25 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.10
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
 <property type="string" id="rpn" mode="w" >
 8,*
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -921,14 +946,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.11
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -936,14 +955,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.11
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -958,20 +985,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.2.1.2.2.1.8
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.2.1.2.2.1.8
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -994,14 +1021,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.20
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -1009,14 +1030,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.20
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1031,14 +1060,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.16
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -1046,17 +1069,25 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.16
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
 <property type="string" id="rpn" mode="w" >
 8,*
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1071,14 +1102,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.17
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -1086,14 +1111,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.17
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1295,20 +1328,20 @@ Cisco template that collects cpu, free mem, and temp
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.2.1.58.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.2.1.58.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1331,20 +1364,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.9.48.1.1.1.6.1
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.9.48.1.1.1.6.1
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1367,20 +1400,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.1.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1403,20 +1436,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.9.13.1.3.1.3.1
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.9.13.1.3.1.3.1
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='tempInlet' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1439,20 +1472,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.9.13.1.3.1.3.3
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.9.13.1.3.1.3.3
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='tempOutlet' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1600,20 +1633,20 @@ Cisco template that collects cpu and free memory
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.2.1.58.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.2.1.58.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='cpu5min' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1636,20 +1669,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9.9.48.1.1.1.6.1
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9.9.48.1.1.1.6.1
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='mem5minFree' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1672,20 +1705,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.1.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1835,20 +1868,20 @@ Net-SNMP template for late vintage unix device.  Has CPU threshold.
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.10.1.5.2
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.10.1.5.2
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1874,20 +1907,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.4.6.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.4.6.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1913,20 +1946,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.4.4.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.4.4.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1949,20 +1982,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.4.1.2021.4.14.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.4.1.2021.4.14.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1988,20 +2021,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.4.1.2021.4.15.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.4.1.2021.4.15.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2027,14 +2060,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.53.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2042,14 +2069,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.53.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2064,14 +2099,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.52.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2079,14 +2108,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.52.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2101,14 +2138,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.50.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2116,14 +2147,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.50.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2138,14 +2177,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.54.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2153,14 +2186,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.54.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2175,20 +2216,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.25.1.1.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.25.1.1.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2506,20 +2547,20 @@ Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.25.2.3.1.6
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.25.2.3.1.6
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2630,20 +2671,20 @@ Net-SNMP template for late vintage unix device.  Has CPU threshold.
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.10.1.5.2
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 60
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.10.1.5.2
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2669,20 +2710,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.4.6.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 60
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.4.6.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2708,20 +2749,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.4.4.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 60
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.4.4.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2744,20 +2785,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.4.1.2021.4.14.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.4.1.2021.4.14.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2783,20 +2824,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-.1.3.6.1.4.1.2021.4.15.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+.1.3.6.1.4.1.2021.4.15.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2822,14 +2863,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.53.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2837,14 +2872,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 60
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.53.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2859,14 +2902,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.52.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2874,14 +2911,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 60
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.52.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2896,14 +2941,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.50.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2911,14 +2950,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 60
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.50.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2933,14 +2980,8 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.2021.11.54.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
@@ -2948,14 +2989,22 @@ False
 <property type="int" id="cycletime" mode="w" >
 60
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.11.54.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2970,20 +3019,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.25.1.1.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 60
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.25.1.1.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -3280,9 +3329,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -3294,6 +3340,9 @@ ${zCommandPath}/zenplugin.py cpu
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -3342,9 +3391,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3357,9 +3408,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3372,9 +3425,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3387,9 +3442,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3402,9 +3459,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3417,9 +3476,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3432,9 +3493,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3447,9 +3510,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3462,9 +3527,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3482,9 +3549,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Memory
 </property>
@@ -3496,6 +3560,9 @@ ${zCommandPath}/zenplugin.py mem
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -3605,9 +3672,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /
 </property>
@@ -3619,6 +3683,9 @@ ${zCommandPath}/zenplugin.py uptime
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -3892,13 +3959,7 @@ Filesystem template that uses nagios and zendisk.py
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.25.2.3.1.6
-</property>
 <property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="boolean" id="usessh" mode="w" >
 True
 </property>
 <property type="string" id="eventClass" mode="w" >
@@ -3912,6 +3973,12 @@ ${zCommandPath}/zenplugin.py disk ${here/mount}
 </property>
 <property type="int" id="cycletime" mode="w" >
 60
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.25.2.3.1.6
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4134,9 +4201,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -4149,14 +4213,19 @@ ${zCommandPath}/zenplugin.py process ${here/name}
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="boolean" id="usessh" mode="w" >
+True
+</property>
 <tomanycont id='datapoints'>
 <object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4174,9 +4243,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Memory
 </property>
@@ -4188,6 +4254,9 @@ ${zCommandPath}/zenplugin.py process ${here/name}
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4307,13 +4376,7 @@ Standard ethernet interface template with 75% utilization threshold
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.2.2.1.14
-</property>
 <property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="boolean" id="usessh" mode="w" >
 True
 </property>
 <property type="string" id="eventClass" mode="w" >
@@ -4328,14 +4391,22 @@ ${zCommandPath}/zenplugin.py intf ${here/id}
 <property type="int" id="cycletime" mode="w" >
 300
 </property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.2.2.1.14
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4348,9 +4419,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4363,9 +4436,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4378,9 +4453,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4393,9 +4470,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4408,9 +4487,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4423,9 +4504,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4615,20 +4698,20 @@ Windows template that requires Informant MIB
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9600.1.1.5.1.5.6.95.84.111.116.97.108
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9600.1.1.5.1.5.6.95.84.111.116.97.108
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4651,20 +4734,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9600.1.1.2.2.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9600.1.1.2.2.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4690,20 +4773,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9600.1.1.2.10.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9600.1.1.2.10.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4726,20 +4809,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.1.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4925,20 +5008,20 @@ HardDisk I/O template that requries Informat MIB
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9600.1.1.1.1.15
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9600.1.1.1.1.15
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4961,20 +5044,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.9600.1.1.1.1.18
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.9600.1.1.1.1.18
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5061,9 +5144,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -5075,6 +5155,9 @@ ${zCommandPath}/zenplugin.py cpu
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5123,9 +5206,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5138,9 +5223,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5153,9 +5240,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5168,9 +5257,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5183,9 +5274,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5198,9 +5291,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5213,9 +5308,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5228,9 +5325,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5243,9 +5342,11 @@ True
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
-<property type="string" id="rrdmin" mode="w">0</property>
 <property type="boolean" id="isrow" mode="w" >
 True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5263,9 +5364,6 @@ COMMAND
 <property type="boolean" id="enabled" mode="w" >
 True
 </property>
-<property type="boolean" id="usessh" mode="w" >
-True
-</property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Memory
 </property>
@@ -5277,6 +5375,9 @@ ${zCommandPath}/zenplugin.py mem
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="boolean" id="usessh" mode="w" >
+True
 </property>
 <tomanycont id='datapoints'>
 <object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5599,6 +5700,10 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='Scan' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
+<object id='Cmd' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+</object>
 </object>
 <object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
@@ -5622,20 +5727,20 @@ APC Device Profile that tracks battery capacity, load and runtime
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.318.1.1.1.2.2.1.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.318.1.1.1.2.2.1.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='batteryCapacity' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5658,20 +5763,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.318.1.1.1.4.2.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.318.1.1.1.4.2.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='batteryOutputLoad' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5694,20 +5799,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.4.1.318.1.1.1.2.2.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.318.1.1.1.2.2.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='batteryRunTimeRemaining' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5733,20 +5838,20 @@ True
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
-<property type="string" id="oid" mode="w" >
-1.3.6.1.2.1.1.3.0
-</property>
 <property type="boolean" id="enabled" mode="w" >
 True
-</property>
-<property type="boolean" id="usessh" mode="w" >
-False
 </property>
 <property type="int" id="severity" mode="w" >
 3
 </property>
 <property type="int" id="cycletime" mode="w" >
 300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.2.1.1.3.0
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>

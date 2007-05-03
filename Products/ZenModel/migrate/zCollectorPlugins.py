@@ -15,7 +15,7 @@ from Acquisition import aq_base
 from Products.ZenModel.DeviceClass import DeviceClass
 
 class zCollectorPlugins(Migrate.Step):
-    version = Migrate.Version(1, 2, 0)
+    version = Migrate.Version(2, 0, 0)
 
     clist = (
         'zenoss.snmp.NewDeviceMap',
