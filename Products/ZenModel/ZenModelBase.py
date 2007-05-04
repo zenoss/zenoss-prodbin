@@ -82,8 +82,9 @@ class ZenModelBase(object):
     def checkValidId(self, id):
         """Checks a valid id
         """
-        new_id = unquote(id)
-        new_id = new_id.replace('/', '_')
+        new_id = unquote(id)              # Convert Ids
+        new_id = new_id.replace('/', '_') # Ids may have /
+        new_id = new_id.lstrip('_')       # Ids cannot start with an underscore
         try: 
             globalCheckValidId(self, new_id)
             try:
