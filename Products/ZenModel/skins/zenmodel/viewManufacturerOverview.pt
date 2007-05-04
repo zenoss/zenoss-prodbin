@@ -93,7 +93,10 @@
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'count','Count')">Count</th>
   </tr>
-  <tr tal:repeat="prod batch">
+  
+  <tal:block tal:repeat="prod batch">
+  <tr tal:define="odd repeat/prod/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues">
         <input tal:condition="here/isManager" 
             type="checkbox" name="ids:list" 
@@ -106,6 +109,8 @@
     <td class="tablevalues" align="center"
         tal:content="prod/count">Good stuff</td>
   </tr>
+  </tal:block>
+  
   <tr>
     <td colspan="0" class="tableheader">
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
