@@ -25,6 +25,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
+from Commandable import Commandable
 from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
@@ -46,7 +47,7 @@ def manage_addServiceClass(context, id=None, REQUEST = None):
 
 addServiceClass = DTMLFile('dtml/addServiceClass',globals())
 
-class ServiceClass(ZenModelRM, ZenPackable):
+class ServiceClass(ZenModelRM, Commandable, ZenPackable):
     meta_type = "ServiceClass"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -66,6 +67,7 @@ class ServiceClass(ZenModelRM, ZenPackable):
         ("instances", ToMany(ToOne, "Products.ZenModel.Service", "serviceclass")),
         ("serviceorganizer", 
             ToOne(ToManyCont,"Products.ZenModel.ServiceOrganizer","serviceclasses")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
 
@@ -90,11 +92,11 @@ class ServiceClass(ZenModelRM, ZenPackable):
                 , 'action'        : 'serviceClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-#                { 'id'            : 'manage'
-#                , 'name'          : 'Administration'
-#                , 'action'        : 'serviceClassManage'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Administration'
+                , 'action'        : 'serviceClassManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
@@ -190,5 +192,12 @@ class ServiceClass(ZenModelRM, ZenPackable):
             REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
    
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return self.instances()        
+
 
 InitializeClass(ServiceClass)

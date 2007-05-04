@@ -18,6 +18,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_base
+from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
@@ -32,7 +33,7 @@ def manage_addOSProcessClass(context, id=None, REQUEST = None):
 
 addOSProcessClass = DTMLFile('dtml/addOSProcessClass',globals())
 
-class OSProcessClass(ZenModelRM):
+class OSProcessClass(ZenModelRM, Commandable):
     meta_type = "OSProcessClass"
     dmdRootName = "Processes"
     default_catalog = "processSearch"
@@ -55,6 +56,7 @@ class OSProcessClass(ZenModelRM):
         ("instances", ToMany(ToOne, "Products.ZenModel.OSProcess", "osProcessClass")),
         ("osProcessOrganizer", 
             ToOne(ToManyCont,"Products.ZenModel.OSProcessOrganizer","osProcessClasses")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
 
@@ -74,11 +76,11 @@ class OSProcessClass(ZenModelRM):
                 , 'action'        : 'osProcessClassEdit'
                 , 'permissions'   : ("Manage DMD", )
                 },
-#                { 'id'            : 'manage'
-#                , 'name'          : 'Administration'
-#                , 'action'        : 'osProcessClassManage'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Administration'
+                , 'action'        : 'osProcessClassManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'zproperties'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
@@ -148,5 +150,19 @@ class OSProcessClass(ZenModelRM):
             REQUEST['message'] = SaveMessage()
             return self.callZenScreen(REQUEST, redirect)
    
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return self.instances()        
+
+
+    def getPrimaryParentOrgName(self):
+        ''' Return the organizer name for the primary parent
+        '''
+        return self.getPrimaryParent().getOrganizerName()
+        
+
 
 InitializeClass(OSProcessClass)

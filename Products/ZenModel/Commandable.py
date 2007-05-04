@@ -57,9 +57,9 @@ class Commandable:
         if REQUEST:
             if uc:
                 REQUEST['message'] = "Command Added"
-                url = '%s/userCommands/%s' % (self.getPrimaryUrlPath(), uc.id)
+                #url = '%s/userCommands/%s' % (self.getPrimaryUrlPath(), uc.id)
                 #url = uc.getPrimaryUrlPath()
-                REQUEST['RESPONSE'].redirect(url)
+                #REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
         return uc
 
@@ -99,8 +99,7 @@ class Commandable:
         command = self.getUserCommands(asDict=True).get(commandId,None)
         if not command:
             if REQUEST:
-                self.redirectToManageTab(REQUEST, commandId)
-            return
+                return self.redirectToManageTab(REQUEST, commandId)
         if REQUEST:
             REQUEST['cmd'] = command
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
@@ -201,7 +200,10 @@ class Commandable:
         raised.
         '''
         url = self.getPathToManageTab(commandId)
-        return REQUEST.RESPONSE.redirect(url)
+        if url:
+            return REQUEST.RESPONSE.redirect(url)
+        return self.callZenScreen(REQUEST)
+            
 
 
     def getPathToManageTab(self, commandId=None):

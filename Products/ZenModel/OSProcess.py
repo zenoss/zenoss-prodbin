@@ -14,6 +14,7 @@
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Acquisition import aq_chain
 from zExceptions import NotFound
@@ -39,7 +40,7 @@ def manage_addOSProcess(context, id, className, userCreated, REQUEST=None):
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
-class OSProcess(OSComponent, ZenPackable):
+class OSProcess(OSComponent, Commandable, ZenPackable):
     """Hardware object"""
     portal_type = meta_type = 'OSProcess'
 
@@ -57,6 +58,7 @@ class OSProcess(OSComponent, ZenPackable):
     _relations = OSComponent._relations + ZenPackable._relations + (
         ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "processes")),
         ("osProcessClass", ToOne(ToMany, "Products.ZenModel.OSProcessClass", "instances")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
     )
 
     factory_type_information = (
@@ -74,11 +76,11 @@ class OSProcess(OSComponent, ZenPackable):
                 , 'action'        : 'objRRDTemplate'
                 , 'permissions'   : ("Change Device", )
                 },
-#                { 'id'            : 'manage'
-#                , 'name'          : 'Administration'
-#                , 'action'        : 'osProcessManage'
-#                , 'permissions'   : ("Manage DMD",)
-#                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Administration'
+                , 'action'        : 'osProcessManage'
+                , 'permissions'   : ("Manage DMD",)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
@@ -176,6 +178,26 @@ class OSProcess(OSComponent, ZenPackable):
         if REQUEST:
             REQUEST['message'] = ", ".join(msg) + ":"
             return self.callZenScreen(REQUEST)
+
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return [self]     
+
+
+    def getUserCommandEnvironment(self):
+        environ = Commandable.getUserCommandEnvironment(self)
+        context = self.primaryAq()
+        environ.update({'proc': context,  'process': context,})
+        return environ
+
+
+    def getAqChainForUserCommands(self):
+        chain = aq_chain(self.getClassObject().primaryAq())
+        chain.insert(0, self)
+        return chain
 
 
 InitializeClass(OSProcess)

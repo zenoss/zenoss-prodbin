@@ -48,7 +48,7 @@
         <td class="tableheader">Command</td>
         <td class="tablevalues" tal:condition="editable">
             <textarea name="command:text" rows="4" cols="50"
-                        tal:content="here/command">
+                        tal:content="here/command|nothing">
             </textarea>
         </td>
         <td class="tablevalues" tal:condition="not:editable" 

@@ -9,13 +9,17 @@
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-
+        <tal:block metal:use-macro="here/userCommandsMacros/macros/runCommand" />
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
 </tal:block>
 </tal:block>
 </form>
+
+<span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+<span metal:use-macro="here/userCommandsMacros/macros/userCommandsTable" />
 
 </tal:block>
 </tal:block>

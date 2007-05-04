@@ -14,8 +14,15 @@
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+#from Acquisition import aq_parent
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+#from DateTime import DateTime
+#from Products.PageTemplates.Expressions import getEngine
+#from Products.ZenUtils.ZenTales import talesCompile
+#from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+#import logging
+#log = logging.getLogger("zen.Device")
 
 
 manage_addUserCommand = DTMLFile('dtml/addUserCommand',globals())

@@ -24,17 +24,19 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
+from Commandable import Commandable
 
 from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
-class Service(OSComponent, ZenPackable):
+class Service(OSComponent, Commandable, ZenPackable):
     portal_type = meta_type = 'Service'
    
     _relations = OSComponent._relations + ZenPackable._relations + (
         ("serviceclass", ToOne(ToMany,"Products.ZenModel.ServiceClass","instances")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         )
 
     security = ClassSecurityInfo()
@@ -109,3 +111,22 @@ class Service(OSComponent, ZenPackable):
             REQUEST['message'] = ", ".join(msg)
             return self.callZenScreen(REQUEST)
 
+
+    def getUserCommandTargets(self):
+        ''' Called by Commandable.doCommand() to ascertain objects on which
+        a UserCommand should be executed.
+        '''
+        return [self]     
+
+
+    def getUserCommandEnvironment(self):
+        environ = Commandable.getUserCommandEnvironment(self)
+        context = self.primaryAq()
+        environ.update({'serv': context,  'service': context,})
+        return environ
+
+
+    def getAqChainForUserCommands(self):
+        chain = aq_chain(self.getClassObject().primaryAq())
+        chain.insert(0, self)
+        return chain
