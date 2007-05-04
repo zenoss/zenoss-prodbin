@@ -97,9 +97,11 @@ class Organizer(ZenModelRM, EventView):
                 org = self.__class__(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
-            if REQUEST: REQUEST['message'] = 'Error: %s' % e
-        if REQUEST: 
-            REQUEST['message'] = "Organizer added"
+            if REQUEST: 
+                REQUEST['message'] = 'Error: %s' % e
+                return self.callZenScreen(REQUEST)
+        if REQUEST:
+            REQUEST['message'] = "%s %s added" % (self.__class__.__name__, newPath)
             return self.callZenScreen(REQUEST)
             
 
@@ -116,7 +118,9 @@ class Organizer(ZenModelRM, EventView):
                 pass  # we may have already deleted a sub object
         else:
             self._delObject(orgname)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = "%s %s deleted" % (self.__class__.__name__, orgname)
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Delete objects', 'manage_deleteOrganizers')
@@ -129,7 +133,10 @@ class Organizer(ZenModelRM, EventView):
         for organizerName in organizerPaths:
             self.manage_deleteOrganizer(organizerName)
         if REQUEST:
-            REQUEST['message'] = "Organizer deleted"
+            plural = ''
+            if len(organizerPaths) > 1: plural = 's'
+            REQUEST['message'] = "%s%s %s deleted" % (self.__class__.__name__, 
+                                        plural, ', '.join(organizerPaths))
             return self.callZenScreen(REQUEST)
             
     
@@ -152,8 +159,12 @@ class Organizer(ZenModelRM, EventView):
             target._setObject(organizerName, obj)
             movedStuff = True
         if REQUEST:
-            if movedStuff: REQUEST['message'] = "Organizer moved"
-            else: REQUEST['message'] = "No organizers were moved"
+            if movedStuff: 
+                plural = ''
+                if len(organizerPaths) > 1: plural = 's'
+                REQUEST['message'] = "%s%s %s moved to %s" % (self.__class__.__name__,
+                    plural, ', '.join(organizerPaths), moveTarget)
+            else: REQUEST['message'] = "No %s were moved" % self.__class__.__name__
             return target.callZenScreen(REQUEST)
             
             
