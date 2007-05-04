@@ -1,11 +1,10 @@
 
 body {
-    /*background: #fff url(../images/bg_app.gif) repeat-y 8.6em 0em;*/
+    background: #8f8f8f;
     color: black;
     font-family:  Verdana, Arial, Helvetica, sans-serif;
     font-size:  9pt;
     margin: 0px;
-    /*margin: 0px 3px 3px 3px;*/
 }
 
 input,textarea {
@@ -26,11 +25,11 @@ input,textarea {
 	border: 0px solid red;
 	margin: 0px;
     border-bottom: 1px solid black;
-    background: #666 url();
+    background: transparent url('img/metalbg.gif') top left;
 }
 
 #infoBar {
-    background: #A1AFC4 url('img/infobar_bg.gif') top left repeat-x;
+    background: #A1AFC4 url('img/infobar_bg.gif') top left repeat-x ;
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
@@ -97,14 +96,14 @@ input,textarea {
 }
 
 div.logo {
-    background: transparent url('logo2.gif') top left no-repeat;
-    padding-left: 200px;
+    background: transparent url('img/transparent_logo.png') top left no-repeat;
+    padding-left: 242px;
     color: #a9b8d4;
     vertical-align: middle;
     font-weight: bold;
     position: absolute;
-    top: 5px;
-    left: 5px;
+    top: 3px;
+    left: 3px;
     font-size: 26px;
     font-weight: 400;
     font-variant: small-caps;
@@ -113,9 +112,9 @@ div.logo {
 }      
 
 /* ======SEARCH AND NAV TOP RIGHT====== */
+
 #settings { 
     color: white;
-    letter-spacing: 1px;
     position: absolute;
     top: 0px;
     right: 0px;
@@ -123,40 +122,43 @@ div.logo {
     padding: 0pt;
 }
 
-
-
 #settings ul {
     list-style-type: none;
-    margin-right: 200px;
     margin-left: 0px;
+    position: relative;
+    top: 25px;
 }
 
 #settings ul li {
     display: inline;
-    border-right: 1px inset white;
-    font-size: 10pt;
-    padding: 0px 10px;
+    font-size: 8pt;
+    letter-spacing: 90%;
+    padding-top: 2px;
 }
-#settings ul li {
-    font-variant: small-caps;
+
+#settings ul li a {
     text-decoration: none;
+    padding: 8px 10px;
+}
+#settings ul li a:hover {
+    background: transparent url('img/button_depressed.png')top left repeat-x;
 }
 
 #settings div.searchbox {
-    background: transparent url('img/search_box_bg.gif') 5px 5px no-repeat;
-    width: 183px;
+    background: transparent url('img/search_box_bg.gif') center right no-repeat;
+    width: 150px;
     position: absolute;
-    top: 6px;
-    right: 0px;
-    height: 100%
+    top: -5px;
+    right: 5px;
+    height: 100%;
 }
 #settings div.searchbox input[type="text"]{
     background: transparent none no-repeat;
     border: medium none;
     margin-top: 12px;
-    margin-left: 40px;
+    margin-left: 45px;
     color: #444;
-    width: 100px;
+    width: 90px;
 }
 
 
@@ -175,86 +177,79 @@ div.logo {
     z-index: 999;
 	left: 0px;
     top: 107px;
-    margin: 0px 0px 0px 0px;
-    padding-left: 5px;
- /*   padding-top: 10px;*/
-	width: 110px;
-    background-color: #666;
+	width: 115px;
+    background: transparent url('img/paneToggle_bg.gif') top right repeat-y;
     border-right: 1px solid black;
 }
 
 #leftPane p {
-    padding: 0px 0px 0px 0px;
-    margin: 0px;
-    margin-bottom: 5px;
+    margin: 0;
+    padding: 5px 10px;
     font-weight: bold;
-    border-bottom: 1px dotted black;
+    font-size: 100%;
     color: white;
+    border-top: 1px outset black;
+    border-bottom: 1px inset black;
+    background: #444;
 }
 
 #leftPane ul {
-    list-style: none; 
-    margin: 0px 0px 10px 0px; 
+    list-style-type: none;
     padding: 0px; 
+    margin: 0;
+    margin-bottom: 10px;
 }
 
 #leftPane ul li {
     display: block;
     padding: 0px 0px;
     margin: 0px;
-    border-bottom: 1px dotted #777;
 }
 
 #leftPane ul li a {
     text-decoration: none;
     color: white;
+    font-size: 105%;
     display: block;
-    padding: 2px ;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 10px;
     margin: 0px;
 }
 	
 #leftPane ul li a:hover {
-    color: white;
-    background: #5a6f8f;
+    background-color: black;
 }
 
-#leftpane ul li a.selected  {
+#leftpane ul li a.selected:link {
     color: black;
-    background: #b1bcd2;
-    text-decoration: none;
-    display: block;
-    margin: 0px;
 }
 
 #leftPane ul li a.selected:hover {
     color: white;
-    background: #5a6f8f;
+    background: black;
 }
 
 #rightPane
 {
-    /*position: absolute;
-    left: 7.9em;
-    right:0;
-    margin-left: 7.9em;
-    float:right;
-    */
     padding: 5px;
 	margin-left: 120px;
-    /*margin-top: 5px;*/
- /*   background: #b1bcd2 url(breadcrumb_left_curve.gif) no-repeat left top;*/
+    margin-right: 10px;
 }
 
 #breadCrumbPane {
-	color: #444;
-	font-size: 12pt;
-    letter-spacing: 1px;
+	color: #000;
+	font-size: 10pt;
+    height: 25px;
+    line-height: 25px;
     padding-top: 0px;
-	padding-bottom: 0px;
+	padding-bottom: 5px;
     padding-left: 120px;
 	margin: 0px;
 	font-weight: bold;
 	border: medium none;
+    position: relative;
+    top: -2px;
 }
 
 #breadCrumbPane a {
@@ -273,14 +268,9 @@ div.logo {
 }
 
 #contentPane {
-	padding: 5px 15px;
-	background: #E0E0E0;
+	padding: 7px;
     border: 1px solid black;
-	/*
-	border-left: 5px solid #b1bcd2 ;
-	border-bottom: 5px solid #b1bcd2 ;
-	border-right: 5px solid #b1bcd2 ;
-	*/
+    background-color: #E0E0E0;
 }
 
 a:link {
@@ -330,8 +320,7 @@ table.tabtable td {
 table.tabtable td a.tabletitle {
     display: block;
     padding: 0px 15px;
-    border-left: 1px solid #444;
-    border-right: 1px solid #444;
+    border-left: 1px solid black;
     border-top: 1px solid black;
 	background: transparent url(img/titlebar_bg.gif) repeat-x bottom left;
     height: 23px;
@@ -370,8 +359,8 @@ table.tabtable td.tabletitleselected  {
     color: #333333;
     height: 32px;
     font-size:8pt;
-    padding-top: 3px;
-    background-color: white;
+    padding-top: 2px;
+    background-color: transparent;
     border: 0px;
 }
 
@@ -382,24 +371,25 @@ table.tabtable td.tabletitleselected div.tablinehider {
     margin-right: 5px;
     position: absolute;
     bottom: -3px;
-    width: 75%;
+    width: 90%;
 }
 
 table.tabtable div.tableft {
-    background: transparent url(img/tab_bg_selected.gif) no-repeat left 0pt;
+    background: transparent url(img/tab_bg_selected.gif) no-repeat left 0px;
     height: 32px;
 }
 
 table.tabtable div.tabright {
-    background: transparent url(img/tab_bg_selected.gif) no-repeat right 0pt;
+    background: transparent url(img/tab_bg_selected.gif) no-repeat right 0px;
     height: 32px;
 }
 
 table.tabtable div.tabcenter {
-    margin: 0px 14px;
-    padding: 0px 10px;
-    height: 32px;
-    background: transparent url(img/tab_bg_selected_cont.gif) repeat-x scroll 1pt 0pt; 
+    margin: 0px 17px;
+    padding: 0px 0px;
+    height: 30px;
+    position: relative;
+    background: transparent url(img/tab_bg_selected_cont.gif) repeat-x 0px 0px; 
 }
 
 table.tabtable td.tabletitleselected a,
@@ -407,11 +397,12 @@ table.tabtable td.tabletitleselected a:visited,
 table.tabtable td.tabletitleselected a:link   {
     color: black;
 	display: block;
-    padding: 0pt;
+    padding: 0px 10px;
     border: 0pt;
     font-size:10pt;
     margin-top: 3px;
     background: none;
+    border-top: 1px solid black;
 }
 
 table.zentable {
@@ -422,8 +413,7 @@ table.zentable {
     margin-right: 2em;
     font-weight: normal; 
 	margin: 0px;
-	padding: 0pt;
-    background-color: #E0E0E0;
+    padding: 0px;
 }
 
 tbody.zentablecontents tr {
@@ -475,8 +465,7 @@ a.tabletitle:active {
     color: #777777;
 }
 a.tabletitle:hover {  
-    color: #000000;
-    color: #AAAAAA;
+    color: #e0e0e0;
 }
 
 th.tabletitle {
@@ -713,7 +702,7 @@ a.tablevalues:active {
 /* ALTERNATING ROWS */
 .odd,
 .odd a.tablevalues,
-.odd td.tablevalues { background-color:#dedeff }
+.odd td.tablevalues { background-color: #ddd }
 
 .rainbow {
     padding:0px;
@@ -750,13 +739,13 @@ a.tablevalues:active {
 #paneToggle {
     position: absolute;
     top: 87px;
-    left: 0px;
-    height: 20px;
+    left: 0px21;
+    height: 21px;
     width: 115px;
     border-right: 1px solid black;
     z-index: 4000;
     cursor: pointer;
-    background: transparent url('img/paneToggle_bg.gif') top left no-repeat;
+    background: transparent url('img/paneToggle_bg.gif') top right no-repeat;
 }
 
 .temp_filterbox {

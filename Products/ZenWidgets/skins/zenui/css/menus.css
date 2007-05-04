@@ -84,7 +84,7 @@ ul.zenMenu {
     width: 172px;
     position: relative;
     left: -2px;
-    background-color: #666;
+    background-color: black;
     z-index: 4001;
 }
 
@@ -103,14 +103,13 @@ ul.zenMenu li a {
 }
 
 ul.zenMenu li {
-    border-bottom: 1px dotted grey;
-    line-height: 2em;
+    line-height: 1.5em;
     font-size: 9pt;
 }
 
 ul.zenMenu li a:hover {
-    background-color: #DEDEFF !important;
-    color: black;
+    background-color: grey;
+    color: white;
 }
 
 div.menuselected {
@@ -120,7 +119,7 @@ div.devmovemenu {
     width: 52px;
     border-right: 1px solid #333;
     height: 25px;
-    background: #E0E0E0 url('img/actions_button_left.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/contextmenu_tab.gif') bottom left no-repeat;
     position:absolute;
     z-index: 4000;
     right:-1px;
@@ -133,7 +132,7 @@ div.devmovemenu span {
 }
 
 div.devmovemenu:hover {
-    background: #E0E0E0 url('img/actions_button_depressed_left.gif') bottom left no-repeat;
+    background: #E0E0E0 url('img/contextmenu_tab_depressed.gif') bottom left no-repeat;
 }
 
 .menu * {
@@ -158,21 +157,32 @@ div.devmovemenu:hover {
     padding:0;
     margin:0;
     list-style-type:none;
-    width:173px;
-    border-left: 1px solid #5A6F8F;
-    border-right: 1px solid #5A6F8F;
-    background-color: #666;
+    width:172px;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    background: transparent url('img/menu_bg.gif') top left repeat-y;
 }
 
 ul.zenMenu > li > a {
+    padding-left: 1em;
     background: transparent url(img/expandable_menu_arrow.gif) 150px no-repeat;
 }
 ul.zenMenu > li.toplevelmenu > a {
+    padding-left: 1em;
     background-image: url() !important;
 }
 
+div.devmovemenuitems ul {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    background: transparent url('img/menu_bg.gif') top left repeat-y;
+}
+
 div.devmovemenuitems ul.zenMenu li a {
-    background: #666 url();
+    background-image: url() !important;
+}
+div.devmovemenuitems ul.zenMenu li a:hover {
+    background-color: grey;
 }
 
 * html .menu li {margin-left:-16px; margin-lef\t:0;}

@@ -28,6 +28,7 @@ var calcMenuPos = function(rel, menu) {
     totalX = pPos.x + mDims.w;
     finalDims.x = totalX>=vDims.w+vPos.x?pDims.w-mDims.w:3+finalDims.x;
     finalDims.x = $(menu).className=='devmovemenuitems'?4-pDims.w:finalDims.x;
+    finalDims.x -= 1;
     totalY = pPos.y + pDims.h + mDims.h;
     var topmenu = getElementsByTagAndClassName('div', 'menu_top', menu)[0];
     if (totalY>=vDims.h+vPos.y) {
@@ -42,7 +43,7 @@ var calcMenuPos = function(rel, menu) {
 var showSubMenu = function(rel, sub) {
     var relPos = calcSubmenuPos(rel, sub);
     setElementPosition(sub, relPos);
-    setStyle(sub, {'visibility':'visible','z-index':'10001','opacity':'0.98'});
+    setStyle(sub, {'visibility':'visible','z-index':'10001'});
     hideOtherSubmenus(rel, sub);
 }
 
@@ -66,7 +67,7 @@ var showMenu = function(rel, menu) {
     dropOtherMenuButtons(rel);
     var relPos = calcMenuPos(rel, menu);
     setElementPosition(menu, relPos);
-    setStyle(menu, {'visibility':'visible','z-index':'10000','opacity':'0.98',
+    setStyle(menu, {'visibility':'visible','z-index':'10000',
                     'zoom':1});
     if (navigator.userAgent.match('Mac')) {
         try {setStyle(eventZenGrid.scrollbar, {'overflow':'hidden'})}
