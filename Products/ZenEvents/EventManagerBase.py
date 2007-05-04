@@ -1271,8 +1271,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # We want to blank clearid
         fields = fields.replace('clearid','NULL')
         self.updateEvents(  'INSERT status ' + \
-                            'SELECT %s FROM history' % fields, \
-                            whereClause, reason, 'history', toLog=False)
+                            'SELECT %s FROM history' % fields,
+                            whereClause + \
+                            ' ON DUPLICATE KEY UPDATE status.count=status.count+history.count', 
+                            reason, 'history', toLog=False)
         self.updateEvents( 'DELETE FROM history', whereClause, \
                             reason, 'history')
 
