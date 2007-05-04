@@ -10,7 +10,8 @@
         objects here/interfaces/objectValuesAll;
         tabletitle string:Interfaces;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
-        menu_id string:IpInterface"
+        menu_id string:IpInterface;
+        showfilterbox python:True;"
     metal:define-macro="interfaceList">
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -115,7 +116,8 @@
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='caption');
-    menu_id string:WinService">
+    menu_id string:WinService;
+    showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -184,7 +186,8 @@
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getOSProcessClass');
-    menu_id string:OSProcess">
+    menu_id string:OSProcess;
+    showfilterbox python:True;">
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -266,7 +269,8 @@ Optional titlebar stuff
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort');
-    menu_id string:IpService">
+    menu_id string:IpService;
+    showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -346,7 +350,8 @@ Optional titlebar stuff
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');
-    menu_id string:FileSystem">
+    menu_id string:FileSystem;
+    showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -440,7 +445,8 @@ Optional titlebar stuff
     objects here/routes/objectValuesAll;
     tabletitle string:Routes;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
-    menu_id string:IpRouteEntry">
+    menu_id string:IpRouteEntry;
+    showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
