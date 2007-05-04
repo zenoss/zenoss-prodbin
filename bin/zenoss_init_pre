@@ -17,8 +17,9 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
-# environment variables
+# environment variable
 export OS_USERNAME="**OS_USERNAME**"
+export OS_UID="**OS_UID**"
 export ZENHOME="**ZENHOME**"
 export MYSQLHOST="**MYSQL_HOST**"
 export MYSQLROOTUSER="**MYSQL_ROOT_USERNAME**"
