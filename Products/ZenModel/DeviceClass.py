@@ -731,4 +731,14 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         "This will result in a push of all the devices to live collectors"
         self._p_changed = True
 
+
+    security.declareProtected('Change Device', 'setLastChange')
+    def setLastChange(self, value=None):
+        """Set the changed datetime for this device. value default is now.
+        """
+        if value is None:
+            value = time.time()
+        self._lastChange = float(value)
+
+        
 InitializeClass(DeviceClass)
