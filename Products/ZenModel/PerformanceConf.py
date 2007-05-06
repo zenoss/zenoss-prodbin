@@ -90,7 +90,7 @@ class PerformanceConf(Monitor, StatusColor):
 
     eventlogCycleInterval = 60
     perfsnmpCycleInterval = 300
-    processCycleInterval = 300
+    processCycleInterval = 180
     statusCycleInterval = 60
     winCycleInterval = 60
     winmodelerCycleInterval = 60
