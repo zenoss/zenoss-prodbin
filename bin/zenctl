@@ -65,7 +65,7 @@ update_sudoers() {
     SUDOERS=/etc/sudoers
     TESTVALUE=`grep $RUNUSER $SUDOERS`
     if [ -z "${TESTVALUE}" ]; then
-        echo "# required for the zenoss user"
+        echo "# required for the zenoss user" >> $SUDOERS
         echo "${RUNUSER}  ALL=(ALL)       NOPASSWD: ALL" >> $SUDOERS
     fi
 }
@@ -77,7 +77,7 @@ fresh_install_pre() {
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
     # location of where we copy configuration items to
-    ZEN_ETC=${ZENHOME}/etc
+    ZEN_ETC=${ZENHOME}/extras/etc
 
     # update the sudoers file so that zenoss can run as root
     update_sudoers
@@ -85,8 +85,8 @@ fresh_install_pre() {
     # update the my.cnf file
     MY_CNF=/etc/my.cnf
     BACKUP=`dirname ${MY_CNF}`/`basename ${MY_CNF}`.orig
-    cp ${MY_CNF} ${BACKUP}
-    cp ${ZEN_ETC}/my.cnf ${MY_CNF}
+    #cp ${MY_CNF} ${BACKUP}
+    #cp ${ZEN_ETC}/my.cnf ${MY_CNF}
 
     # update the snmpd.conf file
     SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
