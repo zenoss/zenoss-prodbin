@@ -141,7 +141,6 @@ class zenwin(Base):
                 self.deviceDown(srec, str(e))
 
     def processLoop(self):
-        print [d.name for d in self.devices]
         for device in self.devices:
             if device.name in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.name)
@@ -164,8 +163,6 @@ class zenwin(Base):
         self.log.warning("WMI Connection to %s went down" % device.name)
 
     def deviceUp(self, device):
-        print device.name, self.wmiprobs
-        print device.name in self.wmiprobs
         if device.name in self.wmiprobs:
             self.wmiprobs.remove(device.name)
             self.log.info("WMI Connection to %s up" % device.name)
