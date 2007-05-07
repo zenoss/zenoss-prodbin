@@ -39,6 +39,13 @@ class ToManyRelationshipBase(
     Abstract base class for all ToMany relationships.
     """
 
+    manage_options = (
+        {
+        'action': 'manage_main', 
+        'help': ('OFSP', 'ObjectManager_Contents.stx'), 
+        'label': 'Contents'},
+    )  
+    
     security = ClassSecurityInfo()
 
     manage_main = DTMLFile('dtml/ToManyRelationshipMain',globals())
