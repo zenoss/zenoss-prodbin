@@ -19,6 +19,7 @@ try:
     import rlcompleter
 except ImportError:
     readline = rlcompleter = None
+from pprint import pprint
 
 import Globals
 import transaction
