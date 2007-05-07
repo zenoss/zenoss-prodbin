@@ -34,7 +34,6 @@ import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
-from Products.ZenModel.Organizer import Organizer
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
@@ -469,6 +468,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getStatusME(self, me, statusclass=None, **kwargs):
         """
         """ 
+        from Products.ZenModel.Organizer import Organizer
         if me.event_key == "Device":
             return self.getDeviceStatus(me.getId(), statusclass, **kwargs)
         elif me.event_key == "Component":

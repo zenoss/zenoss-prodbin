@@ -17,7 +17,7 @@ from _mysql_exceptions import MySQLError
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from Products.ZenEvents.FakeRequest import FakeRequest
+from Products.ZenUtils.FakeRequest import FakeRequest
 
 
 class EventView(object):
