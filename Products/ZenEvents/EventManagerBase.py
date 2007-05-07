@@ -1491,7 +1491,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             obj = self.dmd.ZenEventHistory
         else:
             obj = self
-        import pdb; pdb.set_trace()
         if screenName == 'editEventManager':
             # We renamed the password field to try to keep browsers from
             # asking user if they wanted to save the password.
