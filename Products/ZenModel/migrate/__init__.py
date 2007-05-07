@@ -81,3 +81,4 @@ import zCollectorPlugins
 import zenpackdatasources
 import zpropscleanup
 import processsequence
+import zWmiMonitorProperty
