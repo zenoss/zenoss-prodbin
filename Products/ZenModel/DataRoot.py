@@ -428,6 +428,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         a UserCommand should be executed.
         '''
         raise 'Not supported on DataRoot'
+        
+        
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/dataRootManage'
+        
 
     def getEmailFrom(self):
         ''' Return self.emailFrom or a suitable default

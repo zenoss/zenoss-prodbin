@@ -72,10 +72,10 @@ class UserCommand(ZenModelRM):
         [('url','id'), ...]
         """
         crumbs = super(UserCommand, self).breadCrumbs(terminator)
-        manageTab = self.commandable().getPathToManageTab()
-        if manageTab:
-            crumb = (manageTab, 'manage')
-            crumbs.insert(-1, crumb)
+        #adminPage = self.commandable().getUrlForUserCommands()
+        #if adminPage:
+        #    crumb = (adminPage, 'Commands')
+        #    crumbs.insert(-1, crumb)
         return crumbs
         
 

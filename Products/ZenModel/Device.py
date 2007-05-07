@@ -1298,6 +1298,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         context = self.primaryAq()
         environ.update({'dev': context,  'device': context,})
         return environ
+        
+    
+    def getUrlForUserCommands(self, commandId=None):
+        return self.getPrimaryUrlPath() + '/deviceManagement'
 
     
     def exportXmlHook(self, ofile, ignorerels):

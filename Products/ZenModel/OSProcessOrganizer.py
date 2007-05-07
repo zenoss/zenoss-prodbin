@@ -226,4 +226,8 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         return targets            
 
 
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/osProcessOrganizerManage'
+
+
 InitializeClass(OSProcessOrganizer)

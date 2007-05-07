@@ -130,3 +130,8 @@ class Service(OSComponent, Commandable, ZenPackable):
         chain = aq_chain(self.getClassObject().primaryAq())
         chain.insert(0, self)
         return chain
+        
+        
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/serviceManage'
+

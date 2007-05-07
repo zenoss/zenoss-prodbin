@@ -155,13 +155,19 @@ class OSProcessClass(ZenModelRM, Commandable):
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        return self.instances()        
+        return self.instances()
+        
+    
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/osProcessClassManage'
 
 
     def getPrimaryParentOrgName(self):
         ''' Return the organizer name for the primary parent
         '''
         return self.getPrimaryParent().getOrganizerName()
+        
+        
         
 
 

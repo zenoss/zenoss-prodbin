@@ -228,4 +228,8 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         return targets            
 
 
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/serviceOrganizerManage'
+
+
 InitializeClass(ServiceOrganizer)

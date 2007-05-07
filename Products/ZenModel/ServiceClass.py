@@ -200,4 +200,8 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         return self.instances()        
 
 
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/serviceClassManage'
+
+
 InitializeClass(ServiceClass)

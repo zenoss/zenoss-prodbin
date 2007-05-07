@@ -56,10 +56,10 @@ class Commandable:
             uc.command = cmd
         if REQUEST:
             if uc:
-                REQUEST['message'] = "Command Added"
-                #url = '%s/userCommands/%s' % (self.getPrimaryUrlPath(), uc.id)
-                #url = uc.getPrimaryUrlPath()
-                #REQUEST['RESPONSE'].redirect(url)
+                url = '%s/userCommands/%s?message=%s' % (
+                    self.getPrimaryUrlPath(), uc.id, 'Command Added')
+                REQUEST['RESPONSE'].redirect(url)
+            REQUEST['message'] = 'Command Added'
             return self.callZenScreen(REQUEST)
         return uc
 
@@ -85,7 +85,7 @@ class Commandable:
         command = self.getUserCommand(commandId)
         if command:
             command.manage_changeProperties(**REQUEST.form)
-        return self.redirectToManageTab(REQUEST, commandId)
+        return self.redirectToUserCommands(REQUEST)
         
 
     security.declareProtected('Change Device', 'manage_doUserCommand')
@@ -99,7 +99,7 @@ class Commandable:
         command = self.getUserCommands(asDict=True).get(commandId,None)
         if not command:
             if REQUEST:
-                return self.redirectToManageTab(REQUEST, commandId)
+                return self.redirectToUserCommands(REQUEST)
         if REQUEST:
             REQUEST['cmd'] = command
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
@@ -189,25 +189,27 @@ class Commandable:
             commands.sort(cmpCommands)
         return commands
 
+
     def getAqChainForUserCommands(self):
         return aq_chain(self.primaryAq())
 
-    def redirectToManageTab(self, REQUEST, commandId=None):
-        ''' Redirect to the Manage tab for this Commandable object.
-        Pass the commandId if there is one so that it can be preselected
-        in the Run Command popup menu.
-        If there is no management tab for this object an exception will be
-        raised.
+
+    def redirectToUserCommands(self, REQUEST, commandId=None):
+        ''' Redirect to the page which lists UserCommands
+        for this Commandable object.
         '''
-        url = self.getPathToManageTab(commandId)
+        url = self.getUrlForUserCommands()
         if url:
             return REQUEST.RESPONSE.redirect(url)
         return self.callZenScreen(REQUEST)
             
 
-
-    def getPathToManageTab(self, commandId=None):
-        # Try to dig up a management tab from the factory information.
+    def getUrlForUserCommands(self):
+        ''' Return url for page which manages user commands
+        '''
+        # This should be overridden by subclasses of Commandable
+        return self.getPrimaryUrlPath()
+        
         candidates = [a for a in self.factory_type_information[0]['actions'] 
                         if a['name'] == 'Administration']
         if candidates:

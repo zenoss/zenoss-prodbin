@@ -224,7 +224,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        return self.getSubDevices()        
+        return self.getSubDevices()
+        
+        
+    def getUrlForUserCommands(self):
+        return self.getPrimaryUrlPath() + '/deviceOrganizerManage'
 
 
 InitializeClass(DeviceOrganizer)
