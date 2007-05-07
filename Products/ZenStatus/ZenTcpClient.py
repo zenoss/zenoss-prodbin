@@ -52,10 +52,10 @@ class ZenTcpTest(protocol.Protocol):
 class ZenTcpClient(protocol.ClientFactory):
     protocol = ZenTcpTest
     msg = "pass"
+    deferred = None
 
     def __init__(self, svc, status):
         self.cfg = svc
-        self.deferred = defer.Deferred()
         self.status = status
 
     def expect(self, data):
@@ -68,7 +68,8 @@ class ZenTcpClient(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         log.debug("lost: %s", reason.getErrorMessage())
-        self.deferred.callback(self)
+	if self.deferred:
+            self.deferred.callback(self)
         self.deferred = None
 
 
@@ -76,7 +77,8 @@ class ZenTcpClient(protocol.ClientFactory):
         log.debug("failed: %s", reason.getErrorMessage())
         log.debug(reason.type)
         self.msg = "ip service '%s' is down" % self.cfg.component
-        self.deferred.callback(self)
+	if self.deferred:
+            self.deferred.callback(self)
         self.deferred = None
 
 
@@ -103,5 +105,6 @@ class ZenTcpClient(protocol.ClientFactory):
                     manager=hostname)
 
     def start(self):
+        d = self.deferred = defer.Deferred()
         reactor.connectTCP(self.cfg.ip, self.cfg.port, self, self.cfg.timeout)
-        return self.deferred
+        return d

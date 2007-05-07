@@ -37,6 +37,10 @@ class Status:
         self._remaining = []
 
     def start(self, jobs):
+        self._success = 0
+        self._stop = 0
+        self._fail = 0
+        self._running = 0
         self._remaining = jobs
         self._start = time.time()
         self._defer = defer.Deferred()
@@ -46,7 +50,8 @@ class Status:
         return self._defer
 
     def next(self):
-        d = self._remaining.pop().start()
+        j = self._remaining.pop()
+        d = j.start()
         d.addCallbacks(self.success, self.failure)
         self._running += 1
         return d
