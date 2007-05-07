@@ -6,8 +6,7 @@
 			>
 		
 
-        <tal:block tal:define="odd repeat/field/odd; 
-            tabletitle string:Event Detail">
+        <tal:block tal:define="tabletitle string:Event Detail">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

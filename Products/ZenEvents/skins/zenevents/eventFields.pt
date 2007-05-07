@@ -4,6 +4,38 @@
 			objects event/getEventDetails;
 			fields event/getEventFields;"
 		>
-		<tal:block metal:use-macro="here/viewEventFields/macros/eventFields" />
+        <tal:block tal:define="tabletitle string:Event Fields">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+		    <tr>
+		        <th class="tableheader">Field</th>
+		        <th class="tableheader">Value</th>
+		    </tr>
+		    <tal:block tal:repeat="field fields">
+		    <tr tal:define="odd repeat/field/odd"
+		        tal:attributes="class python:test(odd,'odd','even')">
+		        <td class=tableheader tal:content="python:field[0]">field</td>
+		        <td class="tablevalues" tal:content="python:field[1]">value</td>
+		    </tr>
+		    </tal:block>
+		
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+		</tal:block>
 	</tal:block>
 </tal:block>

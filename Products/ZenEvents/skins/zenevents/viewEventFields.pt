@@ -3,7 +3,7 @@
     evid request/evid;
     sesskey python:tableName+evid;
     params python:'&evid=%s' % evid;
-    event python:here.getEventDetail(evid);
+	event python:here.getEventDetailFromStatusOrHistory(evid,better=False);
     fields event/getEventFields;
     "
     >
