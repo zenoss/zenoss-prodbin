@@ -46,7 +46,10 @@ class AdministrativeRole(ZenModelRM):
 
 
     def managedObjectName(self):
-        return self.managedObject().id
+        mo = self.managedObject()
+        if mo.meta_type == 'Device':
+            return mo.id
+        return mo.getOrganizerName()
 
 
     def managedObjectLink(self):
@@ -56,9 +59,6 @@ class AdministrativeRole(ZenModelRM):
     def getEventSummary(self):
         return self.managedObject().getEventSummary()
 
-
-    def managedObjectName(self):
-        return self.managedObject().getOrganizerName()
 
 DeviceAdministrativeRole = AdministrativeRole
 DevOrgAdministrativeRole = AdministrativeRole
