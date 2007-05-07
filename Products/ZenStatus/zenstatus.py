@@ -89,7 +89,7 @@ class Status:
 
 class ZenStatus(Base):
 
-    agent = "zenstatus"
+    name = agent = "zenstatus"
     initialServices = ['EventService', 'StatusConfig']
     statusCycleInterval = 300
     configCycleInterval = 20
