@@ -19,6 +19,7 @@ class FakeRequest(dict):
     bother to render anything when callZenScreen() is called with one.
     '''
     dontRender = True
+    dontRedirect = True
     
     def __init__(self, *args, **kw):
         dict.__init__(self, *args, **kw)

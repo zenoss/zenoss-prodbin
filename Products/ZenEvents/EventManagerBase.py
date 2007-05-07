@@ -1320,11 +1320,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         "Ack the given event ids"
-        # With the 2.0 interface I think this is only ever called from
-        # links in alert emails.  Because of this it's safe for us
-        # to just redirect to viewEvents.  Passing the actual requst through
-        # to manage_setEventStates was givin us back an event console that
-        # wasn't loading.
         if type(evids) == type(''):
             evids = [evids]
         request = FakeRequest()
@@ -1333,7 +1328,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             dest = '/zport/dmd/Events/viewEvents'
             if request.get('message', ''):
                 dest += '?message=%s' % request['message']
-            REQUEST['RESPONSE'].redirect(dest)
+            if not getattr(REQUEST, 'dontRedirect', False):
+                REQUEST['RESPONSE'].redirect(dest)
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
