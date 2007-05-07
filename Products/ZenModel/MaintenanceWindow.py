@@ -428,3 +428,5 @@ if __name__=='__main__':
     assert m.startProductionState == 1000
     assert m.stopProductionState == 300
 
+DeviceMaintenanceWindow = MaintenanceWindow
+OrganizerMaintenanceWindow = MaintenanceWindow

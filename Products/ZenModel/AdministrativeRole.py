@@ -59,3 +59,6 @@ class AdministrativeRole(ZenModelRM):
 
     def managedObjectName(self):
         return self.managedObject().getOrganizerName()
+
+DeviceAdministrativeRole = AdministrativeRole
+DevOrgAdministrativeRole = AdministrativeRole
