@@ -37,7 +37,6 @@ import Products.ZenUtils.Utils as Utils
 import smtplib
 from email.MIMEText import MIMEText
 import socket
-import Pager
 import sys
 
 UserSettingsId = "ZenUsers"
