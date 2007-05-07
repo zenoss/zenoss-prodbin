@@ -56,8 +56,7 @@ export UPGRADED=${ZENHOME}/.upgraded
 
 # changes the owners and permissions for the zenoss files
 set_perms() {
-    chown -R ${RUNUSER} ${ZENHOME}
-    chgrp -R wheel ${ZENHOME}
+    chown -R ${RUNUSER}:${RUNUSER} ${ZENHOME}
     chmod -R 775 ${ZENHOME}
 }
 
