@@ -127,7 +127,12 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
         if REQUEST:
             oid = REQUEST.get('oid', '')
             if oid:
-                REQUEST.form['oid'] = checkOid(oid)
+                try: 
+                    REQUEST.form['oid'] = checkOid(oid)
+                except ValueError:
+                    REQUEST['message'] = "%s is an invalid OID" % oid 
+                    return self.callZenScreen(REQUEST)
+                    
             if REQUEST.get('sourcetype') == 'COMMAND':
                 if REQUEST.form.get('eventClass', '/') == '/':
                     REQUEST.form['eventClass'] = Cmd_Fail
