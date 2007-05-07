@@ -78,6 +78,7 @@ def makeInts(values, msgs):
     
 class MaintenanceWindow(ZenModelRM):
     
+    name = None
     start = None
     started = None
     duration = 60
@@ -88,6 +89,7 @@ class MaintenanceWindow(ZenModelRM):
     skip = 1
  
     _properties = (
+        {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'start', 'type':'int', 'mode':'w'},
         {'id':'started', 'type':'int', 'mode':'w'},
         {'id':'duration', 'type':'int', 'mode':'w'},
@@ -137,6 +139,10 @@ class MaintenanceWindow(ZenModelRM):
         self.repeat = repeat
         self.enabled = enabled
 
+    def displayName(self):
+        if self.name is not None: return self.name
+        else: return self.id
+        
     def repeatOptions(self):
         "Provide the list of REPEAT options"
         return self.REPEAT

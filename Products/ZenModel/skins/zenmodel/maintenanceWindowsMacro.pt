@@ -63,7 +63,7 @@ Optional titlebar stuff
               tal:attributes="value mw/getId"/>
         <a href="_" 
         tal:attributes="href mw/absolute_url"
-        tal:content="mw/getId">somename</a>
+        tal:content="mw/displayName">somename</a>
     </td>
     <td class="tablevalues" tal:content="mw/niceStartDateTime"/>
     <td class="tablevalues" tal:content="mw/niceDuration"/>

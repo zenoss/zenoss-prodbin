@@ -17,6 +17,7 @@ Created by Marc Irlandez on 2007-04-05.
 """
 from AccessControl import ClassSecurityInfo
 from MaintenanceWindow import MaintenanceWindow
+from Products.ZenUtils.Utils import prepId
 
 class MaintenanceWindowable:
 
@@ -27,8 +28,10 @@ class MaintenanceWindowable:
         "Add a Maintenance Window to this device"
         mw = None
         if newId:
-            mw = MaintenanceWindow(newId)
-            self.maintenanceWindows._setObject(newId, mw)
+            preppedId = prepId(newId)
+            mw = MaintenanceWindow(preppedId)
+            mw.name = newId
+            self.maintenanceWindows._setObject(preppedId, mw)
             self.setLastChange() # In Device (not sure if needed by Organizers)
         if REQUEST:
             if mw:
