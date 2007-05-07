@@ -1486,10 +1486,17 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         ''' Need to handle editing of history event fields differently
         '''
         assert(self == self.dmd.ZenEventManager)
-        if REQUEST.get('zenScreenName', '') == 'editEventManagerHistoryFields':
+        screenName = REQUEST.get('zenScreenName', '')
+        if screenName == 'editEventManagerHistoryFields':
             obj = self.dmd.ZenEventHistory
         else:
             obj = self
+        import pdb; pdb.set_trace()
+        if screenName == 'editEventManager':
+            # We renamed the password field to try to keep browsers from
+            # asking user if they wanted to save the password.
+            if REQUEST.has_key('mysql_pass'):
+                REQUEST.form['password'] = REQUEST['mysql_pass']
         ZenModelRM.zmanage_editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
 

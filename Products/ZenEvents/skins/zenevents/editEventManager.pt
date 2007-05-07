@@ -36,7 +36,7 @@
     <tr>
         <td class="tableheader">Password</td>
         <td class="tablevalues"> 
-            <input type='password' name='password' 
+            <input type='password' name='mysql_pass' autocomplete="off"
                 tal:attributes='value here/password'>
         </td>
     </tr>
