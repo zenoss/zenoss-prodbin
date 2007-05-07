@@ -31,6 +31,7 @@ class WmiConfig(HubService):
         """Return list of (devname,user,passwd,url) for each device.
         user and passwd are used to connect via wmi.
         """
+
         devinfo = []
         for dev in self.config.devices():
             dev = dev.primaryAq()
@@ -39,7 +40,12 @@ class WmiConfig(HubService):
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             sev = getattr(dev, 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev.id,user,passwd,sev,dev.absolute_url()))
+            devinfo.append((dev._lastChange,
+                            dev.id,
+                            user,
+                            passwd,
+                            sev,
+                            dev.absolute_url()))
         return devinfo
     
     
@@ -92,13 +98,13 @@ class WmiConfig(HubService):
             objects = [object]
         for object in objects:
             if not isinstance(object, Device):
-                return
+                continue
             if not object.monitorDevice():
-                return
+                continue
             if getattr(object, 'zWmiMonitorIgnore', False):
-                return
+                continue
             for listener in self.listeners:
-                return listener.callRemote('notifyConfigChanged')
+                listener.callRemote('notifyConfigChanged')
 
     def deleted(self, obj):
         for listener in self.listeners:

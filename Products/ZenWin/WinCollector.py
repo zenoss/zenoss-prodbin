@@ -60,7 +60,7 @@ class WinCollector(Base):
                             component=self.agent))
 
     def remote_notifyConfigChanged(self):
-        self.log.info("Async config notifiation")
+        self.log.info("Async config notification")
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)

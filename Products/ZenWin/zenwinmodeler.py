@@ -38,6 +38,7 @@ class zenwinmodeler(Base):
     def __init__(self):
         Base.__init__(self)
         self.devices = []
+        self.lastRead = {}
         self.start()
 
     def remote_deleteDevice(self, device):
@@ -47,8 +48,11 @@ class zenwinmodeler(Base):
         """For each device collect service info and send to server.
         """
         self.log.error("devices %r", self.devices);
-        for name, user, passwd, sev, url in self.devices:
+        for lastChange, name, user, passwd, sev, url in self.devices:
             if self.options.device and name != self.options.device:
+                continue
+            if self.lastRead.get(name, 0) > lastChange:
+                self.log.debug('Skipping %s: recently checked' % name)
                 continue
             try:
                 if name in self.wmiprobs:
@@ -60,6 +64,7 @@ class zenwinmodeler(Base):
                     self.log.warn("failed collecting from %s", name)
                     continue
                 svc = self.configService()
+                self.lastRead[name] = time.time()
                 d = svc.callRemote('applyDataMap', url, svcs,
                                    'winservices', 'os',
                                    'Products.ZenModel.WinService')
@@ -119,6 +124,7 @@ class zenwinmodeler(Base):
         return self.winmodelerCycleInterval
         
     def updateDevices(self, devices):
+        self.log.info("Updating devices")
         self.devices = devices
 
 

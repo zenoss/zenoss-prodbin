@@ -729,6 +729,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     def pushConfig(self):
         "This will result in a push of all the devices to live collectors"
+        self._lastChange = time.time()
         self._p_changed = True
 
 
