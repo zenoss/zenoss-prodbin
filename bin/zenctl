@@ -42,7 +42,6 @@ export ZENHOME="**ZENHOME**"
 export RUNUSER="**OS_USERNAME**"
 export SNMPD_CONF="**SNMPD_CONF**"
 export MY_CNF="**MY_CNF**"
-export SUDOERS="**SUDOERS**"
 export ZOPE_USERNAME="admin"
 export ZOPE_PASSWORD="**ZOPE_PASSWD**"
 export ZOPE_LISTEN_PORT="8080"
@@ -73,9 +72,11 @@ fresh_install_pre() {
 
     # update the sudoers file
     SUDOERS=/etc/sudoers
-    BACKUP=`dirname ${SUDOERS}`/`basename ${SUDOERS}`.orig
-    cp ${SUDOERS} ${BACKUP}
-    cp ${ZEN_ETC}/sudoers ${SUDOERS}
+    TESTVALUE=`grep zenoss $SUDOERS`
+    if [ -z "${TESTVALUE}" ]; then
+        echo "# required for the zenoss user"
+        echo "${RUNUSER}  ALL=(ALL)       NOPASSWD: ALL" >> $SUDOERS
+    fi
 
     # update the my.cnf file
     MY_CNF=/etc/my.cnf
