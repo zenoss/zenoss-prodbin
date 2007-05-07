@@ -53,7 +53,8 @@ from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
-NAMETABLE = RUNROOT + '.2.1.4'
+NAMETABLE = RUNROOT + '.2.1.2'
+PATHTABLE = RUNROOT + '.2.1.4'
 ARGSTABLE = RUNROOT + '.2.1.5'
 PERFROOT  = HOSTROOT + '.5'
 CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
@@ -381,7 +382,7 @@ class zenprocess(SnmpDaemon):
     def scanDevice(self, device):
         "Fetch all the process info"
         device.lastScan = time.time()
-        tables = [NAMETABLE, ARGSTABLE]
+        tables = [NAMETABLE, PATHTABLE, ARGSTABLE]
         d = device.getTables(tables)
         d.addCallback(self.storeProcessNames, device)
         d.addErrback(self.deviceFailure, device)
@@ -421,13 +422,19 @@ class zenprocess(SnmpDaemon):
         
             
         procs = []
-        for namePart, argsPart in zip(sorted(results[NAMETABLE].items()),
-                                      sorted(results[ARGSTABLE].items())):
+        parts = zip(sorted(results[NAMETABLE].items()),
+                    sorted(results[PATHTABLE].items()),
+                    sorted(results[ARGSTABLE].items()))
+        for namePart, pathPart, argsPart in parts:
             oid, name = namePart
             namepid = int(oid.split('.')[-1])
+            oid, path = pathPart
+            pathpid = int(oid.split('.')[-1])
             oid, args = argsPart
             argpid = int(oid.split('.')[-1])
-            if namepid == argpid:
+            if namepid == argpid == pathpid:
+                if path and path.find('\\') == -1:
+                    name = path
                 procs.append( (namepid, (name, args) ) )
         # look for changes in pids
         before = Set(device.pids.keys())
