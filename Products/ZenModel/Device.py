@@ -1241,9 +1241,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             parent.manage_renameObject(self.getId(), newId)
             self.setLastChange()
         if REQUEST: 
-            REQUEST['message'] = "Device renamed"
-            return self()
-
+            REQUEST['message'] = "Device %s renamed to %s" % (self.getId(), newId)
+            REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
+            
 
     def manage_afterAdd(self, item, container):
         """
