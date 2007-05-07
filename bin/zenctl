@@ -60,6 +60,16 @@ set_perms() {
     chmod -R 775 ${ZENHOME}
 }
 
+# update the sudoers file by adding the zenoss user to it
+update_sudoers() {
+    SUDOERS=/etc/sudoers
+    TESTVALUE=`grep $RUNUSER $SUDOERS`
+    if [ -z "${TESTVALUE}" ]; then
+        echo "# required for the zenoss user"
+        echo "${RUNUSER}  ALL=(ALL)       NOPASSWD: ALL" >> $SUDOERS
+    fi
+}
+
 
 # these commands are run when zenoss was installed for the first time
 # and BEFORE the zenoss processes are started
@@ -69,13 +79,8 @@ fresh_install_pre() {
     # location of where we copy configuration items to
     ZEN_ETC=${ZENHOME}/etc
 
-    # update the sudoers file
-    SUDOERS=/etc/sudoers
-    TESTVALUE=`grep zenoss $SUDOERS`
-    if [ -z "${TESTVALUE}" ]; then
-        echo "# required for the zenoss user"
-        echo "${RUNUSER}  ALL=(ALL)       NOPASSWD: ALL" >> $SUDOERS
-    fi
+    # update the sudoers file so that zenoss can run as root
+    update_sudoers
 
     # update the my.cnf file
     MY_CNF=/etc/my.cnf
@@ -115,6 +120,9 @@ fresh_install_post() {
 # and BEFORE the zenoss processes are started
 upgrade_pre() {
     echo "Zenoss upgraded.  Running data migration scripts..."
+
+    # update the sudoers file so that zenoss can run as root
+    update_sudoers
 
     # run the first time initialization pre-run script
     set_perms
