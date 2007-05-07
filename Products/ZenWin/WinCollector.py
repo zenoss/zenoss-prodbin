@@ -21,7 +21,8 @@ from twisted.internet import reactor, defer
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
-from Products.ZenEvents.ZenEventClasses import Heartbeat, App_Start, Clear
+from Products.ZenEvents.ZenEventClasses import \
+     Heartbeat, App_Start, App_Stop, Clear, Warning
 from Products.ZenUtils.Driver import drive, driveLater
 
 from StatusTest import StatusTest
@@ -87,7 +88,19 @@ class WinCollector(Base):
         except Exception, ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
-        driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
+        if self.options.cycle:
+            driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
+        else:
+            self.stop()
+
+    def stop(self):
+        self.log.info("Starting %s", self.agent)
+        self.sendEvent(dict(eventClass=App_Stop,
+                            summary='Stopping %s' % self.agent,
+                            device=getfqdn(),
+                            severity=Warning,
+                            component=self.agent))
+        reactor.callLater(1, reactor.stop)
 
     def cycleInterval(self):
         return 60
