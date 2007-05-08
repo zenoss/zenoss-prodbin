@@ -45,7 +45,8 @@ from Exceptions import *
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils import Time, FakeRequest
+from Products.ZenUtils import Time
+from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 import StringIO
 import csv
