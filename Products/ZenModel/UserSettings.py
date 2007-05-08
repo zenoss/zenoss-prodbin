@@ -633,5 +633,13 @@ class UserSettings(ZenModelRM):
         else:
             return msg
 
+    def exportXmlHook(self, ofile, ignorerels):
+        """patch to export all user configuration
+        """
+        for o in self.objectValues():
+            if hasattr(aq_base(o), 'exportXml'):
+                o.exportXml(ofile, ignorerels)
+
+
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)
