@@ -40,7 +40,7 @@
 <!-- Begin Systems Portlet -->
 
 <tal:block tal:define="userSettings python:here.ZenUsers.getUserSettings();
-    tabletitle string: ${userSettings/dashboardOrganizer} Level Event Summary">
+    tabletitle string: ${userSettings/dashboardOrganizer} Summary">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <div metal:fill-slot="zentablecontents" tal:omit-tag="">
                 <tr>
@@ -67,7 +67,7 @@
 <!-- Begin Devices Portlet -->
 
 <tal:block tal:define="
-tabletitle string:Devices with Events (Severity &gt;= Error)">
+tabletitle string:Device Issues">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <div metal:fill-slot="zentablecontents" tal:omit-tag="">
             <tr>
@@ -91,7 +91,7 @@ tabletitle string:Devices with Events (Severity &gt;= Error)">
     <tr>
      <td valign="bottom">
 	    
-<tal:block tal:define="tabletitle string:Zenoss Infrastructure Issues">
+<tal:block tal:define="tabletitle string:Zenoss Issues">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <div metal:fill-slot="zentablecontents" tal:omit-tag="">
