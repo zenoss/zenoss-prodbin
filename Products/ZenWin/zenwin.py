@@ -155,7 +155,7 @@ class zenwin(Base):
             del self.watchers[device.name]
         self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
                             (device.name, message),
-                            severity=Event.Error,
+                            severity=Event.Warning,
                             device=device.name,
                             agent=self.agent,
                             eventClass=Status_Wmi_Conn))
