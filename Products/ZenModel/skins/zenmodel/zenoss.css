@@ -221,13 +221,8 @@ div.logo {
     background-color: black;
 }
 
-#leftpane ul li a.selected:link {
-    color: black;
-}
-
-#leftPane ul li a.selected:hover {
-    color: white;
-    background: black;
+#leftPane ul li a.selected {
+    background-color: black;
 }
 
 #rightPane
