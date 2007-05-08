@@ -432,7 +432,9 @@ class IpNetwork(DeviceOrganizer):
         for organizerName in organizerPaths:
             try:
                 organizer = orgroot.getOrganizer(organizerName)
-                zendiscCmd = "zendisc run --net=%s" % organizer.id
+                import os
+                zd = os.path.join(os.environ['ZENHOME'], 'bin', 'zendisc')
+                zendiscCmd = "%s run --net=%s" % (zd, organizer.id)
                 log.info('Executing command: %s' % zendiscCmd)
                 f = Popen4(zendiscCmd)
                 while 1:
