@@ -169,7 +169,7 @@ fi
 
 
 # delegate to the main zenoss script for control functions
-sudo -u ${RUNUSER} ${ZENHOME}/bin/zenoss $@
+su - ${RUNUSER} sh -c "${ZENHOME}/bin/zenoss $@"
 
 
 # run the post-script for firstboot and remove the firstboot flag
