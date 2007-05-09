@@ -17,16 +17,11 @@ from Products.ZenModel.DeviceClass import DeviceClass
 class zCollectorPlugins(Migrate.Step):
     version = Migrate.Version(2, 0, 0)
 
-    clist = (
-        'zenoss.snmp.NewDeviceMap',
-        'zenoss.snmp.DeviceMap',
-        'zenoss.snmp.InterfaceMap',
-        'zenoss.snmp.RouteMap',
-    )
-
     def cutover(self, dmd):
+
         if not hasattr(aq_base(dmd.Devices), 'zCollectorPlugins'):
-            dmd.Devices._setProperty("zCollectorPlugins", clist, type='lines')
+            dmd.Devices._setProperty("zCollectorPlugins", (), type='lines')
+
         if not dmd.Devices.zCollectorPlugins:
             dmd.Devices.zCollectorPlugins = (
                     'zenoss.snmp.NewDeviceMap',
@@ -34,9 +29,10 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.snmp.InterfaceMap',
                     'zenoss.snmp.RouteMap',
                 )
-        if not dmd.Devices.Server.zCollectorPlugins:
-            dmd.Devices.Server.zCollectorPlugins = (
-                    'zenoss.snmp.NewDeviceMap',
+
+        if not hasattr(aq_base(dmd.Devices.Server),'zCollectorPlugins'):
+            dmd.Devices.Server._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.snmp.NewDeviceMap',
                     'zenoss.snmp.DeviceMap',
                     'zenoss.snmp.DellDeviceMap',
@@ -49,25 +45,27 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.snmp.HRSWRunMap',
                     'zenoss.snmp.CpuMap',
                     'zenoss.snmp.DellCPUMap',
-                    'zenoss.snmp.DellPCIMap',
                     'zenoss.snmp.HPCPUMap',
-                )
+                    'zenoss.snmp.DellPCIMap',
+                ), type = 'lines')
 
-        if not aq_base(hasattr(dmd.Devices.Server,'Scan')):
+        if not dmd.Devices.Server._getOb('Scan',False):
             scan = DeviceClass('Scan')
             dmd.Devices.Server._setObject('Scan',scan)
 
-        if not dmd.Devices.Server.Scan.zCollectorPlugins:
-            dmd.Devices.Server.Scan.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Server.Scan), 'zCollectorPlugins'):
+            dmd.Devices.Server.Scan._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.portscan.IpServiceMap',
-                )
+                ), type = 'lines')
         
-        if not aq_base(hasattr(dmd.Devices.Server,'Cmd')):
+        if not dmd.Devices.Server._getOb('Cmd',False):
             cmd = DeviceClass('Cmd')
             dmd.Devices.Server._setObject('Cmd', cmd)
 
-        if not dmd.Devices.Server.Cmd._getOb('zCollectorPlugins',False):
-            dmd.Devices.Server.Cmd.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Server.Cmd), 'zCollectorPlugins'):
+            dmd.Devices.Server.Cmd._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.cmd.uname',
                     'zenoss.cmd.df',
                     'zenoss.cmd.linux.ifconfig',
@@ -81,11 +79,12 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.cmd.darwin.netstat_an',
                     'zenoss.cmd.darwin.process',
                     'zenoss.cmd.darwin.swap',
-                )
+                ), type = 'lines')
 
 
-        if not dmd.Devices.Server.Linux._getOb('zCollectorPlugins',False):
-            dmd.Devices.Server.Linux.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Server.Linux), 'zCollectorPlugins'):
+            dmd.Devices.Server.Linux._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.snmp.NewDeviceMap',
                     'zenoss.snmp.DeviceMap',
                     'zenoss.snmp.DellDeviceMap',
@@ -99,10 +98,11 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.snmp.DellCPUMap',
                     'zenoss.snmp.DellPCIMap',
                     'zenoss.snmp.HPCPUMap',
-                )
+                ), type = 'lines')
 
-        if not dmd.Devices.Server.Windows._getOb('zCollectorPlugins',False):
-            dmd.Devices.Server.Windows.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Server.Windows),'zCollectorPlugins'):
+            dmd.Devices.Server.Windows._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.snmp.NewDeviceMap',
                     'zenoss.snmp.DeviceMap',
                     'zenoss.snmp.DellDeviceMap',
@@ -118,34 +118,28 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.snmp.DellPCIMap',
                     'zenoss.snmp.HPCPUMap',
                     'zenoss.snmp.InformantHardDiskMap',
-                )
+                ), type = 'lines')
             
-        if not dmd.Devices.Power._getOb('zCollectorPlugins',False):
-            dmd.Devices.Power.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Power),'zCollectorPlugins'):
+            dmd.Devices.Power._setProperty("zCollectorPlugins", 
+                (
                     'zenoss.snmp.NewDeviceMap',
                     'zenoss.snmp.DeviceMap',
                     'zenoss.snmp.APCDeviceMap',
                     'zenoss.snmp.PowerwareDeviceMap',
-                )
-        
-        if not dmd.Devices.Network._getOb('zCollectorPlugins',False):
-            dmd.Devices.Network.Router.zCollectorPlugins = (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.InterfaceMap',
-                    'zenoss.snmp.RouteMap',
-                )
+                ), type = 'lines')
 
-        if not dmd.Devices.Network.Router.Cisco._getOb(
-            'zCollectorPlugins',False):
-            dmd.Devices.Network.Router.Cisco.zCollectorPlugins = (
+        if not hasattr(aq_base(dmd.Devices.Network.Router.Cisco),
+            'zCollectorPlugins'):
+            dmd.Devices.Network.Router.Cisco._setProperty('zCollectorPlugins',
+                (
                     'zenoss.snmp.NewDeviceMap',
                     'zenoss.snmp.DeviceMap',
                     'zenoss.snmp.CiscoMap',
                     'zenoss.snmp.InterfaceMap',
                     'zenoss.snmp.CiscoHSRP',
                     'zenoss.snmp.RouteMap',
-                )
+                ), type = 'lines')
 
 zCollectorPlugins()
  
