@@ -42,7 +42,7 @@ class zeneventlog(Base):
 
     def updateDevices(self, devices):
         """get the config data from server"""
-        for name, user, passwd, sev, url in devices:
+        for lastTime, name, user, passwd, sev, url in devices:
             try:
                 if name in self.wmiprobs: 
                     self.log.info('wmi prob on %s skipping', name)
