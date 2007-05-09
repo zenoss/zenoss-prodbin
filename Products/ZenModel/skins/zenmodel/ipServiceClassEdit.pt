@@ -29,7 +29,7 @@
         <td class="tablevalues" colspan="3">
             <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
-                tal:attributes="value e; selected python:e==here.monitored()"/>
+                tal:attributes="value e; selected python:e==here.zMonitor"/>
             </select>
         </td>
     </tr>
