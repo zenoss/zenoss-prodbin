@@ -111,7 +111,7 @@ class PerformanceConfig(HubService):
                 break
 
             if isinstance(object, Device):
-                self.notifyAll(device)
+                self.notifyAll(object)
                 break
 
             object = aq_parent(object)
