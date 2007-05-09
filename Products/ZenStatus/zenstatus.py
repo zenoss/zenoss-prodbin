@@ -207,7 +207,7 @@ class ZenStatus(Base):
             return
         from socket import getfqdn
         heartbeatevt = dict(eventClass=Heartbeat,
-                            component='ZenStatus',
+                            component='zenstatus',
                             device=getfqdn())
         self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
 
