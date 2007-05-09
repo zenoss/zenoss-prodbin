@@ -107,13 +107,11 @@ class PerformanceConfig(HubService):
             # walk up until you hit an organizer or a device
             if isinstance(object, DeviceClass):
                 for device in object.getSubDevices():
-                    device.setLastChange()
-                    transaction.commit()
+                    self.notifyAll(device)
                 break
 
             if isinstance(object, Device):
-                object.setLastChange()
-                transaction.commit()
+                self.notifyAll(device)
                 break
 
             object = aq_parent(object)
