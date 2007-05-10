@@ -786,11 +786,14 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             return names
         return DeviceOrganizer.zenPropertyOptions(self, propname)
 
-    def pushConfig(self):
+    def pushConfig(self, REQUEST=None):
         "This will result in a push of all the devices to live collectors"
         self._p_changed = True
-
-
+        if REQUEST:
+            REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
+            return self.callZenScreen(REQUEST)
+            
+            
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):
         """Set the changed datetime for this device. value default is now.

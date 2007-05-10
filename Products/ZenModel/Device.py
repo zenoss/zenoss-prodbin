@@ -1348,5 +1348,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             return names
         return ManagedEntity.zenPropertyOptions(self, propname)
 
-
+    def pushConfig(self, REQUEST=None):
+        "This will result in a push of all the devices to live collectors"
+        self._p_changed = True
+        if REQUEST:
+            REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
+            return self.callZenScreen(REQUEST)
+            
+            
 InitializeClass(Device)
