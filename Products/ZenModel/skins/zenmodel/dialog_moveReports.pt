@@ -1,8 +1,4 @@
-
 <h2>Move Reports</h2>
-<p>
-Where would you like to move these reports?<br/>
-</p>
 <br/>
 <p style="text-align:center;">
 <select class="tableheader" name="moveTarget"
@@ -17,6 +13,8 @@ Where would you like to move these reports?<br/>
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}', 'reportForm')" />
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>

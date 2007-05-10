@@ -5,8 +5,10 @@ Are you sure you want to delete this component?<br/>
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteComponent:method"
-    value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+    value="OK" />    
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
 </div>
 </form>

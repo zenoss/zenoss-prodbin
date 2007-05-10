@@ -1,23 +1,26 @@
 <h2>Change the name of this device</h2>
-
 <form action="_"  method="post" 
         tal:define="device python:here.device()"
         tal:attributes="action here/REQUEST/URL1">
-            
 <p>
-What would you like to name this device?<br/>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" 
-       name="newId"
-       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/><br/>
+<input id="new_id" name="newId">
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/getPrimaryUrlPath"><br/><br/>
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="renameDevice:method" value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel" 
-        onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_submit;
+                        disabled string:True;
+                        type string:submit;
+                        value string:OK"
+                        name="renameDevice:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>
 </form>

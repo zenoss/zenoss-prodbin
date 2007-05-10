@@ -5,8 +5,9 @@
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="id"
- tal:attributes="onblur string:checkValidId('${here/Processes/absolute_url}', this.id)">
+<input id="new_id" name="id">
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/Processes/absolute_url">
 <br/><br/>
 Process Class:&nbsp;<select name="className"
 tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
@@ -16,8 +17,14 @@ tal:define="targets python:here.getDmdRoot('Processes').getOrganizerNames()">
 </select>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addOSProcess:method" value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel"
-        onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_submit;
+                        disabled string:True;
+                        type string:submit;
+                        value string:OK"
+                        name="addOSProcess:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>
 </form>

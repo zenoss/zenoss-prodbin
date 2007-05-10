@@ -14,7 +14,10 @@
 <br/><br/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addAdministrativeRole:method" value="OK" />
+<input tal:attributes="id string:dialog_submit;
+                        type string:submit;
+                        value string:OK"
+                        name="manage_addAdministrativeRole:method" />
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

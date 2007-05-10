@@ -6,9 +6,9 @@
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">Destination:&nbsp;</span>
-<input id="new_id" name="dest"
- tal:attributes="onblur string:checkValidId('${here/absolute_url}', this.id)">
- <br/><br/>
+<input id="new_id" name="dest">
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/absolute_url"><br/><br/>
 Next Hop:&nbsp;<input name="nexthopid">
 <br/><br/>
 Interface:&nbsp;<select name="interface"
@@ -34,8 +34,14 @@ tal:define="types here/os/routeTypeMap">
 <br/><br/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="addIpRouteEntry:method" value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel"
-        onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_submit;
+                        disabled string:True;
+                        type string:submit;
+                        value string:OK"
+                        name="addIpRouteEntry:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>
 </form>

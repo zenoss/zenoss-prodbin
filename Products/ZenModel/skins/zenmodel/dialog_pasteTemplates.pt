@@ -1,4 +1,3 @@
-
 <h2>Paste Templates</h2>
 <br/><br/>
 <p>
@@ -17,6 +16,8 @@ What device class would you like to paste into?<br/>
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>

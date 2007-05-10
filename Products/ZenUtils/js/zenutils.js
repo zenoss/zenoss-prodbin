@@ -53,21 +53,51 @@ function wheel(event){
        event.returnValue = false;
 }
 
-function checkValidId(path, input_id){
-    var errmsg = $('errmsg');
-    var input = $(input_id);
-    var label = $(input_id+'_label');
-    var new_id = escape(input.value);
+var LSTimeout = null
+function doLiveCheck(e){
+    var filters = e.src().value;
+    switch (e.key().string) {
+        case 'KEY_TAB':
+        case 'KEY_ENTER':
+            clearTimeout(LSTimeout);
+            checkValidId(e);
+            return;
+        case 'KEY_ESCAPE':
+        case 'KEY_ARROW_LEFT':
+        case 'KEY_ARROW_RIGHT':
+        case 'KEY_HOME':
+        case 'KEY_END':
+        case 'KEY_SHIFT':
+        case 'KEY_ARROW_UP':
+        case 'KEY_ARROW_DOWN':
+            return;
+        default:
+            clearTimeout(LSTimeout);
+            LSTimeout = setTimeout(checkValidId, 500);
+    }
+}
 
+
+function checkValidId(e){
+    var errmsg = $('errmsg');
+    var input = $('new_id');
+    var label = $('new_id_label');
+    var new_id = escape(input.value);
+    var submit = $('dialog_submit');
+    var path = $('checkValidIdPath').value
+    
     errmsg.innerHTML = "";
-    Morph(input_id, {"style": {"color": "black"}});
-    Morph(label.id, {"style": {"color": "white"}});
+    Morph(input, {"style": {"color": "black"}});
+    Morph(label, {"style": {"color": "white"}});
     
     d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
     d.addCallback(function (r) { 
-        if (r.responseText != 'True') {
-            Morph(input_id, {"style": {"color": "red"}});
-            Morph(label.id, {"style": {"color": "red"}});
+        if (r.responseText == 'True') { 
+            submit.disabled = false
+        } else {
+            submit.disabled = true
+            Morph(input, {"style": {"color": "red"}});
+            Morph(label, {"style": {"color": "red"}});
             errmsg.innerHTML = r.responseText;
             shake(input);
             shake(label);

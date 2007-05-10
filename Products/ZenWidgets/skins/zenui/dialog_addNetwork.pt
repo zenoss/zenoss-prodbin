@@ -1,19 +1,23 @@
 <h2>Add Network</h2>
-
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" 
-       name="newPath"
-       tal:attributes="onblur string:checkValidId('${here/getPrimaryUrlPath}', this.id)"><br/>
+<input id="new_id" name="newPath">
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/getPrimaryUrlPath"><br/>
 </p>
 
 <div id="dialog_buttons">
-<input type="submit" name="manage_addOrganizer:method"
-    value="Add Network"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/getPrimaryUrlPath}')" />
-<input id="dialog_cancel" type="button" value="Cancel"
-    onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_submit;
+                        disabled string:True;
+                        type string:submit;
+                        value string:OK;
+                        onclick string:return $$('dialog').submit_form(
+                                                '${here/getPrimaryUrlPath}')" 
+                        name="manage_addOrganizer:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>

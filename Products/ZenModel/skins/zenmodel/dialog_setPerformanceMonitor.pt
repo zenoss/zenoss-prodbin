@@ -16,6 +16,8 @@ Performance Monitor:&nbsp;<select class="tablevalues" name="performanceMonitor"
 <input type="submit" name="setPerformanceMonitor:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/getPrimaryUrlPath}')" />
-<input id="dialog_cancel" type="button" value="Cancel"
-        onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
 </div>

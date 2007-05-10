@@ -10,6 +10,7 @@ var Dialog = {};
 Dialog.Box = Class.create();
 Dialog.Box.prototype = {
     __init__: function(id) {
+        bindMethods(this);
         this.makeDimBg();
         this.box = $(id);
         this.framework = DIV(
@@ -69,8 +70,12 @@ Dialog.Box.prototype = {
                 this.framework, this.dimbg);
         }
     },
+    lock: new DeferredLock(),
     show: function(form, url) {
-        if (url) this.fetch(url);
+        var d1 = this.lock.acquire();
+        d1.addCallback(bind(function() {
+            if (url) this.fetch(url);
+        }, this));7
         this.form = form;
         var dims = getViewportDimensions();
         var vPos = getViewportPosition();
@@ -88,6 +93,13 @@ Dialog.Box.prototype = {
         });
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
+        var d2 = this.lock.acquire(); 
+        d2.addCallback(bind(function() {
+            try {
+                connect('new_id','onkeyup', doLiveCheck);
+            } catch(e) { noop(); }
+            this.lock.release();
+        }, this));
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
         showElement(this.framework);
@@ -100,7 +112,7 @@ Dialog.Box.prototype = {
     },
     fetch: function(url) {
         var d = doSimpleXMLHttpRequest(url);
-        d.addCallback(this.fill);
+        d.addCallback(bind(this.fill, this));
     },
     fill: function(request) {
         $('dialog_innercontent').innerHTML = request.responseText;
@@ -108,6 +120,7 @@ Dialog.Box.prototype = {
         els = filter(function(x){return x.type!='button'&&x.type!='submit'}, els);
         var first = els[0];
         first.focus();
+        this.lock.release();
     },
     submit_form: function(action, formname) {
         var f = formname?document.forms[formname]:this.form

@@ -6,8 +6,6 @@
 <input type="hidden" name="deviceNames" 
         tal:attributes="value device/getId" />
 <p>
-Which device class path would you like to set?<br/>
-<br/>
 <select name="moveTarget"
         tal:define="
         dcs device/deviceMoveTargets;
@@ -20,8 +18,10 @@ Which device class path would you like to set?<br/>
 <br/>
 <div id="dialog_buttons">
 <input type="submit" name="moveDevices:method"
-      value="OK" />
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+      value="OK" />  
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
 </div>
 </form>       
