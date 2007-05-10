@@ -5,8 +5,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/getPrimaryUrlPath}', 
-this.id)">
+        tal:attributes="value here/getPrimaryUrlPath">
 <br/><br/>
 <input tal:attributes="id string:dialog_submit;
                         disabled string:True;

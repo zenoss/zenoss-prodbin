@@ -1,7 +1,5 @@
 <h2>Map Events</h2>
-<p>
-To what event class would you like to map these events?
-</p>
+<br/>
 <p style="text-align:center;font-size:0.8em;">
     <select class="tablevalues" name="eventClass" 
     tal:define="orgs here/Events/getOrganizerNames">
@@ -11,10 +9,14 @@ To what event class would you like to map these events?
     </select>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_createEventMap:method"
-    value="Map Events"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/getPrimaryUrlPath}');"/>
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+<input tal:attributes="id string:dialog_submit;
+                    type string:submit;
+                    value string:OK;
+                    onclick string:return $$('dialog').submit_form(
+                                            '${here/getPrimaryUrlPath}')"
+                    name="manage_createEventMap:method" />
+<input tal:attributes="id string:dialog_cancel;
+                    type string:button;
+                    value string:Cancel;
+                    onclick string:$$('dialog').hide()" />
 </div>

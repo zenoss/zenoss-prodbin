@@ -109,6 +109,7 @@ Dialog.Box.prototype = {
         this.box.innerHTML = this.defaultContent;
         hideElement(this.framework);
         this.moveBox('back');
+        this.lock.release();
     },
     fetch: function(url) {
         var d = doSimpleXMLHttpRequest(url);
