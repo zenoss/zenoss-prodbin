@@ -100,14 +100,27 @@ class PerformanceConf(Monitor, StatusColor):
     renderurl = ''
     renderuser = ''
     renderpass = ''
+
+#    defaultRRDCreateCommand = (
+#        'RRA:AVERAGE:0.5:1:2016',  # every 5 mins for 7 days
+#        'RRA:AVERAGE:0.5:4:2016',  # every 20 mins for 4 weeks
+#        'RRA:AVERAGE:0.5:24:1488', # every 2 hours for 4 months
+#        'RRA:AVERAGE:0.5:288:730', # every 1 day for 2 years 
+#        'RRA:MAX:0.5:4:2016',
+#        'RRA:MAX:0.5:24:1488',
+#        'RRA:MAX:0.5:288:730',
+#        )
+    
+    # make the default rrdfile size smaller
+    # we need the space to live within the disk cache
     defaultRRDCreateCommand = (
-        'RRA:AVERAGE:0.5:1:2016',  # every 5 mins for 7 days
-        'RRA:AVERAGE:0.5:4:2016',  # every 20 mins for 4 weeks
-        'RRA:AVERAGE:0.5:24:1488', # every 2 hours for 4 months
-        'RRA:AVERAGE:0.5:288:730', # every 1 day for 2 years 
-        'RRA:MAX:0.5:4:2016',
-        'RRA:MAX:0.5:24:1488',
-        'RRA:MAX:0.5:288:730',
+        'RRA:AVERAGE:0.5:1:600',    # every 5 mins for 2 days
+        'RRA:AVERAGE:0.5:6:600',    # every 30 mins for 12 days
+        'RRA:AVERAGE:0.5:24:600',   # every 2 hours for 50 days
+        'RRA:AVERAGE:0.5:288:600',  # every day for 600 days
+        'RRA:MAX:0.5:6:600',
+        'RRA:MAX:0.5:24:600',
+        'RRA:MAX:0.5:288:600',
         )
 
     _properties = (
