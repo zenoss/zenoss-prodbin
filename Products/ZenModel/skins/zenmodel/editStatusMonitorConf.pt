@@ -47,18 +47,6 @@
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Snmp Timeout</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snmpTimeOut:float" 
-            tal:attributes="value here/snmpTimeOut" />
-      </td>
-      <td class="tableheader" align="left">Snmp Tries</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snmpTries:int" 
-            tal:attributes="value here/snmpTries" />
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Cycle Interval (secs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="cycleInterval:int" 

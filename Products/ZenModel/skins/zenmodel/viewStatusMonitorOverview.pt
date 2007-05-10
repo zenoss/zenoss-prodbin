@@ -33,16 +33,6 @@
       <td class="tablevalues" align="left" tal:content="here/tries">2</td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Snmp Timeout</td>
-      <td class="tablevalues" align='left'
-        tal:content="here/snmpTimeOut">snmptimeout
-      </td>
-      <td class="tableheader" align="left">Snmp Tries</td>
-      <td class="tablevalues" align="left"
-        tal:content="here/snmpTries">tries
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Cycle Interval</td>
       <td class="tablevalues" align="left"
           tal:content="here/cycleInterval">tries</td>
