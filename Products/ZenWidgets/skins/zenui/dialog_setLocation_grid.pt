@@ -1,0 +1,21 @@
+<h2>Set Location</h2>
+<p>
+To which location would you like to move these devices?
+</p>
+<br/>
+<p style="text-align:center;">
+    <select class="tablevalues" id="locationPath" name="locationPath" 
+        style="min-width:100px;"
+        tal:define=" locs python:here.getDmdRoot('Locations').getOrganizerNames(True)" >
+        <option tal:repeat="loc locs" 
+            tal:attributes="value loc"
+            tal:content="loc">/Location/Path</option>
+    </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setLocation:method"
+    value="Set Location"
+    onclick="devZenGrid.setDeviceBatchProps('setLocation',$('locationPath').value)"/>
+<input id="dialog_cancel" type="button" value="Cancel"
+    onclick="$('dialog').hide()"/>
+</div>

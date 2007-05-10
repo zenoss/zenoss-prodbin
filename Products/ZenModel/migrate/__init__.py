@@ -82,3 +82,4 @@ import zenpackdatasources
 import zpropscleanup
 import processsequence
 import zWmiMonitorProperty
+import device_indexes

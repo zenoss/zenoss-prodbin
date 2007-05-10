@@ -18,10 +18,12 @@ $Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
 __version__ = "$Revision: 1.6 $"[11:-2]
 
 import types
+import re
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from AccessControl import Permissions as permissions
+from Acquisition import aq_parent
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase
@@ -30,7 +32,10 @@ from ZenMenuable import ZenMenuable
 from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
 
+from Products.AdvancedQuery import MatchRegexp, Eq, Or, In
+
 from Products.ZenRelations.RelSchema import *
+import simplejson
 
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
@@ -106,6 +111,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             for dev in subgroup.getSubDevicesGen(devrel):
                 yield dev
 
+    def getSubDevicesGenTest(self, devrel="devices"):
+        """get all the devices under and instance of a DeviceGroup"""
+        devices = getattr(self, devrel, None)
+        if not devices: 
+            raise AttributeError, "%s not found on %s" % (devrel, self.id)
 
     def getMonitoredComponents(self):
         """Return monitored components for devices within this DeviceOrganizer.
@@ -229,6 +239,52 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/deviceOrganizerManage'
+
+
+    def getAdvancedQueryDeviceList(self, offset=0, count=50, filter='',
+                                   orderby='id', orderdir='asc'):
+        catalog = getattr(self, self.default_catalog)
+        filter = '(?is).*%s.*' % filter
+        filterquery = Or(
+            MatchRegexp('id', filter),
+            MatchRegexp('getDeviceIp', filter),
+            MatchRegexp('getProdState', filter),
+            MatchRegexp('getDeviceClassPath', filter)
+        )
+        query = Eq('getPhysicalPath', self.absolute_url_path()
+                    ) & filterquery
+        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+        objects = list(objects)
+        totalCount = len(objects)
+        offset, count = int(offset), int(count)
+        return totalCount, objects[offset:offset+count] 
+
+
+    def getJSONDeviceInfo(self, offset=0, count=50, filter='',
+                          orderby='id', orderdir='asc'):
+        """yo"""
+        totalCount, devicelist = self.getAdvancedQueryDeviceList(
+                offset, count, filter, orderby, orderdir)
+        results = [x.getObject().getDataForJSON() + ['odd'] 
+                   for x in devicelist]
+        return simplejson.dumps((results, totalCount))
+
+
+    def getDeviceBatch(self, selectstatus='none', goodevids=[],
+                       badevids=[], offset=0, count=50, filter='',
+                       orderby='id', orderdir='asc'):
+        if not isinstance(goodevids, (list, tuple)):
+            goodevids = [goodevids]
+        if not isinstance(badevids, (list, tuple)):
+            badevids = [badevids]
+        if selectstatus=='all':
+            idquery = ~In('id', badevids)
+        else:
+            idquery = In('id', goodevids)
+        query = Eq('getPhysicalPath', self.absolute_url_path()) & idquery
+        catalog = getattr(self, self.default_catalog)
+        objects = catalog.evalAdvancedQuery(query)
+        return [x['id'] for x in objects]
 
 
 InitializeClass(DeviceOrganizer)

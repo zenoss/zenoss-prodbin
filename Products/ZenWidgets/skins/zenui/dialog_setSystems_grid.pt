@@ -1,0 +1,15 @@
+<h2>Set Systems</h2>
+<p style="text-align:center;font-size:0.8em;">
+    <select class="tablevalues" id="systemPaths" name="systemPaths:list" multiple
+    tal:define="systems python:here.getDmdRoot('Systems').getOrganizerNames(True)" >
+        <option tal:repeat="system systems" 
+            tal:attributes="value system"
+            tal:content="system">localhost</option>
+    </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setSystems:method" value="OK"
+    onclick="devZenGrid.setDeviceBatchProps('setSystems',$('systemPaths').value)"/>
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>

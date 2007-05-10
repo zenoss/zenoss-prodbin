@@ -280,3 +280,22 @@
         
 
 </form>
+
+<tal:block metal:define-macro="devGridBody">
+    <tr><td>
+    <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
+    <script type="text/javascript"
+    src="/zport/javascript/devicezengrid.js"></script>
+
+    <div id="gridcontainer" style="width:100%;"> </div>
+    <script tal:content="string:
+    var devZenGridBuffer, devZenGrid;
+    addLoadEvent( function() {
+        devZenGridBuffer = new DeviceZenGridBuffer();
+        devZenGrid = new DeviceZenGrid('gridcontainer',
+            'getJSONDeviceInfo', 'mygrid', devZenGridBuffer,
+            '${here/absolute_url_path}');
+        connect('filter', 'onkeyup', devZenGrid.doEventLivesearch);
+    });"></script>
+    </td></tr>
+</tal:block>

@@ -1,0 +1,13 @@
+<h2>Remove Devices</h2>
+<br/><br/>
+<p>
+Are you sure you want to remove these devices?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="removeDevices:method"
+    value="OK"
+    onclick="devZenGrid.setDeviceBatchProps('removeDevices','')"/>
+<input id="dialog_cancel" type="button" value="Cancel"
+onclick="$('dialog').hide()"/>
+</div>

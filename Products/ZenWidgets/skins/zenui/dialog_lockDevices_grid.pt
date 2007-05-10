@@ -1,0 +1,24 @@
+<h2>Change lock status</h2>
+<p style="text-align:right;">
+<input tal:attributes="name string:sendEventWhenBlocked;
+        type string:checkbox"
+        id="sendEventWhenBlocked"
+        />Send warnings when actions are blocked
+<br/><br/>
+<input type="submit" name="lockDevicesFromUpdates:method"
+    value="Lock from deletion and updates"
+    onclick="devZenGrid.setDeviceBatchProps('lockDevicesFromUpdates',
+        $('sendEventWhenBlocked').checked?1:'')"/>
+<br/><br/>
+<input type="submit" name="lockDevicesFromDeletion:method"
+    value="Lock from deletion"
+    onclick="devZenGrid.setDeviceBatchProps('lockDevicesFromDeletion',
+        $('sendEventWhenBlocked').checked?1:'')"/>
+<br/><br/>
+<input type="submit" name="unlockDevices:method"
+    value="Unlock"
+    onclick="devZenGrid.setDeviceBatchProps('unlockDevices','')"/>
+<br/><br/>
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</p>

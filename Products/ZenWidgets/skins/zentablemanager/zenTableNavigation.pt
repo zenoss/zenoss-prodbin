@@ -88,7 +88,7 @@
         ztm here/ZenTableManager;
         start request/start | python:0;
         batchSize request/batchSize | ztm/defaultBatchSize;
-        pagenav  python:ztm.getNavData(objects, batchSize, sortedHeader);
+        pagenav  python:'ztm.getNavData(objects, batchSize, sortedHeader)';
         lastindex python:len(pagenav) and pagenav[-1]['index'] or 0;
         totalobjs python:len(objects)"
         style="border:0; padding-top:2px;margin-bottom:2px;">
@@ -188,6 +188,7 @@
     <input class="navcontrol" type="submit"
         alt="prev" name="prev" value="<"
         tal:attributes="disabled python:ts.start==0" />
+    <!--
     <select class="tableheader" name="start:int" valign="top"
         tal:attributes="disabled python:ts.totalobjs<=ts.batchSize"
         onchange="this.form.submit()">
@@ -196,6 +197,7 @@
             tal:attributes="value page/index;
                             selected python: page['index'] == ts.start" />
     </select>
+    -->
     <input class="navcontrol" type="submit"
         alt="next" name="next" value=">" 
         tal:attributes="disabled not:batch/next" />

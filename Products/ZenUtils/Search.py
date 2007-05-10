@@ -18,7 +18,7 @@ Utilities to help build zcatalog indexes
 
 __version__ = "$Revision: 1.3 $"[11:-2]
 
-from Products.ManagableIndex import FieldIndex, KeywordIndex
+from Products.ManagableIndex import FieldIndex, KeywordIndex, PathIndex
 
 def makeCaseInsensitiveFieldIndex(indexName):
     index = FieldIndex(indexName)
@@ -50,3 +50,5 @@ def makeFieldIndex(indexName):
 def makeKeywordIndex(indexName):
     return makeCaseInsensitiveKeywordIndex(indexName)
 
+def makePathIndex(indexName):
+    return PathIndex(indexName)

@@ -71,6 +71,7 @@ div.event_detail {
     background-color: #888;
     color: white;
 }
+
 div.cell_inner {
     background-color: transparent;
     padding:0 3px;margin:0;
@@ -80,4 +81,14 @@ div.cell_inner {
     font-size: 12px;
     line-height: 132%;
     vertical-align: middle;
+}
+
+tr.odd td.cell,
+tr.odd div.cell_inner {
+    height: 26px;
+}
+
+
+div.cell_inner th {
+    font-weight: normal;
 }

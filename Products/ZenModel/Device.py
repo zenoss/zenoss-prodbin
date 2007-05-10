@@ -1299,11 +1299,42 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         environ.update({'dev': context,  'device': context,})
         return environ
         
-    
     def getUrlForUserCommands(self, commandId=None):
         return self.getPrimaryUrlPath() + '/deviceManagement'
 
-    
+    def getHTMLEventSummary(self, severity=4):
+        html = []
+        html.append("<table width='100%' cellspacing='1' cellpadding='3'>")
+        html.append("<tr>")
+        def evsummarycell(ev):
+            if ev[1]-ev[2]>=0: klass = '%s empty thin' % ev[0]
+            else: klass = '%s thin' % ev[0]
+            h = '<th align="center" width="16%%" class="%s">%s/%s</th>' % (
+                klass, ev[1], ev[2])
+            return h
+        info = self.getEventSummary(severity)
+        html += map(evsummarycell, info)
+        html.append('</tr></table>')
+        return '\n'.join(html)
+
+    def getDataForJSON(self):
+        """ returns data ready for serialization
+        """
+        id = '<a class="tablevalues" href="%s">%s</a>' % (
+                            self.getDeviceUrl(), self.getId())
+        ip = self.getDeviceIp()
+        path = '<a href="/zport/dmd/Devices%s">%s</a>' % (
+                                self.getDeviceClassPath(),
+                                self.getDeviceClassPath())
+        prod = self.getProdState()
+        evsum = self.getHTMLEventSummary()
+        imgbase = '<img border="0" src="locked-%s-icon.png"/>'
+        locks = ''
+        if self.isLockedFromUpdates(): locks += imgbase % 'update'
+        if self.isLockedFromDeletion(): locks += imgbase % 'delete'
+        if self.sendEventWhenBlocked(): locks += imgbase % 'sendevent'
+        return [id, ip, path, prod, evsum, locks, self.getId()]
+
     def exportXmlHook(self, ofile, ignorerels):
         """Add export of our child objects.
         """

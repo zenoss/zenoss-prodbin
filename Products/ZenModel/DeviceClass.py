@@ -42,6 +42,8 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from Products.ZenUtils.Search import makePathIndex
+from Products.ZenUtils.FakeRequest import FakeRequest
 
 from RRDTemplate import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -204,7 +206,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.setLastChange()
         if REQUEST:
             REQUEST['message'] = "Devices moved to %s" % moveTarget
-            REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
 
     def removeDevices(self, deviceNames=None, REQUEST=None):
@@ -216,7 +221,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.deleteDevice()
         if REQUEST:
             REQUEST['message'] = "Devices deleted"
-            return self.callZenScreen(REQUEST)
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def setPerformanceMonitor(self, performanceMonitor, deviceNames=None, REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
@@ -228,7 +236,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.setPerformanceMonitor(performanceMonitor)
         if REQUEST: 
             REQUEST['message'] = "Performance monitor set to %s" % performanceMonitor
-            REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
             
     def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device groups from any organizer """
@@ -239,7 +250,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.setGroups(groupPaths)
         if REQUEST: 
             REQUEST['message'] = "Groups set"
-            REQUEST['RESPONSE'].redirect(self.getPrimaryUrlPath())
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def setSystems(self, systemPaths=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device systems from any organizer """
@@ -250,7 +264,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.setSystems(systemPaths)
         if REQUEST: 
             REQUEST['message'] = "Systems set"
-            return self()
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def setLocation(self, locationPath=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device location from any organizer """
@@ -261,8 +278,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.setLocation(locationPath)
         if REQUEST: 
             REQUEST['message'] = "Location set to %s" % locationPath
-            return self()
-
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def unlockDevices(self, deviceNames=None, REQUEST=None):
         """Unlock devices"""
@@ -273,7 +292,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.unlock()
         if REQUEST:
             REQUEST['message'] = "Devices unlocked"
-            return self.callZenScreen(REQUEST)
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def lockDevicesFromDeletion(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
         """Lock devices from being deleted"""
@@ -284,7 +306,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.lockFromDeletion(sendEventWhenBlocked)
         if REQUEST:
             REQUEST['message'] = "Devices locked from deletion"
-            return self.callZenScreen(REQUEST)
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
 
     def lockDevicesFromUpdates(self, deviceNames=None, sendEventWhenBlocked=None, REQUEST=None):
         """Lock devices from being deleted or updated"""
@@ -295,7 +320,38 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.lockFromUpdates(sendEventWhenBlocked)
         if REQUEST:
             REQUEST['message'] = "Devices locked from updates and deletion"
-            return self.callZenScreen(REQUEST)
+            if not isinstance(REQUEST, FakeRequest):
+                REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
+            else:
+                return self.callZenScreen(REQUEST)
+
+    security.declareProtected('Change Device', 'setDeviceBatchProps')
+    def setDeviceBatchProps(self, method='', extraarg=None,
+                            selectstatus='none', goodevids=[],
+                            badevids=[], offset=0, count=50, filter='',
+                            orderby='id', orderdir='asc', REQUEST=None):
+        """docstring"""
+        if not method: return self()
+        d = {'lockDevicesFromUpdates':'sendEventWhenBlocked',
+             'lockDevicesFromDeletion':'sendEventWhenBlocked',
+             'unlockDevices':'',
+             'setGroups':'groupPaths',
+             'setSystems':'systemPaths',
+             'setLocation':'locationPath',
+             'setPerformanceMonitor':'performanceMonitor',
+             'moveDevices':'moveTarget',
+             'removeDevices':''
+            }
+        request = FakeRequest()
+        argdict = dict(REQUEST=request)
+        if d[method]: argdict[d[method]] = extraarg
+        action = getattr(self, method)
+        argdict['deviceNames'] = self.getDeviceBatch(selectstatus, 
+                                  goodevids, badevids, offset, count, 
+                                  filter, orderby, orderdir)
+        print 'argdict: ', argdict
+        return action(**argdict)
+
 
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
@@ -602,9 +658,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
-        cat.addIndex('summary', makeCaseInsensitiveFieldIndex('summary'))
+        for idxname in ['id',
+            'getDeviceIp','getDeviceClassPath','getProdState']:
+            cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
+        cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
         zcat.addColumn('getPrimaryId')
+        zcat.addColumn('id')
     
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
