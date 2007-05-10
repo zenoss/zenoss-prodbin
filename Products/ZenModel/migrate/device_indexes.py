@@ -36,16 +36,16 @@ class NewDeviceIndexes(Migrate.Step):
         reindex = False
         for indexName in fieldIndexes:
             try: 
-                cat.getIndex(indexName)
-            except KeyError:
                 cat.addIndex(indexName, makeFieldIndex(indexName))
                 reindex = True
+            except CatalogError:
+                pass
         for indexName in pathIndexes:
-            try:
-                cat.getIndex(indexName)
-            except KeyError:
-                cat.addIndex(indexName, makeFieldIndex(indexName))
+            try: 
+                cat.addIndex(indexName, makePathIndex(indexName))
                 reindex = True
+            except CatalogError:
+                pass
         try: 
             cat.addColumn('id')
             reindex = True
