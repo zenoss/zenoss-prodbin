@@ -145,6 +145,7 @@ class OSProcessClass(ZenModelRM, Commandable):
         self.regex = regex        
         self.description = description
         self.ignoreParameters = ignoreParameters
+        self.zMonitor = zMonitor
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()

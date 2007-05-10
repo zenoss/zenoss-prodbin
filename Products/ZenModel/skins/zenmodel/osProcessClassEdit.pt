@@ -46,7 +46,6 @@
             tal:attributes="value e; selected python:e==here.ignoreParameters"/>
         </td>
     </tr>
-    <!--
     <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues">
@@ -55,6 +54,7 @@
                 tal:attributes="value e; selected python:e==here.zMonitor"/>
         </td>
     </tr>
+    <!--
     <tr>
         <td class="tableheader">Alert on Restart</td>
         <td class="tablevalues">
