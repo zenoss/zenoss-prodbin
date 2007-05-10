@@ -28,6 +28,8 @@ from Products.ZenModel.Device import manage_createDevice
 
 from zenmodeler import ZenModeler
 
+DEFAULT_PING_THRESH = 168
+
 class ZenDisc(ZenModeler):
 
 
@@ -54,10 +56,8 @@ class ZenDisc(ZenModeler):
         ips = []
         ping = Ping(tries=self.options.tries, timeout=self.options.timeout,
                     chunkSize=self.options.chunkSize)
-        pingthresh = 168
         if not nets:
             nets = self.dmd.Networks.getSubNetworks()
-            pingthresh = getattr(self.dmd.Networks, "zPingFailThresh", 168)
         goodCount = 0
         for net in nets:
             if not getattr(net, "zAutoDiscover", False): 
@@ -65,6 +65,7 @@ class ZenDisc(ZenModeler):
                                 % net.id)
                 continue
             self.log.info("discover network '%s'", net.id)
+            pingthresh = getattr(net, "zPingFailThresh", DEFAULT_PING_THRESH)
             goodips, badips = ping.ping(net.fullIpList())
             goodCount += len(goodips)
             for ip in goodips:
