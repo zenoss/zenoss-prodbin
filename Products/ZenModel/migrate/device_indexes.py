@@ -37,13 +37,13 @@ class NewDeviceIndexes(Migrate.Step):
         for indexName in fieldIndexes:
             try: 
                 cat.getIndex(indexName)
-            except CatalogError:
+            except KeyError:
                 cat.addIndex(indexName, makeFieldIndex(indexName))
                 reindex = True
         for indexName in pathIndexes:
             try:
                 cat.getIndex(indexName)
-            except CatalogError:
+            except KeyError:
                 cat.addIndex(indexName, makeFieldIndex(indexName))
                 reindex = True
         try: 
