@@ -1427,7 +1427,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         assert(self == self.dmd.ZenEventManager)
         self.loadSchema()
         self.dmd.ZenEventHistory.loadSchema()
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            REQUEST['message'] = 'Event schema refreshed' 
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage EventManager','manage_editCache')
@@ -1446,7 +1448,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         assert(self == self.dmd.ZenEventManager)
         self.cleanCache(force=1)
         self.dmd.ZenEventHistory.cleanCache(force=1)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = 'Event cache cleared'
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage EventManager','manage_editEventManager')
@@ -1475,7 +1479,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             sql = 'truncate table heartbeat'
             curs.execute(sql)
         finally: self.close(conn)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = 'Heartbeats cleared'
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager','zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):

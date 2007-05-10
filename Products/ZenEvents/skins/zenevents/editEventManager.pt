@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/getPrimaryUrlPath">
+<form tal:attributes="method string:post;
+                action here/getPrimaryUrlPath">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
 
 
@@ -189,33 +190,6 @@
             <input class="tablevalues"
                    type='int' name='defaultPriority' 
                    tal:attributes="value here/defaultPriority"/>
-        </td>
-    </tr>
-    <tr class='tableheader'>
-        <td class="tableheader" width='25%'>
-            Refresh Event Schema
-        </td>
-        <td class="tableheader" colspan="2">
-            <input type='submit' value="Refresh Event Schema"
-                name='manage_refreshConversions:method'>
-        </td>
-    </tr>
-    <tr class='tableheader'>
-        <td class="tableheader">
-            Clear Event Cache
-        </td>
-        <td class="tableheader" colspan="2">
-            <input type='submit' value="Clear Event Cache"
-                name='manage_clearCache:method'>
-        </td>
-    </tr>
-    <tr class='tableheader'>
-        <td class="tableheader">
-            Clear All Heartbeats
-        </td>
-        <td class="tableheader" colspan="2">
-            <input type='submit' value="Clear Heartbeats"
-                name='manage_clearHeartbeats:method'>
         </td>
     </tr>
 

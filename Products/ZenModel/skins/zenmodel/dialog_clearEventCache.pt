@@ -1,0 +1,17 @@
+<h2>Clear Event Cache</h2>
+<br/><br/>
+<p>
+Are you sure you want to clear the event cache?<br/>
+</p>
+<br/>
+<form method="post" tal:attributes="action here/absolute_url">
+<div id="dialog_buttons">
+<input tal:attributes="type string:submit;
+                value string:OK"
+        name="manage_clearCache:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
+</form>
