@@ -50,7 +50,7 @@ False
 False
 </property>
 <property visible="True" type="boolean" id="zWmiMonitorIgnore" >
-False
+True
 </property>
 <property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
 False
@@ -4687,6 +4687,9 @@ True
 <object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="boolean" id="zWinEventlog" >
 True
+</property>
+<property visible="True" type="boolean" id="zWmiMonitorIgnore" >
+False
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
