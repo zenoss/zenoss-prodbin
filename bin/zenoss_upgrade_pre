@@ -6,6 +6,8 @@
 # This script is intended to be run before the zenoss processes have
 # been started for the first time after an upgrade.
 #
+# Note: it is run by root
+#
 
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoring platform.

@@ -6,6 +6,8 @@
 # This script is intended to be run before the zenoss processes have
 # been started for the first time.
 #
+# Note: it is run by root
+#
 
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -59,6 +61,6 @@ run_mkzeoinstance
 
 # create the zeo database
 start_zeodb
-sudo chown -R ${OS_USERNAME} ${ZENHOME}/var
+chown -R ${OS_USERNAME} ${ZENHOME}/var
 run_zenbuild
 stop_zeodb
