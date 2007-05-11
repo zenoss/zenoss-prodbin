@@ -369,6 +369,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def getRRDNames(self):
         return ['sysUpTime']
 
+        
+    def getDataSourceOptions(self):
+        ''' Returns a list of the available datasource options as a list
+        of (display name, dsOption)
+        '''
+        # This is an unfortunate hack.  Called from the device templates
+        # page where we show multiple templates now.  This only really
+        # works because getDataSourceOptions() returns the same values
+        # for every template.  Ideally we would be able to pass some sort
+        # of context to the Add DataSource dialog that calls this method.
+        templates = self.getRRDTemplates()
+        if templates:
+            return templates[0].getDataSourceOptions()
+        return []
+
 
     def sysUpTime(self):
         try:
