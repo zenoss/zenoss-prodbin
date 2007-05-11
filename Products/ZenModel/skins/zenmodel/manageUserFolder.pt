@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:use-macro="here/templates/macros/page2">
 
 <tal:block metal:fill-slot="head-local">
 <script type="text/javascript">

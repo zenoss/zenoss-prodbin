@@ -263,17 +263,10 @@ style="position:relative;">
     <tal:block tal:condition="here/isManager">
     <p id="Management">Management</p>
     <ul>
-        <li><a href="/zport/dmd/DeviceLoader/addDevice">Add Device</a></li>
-        <li><a href="/zport/dmd/ZenEventManager/addEvent">Add Event</a></li>
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
         <li><a href="/zport/dmd/Mibs">Mibs</a></li>
-    </ul>
-    <p id="Management">Administration</p>
-    <ul>
-        <li><a href="/zport/dmd/ZenUsers/manageUserFolder">Users</a></li>
-        <li><a href="/zport/dmd/editSettings">Settings</a></li>
-        <li><a href="/zport/dmd/About">About</a></li>
+        <li><a href="/zport/dmd/editSettings">Zenoss Settings</a></li>
     </ul>
     </tal:block>
 

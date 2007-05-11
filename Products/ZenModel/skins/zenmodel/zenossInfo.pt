@@ -19,23 +19,34 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
+    <colgroup>
+        <col width="25%">
+        <col width="15%">
+        <col width="20%">
+        <col width="30%">
+        <col width="10%">
+        <col width="0*">
+    <colgroup>
     <thead>
         
         <tr>
-            <th class="tableheader">
+            <th class="tableheader" nowrap>
                 Zenoss Daemon
             </th>
             <th class="tableheader">
                 PID
             </th>
-            <th class="tableheader">
+            <th class="tableheader" nowrap>
                 Log File
+            </th>
+            <th class="tableheader">
+                Configuration
             </th>
             <th class="tableheader">
                 State
             </th>
             <th class="tableheader" colspan="2">
-                Action
+                Actions
             </th>
         </tr>
     </thead>
@@ -43,26 +54,34 @@
         <tr tal:repeat="daemon here/getZenossDaemonStates">
             <th class="tableheader" tal:content="daemon/name" />
             <td class="tablevalues" tal:content="daemon/pid" />
-            <td class="tablevalues"><a tal:attributes="
+            <td class="tablevalues" nowrap><a tal:attributes="
                 href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
-            <td class="tablevalues" tal:content="daemon/msg" tal:attributes="
-                style string:background-color: ${daemon/color};" />
-            <td class="tablevalues"
-                tal:define="name daemon/buttons/button1">
-                <form method="post"
-                    tal:attributes="action url" >
+            <td class="tablevalues" nowrap style="padding: 0px 20px">
+                <a tal:attributes="
+                    href string:${url}/viewDaemonConfig?daemon=${daemon/name}"
+                    style="margin-right: 2em;">
+                    view config</a> 
+                <a tal:attributes="
+                href string:${url}/editDaemonConfig?daemon=${daemon/name}">
+                    edit config</a>
+            </td>
+            <td class="tablevalues" tal:define="color python:test(
+                daemon['color']=='#0F0', 'green', 'red')"
+                style="text-align:center;">
+            <img tal:attributes="src string:/zport/dmd/img/${color}_dot.png"/>
+            </td>
+            <td class="tablevalues" nowrap>
+                <form method="post" tal:define="name daemon/buttons/button1"
+                    tal:attributes="action url"  style="display:inline;">
                 <input type="hidden" name="action" tal:attributes="
                     value name" />
                 <input type="hidden" name="daemon" tal:attributes="
                     value daemon/name" />
                 <input type="submit" name="manage_daemonAction:method"
-                    tal:attributes="value name;" />
+                    tal:attributes="value name;" style="width: 5em;" />
                 </form>
-            </td>
-            <td class="tablevalues"
-                tal:define="name daemon/buttons/button2">
-                <form action="" method="post"
-                    tal:attributes="action url">
+                <form action="" method="post" tal:define="name daemon/buttons/button2"
+                    tal:attributes="action url" style="display:inline;">
                 <input type="hidden" name="action" tal:attributes="
                     value name" />
                 <input type="hidden" name="daemon" tal:attributes="

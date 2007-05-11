@@ -1,0 +1,86 @@
+<h2>Add an Event:</h2>
+<form tal:attributes="action string:/zport/dmd/ZenEventManager;" 
+        method="post" name="addDevice">
+<input type="hidden" name="zenScreenName" 
+tal:attributes="value here/absolute_url_path"/>
+<table>
+
+        <tr>
+            <td  align="left">
+                Message
+            </td>
+            <td  align="left">
+                <textarea rows="4"  name="message" style="width:148px"
+                    tal:content="event/message | nothing"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td  align="left">
+                Device
+            </td>
+            <td  align="left">
+                <input  type="text"  style="width:150px"
+		            size="50" name="device"
+                    tal:attributes="value event/device | nothing" />
+            </td>
+        </tr>
+        <tr>
+            <td  align="left">
+                Component
+            </td>
+            <td  align="left">
+                <input  type="text"  style="width:150px"
+		            size="50" name="component"
+                    tal:attributes="value event/component | nothing" />
+            </td>
+        </tr>
+        <tr>
+            <td  align="left">
+                Severity
+            </td>
+            <td  align="left">
+                <select  name="severity:int" style="width:150px">
+                    <option tal:repeat="sev here/dmd/ZenEventManager/getSeverities"
+                        tal:content="python:sev[0]"
+                        tal:attributes="value python:sev[1]" style="width:150px" />
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td  align="left">
+                Event Class Key
+            </td>
+            <td  align="left">
+                <input  type="text" 
+		            size="50" name="eventClassKey"
+                    tal:attributes="value event/eventClassKey | nothing" style="width:150px" />
+            </td>
+        </tr>
+        <tr>
+            <td  align="left">
+                Event Class
+            </td>
+            <td  align="left">
+                <select  name="eclass" style="width:150px">
+					<option value=""></option>
+                    <option 
+                        tal:repeat="eclass here/dmd/Events/getOrganizerNames"
+                        tal:content="eclass"
+                        tal:attributes="value eclass;
+                                selected python:eclass==here.getOrganizerName()" />
+                </select>
+            </td>
+        </tr>
+</table>
+<br>
+<div align="center">
+<input tal:attributes="id string:dialog_addDevice_submit;
+                        type string:submit;
+                        value string:OK"
+                        name="manage_addEvent:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
+</form>

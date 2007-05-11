@@ -128,9 +128,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'manage'
-                , 'name'          : 'Administration'
+                , 'name'          : 'Commands'
                 , 'action'        : 'dataRootManage'
                 , 'permissions'   : ('Manage DMD',)
+                },
+                { 'id'            : 'users'
+                , 'name'          : 'Users'
+                , 'action'        : 'ZenUsers/manageUserFolder'
+                , 'permissions'   : ( 'Manage DMD', )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
@@ -142,11 +147,20 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'editMenus'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'daemons'
+                , 'name'          : 'Daemons'
+                , 'action'        : '../About/zenossInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'versions'
+                , 'name'          : 'Versions'
+                , 'action'        : '../About/zenossVersions'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : ( 'View', )
                 },
             )
           },

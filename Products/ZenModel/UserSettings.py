@@ -72,13 +72,48 @@ class UserSettingsManager(ZenModelRM):
             'factory'        : 'manage_addUserSettingsManager',
             'immediate_view' : 'manageUserFolder',
             'actions'        :
-            (
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'manageUserFolder'
-                , 'permissions'   : ( Permissions.view, )
+         (
+                { 'id'            : 'settings'
+                , 'name'          : 'Settings'
+                , 'action'        : '../editSettings'
+                , 'permissions'   : ( "Manage DMD", )
                 },
-            )
+                { 'id'            : 'manage'
+                , 'name'          : 'Commands'
+                , 'action'        : '../dataRootManage'
+                , 'permissions'   : ('Manage DMD',)
+                },
+                { 'id'            : 'users'
+                , 'name'          : 'Users'
+                , 'action'        : 'manageUserFolder'
+                , 'permissions'   : ( 'Manage DMD', )
+                },
+                { 'id'            : 'packs'
+                , 'name'          : 'ZenPacks'
+                , 'action'        : '../viewZenPacks'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'menus'
+                , 'name'          : 'Menus'
+                , 'action'        : '../editMenus'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'daemons'
+                , 'name'          : 'Daemons'
+                , 'action'        : '../../About/zenossInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'versions'
+                , 'name'          : 'Versions'
+                , 'action'        : '../../About/zenossVersions'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : '../viewHistory'
+                , 'permissions'   : ( 'View',)
+                },
+           )
          },
         )
 

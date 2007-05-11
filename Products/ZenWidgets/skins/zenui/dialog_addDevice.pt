@@ -1,0 +1,57 @@
+<h2>Add a Device:</h2>
+<form tal:attributes="action string:/zport/dmd/DeviceLoader;" 
+        method="post" name="addDevice">
+<input type="hidden" name="zenScreenName" 
+tal:attributes="value here/absolute_url_path"/>
+<span id="errmsg" style="color:red;"></span>
+<table>
+<tr><td>
+        <span id="new_id_label">Name or IP:</span>
+</td><td>
+<input id="deviceName" name="deviceName" style="width:150px">
+</td></tr>
+<tr><td>Device Class:</td><td> 
+        <select class="tablevalues" name="devicePath" style="width:150px;"
+        tal:define=" dcs python:here.getDmdRoot('Devices').getOrganizerNames(True);
+                     curdc python:here.meta_type=='DeviceClass' and
+                     here.getOrganizerName() or nothing" >
+          <option tal:repeat="dc dcs" tal:content="dc" 
+              tal:attributes="value dc; selected python:dc==curdc">
+              /Server/Linux
+          </option>
+        </select> 
+</td></tr>
+<tr><td>Discovery Protocol: </td><td>
+        <select class="tablevalues" name="discoverProto" style="width:150px">
+            <option value="snmp">snmp</option>
+            <option value="none">none</option> 
+        </select>
+</td></tr>
+<tr>
+    <td>Snmp Community:</td>
+    <td>
+        <input class="tablevalues" type="text" 
+            size="10" name="zSnmpCommunity"
+            value='' style="width:150px"/>
+    </td>
+</tr>
+<tr>
+<td>Snmp Port:</td>
+<td> <input class="tablevalues" type="text" 
+    size="10" name="zSnmpPort:int" 
+    tal:attributes="value python:161" style="width:150px"/>
+</td>
+</tr>
+</table>
+<br>
+<div align="center">
+<input tal:attributes="id string:dialog_addDevice_submit;
+                        type string:submit;
+                        value string:OK"
+                        name="loadDevice:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
+</form>
