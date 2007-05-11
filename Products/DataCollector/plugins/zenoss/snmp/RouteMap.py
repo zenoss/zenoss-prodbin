@@ -66,6 +66,8 @@ class RouteMap(SnmpPlugin):
             om.routeproto = self.mapSnmpVal(routeproto, self.routeProtoMap)
             if localOnly and om.routeproto != 'local':
                 continue
+            if not hasattr(om, 'routetype'): 
+                continue    
             om.routetype = self.mapSnmpVal(om.routetype, self.routeTypeMap)
             if indirectOnly and om.routetype != 'indirect':
                 continue
