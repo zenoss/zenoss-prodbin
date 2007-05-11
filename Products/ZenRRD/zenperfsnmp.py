@@ -318,7 +318,7 @@ class zenperfsnmp(SnmpDaemon):
         yield self.model().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
-        self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
+        self.rrd = RRDUtil(createCommand, self.perfsnmpCycleInterval)
         
 
 
@@ -427,7 +427,7 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def scanCycle(self, *unused):
-        reactor.callLater(self.snmpCycleInterval, self.scanCycle)
+        reactor.callLater(self.perfsnmpCycleInterval, self.scanCycle)
         self.log.debug("getting device ping issues")
         evtSvc = self.services.get('EventService', None)
         if evtSvc:
@@ -455,7 +455,7 @@ class zenperfsnmp(SnmpDaemon):
                              self.status.outstanding())
             self.log.warning("Problem devices: %r",
                              list(self.status.outstandingNames()))
-            if age < self.snmpCycleInterval * 2:
+            if age < self.perfsnmpCycleInterval * 2:
                 self.log.warning("Waiting one more cycle period")
                 return
             self.log.warning("Devices status is not clearing.  Restarting.")

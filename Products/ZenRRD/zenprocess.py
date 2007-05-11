@@ -273,7 +273,7 @@ class zenprocess(SnmpDaemon):
             yield self.model().callRemote('propertyItems')
             self.setPropertyItems(driver.next())
 
-            self.rrd = RRDUtil(createCommand, self.snmpCycleInterval)
+            self.rrd = RRDUtil(createCommand, self.processCycleInterval)
 
             devices = []
             if self.options.device:
