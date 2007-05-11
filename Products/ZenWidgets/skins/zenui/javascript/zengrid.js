@@ -330,7 +330,11 @@ ZenGrid.prototype = {
                 'offset':this.buffer.startPos,
                 'count':this.buffer.size });
         var d = loadJSONDoc(this.url, qs);
-        d.addErrback(function(x) { alert('Cannot communicate with the server!') });
+        d.addErrback(bind(function(x) { 
+            callLater(5, bind(function(){
+            alert('Cannot communicate with the server!');
+            this.killLoading()}, this))
+        }, this));
         d.addCallback(
             bind(function(r) {
                 result = r; 
@@ -354,7 +358,11 @@ ZenGrid.prototype = {
             'getTotalCount': 1
         });
         var d = loadJSONDoc(url, qs);
-        d.addErrback(function(x) { alert('Cannot communicate with the server!') });
+        d.addErrback(bind(function(x) { 
+            callLater(5, bind(function(){
+            alert('Cannot communicate with the server!');
+            this.killLoading()}, this))
+        }, this));
         d.addCallback(
          bind(function(r) {
              result = r; 

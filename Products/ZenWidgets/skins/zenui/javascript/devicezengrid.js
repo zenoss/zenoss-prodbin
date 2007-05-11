@@ -292,7 +292,9 @@ DeviceZenGrid.prototype = {
                 'count':this.buffer.size });
         var d = loadJSONDoc(this.url, qs);
         d.addErrback(bind(function(x) { 
-            alert('Cannot communicate with the server!'); 
+            callLater(5, bind(function(){
+            alert('Cannot communicate with the server!');
+            this.killLoading()}, this))
         }, this));
         d.addCallback(
             bind(function(r) {
@@ -316,7 +318,11 @@ DeviceZenGrid.prototype = {
             'count': bufSize
         });
         var d = loadJSONDoc(url, qs);
-        d.addErrback(function(x) { alert('Cannot communicate with the server!') });
+        d.addErrback(bind(function(x) { 
+            callLater(5, bind(function(){
+            alert('Cannot communicate with the server!');
+            this.killLoading()}, this))
+        }, this));
         d.addCallback(
          bind(function(r) {
              result = r; 
