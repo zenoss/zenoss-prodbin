@@ -85,7 +85,10 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
     def __init__(self):
         EventServer.__init__(self)
         snmpprotocol.SNMPProtocol.__init__(self, self.options.trapport)
-        reactor.listenUDP(self.port, self)
+        if self.options.useFileDescriptor is not None:
+            self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
+        else:
+            reactor.listenUDP(self.port, self)
 
 
     def handleTrap(self, data, addr):
@@ -194,6 +197,10 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
         EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
                                dest='trapport', type='int', default=TRAP_PORT)
+        self.parser.add_option('--useFileDescriptor',
+                               dest='useFileDescriptor',
+                               type='int',
+                               default=None)
 
 
 if __name__ == '__main__':

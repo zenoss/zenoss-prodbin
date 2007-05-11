@@ -80,6 +80,20 @@ class EventServer(ZCmdBase):
         self.heartbeat()
         self.reportCycle()
 
+    def useUdpFileDescriptor(self, fd):
+        from twisted.internet import udp
+        s = socket.fromfd(fd, socket.AF_INET, socket.SOCK_DGRAM)
+        os.close(fd)
+        port = s.getsockname()[1]
+        transport = udp.Port(port, self)
+        s.setblocking(0)
+        transport.socket = s
+        transport.fileno = s.fileno
+        transport.connected = 1
+        transport._realPortNumber = port
+        self.transport = transport
+        transport.startReading()
+
     def reportCycle(self):
         if self.options.statcycle:
             self.report()

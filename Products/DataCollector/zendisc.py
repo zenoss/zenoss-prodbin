@@ -54,8 +54,13 @@ class ZenDisc(ZenModeler):
         """Ping all ips create if nessesary and perform reverse lookup.
         """
         ips = []
-        ping = Ping(tries=self.options.tries, timeout=self.options.timeout,
-                    chunkSize=self.options.chunkSize)
+        sock = None
+        if self.options.useFileDescriptor:
+            sock = int(self.options.useFileDescriptor)
+        ping = Ping(tries=self.options.tries,
+                    timeout=self.options.timeout,
+                    chunkSize=self.options.chunkSize,
+                    fileDescriptor=sock)
         if not nets:
             nets = self.dmd.Networks.getSubNetworks()
         goodCount = 0
@@ -266,6 +271,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--no-snmp', dest='nosnmp',
                     action="store_true", default=False,
                     help="Perform snmp discovery on found IP addresses")
+        self.parser.add_option('--useFileDescriptor',
+                    dest='useFileDescriptor', default=None,
+                    help="Use the given (priveleged) file descriptor for ping")
 
 if __name__ == "__main__":
     try:

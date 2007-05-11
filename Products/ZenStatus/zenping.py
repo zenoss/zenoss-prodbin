@@ -155,6 +155,10 @@ class ZenPing(ZCmdBase):
                                help="Run in test mode: doesn't really ping,"
                                " but reads the list of IP Addresses that "
                                " are up from /tmp/testping")
+        self.parser.add_option('--useFileDescriptor',
+                               dest='useFileDescriptor',
+                               default=None,
+                               help="use the given (privileged) file descriptor")
 
 
     def pingCycle(self):
@@ -276,7 +280,11 @@ class ZenPing(ZCmdBase):
         if self.options.test:
             self.pinger = TestPing(self.tries, self.timeOut)
         else:
-            self.pinger = Ping(self.tries, self.timeOut)
+            fd = None
+            if self.options.useFileDescriptor is not None:
+                fd = int(self.options.useFileDescriptor)
+            self.pinger = Ping(self.tries, self.timeOut, fd)
+                                   
         self.pingCycle()
 
 

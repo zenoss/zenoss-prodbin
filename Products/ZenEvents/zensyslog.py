@@ -61,7 +61,10 @@ class ZenSyslog(DatagramProtocol, EventServer):
             hdlr = logging.FileHandler(lname)
             hdlr.setFormatter(logging.Formatter("%(message)s"))
             self.olog.addHandler(hdlr)
-        reactor.listenUDP(self.options.syslogport, self)
+        if self.options.useFileDescriptor is not None:
+            self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
+        else:
+            reactor.listenUDP(self.options.syslogport, self)
 
 
     def expand(self, msg, client_address):
@@ -160,6 +163,10 @@ class ZenSyslog(DatagramProtocol, EventServer):
         self.parser.add_option('--syslogport',
             dest='syslogport', default=SYSLOG_PORT, type='int',
             help="Port number to use for syslog events")
+        self.parser.add_option('--useFileDescriptor',
+                               dest='useFileDescriptor',
+                               type='int',
+                               default=None)
 
 
 if __name__ == '__main__':

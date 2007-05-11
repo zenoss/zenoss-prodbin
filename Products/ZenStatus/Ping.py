@@ -74,7 +74,7 @@ class Ping(object):
     Class that provides syncronous icmp ping.
     """
 
-    def __init__(self, tries=2, timeout=2, chunkSize=10):
+    def __init__(self, tries=2, timeout=2, chunkSize=10, fileDescriptor=None):
         self.tries = tries
         self.timeout = timeout
         self.chunkSize = chunkSize
@@ -83,28 +83,34 @@ class Ping(object):
         self.pingsocket = None
         self.morepkts = True
         self.devcount = 0
-        self.createPingSocket()
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
         self.incount = self.outcount = 0
+        self.fileDescriptor = fileDescriptor
 
 
     def __del__(self):
-        if self.pingsocket:
+        if self.pingsocket and not self.fileDescriptor is None:
             self.closePingSocket()
 
 
     def createPingSocket(self):
         """make an ICMP socket to use for sending and receiving pings"""
-        try:
-            family = socket.AF_INET
-            type = socket.SOCK_RAW
-            proto = socket.IPPROTO_ICMP
-            sock = socket.socket(family, type, proto)
-            sock.setblocking(0)
-            self.pingsocket = sock
-        except socket.error, e:
-            if e.args[0] == 1: 
-                raise PermissionError("must be root to send icmp.")
+        sargs = socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP
+        if self.fileDescriptor is None:
+            try:
+                sock = socket.socket(*sargs)
+            except socket.error, e:
+                if e.args[0] == 1: 
+                    raise PermissionError("must be root to send icmp.")
+        else:
+            sock = socket.fromfd(self.fileDescriptor, *sargs)
+            # consume any packets that might be queued
+            while 1:
+                rd, wr, ex = select.select([sock], [], [], 0.)
+                if not rd: break
+                sock.recv(1024)
+        sock.setblocking(0)
+        self.pingsocket = sock
 
 
     def closePingSocket(self):

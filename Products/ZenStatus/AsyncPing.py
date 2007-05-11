@@ -74,27 +74,32 @@ class Ping(object):
     Class that provides asyncronous icmp ping.
     """
     
-    def __init__(self, tries=2, timeout=2):
+    def __init__(self, tries=2, timeout=2, sock=None):
         self.tries = tries
         self.timeout = timeout
         self.procId = os.getpid()
         self.jobqueue = {}
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
-        self.createPingSocket()
+        self.createPingSocket(sock)
 
 
-    def createPingSocket(self):
+    def createPingSocket(self, sock):
         """make an ICMP socket to use for sending and receiving pings"""
-        try:
-            s = socket
-            self.pingsocket = s.socket(s.AF_INET, s.SOCK_RAW, s.IPPROTO_ICMP)
-            self.pingsocket.setblocking(0)
-            reactor.addReader(self)
-        except socket.error, e:
-            err, msg = e.args
-            if err == errno.EACCES:
-                raise PermissionError("must be root to send icmp.")
-            raise e
+        socketargs = socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP
+        if sock is None:
+            try:
+                s = socket
+                self.pingsocket = s.socket(*socketargs)
+            except socket.error, e:
+                err, msg = e.args
+                if err == errno.EACCES:
+                    raise PermissionError("must be root to send icmp.")
+                raise e
+        else:
+            self.pingsocket = socket.fromfd(sock, *socketargs)
+            os.close(sock)
+        self.pingsocket.setblocking(0)
+        reactor.addReader(self)
 
     def fileno(self):
         return self.pingsocket.fileno()
@@ -228,8 +233,7 @@ class Ping(object):
         return len(self.jobqueue)
 
     def ping(self, ip):
-        """Perform async ping of a list of ips returns (goodips, badips).
-        """
+        "Ping the ip and return the result in a deferred"
         pj = PingJob(ip)
         self.sendPacket(pj)
         return pj.deferred
