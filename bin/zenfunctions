@@ -76,7 +76,7 @@ stop() {
     if running; then
         PID=`cat $PIDFILE`
         echo stopping...
-        `$SUDO kill $PID` 
+        kill $PID
         if [ $? -gt 0 ]; then
             rm -f $PIDFILE
             echo clearing pid file

@@ -12,10 +12,10 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO=sudo
+SUDO="$ZENHOME/bin/zensocket --listen=162 -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zentrap.py
 CFGFILE=$CFGDIR/zentrap.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-generic "$@"
+generic "$@" --useFileDescriptor='$privilegedSocket'
