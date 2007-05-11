@@ -23,7 +23,7 @@
 
 <tal:block tal:define="device python: here.meta_type != 'DeviceLoader' 
                                         and here or None;
-                       tabletitle string:Load Device" >
+                       tabletitle string:Add Device" >
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
