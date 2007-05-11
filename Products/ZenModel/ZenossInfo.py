@@ -87,11 +87,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : 'zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : '../dmd/viewHistory'
-                , 'permissions'   : ('View',)
-                },
            )
           },
         )

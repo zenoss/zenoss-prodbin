@@ -157,11 +157,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : '../About/zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : ( 'View', )
-                },
             )
           },
         )

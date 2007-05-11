@@ -108,11 +108,6 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../../About/zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : '../viewHistory'
-                , 'permissions'   : ( 'View',)
-                },
            )
          },
         )
