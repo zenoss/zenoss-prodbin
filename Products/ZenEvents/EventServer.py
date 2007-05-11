@@ -83,6 +83,7 @@ class EventServer(ZCmdBase):
     def useUdpFileDescriptor(self, fd):
         from twisted.internet import udp
         s = socket.fromfd(fd, socket.AF_INET, socket.SOCK_DGRAM)
+        import os
         os.close(fd)
         port = s.getsockname()[1]
         transport = udp.Port(port, self)
