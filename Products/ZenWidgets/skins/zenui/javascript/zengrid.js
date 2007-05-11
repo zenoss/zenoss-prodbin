@@ -629,8 +629,8 @@ ZenGrid.prototype = {
         [   'Select:  ',
             UL(null,
             [
-                LI({'id':'setSelectNone'}, 'None'),
                 LI({'id':'setSelectAll'}, 'All'),
+                LI({'id':'setSelectNone'}, 'None'),
                 LI({'id':'setSelectAcked'}, 'Acknowledged'),
                 LI({'id':'setSelectUnacked'}, 'Unacknowledged')
             ])

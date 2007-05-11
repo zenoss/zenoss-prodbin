@@ -581,8 +581,8 @@ DeviceZenGrid.prototype = {
         [   'Select:  ',
             UL(null,
             [
-                LI({'id':'setSelectNone'}, 'None'),
                 LI({'id':'setSelectAll'}, 'All'),
+                LI({'id':'setSelectNone'}, 'None')
             ])
         ]
         );
