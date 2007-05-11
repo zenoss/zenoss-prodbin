@@ -265,7 +265,8 @@
     </tr>
     <tr>
         <td colspan="0" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"></form>
+            <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2">
+            </form>
         </td>
     </tr>
 

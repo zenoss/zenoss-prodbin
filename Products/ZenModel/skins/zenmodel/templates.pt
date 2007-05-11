@@ -166,6 +166,8 @@
     <div class="searchbox">
     <form action="/zport/dmd/deviceSearchResults" method="POST"
 		name="searchform">
+        <span style="position:relative;left:-70px;font-size:80%;
+                     top:14px;color:#bbb;">Device/IP Search</span>
         <input type="text" name="query" 
             onkeypress="submitViaEnter(event)"
             onclick="select(this.value)"
