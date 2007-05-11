@@ -110,7 +110,10 @@ class EventServer(ZCmdBase):
     def sendEvent(self, evt):
         "wrapper for sending an event"
         self.zem._p_jar.sync()
-        evt.manager = self.myfqdn
+        if type(evt) == dict:
+            evt['manager'] = self.myfqdn
+        else:
+            evt.manager = self.myfqdn
         self.zem.sendEvent(evt)
 
 
