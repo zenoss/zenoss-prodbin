@@ -17,18 +17,25 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
-
-if [ -z "$ZENHOME" ] ; then
-  for d in $HOME /home/zenoss ; do 
-    for f in .bash_login .bash_profile .profile .bashrc ; do
-       if [ -z "$ZENHOME" ] ; then
-          [ -f $d/$f ] && . $d/$f
-       fi
+# Attempt to set ZENHOME if it is not already set, or bogus
+# by calculating it relative to the executing command
+if [ -z "$ZENHOME" -o ! -d "$ZENHOME" ] ; then
+    # Resolve links: $0 may be a link to zenoss's home.
+    PRG="$0"
+    while [ -h "$PRG" ] ; do
+        ls=`ls -ld "$PRG"`
+        link=`expr "$ls" : '.*-> \(.*\)$'`
+        if expr "$link" : '/.*' > /dev/null; then
+            PRG="$link"
+        else
+            PRG=`dirname "$PRG"`"/$link"
+        fi
     done
-  done
-fi
-if [ -z "$ZENHOME" ] ; then
-  ZENHOME=/usr/local/zenoss; export ZENHOME
+    SAVED="`pwd`"
+    cd "`dirname \"$PRG\"`/.."
+    ZENHOME="`pwd -P`"
+    export ZENHOME
+    cd "$SAVED"
 fi
 
 if [ `id -u` -eq 0 ] ; then
@@ -38,7 +45,8 @@ if [ `id -u` -eq 0 ] ; then
        exit 1
    fi
    chown -R $USERNAME $ZENHOME/var
-   exec sudo -u $USERNAME $0 $@
+   chown -R $USERNAME $ZENHOME/log
+   exec su - $USERNAME $0 $@
 fi
 
 . $ZENHOME/bin/zenfunctions
