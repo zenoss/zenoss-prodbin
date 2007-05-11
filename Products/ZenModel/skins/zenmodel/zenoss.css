@@ -47,7 +47,6 @@ input,textarea {
     padding: 0px 10px;
     display:none;
     z-index:5000;
-    padding-right: 30px;
 }
 
 #messageSlot .dbox_mc {

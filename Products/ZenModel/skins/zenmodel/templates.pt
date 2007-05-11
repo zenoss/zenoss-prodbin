@@ -213,6 +213,10 @@ style="position:relative;">
         pulsate('messageSlot', {pulses:2, duration:3});
 	}
 
+    var hideMessage = function() {
+        fade('messageSlot', {'duration':0.3} );
+    }
+
 	var showMessage = function(msg) {
 		if (0 == msg.length) {
 			hideElement('messageSlot');
@@ -226,6 +230,7 @@ style="position:relative;">
 	
 	var showInitialMsg = function() {
 		showMessage(initialMsg);
+        callLater(15, hideMessage);
 	}
 
 	addLoadEvent(showInitialMsg);
