@@ -11,7 +11,12 @@ function zenPageInit(){
 
     var as = $$('#leftPane a');
     for(var i=0; i< as.length; i++){
-        if( location.pathname.indexOf(as[i].pathname) != -1){
+        if (location.href.indexOf('notabs') != -1 && 
+            location.href==as[i].href) {
+                as[i].className = 'selected';
+        }
+        else if( location.href.indexOf('notabs')==-1 && 
+                 location.pathname.indexOf(as[i].pathname) != -1){
             as[i].className = 'selected';
             //lastLeft = as[i];
         }
@@ -19,16 +24,6 @@ function zenPageInit(){
             as[i].className = 'unselected';
         }
     }
-    /*
-    var tt = document.getElementById("tabsPane")
-    if(tt) {
-        tabs = tt.getElementsByTagName("a");
-        for(var i=0; i<tabs.length; i++) {
-            log("rounding element=",tabs[i]);
-            roundElement(tabs[i],{corners:"tl tr"});
-        }
-    }
-    */
 }
 
 function submitAction(myform, url) {
