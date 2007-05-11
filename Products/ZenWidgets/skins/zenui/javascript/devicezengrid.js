@@ -362,6 +362,7 @@ DeviceZenGrid.prototype = {
             'id':x[0]+'_'+i}, 
                 DIV({'class':'cell_inner'}, null))},
             this.fields);
+        setNodeAttribute(cells[cells.length-1], 'nowrap', 'true');
         return TR({'class':'devzengrid_rows'}, cells);
     },
     populateRow: function(row, data) {
@@ -458,8 +459,8 @@ DeviceZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             this.lock.release();
         }, this);
-        r = [['Device Id',16.0],['IP',16.0],['Class',16.0],
-             ['Prod State',16.0],['Event Summary',24.0],['Locks',8.0]]
+        r = [['Device Id',20.0],['IP',16.0],['Class',20.0],
+             ['Prod State',16.0],['Event Summary',14.0],['Locks',10.0]]
         this.fields=r;
         if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
         updateColumns();
