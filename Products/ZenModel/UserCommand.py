@@ -14,20 +14,15 @@
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-#from Acquisition import aq_parent
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-#from DateTime import DateTime
-#from Products.PageTemplates.Expressions import getEngine
-#from Products.ZenUtils.ZenTales import talesCompile
-#from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
-#import logging
-#log = logging.getLogger("zen.Device")
+from ZenPackable import ZenPackable
 
 
 manage_addUserCommand = DTMLFile('dtml/addUserCommand',globals())
 
-class UserCommand(ZenModelRM):
+
+class UserCommand(ZenModelRM, ZenPackable):
 
     meta_type = 'UserCommand'
 
@@ -41,8 +36,9 @@ class UserCommand(ZenModelRM):
         {'id':'command', 'type':'text', 'mode':'w'},
         )
 
-    _relations =  (
-        ("commandable", ToOne(ToManyCont, 'Products.ZenModel.Commandable', 'userCommands')),
+    _relations =  ZenPackable._relations + (
+        ("commandable", ToOne(
+                ToManyCont, 'Products.ZenModel.Commandable', 'userCommands')),
         )
 
 
@@ -72,10 +68,6 @@ class UserCommand(ZenModelRM):
         [('url','id'), ...]
         """
         crumbs = super(UserCommand, self).breadCrumbs(terminator)
-        #adminPage = self.commandable().getUrlForUserCommands()
-        #if adminPage:
-        #    crumb = (adminPage, 'Commands')
-        #    crumbs.insert(-1, crumb)
         return crumbs
         
 
