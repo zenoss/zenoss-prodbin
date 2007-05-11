@@ -41,9 +41,7 @@ Optional titlebar stuff
   <tr tal:define="odd repeat/uc/odd"
       tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues" align="left">
-       <input type="hidden" name="ids" 
-              tal:attributes="value uc/getId"/>
-       <input type="checkbox" name="delids" 
+       <input type="checkbox" name="ids" 
               tal:attributes="value uc/getId"/>
         <a href="_" 
         tal:attributes="href uc/absolute_url"

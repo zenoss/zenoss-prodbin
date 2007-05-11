@@ -65,12 +65,12 @@ class Commandable:
 
          
     security.declareProtected('Change Device', 'manage_deleteUserCommand')
-    def manage_deleteUserCommand(self, delids=(), REQUEST=None):
+    def manage_deleteUserCommand(self, ids=(), REQUEST=None):
         "Delete User Command(s) to this device"
         import types
-        if type(delids) in types.StringTypes:
-            delids = [delids]
-        for id in delids:
+        if type(ids) in types.StringTypes:
+            ids = [ids]
+        for id in ids:
             self.userCommands._delObject(id)
         if self.meta_type == 'Device':            
             self.setLastChange()
