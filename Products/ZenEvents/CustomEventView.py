@@ -22,6 +22,7 @@ from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenEvents.EventFilter import EventFilter
+from Products.ZenUtils.FakeRequest import FakeRequest
 
 def manage_addCustomEventView(context, id, REQUEST=None):
     """Create an aciton rule"""
@@ -110,6 +111,34 @@ class CustomEventView(ZenModelRM, EventFilter):
         else:
             return self.ZenEventHistory
 
+
+    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
+                          getTotalCount=True, 
+                          
+                          filter='', severity=2, state=1, 
+                          orderby='', REQUEST=None):
+        """Return the current event list for this managed entity.
+        """
+        kwargs = locals(); del kwargs['self']
+        return self.getEventManager().getJSONEventsInfo(self.dmd.Events, **kwargs)
+
+
+    def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
+                          getTotalCount=True, 
+                          startdate=None, enddate=None,
+                          filter='', severity=2, state=1, 
+                          orderby='', REQUEST=None):
+        """Return the current event list for this managed entity.
+        """
+        kwargs = locals(); del kwargs['self']
+        return self.getEventHistory().getJSONEventsInfo(self.dmd.Events, **kwargs)
+
+
+    def getJSONFields(self, history=False):
+        """Return the current event list for this managed entity.
+        """
+        if history: return self.getEventHistory().getJSONFields(self.dmd.Events)
+        else: return self.getEventManager().getJSONFields(self.dmd.Events)
 
     def getResultFields(self):
         if self.resultFields:
@@ -209,6 +238,96 @@ class CustomEventView(ZenModelRM, EventFilter):
                 REQUEST.form['where'] = clause
         return self.zmanage_editProperties(REQUEST)
 
+
+    #security.declareProtected('Manage Events','manage_deleteBatchEvents')
+    def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
+        """Delete events form this managed entity.
+        """
+        evids = self.getEventManager().getEventBatchME(self.dmd.Events,
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
+        request = FakeRequest()
+        self.manage_deleteEvents(evids, request)
+        return request.get('message', '')
+
+    def manage_undeleteEvents(self, evids=(), REQUEST=None):
+        """Delete events form this managed entity.
+        """
+        request = FakeRequest()
+        self.getEventManager().manage_undeleteEvents(evids, request)
+        if REQUEST:
+            request.setMessage(REQUEST)
+            return self.callZenScreen(REQUEST)
+
+
+    #security.declareProtected('Manage Events','manage_undeleteBatchEvents')
+    def manage_undeleteBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
+        """Delete events form this managed entity.  
+        Only called from event console, so uses FakeRequest to avoid
+        page rendering.
+        """
+        evids = self.getEventHistory().getEventBatchME(self.dmd.Events, 
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
+        request = FakeRequest()
+        self.manage_undeleteEvents(evids, request)
+        return request.get('message', '')
+
+
+    security.declareProtected('Manage Events','manage_ackBatchEvents')
+    def manage_ackBatchEvents(self, selectstatus='none', goodevids=[],
+                                    badevids=[], filter='', 
+                                    offset=0, count=50, fields=[], 
+                                    getTotalCount=True, 
+                                    startdate=None, enddate=None,
+                                    severity=2, state=1, orderby='',
+                                    REQUEST=None, **kwargs):
+        """Delete events form this managed entity.
+        Only called from event console, so uses FakeRequest to avoid
+        page rendering.
+        """
+        evids = self.getEventManager().getEventBatchME(self.dmd.Events, 
+                                            selectstatus=selectstatus,
+                                            goodevids=goodevids, 
+                                            badevids=badevids, 
+                                            filter=filter,
+                                            offset=offset, fields=fields,
+                                            getTotalCount=getTotalCount,
+                                            startdate=startdate, 
+                                            enddate=enddate, severity=severity,
+                                            state=state, orderby=orderby, 
+                                            **kwargs)
+        request = FakeRequest()
+        self.manage_ackEvents(evids, request)
+        return request.get('message', '')
 
 
 InitializeClass(CustomEventView)
