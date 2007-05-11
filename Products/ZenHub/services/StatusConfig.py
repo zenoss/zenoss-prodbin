@@ -18,6 +18,8 @@ from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenModel.Device import Device
 from Acquisition import aq_parent, aq_base
 
+from Procrastinator import Procrastinate
+
 from twisted.internet import reactor, defer
 from sets import Set
 
@@ -41,6 +43,7 @@ class StatusConfig(HubService):
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.procrastinator = Procrastinate(self.notify)
 
     def remote_propertyItems(self):
         return self.config.propertyItems()
@@ -73,7 +76,9 @@ class StatusConfig(HubService):
                     (d.id, float(d.getLastChange())) for d in object.devices()
                      ]
                 # listener.callRemote('updateDeviceList', devices)
+        self.procrastinator.doLater()
 
+    def notify(self, unused):
         for listener in self.listeners:
             listener.callRemote('notifyConfigChanged')
 

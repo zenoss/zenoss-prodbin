@@ -21,11 +21,14 @@ from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
+from Procrastinator import Procrastinate
+
 class WmiConfig(HubService):
     
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.procrastinator = Procrastinate(self.push)
 
     def remote_getDeviceWinInfo(self):
         """Return list of (devname,user,passwd,url) for each device.
@@ -99,12 +102,16 @@ class WmiConfig(HubService):
         for object in objects:
             if not isinstance(object, Device):
                 continue
-            if not object.monitorDevice():
-                continue
-            if getattr(object, 'zWmiMonitorIgnore', False):
-                continue
-            for listener in self.listeners:
-                listener.callRemote('notifyConfigChanged')
+            self.procrastinator.doLater(object)
+
+    def push(self, object):
+        if not object.monitorDevice():
+            return
+        if getattr(object, 'zWmiMonitorIgnore', False):
+            return
+        for listener in self.listeners:
+            listener.callRemote('notifyConfigChanged')
+        self.procrastinator.clear()
 
     def deleted(self, obj):
         for listener in self.listeners:
