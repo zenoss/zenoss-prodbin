@@ -3132,7 +3132,7 @@ True
 -1
 </property>
 <property type="int" id="maxy" mode="w" >
-800
+-1
 </property>
 <property type="lines" id="colors" mode="w" >
 ('#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000')
