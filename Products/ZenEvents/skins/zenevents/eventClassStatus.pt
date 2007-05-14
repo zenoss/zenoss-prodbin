@@ -113,7 +113,6 @@
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <tal:block tal:condition="objects" tal:omit-tag="">
     <tal:block metal:define-macro="mapbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -155,7 +154,6 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    </tal:block>
 
 
 <!-- END TABLE CONTENTS -->

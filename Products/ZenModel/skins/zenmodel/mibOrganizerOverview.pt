@@ -26,7 +26,6 @@ Optional titlebar stuff
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
-    <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
@@ -56,7 +55,6 @@ Optional titlebar stuff
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    </span>
 
 <!-- END TABLE CONTENTS -->
 
@@ -92,7 +90,6 @@ Optional titlebar stuff
 <input type='hidden' name='tableName' tal:attributes="value tableName" />
 <input type="hidden" name="zenScreenName" 
     tal:attributes="value template/id"/>
-    <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
@@ -120,7 +117,6 @@ Optional titlebar stuff
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
-    </span>
 
 <!-- END TABLE CONTENTS -->
 
