@@ -99,7 +99,9 @@ class ZenModeler(ZCmdBase):
                 continue
             name = plugin.name()
             try:
-                if ignoreTest(name):
+                if not plugin.condition(device, self.log):
+                   self.log.debug("condition failed %s on %s",name,device.id) 
+                elif ignoreTest(name):
                     self.log.debug("ignoring %s on %s",name, device.id)
                 elif name in names and not self.options.collectPlugins:
                     self.log.debug("using %s on %s",name, device.id)
