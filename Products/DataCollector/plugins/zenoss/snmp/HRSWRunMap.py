@@ -60,6 +60,8 @@ class HRSWRunMap(SnmpPlugin):
             elif not getattr(om, 'procName', False): 
                 log.warn("Skipping process with no name")
                 continue
+            elif not getattr(om, 'parameters', False):
+                om.parameters = ''
 
             fullname = (om.procName + " " + om.parameters).rstrip()
 
