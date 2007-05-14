@@ -41,31 +41,42 @@ class ifconfig(CommandPlugin):
         log.info('Collecting interfaces for device %s' % device.id)
         rm = self.relMap()
         rlines = results.split("\n")
+        iface = None
         for line in rlines:
-            m = self.ifstart(line) 
-            if m:
+
+            # reset state to no interface
+            if not line.strip(): 
+                iface = None
+
+            # new interface starting
+            miface = self.ifstart(line) 
+            if miface:
                 # start new interface and get name, type, and macaddress
                 iface = self.objectMap()
                 rm.append(iface)
-                if m.lastindex == 3:
-                    name, itype, iface.macaddress=m.groups()[:3]
+                if miface.lastindex == 3:
+                    name, itype, iface.macaddress=miface.groups()[:3]
                 else:
-                    name, itype = m.groups()[3:]
+                    name, itype = miface.groups()[3:]
                 if itype.startswith("Ethernet"): itype = "ethernetCsmacd"
                 iface.type = itype.strip()
                 iface.interfaceName = name
                 iface.id = self.prepId(name)
                 continue
-            m = self.v4addr(line)
-            if m:
+    
+            # get the ip address of an interface
+            maddr = self.v4addr(line)
+            if maddr and iface:
                 # get ip and netmask
-                ip, netmask = m.groups()
+                ip, netmask = maddr.groups()
                 netmask = self.maskToBits(netmask)
                 iface.setIpAddresses = ["%s/%s" % (ip, netmask)]
-            m = self.flags(line)
-            if m:
+
+            # get the state UP/DOWN of the interface
+            mstatus = self.flags(line)
+            if mstatus and iface:
                 # get adminStatus, operStatus, and mtu
-                flags, mtu = m.groups()
+                flags, mtu = mstatus.groups()
                 if "UP" in flags: iface.operStatus = 1
                 else: iface.operStatus = 2
                 if "RUNNING" in flags: iface.adminStatus = 1
