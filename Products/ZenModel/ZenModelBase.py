@@ -89,7 +89,10 @@ class ZenModelBase(object):
             globalCheckValidId(self, new_id)
             try:
                 globalCheckValidId(self, self.prepId(id=new_id))
-                return True
+                if hasattr(self, self.prepId(id=new_id)):
+                    return "The id: %s is already being used." % self.prepId(id=new_id)
+                else:
+                    return True
             except:
                 return str(sys.exc_info()[1])
         except:
