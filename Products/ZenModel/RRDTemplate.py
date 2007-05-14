@@ -171,7 +171,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             self.datasources._setObject(ds.id, ds)
         if REQUEST:
             if ds:
-                #REQUEST['message'] = "DataSource Added"
+                REQUEST['message'] = "Data source %s added" % ds.id
                 url = '%s/datasources/%s' % (self.getPrimaryUrlPath(), ds.id)
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -245,6 +245,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                 clean(self.thresholds, id)
 
         if REQUEST:
+            if len(ids) == 1:
+                REQUEST['message'] = 'Data source %s deleted.' % ids[0]
+            elif len(ids) > 1:
+                REQUEST['message'] = 'Data sources %s deleted.' % ', '.join(ids)
             return self.callZenScreen(REQUEST)
 
 
@@ -258,7 +262,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         self.thresholds._setObject(org.id, org)
         if REQUEST:
             if org:
-                #REQUEST['message'] = "Threshold Added"
+                REQUEST['message'] = 'Threshold %s added' % org.id
                 url = '%s/thresholds/%s' % (self.getPrimaryUrlPath(), org.id)
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -273,6 +277,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             if getattr(self.thresholds,id,False):
                 self.thresholds._delObject(id)
         if REQUEST:
+            if len(ids) == 1:
+                REQUEST['message'] = 'Threshold %s deleted.' % ids[0]
+            elif len(ids) > 1:
+                REQUEST['message'] = 'Thresholds %s deleted.' % ', '.join(ids)
             return self.callZenScreen(REQUEST)
 
 
@@ -292,7 +300,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             self.graphs._setObject(graph.id, graph)
         if REQUEST:
             if graph:
-                #REQUEST['message'] = "Graph Added"
+                REQUEST['message'] = 'Graph %s added' % graph.id
                 url = '%s/graphs/%s' % (self.getPrimaryUrlPath(), graph.id)
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -307,6 +315,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             self.graphs._delObject(id)
             self.manage_resequenceRRDGraphs()
         if REQUEST:
+            if len(ids) == 1:
+                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
+            elif len(ids) > 1:
+                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
             return self.callZenScreen(REQUEST)
 
 

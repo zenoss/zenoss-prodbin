@@ -7,7 +7,7 @@
 <input type="submit" name="manage_deleteRRDDataSources:method"
    value="Delete"
    tal:attributes="onclick string:return $$('dialog').submit_form(
-                       '${here/getPrimaryUrlPath}')" />
+                       '', 'datasourceList')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
        onclick="$('dialog').hide()"/>
 </div>

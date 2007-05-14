@@ -1,6 +1,4 @@
 <h2>Add a New DataSource:</h2>
-<form tal:attributes="action here/absolute_url_path;" method="post" name="addDataSource">
-<input type="hidden" name="zenScreenName" value="here/absolute_url_path"/> 
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
@@ -17,13 +15,13 @@ Type:&nbsp;<select name='dsOption'>
 <br>
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK"
+        disabled string:True;
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form('', 'datasourceList')"
                         name="manage_addRRDDataSource:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;
                         onclick string:$$('dialog').hide()" />
 </div>
-</form>

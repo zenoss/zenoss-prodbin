@@ -6,8 +6,7 @@
 <div align="center">
 <input type="submit" name="manage_deleteRRDGraphs:method"
    value="Delete"
-   tal:attributes="onclick string:return $$('dialog').submit_form(
-                       '${here/getPrimaryUrlPath}')" />
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphList')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
        onclick="$('dialog').hide()"/>
 </div>

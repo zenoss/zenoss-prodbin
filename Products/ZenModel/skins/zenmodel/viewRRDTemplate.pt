@@ -1,7 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane"
-    tal:define="editable python:here.isEditable(here);
-				templ nocall:here;">
+    tal:define="editable python:here.isEditable(here)">
 
 <form method="POST" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
@@ -60,7 +59,10 @@
 
 </form>
 <br/>
-<form method="POST" tal:attributes="action here/absolute_url_path">
+
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:datasourceList">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -126,7 +128,9 @@
 
 </form>
 <br/>
-<form method="POST" tal:attributes="action here/absolute_url_path">
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:thresholdList">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -195,7 +199,9 @@
 
 </form>
 <br/>
-<form method="POST" tal:attributes="action here/absolute_url_path" name="graphList">
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphList">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
@@ -257,7 +263,7 @@
         </td>
         <td>
             <tal:block tal:repeat="ds graph/dsnames">
-                <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in templ.getRRDDataPointNames()"><span class='errorvalues'> (invalid)</span></tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
+                <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in here.getRRDDataPointNames()"><span class='errorvalues'> (invalid)</span></tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
             </tal:block>
         </td>
         <td tal:content="graph/units"/>
@@ -277,7 +283,7 @@
         </tal:block>
         </tal:block>
         
-
 </form>
+
 </tal:block>
 </tal:block>

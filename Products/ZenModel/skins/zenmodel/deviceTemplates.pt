@@ -1,0 +1,71 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<form method="post" tal:attributes="action here/absolute_url_path">
+
+<tal:block metal:define-macro="rrdtemplatelist"
+    tal:define="
+        tableName string:rrdtemplatelist;
+        objects here/getRRDTemplates;
+        showfilterbox python:True;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        tabletitle python:'Performance Templates for %s' % here.id; 
+        menu_id string:Templates">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <input type='hidden' name='tableName' 
+        tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id"/>
+
+    <tr>
+        <th class="tableheader" width="5px"></th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getRRDPath','Definition Path')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'description','Description')"/>
+    </tr>
+    <tal:block tal:repeat="temp batch">
+    <tr tal:define="odd repeat/temp/odd;
+                    lnames here/rrdTemplates/objectIds"
+        tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
+        <td>
+            <input tal:condition="python: here.isManager() 
+                                    and temp.id in lnames" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value temp/getId"/>
+        </td>
+        <td>
+            <a tal:attributes="href python:'%s/objRRDTemplate' % temp.absolute_url_path()" 
+                tal:content="temp/getId">name</a>
+        </td>
+        <td>
+            <a tal:condition="temp/deviceClass" 
+                tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
+                tal:content="temp/getRRDPath">/Devices/Server</a>
+            <a tal:condition="not:temp/deviceClass" 
+                tal:content="temp/getRRDPath">/Devices/Server</a>
+        </td>
+        <td tal:content="temp/description"/>
+    </tr>
+    </tal:block>
+    
+    <tr>
+        <td colspan="0" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+
+</tal:block>
+</tal:block>

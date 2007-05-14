@@ -127,7 +127,7 @@ Dialog.Box.prototype = {
         var f = formname?document.forms[formname]:this.form
         setStyle(this.box, {'z-index':'-1'});
         this.box = removeElement(this.box);
-        f.action = action;
+        if (action != '') f.action = action;
         f.appendChild(this.box);
         return true;
     }
