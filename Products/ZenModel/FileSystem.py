@@ -92,7 +92,7 @@ class FileSystem(OSComponent):
                 },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'
-                , 'action'        : 'objRRDTemplate'
+                , 'action'        : 'objTemplates'
                 , 'permissions'   : ("Change Device", )
                 },                
                 { 'id'            : 'viewHistory'

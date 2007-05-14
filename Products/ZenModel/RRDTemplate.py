@@ -40,15 +40,13 @@ addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 def crumbspath(templ, crumbs, idx=-1):
     """Create the crumbs path for sub objects of an RRDTemplate.
     """
-    dc = templ.deviceClass() 
-    pt = "/perfConfig"
-    if not dc: 
-       dc = templ.getPrimaryParent()
-       pt = "/objRRDTemplate"
-    url = dc.getPrimaryUrlPath()+pt
-    if pt == "/objRRDTemplate": 
-        del crumbs[-2]
-        idx = -1
+    dc = templ.deviceClass()
+    if dc:
+        url = '%s/perfConfig' % dc.getPrimaryUrlPath()
+    else:
+        url = '%s/objTemplates' % templ.getPrimaryParent().getPrimaryUrlPath()
+    
+    idx = -1
     crumbs.insert(idx,(url,'PerfConf'))
     return crumbs
 
@@ -174,7 +172,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                 REQUEST['message'] = "Data source %s added" % ds.id
                 url = '%s/datasources/%s' % (self.getPrimaryUrlPath(), ds.id)
                 REQUEST['RESPONSE'].redirect(url)
-            return self.callZenScreen(REQUEST)
+            else:
+                return self.callZenScreen(REQUEST)
         return ds
 
 
@@ -208,14 +207,6 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         parameters.pop()
         ds._setPropValue('xmlrpcMethodParameters', parameters)
         return ds.zmanage_editProperties(REQUEST)
-
-
-    def callZenScreen(self, REQUEST, redirect=False):
-        """Redirect to primary parent object if this template is locally defined
-        """
-        if REQUEST.get('zenScreenName',"") == "objRRDTemplate":
-            return self.getPrimaryParent().callZenScreen(REQUEST, redirect)
-        return super(RRDTemplate, self).callZenScreen(REQUEST, redirect)
 
 
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
@@ -265,7 +256,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                 REQUEST['message'] = 'Threshold %s added' % org.id
                 url = '%s/thresholds/%s' % (self.getPrimaryUrlPath(), org.id)
                 REQUEST['RESPONSE'].redirect(url)
-            return self.callZenScreen(REQUEST)
+            else:
+                return self.callZenScreen(REQUEST)
         return org
             
 
@@ -303,7 +295,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                 REQUEST['message'] = 'Graph %s added' % graph.id
                 url = '%s/graphs/%s' % (self.getPrimaryUrlPath(), graph.id)
                 REQUEST['RESPONSE'].redirect(url)
-            return self.callZenScreen(REQUEST)
+            else:
+                return self.callZenScreen(REQUEST)
         return graph
         
 
@@ -362,5 +355,6 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             raise ConfigurationError('Cannot find datasource class'
                         ' for %s' % dsOption)
         return ds
+
 
 InitializeClass(RRDTemplate)

@@ -27,10 +27,13 @@
                     tableName,'getRRDPath','Definition Path')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'description','Description')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                                tableName,'editable','Copy')"/>
     </tr>
     <tal:block tal:repeat="temp batch">
     <tr tal:define="odd repeat/temp/odd;
-                    lnames here/rrdTemplates/objectIds"
+                    lnames here/rrdTemplates/objectIds;
+                    editable python:temp.isEditable(here);"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
             <input tal:condition="python: here.isManager() 
@@ -39,8 +42,8 @@
                 tal:attributes="value temp/getId"/>
         </td>
         <td>
-            <a tal:attributes="href python:'%s/objRRDTemplate' % temp.absolute_url_path()" 
-                tal:content="temp/getId">name</a>
+                <a tal:attributes="href temp/absolute_url_path" 
+                        tal:content="temp/getId">name</a>
         </td>
         <td>
             <a tal:condition="temp/deviceClass" 
@@ -50,6 +53,14 @@
                 tal:content="temp/getRRDPath">/Devices/Server</a>
         </td>
         <td tal:content="temp/description"/>
+        <td>
+                <input class="tableheader" type="submit" 
+                    tal:condition="not:editable"
+                    name="copyRRDTemplate:method" value="Local Copy" />
+                <input class="tableheader" type="submit" 
+                    tal:condition="editable"
+                    name="deleteRRDTemplate:method" value="Remove Local" />
+        </td>
     </tr>
     </tal:block>
     

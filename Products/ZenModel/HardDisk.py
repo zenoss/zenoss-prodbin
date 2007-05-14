@@ -78,7 +78,7 @@ class HardDisk(HWComponent):
                 },
 #                { 'id'            : 'perfConf'
 #                , 'name'          : 'PerfConf'
-#                , 'action'        : 'objRRDTemplate'
+#                , 'action'        : 'objTemplates'
 #                , 'permissions'   : ("Change Device", )
 #                },                
                 { 'id'            : 'viewHistory'

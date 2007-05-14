@@ -73,7 +73,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'
-                , 'action'        : 'objRRDTemplate'
+                , 'action'        : 'objTemplates'
                 , 'permissions'   : ("Change Device", )
                 },
                 { 'id'            : 'manage'

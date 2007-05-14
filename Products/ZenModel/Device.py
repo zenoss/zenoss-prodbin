@@ -297,7 +297,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 },
 #                { 'id'            : 'perfConf'
 #                , 'name'          : 'PerfConf'
-#                , 'action'        : 'objRRDTemplate'
+#                , 'action'        : 'objTemplates'
 #                , 'permissions'   : ("Change Device", )
 #                },
                 { 'id'            : 'edit'

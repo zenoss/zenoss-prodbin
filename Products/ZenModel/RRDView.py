@@ -378,7 +378,9 @@ class RRDView(object):
             ct = self.getRRDTemplate()._getCopy(self)
             ct.id = self.getRRDTemplateName()
             self._setObject(ct.id, ct)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = 'Local copy %s created' % templname
+            return self.callZenScreen(REQUEST)
 
 
     def deleteRRDTemplate(self, REQUEST=None):
@@ -387,7 +389,9 @@ class RRDView(object):
         tname = self.getRRDTemplateName()
         if self.isLocalName(tname):
             self._delObject(tname)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST: 
+            REQUEST['message'] = 'Local copy %s removed' % tname
+            return self.callZenScreen(REQUEST)
 
 
 def updateCache(filenameValues):
