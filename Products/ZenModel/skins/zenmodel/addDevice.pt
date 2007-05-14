@@ -203,7 +203,7 @@
                 tal:define="
                 comps python:here.getDmdRoot('Manufacturers').getManufacturerNames();
                 curman request/osManufacturer | device/os/getManufacturerName |  nothing"
-                tal:attributes="onchange string:getProdSelectList(this,'osprod','OSSoftwareClass')"
+                tal:attributes="onchange string:getProdSelectList(this,'osprod','OS')"
                 >
                     <option value=""></option>
                     <option tal:repeat="comp comps" 
@@ -225,7 +225,7 @@
                 <select class="tablevalues" id="osprod" name="osProductName"
                 tal:define="
                 cname request/osManufacturer | device/os/getManufacturerName | string:;
-                prods python:here.getDmdRoot('Manufacturers').getProductNames(cname,'OSSoftwareClass');
+                prods python:here.getDmdRoot('Manufacturers').getProductNames(cname,'OS');
                 curprod device/os/getProductName | request/osProductName | nothing"
                 >
                     <option tal:repeat="prod prods" 

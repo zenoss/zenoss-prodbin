@@ -813,6 +813,14 @@ class MenuRelations(Migrate.Step):
                     isdialog=   True
                     ),
                 dict(
+                    ordering=80.0, 
+                    id=         'addOS',
+                    description='Add New OS...',
+                    action=     'dialog_addOS',
+                    permissions=('Manage DMD',),
+                    isdialog=   True
+                    ),
+                dict(
                     ordering=70.0, 
                     id=         'moveToManufacturer',
                     description='Move To Manufacturer...',

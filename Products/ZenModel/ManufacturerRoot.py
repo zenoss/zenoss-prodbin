@@ -144,10 +144,15 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2, ZenPacker):
 
     def getProductNames(self, mname, type=None):
         """return a list of all products this Manufacturer makes"""
+        osFlag=False
+        if type=="OS": osFlag = True
         prods = [""]
         if hasattr(self, mname):
             manuf = self.getManufacturer(mname)
-            prods.extend(manuf.products.objectIds(spec=type))
+            if osFlag:
+                for prod in manuf.products.objectValues(spec="SoftwareClass"):
+                    if prod.isOS: prods.append(prod.id)
+            else: prods.extend(manuf.products.objectIds(spec=type))
         prods.sort()
         return prods
 

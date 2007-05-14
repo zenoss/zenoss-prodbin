@@ -123,12 +123,13 @@ class Manufacturer(ZenModelRM, ZenPackable):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    def manage_addSoftware(self, prodName=None, REQUEST=None):
+    def manage_addSoftware(self, prodName=None, isOS=False, REQUEST=None):
         """Add a software product from UI code.
         """
         if prodName:
             from Products.ZenModel.SoftwareClass import SoftwareClass
-            self._getProduct(prodName, SoftwareClass)
+            prod = self._getProduct(prodName, SoftwareClass)
+            prod.isOS = isOS
         if REQUEST: return self.callZenScreen(REQUEST)
 
    

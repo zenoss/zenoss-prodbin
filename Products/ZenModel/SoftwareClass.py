@@ -45,10 +45,12 @@ class SoftwareClass(ProductClass):
 
     build=""
     version=""
-
+    isOS = False
+    
     _properties = ProductClass._properties + (
         {'id':'version', 'type':'string', 'mode':'w'},
         {'id':'build', 'type':'string', 'mode':'w'},
+        {'id':'isOS', 'type':'boolean', 'mode':'w'},
         )
 
 #    factory_type_information = ( 
@@ -78,11 +80,13 @@ class SoftwareClass(ProductClass):
 #          },
 #        )
 
+    def type(self):
+        """Return the type name of this product (Hardware, Software).
+        """
+        if self.isOS:
+            return "Operating System"
+        else:
+            return self.meta_type[:-5]
+    
 
 InitializeClass(SoftwareClass)
-
-class OSSoftwareClass(SoftwareClass):
-    """OSSoftwareClass object"""
-    portal_type = meta_type = 'OSSoftwareClass'
-
-InitializeClass(OSSoftwareClass)

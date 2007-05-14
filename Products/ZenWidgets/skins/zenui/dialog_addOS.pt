@@ -1,9 +1,10 @@
-<h2>Add Software</h2>
+<h2>Add Operating System</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">Name:&nbsp;</span>
 <input id="new_id" name="prodName"/>
+<input type="hidden" name="isOS" value="True"/>
 <input type="hidden" id="checkValidIdPath" 
        tal:attributes="value here/absolute_url_path">
 </p>

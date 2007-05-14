@@ -511,17 +511,20 @@ Cupertino
 CA
 </property>
 <tomanycont id='products'>
-<object id='Macos 10.4.1' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Macos 10.4.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Darwin 8.1.0']
 </property>
 </object>
-<object id='Macos 10.4.2' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Macos 10.4.2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Darwin 8.2.0']
 </property>
 </object>
-<object id='Macos 10.4.3' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Macos 10.4.3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Macos 10.4.3']
 </property>
@@ -5261,7 +5264,8 @@ PowerEdge 850
 </object>
 <object id='Fedora' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
-<object id='Linux 2.6.15-1.2054_FC5' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.15-1.2054_FC5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.15-1.2054_FC5
 </property>
@@ -5269,7 +5273,8 @@ Linux 2.6.15-1.2054_FC5
 ['Linux 2.6.15-1.2054_FC5']
 </property>
 </object>
-<object id='Linux 2.6.18-1.2798.fc6' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.18-1.2798.fc6' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.18-1.2798.fc6
 </property>
@@ -5466,7 +5471,8 @@ Powerline 3000
 </object>
 <object id='Gentoo' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
-<object id='Linux 2.6.16-gentoo-r13' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.16-gentoo-r13' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.16-gentoo-r13
 </property>
@@ -5944,7 +5950,8 @@ HP Software Update
 ['.1.3.6.1.4.1.2.3.1.2.1.1.3']
 </property>
 </object>
-<object id='IBM AIX version_ 05.02.0000.0050' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='IBM AIX version_ 05.02.0000.0050' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['IBM AIX version: 05.02.0000.0050']
 </property>
@@ -6206,7 +6213,8 @@ http://www.lynksys.com
 http://www.kernel.org
 </property>
 <tomanycont id='products'>
-<object id='Linux 2.4.20' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.4.20' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Linux 2.4.20']
 </property>
@@ -6607,17 +6615,20 @@ Internet Explorer Developer Toolbar
 ['Microsoft Web Publishing Wizard 1.53']
 </property>
 </object>
-<object id='Microsoft Windows 2000 Advanced Server' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows 2000 Advanced Server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows 2000 Advanced Server']
 </property>
 </object>
-<object id='Microsoft Windows 2000 Resource Kit' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows 2000 Resource Kit' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows 2000 Resource Kit']
 </property>
 </object>
-<object id='Microsoft Windows 2000 Server' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows 2000 Server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows 2000 Server']
 </property>
@@ -6627,37 +6638,44 @@ Internet Explorer Developer Toolbar
 ['Microsoft Windows Journal Viewer']
 </property>
 </object>
-<object id='Microsoft Windows NT Server' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows NT Server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows NT Server']
 </property>
 </object>
-<object id='Microsoft Windows NT Server Enterprise' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows NT Server Enterprise' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows NT Server Enterprise']
 </property>
 </object>
-<object id='Microsoft Windows Server 2003, Enterprise Edition' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows Server 2003, Enterprise Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Enterprise Edition']
 </property>
 </object>
-<object id='Microsoft Windows Server 2003, Enterprise Edition Service Pack 1' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows Server 2003, Enterprise Edition Service Pack 1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Enterprise Edition Service Pack 1']
 </property>
 </object>
-<object id='Microsoft Windows Server 2003, Standard Edition' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows Server 2003, Standard Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Standard Edition']
 </property>
 </object>
-<object id='Microsoft Windows Server 2003, Standard Edition ' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows Server 2003, Standard Edition ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Standard Edition ']
 </property>
 </object>
-<object id='Microsoft Windows Server 2003, Standard Edition Service Pack 1' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Microsoft Windows Server 2003, Standard Edition Service Pack 1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Standard Edition Service Pack 1']
 </property>
@@ -8976,7 +8994,8 @@ http://www.novell.com
 ['SPACK    6.5.3      v3.0 Support Pack for NetWare 6.5']
 </property>
 </object>
-<object id='Suse' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Suse' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Suse']
 </property>
@@ -9371,12 +9390,14 @@ Python 2.4.2
 https://www.redhat.com/apps/support/
 </property>
 <tomanycont id='products'>
-<object id='Linux 2.4.20-30_37.rh9.at' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.4.20-30_37.rh9.at' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Linux 2.4.20-30_37.rh9.at']
 </property>
 </object>
-<object id='Linux 2.4.20-46.7.legacy' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.4.20-46.7.legacy' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.4.20-46.7.legacy
 </property>
@@ -9384,12 +9405,14 @@ Linux 2.4.20-46.7.legacy
 ['Linux 2.4.20-46.7.legacy']
 </property>
 </object>
-<object id='Linux 2.6.11-1.14_FC3' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.11-1.14_FC3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Linux 2.6.11-1.14_FC3']
 </property>
 </object>
-<object id='Linux 2.6.9-34.0.2.ELsmp' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.9-34.0.2.ELsmp' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.9-34.0.2.ELsmp
 </property>
@@ -9397,7 +9420,8 @@ Linux 2.6.9-34.0.2.ELsmp
 ['Linux 2.6.9-34.0.2.ELsmp']
 </property>
 </object>
-<object id='Linux 2.6.9-34.EL' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.9-34.EL' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.9-34.EL
 </property>
@@ -9405,7 +9429,8 @@ Linux 2.6.9-34.EL
 ['Linux 2.6.9-34.EL']
 </property>
 </object>
-<object id='Linux 2.6.9-42.ELsmp' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.9-42.ELsmp' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.9-42.ELsmp
 </property>
@@ -9413,12 +9438,14 @@ Linux 2.6.9-42.ELsmp
 ['Linux 2.6.9-42.ELsmp']
 </property>
 </object>
-<object id='Linux 2.6.9-5.ELsmp' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.9-5.ELsmp' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['Linux 2.6.9-5.ELsmp']
 </property>
 </object>
-<object id='REL ES 4.3' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='REL ES 4.3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['REL ES 4.3']
 </property>
@@ -9767,7 +9794,8 @@ SNMP Informant Agent (Standard Edition)
 ['Java Web Start']
 </property>
 </object>
-<object id='SunOS 5.8' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='SunOS 5.8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="lines" id="productKeys" mode="w" >
 ['SunOS 5.8']
 </property>
@@ -9854,7 +9882,8 @@ SNMP Informant Agent (Standard Edition)
 </object>
 <object id='Ubuntu' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
-<object id='Linux 2.6.17-10-server' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 2.6.17-10-server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 2.6.17-10-server
 </property>
@@ -23057,7 +23086,8 @@ Server
 ['Server']
 </property>
 </object>
-<object id='VMware Server' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='VMware Server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 VMware Server
 </property>
@@ -23263,7 +23293,8 @@ http://www.yahoo.com
 </object>
 <object id='rPath' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
-<object id='Linux 1.0.3' module='Products.ZenModel.SoftwareClass' class='OSSoftwareClass'>
+<object id='Linux 1.0.3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="boolean" id="isOS" mode="w">True</property>
 <property type="string" id="name" mode="w" >
 Linux 1.0.3
 </property>
