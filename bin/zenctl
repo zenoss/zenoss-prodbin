@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+#
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -9,6 +10,10 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
+
+#
+# chkconfig: 2345 80 30
+#
 
 # zenctl        This init.d script starts and stops Zenoss
 #               
