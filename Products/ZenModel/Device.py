@@ -622,11 +622,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         return map(lambda x: x.getOrganizerName(), self.groups())
 
 
-    security.declareProtected('View', 'getOsVersion')
-    def getOsVersion(self):
-        return self.os.version()
-
-
     security.declareProtected('View', 'getStatusMonitorNames')
     def getStatusMonitorNames(self):
         """return status monitor names"""
