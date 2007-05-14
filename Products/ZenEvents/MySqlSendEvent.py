@@ -123,6 +123,8 @@ class MySqlSendEventMixin:
                               'select evid, "admin", "auto cleared"'
                               ' from status where clearid = "%s"'  % evid)
                     execute(curs, insert)
+                    delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
+                    execute(curs, delete)
             stmt = self.buildStatusInsert(statusdata, event._action, evid)
             rescount = execute(curs, stmt)
             if detaildata and rescount == 1:
@@ -136,8 +138,6 @@ class MySqlSendEventMixin:
                     evid = rs[0]
                 else:
                     evid = None
-            delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
-            execute(curs, delete)
         finally: self.close(conn)
         return evid
             
