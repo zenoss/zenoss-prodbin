@@ -194,8 +194,9 @@ class ZenHub(ZCmdBase):
             self.log.debug("Object %r changed" % obj)
             try:
                 obj = obj.__of__(self.dmd).primaryAq()
-                print "Noticing object %s changed" %obj.getPrimaryUrlPath()
+                self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
             except AttributeError, ex:
+                self.log.debug("Noticing object %s " % obj)
                 print "Noticing object %s" %obj
                 for s in self.services.values():
                     s.deleted(obj)

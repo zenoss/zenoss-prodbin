@@ -22,6 +22,6 @@ class Procrastinate:
     def _doNow(self, *unused):
         if self.devices:
             device = self.devices.pop()
-            self.cback(device).addBoth(self._doNow)
-
-
+            d = self.cback(device)
+            if d:
+                d.addBoth(self._doNow)

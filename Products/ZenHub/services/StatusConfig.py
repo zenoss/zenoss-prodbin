@@ -79,8 +79,10 @@ class StatusConfig(HubService):
         self.procrastinator.doLater()
 
     def notify(self, unused):
+        lst = []
         for listener in self.listeners:
-            listener.callRemote('notifyConfigChanged')
+            lst.append(listener.callRemote('notifyConfigChanged'))
+        return defer.DeferredList(lst)
 
     def deleted(self, obj):
         for listener in self.listeners:
