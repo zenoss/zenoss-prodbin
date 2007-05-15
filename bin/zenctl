@@ -76,8 +76,8 @@ fresh_install_pre() {
     # update the my.cnf file
     MY_CNF=/etc/my.cnf
     BACKUP=`dirname ${MY_CNF}`/`basename ${MY_CNF}`.orig
-    #cp ${MY_CNF} ${BACKUP}
-    #cp ${ZEN_ETC}/my.cnf ${MY_CNF}
+    cp ${MY_CNF} ${BACKUP}
+    cp ${ZEN_ETC}/my.cnf ${MY_CNF}
 
     # update the snmpd.conf file
     SNMPD_CONF_DIR=`dirname ${SNMPD_CONF}`
