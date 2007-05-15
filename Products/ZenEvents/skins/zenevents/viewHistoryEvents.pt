@@ -36,7 +36,7 @@ menu_id string:HistoryEvent_list;
 
 <tal:block metal:fill-slot="filterslot">
 
-<div style="position:absolute;right:50px;top:0px;z-index:2007;">
+<div style="position:absolute;right:210px;top:0px;z-index:2007;">
     <input type='hidden' name='table' value='history'/>
     Start Date: 
     <input class="tableheader" type="text" name="startdate" id="startdate"
@@ -51,26 +51,15 @@ menu_id string:HistoryEvent_list;
     <input class="tableheader" type="button" value="select" 
         onclick="displayDatePicker('enddate');" />
 </div>
+<div class="filterbox">
+<input type="text" name="filter" id="filter"
+    onfocus="select(this)"
+    tal:attributes="value ts/filter | string:;"/>
+</div>
 </tal:block>
 
 <tal:block metal:fill-slot="zentablecontents">
 
-<!-- BEGIN TABLE CONTENTS -->
-    <!--
-    <tal:block metal:use-macro="here/viewEvents/macros/header"/>
-    <tbody id="eventsBody">
-        <span metal:use-macro="here/getHistoryEventListPage/macros/page"/>
-    </tbody>
-    <tal:block metal:define-macro="histeditor">
-        <tr tal:condition="here/isManager">
-            <td class="tableheader" tal:attributes="colspan evcolspan">
-                <input class="tableheader" type="submit"
-                    name="SelectButton" value="Select All"
-                    onClick="toggleSelect(this.form); return false"/>
-                            </td>
-        </tr>
-    </tal:block>
-    -->
 <tr><td>
 
 
@@ -85,6 +74,7 @@ addLoadEvent( function() {
     eventZenGrid = new ZenGrid('gridcontainer', 
         'getJSONHistoryEventsInfo', 'mygrid', eventZenGridBuffer,
         '${here/absolute_url_path}', 1 );
+    connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
 });">
 </script>
 

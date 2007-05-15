@@ -54,6 +54,6 @@ table.innerzentable tr td {
 }
 
 .tabletitlecontainer input.tableheader {
-    margin-left: 3px;
     border: 1px solid darkgrey;
+    width: 100%;
 }
