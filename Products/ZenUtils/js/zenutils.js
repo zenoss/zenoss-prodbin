@@ -55,7 +55,6 @@ function wheel(event){
 
 var LSTimeout = null
 function doLiveCheck(e){
-    var filters = e.src().value;
     switch (e.key().string) {
         case 'KEY_TAB':
         case 'KEY_ENTER':
@@ -93,9 +92,10 @@ function checkValidId(e){
     d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
     d.addCallback(function (r) { 
         if (r.responseText == 'True') { 
-            submit.disabled = false
+            submit.disabled = false;
+            if (e && e.key().string == 'KEY_ENTER') submit.click();
         } else {
-            submit.disabled = true
+            submit.disabled = true;
             Morph(input, {"style": {"color": "red"}});
             Morph(label, {"style": {"color": "red"}});
             errmsg.innerHTML = r.responseText;
