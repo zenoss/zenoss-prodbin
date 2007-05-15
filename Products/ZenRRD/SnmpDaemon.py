@@ -27,7 +27,7 @@ try:
     from pynetsnmp.twistedsnmp import snmpprotocol
 except:
     import warnings
-    warnings.warn("Using python-based snmp enging")
+    warnings.warn("Using python-based snmp engine")
     from twistedsnmp import snmpprotocol
 
 
