@@ -160,8 +160,12 @@ class SnmpClient(object):
     def clientFinished(self, result):
         log.info("snmp client finished collection for %s" % self.hostname)
         if isinstance(result, failure.Failure):
-            log.error("Device %s had an error: %s", self.hostname,
-                      result.getTraceback())
+            from twisted.internet import error
+            if isinstance(result.value, error.TimeoutError):
+                log.error("Device %s timed out: are "
+                          "your SNMP settings correct?", self.hostname)
+            else:
+                log.error("Device %s had an error: %s", self.hostname, result)
         self.proxy.close()
         """tell the datacollector that we are all done"""
         if self.datacollector:

@@ -42,7 +42,15 @@ class ZCmdBase(ZenDaemon):
         self.app = app
         self.db = None
         if not app:
-            self.zeoConnect()
+            try:
+                self.zeoConnect()
+            except ValueError:
+                cache = os.path.join(self.options.pcachedir,
+                                     '%s.zec' % self.options.pcachename)
+                if os.path.exists(cache):
+                    self.log.warning("Deleting corrupted cache %s" % cache)
+                    os.unlink(cache)
+                    self.zeoConnect()
         self.poollock = Lock()
         self.getDataRoot()
         self.login()

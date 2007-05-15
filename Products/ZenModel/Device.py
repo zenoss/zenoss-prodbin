@@ -1230,7 +1230,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             response.write(self.loggingFooter())
             clearWebLoggingStream(handler)
             REQUEST['message'] = "Configuration collected"
-
+        if not setlog:
+            for c in [c for c in sc.finished if c.timeout < time.time()]:
+                from Products.DataCollector.Exceptions import DataCollectorError
+                raise DataCollectorError("Device %s timed out" % self.id)
 
 
     security.declareProtected('Change Device', 'deleteDevice')

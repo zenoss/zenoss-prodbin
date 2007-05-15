@@ -65,6 +65,7 @@ class ZenModeler(ZCmdBase):
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = []
+        self.finished = []
         self.collectorPlugins = {}
         self.devicegen = None
         self.loadPlugins()
@@ -123,7 +124,7 @@ class ZenModeler(ZCmdBase):
         if type(device) == types.StringType:
             dname = device
             device = self.dmd.Devices.findDevice(device)
-            if not device: 
+            if not device:
                 raise DataCollectorError("device %s not found" % dname)
         return device
 
@@ -265,10 +266,12 @@ class ZenModeler(ZCmdBase):
             device = collectorClient.device
             self.applyData.processClient(device, collectorClient)
         finally:
-            try: self.clients.remove(collectorClient)
+            try:
+                self.clients.remove(collectorClient)
+                self.finished.append(collectorClient)
             except ValueError:
                 self.log.warn("client %s not found in active clients",
-                                collectorClient.hostname)
+                              collectorClient.hostname)
         self.fillCollectionSlots()
 
 
@@ -372,6 +375,7 @@ class ZenModeler(ZCmdBase):
         for client in self.clients:
             if client.timeout < time.time():
                 self.log.warn("client %s timeout", client.hostname)
+                self.finished.append(client)
             else:
                 active.append(client)
         self.clients = active
@@ -432,10 +436,12 @@ class ZenModeler(ZCmdBase):
             pass
 
     def main(self):
+        self.finished = []
         self.mainLoop()
         self.timeoutClients()
 
     def collectSingle(self, device):
+        self.finished = []
         self.start = time.time()
         self.devicegen = iter([self.resolveDevice(device)])
         self.fillCollectionSlots()
