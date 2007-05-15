@@ -351,6 +351,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     self.REQUEST.errorTrace,
                     self.REQUEST.errorUrl,
                     self.About.getZenossRevision(),
+                    self.About.getZenossVersionShort(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
                     self.REQUEST.comments)
@@ -362,6 +363,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                                 self.REQUEST.errorTrace,
                                 self.REQUEST.errorUrl,
                                 self.About.getZenossRevision(),
+                                self.About.getZenossVersionShort(),
                                 True,
                                 self.REQUEST.contactName,
                                 self.REQUEST.contactEmail,
