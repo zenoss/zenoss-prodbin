@@ -73,7 +73,7 @@ function doLiveCheck(e){
             return;
         default:
             clearTimeout(LSTimeout);
-            LSTimeout = setTimeout(checkValidId, 500);
+            LSTimeout = setTimeout(checkValidId, 200);
     }
 }
 
