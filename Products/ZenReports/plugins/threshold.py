@@ -109,3 +109,5 @@ class threshold:
                                        seconds=seconds,
                                        percentTime=percent,
                                        duration=duration))
+
+        return report
