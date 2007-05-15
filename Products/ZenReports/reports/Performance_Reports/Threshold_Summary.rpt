@@ -7,7 +7,7 @@
 	                     zem.defaultAvailabilityStart());
 	endDate python:sts(tableName, 'endDate', 
 	                     zem.defaultAvailabilityEnd());
-	eventClass python:sts(tableName, 'eventClass', '/Perf/Snmp');
+	eventClass python:sts(tableName, 'eventClass', '/Perf');
 
 	objects python:here.ReportServer.plugin('threshold', here.REQUEST);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
@@ -54,7 +54,7 @@
         <span  class="tableheader">Event Class:</span>
         <select class="tablevalues" name="eventClass">
             <option 
-               tal:repeat="org python:[''] + [n for n in here.dmd.Events.getOrganizerNames() if n.startswith('/Perf/')]"
+               tal:repeat="org python:['/Perf'] + [n for n in here.dmd.Events.getOrganizerNames() if n.startswith('/Perf/')]"
                tal:content="org"
                tal:attributes="selected python:org==eventClass"/>
         </select>
