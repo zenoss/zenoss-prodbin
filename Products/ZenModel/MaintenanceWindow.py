@@ -60,21 +60,6 @@ def addMonth(secs, dayOfMonthHint=0):
         return lastDayPreviousMonth(time.mktime(base))
     return time.mktime(base)
 
-def minmax(value, minValue, maxValue, label, msgs):
-    "add a message to msgs if not minValue <= value <= maxValue"
-    if not minValue <= value <= maxValue:
-        msgs.append("Bad value for %s: "
-                    "must be between %s and %s, inclusive" %
-                    (label, minValue, maxValue))
-
-def makeInts(values, msgs):
-    result = []
-    try:
-        for v in values:
-            result.append(int(v))
-    except ValueError:
-        msgs.append("Bad number: " + v)
-    return result
     
 class MaintenanceWindow(ZenModelRM):
     
@@ -192,34 +177,62 @@ class MaintenanceWindow(ZenModelRM):
                                      REQUEST=None,
                                      **kw):
         "Update the maintenance window from GUI elements"
+        def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
+            if acceptBlanks:
+                if isinstance(v, str):
+                    v = v.strip()
+                v = v or '0'
+            try:
+                v = int(v)
+                if minv != None and v < minv:
+                    raise ValueError
+                if maxv != None and v > maxv:
+                    raise ValueError
+            except ValueError:
+                if minv == None and maxv == None:
+                    msg = '%s must be an integer.' % fieldName
+                elif minv != None and maxv != None:
+                    msg = '%s must be between %s and %s inclusive.' % (
+                                fieldName, minv, maxv)
+                elif minv != None:
+                    msg = '%s must be at least %s' % (fieldName, minv)
+                else:
+                    msg = '%s must be no greater than %s' % (fieldName, maxv)
+                msgs.append(msg)
+                v = None
+            return v
+        
         msgs = []
-        startHours, startMinutes = makeInts((startHours, startMinutes), msgs)
+        # startHours, startMinutes come from menus.  No need to catch
+        # ValueError on the int conversion.
+        startHours = int(startHours)
+        startMinutes = int(startMinutes)
         self.enabled = bool(enabled)
         import re
         try:
             month, day, year = re.split('[^ 0-9]', startDate)
         except ValueError:
             msgs.append("Date needs three number fields")
-        minmax(startMinutes, 0, 59, 'minute', msgs)
-        minmax(startHours, 0, 59, 'hour', msgs)
-        day, month, year = makeInts((day, month, year), msgs)
-        minmax(day, 0, 31, 'day', msgs)
-        minmax(month, 1, 12, 'month', msgs)
-        minmax(year, 2000, 2037, 'year', msgs)
+        day = int(day)
+        month = int(month)
+        year = int(year)
         if not msgs:
             t = time.mktime((year, month, day, startHours, startMinutes,
                              0, 0, 0, -1))
         if not msgs:
-            durationDays, durationHours, durationMinutes = \
-                makeInts((durationDays, durationHours, durationMinutes), msgs)
-        minmax(durationHours, 0, 23, 'hours', msgs)
-        minmax(durationMinutes, 0, 59, 'minutes', msgs)
+            durationDays = makeInt(durationDays, 'Duration days', 
+                                        minv=0)
+            durationHours = makeInt(durationHours, 'Duration hours', 
+                                        minv=0, maxv=23)
+            durationMinutes = makeInt(durationMinutes, 'Duration minutes',
+                                        minv=0, maxv=59)
         if not msgs:
             duration = (durationDays * (60*24) +
                         durationHours * 60 +
                         durationMinutes)
+                        
             if duration < 1:
-                msgs.append('Maintenance Window must be at least 1')
+                msgs.append('Duration must be at least 1 minute.')
         if msgs:
             if REQUEST:
                 if REQUEST.has_key('message'):
@@ -235,7 +248,10 @@ class MaintenanceWindow(ZenModelRM):
             now = time.time()
             if self.started and self.nextEvent(now) < now:
                 self.end()
-        return self.callZenScreen(REQUEST)
+            if REQUEST:
+                REQUEST['message'] = 'Saved Changes'
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     def nextEvent(self, now):

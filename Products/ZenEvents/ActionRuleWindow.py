@@ -87,6 +87,13 @@ class ActionRuleWindow(MaintenanceWindow):
         args = locals().copy()
         for name in 'self kw'.split(): del args[name]
         result = self.manage_editMaintenanceWindow(**args)
-        del self.startProductionState
-        del self.stopProductionState
+        try:
+            del self.startProductionState
+        except AttributeError:
+            pass
+        try:
+            del self.stopProductionState
+        except AttributeError:
+            pass
+
         return result

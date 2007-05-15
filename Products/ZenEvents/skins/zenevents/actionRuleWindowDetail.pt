@@ -10,7 +10,7 @@
 
 
         <tal:block tal:define="editable here/isManager; 
-        message request/message | string:State at time:;
+        message string:State at time:;
         tabletitle string: ${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
