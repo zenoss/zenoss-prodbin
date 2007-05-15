@@ -101,6 +101,7 @@ var hideOtherSubmenus = function(menu, submenu) {
 var smto = Array();
 
 var registerSubmenu = function(menu, submenu) {
+    try {
     connect(menu, 'onmouseover', function() {
         clearTimeout(smto[menu]);
         clearTimeout(smto[submenu]);
@@ -116,6 +117,7 @@ var registerSubmenu = function(menu, submenu) {
     connect(submenu, 'onclick', function() {
         hideSubMenu(submenu);
     });
+    } catch(e) {noop()};
 }
 
 var registerMenu = function(button, menu) {
