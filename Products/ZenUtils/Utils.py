@@ -403,6 +403,10 @@ def prepId(id, subchar='_'):
     """
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
     _cleanend = re.compile(r"%s+$" % subchar).sub
+    if id is None: 
+        raise ValueError('Ids can not be None')
+    if type(id) not in types.StringTypes:
+        id = str(id)
     id = _prepId(subchar, id)
     while id.startswith(subchar):
         if len(id) > 1: id = id[1:]
