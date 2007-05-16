@@ -370,27 +370,27 @@ class RRDView(object):
         return targets
 
 
-    def copyRRDTemplate(self, REQUEST=None):
+    def makeLocalRRDTemplate(self, templateName=None, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.
         """
-        templname = self.getRRDTemplateName()
-        if not self.isLocalName(templname):
-            ct = self.getRRDTemplate()._getCopy(self)
-            ct.id = self.getRRDTemplateName()
+        if templateName is None: templateName = self.getRRDTemplateName()
+        if not self.isLocalName(templateName):
+            ct = self.getRRDTemplateByName(templateName)._getCopy(self)
+            ct.id = templateName
             self._setObject(ct.id, ct)
         if REQUEST: 
-            REQUEST['message'] = 'Local copy %s created' % templname
+            REQUEST['message'] = 'Local copy %s created' % templateName
             return self.callZenScreen(REQUEST)
 
 
-    def deleteRRDTemplate(self, REQUEST=None):
+    def removeLocalRRDTemplate(self, templateName=None, REQUEST=None):
         """Make a local delete of our RRDTemplate if one doesn't exist.
         """
-        tname = self.getRRDTemplateName()
-        if self.isLocalName(tname):
-            self._delObject(tname)
+        if templateName is None: templateName = self.getRRDTemplateName()
+        if self.isLocalName(templateName):
+            self._delObject(templateName)
         if REQUEST: 
-            REQUEST['message'] = 'Local copy %s removed' % tname
+            REQUEST['message'] = 'Local copy %s removed' % templateName
             return self.callZenScreen(REQUEST)
 
 

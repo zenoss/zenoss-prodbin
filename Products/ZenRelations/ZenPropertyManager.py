@@ -236,5 +236,10 @@ class ZenPropertyManager(PropertyManager):
         "Provide a set of default options for a ZProperty"
         return []
 
+    def isLocal(self, propname):
+        """Check to see if a name is local to our current context.
+        """
+        v = getattr(aq_base(self), propname, zenmarker)
+        return v != zenmarker
 
 InitializeClass(ZenPropertyManager)

@@ -1,0 +1,17 @@
+<h2>Bind Performance Templates</h2>
+<p style="text-align:center;font-size:0.8em;">
+    <select class="tablevalues" name="ids:list" multiple
+    tal:define="templates here/getAvailableTemplates" >
+        <option tal:repeat="template templates" 
+            tal:attributes="value template/id;
+                selected python:template.id in here.zDeviceTemplates"
+            tal:content="python:'%s [%s]' % (template.id, template.getRRDPath())">Template Name</option>
+    </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="bindTemplates:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}', 'objTemplates')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>

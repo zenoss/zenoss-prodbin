@@ -1374,6 +1374,33 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if REQUEST:
             REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
             return self.callZenScreen(REQUEST)
-            
-            
+    
+    def bindTemplates(self, ids=(), REQUEST=None):
+        "This will bind available templates to the zDeviceTemplates"
+        return self.setZenProperty('zDeviceTemplates', ids, REQUEST)
+
+    def removeZDeviceTemplates(self, REQUEST=None):
+        "Deletes the local zProperty, zDeviceTemplates"
+        for id in self.zDeviceTemplates:
+            self.removeLocalRRDTemplate(id)
+        return self.deleteZenProperty('zDeviceTemplates', REQUEST)
+        
+    def addLocalTemplate(self, id, REQUEST=None):
+        "Create a local template on a device"
+        from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
+        manage_addRRDTemplate(self, id)
+        self.bindTemplates(self.zDeviceTemplates+[id])
+        if REQUEST:
+            REQUEST['message'] = 'Added template %s to %s' % (id, self.id)
+            return self.callZenScreen(REQUEST)
+
+    def getAvailableTemplates(self):
+        "Returns all available templates for this device"
+        availTemplates = self.deviceClass().getRRDTemplates()
+        availTemplateNames = map(lambda x: x.id, availTemplates)
+        for t in self.getRRDTemplates():
+            if t.id not in availTemplateNames:
+                availTemplates.append(t)
+        return availTemplates
+         
 InitializeClass(Device)
