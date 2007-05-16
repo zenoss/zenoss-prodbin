@@ -94,11 +94,11 @@ Dialog.Box.prototype = {
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
         var d2 = this.lock.acquire(); 
-        d2.addCallback(bind(function() {
+        d2.addCallback(bind(function(r) {
             try {
                 connect('new_id','onkeyup', doLiveCheck);
             } catch(e) { noop(); }
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this));
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
@@ -109,7 +109,7 @@ Dialog.Box.prototype = {
         this.box.innerHTML = this.defaultContent;
         hideElement(this.framework);
         this.moveBox('back');
-        this.lock.release();
+        if (this.lock.locked) this.lock.release();
     },
     fetch: function(url) {
         var d = doSimpleXMLHttpRequest(url);
@@ -121,7 +121,7 @@ Dialog.Box.prototype = {
         els = filter(function(x){return x.type!='button'&&x.type!='hidden'}, els);
         var first = els[0];
         first.focus();
-        this.lock.release();
+        if (this.lock.locked) this.lock.release();
     },
     submit_form: function(action, formname) {
         var f = formname?document.forms[formname]:this.form

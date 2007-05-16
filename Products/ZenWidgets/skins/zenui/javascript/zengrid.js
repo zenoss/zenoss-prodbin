@@ -210,11 +210,11 @@ ZenGrid.prototype = {
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
             this.resizeTable();
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this));
         statuslock = this.lock.acquire();
         statuslock.addCallback(bind(function(r){
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
@@ -369,7 +369,7 @@ ZenGrid.prototype = {
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
-             this.lock.release();
+             if (this.lock.locked) this.lock.release();
          }, this));
     },
     refreshTable: function(offset) {
@@ -396,7 +396,7 @@ ZenGrid.prototype = {
         }, this));
         popLock = this.lock.acquire();
         popLock.addCallback(bind(function() {
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
             this.populateTable(this.buffer.getRows(offset, this.numRows));
         }, this));
@@ -502,7 +502,7 @@ ZenGrid.prototype = {
             cells = this.headers.getElementsByTagName('td');
             this.connectHeaders(cells);
             this.setTableNumRows(this.numRows);
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this);
         fieldparams = {}; 
         if (this.isHistory) fieldparams['history'] = 1;
@@ -599,7 +599,7 @@ ZenGrid.prototype = {
         cb = bind(function(r) {
             this.buffer.totalRows = r;
             this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this);
         d = loadJSONDoc('getEventCount');
         d.addCallback(cb);

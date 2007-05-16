@@ -196,11 +196,11 @@ DeviceZenGrid.prototype = {
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
             this.resizeTable();
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this));
         statuslock = this.lock.acquire();
         statuslock.addCallback(bind(function(r){
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
@@ -329,7 +329,7 @@ DeviceZenGrid.prototype = {
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
-             this.lock.release();
+             if (this.lock.locked) this.lock.release();
          }, this));
     },
     refreshTable: function(offset) {
@@ -356,7 +356,7 @@ DeviceZenGrid.prototype = {
         }, this));
         popLock = this.lock.acquire();
         popLock.addCallback(bind(function() {
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
             this.populateTable(this.buffer.getRows(offset, this.numRows));
         }, this));
@@ -463,7 +463,7 @@ DeviceZenGrid.prototype = {
             cells = this.headers.getElementsByTagName('td');
             this.connectHeaders(cells);
             this.setTableNumRows(this.numRows);
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this);
         r = [['Device Id',20.0],['IP',16.0],['Class',20.0],
              ['Prod State',16.0],['Event Summary',14.0],['Locks',10.0]]
@@ -550,7 +550,7 @@ DeviceZenGrid.prototype = {
         cb = bind(function(r) {
             this.buffer.totalRows = r;
             this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
-            this.lock.release();
+            if (this.lock.locked) this.lock.release();
         }, this);
         d = loadJSONDoc('getEventCount');
         d.addCallback(cb);
