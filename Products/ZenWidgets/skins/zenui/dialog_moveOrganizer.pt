@@ -1,12 +1,8 @@
 <h2>Move Organizers</h2>
-<p>
-Where would you like to move these organizers?<br/>
-</p>
 <br/>
 <p style="text-align:center;">
 <select class="tableheader" name="moveTarget"
     tal:define="targets here/childMoveTargets">
-    <option value=""></option>
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
 </select>

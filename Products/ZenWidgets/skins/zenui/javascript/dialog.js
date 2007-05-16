@@ -118,7 +118,7 @@ Dialog.Box.prototype = {
     },
     fill: function(request) {
         $('dialog_innercontent').innerHTML = request.responseText;
-        var els = findChildElements($('dialog_innercontent'), ['new_id','input','select']);
+        var els = findChildElements($('dialog_innercontent'), ['new_id','select','input','dialog_submit']);
         els = filter(function(x){return x.type!='button'&&x.type!='hidden'}, els);
         var first = els[0];
         first.focus();
