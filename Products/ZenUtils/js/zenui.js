@@ -287,6 +287,16 @@ function addSelectionBar() {
     }
 }
 
+var removeAutoComplete = function(el) {
+    setNodeAttribute(el, 'autocomplete', 'off');
+}
+
+var removeElementAutoCompletes = function() {
+    var inputs = $$('input');
+    map(removeAutoComplete, inputs);
+}
+
+addLoadEvent(removeElementAutoCompletes);
 addLoadEvent(addSelectionBar);
 addLoadEvent(checkForCollapsed);
 log("Left pane toggle javascript loaded.");

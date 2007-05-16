@@ -95,6 +95,7 @@ Dialog.Box.prototype = {
         connect('dialog_close','onclick',function(){$('dialog').hide()});
         var d2 = this.lock.acquire(); 
         d2.addCallback(bind(function(r) {
+            removeElementAutoCompletes();
             try {
                 connect('new_id','onkeyup', doLiveCheck);
             } catch(e) { noop(); }
