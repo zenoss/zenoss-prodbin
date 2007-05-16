@@ -32,7 +32,9 @@ class MaintenanceWindowable:
             mw = MaintenanceWindow(preppedId)
             mw.name = newId
             self.maintenanceWindows._setObject(preppedId, mw)
-            self.setLastChange() # In Device (not sure if needed by Organizers)
+            if hasattr(self, 'setLastChange'):
+                # Only Device and DeviceClass have setLastChange for now.
+                self.setLastChange()
         if REQUEST:
             if mw:
                 REQUEST['message'] = "Maintenace Window Added"
@@ -47,7 +49,9 @@ class MaintenanceWindowable:
             maintenanceIds = [maintenanceIds]
         for id in maintenanceIds:
             self.maintenanceWindows._delObject(id)
-        self.setLastChange() # In Device (not sure if needed by Organizers)
+        if hasattr(self, 'setLastChange'):
+            # Only Device and DeviceClass have setLastChange for now.
+            self.setLastChange()
         if REQUEST:
             REQUEST['message'] = "Maintenace Window Deleted"
             return self.callZenScreen(REQUEST)
