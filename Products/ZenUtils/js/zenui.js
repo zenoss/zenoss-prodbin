@@ -287,6 +287,15 @@ function addSelectionBar() {
     }
 }
 
+function applyBrowserSpecificStyles() {
+    if (navigator.userAgent.match('Mac')) {
+        var myinput = $('settings').getElementsByTagName('input')[0];
+        setStyle(myinput, {
+            'margin-top':'-4px'
+        });
+    }
+}
+
 var removeAutoComplete = function(el) {
     setNodeAttribute(el, 'autocomplete', 'off');
 }
@@ -297,6 +306,7 @@ var removeElementAutoCompletes = function() {
 }
 
 addLoadEvent(removeElementAutoCompletes);
+addLoadEvent(applyBrowserSpecificStyles);
 addLoadEvent(addSelectionBar);
 addLoadEvent(checkForCollapsed);
 log("Left pane toggle javascript loaded.");

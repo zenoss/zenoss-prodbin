@@ -145,7 +145,7 @@ div.logo {
 
 #settings div.searchbox {
     background: transparent url('img/search_box_bg.gif') center right no-repeat;
-    width: 150px;
+    width: 160px;
     position: absolute;
     top: -5px;
     right: 5px;
@@ -154,8 +154,8 @@ div.logo {
 #settings div.searchbox input[type="text"]{
     background: transparent none no-repeat;
     border: medium none;
-    margin-top: -1px;
-    margin-left: 45px;
+    margin-top: -2px;
+    margin-left: 55px;
     color: #444;
     width: 90px;
 }

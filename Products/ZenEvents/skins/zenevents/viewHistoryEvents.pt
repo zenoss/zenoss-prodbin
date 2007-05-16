@@ -27,6 +27,36 @@
     ">
 
 <input type='hidden' name='zenScreenName' tal:attributes="value template/id" />
+<div style="padding:8px;margin:10px;background-color:darkgrey;
+       text-align:center;border:1px solid black" id="histcontrolholder">
+    <label for="startdate">Start:</label>
+    <input class="tableheader" type="text" name="startdate" id="startdate"
+		readonly="true" style="width:10em;"
+        tal:attributes="value here/yesterdayDate"/>
+    <input class="tableheader" type="button" value="select" 
+        onclick="displayDatePicker('startdate');"/>
+    <label for="enddate">End:</label>
+    <input class="tableheader" type="text" name="enddate" id="enddate"
+		readonly="true"
+        tal:attributes="value here/todayDate"/>
+    <input class="tableheader" type="button" value="select" 
+        onclick="displayDatePicker('enddate');" />
+            <label for="severity"> Severity:</label>
+            <select class="tableheader" name="severity:int" id="severity">
+                <option tal:repeat="sev here/ZenEventManager/getSeverities"
+                    tal:content="python:sev[0]"
+                    tal:attributes="value python:sev[1]; 
+                                    selected python:sev[1]==severity" />
+            </select>
+            &nbsp; &nbsp;
+            <label for="state">State:</label>
+            <select class="tableheader" name="state:int" id="state">
+                <option tal:repeat="st here/ZenEventManager/getEventStates"
+                    tal:content="python:st[0]"
+                    tal:attributes="value python:st[1]; 
+                                    selected python:st[1]==state" />
+            </select>
+</div>
 
 <tal:block tal:define="
 tabletitle string:;
@@ -36,21 +66,6 @@ menu_id string:HistoryEvent_list;
 
 <tal:block metal:fill-slot="filterslot">
 
-<div style="position:absolute;right:210px;top:0px;z-index:2007;">
-    <input type='hidden' name='table' value='history'/>
-    Start Date: 
-    <input class="tableheader" type="text" name="startdate" id="startdate"
-		readonly="true"
-        tal:attributes="value here/yesterdayDate"/>
-    <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('startdate');"/>
-    End Date: 
-    <input class="tableheader" type="text" name="enddate" id="enddate"
-		readonly="true"
-        tal:attributes="value here/todayDate"/>
-    <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('enddate');" />
-</div>
 <div class="filterbox">
 <input type="text" name="filter" id="filter"
     onfocus="select(this)"
@@ -75,6 +90,8 @@ addLoadEvent( function() {
         'getJSONHistoryEventsInfo', 'mygrid', eventZenGridBuffer,
         '${here/absolute_url_path}', 1 );
     connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
+    connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
+    connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
 });">
 </script>
 
