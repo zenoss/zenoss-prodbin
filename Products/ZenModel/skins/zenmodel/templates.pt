@@ -298,9 +298,9 @@ style="position:relative;">
    <table class="tabtable" cellpadding="0" cellspacing="0"
            tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
        <tr tal:define="menu_ids menu_ids |
-           python:['More','Manage','Actions','Add','TopLevel'];
-           hasMenus python:here.getMenus(menu_ids, here)">
+           python:['More','Manage','Actions','Add','TopLevel']">
         <tal:block tal:condition="python:hasattr(here, 'getMenus')">
+           <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
         <td class="contextmenutab" 
             tal:condition="hasMenus" >
         <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
@@ -309,6 +309,7 @@ style="position:relative;">
             tal:condition="not:hasMenus" >
             &nbsp;
         </td>
+        </tal:block>
         </tal:block>
         <tal:block tal:condition="python:not hasattr(here, 'getMenus')">
         <td class="tabtableleftcap"> &nbsp; </td>
