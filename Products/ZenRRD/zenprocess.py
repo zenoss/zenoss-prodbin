@@ -287,7 +287,7 @@ class zenprocess(SnmpDaemon):
         self.log.debug("Async delete device %s" % doomed)
         if doomed in self._devices:
              del self._devices[doomed]
-
+        self.clearSnmpError(doomed, "Device %s removed from SNMP collection")
 
     def remote_updateDeviceList(self, devices):
         self.log.debug("Async update device list %s" % devices)
@@ -307,7 +307,20 @@ class zenprocess(SnmpDaemon):
             log.info("Removing %s", doomed)
             for device in doomed:
                 del self._devices[device]
+                self.clearSnmpError(device, "device %s removed" % device)
 
+
+    def clearSnmpError(self, name, message):
+        if name in self._devices:
+            if self._devices[name].snmpStatus > 0:
+                self._devices[name].snmpStatus = 0
+                self.sendEvent(self.statusEvent,
+                               eventClass=Status_Snmp,
+                               component="snmp",
+                               device=name,
+                               summary=message,
+                               severity=Event.Clear)
+            
 
     def remote_updateDevice(self, cfg):
         self.log.debug("Async config update for %s", cfg[1][0])
@@ -397,6 +410,7 @@ class zenprocess(SnmpDaemon):
                        device=device.name,
                        summary='Unable to read processes on device %s' % device.name,
                        severity=Event.Error)
+        device.snmpStatus += 1
         self.logError('Error on device %s' % device.name, error.value)
 
 
@@ -413,13 +427,7 @@ class zenprocess(SnmpDaemon):
         if device.snmpStatus > 0:
             device.snmpStatus = 0
             summary = 'Good SNMP response from device %s' % device.name
-            self.sendEvent(self.statusEvent,
-                           eventClass=Status_Snmp,
-                           component="snmp",
-                           device=device.name,
-                           summary=summary,
-                           severity=Event.Clear)
-        
+            self.clearSnmpError(device.name, summary)
             
         procs = []
         parts = zip(sorted(results[NAMETABLE].items()),
@@ -544,6 +552,8 @@ class zenprocess(SnmpDaemon):
         if isinstance(results, failure.Failure):
             self.error(results)
             return results
+        self.clearSnmpError(device.name,
+                            'Performance data read for %s' % device.name)
         parts = {}
         for success, values in results:
             if success:
