@@ -154,7 +154,7 @@ div.logo {
 #settings div.searchbox input[type="text"]{
     background: transparent none no-repeat;
     border: medium none;
-    margin-top: 12px;
+    margin-top: -1px;
     margin-left: 45px;
     color: #444;
     width: 90px;
@@ -733,7 +733,7 @@ a.tablevalues:active {
 #paneToggle {
     position: absolute;
     top: 87px;
-    left: 0px21;
+    left: 0px;
     height: 21px;
     width: 115px;
     border-right: 1px solid black;
