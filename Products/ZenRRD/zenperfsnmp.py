@@ -324,17 +324,18 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateDeviceList(self, responses, requested):
         'Update the config for devices devices'
-        if self.options.device:
-            self.log.debug('Gathering performance data for %s ' %
-                           self.options.device)
-
         deviceNames = Set()
         for snmpTargets in responses:
             self.updateDeviceConfig(snmpTargets)
             deviceNames.add(snmpTargets[1][0])
-            
+
         # stop collecting those no longer in the list
         doomed = Set(requested) - deviceNames
+        if self.options.device:
+            self.log.debug('Gathering performance data for %s ' %
+                           self.options.device)
+            doomed = Set(self.proxies.keys())
+            doomed.discard(self.options.device)
         for name in doomed:
             self.log.info('removing device %s' % name)
             if name in self.proxies:

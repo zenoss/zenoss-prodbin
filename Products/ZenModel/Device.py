@@ -489,11 +489,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
          (snmpcommunity, snmpversion, snmptimeout, snmptries)
          [(name, oid, path, type, createCmd, thresholds),])
         """
-        oids = (super(Device, self).getSnmpOidTargets())
+        oids = []
         max = getattr(self, 'zMaxOIDPerRequest')
-        for o in self.os.getMonitoredComponents():
-            if o.meta_type != "OSProcess":
-                oids.extend(o.getSnmpOidTargets())
+        if not self.zSnmpMonitorIgnore:
+            oids = (super(Device, self).getSnmpOidTargets())
+            for o in self.os.getMonitoredComponents():
+                if o.meta_type != "OSProcess":
+                    oids.extend(o.getSnmpOidTargets())
         return (float(self.getLastChange()), self.getSnmpConnInfo(), oids, max)
 
 
