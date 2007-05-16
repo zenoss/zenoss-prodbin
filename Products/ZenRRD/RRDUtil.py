@@ -50,7 +50,10 @@ class RRDUtil:
                            str(dataSource), *rrdCommand.split())
         
         if rrdType in ('COUNTER', 'DERIVE'):
-            value = long(value)
+            try:
+                value = long(value)
+            except (TypeError, ValueError):
+                return None
         try:
             rrdtool.update(filename, 'N:%s' % value)
             log.debug('%s: %r', filename, value)
