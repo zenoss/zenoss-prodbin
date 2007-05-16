@@ -90,3 +90,13 @@ class SoftwareClass(ProductClass):
     
 
 InitializeClass(SoftwareClass)
+
+
+class OSSoftwareClass(SoftwareClass):
+
+    """OSSoftwareClass object"""
+
+    portal_type = meta_type = 'OSSoftwareClass'
+    isOS = True
+
+InitializeClass(OSSoftwareClass)
