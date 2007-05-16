@@ -20,13 +20,8 @@
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' 
-        tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id"/>
 
     <tr>
-        <th class="tableheader" width="5px"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -41,12 +36,6 @@
                     lnames here/rrdTemplates/objectIds;
                     editable python:temp.isEditable(here);"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
-        <td>
-            <input tal:condition="python: here.isManager() 
-                                    and temp.id in lnames" 
-                type="checkbox" name="ids:list" 
-                tal:attributes="value temp/getId"/>
-        </td>
         <td>
                 <a tal:attributes="href temp/absolute_url_path" 
                         tal:content="temp/getId">name</a>
