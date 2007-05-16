@@ -32,7 +32,7 @@ class ServiceConfig(pb.Copyable, pb.RemoteCopy):
         self.ip = svc.getManageIp()
         self.port = svc.getPort()
         self.sendString = svc.getSendString()
-        self.expectString = svc.getExpectRegex()
+        self.expectRegex = svc.getExpectRegex()
         self.timeout = svc.zStatusConnectTimeout
         self.failSeverity = svc.getFailSeverity()
         self.key = svc.key()
