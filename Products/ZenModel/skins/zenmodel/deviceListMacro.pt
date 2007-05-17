@@ -117,10 +117,12 @@
         </table>
         </td>
         <td class=tablevalues>
-             <img tal:condition="device/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-            <img tal:condition="device/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-          <img tal:condition="device/sendEventWhenBlocked" 
-              border="0" src="locked-sendevent-icon.png">
+             <img tal:condition="device/isResultLockedFromUpdates" 
+                     border="0" src="locked-update-icon.png">
+             <img tal:condition="device/isResultLockedFromDeletion" 
+                     border="0" src="locked-delete-icon.png">
+             <img tal:condition="device/sendEventWhenResultBlocked" 
+                     border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
