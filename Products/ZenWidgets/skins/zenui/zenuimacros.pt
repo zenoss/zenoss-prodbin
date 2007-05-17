@@ -270,11 +270,16 @@ var submitFormToMethod = function(formname, method) {
 
 var goExport = function() {
     var params = {};
-    params['sev'] = $('severity')?$('severity').value : '2';
-    params['state'] = $('state')?$('state').value : '1';
-    params['filter']= $('filter')?$('filter').value : '';
-    params['startdate'] = $('startdate')?$('startdate').value:null;
-    params['enddate'] = $('enddate')?$('enddate').value:null;
+    if (eventZenGrid.lastparams['severity'])
+        params['sev'] = eventZenGrid.lastparams['severity'];
+    if (eventZenGrid.lastparams['state'])
+        params['state'] = eventZenGrid.lastparams['state'];
+    if (eventZenGrid.lastparams['filter'])
+        params['filter'] = eventZenGrid.lastparams['filter'];
+    if (eventZenGrid.lastparams['startdate'])
+        params['startdate'] = eventZenGrid.lastparams['startdate'];
+    if (eventZenGrid.lastparams['enddate'])
+        params['enddate'] = eventZenGrid.lastparams['enddate'];
     if (eventZenGrid.lastparams['orderby'])
         params['orderby'] = eventZenGrid.lastparams['orderby'];
     log(keys(params));

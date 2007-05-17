@@ -184,6 +184,9 @@ ZenGrid.prototype = {
         this.lastparams = this.isHistory?{startdate:$('startdate').value,
                                           enddate:$('enddate').value }:
                           {};
+        try {this.lastparams['severity'] = $('severity').value;}catch(e){noop()}
+        try {this.lastparams['state'] = $('state').value;}catch(e){noop()}
+        try {this.lastparams['filter'] = $('filter').value;}catch(e){noop()}
         this.fields = [];
         this.fieldMapping = {
             //summary: -9,
