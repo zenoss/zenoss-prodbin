@@ -125,7 +125,7 @@ class DeviceResultInt:
     security.declareProtected('View', 'getXmlRpcStatusNumber')
 
 
-    security.declareProtected('View', 'isLockedFromUpdates')
+    security.declareProtected('View', 'isResultLockedFromUpdates')
     def isResultLockedFromUpdates(self):
         """Return the locked from updates flag"""
         d = self.device()
@@ -133,7 +133,7 @@ class DeviceResultInt:
             return d.isLockedFromUpdates()
         return False
 
-    security.declareProtected('View', 'isLockedFromDeletion')
+    security.declareProtected('View', 'isResultLockedFromDeletion')
     def isResultLockedFromDeletion(self):
         """Return the locked from deletion flag"""
         d = self.device()
@@ -141,7 +141,7 @@ class DeviceResultInt:
             return d.isLockedFromDeletion()
         return False
 
-    security.declareProtected('View', 'sendEventWhenBlocked')
+    security.declareProtected('View', 'sendEventWhenResultBlocked')
     def sendEventWhenResultBlocked(self):
         """Return the send event flag"""
         d = self.device()
