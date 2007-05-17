@@ -263,6 +263,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     # Event query functions from IEventQuery
     #==========================================================================
 
+
+    def getEventResultFields(self, context):
+        """Result fields for everything else.
+        """
+        return self.lookupManagedEntityResultFields(context.event_key)
+
     def getEventListME(self, me, **kwargs):
         where = self.lookupManagedEntityWhere(me)
         try:

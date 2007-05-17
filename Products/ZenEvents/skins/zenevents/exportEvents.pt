@@ -1,14 +1,16 @@
 <tal:dummy replace="python:request.response.setHeader('Content-Type', 'application/vnd.ms-excel')"/><tal:dummy replace="python:request.response.setHeader('Content-Disposition', 'attachment; filename=events.csv')"/><tal:block tal:define="
         filter request/filter | string:;
-        severity request/severity | python:2;
-        state request/state | python:1;
+        severity python:test(request.has_key('sev'), request['sev'], 2);
+        state python:test(request.has_key('state'), request['state'], 1);
 		startdate request/startdate | nothing;
+        orderby request/orderby | nothing;
 		enddate request/enddate | nothing;
 		doHistory python:hasattr(request, 'startdate');
-        resultFields request/ev_resultfields | here/getResultFields | 
-                        here/ZenEventManager/defaultResultFields;
-        objects python:here.ZenEventManager.getEventListME(here, filter=filter, 
+        evmanager python:test(doHistory, here.ZenEventHistory, here.ZenEventManager);
+        resultFields python: evmanager.getEventResultFields(here) or 
+                     evmanager.defaultResultFields;
+        objects python:evmanager.getEventListME(here, filter=filter, 
             severity=severity, state=state, startdate=startdate,
-            enddate=enddate);
+            enddate=enddate, resultFields=resultFields, orderby=orderby);
 ">
         <tal:dummy replace="python: here.ZenEventManager.writeExportRows(resultFields, objects)" /></tal:block>

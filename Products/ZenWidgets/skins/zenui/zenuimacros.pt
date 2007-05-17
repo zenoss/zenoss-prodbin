@@ -269,14 +269,17 @@ var submitFormToMethod = function(formname, method) {
 }
 
 var goExport = function() {
-    var sev = $('severity')?$('severity').value : '2';
-    var state = $('state')?$('state').value : '1';
-    var filter = $('filter')?$('filter').value : '';
-    var startdate = $('startdate')?$('startdate').value:null;
-    var enddate = $('enddate')?$('enddate').value:null;
-    url = '${here/absolute_url_path}/'+ 'exportEvents?state=' + state + 
-        '&severity=' + sev + '&filter=' + filter;
-    if (startdate!=null) url += '&startdate=' + startdate + '&enddate=' + enddate;
+    var params = {};
+    params['sev'] = $('severity')?$('severity').value : '2';
+    params['state'] = $('state')?$('state').value : '1';
+    params['filter']= $('filter')?$('filter').value : '';
+    params['startdate'] = $('startdate')?$('startdate').value:null;
+    params['enddate'] = $('enddate')?$('enddate').value:null;
+    if (eventZenGrid.lastparams['orderby'])
+        params['orderby'] = eventZenGrid.lastparams['orderby'];
+    log(keys(params));
+    log(queryString(params));
+    url = '${here/absolute_url_path}/exportEvents?' + queryString(params);
     parent.location = url;
 }
 
