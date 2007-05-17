@@ -127,15 +127,14 @@ class zeneventlog(Base):
         sev = 4 - lrec.EventType     #lower severity by one level
         if sev < 1: sev = 1
         evt = dict(device=name,
-		   eventKey=Status_Wmi,
-                   eventClassKey=evtkey,
-                   eventGroup=lrec.LogFile,
-                   component=lrec.SourceName,
-                   ntevid=lrec.EventCode,
-                   summary=lrec.Message.strip(),
-                   agent="zeneventlog",
-                   severity=sev,
-                   manager=self.manager)
+                    eventClassKey=evtkey,
+                    eventGroup=lrec.LogFile,
+                    component=lrec.SourceName,
+                    ntevid=lrec.EventCode,
+                    summary=lrec.Message.strip(),
+                    agent="zeneventlog",
+                    severity=sev,
+                    manager=self.manager)
         self.log.debug("device:%s msg:'%s'", name, lrec.Message)
         return evt
 
