@@ -111,6 +111,12 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
         return RRDDataSource.RRDDataSource.getDescription(self)
 
 
+    def useZenCommand(self):
+        if self.sourceType == 'COMMAND':
+            return True
+        return False
+
+
     def getXmlRpcMethodParameters(self):
         """Return the list of all parameters as a list.
            ["param1 (type)", "param2 (type)", ...]

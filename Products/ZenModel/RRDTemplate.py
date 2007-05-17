@@ -128,7 +128,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if dsType is None: return self.datasources()
         return [ds for ds in self.datasources() 
                 if ds.sourcetype == dsType
-                or (dsType=='COMMAND' and ds.useZenCommand)]
+                or (dsType=='COMMAND' and ds.useZenCommand())]
 
 
     def getRRDDataPoints(self):

@@ -65,8 +65,6 @@ class RRDDataSource(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataSource'
 
-    useZenCommand = True
-
     paramtypes = ('integer', 'string', 'float')
     sourcetypes = ()
     
@@ -129,6 +127,10 @@ class RRDDataSource(ZenModelRM, ZenPackable):
 
     def getRRDDataPoints(self):
         return self.datapoints()
+        
+        
+    def useZenCommand(self):
+        return False
 
 
     def manage_addRRDDataPoint(self, id, REQUEST = None):
