@@ -112,7 +112,7 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
 
 
     def useZenCommand(self):
-        if self.sourceType == 'COMMAND':
+        if self.sourcetype == 'COMMAND':
             return True
         return False
 
