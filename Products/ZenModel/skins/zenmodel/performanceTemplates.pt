@@ -9,7 +9,7 @@
         objects here/dmd/Devices/getAllRRDTemplates;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:All Performance Templates;
-        menu_id string:Templates">
+        menu_id string:AllTemplates">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -29,22 +29,24 @@
                     tableName,'description','Description')"/>
     </tr>
     <tal:block tal:repeat="temp batch">
-    <tr tal:define="odd repeat/temp/odd;
-                    lnames here/rrdTemplates/objectIds"
+    <tr tal:define="odd repeat/temp/odd"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
-            <input tal:condition="python: here.isManager() 
-                                    and temp.id in lnames" 
-                type="checkbox" name="ids:list" 
-                tal:attributes="value temp/getId"/>
+            <input tal:condition="python:here.isManager()" 
+                type="checkbox" name="paths:list" 
+                tal:attributes="value temp/absolute_url_path"/>
         </td>
         <td>
             <a tal:attributes="href temp/getPrimaryUrlPath" 
                 tal:content="temp/getId">name</a>
         </td>
         <td>
-            <a tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
-                tal:content="temp/getRRDPath">/Devices/Server</a>
+            <a tal:condition="temp/deviceClass" 
+               tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
+               tal:content="temp/getRRDPath">/Devices/Server</a>
+            <a tal:condition="not:temp/deviceClass" 
+               tal:attributes="href temp/absolute_url_path"
+               tal:content="temp/getRRDPath">/Devices/Server</a>
         </td>
         <td tal:content="temp/description"/>
     </tr>

@@ -556,6 +556,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             
     def getAllRRDTemplates(self):
         rrdts = self.rrdTemplates()
+        for dev in self.devices():
+            for rrdt in dev.getRRDTemplates():
+                if rrdt not in rrdts: rrdts.append(rrdt)
         for child in self.children():
             rrdts.extend(child.getAllRRDTemplates())
         return rrdts
@@ -612,16 +615,22 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    def manage_deleteRRDTemplates(self, ids=(), REQUEST=None):
+    def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
         """Delete RRDTemplates from this DeviceClass 
         (skips ones in other Classes)
         """
-        if not ids:
+        if not ids and not paths:
             return self.callZenScreen(REQUEST)
         for id in ids:
             if (getattr(aq_base(self), 'rrdTemplates', False)
                 and getattr(aq_base(self.rrdTemplates),id,False)):
                 self.rrdTemplates._delObject(id)
+        for path in paths:
+            temp = self.dmd.getObjByPath(path)
+            if temp.deviceClass():
+                temp.deviceClass().rrdTemplates._delObject(temp.id)
+            else:
+                temp.device()._delObject(temp.id)
         if REQUEST: 
             REQUEST['message'] = "Templates deleted"
             return self.callZenScreen(REQUEST)
