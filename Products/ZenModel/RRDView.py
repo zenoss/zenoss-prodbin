@@ -320,7 +320,8 @@ class RRDView(object):
                          (dp.rrdmin, dp.rrdmax),
                          threshs.get(dp.name(),[])))
                 key = ds.eventKey or ds.id
-                result.append( (ds.usessh, ds.cycletime, ds.component,
+                result.append( (getattr(ds, 'usessh', False), 
+                                ds.cycletime, ds.component,
                                 ds.eventClass, key, ds.severity,
                                 ds.getCommand(self), points) )
         return result

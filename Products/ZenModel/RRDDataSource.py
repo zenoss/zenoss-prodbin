@@ -65,6 +65,8 @@ class RRDDataSource(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataSource'
 
+    useZenCommand = True
+
     paramtypes = ('integer', 'string', 'float')
     sourcetypes = ()
     

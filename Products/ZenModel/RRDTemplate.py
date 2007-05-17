@@ -122,11 +122,13 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return [p.name() for s in self.datasources() for p in s.datapoints()]
 
     
-    def getRRDDataSources(self, type=None):
+    def getRRDDataSources(self, dsType=None):
         """Return a list of all datapoints on this template.
         """
-        if type is None: return self.datasources()
-        return [ds for ds in self.datasources() if ds.sourcetype == type]
+        if dsType is None: return self.datasources()
+        return [ds for ds in self.datasources() 
+                if ds.sourcetype == dsType
+                or (dsType=='COMMAND' and ds.useZenCommand)]
 
 
     def getRRDDataPoints(self):
