@@ -51,6 +51,7 @@ class SiteError:
 
         
     def createReport(cls, errorType, errorValue, errorTrace, errorUrl, revision,
+                        versionShort,
                         inHtml=True, contactName=None, contactEmail=None, 
                         comments=None):
         ''' Produce a summary of the given error details suitable for use
@@ -77,6 +78,7 @@ class SiteError:
                                 'Value: %s' % errorValue,
                                 'URL: %s' % cls.cleanUrl(errorUrl),
                                 'Revision: %s' % revision,
+                                'Version: %s' % versionShort,
                                 '%s' % errorTrace,
                                 'Contact name: %s' % (contactName or ''),
                                 'Email address: %s' % (contactEmail or ''),
@@ -86,7 +88,7 @@ class SiteError:
 
 
     def sendErrorEmail(cls, errorType, errorValue, errorTrace, errorUrl, 
-                        revision,
+                        revision, versionShort,
                         contactName=None, contactEmail=None, comments=None):
         ''' Attempt to send an email to the zenoss errors email address
         with details of this error.
@@ -100,7 +102,7 @@ class SiteError:
         header = cls.createEmailHeader(
                     fromAddress, cls.ERRORS_ADDRESS, subject)
         body = cls.createReport(errorType, errorValue, errorTrace, cleanUrl,
-                                revision,
+                                revision, versionShort,
                                 0, contactName, contactEmail, comments)
         mailSent = False
         server = smtplib.SMTP(cls.SMTP_HOST)
