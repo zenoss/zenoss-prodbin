@@ -31,7 +31,7 @@ class threshold:
         start = time.time() - zem.defaultAvailabilityDays*24*60*60
         dateAsFloat(args, 'startDate', start)
         dateAsFloat(args, 'endDate', time.time())
-        eventClass = args.get('eventClass', '')
+        args['eventClass'] = args.get('eventClass', '') or '/Perf'
 
         # Get all the threshold related events from summary and history
         report = []
@@ -39,10 +39,8 @@ class threshold:
         w += ' AND lastTime > %(startDate)s '
         w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
-        if eventClass:
-            w += " AND eventClass = '%s' " % eventClass
-        else:
-            w += " AND eventClass like '/Perf/%%' "
+        w += ' AND (eventClass = "%(eventClass)s" '
+        w +=  ' or eventClass like "%(eventClass)s/%%") '
 
         args['cols'] = 'device, component, eventClass,  firstTime, lastTime '
         w %= args
