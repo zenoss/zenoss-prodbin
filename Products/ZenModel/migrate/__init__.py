@@ -84,3 +84,4 @@ import processsequence
 import zWmiMonitorProperty
 import device_indexes
 import addWinService
+import convertOSSSoftwareClass
