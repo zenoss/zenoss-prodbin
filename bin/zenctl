@@ -61,8 +61,13 @@ export UPGRADED=${ZENHOME}/.upgraded
 
 # changes the owners and permissions for the zenoss files
 set_perms() {
-    chown -R ${RUNUSER}:${RUNUSER} ${ZENHOME}
-    chmod -R 775 ${ZENHOME}
+    for dir in \
+        ${ZENHOME}/log \
+        ${ZENHOME}/var
+    do
+        chown -R ${RUNUSER}:${RUNUSER} ${dir}
+        chmod -R 775 ${dir}
+    done
 }
 
 # these commands are run when zenoss was installed for the first time
