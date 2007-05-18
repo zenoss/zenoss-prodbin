@@ -754,7 +754,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             for dev, comp, count in curs.fetchall():
                 dev = self.cleanstring(dev)
                 comp = self.cleanstring(comp)
-                result[dev,comp] = 0
+                result[dev,comp] = count
             return result 
         finally:
             self.close(conn)

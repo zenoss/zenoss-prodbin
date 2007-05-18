@@ -84,11 +84,12 @@ class ZenTcpClient(protocol.ClientFactory):
 
     def getEvent(self):
         if self.msg == "pass" and self.status > 0:
-            sev = 0
+            self.status = sev = 0
             self.msg = "device:%s service:%s back up" % (
                         self.cfg.device, self.cfg.component)
             log.info(self.msg)
         elif self.msg != "pass":
+            self.status += 1
             sev = self.cfg.failSeverity
             log.warn("device:%s service:%s down", 
                      self.cfg.device, self.cfg.component)
