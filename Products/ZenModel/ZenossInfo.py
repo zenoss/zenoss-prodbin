@@ -251,6 +251,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             return ''
 
 
+    def getNetSnmpVersion(self):
+        from pynetsnmp.netsnmp import lib
+        return Version.parse('NetSnmp %s ' % lib.netsnmp_get_version())
+
+
     def getAllVersions(self):
         """
         Return a list of version numbers for currently tracked component
@@ -267,7 +272,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         {'header': 'SNMP', 'data': self.getPySNMPVersion().full()},
         {'header': 'Twisted SNMP', 'data': self.getTwistedSNMPVersion().full()},
         )
+        try:
+            versions += (
+                {'header': 'NetSnmp', 'data': self.getNetSnmpVersion().full() },
+                )
+        except:
+            pass
         return versions
+
     security.declareProtected('View','getAllVersions')
 
 
