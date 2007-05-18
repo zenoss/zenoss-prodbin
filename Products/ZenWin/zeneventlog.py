@@ -54,11 +54,11 @@ class zeneventlog(Base):
                 msg = summary='WMI connect error on %s: %s' % (name, ex)
                 self.log.exception(msg)
                 self.sendEvent(dict(summary=msg,
-                                   device=name,
-                                   eventKey=Status_Wmi_Conn,
-                                   agent=self.agent,
-                                   severity=Event.Error,
-				   manager=self.manager))
+                                    device=name,
+                                    eventClass=Status_Wmi_Conn,
+                                    agent=self.agent,
+                                    severity=Event.Error,
+                                    manager=self.manager))
 
 
     def remote_deleteDevice(self, device):

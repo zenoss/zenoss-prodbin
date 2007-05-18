@@ -57,10 +57,14 @@ class zenwin(Base):
     def mkevt(self, devname, svcname, msg, sev):
         "Compose an event"
         name = "WinServiceTest"
-        evt = dict(device=devname, component=svcname,
-                   summary=msg, eventClass=Status_WinService,
-                   agent= self.agent, severity= sev,
-                   eventGroup= "StatusTest", manager=getfqdn())
+        evt = dict(summary=msg,
+                   eventClass=Status_WinService,
+                   device=devname,
+                   severity=sev,
+                   agent=self.agent,
+                   component=svcname,
+                   eventGroup= "StatusTest",
+                   manager=getfqdn())
         if sev > 0:
             self.log.critical(msg)
         else:
@@ -153,12 +157,12 @@ class zenwin(Base):
     def deviceDown(self, device, message):
         if device.name in self.watchers:
             del self.watchers[device.name]
-        self.sendEvent(dict(summary="Wmi error talking to %s: %s" % 
-                            (device.name, message),
-                            severity=Event.Warning,
+        msg = "WMI error talking to %s: %s" % (device.name, message)
+        self.sendEvent(dict(summary=msg,
+                            eventClass=Status_Wmi_Conn,
                             device=device.name,
-                            agent=self.agent,
-                            eventClass=Status_Wmi_Conn))
+                            severity=Event.Error,
+                            agent=self.agent))
         self.wmiprobs.append(device.name)
         self.log.warning("WMI Connection to %s went down" % device.name)
 
@@ -166,11 +170,12 @@ class zenwin(Base):
         if device.name in self.wmiprobs:
             self.wmiprobs.remove(device.name)
             self.log.info("WMI Connection to %s up" % device.name)
-            self.sendEvent(dict(summary="Wmi connection to %s up." % device.name,
-                                severity=Event.Clear,
+            msg = "WMI connection to %s up." % device.name
+            self.sendEvent(dict(summary=msg,
+                                eventClass=Status_Wmi_Conn,
                                 device=device.name,
-                                agent=self.agent,
-                                eventClass=Status_Wmi_Conn))
+                                severity=Event.Clear,
+                                agent=self.agent))
 
     def updateConfig(self, cfg):
         Base.updateConfig(self, cfg)

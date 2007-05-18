@@ -26,6 +26,8 @@ from Products.ZenEvents.ZenEventClasses import \
      Heartbeat, Status_WinService, Status_Wmi
 from Products.ZenUtils.Utils import prepId
 
+from Products.ZenEvents import Event
+
 class zenwinmodeler(Base):
     
     evtClass = Status_WinService
@@ -71,7 +73,7 @@ class zenwinmodeler(Base):
                 d.addErrback(self.error)
             except (SystemExit, KeyboardInterrupt): raise
             except pywintypes.com_error, e:
-                msg = "wmi failed "
+                msg = "WMI error talking to %s " % name
                 code, txt, info, param = e
                 wmsg = "%s: %s" % (abs(code), txt)
                 if info:
@@ -106,17 +108,16 @@ class zenwinmodeler(Base):
         return data
         
         
-    def sendFail(self, name, msg="", evtclass=Status_Wmi, sev=3):
-        evt = { 'eventClass':evtclass, 
-                'agent': self.agent,
-                'component': '',
-                'severity':sev}
+    def sendFail(self, name, msg="", evtclass=Status_Wmi, sev=Event.Warning):
         if not msg:
-            msg = "wmi connection failed %s" % name
-        evt['summary'] = msg
-        evt['device'] = name
+            msg = "WMI connection failed %s" % name
+            sev = Event.Error
+        evt = dict(summary=msg,
+                   eventClass=evtclass, 
+                   device=name,
+                   severity=sev,
+                   agent=self.agent)
         self.sendEvent(evt)
-        #self.log.warn(msg)
         self.log.exception(msg)
         self.failed = True
 

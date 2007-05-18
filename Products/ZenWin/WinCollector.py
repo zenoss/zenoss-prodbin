@@ -39,8 +39,7 @@ class WinCollector(Base):
     initialServices = ['EventService', 'WmiConfig']
     attributes = ('configCycleInterval',)
 
-    heartbeat = dict(eventClass=Heartbeat,
-                     device=getfqdn())
+    heartbeat = dict(eventClass=Heartbeat, device=getfqdn())
     deviceConfig = 'getDeviceWinInfo'
 
     def __init__(self):
@@ -53,10 +52,11 @@ class WinCollector(Base):
     def start(self):
         self.heartbeat['component']=self.agent
         self.log.info("Starting %s", self.agent)
-        self.sendEvent(dict(eventClass=App_Start,
-                            summary='Starting %s' % self.agent,
+        self.sendEvent(dict(summary='Starting %s' % self.agent,
+                            eventClass=App_Start,
                             device=getfqdn(),
                             severity=Clear,
+                            agent=self.agent,
                             component=self.agent))
 
     def remote_notifyConfigChanged(self):
@@ -95,8 +95,8 @@ class WinCollector(Base):
 
     def stop(self):
         self.log.info("Starting %s", self.agent)
-        self.sendEvent(dict(eventClass=App_Stop,
-                            summary='Stopping %s' % self.agent,
+        self.sendEvent(dict(summary='Stopping %s' % self.agent,
+                            eventClass=App_Stop,
                             device=getfqdn(),
                             severity=Warning,
                             component=self.agent))
@@ -161,3 +161,4 @@ class WinCollector(Base):
     def connected(self):
         d = self.startConfigCycle()
         d.addCallback(self.startScan)
+

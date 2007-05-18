@@ -18,6 +18,9 @@ from wmiclient import WMI
 import logging
 log = logging.getLogger("zen.StatusTest")
 
+from Products.ZenEvents.ZenEventClasses import Status_Wmi
+from Products.ZenEvents import Event
+
 class StatusTest(WMI):
     """track the results of a status test"""
     def __init__(self, zem, name, user, passwd, svcs, debug=False):
@@ -33,16 +36,18 @@ class StatusTest(WMI):
         self._thread = None
   
 
-    def sendFail(self, msg="", evtclass="/Status/Wmi"):
-        evt = { 'eventClass':evtclass, 'agent': 'zenwin', 'severity':3 }
+    def sendFail(self, msg="", evtclass=Status_Wmi, severity=Event.Warning):
+        severity = Event.Warning
         if not msg:
-            msg = "wmi connection failed %s" % self.name
-        evt['component'] = ""
-        evt['summary'] = msg
-        evt['device'] = self.name
-        self.zem.sendEvent(evt)
+            msg = "WMI connection failed %s" % self.name
+            severity = Event.Error
+        self.zem.sendEvent(dict(summary=msg,
+                                eventClass=evtclass,
+                                device=self.name,
+                                severity=severity,
+                                agent='zenwin',
+                                component=''))
         log.warn("%s %s" % (self.name, msg))
-        #log.exception(msg)
         self.failed = True
 
     def setPlugins(self, plugins):
@@ -64,14 +69,14 @@ class StatusTest(WMI):
                 self.runplugins()
             except (SystemExit, KeyboardInterrupt): raise
             except pywintypes.com_error, e:
-                msg = "wmi connection failed: "
+                msg = "WMI connection failed: "
                 code,name,info,param = e
                 wmsg = "%s: %s" % (abs(code), name)
                 if info:
                     wcode, source, descr, hfile, hcont, scode = info
                     if descr: wmsg = descr.strip()
                 msg += wmsg
-                self.sendFail(msg, evtclass="/Status/Wmi/Conn")
+                self.sendFail(msg, evtclass="/Status/Wmi/Conn", severity=Event.Error)
             except:
                 self.sendFail()
         finally:
