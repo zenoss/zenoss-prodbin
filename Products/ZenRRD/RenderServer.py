@@ -90,8 +90,10 @@ class RenderServer(RRDToolItem):
         gopts = gopts.split('|')
         gopts = [g for g in gopts if g]
         gopts.append('--width=%s' % width)
-        gopts.append('--start=%s' % start)
-        gopts.append('--end=%s' % end)
+        if start:
+            gopts.append('--start=%s' % start)
+        if end:
+            gopts.append('--end=%s' % end)
         drange = int(drange)
         id = self.graphId(gopts, drange, ftype)
         graph = self.getGraph(id, ftype, REQUEST)
