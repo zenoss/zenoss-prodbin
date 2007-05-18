@@ -15,7 +15,7 @@ What device class would you like to paste into?<br/>
 <input type="submit" name="manage_pasteRRDTemplates:method"
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
+                        '${here/absolute_url}')" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;

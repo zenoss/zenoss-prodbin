@@ -5,14 +5,13 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url_path"><br/><br/>
+        tal:attributes="value here/absolute_url"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form('${here/absolute_url_path}', 'objTemplates')" 
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check('${here/absolute_url}', 'objTemplates')"
                         name="addLocalTemplate:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

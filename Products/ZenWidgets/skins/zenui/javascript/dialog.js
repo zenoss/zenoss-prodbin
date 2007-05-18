@@ -37,6 +37,7 @@ Dialog.Box.prototype = {
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
         this.box.submit_form = bind(this.submit_form, this);
+        this.box.submit_form_and_check = bind(this.submit_form_and_check, this);
         this.parentElem = this.box.parentNode;
         this.defaultContent = this.box.innerHTML
         setStyle(this.box, {
@@ -93,14 +94,6 @@ Dialog.Box.prototype = {
         });
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
-        var d2 = this.lock.acquire(); 
-        d2.addCallback(bind(function(r) {
-            removeElementAutoCompletes();
-            try {
-                connect('new_id','onkeyup', doLiveCheck);
-            } catch(e) { noop(); }
-            if (this.lock.locked) this.lock.release();
-        }, this));
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
         showElement(this.framework);
@@ -131,7 +124,39 @@ Dialog.Box.prototype = {
         if (action != '') f.action = action;
         f.appendChild(this.box);
         return true;
-    }
+    },
+    submit_form_and_check: function(action, formname) {
+        var errmsg = $('errmsg');
+        var input = $('new_id');
+        var label = $('new_id_label');
+        var new_id = escape(input.value);
+        var submit = $('dialog_submit');
+        var path = $('checkValidIdPath').value
+
+        errmsg.innerHTML = "";
+        Morph(input, {"style": {"color": "black"}});
+        Morph(label, {"style": {"color": "white"}});
+        
+        d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
+        d.addCallback(bind(function (r) { 
+            if (r.responseText == 'True') { 
+                var f = formname?document.forms[formname]:this.form
+                setStyle(this.box, {'z-index':'-1'});
+                this.box = removeElement(this.box);
+                if (action != '') f.action = action;
+                f.appendChild(this.box);
+                submit.onclick = ""
+                submit.click();
+            } else {
+                Morph(input, {"style": {"color": "red"}});
+                Morph(label, {"style": {"color": "red"}});
+                errmsg.innerHTML = r.responseText;
+                shake(input);
+                shake(label);
+                shake(errmsg);
+            }
+        }, this));
+    },
 }
 
 log("Dialog javascript loaded.")

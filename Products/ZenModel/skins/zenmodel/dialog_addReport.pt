@@ -10,10 +10,9 @@
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form('${here/getPrimaryUrlPath}', 'reportForm')"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check('${here/getPrimaryUrlPath}', 'reportForm')"
                         name="manage_addDeviceReport:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

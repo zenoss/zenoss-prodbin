@@ -8,10 +8,10 @@
         tal:attributes="value here/getPrimaryUrlPath">
 <br/><br/>
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form('${here/absolute_url_path}')"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check(
+                                                '${here/absolute_url_path}')"
                         name="manage_addMibModule:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

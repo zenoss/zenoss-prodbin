@@ -7,7 +7,7 @@ Are you sure you want to remove these User Commands?<br/>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteUserCommand:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
+                        '${here/absolute_url}')" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;

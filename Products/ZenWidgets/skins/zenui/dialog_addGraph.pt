@@ -7,13 +7,11 @@
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url_path"><br/>
 </p>
-
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
-                disabled string:True;
-                type string:submit;
-                value string:OK;
-                onclick string:return $$('dialog').submit_form('', 'graphList')"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check('', 'graphList')"
                         name="manage_addRRDGraph:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

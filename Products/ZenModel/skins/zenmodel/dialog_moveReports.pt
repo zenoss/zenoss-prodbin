@@ -12,7 +12,7 @@
 <input type="submit" name="moveReports:method"
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'reportForm')" />
+                        '${here/absolute_url}', 'reportForm')" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;

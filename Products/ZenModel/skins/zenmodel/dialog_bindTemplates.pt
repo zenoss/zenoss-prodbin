@@ -11,7 +11,7 @@
 <div id="dialog_buttons">
 <input type="submit" name="bindTemplates:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}', 'objTemplates')" />
+                        '${here/absolute_url}', 'objTemplates')" />
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

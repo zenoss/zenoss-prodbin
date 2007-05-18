@@ -6,7 +6,7 @@ Are you sure you want to delete these Traps?<br/>
 <input type="submit" name="deleteMibNotifications:method"
     value="OK" 
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                            '${here/absolute_url_path}')"/>
+                            '${here/absolute_url}')"/>
 <input tal:attributes="id string:dialog_cancel;
                     type string:button;
                     value string:Cancel;

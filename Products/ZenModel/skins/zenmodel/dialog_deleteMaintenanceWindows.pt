@@ -7,7 +7,7 @@ Are you sure you want to remove these Maintenance Windows?<br/>
 <div id="dialog_buttons">
 <input type="submit" name="manage_deleteMaintenanceWindow:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
+                        '${here/absolute_url}')" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;

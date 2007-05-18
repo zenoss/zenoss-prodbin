@@ -1,5 +1,4 @@
 <h2>Add WinService</h2>
-<form method="post" tal:attributes="action here/absolute_url" name="_">
 <input type="hidden" name="userCreated" value="True">
 <span id="errmsg" style="color:red;"></span>
 <br/>
@@ -13,13 +12,13 @@ Description:&nbsp;<input name="description">
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check(
+                                                '${here/absolute_url}')"
                         name="addWinService:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;
                         onclick string:$$('dialog').hide()" />
 </div>
-</form>

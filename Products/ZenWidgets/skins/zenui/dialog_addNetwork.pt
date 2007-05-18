@@ -7,14 +7,11 @@
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/getPrimaryUrlPath"><br/>
 </p>
-
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form(
-                                                '${here/getPrimaryUrlPath}')" 
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check('${here/getPrimaryUrlPath}')" 
                         name="manage_addOrganizer:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

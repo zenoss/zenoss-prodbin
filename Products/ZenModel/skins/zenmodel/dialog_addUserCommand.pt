@@ -1,5 +1,4 @@
 <h2>Add User Command</h2>
-
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
@@ -9,13 +8,12 @@
         tal:attributes="value here/absolute_url">
 <br/><br/>
 </p>
-
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form('${here/absolute_url_path}')"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check(
+                                                '${hereabsolute_url}')"
                         name="manage_addUserCommand:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

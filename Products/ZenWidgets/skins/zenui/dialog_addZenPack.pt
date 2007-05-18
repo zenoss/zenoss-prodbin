@@ -1,6 +1,4 @@
 <h2>Create a new ZenPack:</h2>
-<form tal:attributes="action here/absolute_url_path;" 
-        method="post" name="addZenPack">
 <input type="hidden" name="zenScreenName" value="/zport/dmd/viewZenPacks"/>
 <span id="errmsg" style="color:red;"></span>
 <table>
@@ -18,13 +16,13 @@
 <br>
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK"
-                        name="manage_addZenPack:method" />
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check(
+                                                '${here/absolute_url_path}')"
+                name="manage_addZenPack:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
                         value string:Cancel;
                         onclick string:$$('dialog').hide()" />
 </div>
-</form>

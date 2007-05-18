@@ -5,7 +5,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url_path">
+        tal:attributes="value here/absolute_url">
 <br/><br/>
 Description:&nbsp;<input name="description"><br/><br/>
 Action:&nbsp;<input name="action"><br/><br/>
@@ -13,10 +13,10 @@ Ordering:&nbsp;<input name="ordering" size="5"><br/><br/>
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
-                        disabled string:True;
-                        type string:submit;
-                        value string:OK;
-                        onclick string:return $$('dialog').submit_form('${here/absolute_url_path}')"
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check(
+                                                '${here/absolute_url}')"
                         name="manage_addZenMenuItem:method"/>
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
