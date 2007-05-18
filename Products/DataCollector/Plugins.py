@@ -55,8 +55,12 @@ def loadPlugins(dmd):
     pdir = os.path.join(os.path.dirname(__file__),"plugins")
     log.info("loading collector plugins from:%s", pdir)
     plugins = _loadPluginDir(pdir)
-    for pack in dmd.packs():
-        plugins.update(_loadPluginDir(pack.path('modeler', 'plugins')))
+    try:
+        for pack in dmd.packs():
+            plugins.update(_loadPluginDir(pack.path('modeler', 'plugins')))
+    except:
+        log.error('Could not load modeler plugins from zenpacks.'
+                    ' One of the zenpacks is missing or broken.')
     return plugins
 
 

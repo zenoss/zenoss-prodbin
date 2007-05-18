@@ -11,7 +11,7 @@
       
 
         <tal:block tal:define=" tabletitle string:Loaded Zen Packs;
-		   		menu_id string:ZenPack_list; " >
+		   		menu_id string:ZenPack_list;" >
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -41,23 +41,34 @@
 	    <input type="checkbox" name="ids:list" 
 	    	   tal:attributes="value pack/id"/>
 	  </td>
-	  <td class="tablevalues">
-	    <a tal:attributes="href pack/getPrimaryUrlPath" 
-	       tal:content="pack/id"/>
-	  </td>
-	  <td class="tablevalues">
-	    <a tal:attributes="href pack/url" tal:content="pack/author"/>
-	  </td>
-	  <td class="tablevalues">
-	    <a tal:attributes="href pack/url" tal:content="pack/organization"/>
-	  </td>
-	  <td class="tablevalues">
-	    <a tal:attributes="href pack/url" tal:content="pack/version"/>
-	  </td>
-	  <td class="tablevalues">
-	    <a tal:attributes="href pack/getPrimaryUrlPath" 
-  	       tal:content="python:len(pack.packables())"/>
-	  </td>
+	
+	  <tal:block tal:condition="pack/getPrimaryUrlPath|nothing">
+		  <td class="tablevalues">
+		    <a tal:attributes="href pack/getPrimaryUrlPath" 
+		       tal:content="pack/id"/>
+		  </td>
+		  <td class="tablevalues">
+		    <a tal:attributes="href pack/url" tal:content="pack/author"/>
+		  </td>
+		  <td class="tablevalues">
+		    <a tal:attributes="href pack/url" tal:content="pack/organization"/>
+		  </td>
+		  <td class="tablevalues">
+		    <a tal:attributes="href pack/url" tal:content="pack/version"/>
+		  </td>
+		  <td class="tablevalues">
+		    <a tal:attributes="href pack/getPrimaryUrlPath" 
+	  	       tal:content="python:len(pack.packables())"/>
+		  </td>
+	  </tal:block>
+	  <tal:block tal:condition="not:pack/getPrimaryUrlPath|nothing">
+		  <td class="tablevalues">
+			<tal:dummy tal:replace="pack/id" />
+		  </td>
+		  <td class="tablevalues" colspan="4">
+		      This pack is missing or broken.  Please reinstall.
+		  </td>
+	  </tal:block>
 	</tr>
       
         <!-- END TABLE CONTENTS -->
