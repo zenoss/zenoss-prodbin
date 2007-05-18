@@ -65,6 +65,10 @@ set_perms() {
         ${ZENHOME}/log \
         ${ZENHOME}/var
     do
+        if [ ! -d ${dir} ]; then
+            continue
+        fi
+
         chown -R ${RUNUSER}:${RUNUSER} ${dir}
         chmod -R 775 ${dir}
     done
