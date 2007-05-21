@@ -554,13 +554,14 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                 pass
         return templates.values()
             
-    def getAllRRDTemplates(self):
-        rrdts = self.rrdTemplates()
+    def getAllRRDTemplates(self, rrdts=None):
+	if rrdts is None: rrdts = []
+    	rrdts.extend(self.rrdTemplates())
         for dev in self.devices():
             for rrdt in dev.getRRDTemplates():
                 if rrdt not in rrdts: rrdts.append(rrdt)
         for child in self.children():
-            rrdts.extend(child.getAllRRDTemplates())
+            child.getAllRRDTemplates(rrdts)
         return rrdts
     
     
