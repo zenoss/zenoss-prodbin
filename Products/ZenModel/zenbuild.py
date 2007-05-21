@@ -54,7 +54,7 @@ class zenbuild(CmdBase):
     def buildOptions(self):
         CmdBase.buildOptions(self)
         self.parser.add_option('-s','--evthost', dest="evthost", 
-                default="localhost", help="events database hostname")
+                default="127.0.0.1", help="events database hostname")
         self.parser.add_option('-u','--evtuser', dest="evtuser", default="root",
                 help="username used to connect to the events database")
         self.parser.add_option('-p','--evtpass', dest="evtpass", default="",
