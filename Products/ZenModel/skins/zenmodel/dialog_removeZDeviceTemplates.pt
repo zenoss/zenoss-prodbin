@@ -1,6 +1,6 @@
 <h2>Remove zDeviceTemplates</h2>
-<p tal:condition="python:here.isLocal('zDeviceTemplates')" tal:content="string:Are you sure you want to remove the zDeviceTemplates property?"/>
-<p tal:condition="python:not here.isLocal('zDeviceTemplates')" tal:content="string:The zDeviceTemplates property is not defined."/>
+<p tal:condition="python:here.isLocal('zDeviceTemplates')" tal:content="string:Are you sure you want to delete all local template bindings and use default values?"/>
+<p tal:condition="python:not here.isLocal('zDeviceTemplates')" tal:content="string:You are already using the default values."/>
 <br>
 <div align="center">
 <input type="submit" name="removeZDeviceTemplates:method"

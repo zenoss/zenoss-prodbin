@@ -1054,7 +1054,7 @@ class MenuRelations(Migrate.Step):
                     'ordering': 80.1,
                     'permissions': ('Change Device',)},
                 {  'action': 'dialog_removeZDeviceTemplates',
-                      'description': 'Remove zDeviceTemplates...',
+                      'description': 'Reset Bindings',
                       'id': 'removeZDeviceTemplates',
                       'isdialog': True,
                       'ordering': 70.1,
