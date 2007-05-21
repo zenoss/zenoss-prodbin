@@ -458,7 +458,7 @@ def sendPage(recipient, msg, snppHost, snppPort):
        
 
 def zdecode(context, value):
-    if type(value) in types.StringTypes:
+    if type(value) == type(''):
         decoding = getattr(context, 'zCollectorDecoding', 'latin-1')
         value = value.decode(decoding)
     return value

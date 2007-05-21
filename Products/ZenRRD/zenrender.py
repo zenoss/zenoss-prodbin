@@ -36,9 +36,10 @@ class RenderServer(OrigRenderServer):
 class zenrender(PBDaemon):
 
     initialServices = ['ZenRender']
+    name = 'zenrender'
 
     def __init__(self):
-        PBDaemon.__init__(self, 'zenrender')
+        PBDaemon.__init__(self)
         self.rs = RenderServer(self.name)
 
     def remote_render(self, *args, **kw):
