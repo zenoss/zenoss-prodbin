@@ -136,12 +136,16 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
                 statusMonitors, performanceMonitor, priority)
-    if discoverProto == "none":
-        from Products.ZenModel.IpInterface import IpInterface
-        tmpInterface = IpInterface('eth0')
-        device.os.interfaces._setObject('eth0', tmpInterface)
-        interface = device.getDeviceComponents()[0]
-        interface.addIpAddress(device.getManageIp())
+# Not sure why this was important but it causes issues if
+# we are adding an alias to an existing box.  It will take
+# away that boxes IP.  It also seems to make a network with
+# the wrong netmask.
+#    if discoverProto == "none":
+#        from Products.ZenModel.IpInterface import IpInterface
+#        tmpInterface = IpInterface('eth0')
+#        device.os.interfaces._setObject('eth0', tmpInterface)
+#        interface = device.getDeviceComponents()[0]
+#        interface.addIpAddress(device.getManageIp())
     return device
 
 
