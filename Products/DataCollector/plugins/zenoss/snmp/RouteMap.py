@@ -58,6 +58,8 @@ class RouteMap(SnmpPlugin):
         rm = self.relMap()
         for route in routetable.values():
             om = self.objectMap(route)
+            if not om.dict.has_key("routemask"):
+                continue
             om.routemask = self.maskToBits(om.routemask)
             om.setTarget = om.id + "/" + str(om.routemask)
             om.id = om.id + "_" + str(om.routemask)
