@@ -40,9 +40,8 @@ class Render(resource.Resource):
         for k, v in args.items():
             if len(v) == 1:
                 args[k] = v[0]
-        for instance, renderer in self.renderers.items():
-            for listener in renderer.listeners:
-                try:
+        if True:
+                    listener = request.postpath[-2]
                     command = request.postpath[-1]
                     args.setdefault('ftype', 'PNG')
                     ftype = args['ftype']
@@ -55,13 +54,11 @@ class Render(resource.Resource):
                     def error(reason):
                         log.error("Unable to fetch graph: %s", reason)
                         request.finish()
+		    if not self.renderers.get(listener, False):
+               		raise Exception("Renderer %s unavailable" % listener)
                     d = listener.callRemote(command, **args)
                     d.addCallbacks(write, error)
                     return server.NOT_DONE_YET
-                except Exception, ex:
-                    log.exception(ex)
-                    log.warning("Skipping renderer %s" % instance)
-        raise Exception("No renderer registered")
 
     def render_POST(self, request):
         "Deal with XML-RPC requests"
