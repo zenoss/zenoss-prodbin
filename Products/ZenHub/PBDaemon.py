@@ -99,8 +99,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         factory = ReconnectingPBClientFactory()
-        self.log.debug("Connecting to %s", self.options.hubHost)
-        reactor.connectTCP(self.options.hubHost, self.options.hubPort, factory)
+        self.log.debug("Connecting to %s", self.options.hubhost)
+        reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
         username = self.options.username
         password = self.options.password
         self.log.debug("Logging in as %s", username)
@@ -240,12 +240,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def buildOptions(self):
         self.parser.add_option('--hub-host',
-                                dest='hubHost',
+                                dest='hubhost',
                                 default=DEFAULT_HUB_HOST,
                                 help='Host of zenhub daemon.'
                                 ' Default is %s.' % DEFAULT_HUB_HOST)
         self.parser.add_option('--hub-port',
-                                dest='hubPort',
+                                dest='hubport',
                                 default=DEFAULT_HUB_PORT,
                                 help='Port zenhub listens on.'
                                     'Default is %s.' % DEFAULT_HUB_PORT)
