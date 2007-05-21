@@ -6,7 +6,7 @@
 <tal:block metal:define-macro="rrdtemplatelist"
     tal:define="
         tableName string:rrdtemplatelist;
-        objects here/dmd/Devices/getAllRRDTemplates;
+        objects here/getAllRRDTemplates;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:All Performance Templates;
         menu_id string:AllTemplates">
