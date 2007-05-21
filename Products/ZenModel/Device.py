@@ -1399,7 +1399,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         "Create a local template on a device"
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
         manage_addRRDTemplate(self, id)
-        self.bindTemplates(self.zDeviceTemplates+[id])
+        if id not in self.zDeviceTemplates:
+            self.bindTemplates(self.zDeviceTemplates+[id])
         if REQUEST:
             REQUEST['message'] = 'Added template %s to %s' % (id, self.id)
             return self.callZenScreen(REQUEST)
