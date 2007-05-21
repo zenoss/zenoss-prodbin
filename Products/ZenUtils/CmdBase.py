@@ -49,6 +49,8 @@ def parseconfig(options):
 class DMDError: pass
 
 class CmdBase:
+    
+    doesLogging = True
 
     def __init__(self, noopts=0):
         self.usage = "%prog [options]"
@@ -60,7 +62,8 @@ class CmdBase:
         self.parseOptions()
         if self.options.configfile:
             parseconfig(self.options)
-        self.setupLogging()
+        if self.doesLogging:
+            self.setupLogging()
 
 
     def setupLogging(self):
@@ -92,13 +95,14 @@ class CmdBase:
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         self.buildParser()
-        self.parser.add_option('-v', '--logseverity',
-                    dest='logseverity',
-                    default=20,
-                    type='int',
-                    help='Logging severity threshold')
-        self.parser.add_option('--logpath',dest='logpath',
-                    help='override default logging path')
+        if self.doesLogging:
+            self.parser.add_option('-v', '--logseverity',
+                        dest='logseverity',
+                        default=20,
+                        type='int',
+                        help='Logging severity threshold')
+            self.parser.add_option('--logpath',dest='logpath',
+                        help='override default logging path')
         self.parser.add_option("-C", "--configfile", 
                     dest="configfile",
                     help="config file must define all params (see man)")
