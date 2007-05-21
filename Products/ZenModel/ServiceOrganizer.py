@@ -28,6 +28,7 @@ from Products.ZenRelations.RelSchema import *
 
 from Organizer import Organizer
 from ServiceClass import ServiceClass
+from IpServiceClass import IpServiceClass
 
 def manage_addServiceOrganizer(context, id, REQUEST = None):
     """make a device class"""
@@ -143,6 +144,18 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         """
         if id:
             sc = ServiceClass(id)
+            self.serviceclasses._setObject(id, sc)
+        if REQUEST or not id:
+            return self.callZenScreen(REQUEST)
+        else:
+            return self.serviceclasses._getOb(id)
+
+    
+    def manage_addIpServiceClass(self, id=None, REQUEST=None):
+        """Create a new service class in this Organizer.
+        """
+        if id:
+            sc = IpServiceClass(id)
             self.serviceclasses._setObject(id, sc)
         if REQUEST or not id:
             return self.callZenScreen(REQUEST)

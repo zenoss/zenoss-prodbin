@@ -7,7 +7,7 @@ What would you like to name this service class?
 <input type="text" name="id"/>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addServiceClass:method"
+<input type="submit" name="manage_addIpServiceClass:method"
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/getPrimaryUrlPath}')" />
