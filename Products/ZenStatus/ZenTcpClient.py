@@ -91,8 +91,9 @@ class ZenTcpClient(protocol.ClientFactory):
         elif self.msg != "pass":
             self.status += 1
             sev = self.cfg.failSeverity
-            log.warn("device:%s service:%s down", 
-                     self.cfg.device, self.cfg.component)
+            self.msg = "device:%s service:%s is down" % (
+                        self.cfg.device, self.cfg.component)
+            log.warn(self.msg)
         else:
             return None
         return dict(device=self.cfg.device, 
