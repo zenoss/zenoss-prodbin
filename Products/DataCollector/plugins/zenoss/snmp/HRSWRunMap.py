@@ -33,17 +33,25 @@ class HRSWRunMap(SnmpPlugin):
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
 
+    columns = {
+         '.1': 'snmpindex',
+         '.2': 'procName',
+         '.4': '_procPath',
+         '.5': 'parameters',
+         }
+
+    colnames = Set(columns.values())
+
     snmpGetTableMaps = (
-        GetTableMap('hrSWRunEntry', '.1.3.6.1.2.1.25.4.2.1',
-            {
-             '.1': 'snmpindex',
-             '.2': 'procName',
-             '.4': '_procPath',
-             '.5': 'parameters',
-             }
-        ),
+        GetTableMap('hrSWRunEntry', '.1.3.6.1.2.1.25.4.2.1', columns),
     )
 
+    def checkColumns(self, proc):
+        """Check that all columns came back, 
+        this should be everywhere #1539 -EAD
+        """
+        return Set(proc.keys()) == self.colnames
+        
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
@@ -53,6 +61,7 @@ class HRSWRunMap(SnmpPlugin):
         rm = self.relMap()
         procs = Set()
         for proc in fstable.values():
+            if not self.checkResult(proc): continue 
             om = self.objectMap(proc)
             ppath = getattr(om, '_procPath', False) 
             if ppath and ppath.find('\\') == -1:
