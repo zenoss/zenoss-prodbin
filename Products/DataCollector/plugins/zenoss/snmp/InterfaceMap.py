@@ -89,7 +89,7 @@ class InterfaceMap(SnmpPlugin):
                 except KeyError: pass
 
         omtable = {}
-        for iprow in iptable.values():
+        for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
             if not iprow.has_key("ifindex"): continue
             strindex = str(iprow['ifindex'])
@@ -109,7 +109,7 @@ class InterfaceMap(SnmpPlugin):
                 log.warn("ip points to missing ifindex %s skipping", strindex) 
                 continue
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
-            ip = iprow['ipAddress']+"/"+str(self.maskToBits(iprow['netmask']))
+            ip = ip + "/" + str(self.maskToBits(iprow['netmask'].strip()))
             om.setIpAddresses.append(ip)
             #om.ifindex = iprow.ifindex #FIXME ifindex is not set!
 
