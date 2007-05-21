@@ -1,11 +1,18 @@
 <h2>Copy Templates</h2>
 <br/><br/>
 <p>
-Are you sure you want to copy these Templates into the buffer?<br/>
+What device class would you like to copy into?<br/>
 </p>
+<select name="copyTarget"
+        tal:define="
+        dcs here/deviceMoveTargets">
+    <option tal:repeat="dc dcs" 
+        tal:attributes="value dc; selected python:dc==here"
+        tal:content="dc">/Server/Linux</option>
+</select>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="manage_copyRRDTemplates:method"
+<input type="submit" name="manage_copyAndPasteRRDTemplates:method"
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url}')" />

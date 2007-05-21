@@ -604,16 +604,35 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         if cp:
             if moveTarget:
                 target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
-                target.rrdTemplates.manage_pasteObjects(cp)
             else:
-                self.rrdTemplates.manage_pasteObjects(cp)
+                target = self
+            target.rrdTemplates.manage_pasteObjects(cp)
+        else:
+            target = None
             
         if REQUEST:
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
             REQUEST['__cp'] = None
-            REQUEST['message'] = "Templates pasted"
-            return self.callZenScreen(REQUEST)
+            if target:
+                message = "Template(s) moved to %s" % moveTarget
+            else:
+                message = None
+            if not isinstance(REQUEST, FakeRequest):
+                url = target.getPrimaryUrlPath() + '/perfConfig'
+                if message:
+                    url += '?message=%s' % message
+                REQUEST['RESPONSE'].redirect(url)
+            else:
+                REQUEST['message'] = message
+                return self.callZenScreen(REQUEST)
+
+
+    def manage_copyAndPasteRRDTemplates(self, ids=(), copyTarget=None, REQUEST=None):
+        ''' Copy the selected templates into the specified device class.
+        '''
+        cp = self.manage_copyRRDTemplates(ids)
+        return self.manage_pasteRRDTemplates(copyTarget, cp, REQUEST)
 
 
     def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
