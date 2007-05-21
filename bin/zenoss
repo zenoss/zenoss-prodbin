@@ -54,15 +54,15 @@ C=
 C="$C zeoctl"
 C="$C zopectl"
 C="$C zenhub"
-C="$C zenmodeler"
-C="$C zenperfsnmp"
-C="$C zenprocess"
 C="$C zenping"
 C="$C zensyslog"
 C="$C zenstatus"
 C="$C zenactions"
 C="$C zentrap"
+C="$C zenmodeler"
+C="$C zenperfsnmp"
 C="$C zencommand"
+C="$C zenprocess"
 if [ -f $ZENHOME/lib/python/pywmi.py ]
 then
     C="$C zenwin"
