@@ -63,6 +63,7 @@ export UPGRADED=${ZENHOME}/.upgraded
 set_perms() {
     for dir in \
         ${ZENHOME}/log \
+        ${ZENHOME}/etc \
         ${ZENHOME}/var
     do
         if [ ! -d ${dir} ]; then
