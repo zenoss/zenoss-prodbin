@@ -59,7 +59,12 @@
     <span id="query"><span id="filters">
       <table summary="Action filters"><tbody>
 	  <tr><td colspan='4'>
-	     <label for="add_filter" class="tablevalues">Add filter</label>&nbsp;
+	     <label for="add_filter" class="tablevalues">Add filter</label>
+         <!-- This is such a stupid hack, but I can't find another way to 
+              make the options list drop down on FF/Win without this other 
+              select box in front of it
+         -->
+         <select style="display:none" tal:content="structure here/getQueryElements"/>
 	     <select name="add_filter" id="add_filter" class="tablevalues"
 	       tal:content='structure here/getQueryElements'/>
 	     <input type="submit" name="add" value="+" class="tablevalues"/>
