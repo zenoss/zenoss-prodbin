@@ -50,7 +50,7 @@ zenhome = os.environ['ZENHOME']
 
 class ImportRM(CmdBase, ContentHandler):
 
-    rootobj = None
+    rootpath = ""
 
     def __init__(self):
         CmdBase.__init__(self)
@@ -81,9 +81,10 @@ class ImportRM(CmdBase, ContentHandler):
         self.log.debug("tag %s, context %s", name, self.context().id)
         if name == 'object':
             obj = self.createObject(attrs)
-            if (not self.options.noindex and len(self.objstack) == 1 
-                and hasattr(aq_base(obj), 'reIndex')):
-                self.rootobj = obj
+            if (not self.options.noindex  
+                and hasattr(aq_base(obj), 'reIndex')
+                and not self.rootpath):
+                self.rootpath = obj.getPrimaryId()
             self.objstack.append(obj)
         elif name == 'tomanycont' or name == 'tomany':
             self.objstack.append(self.context()._getOb(attrs['id']))
@@ -101,14 +102,15 @@ class ImportRM(CmdBase, ContentHandler):
 
     def endElement(self, name):
         if name in ('object', 'tomany', 'tomanycont'):
-            self.objstack.pop()
+            obj = self.objstack.pop()
+            if self.rootpath == obj.getPrimaryId():
+                self.log.info("calling reIndex %s", obj.getPrimaryId())
+                obj.reIndex()
+                self.rootpath = ""
         elif name == 'objects':
             self.log.info("End loading objects")
             self.log.info("Processing links")
             self.processLinks()
-            if self.rootobj is not None:
-                self.log.info("calling reIndex %s", self.rootobj.getPrimaryId())
-                self.rootobj.reIndex()
             if not self.options.noCommit:
                 self.commit()
             self.log.info("Loaded %d objects into database" % self.objectnumber)
