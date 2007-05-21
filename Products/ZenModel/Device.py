@@ -1253,6 +1253,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                                             "/deviceOrganizerStatus")
 
 
+    def manage_deleteHeartbeat(self, REQUEST=None):
+        """Delete this device's heartbeats."""
+        self.getEventManager().manage_deleteHeartbeat(self.getId())
+        if REQUEST:
+            REQUEST['message'] = "Cleared heartbeat events for %s" % self.id
+        return self.callZenScreen(REQUEST)
+
+
     security.declareProtected('Change Device', 'renameDevice')
     def renameDevice(self, newId=None, REQUEST=None):
         """Rename device from the DMD"""
