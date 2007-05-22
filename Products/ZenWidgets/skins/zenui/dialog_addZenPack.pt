@@ -1,5 +1,4 @@
 <h2>Create a new ZenPack:</h2>
-<input type="hidden" name="zenScreenName" value="/zport/dmd/viewZenPacks"/>
 <span id="errmsg" style="color:red;"></span>
 <table>
 <tr><td>
