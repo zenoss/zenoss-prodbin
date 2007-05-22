@@ -85,7 +85,13 @@ class ZenPackCmd(ZenScriptBase):
                 self.log.debug('Removing file "%s"' % f)
                 os.remove(os.path.join(p, f))
             for d in ds:
-                os.rmdir(os.path.join(p, d))
+                path = os.path.join(p, d)
+                if os.path.islink(path):
+                    self.log.debug('Removing link "%s"' % d)
+                    os.remove(path)
+                else:
+                    self.log.debug('Removing dir "%s"' % d)
+                    os.rmdir(path)
         os.rmdir(root)
 
 

@@ -24,6 +24,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from OFS.CopySupport import CopyError, eNotSupported
+from Products.CMFCore.DirectoryView import registerDirectory
 from ImageFile import ImageFile
 from Globals import HTMLFile, DTMLFile
 from Globals import InitializeClass
@@ -470,6 +471,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             for d in ['objects', 'skins', 'modeler/plugins',
                       'reports', 'daemons']:
                 os.makedirs(os.path.join(zp, d))
+        skinsDir = os.path.join(zp, 'skins')
+        skinsDir2 = os.path.join(skinsDir, id)
+        if not os.path.isdir(skinsDir2):
+            os.makedirs(skinsDir2)
+        registerDirectory(skinsDir, globals())
+        # Install in order to register the skins directory
+        pack.install(self.getPhysicalRoot())
         if REQUEST is not None:
             return self.callZenScreen(REQUEST, redirect=True)
 
