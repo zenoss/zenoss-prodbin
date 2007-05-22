@@ -91,11 +91,11 @@ class InterfaceMap(SnmpPlugin):
         omtable = {}
         for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
-            if not iprow.has_key("ifindex"): continue
-            strindex = str(iprow['ifindex'])
+            if not row.has_key("ifindex"): continue
+            strindex = str(row['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
                 log.warn("skipping %s points to missing ifindex %s",
-                            iprow.get('ipAddress',""), iprow.get('ifindex',""))
+                            row.get('ipAddress',""), row.get('ifindex',""))
                 continue                                 
             if not omtable.has_key(strindex):
                 om = self.processInt(device, iftable[strindex])
@@ -109,9 +109,9 @@ class InterfaceMap(SnmpPlugin):
                 log.warn("ip points to missing ifindex %s skipping", strindex) 
                 continue
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
-            ip = ip + "/" + str(self.maskToBits(iprow['netmask'].strip()))
+            ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
             om.setIpAddresses.append(ip)
-            #om.ifindex = iprow.ifindex #FIXME ifindex is not set!
+            #om.ifindex = row.ifindex #FIXME ifindex is not set!
 
         for iface in iftable.values():
             om = self.processInt(device, iface)
