@@ -1411,11 +1411,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     def getAvailableTemplates(self):
         "Returns all available templates for this device"
-        availTemplates = self.deviceClass().getRRDTemplates()
-        availTemplateNames = map(lambda x: x.id, availTemplates)
-        for t in self.getRRDTemplates():
-            if t.id not in availTemplateNames:
-                availTemplates.append(t)
-        return availTemplates
+        # All templates defined on this device are available
+        templates = self.objectValues('RRDTemplate')
+        # Any templates available to the class that aren't overridden locally
+        # are also available
+        templates += [t for t in self.deviceClass().getRRDTemplates()
+                        if t.id not in [r.id for r in templates]]
+        def cmpTemplates(a, b):
+            return cmp(a.id.lower(), b.id.lower())
+        templates.sort(cmpTemplates)
+        return templates
          
 InitializeClass(Device)
