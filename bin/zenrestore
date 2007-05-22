@@ -11,4 +11,4 @@
 #############################################################################
 
 . $ZENHOME/bin/zenfunctions
-$PYTHON $ZENHOME/Products/ZenUtils/zenrestore.py "$CMD" $*
+$PYTHON $ZENHOME/Products/ZenUtils/ZenRestore.py "$CMD" $*
