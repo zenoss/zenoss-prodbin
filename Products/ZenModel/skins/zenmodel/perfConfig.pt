@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form name="templates" method="post" 
+	tal:attributes="action here/absolute_url_path">
 
 <tal:block metal:define-macro="rrdtemplatelist"
     tal:define="
