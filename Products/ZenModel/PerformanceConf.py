@@ -340,7 +340,8 @@ class PerformanceConf(Monitor, StatusColor):
         gopts = urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
                 self.renderurl,gopts,drange, width)
-        if self.renderurl.startswith("http"):
+        if self.renderurl.startswith("proxy"):
+            url.replace("proxy", "http")
             return  "/zport/RenderServer/render" \
                     "?remoteUrl=%s&gopts=%s&drange=%d&width=%s" % (
                     url_quote(url),gopts,drange,width)
