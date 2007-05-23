@@ -168,20 +168,138 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             status += group.snmpStatus()
         return status
 
-    def setProdState(self, state, REQUEST=None):
+    def _buildDeviceList(self, deviceNames):
+        """Build a device list for set methods"""
+        if deviceNames is None:
+            devices = self.getSubDevices()
+        else:
+            if type(deviceNames) == type(''): 
+                deviceNames = (deviceNames,)
+            devices = [ self.findDevice(dn) for dn in deviceNames ]
+        return devices
+
+
+    def setProdState(self, state, deviceNames=None, 
+                        isOrganizer=False, REQUEST=None):
         """Set production state of all devices in this Organizer.
         """
-        [ d.setProdState(state) for d in self.getSubDevices() ]
-        if REQUEST:
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
             return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setProdState(state)
+        if REQUEST:
+            statename = self.convertProdState(state)
+            REQUEST['message'] = "Production State set to %s" % state 
+            return self.callZenScreen(REQUEST)
+
             
-    def setPriority(self, priority, REQUEST=None):
-        """Set production state of all devices in this Organizer.
+    def setPriority(self, priority, deviceNames=None, 
+                    isOrganizer=False, REQUEST=None):
+        """Set prioirty of all devices in this Organizer.
         """
-        [ d.setPriority(priority) for d in self.getSubDevices() ]
-        if REQUEST:
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
             return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setPriority(priority)
+        if REQUEST:
+            priname = self.convertPriority(priority)
+            REQUEST['message'] = "Priority set to %s" % priname 
+            return self.callZenScreen(REQUEST)
+
     
+    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
+                                isOrganizer=False, REQUEST=None):
+        """ Provide a method to set performance monitor from any organizer """
+        if not performanceMonitor:
+            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            return self.callZenScreen(REQUEST)
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setPerformanceMonitor(performanceMonitor)
+        if REQUEST: 
+            REQUEST['message'] = "Performance monitor set to %s" % (
+                                    performanceMonitor)
+            return self.callZenScreen(REQUEST)
+  
+
+    def setGroups(self, groupPaths=None, deviceNames=None, 
+                    isOrganizer=False, REQUEST=None):
+        """ Provide a method to set device groups from any organizer """
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        if not groupPaths: groupPaths = []
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setGroups(groupPaths)
+        if REQUEST: 
+            REQUEST['message'] = "Groups set to %s" % ", ".join(groupPaths)
+            return self.callZenScreen(REQUEST)
+
+
+    def setSystems(self, systemPaths=None, deviceNames=None, 
+                    isOrganizer=False, REQUEST=None):
+        """ Provide a method to set device systems from any organizer """
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        if not systemPaths: systemPaths = []
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setSystems(systemPaths)
+        if REQUEST: 
+            REQUEST['message'] = "Systems set to %s" % ", ".join(systemPaths)
+            return self.callZenScreen(REQUEST)
+
+    def setLocation(self, locationPath="", deviceNames=None,
+                    isOrganizer=False, REQUEST=None):
+        """ Provide a method to set device location from any organizer """
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.setLocation(locationPath)
+        if REQUEST: 
+            REQUEST['message'] = "Location set to %s" % locationPath
+            return self.callZenScreen(REQUEST)
+
+    def unlockDevices(self, deviceNames=None, isOrganizer=False, REQUEST=None):
+        """Unlock devices"""
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.unlock()
+        if REQUEST:
+            REQUEST['message'] = "Devices unlocked"
+            return self.callZenScreen(REQUEST)
+
+    def lockDevicesFromDeletion(self, deviceNames=None, 
+                    sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
+        """Lock devices from being deleted"""
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.lockFromDeletion(sendEventWhenBlocked)
+        if REQUEST:
+            REQUEST['message'] = "Devices locked from deletion"
+            return self.callZenScreen(REQUEST)
+
+    def lockDevicesFromUpdates(self, deviceNames=None, 
+                sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
+        """Lock devices from being deleted or updated"""
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for dev in self._buildDeviceList(deviceNames):
+            dev.lockFromUpdates(sendEventWhenBlocked)
+        if REQUEST:
+            REQUEST['message'] = "Devices locked from updates and deletion"
+            return self.callZenScreen(REQUEST)
+
     def manage_snmpCommunity(self, REQUEST=None):
         """reset Community on all devices in this Organizer.
         """

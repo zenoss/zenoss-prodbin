@@ -1,0 +1,12 @@
+<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1"
+    tal:condition="request/isOrganizer | python:False">
+    <input type="hidden" name="isOrganizer" value="1"/>
+    <tal:block metal:use-macro="here/dialog_setPriority/macros/body"/>
+    <input type="submit" value="OK" name="setPriority:method"/>
+    <input tal:attributes="id string:dialog_cancel;
+            type string:button;
+            value string:Cancel;
+            onclick string:$$('dialog').hide()" />
+    
+</form>
+
