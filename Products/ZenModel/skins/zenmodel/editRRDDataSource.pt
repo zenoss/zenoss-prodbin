@@ -116,8 +116,6 @@
                 tal:content="here/commandTemplate"/>
         </tr>
 
-    </span>
-
 
     <tr>
         <td class=tableheader align="left" >
