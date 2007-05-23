@@ -1,3 +1,4 @@
+<tal:block metal:define-macro="body">
 <h2>Set Location</h2>
 <p>
 To which location would you like to move these devices?
@@ -11,6 +12,7 @@ To which location would you like to move these devices?
             tal:content="loc">/Location/Path</option>
     </select>
 </p>
+</tal:block>
 <div id="dialog_buttons">
 <input type="submit" name="setLocation:method"
     value="Set Location"

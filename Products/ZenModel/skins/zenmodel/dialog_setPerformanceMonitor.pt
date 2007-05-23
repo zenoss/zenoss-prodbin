@@ -1,3 +1,4 @@
+<tal:block metal:define-macro="body">
 <h2>Set Performance Monitor</h2>
 <br/>
 <p style="text-align:center;font-size:0.8em;">
@@ -12,6 +13,7 @@ Performance Monitor:&nbsp;<select class="tablevalues" name="performanceMonitor"
                 tal:content="crk">localhost</option>
         </select>
 </p>
+</tal:block>
 <div id="dialog_buttons">
 <input type="submit" name="setPerformanceMonitor:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(

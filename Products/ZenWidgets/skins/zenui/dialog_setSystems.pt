@@ -1,3 +1,4 @@
+<tal:block metal:define-macro="body">
 <h2>Set Systems</h2>
 <p style="text-align:center;font-size:0.8em;">
     <select class="tablevalues" name="systemPaths:list" multiple
@@ -7,6 +8,7 @@
             tal:content="system">localhost</option>
     </select>
 </p>
+</tal:block>
 <div id="dialog_buttons">
 <input type="submit" name="setSystems:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
