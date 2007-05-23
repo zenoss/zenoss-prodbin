@@ -1,4 +1,4 @@
-<h2>Remove zDeviceTemplates</h2>
+<h2>Reset Template Bindings</h2>
 <p tal:condition="python:here.isLocal('zDeviceTemplates')" tal:content="string:Are you sure you want to delete all local template bindings and use default values?"/>
 <p tal:condition="python:not here.isLocal('zDeviceTemplates')" tal:content="string:You are already using the default values."/>
 <br>
