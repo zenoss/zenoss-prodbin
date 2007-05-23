@@ -45,9 +45,7 @@ def crumbspath(templ, crumbs, idx=-1):
         url = '%s/perfConfig' % dc.getPrimaryUrlPath()
     else:
         url = '%s/objTemplates' % templ.getPrimaryParent().getPrimaryUrlPath()
-    
-    idx = -1
-    crumbs.insert(idx,(url,'PerfConf'))
+    crumbs.insert(idx,(url,'Templates'))
     return crumbs
 
 
