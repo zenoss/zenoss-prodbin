@@ -1,0 +1,26 @@
+<tal:block metal:define-macro="body">
+<h2>Set Priority</h2>
+<p>
+<select name="priority:int" id="priority"
+        tal:define="
+        priorities here/getPriorityConversions;
+        curpriority device/priority | 
+                request/priority | python:1000">
+    <option tal:repeat="priority priorities" 
+        tal:attributes="value python:priority[1]; 
+            selected python:curpriority == priority[1]"
+        tal:content="python:priority[0]">localhost</option>
+</select>
+</p>
+<br/>
+</tal:block>
+<div id="dialog_buttons">
+<input type="submit" name="setProductionState:method"
+    value="Move"
+    onclick="devZenGrid.setDeviceBatchProps('setPriority',$('priority').value)"
+/>
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
+</div>

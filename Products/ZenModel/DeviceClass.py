@@ -239,7 +239,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
              'setLocation':'locationPath',
              'setPerformanceMonitor':'performanceMonitor',
              'moveDevices':'moveTarget',
-             'removeDevices':''
+             'removeDevices':'',
+             'setProdState':'state',
+             'setPriority':'priority'
             }
         request = FakeRequest()
         argdict = dict(REQUEST=request)

@@ -1,0 +1,27 @@
+<tal:block metal:define-macro="body">
+<h2>Set Production State</h2>
+<p>
+<select name="state:int" id="state"
+        tal:define="
+        pstates here/getProdStateConversions;
+        curstate device/productionState | 
+                request/productionState | python:1000"
+        >
+    <option tal:repeat="pstate pstates" 
+        tal:attributes="value python:pstate[1]; 
+            selected python:curstate == pstate[1]"
+        tal:content="python:pstate[0]">localhost</option>
+</select>
+</p>
+<br/>
+</tal:block>
+<div id="dialog_buttons">
+<input type="submit" name="setProductionState:method"
+    value="Move"
+    onclick="devZenGrid.setDeviceBatchProps('setProdState',$('state').value)"
+/>
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
+</div>
