@@ -529,6 +529,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
     def manage_copyAndPasteRRDTemplates(self, ids=(), copyTarget=None, REQUEST=None):
         ''' Copy the selected templates into the specified device class.
         '''
+        if not ids:
+            REQUEST['message'] = "No Templates Selected"
+            return self.callZenScreen(REQUEST)
+        if copyTarget is None:
+            REQUEST['message'] = "No Target Selected"
+            return self.callZenScreen(REQUEST)
         cp = self.manage_copyRRDTemplates(ids)
         return self.manage_pasteRRDTemplates(copyTarget, cp, REQUEST)
 
