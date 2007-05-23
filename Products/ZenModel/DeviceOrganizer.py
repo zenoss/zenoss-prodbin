@@ -190,7 +190,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.setProdState(state)
         if REQUEST:
             statename = self.convertProdState(state)
-            REQUEST['message'] = "Production State set to %s" % state 
+            REQUEST['message'] = "Production State set to %s" % statename
             return self.callZenScreen(REQUEST)
 
             

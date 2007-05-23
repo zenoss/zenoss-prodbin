@@ -1,5 +1,5 @@
 <h2>Set Production State</h2>
-<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
+<p>
 <select name="state:int"
         tal:define="
         pstates here/getProdStateConversions;
@@ -14,10 +14,11 @@
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="setProdState:method" value="OK" />
+<input type="submit" name="setProdState:method" value="OK"
+    tal:attributes="onclick 
+    string: return $$('dialog').submit_form('${here/getPrimaryUrlPath}')"/>
 <input tal:attributes="id string:dialog_cancel;
-      type string:button;
-      value string:Cancel;
-      onclick string:$$('dialog').hide()" />
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
 </div>
-</form>
