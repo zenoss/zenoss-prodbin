@@ -16,6 +16,9 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
+    <style>
+    .thin,.noack,.acked {text-align:center}
+    </style>
     <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
     <script type="text/javascript" src="/zport/js/zenutils.js"></script>
     <script tal:define="userSettings python:here.ZenUsers.getUserSettings()"

@@ -521,7 +521,7 @@ DeviceZenGrid.prototype = {
         disconnectAllTo(this.markAsChecked);
         for (i=0;i<rows.length&&i<data.length;i++) {
             var mydata = data[i];
-            setElementClass(rows[i], mydata[mydata.length-1])
+            setElementClass(rows[i], (this.lastOffset+i)%2?'odd':'even')
             var evid = mydata[mydata.length-2];
             var chkbox = '<input type="checkbox" name="evids:list" ';
             if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 

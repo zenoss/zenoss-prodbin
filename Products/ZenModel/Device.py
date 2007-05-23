@@ -149,7 +149,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     return device
 
 
-def findCommunity(context, ip, devicePath, community="", port=None, version='v1'):
+def findCommunity(context, ip, devicePath, 
+                  community="", port=None, version='v1'):
     """Find the snmp community for an ip address using zSnmpCommunities.
     """
     try:
@@ -179,9 +180,6 @@ def findCommunity(context, ip, devicePath, community="", port=None, version='v1'
     else:
         raise NoSnmp("no snmp found for ip = %s" % ip)
     return (goodcommunity, port, version, devname)
-
-
-
 
 def manage_addDevice(context, id, REQUEST = None):
     """make a device"""

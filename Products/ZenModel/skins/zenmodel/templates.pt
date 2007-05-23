@@ -20,12 +20,12 @@
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
 	   <div id="frame">
             <div metal:use-macro="here/templates/macros/topPane"/>
-            <div metal:use-macro="here/templates/macros/infoBar">
-            <tal:block metal:fill-slot="infoBar">
-            <tal:block metal:define-slot="infoBar">
-           <div metal:use-macro="here/templates/macros/breadCrumbPane"/> 
-           </tal:block>
-            </tal:block>
+            <div id="infoBar">
+                <div id="leftPaneToggle"></div>
+                <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
+                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+                </div>
+                <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
             </div>
             <div id="paneToggle">
             </div>
@@ -70,12 +70,14 @@
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
-        <tal:block metal:fill-slot="rightPane">
-            <!--
-            <tal:block metal:define-slot="breadCrumbPane">
-            <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
+        <tal:block metal:fill-slot="breadcrumbs">
+            <div id="breadCrumbPane">
+            <tal:block metal:define-slot="breadcrumbs">
+                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
             </tal:block>
-            -->
+            </div>
+        </tal:block>
+        <tal:block metal:fill-slot="rightPane">
             <div metal:use-macro="here/templates/macros/tabsPane"/>
             <div id="contentPane">
                 <tal:block metal:define-slot="contentPane">
@@ -91,10 +93,6 @@
  ====================================================== -->
 <tal:block metal:define-macro="page3">
     <html metal:use-macro="here/templates/macros/page1" >
-    <tal:block metal:fill-slot="infoBar">
-            <div metal:use-macro="here/templates/macros/breadCrumbPane"/>
-    </tal:block>    
-
         <tal:block metal:fill-slot="rightPane">
             <div id="contentPane">
                 <tal:block metal:define-slot="contentPane">
@@ -180,12 +178,7 @@
 <!-- ======================================================
     infoBar - second bar on the page, for breadcrumbs et al
  ====================================================== -->
-<div id="infoBar" metal:define-macro="infoBar">
-<div id="leftPaneToggle"></div>
-<div metal:define-slot="infoBar">
-<div metal:use-macro="here/templates/macros/breadCrumbPane"></div>
-</div>
-
+<tal:block metal:define-macro="infoBarExtra">
 <div id="messageSlot" style="{display: none;}"
 	onclick="fade('messageSlot', {'duration':0.3} )" >
 <div class="dbox_tl"><div class="dbox_tr"><div class="dbox_tc">
@@ -235,9 +228,7 @@ style="position:relative;">
 
 	addLoadEvent(showInitialMsg);
 </script>
-
-</div>
-
+</tal:block>
 <!-- ======================================================
     leftPane - standard left side and nav
  ====================================================== -->
@@ -290,7 +281,7 @@ style="position:relative;">
 </div>
 
 <!-- ======================================================
-     tabsPane
+    tabsPane
  ====================================================== -->
 <div id="tabsPane" metal:define-macro="tabsPane"
         tal:define="ztabs python:here.zentinelTabs(template.id);

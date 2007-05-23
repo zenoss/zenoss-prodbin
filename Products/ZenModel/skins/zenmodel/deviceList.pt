@@ -1,4 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="breadcrumbs">Device List</tal:block>
 <tal:block metal:fill-slot="contentPane">
 <script type="text/javascript" 
     src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>

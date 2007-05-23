@@ -1,6 +1,14 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
-<tal:block metal:fill-slot="contentPane">
+<tal:block metal:fill-slot="breadcrumbs">
+    <tal:block tal:condition="python:request.get('notabs',False)">
+        Event Console
+    </tal:block>
+    <tal:block tal:condition="python:not request.get('notabs',False)">
+       <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    </tal:block>
+</tal:block>
 
+<tal:block metal:fill-slot="contentPane">
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
 <script type="text/javascript" src="/zport/javascript/zengrid.js"></script>

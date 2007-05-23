@@ -83,12 +83,25 @@ div.cell_inner {
     vertical-align: middle;
 }
 
+tr.even td.cell,
+tr.even div.cell_inner,
 tr.odd td.cell,
 tr.odd div.cell_inner {
     height: 26px;
 }
 
+tr.odd {
+background-color: #ddd;
+}
+tr.even {
+background-color: white;
+}
+
 
 div.cell_inner th {
     font-weight: normal;
+}
+
+div.cell_inner a.tablevalues {
+    background-color:transparent;
 }
