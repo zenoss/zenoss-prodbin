@@ -19,6 +19,9 @@
 	<body>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
 	   <div id="frame">
+            <form name="proxy_form" id="proxy_form"
+                style="position:absolute;visibility:hidden"
+                tal:attributes="action here/absolute_url_path"></form>
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div id="infoBar">
                 <div id="leftPaneToggle"></div>

@@ -76,8 +76,8 @@ Dialog.Box.prototype = {
         var d1 = this.lock.acquire();
         d1.addCallback(bind(function() {
             if (url) this.fetch(url);
-        }, this));7
-        this.form = form;
+        }, this));
+        this.form = form | $('proxy_form');
         var dims = getViewportDimensions();
         var vPos = getViewportPosition();
         setStyle(this.framework, {'z-index':'1','display':'block'});
@@ -118,7 +118,7 @@ Dialog.Box.prototype = {
         if (this.lock.locked) this.lock.release();
     },
     submit_form: function(action, formname) {
-        var f = formname?document.forms[formname]:this.form
+        var f = formname?document.forms[formname]:(this.form?this.form:$('proxy_form'));
         setStyle(this.box, {'z-index':'-1'});
         this.box = removeElement(this.box);
         if (action != '') f.action = action;
@@ -132,15 +132,18 @@ Dialog.Box.prototype = {
         var new_id = escape(input.value);
         var submit = $('dialog_submit');
         var path = $('checkValidIdPath').value
+        var myform = formname?document.forms[formname]:this.form;
 
         errmsg.innerHTML = "";
         Morph(input, {"style": {"color": "black"}});
         Morph(label, {"style": {"color": "white"}});
-        
-        d = callLater(0, doXHR, path+'/checkValidId', {queryString:{'id':new_id}});
+
+        var d = doSimpleXMLHttpRequest(path+'/checkValidId', {'id':new_id});
+
         d.addCallback(bind(function (r) { 
             if (r.responseText == 'True') { 
-                var f = formname?document.forms[formname]:this.form
+                var f = formname?document.forms[formname]:
+                    (this.form?this.form:$('proxy_form'));
                 setStyle(this.box, {'z-index':'-1'});
                 this.box = removeElement(this.box);
                 if (action != '') f.action = action;
