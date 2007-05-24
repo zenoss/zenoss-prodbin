@@ -3,7 +3,13 @@
 	<body>
     <div id="frame">
     <div metal:use-macro="here/templates/macros/topPane"/>
-    <div metal:use-macro="here/templates/macros/infoBar"/>
+    <div id="infoBar">
+        <div id="leftPaneToggle"></div>
+        <div id="breadCrumbPane">
+           <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+        </div>
+        <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
+    </div>
     <div id="paneToggle"></div>
     <style tal:condition="python:'Zenoss_Collapsed_Menu' in
                            here.REQUEST.HTTP_COOKIE">              
