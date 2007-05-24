@@ -261,11 +261,11 @@ style="position:relative;">
     <tal:block tal:condition="here/isManager">
     <p id="Management">Management</p>
     <ul>
-        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
-        <li><a href="/zport/dmd/Mibs">Mibs</a></li>
         <li><a href="/zport/dmd/addDevice">Add Device</a></li>
-        <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
+        <li><a href="/zport/dmd/Mibs">Mibs</a></li>
+        <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/editSettings">Settings</a></li>
+        <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
     </ul>
     </tal:block>
 
