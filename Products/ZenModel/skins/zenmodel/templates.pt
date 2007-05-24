@@ -158,7 +158,9 @@
         <a href="/zport/dmd/logoutUser">Logout</a>
         </li>
         <li>
-        <a href="http://www.zenoss.com/help">Help</a>
+        <a tal:attributes="href string:
+            http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}
+        ">Help</a>
         </li>
     </ul>
     <div class="searchbox">
