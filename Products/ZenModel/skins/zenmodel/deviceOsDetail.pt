@@ -16,6 +16,8 @@
 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
+
+
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
@@ -115,10 +117,26 @@
     objects here/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='caption');
+                                                sortedHeader='caption',
+                                                onlyMonitored=True);
+    ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:WinService;
     showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
+    <div style="position:absolute;right:200px;top:0px;">
+			Monitored
+			<input class="navcontrol" type="checkbox"
+				name="onlyMonitored"
+				onchange="this.form.submit()"
+				value="1"
+                style="margin-top:-2px;margin-bottom:2px;"
+				tal:attributes="checked python:test(hasattr(ts, 'onlyMonitored'),
+                    ts.onlyMonitored, True) "/>
+</div>
+    <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+</tal:block>
 
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -162,12 +180,6 @@
         </td>
     </tr>
     </tal:block>
-    <tr>
-        <td colspan="0" class="tableheader" align='center'
-                tal:define="useOnlyMonitored python:1">
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
-        </td>
-    </tr>
 
 <!-- END TABLE CONTENTS -->
 
@@ -268,10 +280,27 @@ Optional titlebar stuff
     objects here/ipservices/objectValuesAll;
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='getPort');
+                                            sortedHeader='getPort',
+                                            onlyMonitored=True);
+    ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:IpService;
     showfilterbox python:True;">
+<input type='hidden' name='tableName'
+    tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="filterslot">
+    <div style="position:absolute;right:200px;top:0px;">
+			Monitored
+			<input class="navcontrol" type="checkbox"
+				name="onlyMonitored"
+				onchange="this.form.submit()"
+				value="1"
+                style="margin-top:-2px;margin-bottom:2px;"
+				tal:attributes="checked python:test(hasattr(ts, 'onlyMonitored'),
+                    ts.onlyMonitored, True) "/>
+</div>
+    <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
+</tal:block>
 
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -327,12 +356,6 @@ Optional titlebar stuff
         </td>
     </tr>
     </tal:block>
-    <tr>
-        <td colspan="0" class="tableheader" align='center'
-			tal:define="useOnlyMonitored python:1">
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
-        </td>
-    </tr>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
@@ -350,6 +373,7 @@ Optional titlebar stuff
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');
+    ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:FileSystem;
     showfilterbox python:True;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -422,13 +446,6 @@ Optional titlebar stuff
       </td>
     </tr>
     </tal:block>
-    <tr>
-        <td colspan="0" class="tableheader" align='center'
-			tal:define="useOnlyMonitored python:1">
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool">
-            </form>
-        </td>
-    </tr>
 
 <!-- END TABLE CONTENTS -->
 
