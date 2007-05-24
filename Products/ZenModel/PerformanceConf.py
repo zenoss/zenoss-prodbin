@@ -97,7 +97,7 @@ class PerformanceConf(Monitor, StatusColor):
     
     configCycleInterval = 6*60
 
-    renderurl = ''
+    renderurl = '/zport/RenderServer'
     renderuser = ''
     renderpass = ''
 
@@ -341,13 +341,12 @@ class PerformanceConf(Monitor, StatusColor):
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
                 self.renderurl,gopts,drange, width)
         if self.renderurl.startswith("proxy"):
-            url.replace("proxy", "http")
+            url = url.replace("proxy", "http")
             return  "/zport/RenderServer/render" \
                     "?remoteUrl=%s&gopts=%s&drange=%d&width=%s" % (
                     url_quote(url),gopts,drange,width)
         else:
             return url
-
  
     def performanceMGraphUrl(self, context, targetsmap, view, drange):
         """set the full paths for all targts in map and send to view"""
@@ -390,11 +389,14 @@ class PerformanceConf(Monitor, StatusColor):
 
     def currentValues(self, paths):
         "fill out full path and call to server"
-        if self.renderurl.startswith("http"):
-            url = basicAuthUrl(self.renderuser, self.renderpass,
-                                self.renderurl)
+        url = self.renderurl
+        if url.startswith('proxy'):
+            url = self.renderurl.replace('proxy','http')
+        if url.startswith("http"):
+            url = basicAuthUrl(self.renderuser, self.renderpass, self.renderurl)
             server = xmlrpclib.Server(url)
         else:
+            if not self.renderurl: raise KeyError
             server = self.getObjByPath(self.renderurl)
         return server.currentValues(map(performancePath, paths))
 
