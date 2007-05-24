@@ -75,6 +75,13 @@ class MenuRelations(Migrate.Step):
 
         dmd.buildMenus({  
 'TopLevel': [
+         {  'action': 'dialog_addEvent',
+            'allowed_classes': ('EventClass',),
+            'description': 'Add Event...',
+            'id': 'addEvent',
+            'isdialog': True,
+            'ordering': 80.0,
+            'permissions': ('Manage DMD',)},
         {  'action': 'dialog_refreshEventSchema',
            'allowed_classes': ['MySqlEventManager'],
            'description': 'Refresh Event Schema...',
@@ -688,13 +695,6 @@ class MenuRelations(Migrate.Step):
              'id': 'viewHistory_os',
              'ordering': 2.0,
              'permissions': ('Change Device',)},
-         {  'action': 'dialog_addEvent',
-            'allowed_classes': ('EventClass',),
-            'description': 'Add Event...',
-            'id': 'addEvent',
-            'isdialog': True,
-            'ordering': 80.0,
-            'permissions': ('Manage DMD',)},
           {  'action': 'objTemplates',
              'allowed_classes': [  'Device',
                                    'HardDisk'],
