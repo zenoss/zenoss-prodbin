@@ -122,6 +122,7 @@
     ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:WinService;
     showfilterbox python:True;">
+<input type="hidden" name="tableName" tal:attributes="value tableName"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
@@ -132,8 +133,7 @@
 				onchange="this.form.submit()"
 				value="1"
                 style="margin-top:-2px;margin-bottom:2px;"
-				tal:attributes="checked python:test(hasattr(ts, 'onlyMonitored'),
-                    ts.onlyMonitored, True) "/>
+				tal:attributes="checked ts/onlyMonitored"/>
 </div>
     <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
 </tal:block>
@@ -296,8 +296,7 @@ Optional titlebar stuff
 				onchange="this.form.submit()"
 				value="1"
                 style="margin-top:-2px;margin-bottom:2px;"
-				tal:attributes="checked python:test(hasattr(ts, 'onlyMonitored'),
-                    ts.onlyMonitored, True) "/>
+				tal:attributes="checked ts/onlyMonitored" />
 </div>
     <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
 </tal:block>
