@@ -143,7 +143,7 @@ class EventServer(ZCmdBase):
     def heartbeat(self):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
-        seconds = 10
+        seconds = 60
         evt = EventHeartbeat(self.myfqdn, self.name, 3*seconds)
         self.q.put(evt)
         reactor.callLater(seconds, self.heartbeat)
