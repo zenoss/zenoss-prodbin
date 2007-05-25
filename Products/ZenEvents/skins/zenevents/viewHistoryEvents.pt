@@ -27,35 +27,39 @@
     ">
 
 <input type='hidden' name='zenScreenName' tal:attributes="value template/id" />
-<div style="padding:8px;margin:10px;background-color:darkgrey;
-       text-align:center;border:1px solid black" id="histcontrolholder">
-    <label for="startdate">Start:</label>
-    <input class="tableheader" type="text" name="startdate" id="startdate"
-		readonly="true" style="width:10em;"
-        tal:attributes="value here/yesterdayDate"/>
-    <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('startdate');"/>
-    <label for="enddate">End:</label>
-    <input class="tableheader" type="text" name="enddate" id="enddate"
-		readonly="true"
-        tal:attributes="value here/todayDate"/>
-    <input class="tableheader" type="button" value="select" 
-        onclick="displayDatePicker('enddate');" />
-            <label for="severity"> Severity:</label>
-            <select class="tableheader" name="severity:int" id="severity">
-                <option tal:repeat="sev here/ZenEventManager/getSeverities"
-                    tal:content="python:sev[0]"
-                    tal:attributes="value python:sev[1]; 
-                                    selected python:sev[1]==severity" />
-            </select>
-            &nbsp; &nbsp;
-            <label for="state">State:</label>
-            <select class="tableheader" name="state:int" id="state">
-                <option tal:repeat="st here/ZenEventManager/getEventStates"
-                    tal:content="python:st[0]"
-                    tal:attributes="value python:st[1]; 
-                                    selected python:st[1]==state" />
-            </select>
+<div style="margin:10px;background-color:darkgrey;
+       text-align:center;border:1px solid black;line-height:30px" id="histcontrolholder">
+    <span style="white-space:nowrap">
+        <label for="startdate">Start:</label>
+        <input class="tableheader" type="text" name="startdate" id="startdate"
+            readonly="true" style="width:10em;"
+            tal:attributes="value here/yesterdayDate"/>
+        <input class="tableheader" type="button" value="select" 
+            onclick="displayDatePicker('startdate');"/>
+        <label for="enddate">End:</label>
+        <input class="tableheader" type="text" name="enddate" id="enddate"
+            readonly="true"
+            tal:attributes="value here/todayDate"/>
+        <input class="tableheader" type="button" value="select" 
+            onclick="displayDatePicker('enddate');" />
+    </span>
+    <span style="white-space:nowrap">
+        <label for="severity"> Severity:</label>
+        <select class="tableheader" name="severity:int" id="severity">
+            <option tal:repeat="sev here/ZenEventManager/getSeverities"
+                tal:content="python:sev[0]"
+                tal:attributes="value python:sev[1]; 
+                                selected python:sev[1]==severity" />
+        </select>
+        &nbsp; &nbsp;
+        <label for="state">State:</label>
+        <select class="tableheader" name="state:int" id="state">
+            <option tal:repeat="st here/ZenEventManager/getEventStates"
+                tal:content="python:st[0]"
+                tal:attributes="value python:st[1]; 
+                                selected python:st[1]==state" />
+        </select>
+    </span>
 </div>
 
 <tal:block tal:define="
