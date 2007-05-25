@@ -77,7 +77,7 @@ Dialog.Box.prototype = {
         d1.addCallback(bind(function() {
             if (url) this.fetch(url);
         }, this));
-        this.form = form | $('proxy_form');
+        this.form = form;
         var dims = getViewportDimensions();
         var vPos = getViewportPosition();
         setStyle(this.framework, {'z-index':'1','display':'block'});
