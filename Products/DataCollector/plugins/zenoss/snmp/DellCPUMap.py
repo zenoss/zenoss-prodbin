@@ -22,28 +22,27 @@ class DellCPUMap(SnmpPlugin):
     relname = "cpus"
     compname = "hw"
 
+    cpucols = {
+        '.2': 'socket',
+        '.8': '_manuf',
+        '.10': '_familyidx',
+        '.12': 'clockspeed',
+        '.13': 'extspeed',
+        '.14': 'voltage',
+        '.16': '_version',
+    }
+
+    cachecols = {'.6': 'cpusock', '.11': 'level', '.13': 'size'}
+
     snmpGetTableMaps = (
-        GetTableMap('cpuTable', 
-                    '.1.3.6.1.4.1.674.10892.1.1100.30.1',
-                    {
-                    '.2': 'socket',
-                    '.8': '_manuf',
-                    '.10': '_familyidx',
-                    '.12': 'clockspeed',
-                    '.13': 'extspeed',
-                    '.14': 'voltage',
-                    '.16': '_version',
-                     }
-        ),
+        GetTableMap('cpuTable', '.1.3.6.1.4.1.674.10892.1.1100.30.1', cpucols),
  	    GetTableMap('cacheTable', 
-                    '.1.3.6.1.4.1.674.10892.1.1100.40.1',
-                    {'.6': 'cpusock', '.11': 'level', '.13': 'size'}
-        ),
+                    '.1.3.6.1.4.1.674.10892.1.1100.40.1', cachecols),
     )
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing dell cpu for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
@@ -51,6 +50,8 @@ class DellCPUMap(SnmpPlugin):
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
+            if not rm and not self.checkColumns(cpu, self.cpucols, log): 
+                return rm
             om = self.objectMap(cpu)
             if not getattr(om, '_manuf', False):
                 continue
@@ -65,6 +66,8 @@ class DellCPUMap(SnmpPlugin):
             rm.append(om)
         
         for cache in cachetable.values():
+            if not rm and not self.checkColumns(cache, self.cachecols, log): 
+                return []
             cpu = cpumap.get(cache.get('cpusock', None), None)
             if cpu is None: continue
             try: level = self.cacheLevel[cache['level']-1]

@@ -51,7 +51,7 @@ class CiscoHSRP(SnmpPlugin):
         """
         changed = False
         getdata, tabledata = results
-        log.info('processing hsrp for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         hsrptable = tabledata.get("hsrpTable")
         if not hsrptable: return
         nets = device.getDmdRoot("Networks")

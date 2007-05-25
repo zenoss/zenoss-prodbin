@@ -22,21 +22,22 @@ class DellPCIMap(SnmpPlugin):
     relname = "cards"
     compname = "hw"
 
+    columns = {'.6': 'slot','.8': '_manuf','.9': '_model',}
+
     snmpGetTableMaps = (
-        GetTableMap('pciTable', 
-            '.1.3.6.1.4.1.674.10892.1.1100.80.1',
-            {'.6': 'slot','.8': '_manuf','.9': '_model',}
-        ),
+        GetTableMap('pciTable', '.1.3.6.1.4.1.674.10892.1.1100.80.1', columns),
     )
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing dell pci cards for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         pcitable = tabledata.get("pciTable")
         if not pcitable: return
         rm = self.relMap()
         for card in pcitable.values():
+            if not rm and not self.checkColumns(card, self.columns, log): 
+                return rm
             try:
                 om = self.objectMap(card)
                 om.id = self.prepId("%s" % om.slot)

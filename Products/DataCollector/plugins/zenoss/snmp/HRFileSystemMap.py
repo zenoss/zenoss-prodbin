@@ -31,16 +31,16 @@ class HRFileSystemMap(SnmpPlugin):
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
 
+    columns = {
+         '.1': 'snmpindex',
+         '.2': 'type',
+         '.3': 'mount',
+         '.4': 'blockSize',
+         '.5': 'totalBlocks',
+         }
+
     snmpGetTableMaps = (
-        GetTableMap('fsTableOid', '.1.3.6.1.2.1.25.2.3.1',
-            {
-             '.1': 'snmpindex',
-             '.2': 'type',
-             '.3': 'mount',
-             '.4': 'blockSize',
-             '.5': 'totalBlocks',
-             }
-        ),
+        GetTableMap('fsTableOid', '.1.3.6.1.2.1.25.2.3.1', columns),
     )
 
     typemap = { 
@@ -52,15 +52,16 @@ class HRFileSystemMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing host resources storage device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         fstable = tabledata.get("fsTableOid")
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         maps = []
         rm = self.relMap()
         for fs in fstable.values():
+            if not rm and not self.checkColumns(fs, self.columns, log): 
+                return rm
             fstype = self.typemap.get(fs['type'],None)
-            if not fs.has_key("totalBlocks"): continue
             size = long(fs['blockSize'] * fs['totalBlocks'])
             if fstype == "ram":
                 maps.append(ObjectMap({"totalMemory": size}, compname="hw"))

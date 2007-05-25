@@ -41,6 +41,6 @@ class CiscoMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing cisco info for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         return self.objectMap(getdata)

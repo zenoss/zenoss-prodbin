@@ -33,7 +33,7 @@ class APCDeviceMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing APC device info on device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
         return om

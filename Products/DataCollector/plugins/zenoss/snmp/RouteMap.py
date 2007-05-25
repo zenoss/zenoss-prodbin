@@ -28,35 +28,39 @@ class RouteMap(SnmpPlugin):
     compname = "os"
     modname = "Products.ZenModel.IpRouteEntry"
 
+    columns = {
+        '.1' : 'id',
+        '.2': 'setInterfaceIndex',
+        '.3': 'metric1',
+        #'.4': 'metric2',
+        #'.5': 'metric3',
+        #'.6': 'metric4',
+        '.7': 'setNextHopIp',
+        '.8': 'routetype',
+        '.9': 'routeproto',
+        #'.10' : 'routeage',
+        '.11': 'routemask',
+        #'.12': 'metric5',
+    }
+
+
     snmpGetTableMaps = (
-        GetTableMap('routetable', '.1.3.6.1.2.1.4.21.1',
-             {'.1': 'id',
-             '.2': 'setInterfaceIndex',
-             '.3': 'metric1',
-             #'.4': 'metric2',
-             #'.5': 'metric3',
-             #'.6': 'metric4',
-             '.7': 'setNextHopIp',
-             '.8': 'routetype',
-             '.9': 'routeproto',
-             #'.10' : 'routeage',
-             '.11': 'routemask',
-             #'.12': 'metric5',
-             }
-        ),
+        GetTableMap('routetable', '.1.3.6.1.2.1.4.21.1', columns),
     )
 
 
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing routes for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         routetable = tabledata.get("routetable")
         localOnly = getattr(device, 'zRouteMapCollectOnlyLocal', False)
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)
         rm = self.relMap()
         for route in routetable.values():
+            if not rm and not self.checkColumns(route, self.columns, log): 
+                return rm
             om = self.objectMap(route)
             if not om.__dict__.has_key("routemask"):
                 continue

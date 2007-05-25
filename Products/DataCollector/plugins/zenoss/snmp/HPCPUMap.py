@@ -22,25 +22,25 @@ class HPCPUMap(SnmpPlugin):
     relname = "cpus"
     compname = "hw"
 
+    cpucols = {
+        '.1': '_cpuidx',
+        '.3': 'setProductKey',
+        '.4': 'clockspeed',
+        '.7': 'extspeed',
+        '.9': 'socket',
+         }
+
+    cachecols = {'.1': 'cpuidx', '.2': 'level', '.3': 'size'}
+
     snmpGetTableMaps = (
-        GetTableMap('cpuTable', '.1.3.6.1.4.1.232.1.2.2.1.1',
-                {
-                '.1': '_cpuidx',
-                '.3': 'setProductKey',
-                '.4': 'clockspeed',
-                '.7': 'extspeed',
-                '.9': 'socket',
-                 }
-        ),
- 	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1',
-                {'.1': 'cpuidx', '.2': 'level', '.3': 'size'}
-        ),
+        GetTableMap('cpuTable', '.1.3.6.1.4.1.232.1.2.2.1.1', cpucols),
+ 	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1', cachecols), 
     )
 
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing hp cpu info for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
@@ -48,6 +48,8 @@ class HPCPUMap(SnmpPlugin):
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
+            if not rm and not self.checkColumns(cpu, self.cpucols, log): 
+                return rm
             om = self.objectMap(cpu)
             idx = getattr(om, 'socket', om._cpuidx)
             om.id = self.prepId("%s_%s" % (om.setProductKey,idx))
@@ -55,6 +57,8 @@ class HPCPUMap(SnmpPlugin):
             rm.append(om)
         
         for cache in cachetable.values():
+            if not rm and not self.checkColumns(cache, self.cachecols, log): 
+                return []
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
             if cache['level'] == 1: 

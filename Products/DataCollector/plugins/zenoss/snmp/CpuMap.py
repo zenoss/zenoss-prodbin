@@ -31,13 +31,13 @@ class CpuMap(SnmpPlugin):
     relname = "cpus"
     modname = "Products.ZenModel.CPU"
 
+    columns = {
+         '.2': '_type',
+         '.3': 'description',
+    }
+
     snmpGetTableMaps = (
-        GetTableMap('deviceTableOid', '.1.3.6.1.2.1.25.3.2.1',
-            {
-             '.2': '_type',
-             '.3': 'description',
-             }
-        ),
+        GetTableMap('deviceTableOid', '.1.3.6.1.2.1.25.3.2.1', columns),
     )
 
     hrDeviceProcessor = ".1.3.6.1.2.1.25.3.1.3"
@@ -50,13 +50,15 @@ class CpuMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing processor resources %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         table = tabledata.get("deviceTableOid")
         maps = []
         rm = self.relMap()
         slot = 0
         for row in table.values():
+            if not rm and not self.checkColumns(row, self.columns, log): 
+                return rm
             if row['_type'] != self.hrDeviceProcessor: continue
             desc = row['description']
             # try and find the cpu speed from the description

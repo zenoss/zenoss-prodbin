@@ -28,7 +28,7 @@ class HPDeviceMap(SnmpPlugin):
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing HP device info on device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
         if om.setOSProductKey and om.setOSProductKey.find("NetWare") > -1:

@@ -40,28 +40,19 @@ class HRSWRunMap(SnmpPlugin):
          '.5': 'parameters',
          }
 
-    colnames = Set(columns.values())
-
     snmpGetTableMaps = (
         GetTableMap('hrSWRunEntry', '.1.3.6.1.2.1.25.4.2.1', columns),
     )
 
-    def checkColumns(self, proc):
-        """Check that all columns came back, 
-        this should be everywhere #1539 -EAD
-        """
-        return Set(proc.keys()) == self.colnames
-        
-
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing host resources storage device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         fstable = tabledata.get("hrSWRunEntry")
         rm = self.relMap()
         procs = Set()
         for proc in fstable.values():
-            if not self.checkColumns(proc): continue 
+            if not self.checkColumns(proc,self.columns,log): return rm 
             om = self.objectMap(proc)
             ppath = getattr(om, '_procPath', False) 
             if ppath and ppath.find('\\') == -1:

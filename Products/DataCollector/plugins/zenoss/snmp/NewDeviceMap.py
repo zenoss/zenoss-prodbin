@@ -64,7 +64,7 @@ class NewDeviceMap(SnmpPlugin):
     
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing system info for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
         om.setHWProductKey = om.snmpOid

@@ -36,7 +36,7 @@ class IpServiceMap(SnmpPlugin):
     
     def process(self, device, results, log):
         """collect snmp information from this device"""
-        log.info('processing Ip Services for device %s' % device.id)
+        log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         tcptable = tabledata.get("tcptable")
         udptable = tabledata.get("udptable")
