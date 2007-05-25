@@ -98,7 +98,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         thresholds = {}
         for templ in self.getRRDTemplates():
             thresholds.update(self.getThresholds(templ))
-        return (self.id, self.name(), self.osProcessClass().ignoreParameters,
+        ignoreParams = getattr(osclass, 'ignoreParameters', False)
+        return (self.id, self.name(), ignoreParams,
                 self.alertOnRestart(), self.getFailSeverity(), thresholds)
 
                     
@@ -128,7 +129,9 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
         
     def name(self):
-        if not self.parameters or self.osProcessClass().ignoreParameters:
+        osclass = self.osProcessClass()
+        ignoreParams = getattr(osclass, 'ignoreParameters', False)
+        if not self.parameters or ignoreParams:
             return self.procName
         return self.procName + " " + self.parameters
 
