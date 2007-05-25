@@ -36,27 +36,38 @@ class ApplyDataMap(object):
         self.datacollector = datacollector
 
 
-    def logChange(self, device, eventClass, msg):
+    def logChange(self, device, compname, eventClass, msg):
+        if not getattr(device, 'zCollectorLogChanges', True): return
+        self.logEvent(device, compname, eventClass, msg, Event.Info)
+
+
+    def logEvent(self, device, component, eventClass, msg, severity):
         ''' Used to report a change to a device model.  Logs the given msg
         to log.info and creates an event.
         '''
-        log.info(msg)
-        if device.id != device.device().id:
-            component = device
-            device = component.device()
-        else:
-            component = ''
+        device = device.device()
+        compname = ""
+        try:
+            compname = getattr(component, 'id', component)
+            if hasattr(component, 'name') and callable(component.name):
+                    compname = component.name()
+            elif device.id == compname:
+                compname = ""
+        except: pass
+        log.debug(msg)
+        devname = device.device().id
         if (self.datacollector
             and getattr(self.datacollector, 'generateEvents', False) 
             and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
-                'device': device.device().id,
-                'component': component and component.id or '',
+                'device': devname,
+                'component': compname,
                 'summary': msg,
-                'severity': Event.Info,
+                'severity': severity,
                 }
             self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
+
         
     def processClient(self, device, collectorClient):
         """Apply datamps to device.
@@ -124,17 +135,7 @@ class ApplyDataMap(object):
         if hasattr(datamap, "relname"):
             changed = self._updateRelationship(tobj, datamap)
         elif hasattr(datamap, 'modname'):
-            if isinstance(tobj, Lockable):
-                log.debug('%s obj is Lockable, status: %s' % (tobj and tobj.id or '', tobj.lockStatus()))
-                if not tobj.isLockedFromUpdates():
-                    changed = self._updateObject(tobj, datamap)
-                elif (tobj.sendEventWhenBlocked()
-                    and (self.datacollector
-                    and getattr(self.datacollector, 'generateEvents', False) 
-                    and getattr(self.datacollector, 'dmd', None))):
-                    self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
-            else:
-                changed = self._updateObject(tobj, datamap)
+            changed = self._updateObject(tobj, datamap)
         else:
             log.warn("plugin returned unknown map skipping")
         return changed
@@ -163,24 +164,13 @@ class ApplyDataMap(object):
                 if objmap.id in relids:
                     objchange = False
                     obj = rel._getOb(objmap.id)
-                    if isinstance(obj, Lockable):
-                        log.debug('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
-                        if not obj.isLockedFromUpdates():
-                            objchange = self._updateObject(obj, objmap)
-                        elif (obj.sendEventWhenBlocked()
-                            and (self.datacollector
-                            and getattr(self.datacollector, 'generateEvents', False) 
-                            and getattr(self.datacollector, 'dmd', None))):
-                            self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
-                    else:
-                        objchange = self._updateObject(obj, objmap)
+                    objchange = self._updateObject(obj, objmap)
                     if not changed: changed = objchange
                     relids.remove(objmap.id)
                 else:
-                    self._createRelObject(device, objmap, rname)
-                    changed = True
+                    changed = self._createRelObject(device, objmap, rname)
             elif isinstance(objmap, ZenModelRM):
-                self.logChange(device, Change_Add,
+                self.logChange(device, objmap.id, Change_Add,
                             "linking object %s to device %s relation %s" % (
                             objmap.id, device.id, rname))
                 device.addRelation(rname, objmap)
@@ -189,18 +179,21 @@ class ApplyDataMap(object):
                 log.warn("ignoring objmap no id found")
         for id in relids: 
             obj = rel._getOb(id)
-            if isinstance(obj, Lockable):
-                log.debug('%s obj is Lockable, status: %s' % (obj and obj.id or '', obj.lockStatus()))
-                if not obj.isLockedFromDeletion():
-                    self.logChange(device, Change_Remove,
-                                    "removing object %s from rel %s on device %s" % (
-                                    id, rname, device.id))
-                    rel._delObject(id)
-                elif (obj.sendEventWhenBlocked()
-                    and (self.datacollector
-                    and getattr(self.datacollector, 'generateEvents', False) 
-                    and getattr(self.datacollector, 'dmd', None))):
-                    self.logChange(device, Change_Remove_Blocked, 'Locked from deletion')
+            if isinstance(obj, Lockable) and obj.isLockedFromDeletion():
+                objname = obj.id
+                try: objname = obj.name()
+                except: pass
+                msg = "Deletion Blocked: %s '%s' on %s" % (
+                        obj.meta_type, objname,obj.device().id)
+                log.warn(msg)
+                if obj.sendEventWhenBlocked():
+                    self.logEvent(device, obj, Change_Remove_Blocked, 
+                                    msg, Event.Warning)
+                continue
+            self.logChange(device, obj, Change_Remove,
+                    "removing object %s from rel %s on device %s" % (
+                    id, rname, device.id))
+            rel._delObject(id)
         if relids: changed=True
         return changed
 
@@ -209,6 +202,20 @@ class ApplyDataMap(object):
         """Update an object using a objmap.
         """
         changed = False
+        device = obj.device()
+        if isinstance(obj, Lockable) and obj.isLockedFromUpdates():
+            if device.id == obj.id:
+                msg = 'Update Blocked: %s' % device.id
+            else:
+                objname = obj.id
+                try: objname = obj.name()
+                except: pass
+                msg = "Update Blocked: %s '%s' on %s" % (
+                        obj.meta_type, objname ,device.id)
+            log.warn(msg)
+            if obj.sendEventWhenBlocked():
+                self.logEvent(device, obj,Change_Set_Blocked,msg,Event.Warning)
+            return changed
         for attname, value in objmap.items():
             if type(value) == type(''):
                 try:
@@ -222,10 +229,6 @@ class ApplyDataMap(object):
                 log.warn('attribute %s not found on object %s',
                               attname, obj.id)
                 continue
-            if obj.meta_type == 'Device':
-                device = obj
-            else:
-                device = obj.device()
             if callable(att): 
                 setter = getattr(obj, attname)
                 gettername = attname.replace("set","get") 
@@ -240,7 +243,7 @@ class ApplyDataMap(object):
                         change = True
                     if change:
                         setter(value)
-                        self.logChange(device, Change_Set,
+                        self.logChange(device, obj, Change_Set,
                                     "calling function '%s' with '%s' on "
                                     "object %s" % (attname, value, obj.id))
                         changed = True            
@@ -251,7 +254,7 @@ class ApplyDataMap(object):
                     change = True
                 if change:
                     setattr(aq_base(obj), attname, value) 
-                    self.logChange(device, Change_Set,
+                    self.logChange(device, obj, Change_Set,
                                    "set attribute '%s' "
                                    "to '%s' on object '%s'" %
                                    (attname, value, obj.id))
@@ -269,6 +272,18 @@ class ApplyDataMap(object):
     def _createRelObject(self, device, objmap, relname):
         """Create an object on a relationship using its objmap.
         """
+        realdevice = device.device()
+        if realdevice.isLockedFromUpdates():
+            objtype = ""
+            try: objtype = objmap.modname.split(".")[-1] 
+            except: pass
+            msg = "Add Blocked: %s '%s' on %s" % (
+                    objtype, objmap.id, realdevice.id)
+            log.warn(msg)
+            if realdevice.sendEventWhenBlocked():
+                self.logEvent(realdevice, objmap.id, Change_Add_Blocked, 
+                                msg, Event.Warning)
+            return False
         id = objmap.id
         constructor = importClass(objmap.modname, objmap.classname)
         remoteObj = constructor(id)
@@ -282,24 +297,10 @@ class ApplyDataMap(object):
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
         remoteObj = rel._getOb(remoteObj.id)
-        if isinstance(remoteObj, Lockable):
-            log.debug('%s obj is Lockable, status: %s' % (remoteObj and remoteObj.id or '', remoteObj.lockStatus()))
-            if not remoteObj.isLockedFromUpdates():
-                self.logChange(device, Change_Add,
-                                "adding object %s to relationship %s" % (
-                                remoteObj.id, relname))
-                self._updateObject(remoteObj, objmap)
-            elif (remoteObj.sendEventWhenBlocked()
-                and (self.datacollector
-                and getattr(self.datacollector, 'generateEvents', False) 
-                and getattr(self.datacollector, 'dmd', None))):
-                self.logChange(device, Change_Set_Blocked, 'Locked from updates and deletion')
-        else:
-            self.logChange(device, Change_Add,
-                            "adding object %s to relationship %s" % (
-                            remoteObj.id, relname))
-            self._updateObject(remoteObj, objmap)
-            
+        self.logChange(realdevice, remoteObj, Change_Add,
+                        "adding object %s to relationship %s" % (
+                        remoteObj.id, relname))
+        self._updateObject(remoteObj, objmap)
         return True
 
 
