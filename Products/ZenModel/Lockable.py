@@ -47,7 +47,8 @@ class Lockable(object):
         return False
         
     def isLockedFromDeletion(self):
-        if self.modelerLock == DELETE_LOCKED or self.modelerLock == UPDATE_LOCKED:
+        if (self.modelerLock == DELETE_LOCKED 
+            or self.modelerLock == UPDATE_LOCKED):
             return True
         return False
         '''
@@ -134,12 +135,12 @@ class Lockable(object):
         elif self.modelerLock == UNLOCKED:
             return "Unlocked"
         '''
-        if self.isLockedFromDeletion():
-            return "Locked from deletion"
-        elif self.isLockedFromUpdates():
-            return "Locked from updates and deletion"
+        if self.isLockedFromUpdates():
+            return "locked from updates and deletion"
+        elif self.isLockedFromDeletion():
+            return "locked from deletion"
         else:
-            return "Unlocked"
+            return "unlocked"
             
     def lockWarning(self):
         if self.sendEventWhenBlocked():

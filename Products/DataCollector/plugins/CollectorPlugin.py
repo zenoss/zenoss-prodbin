@@ -13,6 +13,7 @@
 
 import re
 import struct
+from sets import Set
 
 import Products.ZenUtils.IpUtil as iputil
 
@@ -82,6 +83,18 @@ class CollectorPlugin:
         """
         return self.__class__.__module__.replace("plugins.","")
 
+
+    def checkColumns(self, row, columns, log):
+        """Check that all columns came back, 
+        this should be everywhere #1539 -EAD
+        """
+        rescols = Set(row.keys())
+        cols = Set(columns.values())
+        if rescols != cols:
+            log.error("result missing columns: '%s'", 
+                     ",".join(cols.difference(rescols)))
+        return rescols == cols
+        
 
 class CommandPlugin(CollectorPlugin):
     """

@@ -57,7 +57,8 @@ class ApplyDataMap(object):
         log.debug(msg)
         devname = device.device().id
         if (self.datacollector
-            and getattr(self.datacollector, 'generateEvents', False) 
+            # why is this line here?  Blocks evnets from model in zope
+            #and getattr(self.datacollector, 'generateEvents', False) 
             and getattr(self.datacollector, 'dmd', None)):
             eventDict = {
                 'eventClass': eventClass,
