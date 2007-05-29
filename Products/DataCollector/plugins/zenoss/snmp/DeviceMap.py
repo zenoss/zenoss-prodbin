@@ -27,14 +27,15 @@ class DeviceMap(SnmpPlugin):
 
     maptype = "DeviceMap" 
 
-    snmpGetMap = GetMap({ 
+    columns = {
              '.1.3.6.1.2.1.1.1.0' : 'snmpDescr',
              '.1.3.6.1.2.1.1.2.0' : 'snmpOid',
              #'.1.3.6.1.2.1.1.3.0' : 'snmpUpTime',
              '.1.3.6.1.2.1.1.4.0' : 'snmpContact',
              '.1.3.6.1.2.1.1.5.0' : 'snmpSysName',
              '.1.3.6.1.2.1.1.6.0' : 'snmpLocation',
-             })
+             }
+    snmpGetMap = GetMap(columns)
 
     
     ciscoVersion = re.compile(r'Version (?P<ver>.+), ')
@@ -42,6 +43,8 @@ class DeviceMap(SnmpPlugin):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
+        if not self.checkColumns(getdata, self.columns, log): 
+            return 
         om = self.objectMap(getdata)
 
         if om.snmpOid.find('.1.3.6.1.4.1.9') == 0:

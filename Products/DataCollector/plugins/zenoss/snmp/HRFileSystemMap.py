@@ -59,8 +59,8 @@ class HRFileSystemMap(SnmpPlugin):
         maps = []
         rm = self.relMap()
         for fs in fstable.values():
-            if not rm and not self.checkColumns(fs, self.columns, log): 
-                return rm
+            if not fs.has_key("totalBlocks"): continue
+            if not self.checkColumns(fs, self.columns, log): continue
             fstype = self.typemap.get(fs['type'],None)
             size = long(fs['blockSize'] * fs['totalBlocks'])
             if fstype == "ram":
