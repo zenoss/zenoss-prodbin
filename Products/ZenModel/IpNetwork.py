@@ -207,7 +207,10 @@ class IpNetwork(DeviceOrganizer):
     def freeIps(self):
         """Number of free Ips left in this network.
         """
-        return int(math.pow(2,32-self.netmask)-(self.countIpAddresses()+2))
+        freeips = int(math.pow(2,32-self.netmask)-(self.countIpAddresses()))
+        if self.netmask >= 31:
+            return freeips 
+        return freeips + 2
 
 
     def hasIp(self, ip):
