@@ -19,6 +19,7 @@ Common code for zenbackup.py and zenrestore.py
 '''
 
 import os
+import tempfile
 from CmdBase import CmdBase
 
 
@@ -56,6 +57,10 @@ class ZenBackupBase(CmdBase):
                                default=False,
                                action='store_true',
                                help='Send progress messages to stdout.')
+        self.parser.add_option('--temp-dir',
+                               dest="tempDir",
+                               default=None,
+                               help='Directory to use for temporary storage.')
 
 
     def getPassArg(self):
@@ -65,3 +70,14 @@ class ZenBackupBase(CmdBase):
         if self.options.dbpass == None:
             return ''
         return '-p"%s"' % self.options.dbpass
+
+
+    def getTempDir(self):
+        ''' Return directory to be used for temporary storage
+        during backup or restore.
+        '''
+        if self.options.tempDir:
+            dir = tempfile.mkdtemp('', '', self.options.tempDir)
+        else:
+            dir = tempfile.mkdtemp()
+        return dir

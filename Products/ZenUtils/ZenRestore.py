@@ -22,7 +22,6 @@ import Globals
 import sys
 import os
 import os.path
-import tempfile
 import ConfigParser
 
 from ZenBackupBase import *
@@ -126,7 +125,7 @@ class ZenRestore(ZenBackupBase):
                 sys.exit(-1)
             # Create temp dir and untar backup into it
             self.msg('Unpacking backup file')
-            rootTempDir = tempfile.mkdtemp()
+            rootTempDir = self.getTempDir()
             cmd = 'tar xzfC %s %s' % (self.options.file, rootTempDir)
             if os.system(cmd): return -1
             tempDir = os.path.join(rootTempDir, BACKUP_DIR)

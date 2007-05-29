@@ -23,7 +23,6 @@ from ZCmdBase import ZCmdBase
 import sys
 import os
 import os.path
-import tempfile
 from datetime import date
 import getpass
 import ConfigParser
@@ -178,7 +177,7 @@ class ZenBackup(ZenBackupBase):
         # as no password.
     
         # Create temp backup dir
-        rootTempDir = tempfile.mkdtemp()
+        rootTempDir = self.getTempDir()
         tempDir = os.path.join(rootTempDir, BACKUP_DIR)
         os.mkdir(tempDir)
         
