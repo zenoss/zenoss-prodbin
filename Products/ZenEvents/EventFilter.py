@@ -40,7 +40,6 @@ class EventFilter(object):
 
     def genMeta(self):
         from WhereClause import Text, Select, Compare, Enumerated, DeviceGroup
-        from Products.ZenModel.DataRoot import DataRoot
         from EventManagerBase import EventManagerBase
         kw = {}
         def addDevices(name, label, column):
@@ -50,9 +49,9 @@ class EventFilter(object):
         addDevices('Groups', 'Device Groups', 'deviceGroups')
         esconv = [(b, a) for a, b in EventManagerBase.eventStateConversions]
         sconv = [(b, a) for a, b in EventManagerBase.severityConversions]
-        pconv = [d.split(':') for d in DataRoot.prodStateConversions]
+        pconv = [d.split(':') for d in self.dmd.prodStateConversions]
         pconv = [(int(b), a) for a, b in pconv]
-        dpconv = [x.split(':') for x in DataRoot.priorityConversions]
+        dpconv = [x.split(':') for x in self.dmd.priorityConversions]
         dpconv = [(int(b), a) for a, b in dpconv]
         owners = [(n, n) for n in self.dmd.ZenUsers.getAllUserSettingsNames()]
         eventClasses = [(n, n) for n in self.dmd.Events.getOrganizerNames()]
