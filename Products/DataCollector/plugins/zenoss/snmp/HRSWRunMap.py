@@ -52,7 +52,6 @@ class HRSWRunMap(SnmpPlugin):
         rm = self.relMap()
         procs = Set()
         for proc in fstable.values():
-            if not self.checkColumns(proc,self.columns,log): return rm 
             om = self.objectMap(proc)
             ppath = getattr(om, '_procPath', False) 
             if ppath and ppath.find('\\') == -1:

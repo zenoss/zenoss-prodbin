@@ -50,8 +50,6 @@ class DellCPUMap(SnmpPlugin):
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
-            if not rm and not self.checkColumns(cpu, self.cpucols, log): 
-                return rm
             om = self.objectMap(cpu)
             if not getattr(om, '_manuf', False):
                 continue
@@ -66,8 +64,6 @@ class DellCPUMap(SnmpPlugin):
             rm.append(om)
         
         for cache in cachetable.values():
-            if not rm and not self.checkColumns(cache, self.cachecols, log): 
-                return []
             cpu = cpumap.get(cache.get('cpusock', None), None)
             if cpu is None: continue
             try: level = self.cacheLevel[cache['level']-1]

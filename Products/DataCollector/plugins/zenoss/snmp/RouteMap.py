@@ -59,8 +59,6 @@ class RouteMap(SnmpPlugin):
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)
         rm = self.relMap()
         for route in routetable.values():
-            if not rm and not self.checkColumns(route, self.columns, log): 
-                return rm
             om = self.objectMap(route)
             if not om.__dict__.has_key("routemask"):
                 continue

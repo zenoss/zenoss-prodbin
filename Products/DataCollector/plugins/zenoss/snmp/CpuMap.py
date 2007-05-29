@@ -45,7 +45,7 @@ class CpuMap(SnmpPlugin):
 
     def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
-        return False
+        return not device.hw.cpus()
 
 
     def process(self, device, results, log):

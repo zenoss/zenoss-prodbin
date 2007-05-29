@@ -36,8 +36,6 @@ class DellPCIMap(SnmpPlugin):
         if not pcitable: return
         rm = self.relMap()
         for card in pcitable.values():
-            if not rm and not self.checkColumns(card, self.columns, log): 
-                return rm
             try:
                 om = self.objectMap(card)
                 om.id = self.prepId("%s" % om.slot)

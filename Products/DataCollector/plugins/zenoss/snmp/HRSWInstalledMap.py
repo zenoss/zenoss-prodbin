@@ -48,8 +48,6 @@ class HRSWInstalledMap(SnmpPlugin):
         swtable = tabledata.get("swTableOid")
         rm = self.relMap()
         for sw in swtable.values():
-            if not rm and not self.checkColumns(sw, self.columns, log): 
-                return rm
             om = self.objectMap(sw)
             om.id = self.prepId(om.setProductKey)
             if not om.id: continue
