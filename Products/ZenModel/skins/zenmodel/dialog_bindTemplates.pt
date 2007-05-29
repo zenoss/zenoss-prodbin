@@ -8,10 +8,11 @@
             tal:content="python:'%s [%s]' % (template.id, template.getRRDPath())">Template Name</option>
     </select>
 </p>
-<div id="dialog_buttons">
+<div id="dialog_buttons"
+	tal:define="formName python:here.meta_type == 'Device' and 'objTemplates' or 'templates'">
 <input type="submit" name="bindTemplates:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url}', 'objTemplates')" />
+                        '${here/absolute_url}', '${formName}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

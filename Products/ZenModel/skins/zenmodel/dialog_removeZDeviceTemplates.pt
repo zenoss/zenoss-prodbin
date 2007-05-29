@@ -6,7 +6,8 @@
 <input type="submit" name="removeZDeviceTemplates:method"
    value="OK"
    tal:condition="python:here.isLocal('zDeviceTemplates')"
-   tal:attributes="onclick string:return $$('dialog').submit_form('', 'objTemplates')" />
+   tal:define="formName python:here.meta_type == 'Device' and 'objTemplates' or 'templates'"
+   tal:attributes="onclick string:return $$('dialog').submit_form('', '${formName}')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
        onclick="$('dialog').hide()"/>
 </div>

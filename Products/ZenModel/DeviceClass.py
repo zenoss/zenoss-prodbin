@@ -455,6 +455,30 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                 pass
         return templates.values()
             
+
+    def getAvailableTemplates(self):
+        "Returns all available templates"
+        def cmpTemplates(a, b):
+            return cmp(a.id.lower(), b.id.lower())
+        t = self.getRRDTemplates()
+        t.sort(cmpTemplates)
+        return t
+
+
+    def bindTemplates(self, ids=(), REQUEST=None):
+        "This will bind available templates to the zDeviceTemplates"
+        return self.setZenProperty('zDeviceTemplates', ids, REQUEST)
+
+    def removeZDeviceTemplates(self, REQUEST=None):
+        "Deletes the local zProperty, zDeviceTemplates"
+        if self.getPrimaryPath()[-2:] == ('dmd', 'Devices'):
+            self.setZenProperty('zDeviceTemplates', ['Device'])
+        else:
+            self.deleteZenProperty('zDeviceTemplates')
+        REQUEST['message'] = 'Template bindings reset'
+        return self.callZenScreen(REQUEST)
+
+
     def getAllRRDTemplates(self, rrdts=None):
         if rrdts is None: rrdts = []
         rrdts.extend(self.rrdTemplates())
