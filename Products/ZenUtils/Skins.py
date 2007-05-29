@@ -65,9 +65,13 @@ def unregisterSkin(self, base, positionAfter='custom'):
                     skinstool._delOb(layer)
                 except AttributeError:
                     pass
+        obs = skinstool._objects
+        goodlayers = filter(lambda x:getattr(skinstool, x['id'], False), obs)
+        skinstool._objects = tuple(goodlayers)
     except ImportError, e:
         if "Products.CMFCore.utils" in e.args: pass
         else: raise
     except AttributeError, e:
         if "portal_skin" in e.args: pass
         else: raise
+

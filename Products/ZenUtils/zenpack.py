@@ -15,6 +15,7 @@ __doc__ = "Manage ZenPacks"
 import Globals
 from Products.ZenModel.ZenPack import ZenPackBase, zenPackPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.Utils import cleanupSkins
 import transaction
 
 import os, sys
@@ -93,6 +94,7 @@ class ZenPackCmd(ZenScriptBase):
                     self.log.debug('Removing dir "%s"' % d)
                     os.rmdir(path)
         os.rmdir(root)
+        cleanupSkins(self.dmd)
 
 
     def extract(self, fname):

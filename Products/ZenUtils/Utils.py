@@ -507,3 +507,8 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
     if REQUEST:
         return context.callZenScreen(REQUEST)
     
+def cleanupSkins(dmd):
+    ps = dmd.getPhysicalRoot().zport.portal_skins
+    layers = ps._objects
+    layers = filter(lambda x:getattr(ps, x['id'], False), layers)
+    ps._objects = tuple(layers)

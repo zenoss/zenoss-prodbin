@@ -490,6 +490,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             os.system('%s run --remove %s' % (zp, pack))
         self._p_jar.sync()
         if REQUEST is not None:
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect=True)
 
 InitializeClass(DataRoot)
