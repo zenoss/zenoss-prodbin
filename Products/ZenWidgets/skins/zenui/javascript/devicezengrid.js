@@ -686,7 +686,11 @@ DeviceZenGrid.prototype = {
         var filters = e.src().value;
         switch (e.key().string) {
             case 'KEY_TAB':
+                clearTimeout(this.LSTimeout);
+                this.refreshWithParams({filter:filters});
+                return;
             case 'KEY_ENTER':
+            e.preventDefault()
                 clearTimeout(this.LSTimeout);
                 this.refreshWithParams({filter:filters});
                 return;
