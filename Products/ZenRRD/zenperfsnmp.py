@@ -58,9 +58,6 @@ from FileCleanup import FileCleanup
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 20
 
-def pickleName(id):
-    return performancePath('Devices/%s/config.pickle' % id)
-
 def makeDirs(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
@@ -250,6 +247,8 @@ class zenperfsnmp(SnmpDaemon):
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
 
+    def pickleName(self, id):
+        return performancePath('Devices/%s/%s-config.pickle' % (id, self.options.monitor))
 
     def loadConfigs(self, perfRoot):
         "Read local configuration values at startup"
@@ -257,7 +256,7 @@ class zenperfsnmp(SnmpDaemon):
         makeDirs(base)
         root, ds, fs = os.walk(base).next()
         for d in ds:
-            config = read(pickleName(d))
+            config = read(self.pickleName(d))
             if config:
                 self.updateDeviceConfig(cPickle.loads(config))
 
@@ -340,7 +339,7 @@ class zenperfsnmp(SnmpDaemon):
             self.log.info('removing device %s' % name)
             if name in self.proxies:
                 del self.proxies[name]
-            config = pickleName(name)
+            config = self.pickleName(name)
             unlink(config)
             # we could delete the RRD files, too
 
@@ -417,7 +416,7 @@ class zenperfsnmp(SnmpDaemon):
                                   version, timeout, tries, maxOIDs)
         if p.lastChange < last:
             p.lastChange = last
-            write(pickleName(deviceName), cPickle.dumps(snmpTargets))
+            write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
 
 	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
