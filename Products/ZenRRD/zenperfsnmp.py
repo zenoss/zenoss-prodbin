@@ -56,7 +56,7 @@ from SnmpDaemon import SnmpDaemon
 from FileCleanup import FileCleanup
 
 MAX_OIDS_PER_REQUEST = 40
-MAX_SNMP_REQUESTS = 30
+MAX_SNMP_REQUESTS = 20
 
 def pickleName(id):
     return performancePath('Devices/%s/config.pickle' % id)
