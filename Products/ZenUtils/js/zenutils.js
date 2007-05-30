@@ -107,20 +107,34 @@ function checkValidId(e){
 }
 
 function connectTextareas() {
-    var resizeArea = function(area) {
-        var vDims = getViewportDimensions();
-        var vPos = getViewportPosition();
-        var aDims = getElementDimensions(area);
-        var aPos = getElementPosition(area);
-        var rightedge_area = aDims.w + aPos.x;
-        var rightedge_vp = vDims.w + vPos.x;
-        aDims.w += rightedge_vp-rightedge_area-50;
-        setElementDimensions(area, aDims);
+
+    var vDims, vPos, aDims, aPos, rightedge_area, rightedge_vp;
+
+    var refreshVars = function() {
+        vDims = getViewportDimensions();
+        vPos = getViewportPosition();
+        rightedge_vp = vDims.w + vPos.x;
+        var area = $$('textarea')[0];
+        aDims = getElementDimensions(area);
+        aPos = getElementPosition(area);
+        rightedge_area = aDims.w + aPos.x;
     }
-    connect(currentWindow(), 'onresize', function(e) {
+
+    function resizeAll() {
+        refreshVars();
         map(resizeArea, $$('textarea'));
+    }
+
+    function resizeArea(area) {
+        var w = aDims.w + rightedge_vp-rightedge_area-50;
+        setElementDimensions(area, {w:w});
+    }
+
+    connect(currentWindow(), 'onresize', function(e) {
+        map(resizeAll, $$('textarea'));
     });
-    map(resizeArea, $$('textarea'));
+
+    map(resizeAll, $$('textarea'));
 }
 
 
