@@ -101,7 +101,6 @@ class zenwin(Base):
         w = self._wmi(srec)
         w.connect()
         svcs = [ svc.Name for svc in w.query(wql) ]
-        nextFd = os.open('/dev/null', os.O_RDONLY)
         for name, (status, severity) in srec.services.items():
             self.log.debug("service: %s status: %d", name, status)
             if name not in svcs:
