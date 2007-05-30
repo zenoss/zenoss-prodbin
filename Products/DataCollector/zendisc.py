@@ -170,7 +170,7 @@ class ZenDisc(ZenModeler):
                                         ip, dev.id)
                 self.sendDiscoveredEvent(ipobj)
             dev = manage_createDevice(self.dmd, ip, devicepath,
-            productionState=prodState)
+            productionState=prodState, performanceMonitor=self.options.monitor)
             transaction.commit()
             dev.collectDevice()
             return dev
@@ -245,6 +245,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--prod_state', dest='productionState',
                     default=1000,
                     help="initial production state for discovered devices")
+        self.parser.add_option('--monitor', dest='monitor',
+                    default='localhost',
+                    help="initial monitor for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
                     help="remodel existing objects")
