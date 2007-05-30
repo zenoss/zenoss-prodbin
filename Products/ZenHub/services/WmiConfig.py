@@ -105,13 +105,13 @@ class WmiConfig(HubService):
             self.procrastinator.doLater(object)
 
     def push(self, object):
-        if not object.monitorDevice():
-            return
-        if getattr(object, 'zWmiMonitorIgnore', False):
-            return
-        for listener in self.listeners:
-            listener.callRemote('notifyConfigChanged')
-        self.procrastinator.clear()
+        if (not object.monitorDevice() or
+            getattr(object, 'zWmiMonitorIgnore', False)):
+            self.deleted(object)
+        else:
+            for listener in self.listeners:
+                listener.callRemote('notifyConfigChanged')
+            self.procrastinator.clear()
 
     def deleted(self, obj):
         for listener in self.listeners:
