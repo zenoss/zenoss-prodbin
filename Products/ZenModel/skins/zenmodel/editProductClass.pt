@@ -38,9 +38,9 @@
             tal:attributes="value here/partNumber" />
         </td>
     </tr>
-    <tr>
+    <tr tal:condition="here/isOS | nothing">
         <td class="tableheader">Operating System</td>
-        <td class="tablevalues">
+        <td class="tablevalues"> 
             <select class="tablevalues" name="isOS:boolean">
                 <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.isOS"/>
