@@ -2,10 +2,20 @@
     <head metal:use-macro="here/templates/macros/head1"/>
 	<body>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
-        <div id="frame">
+	   <div id="frame">
+            <form name="proxy_form" id="proxy_form"
+                style="position:absolute;visibility:hidden"
+                tal:attributes="action here/absolute_url_path"></form>
             <div metal:use-macro="here/templates/macros/topPane"/>
-            <div metal:use-macro="here/templates/macros/infoBar"/>
-            <div id="paneToggle"></div>
+            <div id="infoBar">
+                <div id="leftPaneToggle"></div>
+                <div id="breadCrumbPane">
+                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+                </div>
+                <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
+            </div>
+            <div id="paneToggle">
+            </div>
             <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
                                     here.REQUEST.HTTP_COOKIE">
                 #leftPane { display:none;}
