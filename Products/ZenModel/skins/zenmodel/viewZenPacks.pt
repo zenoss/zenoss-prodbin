@@ -39,6 +39,7 @@
 	<tr tal:repeat='pack objects'>
 	  <td class="tablevalues">
 	    <input type="checkbox" name="ids:list" 
+				tal:condition="pack/getPrimaryPath|nothing"
 	    	   tal:attributes="value pack/id"/>
 	  </td>
 	
