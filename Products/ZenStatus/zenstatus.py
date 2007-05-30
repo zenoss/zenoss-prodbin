@@ -119,6 +119,7 @@ class ZenStatus(Base):
         self.stop()
 
     def remote_notifyConfigChanged(self):
+        self.log.debug("Asynch notification of config change")
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
