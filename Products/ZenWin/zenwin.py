@@ -191,6 +191,7 @@ class zenwin(Base):
             self.devices = config
 
     def remote_deleteDevice(self, device):
+        self.log.debug("Async notification: delete device %s", device)
         self.devices = [d for d in self.devices if d.name != device]
     
     def cycleInterval(self):
