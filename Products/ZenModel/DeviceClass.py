@@ -710,7 +710,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
         devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceTest", "test -f %s")
-        devs._setProperty("zCommandPath", "/usr/local/zenoss/libexec")
+        devs._setProperty("zCommandPath", "/opt/zenoss/libexec")
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
         devs._setProperty("zTelnetSuccessRegexList",
