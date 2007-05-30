@@ -159,7 +159,7 @@ Dialog.Box.prototype = {
                 shake(errmsg);
             }
         }, this));
-    },
+    }
 }
 
 log("Dialog javascript loaded.")
