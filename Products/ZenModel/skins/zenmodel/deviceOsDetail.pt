@@ -180,6 +180,11 @@
         </td>
     </tr>
     </tal:block>
+    <tr>
+        <td colspan="0" class="tableheader" align='center'>
+            <div metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></div>
+        </td>
+    </tr>
 
 <!-- END TABLE CONTENTS -->
 
@@ -355,6 +360,11 @@ Optional titlebar stuff
         </td>
     </tr>
     </tal:block>
+    <tr>
+        <td colspan="0" class="tableheader" align='center'>
+            <form metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></form>
+        </td>
+    </tr>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
