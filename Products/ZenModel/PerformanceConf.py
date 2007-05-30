@@ -284,14 +284,13 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
-            if dev.monitorDevice():
-                try:
-                    cmdinfo = dev.getDataSourceCommands()
-                    if not cmdinfo: continue
-                    result.append(cmdinfo)
-                except POSError: raise
-                except:
-                    log.exception("device %s", dev.id)
+            try:
+                cmdinfo = dev.getDataSourceCommands()
+                if not cmdinfo: continue
+                result.append(cmdinfo)
+            except POSError: raise
+            except:
+                log.exception("device %s", dev.id)
         return result
         
 

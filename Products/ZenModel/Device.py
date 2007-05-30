@@ -505,6 +505,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """Return list of command definitions in the form
         (device, user, pass [(cmdinfo,),...])
         """
+        if not self.monitorDevice():
+            return None
         cmds = (super(Device, self).getDataSourceCommands())
         for o in self.getMonitoredComponents():
             cmds.extend(o.getDataSourceCommands())
