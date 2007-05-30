@@ -11,13 +11,13 @@
 		
         batch python:here.ZenTableManager.getBatch(tableName, objects,
 							sortedHeader='sequence');">
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
+<input type="hidden" name="zenScreenName" 
+    tal:attributes="value template/id"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-<input type='hidden' name='tableName' tal:attributes="value tableName" />
-<input type="hidden" name="zenScreenName" 
-    tal:attributes="value template/id"/>
     <span tal:condition="objects" tal:omit-tag="">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(

@@ -8,6 +8,9 @@
         showfilterbox python:True;
         tabletitle string:Manufacturers;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
@@ -23,9 +26,6 @@ Optional titlebar stuff
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
     <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'primarySortKey','Name')">Name</th>

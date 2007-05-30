@@ -10,6 +10,7 @@
     tableName string:deviceadminroles;
     batch python:here.ZenTableManager.getBatch(tableName,objects); 
     tabletitle string:Administered Devices">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -25,7 +26,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     
     <tr tal:define="message request/message | string:">
         <td class=tableheader colspan=5 tal:content="message" />

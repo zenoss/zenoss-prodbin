@@ -1,5 +1,3 @@
-﻿
-
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="userCommandsTable"
     tal:define="objects here/userCommands/objectValuesAll;
@@ -41,9 +39,10 @@ Optional titlebar stuff
   <tr tal:define="odd repeat/uc/odd"
       tal:attributes="class python:test(odd, 'odd', 'even')">
     <td class="tablevalues" align="left">
-       <input type="checkbox" name="ids:list" 
+  <input type="checkbox" name="ids:list" 
               tal:attributes="value uc/getId"/>
-        <a href="_" 
+
+  <a href="_" 
         tal:attributes="href uc/absolute_url"
         tal:content="uc/getId">command</a>
     </td>

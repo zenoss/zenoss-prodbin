@@ -5,6 +5,7 @@
     tal:attributes="action string:${here/absolute_url_path}/${template/id}">
         <tal:block tal:define="tableName string:perfdetail;
     drange python: here.ZenTableManager.setReqTableState(tableName,'drange',129600); tabletitle string:Range">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 
@@ -27,23 +28,22 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     
-    <span tal:define="
+    <tal:block tal:define="
             objects here/devices;
             sortOn python:(('getId', 'nocase', 'asc'),);
             sortedobjs python:sequence.sort(objects, sortOn)">
-        <span tal:repeat="device sortedobjs">
+        <tal:block tal:repeat="device sortedobjs">
         
-        <span tal:repeat="graph python:device.primaryAq().getDefaultGraphs(drange=drange)">
+        <tal:block tal:repeat="graph python:device.primaryAq().getDefaultGraphs(drange=drange)">
             <tr><td class=tableheader tal:content="graph/title">title</td></tr>
             <tr><td class=tablevalues>
                 <img src="_" tal:attributes="src graph/url">
                 </td>
             </tr>
-        </span>
-        </span>
-    </span>
+        </tal:block>
+        </tal:block>
+    </tal:block>
 
         <!-- END TABLE CONTENTS -->
 

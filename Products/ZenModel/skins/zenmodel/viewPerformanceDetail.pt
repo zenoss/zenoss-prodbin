@@ -13,6 +13,7 @@ var ZenGraphs = new Array();
     tabletitle string:Performance Graphs;
     drange python: here.ZenTableManager.setReqTableState(
     tableName,'drange',129600)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
@@ -36,9 +37,8 @@ var ZenGraphs = new Array();
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
 
-    <span tal:repeat="graph python:here.getDefaultGraphs(drange=drange)">
+    <tal:block tal:repeat="graph python:here.getDefaultGraphs(drange=drange)">
     <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
         <tr><td class="tableheader" tal:content="graph/title">title</td></tr>
         <tr><td class="tablevalues">
@@ -51,7 +51,7 @@ var ZenGraphs = new Array();
 
         </tr>
     </tal:block>
-    </span>
+    </tal:block>
 <script>
 // Don't load pretty graphs if IE
 if (!document.all) {

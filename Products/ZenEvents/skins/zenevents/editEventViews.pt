@@ -11,6 +11,7 @@
                 batch python:zem.getBatch(tableName,objects); 
                 tabletitle string:Event Views;
                 menu_id string:EventView_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -26,7 +27,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'primarySortKey','Name')"/>

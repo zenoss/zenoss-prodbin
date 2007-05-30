@@ -1,6 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
 <form method="post" tal:attributes="action here/absolute_url_path" 
 	name="organizers">
 
@@ -10,13 +9,11 @@
         showfilterbox python:True;
         tabletitle string:Sub-Folders;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
@@ -47,8 +44,6 @@
     </tr>
 
 
-<!-- END TABLE CONTENTS -->
-
 </tal:block>
 </tal:block>
 </tal:block>
@@ -66,13 +61,12 @@
         showfilterbox python:True;
         tabletitle string:Services;
         batch python:here.ZenTableManager.getBatch(tableName,objects);">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id"/>
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'name','Name')"/>
@@ -109,14 +103,10 @@
         </td>
     </tr>
 
-
-<!-- END TABLE CONTENTS -->
-
 </tal:block>
 </tal:block>
 </tal:block>
 </form>
-
 </tal:block>
 </tal:block>
 

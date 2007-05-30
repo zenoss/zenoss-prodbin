@@ -9,6 +9,7 @@
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     tabletitle string:Maintenance Windows;
     menu_id string:MaintenanceWindow_list">
+<input type='hidden' name='tableName' tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
@@ -24,7 +25,6 @@ Optional titlebar stuff
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-<input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp')">
