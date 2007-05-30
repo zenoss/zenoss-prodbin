@@ -44,7 +44,8 @@
             <span tal:condition="not:editable" tal:content="svcinst/sequence"/>
         </td>
         <td class="tablevalues">
-	   <a tal:attributes="href python:svcinst.getPrimaryParent().getPrimaryUrlPath()" 
+	   <a tal:attributes="href
+       python:svcinst.getPrimaryParent().getPrimaryParent().getPrimaryUrlPath()" 
 	      tal:content="python:svcinst.getPrimaryParent().getOrganizerName()"/>
         </td>
         <td class="tablevalues">
