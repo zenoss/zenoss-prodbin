@@ -492,4 +492,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if REQUEST is not None:
             return self.callZenScreen(REQUEST, redirect=True)
 
+    
+    def getBrokenPackName(self, pack):
+        ''' Extract the zenpack name from the broken module
+        '''
+        return pack.__class__.__module__.split('.')[1]
+
+
 InitializeClass(DataRoot)

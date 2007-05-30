@@ -63,7 +63,7 @@
 	  </tal:block>
 	  <tal:block tal:condition="not:pack/getPrimaryUrlPath|nothing">
 		  <td class="tablevalues">
-			<tal:dummy tal:replace="pack/id" />
+			<tal:dummy tal:replace="python:here.dmd.getBrokenPackName(pack)" />
 		  </td>
 		  <td class="tablevalues" colspan="4">
 		      This pack is missing or broken.  Please reinstall.
