@@ -27,7 +27,13 @@ class ZenPackCmd(ZenScriptBase):
         "Execute the user's request"
         self.connect()
         if self.options.installPackName:
-            self.install(self.extract(self.options.installPackName))
+            if os.path.isfile(self.options.installPackName):
+                packName = self.extract(self.options.installPackName)
+            elif os.path.isdir(self.options.installPackName):
+                packName = self.copyDir(self.options.installPackName)
+            else:
+                self.stop('%s does not appear to be a valid file or directory.')
+            self.install(packName)
 
         elif self.options.removePackName:
             self.remove(self.options.removePackName)
@@ -122,6 +128,43 @@ class ZenPackCmd(ZenScriptBase):
                 if not os.path.isdir(base):
                     os.makedirs(base)
                 file(fullname, 'wb').write(zf.read(name))
+        return packName
+        
+        
+    def copyDir(self, srcDir):
+        '''Copy an unzipped zenpack to the appropriate location.
+        Return the name.
+        '''
+        # Normalize srcDir to not end with slash
+        if srcDir.endswith('/'):
+            srcDir = srcDir[:-1]
+        
+        if not os.path.isdir(srcDir):
+            self.stop('Specified directory does not appear to exist: %s' %
+                        srcDir)
+        
+        # Determine name of pack and it's destination directory                
+        packName = os.path.split(srcDir)[1]
+        root = zenPackPath(packName)
+        
+        # Continue without copying if the srcDir is already in Products
+        if os.path.exists(root) and os.path.samefile(root, srcDir):
+            self.log.debug('Directory already in $ZENHOME/Products,'
+                            ' not copying.')
+            return packName
+        
+        # destSrc isn't in Products, but a directory for this pack
+        # already exists there.  Panic unless --force.
+        if os.path.isdir(root) and not self.options.force:
+            self.stop('%s already exists' % root)
+            
+        # Copy the source dir over to Products
+        self.log.debug('Copying %s' % packName)
+        #result = os.system('cp -r %s $ZENHOME/Products/' % srcDir)
+        result = os.system('rsync -rlC %s $ZENHOME/Products' % srcDir)
+        if result == -1:
+            self.stop('Error copying %s to $ZENHOME/Products' % srcDir)
+        
         return packName
         
 
