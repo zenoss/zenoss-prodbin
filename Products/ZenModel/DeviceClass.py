@@ -149,6 +149,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dcnames.append(self.getOrganizerName())
         for subclass in self.children():
             dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
+        dcnames.sort(lambda a, b: cmp(a.lower(), b.lower()))
         return dcnames
     deviceMoveTargets = getPeerDeviceClassNames
     childMoveTargets = getPeerDeviceClassNames
