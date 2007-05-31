@@ -34,7 +34,6 @@ div.tabletitlecontainer {
     margin-left: -49px;
 }
 
-
 table.innerzentable {
     position: relative;
     top: 1px;
@@ -50,10 +49,66 @@ div.zentable_selectionbar {
 }
 
 table.zentable {
-z-index: 5000;
+    z-index: 5000;
 }
 
 div.contextmenuitems,
 div.menu {
     zoom: 1;
+}
+
+div#contextmenu_btn {
+    position: relative;
+    top: 10px;
+    width: 52px;
+}
+
+#tabsPane {
+    z-index: 10;
+}
+
+#tabsPane table {
+    table-layout: auto;
+}
+
+#tabsPane table td {
+    width: 0%;
+}
+
+
+#tabsPane table td.contextmenutab .menu {
+    width: 52px;
+}
+
+td.tabletitleselected div.tabcenter a.tabletitle {
+    position: relative;
+    top: -3px;
+}
+
+table.tabtable td.tabletitleselected div.tablinehider {
+    bottom: -1px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 4px;
+    border: 2px solid black;
+    border-width: 0px 1px;
+}
+
+td.tabtablecap {
+    padding: 0px 10px;
+}
+
+div.dialog_container {
+    zoom: 1;
+    overflow: visible;
+    width: 30%;
+}
+
+div#gridcontainer {
+    overflow:visible;
+}
+
+#settings li span{
+    padding: 8px 10px;
 }

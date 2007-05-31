@@ -151,7 +151,9 @@
     <div id="settings">
     <ul>
         <li>
+        <span>
         <tal:block tal:content="request/AUTHENTICATED_USER"/>
+        </span>
         </li>
         <li>
         <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
@@ -298,7 +300,7 @@ style="position:relative;">
         <tal:block tal:condition="python:hasattr(here, 'getMenus')">
            <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
         <td class="contextmenutab" 
-            tal:condition="hasMenus" >
+            tal:condition="hasMenus">
         <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
         </td>
         <td class="tabtableleftcap"

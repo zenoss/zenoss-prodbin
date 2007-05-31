@@ -607,15 +607,16 @@ DeviceZenGrid.prototype = {
             'padding':'0',
             'margin':'0'
         });
+        var isMSIE//@cc_on=1;
         setStyle(this.headers, {
-            'width':'98%'
+            'width':isMSIE?'96%':'98%'
         });
         setStyle(this.innercont, {
             'width':'100%'
 
         });
         setStyle(this.viewport, {
-            'width':'98%',
+            'width':isMSIE?'96%':'98%',
             'height':this.rowToPixel(this.numRows)+'px',
             'overflow':'hidden',
             'float':'left',

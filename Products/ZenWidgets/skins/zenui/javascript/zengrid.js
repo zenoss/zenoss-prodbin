@@ -199,7 +199,7 @@ ZenGrid.prototype = {
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
         var isMSIE//@cc_on=1;
-        this.rowSizePlus = this.rowHeight+(isMSIE?5:3);
+        this.rowSizePlus = this.rowHeight+(isMSIE?3:3);
         this.buildHTML();
         this.selectstatus = 'none';
         this.clearFirst = false;
@@ -660,15 +660,16 @@ ZenGrid.prototype = {
             'padding':'0',
             'margin':'0'
         });
+        var isMSIE//@cc_on=1;
         setStyle(this.headers, {
-            'width':'98%'
+            'width':isMSIE?'96%':'98%'
         });
         setStyle(this.innercont, {
             'width':'100%'
 
         });
         setStyle(this.viewport, {
-            'width':'98%',
+            'width':isMSIE?'96%':'98%',
             'height':this.rowToPixel(this.numRows)+'px',
             'overflow':'hidden',
             'float':'left',
@@ -701,6 +702,9 @@ ZenGrid.prototype = {
         setStyle(this.scrollbar.getElementsByTagName('div')[0],
             {'height':String(parseInt(scrlheight)) + 'px'}
         );
+        var isMSIE//@cc_on=1;
+        if (isMSIE)
+            setStyle(this.scrollbar, {'height':this.rowToPixel(this.numRows)+'px'});
     },
     rowToPixel: function(row) {
         return row * (this.rowSizePlus);

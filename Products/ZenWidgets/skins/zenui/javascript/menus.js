@@ -19,6 +19,7 @@ var calcSubmenuPos = function(rel, sub) {
 
 
 var calcMenuPos = function(rel, menu) {
+    var isIE//@cc_on=1
     var pPos = getElementPosition(rel);
     var pDims = getElementDimensions(rel);
     var vDims = getViewportDimensions();
@@ -37,6 +38,7 @@ var calcMenuPos = function(rel, menu) {
     } else {
         setStyle(topmenu, {'background-image':'url(img/menu_top.gif)'});
     }
+    if (isIE && $(menu).className!='devmovemenuitems') finalDims.y += 10;
     return finalDims
 }
 
