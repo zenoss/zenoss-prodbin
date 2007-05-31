@@ -6,6 +6,23 @@ var Class={
     }
 }
 
+function getFirstFormElement(parentbox) {
+    var finalElement;
+    var traverse = function(node) {
+        if ((node.tagName=='SELECT'||node.tagName=='INPUT'||
+            node.tagName=='TEXTAREA') && 
+            node.type!='hidden' && !finalElement) 
+            finalElement = node;
+        if (node.childNodes != null) {
+            for (var i=0;i<node.childNodes.length;i++) {
+                traverse(node.childNodes.item(i));
+            }
+        }
+    }
+    traverse(parentbox);
+    return finalElement;
+}
+
 var Dialog = {};
 Dialog.Box = Class.create();
 Dialog.Box.prototype = {
@@ -111,9 +128,7 @@ Dialog.Box.prototype = {
     },
     fill: function(request) {
         $('dialog_innercontent').innerHTML = request.responseText;
-        var els = findChildElements($('dialog_innercontent'), ['new_id','select','input','dialog_submit']);
-        els = filter(function(x){return x.type!='button'&&x.type!='hidden'}, els);
-        var first = els[0];
+        var first = getFirstFormElement($('dialog_innercontent'));
         first.focus();
         if (this.lock.locked) this.lock.release();
     },
