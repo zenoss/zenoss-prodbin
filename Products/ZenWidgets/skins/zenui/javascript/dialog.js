@@ -6,13 +6,23 @@ var Class={
     }
 }
 
-function getFirstFormElement(parentbox) {
-    var finalElement;
+function getFormElements(parentbox) {
+    var firstElement;
+    var textBoxes = [];
+    var submitButtons = [];
+    var formElements = [];
     var traverse = function(node) {
         if ((node.tagName=='SELECT'||node.tagName=='INPUT'||
-            node.tagName=='TEXTAREA') && 
-            node.type!='hidden' && !finalElement) 
-            finalElement = node;
+            node.tagName=='TEXTAREA')&&node.type!='hidden') {
+                formElements[formElements.length]=node;
+                if (!firstElement) 
+                    firstElement = node;
+        }
+        if (node.tagName=='INPUT'&&(node.type=='text'||node.type=='password'))
+            textBoxes[textBoxes.length]=node;
+        if (node.tagName=='INPUT'&&(node.type=='submit'||node.type=='button')&&
+            node.id!='dialog_cancel')
+            submitButtons[submitButtons.length] = node;
         if (node.childNodes != null) {
             for (var i=0;i<node.childNodes.length;i++) {
                 traverse(node.childNodes.item(i));
@@ -20,7 +30,7 @@ function getFirstFormElement(parentbox) {
         }
     }
     traverse(parentbox);
-    return finalElement;
+    return [firstElement, textBoxes, submitButtons, formElements]
 }
 
 var Dialog = {};
@@ -128,7 +138,18 @@ Dialog.Box.prototype = {
     },
     fill: function(request) {
         $('dialog_innercontent').innerHTML = request.responseText;
-        var first = getFirstFormElement($('dialog_innercontent'));
+        var elements = getFormElements($('dialog_innercontent'));
+        var first = elements[0];
+        var textboxes = elements[1];
+        var submits = elements[2];
+        var submt = submits[0];
+        var connectTextboxes = function(box) {
+            connect(box, 'onkeyup', function(e){
+                if (e.key().string=='KEY_ENTER') submt.click();
+            });
+        }
+        if (submits.length==1) map(connectTextboxes, textboxes);
+        log('Focusing first...');
         first.focus();
         if (this.lock.locked) this.lock.release();
     },
