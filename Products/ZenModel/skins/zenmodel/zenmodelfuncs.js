@@ -16,6 +16,7 @@ function zenPageInit(){
                 as[i].className = 'selected';
         }
         else if( location.href.indexOf('notabs')==-1 && 
+                 as[i].href.indexOf('notabs')==-1 &&
                  location.pathname.indexOf(as[i].pathname) != -1){
             as[i].className = 'selected';
             //lastLeft = as[i];
