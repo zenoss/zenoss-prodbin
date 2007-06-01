@@ -196,7 +196,7 @@ class Organizer(ZenModelRM, EventView):
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 
             if addblank: groupNames.append("")
-            groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
+        groupNames.sort(lambda x,y: cmp(x.lower(), y.lower()))
         return groupNames
 
 
