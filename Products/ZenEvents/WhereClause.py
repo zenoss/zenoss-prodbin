@@ -11,6 +11,7 @@
 #
 ###########################################################################
 import types
+import simplejson
 
 def q(s):
     # turn string "fo'o" -> "'fo''o'"
@@ -212,7 +213,7 @@ def toJavaScript(meta, clause):
     result = []
     recurse(tree, result)
     result.sort()
-    return result
+    return simplejson.dumps(result)
 
 def fromFormVariables(meta, form):
     result = []
