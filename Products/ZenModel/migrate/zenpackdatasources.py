@@ -8,6 +8,7 @@ __doc__='''All existing datasources should be switched to instances
 of BasicDataSource instead of RRDDataSource
 '''
 
+import sys
 import Migrate
 
 class ZenPackDataSources(Migrate.Step):
@@ -24,6 +25,7 @@ class ZenPackDataSources(Migrate.Step):
         except ImportError:
             PageCheckDataSource = None
         numDS = 0
+        numUnhandled = 0
         for t in dmd.Devices.getAllRRDTemplates():
             for s in t.datasources():
                 if s.__class__ == RRDDataSource:
@@ -35,8 +37,11 @@ class ZenPackDataSources(Migrate.Step):
                 elif issubclass(s.__class__, RRDDataSource):
                     pass
                 else:
-                    raise 'ZenPackDataSources can\'t handle datasource' + \
-                            ' type %s' %(s.__class__)
+                    numUnhandled += 1
+                    sys.stderr.write('ZenPackDataSources can\'t handle datasource' + \
+                            ' type %s\n' % (s.__class__))
         print 'Converted %s DataSources' % numDS
+        if numUnhandled:
+            print 'Problems with %s DataSources' % numUnhandled
 
 ZenPackDataSources()
