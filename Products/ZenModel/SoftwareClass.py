@@ -45,12 +45,10 @@ class SoftwareClass(ProductClass):
 
     build=""
     version=""
-    isOS = False
     
     _properties = ProductClass._properties + (
         {'id':'version', 'type':'string', 'mode':'w'},
         {'id':'build', 'type':'string', 'mode':'w'},
-        {'id':'isOS', 'type':'boolean', 'mode':'w'},
         )
 
 #    factory_type_information = ( 

@@ -38,7 +38,7 @@
             tal:attributes="value here/partNumber" />
         </td>
     </tr>
-    <tr tal:condition="here/isOS | nothing">
+    <tr>
         <td class="tableheader">Operating System</td>
         <td class="tablevalues"> 
             <select class="tablevalues" name="isOS:boolean">

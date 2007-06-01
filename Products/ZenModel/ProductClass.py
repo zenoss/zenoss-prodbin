@@ -37,6 +37,7 @@ class ProductClass(ZenModelRM, ZenPackable):
     #itclass = ""
     name = ""
     productKeys = []
+    isOS = False
 
     default_catalog = "productSearch"
 
@@ -46,6 +47,7 @@ class ProductClass(ZenModelRM, ZenPackable):
         {'id':'productKeys', 'type':'lines', 'mode':'w'},
         {'id':'partNumber', 'type':'string', 'mode':'w'},
         {'id':'description', 'type':'string', 'mode':'w'},
+        {'id':'isOS', 'type':'boolean', 'mode':'w'},
     )
 
     _relations = (
