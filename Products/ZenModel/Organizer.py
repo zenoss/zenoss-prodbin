@@ -142,8 +142,10 @@ class Organizer(ZenModelRM, EventView):
     
     def deviceMoveTargets(self):
         """Return list of all organizers excluding our self."""
-        return filter(lambda x: x != self.getOrganizerName(),
+        targets = filter(lambda x: x != self.getOrganizerName(),
             self.getDmdRoot(self.dmdRootName).getOrganizerNames())
+        targets.sort(lambda x,y: cmp(x.lower(), y.lower()))
+        return targets
 
    
     def moveOrganizer(self, moveTarget, organizerPaths=None, REQUEST=None):
