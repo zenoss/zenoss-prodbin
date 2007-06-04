@@ -33,7 +33,7 @@ class selTests(unittest.TestCase):
         """Run at the start of each test.
          """
         self.verificationErrors = []
-        self.selenium = selenium("selserver", 4444, "*firefox", "http://seltest1:8080")
+        self.selenium = selenium("localhost", 4444, "*firefox", "http://seltest1:8080")
         self.selenium.start()
         self.login()
     
@@ -95,7 +95,7 @@ class selTests(unittest.TestCase):
         
         #self._testMonitors()           #unimplemented
         #self._testMibs()               #unimplemented
-        #self._testAddDeleteDevice()     #working
+        self._testAddEditDeleteDevice()     #working
         #self._testEventManager()       #unimplemented
         #self._testSettings()           #unimplemented
         
@@ -212,9 +212,10 @@ class selTests(unittest.TestCase):
         """Run tests on the Mibs page
         """
         
-    def _testAddDeleteDevice(self):
+    def _testAddEditDeleteDevice(self):
         """Runs tests on the Add Device page.
         """
+        # Device is added and you are on device page
         time.sleep(SLEEPTIME)
         self.selenium.click("link=Add Device")
         self.selenium.wait_for_page_to_load("30000")
@@ -225,10 +226,25 @@ class selTests(unittest.TestCase):
         time.sleep(SLEEPTIME)
         self.selenium.click("loadDevice:method")
         self.selenium.wait_for_page_to_load("30000")
-        time.sleep(6)
+        time.sleep(15)
         self.selenium.click("link=tilde.zenoss.loc")
         self.selenium.wait_for_page_to_load("30000")
-        time.sleep(SLEEPTIME)
+        
+        # Edit Device
+        self.selenium.click("link=OS")
+        self.selenium.wait_for_page_to_load("30000")
+        
+        ######  Add, Modify, and Delete an IpInterface
+        self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method", fieldId="new_id")
+        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.click("zmanage_editProperties:method")
+        self.selenium.wait_for_page_to_load("30000")
+        # future: enter stuff in fields
+        
+        #Delete the ipinterface
+        self.selenium.click("link=os")
+        self.selenium.wait_for_page_to_load("30000")
+        self.deleteDialog(deleteType="IpInterfacedeleteIpInterfaces", deleteMethod="deleteIpInterfaces:method", pathsList="componentNames:list", form_name="ipInterfaceListForm")
         self.selenium.click("link=Delete Device...")
         time.sleep(SLEEPTIME)
         self.selenium.click("deleteDevice:method")
@@ -274,7 +290,7 @@ class selTests(unittest.TestCase):
 
     def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
                     fieldId2=None):
-        """Test the addOrganizer functionality.
+        """Test the addDialog functionality.
         """
         time.sleep(SLEEPTIME)
         self.selenium.click(str(addType))
