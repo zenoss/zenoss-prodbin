@@ -146,6 +146,7 @@ class ZenModeler(ZCmdBase):
         """Start command collection client.
         """
         client = None
+        clientType = 'unknown'
         hostname = device.id
         try:
             plugins = self.selectPlugins(device,"command")
@@ -160,14 +161,16 @@ class ZenModeler(ZCmdBase):
                                     options=self.options,
                                     commands=commands, device=device, 
                                     datacollector=self)
-                self.log.info('ssh collection device %s' % hostname)
+                clientType = 'ssh'
+                self.log.info('using ssh collection device %s' % hostname)
             elif protocol == 'telnet':
                 if commandPort == 22: commandPort = 23 #set default telnet
                 client = TelnetClient.TelnetClient(hostname, ip, commandPort,
                                     options=self.options,
                                     commands=commands, device=device, 
                                     datacollector=self)
-                self.log.info('telnet collection device %s' % hostname)
+                clientType = 'telnet'
+                self.log.info('using telnet collection device %s' % hostname)
             else:
                 self.log.warn("unknown protocol %s for device %s",
                                 protocol, hostname)
@@ -179,7 +182,7 @@ class ZenModeler(ZCmdBase):
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening cmdclient")
-        self.addClient(client, timeout, 'snmp', device.id)
+        self.addClient(client, timeout, clientType, device.id)
 
     
     def snmpCollect(self, device, ip, timeout):
