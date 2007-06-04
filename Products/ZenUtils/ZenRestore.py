@@ -157,7 +157,7 @@ class ZenRestore(ZenBackupBase):
         self.msg('Restoring the zeo database.')
         repozoDir = os.path.join(tempDir, 'repozo')
         cmd ='%s --recover --repository %s --output %s' % (
-                    os.path.join(self.zenhome, 'bin', 'repozo.py'),
+                    self.getRepozoPath(),
                     repozoDir,
                     os.path.join(self.zenhome, 'var', 'Data.fs'))
         if os.system(cmd): return -1

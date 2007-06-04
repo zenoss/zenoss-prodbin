@@ -19,6 +19,7 @@ Common code for zenbackup.py and zenrestore.py
 '''
 
 import os
+import os.path
 import tempfile
 from CmdBase import CmdBase
 
@@ -40,6 +41,7 @@ class ZenBackupBase(CmdBase):
     def __init__(self, noopts=0):
         CmdBase.__init__(self, noopts)
         self.zenhome = os.getenv('ZENHOME')
+        self.zopehome = os.getenv('ZOPEHOME')
 
 
     def msg(self, msg):
@@ -81,3 +83,14 @@ class ZenBackupBase(CmdBase):
         else:
             dir = tempfile.mkdtemp()
         return dir
+        
+        
+    def getRepozoPath(self):
+        ''' Return path to repozo.py
+        This is usually $ZENHOME/bin/repozo.py, but on the appliance it is
+        $ZOPEHOME/bin/repozo.py
+        '''
+        path = os.path.join(self.zenhome, 'bin', 'repozo.py')
+        if not os.path.isfile(path):
+            path = os.path.join(self.zopehome, 'bin', 'repozo.py')
+        return path

@@ -202,7 +202,7 @@ class ZenBackup(ZenBackupBase):
         repozoDir = os.path.join(tempDir, 'repozo')
         os.mkdir(repozoDir)
         cmd = ('%s --backup --full ' % 
-                os.path.join(self.zenhome, 'bin', 'repozo.py') +
+                self.getRepozoPath() +
                 '--repository %s --file %s/var/Data.fs' %
                 (repozoDir, self.zenhome))
         if os.system(cmd): return -1
