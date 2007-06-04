@@ -6141,7 +6141,7 @@ Intel Corporation PCI Express Root Port
 </object>
 <object id='Intel_ Dialogic_ System Release 6.0  Redistributable Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="lines" id="productKeys" mode="w" >
-['Intel\xae Dialogic\xae System Release 6.0  Redistributable Edition']
+[u'Intel\xae Dialogic\xae System Release 6.0  Redistributable Edition']
 </property>
 </object>
 <object id='Intel_R_ Extreme Graphics Driver' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -8049,7 +8049,7 @@ Windows 2000 Hotfix (SP5) Q818043
 </object>
 <object id='Windows Server 2003 Hotfix - KB 819696' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="lines" id="productKeys" mode="w" >
-['Windows Server 2003 Hotfix \x96 KB 819696']
+[u'Windows Server 2003 Hotfix \x96 KB 819696']
 </property>
 </object>
 <object id='Windows Server 2003 Hotfix - KB 823182' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
