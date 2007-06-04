@@ -45,7 +45,8 @@ def _loadPluginDir(pdir):
  
 
 def loadPlugins(dmd):
-    """Load plugins from the plugin directory.
+    """Load plugins from the plugin directory.  Returns them as a {<plugin
+    name> : plugin instance}
     """
     plugins = filter(lambda x: x.startswith("plugins"), sys.modules)
     for key in ['zenoss'] + plugins:
