@@ -55,6 +55,9 @@ class SshUserAuth(userauth.SSHUserAuthClient):
     lastPublicKey = False
     def __init__(self, user, instance, factory):
         user = str(user)                # damn unicode
+        if user == '':
+            user = os.getlogin()
+        log.debug('attempting to authenticate using username: %s' % user)
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
         self.factory = factory
@@ -126,6 +129,7 @@ class CommandChannel(channel.SSHChannel):
     def channelOpen(self, ignoredData):
         log.debug('opening command channel for %s' % self.command)
         self.data = ''
+        log.debug('running command remotely: exec %s' % common.NS(self.command))
         d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
                                   wantReply = 1)
 
