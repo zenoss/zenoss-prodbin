@@ -17,13 +17,14 @@
 #
 # Adam Modlin
 #
-
-from selenium import selenium
 import unittest, time, re
 import jsUtils
+import sys
+
+from selenium import selenium
+from TimeoutException import TimeoutException
 
 SLEEPTIME   =   2
-KEYSEQUENCE =   "testingString"
 USER        =   "admin"
 PASS        =   "zenoss"
 HOST        =   "seltest1"
@@ -48,7 +49,8 @@ class selTests(unittest.TestCase):
         """Logs selenium into the Zenoss Instance.
         """
         self.selenium.open("/zport/acl_users/cookieAuthHelper/login_form?came_from=http%%3A//%s%%3A8080/zport/dmd" %HOST)
-        time.sleep(SLEEPTIME)
+        self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("__ac_password")
         self.selenium.type("__ac_name", USER)
         self.selenium.type("__ac_password", PASS)
         self.selenium.click("//input[@value='Submit']")
@@ -57,13 +59,14 @@ class selTests(unittest.TestCase):
     def logout(self):
         """Logs out of the Zenoss instance
         """
-        self.selenium.click("link=Logout")
         self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("link=Logout")
+        self.selenium.click("link=Logout")
         
-    def type_keys(self, locator):
+    def type_keys(self, locator, keyseq="testingString"):
         """Because Selenium lies about what functions it actually has.
         """
-        for x in KEYSEQUENCE:
+        for x in keyseq:
             self.selenium.key_press(locator, str(ord(x)))
 
 #################################################################
@@ -95,7 +98,7 @@ class selTests(unittest.TestCase):
         
         #self._testMonitors()           #unimplemented
         #self._testMibs()               #unimplemented
-        self._testAddEditDeleteDevice()     #working
+        self._testAddEditDeleteDevice(deviceIp="tilde.zenoss.loc", classPath="/Discovered")     #working
         #self._testEventManager()       #unimplemented
         #self._testSettings()           #unimplemented
         
@@ -118,7 +121,7 @@ class selTests(unittest.TestCase):
     def _testEvents(self):
         """Run tests on the Events page.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Events")
         self.selenium.click("link=Events")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog()
@@ -131,11 +134,10 @@ class selTests(unittest.TestCase):
     def _testDevices(self):
         """Run tests on the Devices page
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Devices")
         self.selenium.click("link=Devices")
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Templates")
         self.selenium.click("link=Templates")
-        self.selenium.wait_for_page_to_load("30000")
         self.addDialog(addType="TemplatesaddTemplate")
         self.deleteDialog(deleteType="TemplatesdeleteTemplates", deleteMethod="manage_deleteRRDTemplates:method",
                             pathsList="ids:list", form_name="templates")        
@@ -143,18 +145,24 @@ class selTests(unittest.TestCase):
     def _testServices(self):
         """Run tests on the Services page.
         """
+        self.waitForElement("link=Services")
         self.selenium.click("link=Services")
         self.selenium.wait_for_page_to_load("30000")
         ##      Add a new Organizer
         self.addDialog()
+        self.selenium.wait_for_page_to_load("30000")
         ##      Add a Service and then delete it
         self.addDialog(addType="ServicelistaddServiceClass", addMethod="manage_addServiceClass:method", fieldId="id")
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog(deleteType="ServicelistremoveServiceClasses", deleteMethod="removeServiceClasses:method",
                             pathsList="ids:list", form_name="services")
+        self.selenium.wait_for_page_to_load("30000")
         ##      Add an IP Service and then delete it
         self.addDialog(addType="ServicelistaddIpServiceClass", addMethod="manage_addIpServiceClass:method", fieldId="id")
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog(deleteType="ServicelistremoveServiceClasses", deleteMethod="removeServiceClasses:method",
                             pathsList="ids:list", form_name="services")
+        self.selenium.wait_for_page_to_load("30000")
     
     def _testProcesses(self):
         """Run tests on the Processs page.
@@ -169,38 +177,46 @@ class selTests(unittest.TestCase):
     def _testSystems(self):
         """Run tests on the Systems page.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Systems")
         self.selenium.click("link=Systems")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog()
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
+        self.selenium.wait_for_page_to_load("30000")
         
     def _testGroups(self):
         """Run tests on the Groups page.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog()
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
+        self.selenium.wait_for_page_to_load("30000")
         
     def _testLocations(self):
         """Run tests on the Locations page.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Locations")
         self.selenium.click("link=Locations")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog()
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
+        self.selenium.wait_for_page_to_load("30000")
         
     def _testReports(self):
         """Run tests on the Reports page.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Reports")
         self.selenium.click("link=Reports")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog(addType="ReportClasslistaddReportClass")
+        self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog(deleteType="ReportClasslistdeleteReportClasses", form_name="reportClassForm")
+        self.selenium.wait_for_page_to_load("30000")
         
 ################################################        
         
@@ -212,44 +228,71 @@ class selTests(unittest.TestCase):
         """Run tests on the Mibs page
         """
         
-    def _testAddEditDeleteDevice(self):
+    def _testAddEditDeleteDevice(self, deviceIp, classPath):
         """Runs tests on the Add Device page.
         """
         # Device is added and you are on device page
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
         self.selenium.wait_for_page_to_load("30000")
-        time.sleep(SLEEPTIME)
-        self.selenium.type("deviceName", "tilde.zenoss.loc")
-        time.sleep(SLEEPTIME)
-        self.selenium.select("devicePath", "label=/Discovered")
-        time.sleep(SLEEPTIME)
+        self.waitForElement("loadDevice:method")
+        self.selenium.type("deviceName", deviceIp)
+        self.selenium.select("devicePath", "label=" + classPath)
         self.selenium.click("loadDevice:method")
         self.selenium.wait_for_page_to_load("30000")
-        time.sleep(15)
-        self.selenium.click("link=tilde.zenoss.loc")
+        self.waitForElement("link=" + deviceIp)
+        self.selenium.click("link=" + deviceIp)
         self.selenium.wait_for_page_to_load("30000")
         
         # Edit Device
+        self.waitForElement("link=OS")
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load("30000")
         
-        ######  Add, Modify, and Delete an IpInterface
+        # Add, Modify, and Delete an IpInterface
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method", fieldId="new_id")
         self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("zmanage_editProperties:method")
         self.selenium.click("zmanage_editProperties:method")
-        self.selenium.wait_for_page_to_load("30000")
         # future: enter stuff in fields
-        
-        #Delete the ipinterface
-        self.selenium.click("link=os")
-        self.selenium.wait_for_page_to_load("30000")
-        self.deleteDialog(deleteType="IpInterfacedeleteIpInterfaces", deleteMethod="deleteIpInterfaces:method", pathsList="componentNames:list", form_name="ipInterfaceListForm")
-        self.selenium.click("link=Delete Device...")
-        time.sleep(SLEEPTIME)
-        self.selenium.click("deleteDevice:method")
+        # Delete the ipinterface
+        self.waitForElement("link=Delete")
+        self.selenium.click("link=Delete")
+        self.waitForElement("manage_deleteComponent:method")
+        self.selenium.click("manage_deleteComponent:method")
         self.selenium.wait_for_page_to_load("30000")
 
+        # Add OSProcess
+        self.addDialog(addType="link=Add OSProcess...")
+        self.selenium.wait_for_page_to_load("30000")
+        # future: enter stuff in fields
+        # Delete OSProcess
+        self.waitForElement("link=Delete")
+        self.selenium.click("link=Delete")
+        self.waitForElement("manage_deleteComponent:method")
+        self.selenium.click("manage_deleteComponent:method")
+        self.selenium.wait_for_page_to_load("30000")
+        
+        # Add Filesystem
+        self.addDialog(addType="link=Add File System...")
+        #future: enter stuff in fields
+        #Delete Filesystem
+        self.waitForElement("link=Delete")
+        self.selenium.click("link=Delete")
+        self.waitForElement("manage_deleteComponent:method")
+        self.selenium.click("manage_deleteComponent:method")
+        self.selenium.wait_for_page_to_load("30000")
+        
+        # Add IP Route
+        self.addDialog(addType="link=Add Route...", fieldId2="nexthopid", overrideString="127.0.0.1/8")
+        
+        # Delete the Device
+        self.waitForElement("link=Delete Device...")
+        self.selenium.click("link=Delete Device...")
+        self.waitForElement("deleteDevice:method")
+        self.selenium.click("deleteDevice:method")
+        self.selenium.wait_for_page_to_load("30000")
+        
     def _testEventManager(self):
         """Run tests on the Event Manager page.
         """
@@ -269,64 +312,73 @@ class selTests(unittest.TestCase):
     def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
         """Test the addUser functionality
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement("link=Settings")
         self.selenium.click("link=Settings")
         self.selenium.wait_for_page_to_load("30000")
-        self.selenium.clikc("link=Users")
+        self.selenium.click("link=Users")
         self.selenium.wait_for_page_to_load("30000")
-        time.sleep(SLEEPTIME)
+        self.waitForElement("UserlistaddUser")
         self.addDialog(addType="UserlistaddUser", fieldId2="email")
         self.selenium.click("link=testingString")
         self.selenium.wait_for_page_to_load("30000")
-        sel.add_selection("roles:list", "label=Manager")
-        sel.remove_selection("roles:list", "label=ZenUser")
-        time.sleep(SLEEPTIME)
+        self.selenium.add_selection("roles:list", "label=Manager")
+        self.selenium.remove_selection("roles:list", "label=ZenUser")
+        self.waitForElement("password")
         self.type_keys("password")
-        time.sleep(SLEEPTIME)
+        self.waitForElement("sndpassword")
         self.type_keys("sndpassword")
+        self.waitForElement("manage_editUserSettings:method")
         self.selenium.click("manage_editUserSettings:method")
-        self.selenium.wait_for_page_to_load("30000")
-        
 
     def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
-                    fieldId2=None):
+                    fieldId2=None, overrideString="testingString"):
         """Test the addDialog functionality.
         """
-        time.sleep(SLEEPTIME)
-        self.selenium.click(str(addType))
-        time.sleep(SLEEPTIME)
-        self.type_keys(fieldId)
-        time.sleep(SLEEPTIME)
+        self.selenium.click(addType)
+        #time.sleep(1)
+        self.type_keys(fieldId, overrideString)
         if fieldId2 != None:
-            self.type_keys(fieldId2)
-        self.selenium.click(str(addMethod))
-        time.sleep(SLEEPTIME)
+            self.waitForElement(fieldId2)
+            self.type_keys(fieldId2, overrideString)
+        self.selenium.click(addMethod)
+        #time.sleep(1)
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
                         pathsList="organizerPaths:list", form_name="subdeviceForm"):
         """Test the deleteOrganizer functionality.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
         self.selenium.click(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
-        time.sleep(SLEEPTIME)
-        self.selenium.click(str(deleteType))
-        time.sleep(SLEEPTIME)
-        self.selenium.click(str(deleteMethod))
-        time.sleep(SLEEPTIME)
-        self.selenium.wait_for_page_to_load("30000")
-        
+        self.waitForElement(deleteType)
+        self.selenium.click(deleteType)
+        self.waitForElement(deleteMethod)
+        self.selenium.click(deleteMethod)
+
     def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown"):
         """Test moving an EventClassMapping to /Unknown.
         """
-        time.sleep(SLEEPTIME)
+        self.waitForElement(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
         self.selenium.click(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
-        time.sleep(SLEEPTIME)
+        self.waitForElement("EventmappinglistmoveInstances")
         self.selenium.click("EventMappinglistmoveInstances")
-        time.sleep(SLEEPTIME)
+        self.waitForElement("moveInstances:method")
         self.selenium.select("moveTarget", moveTo)
-        time.sleep(SLEEPTIME)
         self.selenium.click("moveInstances:method")
-        self.selenium.wait_for_page_to_load("30000")
+    
+    def waitForElement(self, locator, timeout=15):
+        i = 0
+        try:
+            while not self.selenium.is_element_present(locator):
+                time.sleep(1)
+                i += 1
+                if i >= timeout:
+                    raise TimeoutException("Timed out waiting for " + locator)
+        except TimeoutException, e:
+            import traceback
+            traceback.print_exc()
+            self.selenium.stop()
+            raise e
+            
         
 if __name__ == "__main__":
     unittest.main()
