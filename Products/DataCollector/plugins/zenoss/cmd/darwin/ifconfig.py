@@ -27,6 +27,8 @@ class ifconfig(CommandPlugin):
 
 
     flags = re.compile(".+flags=\d+<(.+)>.+").search
+    v4addr = re.compile("inet (\S+).*netmask (\S+)").search
+    ether = re.compile("ether (\S+)").search
 
 
     def condition(self, device, log):
@@ -40,7 +42,7 @@ class ifconfig(CommandPlugin):
         chunks = []
         chunk = []
         for line in output.split('\n'):
-            if line.startswith(' '):
+            if line.startswith('\t'):
                 chunk.append(' ')
                 chunk.append(line)
             else:
@@ -48,14 +50,19 @@ class ifconfig(CommandPlugin):
                 if len(section) > 0:
                     chunks.append(section)
                 chunk = [line]
-        chunks.append(string.join(chunk, ' '))
+
+        joined = string.join(chunk, ' ').strip()
+        if len(joined) > 0:
+            chunks.append()
+
         return chunks
 
 
     def process(self, device, results, log):
         log.info('Collecting interfaces for device %s' % device.id)
         rm = self.relMap()
-        for chunk in self.chunk(results):            
+
+        for chunk in self.chunk(results):
             iface = self.objectMap()
             rm.append(iface)
 
@@ -68,5 +75,19 @@ class ifconfig(CommandPlugin):
                 else: iface.operStatus = 2
                 if "RUNNING" in flags: iface.adminStatus = 1
                 else: iface.adminStatus = 2
+
+            iface.id = self.prepId(intf)
+            iface.interfaceName = intf
+
+            maddr = self.v4addr(chunk)
+            if maddr and iface:
+                ip, netmask = maddr.groups()
+                netmask = self.hexToBits(netmask)
+                iface.setIpAddresses = ["%s/%s" % (ip, netmask)]
+                
+            mether = self.ether(chunk)
+            if mether and iface:
+                hwaddr = mether.groups()[0]
+                iface.macaddress = hwaddr
                 
         return rm
