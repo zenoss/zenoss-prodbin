@@ -106,6 +106,7 @@ class ZenPing(ZCmdBase):
             if not changed:
                 changed = before != after
         self.configCycleInterval *= 60
+        self.reconfigured = True
         
         reactor.callLater(self.configCycleInterval, self.loadConfig)
 
