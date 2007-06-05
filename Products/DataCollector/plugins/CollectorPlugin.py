@@ -44,6 +44,11 @@ class CollectorPlugin:
         """
         return iputil.maskToBits(mask)
 
+    def hexToBits(self, mask):
+        """Return the netmask as number of bits 0xffffff00 -> 24.
+        """
+        return iputil.hexToBits(mask)
+
 
     def objectMap(self, data={}):
         om = ObjectMap(data)
