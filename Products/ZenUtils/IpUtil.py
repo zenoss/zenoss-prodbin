@@ -21,6 +21,7 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 
 import types
 import re
+import string
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
@@ -85,6 +86,30 @@ def strip(ip):
         o.append(str(t >> (i*8)))
     o.reverse()
     return '.'.join(o)
+
+
+def hexToBits(hex):
+    """convert hex number (0xff000000 of netbits to numeric netmask (8)"""
+    return maskToBits(hexToMask(hex))
+    
+
+def hexToMask(hex):
+    '''converts a netmask represented in hex to octets represented in
+    decimal.  e.g. "0xffffff00" -> "255.255.255.0"'''
+    
+    if hex.find('x') < 0:
+        return "255.255.255.255"
+    
+    hex = list(hex.lower().split('x')[1])
+    octets = []
+    while len(hex) > 0:
+        snippit = list(hex.pop() + hex.pop())
+        snippit.reverse()
+        decimal = int(string.join(snippit, ''), 16)
+        octets.append(str(decimal))
+
+    octets.reverse()
+    return string.join(octets, '.')
 
 
 def maskToBits(netmask):
