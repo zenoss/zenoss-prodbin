@@ -33,8 +33,6 @@ connect('dialog_close','onclick', mydialog.box.hide);
 
 
 <tal:block metal:define-macro="dialog_moveDevices">
-
-
 <input class="tableheader" type="submit" name="moveDevices:method"
     value="Move To"
     tal:attributes="onclick string:return $$('dialog').submit_form(
@@ -46,4 +44,11 @@ connect('dialog_close','onclick', mydialog.box.hide);
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
 </select>
+</tal:block>
+
+<!--============Proxy form===============-->
+<tal:block metal:define-macro="proxyForm">
+<form method="post" name="proxyForm" action="here/absolute_url">
+<input type="hidden" name="zenScreenName" value="value template/id">
+</form>
 </tal:block>

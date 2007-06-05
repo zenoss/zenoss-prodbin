@@ -73,7 +73,7 @@ class ZenMenuable:
         """ Delete Menu Items """
         menu = getattr(self.zenMenus, menuid, None)
         if menu and REQUEST:
-            for menuitem in menu.getMenus(menuid):
+            for menuitem in getattr(self.zenMenus, menuid).zenMenuItems():
                 ordering = REQUEST[menuitem.id]
                 setattr(menuitem, 'ordering', ordering)
         if REQUEST:

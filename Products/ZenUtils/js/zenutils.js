@@ -53,26 +53,13 @@ function wheel(event){
        event.returnValue = false;
 }
 
-var LSTimeout = null
-function doLiveCheck(e){
+function captureSubmit(e){
     switch (e.key().string) {
-        case 'KEY_TAB':
         case 'KEY_ENTER':
-            clearTimeout(LSTimeout);
-            checkValidId(e);
-            return;
-        case 'KEY_ESCAPE':
-        case 'KEY_ARROW_LEFT':
-        case 'KEY_ARROW_RIGHT':
-        case 'KEY_HOME':
-        case 'KEY_END':
-        case 'KEY_SHIFT':
-        case 'KEY_ARROW_UP':
-        case 'KEY_ARROW_DOWN':
+            var submit = $('dialog_submit');
+            submit.click();
             return;
         default:
-            clearTimeout(LSTimeout);
-            LSTimeout = setTimeout(checkValidId, 200);
     }
 }
 

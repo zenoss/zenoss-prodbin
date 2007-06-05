@@ -121,6 +121,13 @@ Dialog.Box.prototype = {
         });
         this.moveBox('front');
         connect('dialog_close','onclick',function(){$('dialog').hide()});
+        var d2 = this.lock.acquire(); 
+        d2.addCallback(bind(function() {
+            try {
+                connect('new_id','onkeyup', captureSubmit);
+            } catch(e) { noop(); }
+            this.lock.release();
+        }, this));
         appear(this.dimbg, {duration:0.1, from:0.0, to:0.7});
         showElement(this.box);
         showElement(this.framework);

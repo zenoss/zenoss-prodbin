@@ -1,19 +1,21 @@
-<h2>Reset the manage IP of this device</h2>
-<form action="_"  method="post" tal:attributes="action here/REQUEST/URL1">
-<p>
-Leave blank to use DNS.<br/>
+<h2>Reset IP</h2>
+<p>Are you sure you would like to reset the IP?</p>
 <tal:block tal:condition="python:getattr(here, 'device', None)">
+<p>Leave blank to use DNS.</p>
 <br/>
-<input type="text" name="ip" size="15"
+<span id="new_id_label">IP:&nbsp;</span>
+<input id="new_id" type="text" name="ip" size="15"
       tal:attributes="value python:here.device().getManageIp()"/>
 </tal:block>
-</p>
-<br/>
 <div id="dialog_buttons">
-<input type="submit" name="setManageIp:method" value="OK" />
+<input tal:attributes="id string:dialog_submit;
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form(
+        '${here/absolute_url}', 'proxyForm')"
+        name="setManageIp:method" />
 <input tal:attributes="id string:dialog_cancel;
         type string:button;
         value string:Cancel;
         onclick string:$$('dialog').hide()" />
 </div>
-</form>
