@@ -769,7 +769,6 @@ DeviceZenGrid.prototype = {
         //this.refreshTable(this.lastOffset);
     },
     setDeviceBatchProps: function(method, extraarg) {
-        log(method, extraarg);
         url = this.absurl + '/setDeviceBatchProps';
         var selectstatus = this.selectstatus;
         var goodevids = [];
@@ -787,15 +786,17 @@ DeviceZenGrid.prototype = {
              }
         qs = update(qs, this.lastparams);
         $('dialog').hide();
-        this.showLoading();
-        d = doXHR(url, {queryString:qs}); 
-        d.addCallback(bind(
-            function(r) { 
-                this.buffer.clear();
-                this.refreshTable(this.lastOffset);
-                this.setSelectNone();
-                showMessage(r.responseText);
-            }, this));
+        if (!(selectstatus='none' && goodevids.length==0)) {
+            this.showLoading();
+            d = doXHR(url, {queryString:qs}); 
+            d.addCallback(bind(
+                function(r) { 
+                    this.buffer.clear();
+                    this.refreshTable(this.lastOffset);
+                    this.setSelectNone();
+                    showMessage(r.responseText);
+                }, this));
+        }
     }
 }
 
